@@ -151,5 +151,5 @@ mehreren Bildern. Außerdem prüfen sie vorhandene Ziele, defekte Pakete,
 unsichere Bildverweise, fehlende Abhängigkeiten, Warnungen und den
 `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.2.0. Eine Open-Source-Lizenz wurde noch nicht
+Die aktuelle Version ist 0.3.0. Eine Open-Source-Lizenz wurde noch nicht
 festgelegt.

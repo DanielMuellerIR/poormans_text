@@ -3,18 +3,19 @@
 set -euo pipefail
 
 if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
-    echo "Aufruf: verify_bundle.sh <App-Bundle> [--notarized]" >&2
+    echo "Aufruf: verify_bundle.sh <App-Bundle> [--signed|--notarized]" >&2
     exit 64
 fi
 
 app="$1"
+signed=0
 notarized=0
-if [ "${2:-}" = "--notarized" ]; then
-    notarized=1
-elif [ -n "${2:-}" ]; then
-    echo "Unbekannte Option: $2" >&2
-    exit 64
-fi
+case "${2:-}" in
+    "") ;;
+    --signed) signed=1 ;;
+    --notarized) signed=1; notarized=1 ;;
+    *) echo "Unbekannte Option: $2" >&2; exit 64 ;;
+esac
 
 info_plist="$app/Contents/Info.plist"
 bundled_cli="$app/Contents/Resources/poormans-text"
@@ -24,10 +25,12 @@ bundled_cli="$app/Contents/Resources/poormans-text"
 codesign --verify --deep --strict --verbose=2 "$app"
 codesign --verify --strict --verbose=2 "$bundled_cli"
 
-signature_details="$(codesign -d --verbose=4 "$app" 2>&1)"
-if ! printf '%s\n' "$signature_details" | grep -q 'flags=.*runtime'; then
-    echo "Hardened Runtime fehlt in der App-Signatur." >&2
-    exit 65
+if [ "$signed" -eq 1 ]; then
+    signature_details="$(codesign -d --verbose=4 "$app" 2>&1)"
+    if ! printf '%s\n' "$signature_details" | grep -q 'flags=.*runtime'; then
+        echo "Hardened Runtime fehlt in der App-Signatur." >&2
+        exit 65
+    fi
 fi
 
 version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$info_plist")"

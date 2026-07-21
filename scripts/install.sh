@@ -61,7 +61,7 @@ refresh_root_artifacts() {
 }
 
 if [ "$notarize" -eq 0 ]; then
-    "$script_directory/verify_bundle.sh" "$app"
+    "$script_directory/verify_bundle.sh" "$app" --signed
     refresh_root_artifacts
     version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$app/Contents/Info.plist")"
     echo "BUILD OK: $root_app ($version, Developer ID, nicht notarisiert)"
@@ -135,11 +135,14 @@ if [ ! -d "$cli_directory" ] && [ ! -w "$(dirname "$cli_directory")" ]; then
     needs_admin=1
 fi
 if [ "$needs_admin" -eq 1 ]; then
-    if [ ! -t 0 ]; then
+    if sudo -n true 2>/dev/null; then
+        : # Ein vorhandener sudo-Zeitstempel erlaubt auch einen headless Lauf.
+    elif [ ! -t 0 ]; then
         echo "Installation benötigt Administratorrechte und muss in einem Terminal laufen." >&2
         exit 77
+    else
+        sudo -v
     fi
-    sudo -v
 fi
 
 if pgrep -x PoorMansTextApp >/dev/null 2>&1; then

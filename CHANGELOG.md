@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.3.0 - 2026-07-21
+
+- Add a root build command that produces visible app and CLI artifacts.
+- Embed the same CLI binary in the app bundle for a consistent installation.
+- Add Developer ID signing, hardened runtime, notarization, stapling, Gatekeeper
+  verification, and guarded installation to `/Applications`.
+- Install the bundled CLI on the terminal path without replacing unrelated files.
+- Document reusable conversion boundaries, build and test procedures, and the
+  staged plan for RTF, DOCX, ODT, DOC, images, PDF, ODM, and later Fastra use.
+
 ## 0.2.0 - 2026-07-21
 
 - Write manual and empty rich-text line breaks using two trailing spaces.

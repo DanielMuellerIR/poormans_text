@@ -148,4 +148,4 @@ and multiple images. It also covers output collisions, malformed packages,
 unsafe image references, missing dependencies, warnings, and the app's
 `NSItemProvider` drop path.
 
-The current version is 0.2.0. No open-source license has been selected yet.
+The current version is 0.3.0. No open-source license has been selected yet.

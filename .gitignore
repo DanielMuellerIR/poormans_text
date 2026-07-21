@@ -2,3 +2,5 @@
 .build/
 .swiftpm/
 .commit-lock
+/Poor Man's Text.app/
+/poormans-text

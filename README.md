@@ -64,12 +64,16 @@ standard input.
 
 ## macOS app
 
-Build the local app bundle and open it:
+Build the app and CLI from the repository root:
 
 ```sh
-scripts/build_app.sh
-open ".build/app/Poor Man's Text.app"
+./build.sh
+open "Poor Man's Text.app"
 ```
+
+The build also places `Poor Man's Text.app` and `poormans-text` directly in the
+repository root. These local artifacts are ad-hoc signed and must not be copied
+to `/Applications`.
 
 Drop an RTFD package into the window, drop it onto the app, or choose one from
 the open panel. The app shows the conversion result and can reveal the generated
@@ -77,6 +81,22 @@ Markdown in Finder.
 
 The generated bundle is ad-hoc signed for local testing and remains under
 `.build/app/`. It is not a notarized distribution build.
+
+## Signed installation
+
+The complete installer builds the app and CLI in release mode, signs both with
+Developer ID and the hardened runtime, submits the app to Apple for
+notarization, staples and verifies the ticket, and only then installs it:
+
+```sh
+NOTARY_PROFILE=<profile> ./install.sh
+```
+
+The app is installed as `/Applications/Poor Man's Text.app`. The exact same CLI
+embedded in the bundle becomes available on the terminal path through
+`/usr/local/bin/poormans-text`. An unrelated existing target is never
+overwritten. The faster `./install.sh --no-notarize` path keeps the signed but
+unnotarized artifacts in the repository root.
 
 ## Conversion pipeline
 
@@ -113,10 +133,14 @@ Expected losses or approximations:
 ## Development
 
 ```sh
-swift build
+./build.sh
 swift test
-scripts/build_app.sh
+./install.sh --no-notarize
 ```
+
+See [docs/BUILD-AND-TEST.md](docs/BUILD-AND-TEST.md) for build, signing, and
+installation details. Planned import formats—RTF, DOCX, ODT, DOC, images, PDF,
+and ODM—are tracked in [ROADMAP.md](ROADMAP.md).
 
 The test suite creates real temporary Cocoa RTFD packages with formatting,
 colors, empty lines, links, lists, Unicode filenames, repeated attachment names,

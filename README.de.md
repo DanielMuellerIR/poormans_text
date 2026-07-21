@@ -66,12 +66,16 @@ Verzeichnis und kann deshalb nicht über die Standardeingabe übergeben werden.
 
 ## macOS-App
 
-Das lokale App-Bundle lässt sich so bauen und öffnen:
+App und CLI lassen sich vom Repo-Root bauen:
 
 ```sh
-scripts/build_app.sh
-open ".build/app/Poor Man's Text.app"
+./build.sh
+open "Poor Man's Text.app"
 ```
+
+Der Build legt `Poor Man's Text.app` und `poormans-text` zusätzlich direkt im
+Repo-Root ab. Diese lokalen Artefakte sind ad-hoc-signiert und nicht für
+`/Applications` bestimmt.
 
 Ein RTFD-Paket kann in das Fenster oder auf die App gezogen oder über den
 Dateidialog ausgewählt werden. Die App zeigt das Ergebnis und kann die erzeugte
@@ -79,6 +83,22 @@ Markdown-Datei im Finder anzeigen.
 
 Das erzeugte Bundle wird für lokale Tests ad-hoc signiert und bleibt unter
 `.build/app/`. Es ist kein notarisierter Distributions-Build.
+
+## Signierte Installation
+
+Der vollständige Installer baut App und CLI als Release, signiert beide mit
+Developer ID und Hardened Runtime, notarisiert die App bei Apple, stapelt und
+prüft das Ticket und installiert erst danach:
+
+```sh
+NOTARY_PROFILE=<profil> ./install.sh
+```
+
+Die App landet unter `/Applications/Poor Man's Text.app`. Die exakt gleiche,
+ins Bundle eingebettete CLI wird über `/usr/local/bin/poormans-text` im
+Terminalpfad verfügbar. Ein fremdes vorhandenes Ziel wird nicht überschrieben.
+Der schnelle Testpfad `./install.sh --no-notarize` belässt die nur signierten
+Artefakte zwingend im Repo-Root.
 
 ## Konvertierung
 
@@ -116,10 +136,14 @@ Erwartbare Verluste oder Annäherungen:
 ## Entwicklung
 
 ```sh
-swift build
+./build.sh
 swift test
-scripts/build_app.sh
+./install.sh --no-notarize
 ```
+
+Build-, Signatur- und Installationsdetails stehen in
+[docs/BUILD-AND-TEST.md](docs/BUILD-AND-TEST.md). Die geplanten Importformate
+RTF, DOCX, ODT, DOC, Bilder, PDF und ODM stehen in [ROADMAP.md](ROADMAP.md).
 
 Die Tests erzeugen echte temporäre Cocoa-RTFD-Pakete mit Formatierungen, Farben,
 Leerzeilen, Links, Listen, Unicode-Dateinamen, wiederholten Anhangsnamen und

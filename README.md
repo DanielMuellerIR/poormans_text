@@ -46,7 +46,11 @@ standard input.
 ```sh
 swift build
 swift test
+scripts/build_app.sh
 ```
+
+The app bundle is generated at `.build/app/Poor Man's Text.app`. It is ad-hoc
+signed for local testing and is not a notarized distribution build.
 
 The first development release is version 0.1.0. No license has been selected
 yet.

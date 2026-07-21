@@ -16,6 +16,10 @@ let package = Package(
             name: "poormans-text",
             targets: ["PoorMansTextCLI"]
         ),
+        .executable(
+            name: "PoorMansTextApp",
+            targets: ["PoorMansTextApp"]
+        ),
     ],
     targets: [
         .target(
@@ -25,6 +29,10 @@ let package = Package(
             name: "PoorMansTextCLI",
             dependencies: ["PoorMansTextCore"]
         ),
+        .executableTarget(
+            name: "PoorMansTextApp",
+            dependencies: ["PoorMansTextCore"]
+        ),
         .testTarget(
             name: "PoorMansTextCoreTests",
             dependencies: ["PoorMansTextCore"]
@@ -32,4 +40,3 @@ let package = Package(
     ],
     swiftLanguageModes: [.v6]
 )
-

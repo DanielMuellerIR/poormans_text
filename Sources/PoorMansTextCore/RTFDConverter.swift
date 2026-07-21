@@ -106,6 +106,14 @@ public struct RTFDConverter: Sendable {
         }
 
         do {
+            let markdown = try String(contentsOf: stagedMarkdown, encoding: .utf8)
+            let normalizedMarkdown = MarkdownNormalizer.normalize(markdown)
+            try Data(normalizedMarkdown.utf8).write(to: stagedMarkdown, options: .atomic)
+        } catch {
+            throw ConversionError.fileSystemFailure(error.localizedDescription)
+        }
+
+        do {
             try fileManager.removeItem(at: normalizedHTML)
             try fileManager.moveItem(at: stagedResult, to: outputDirectory)
         } catch {

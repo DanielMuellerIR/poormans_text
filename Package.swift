@@ -31,11 +31,15 @@ let package = Package(
         ),
         .executableTarget(
             name: "PoorMansTextApp",
+            dependencies: ["PoorMansTextAppSupport", "PoorMansTextCore"]
+        ),
+        .target(
+            name: "PoorMansTextAppSupport",
             dependencies: ["PoorMansTextCore"]
         ),
         .testTarget(
             name: "PoorMansTextCoreTests",
-            dependencies: ["PoorMansTextCore"]
+            dependencies: ["PoorMansTextAppSupport", "PoorMansTextCore"]
         ),
     ],
     swiftLanguageModes: [.v6]

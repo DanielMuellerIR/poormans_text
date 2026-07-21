@@ -1,3 +1,4 @@
+import PoorMansTextAppSupport
 import SwiftUI
 
 @main

@@ -1,5 +1,7 @@
 import PoorMansTextCore
+import PoorMansTextAppSupport
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct ContentView: View {
     @EnvironmentObject private var model: AppModel
@@ -63,14 +65,11 @@ struct ContentView: View {
                 )
         )
         .animation(.easeInOut(duration: 0.16), value: model.isDropTargeted)
-        .dropDestination(for: URL.self) { urls, _ in
-            guard let firstURL = urls.first else {
-                return false
-            }
-            model.convert(firstURL)
-            return true
-        } isTargeted: { targeted in
-            model.isDropTargeted = targeted
+        .onDrop(
+            of: [UTType.fileURL.identifier],
+            isTargeted: $model.isDropTargeted
+        ) { providers in
+            model.acceptDrop(providers)
         }
     }
 

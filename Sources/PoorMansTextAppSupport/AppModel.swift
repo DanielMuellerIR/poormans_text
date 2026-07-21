@@ -4,25 +4,27 @@ import PoorMansTextCore
 import UniformTypeIdentifiers
 
 @MainActor
-final class AppModel: ObservableObject {
-    enum State {
+public final class AppModel: ObservableObject {
+    public enum State {
         case idle
         case converting(URL)
         case succeeded(ConversionResult)
         case failed(input: URL?, message: String)
     }
 
-    @Published private(set) var state: State = .idle
-    @Published var isDropTargeted = false
+    @Published public private(set) var state: State = .idle
+    @Published public var isDropTargeted = false
 
-    var isConverting: Bool {
+    public var isConverting: Bool {
         if case .converting = state {
             return true
         }
         return false
     }
 
-    func convert(_ inputURL: URL) {
+    public init() {}
+
+    public func convert(_ inputURL: URL) {
         guard !isConverting else {
             return
         }
@@ -50,7 +52,28 @@ final class AppModel: ObservableObject {
         }
     }
 
-    func chooseDocument() {
+    public func acceptDrop(_ providers: [NSItemProvider]) -> Bool {
+        guard let provider = providers.first(where: {
+            $0.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier)
+        }) else {
+            return false
+        }
+
+        // Finder liefert Pakete als explizite Datei-URL. Diese Darstellung ist
+        // auf macOS verlässlicher als die allgemeine SwiftUI-URL-Übertragung.
+        provider.loadObject(ofClass: NSURL.self) { [weak self] object, _ in
+            guard let nsURL = object as? NSURL else {
+                return
+            }
+            let url = nsURL as URL
+            Task { @MainActor in
+                self?.convert(url)
+            }
+        }
+        return true
+    }
+
+    public func chooseDocument() {
         let panel = NSOpenPanel()
         panel.title = "Choose an RTFD Document"
         panel.prompt = "Convert"
@@ -65,14 +88,14 @@ final class AppModel: ObservableObject {
         convert(url)
     }
 
-    func revealResult() {
+    public func revealResult() {
         guard case .succeeded(let result) = state else {
             return
         }
         NSWorkspace.shared.activateFileViewerSelecting([result.markdownFile])
     }
 
-    func reset() {
+    public func reset() {
         guard !isConverting else {
             return
         }

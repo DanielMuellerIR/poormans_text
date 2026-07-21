@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.2.0 - 2026-07-21
+
+- Write manual and empty rich-text line breaks using two trailing spaces.
+- Remove Pandoc escape noise from typed bullets, list markers, and separators.
+- Join adjacent plain-text lines with Markdown hard breaks where safe.
+- Preserve chromatic foreground text using Fastra-compatible `==text==` markers.
+- Keep grayscale text unmarked and retain every source paragraph and attachment.
+
 ## 0.1.0 - 2026-07-21
 
 - Start the Swift package with a shared core and command-line interface.

@@ -11,7 +11,7 @@ Das Projekt stellt zwei Oberflächen für denselben Konvertierungskern bereit:
 
 Die Konvertierung ist bewusst verlustbehaftet. Markdown kann Dokumentstruktur,
 Links, einfache Hervorhebungen, Listen und Bilder bewahren, aber nicht jede
-Schrift, Farbe, Anordnung oder TextKit-spezifische Eigenschaft.
+Schrift, Anordnung oder TextKit-spezifische Eigenschaft.
 
 ## Ausgabe
 
@@ -29,6 +29,11 @@ Dokument-markdown/
 Die Bildverweise in `Dokument.md` sind relativ und stehen an derselben
 Textposition wie im Ausgangsdokument. Vorhandene Ausgabeordner werden nie
 überschrieben.
+
+Manuelle Zeilenumbrüche enden im Markdown mit zwei Leerzeichen. Chromatischer
+Text wird als `==Text==` markiert. Diese von Fastra unterstützte Schreibweise
+ist eine verbreitete Markdown-Erweiterung, gehört aber nicht zum GFM-Standard;
+der konkrete Farbwert bleibt dabei nicht erhalten.
 
 ## Voraussetzungen
 
@@ -92,15 +97,16 @@ Warnungen.
 
 In der Regel erhalten:
 
-- Absätze und Zeilenumbrüche
+- Absätze und manuelle Zeilenumbrüche mit zwei Leerzeichen
 - fette und kursive Schrift
+- chromatischer Text als `==Text==`-Markierung
 - Hyperlinks
 - einfache nummerierte Listen und Aufzählungen
 - Reihenfolge und relative Verweise der Bilder
 
 Erwartbare Verluste oder Annäherungen:
 
-- Schriftfamilien, Farben und genaue Schriftgrößen
+- Schriftfamilien, Grautöne, konkrete Farbwerte und genaue Schriftgrößen
 - genaue Bildabmessungen
 - Seitengeometrie und Absatzausrichtung
 - komplexe Tabellen, Textfelder und mehrspaltige Anordnungen
@@ -115,10 +121,11 @@ swift test
 scripts/build_app.sh
 ```
 
-Die Tests erzeugen echte temporäre Cocoa-RTFD-Pakete mit Formatierungen, Links,
-Listen, Unicode-Dateinamen, wiederholten Anhangsnamen und mehreren Bildern.
-Außerdem prüfen sie vorhandene Ziele, defekte Pakete, unsichere Bildverweise,
-fehlende Abhängigkeiten, Warnungen und den `NSItemProvider`-Drop-Pfad der App.
+Die Tests erzeugen echte temporäre Cocoa-RTFD-Pakete mit Formatierungen, Farben,
+Leerzeilen, Links, Listen, Unicode-Dateinamen, wiederholten Anhangsnamen und
+mehreren Bildern. Außerdem prüfen sie vorhandene Ziele, defekte Pakete,
+unsichere Bildverweise, fehlende Abhängigkeiten, Warnungen und den
+`NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.1.0. Eine Open-Source-Lizenz wurde noch nicht
+Die aktuelle Version ist 0.2.0. Eine Open-Source-Lizenz wurde noch nicht
 festgelegt.

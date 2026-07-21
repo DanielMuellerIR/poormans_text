@@ -11,7 +11,7 @@ The project provides two interfaces over the same conversion core:
 - a native macOS app for opening or dropping RTFD documents
 
 Conversion is deliberately lossy. Markdown can preserve document structure,
-links, simple emphasis, lists, and images, but not every font, color, layout, or
+links, simple emphasis, lists, and images, but not every font, layout, or
 TextKit-specific attribute.
 
 ## Output
@@ -29,6 +29,10 @@ Document-markdown/
 
 Image links in `Document.md` are relative and retain their position in the text.
 Existing output directories are never overwritten.
+
+Manual line breaks end with two spaces in the generated Markdown. Chromatic
+text is marked as `==text==`. Fastra supports this common Markdown extension,
+but it is not part of standard GFM and does not retain the exact color value.
 
 ## Requirements
 
@@ -90,15 +94,16 @@ generated Markdown produce warnings.
 
 Typically preserved:
 
-- paragraphs and line breaks
+- paragraphs and manual line breaks using two trailing spaces
 - bold and italic text
+- chromatic text using `==text==` markers
 - hyperlinks
 - simple ordered and unordered lists
 - image order and relative image references
 
 Expected losses or approximations:
 
-- font families, colors, and exact font sizes
+- font families, grayscale and exact color values, and exact font sizes
 - exact image dimensions
 - page geometry and paragraph alignment
 - complex tables, text boxes, and multi-column layouts
@@ -114,8 +119,9 @@ scripts/build_app.sh
 ```
 
 The test suite creates real temporary Cocoa RTFD packages with formatting,
-links, lists, Unicode filenames, repeated attachment names, and multiple images.
-It also covers output collisions, malformed packages, unsafe image references,
-missing dependencies, warnings, and the app's `NSItemProvider` drop path.
+colors, empty lines, links, lists, Unicode filenames, repeated attachment names,
+and multiple images. It also covers output collisions, malformed packages,
+unsafe image references, missing dependencies, warnings, and the app's
+`NSItemProvider` drop path.
 
-The current version is 0.1.0. No open-source license has been selected yet.
+The current version is 0.2.0. No open-source license has been selected yet.

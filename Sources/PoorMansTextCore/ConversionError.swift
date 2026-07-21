@@ -3,8 +3,8 @@ import Foundation
 /// Fehler, die Aufrufer des Konvertierungskerns gezielt behandeln können.
 public enum ConversionError: LocalizedError, Sendable {
     case inputDoesNotExist(URL)
-    case inputIsNotRTFD(URL)
-    case invalidRTFD(URL, reason: String)
+    case inputIsNotRichText(URL)
+    case invalidRichText(URL, reason: String)
     case outputAlreadyExists(URL)
     case outputParentDoesNotExist(URL)
     case outputInsideInput(URL)
@@ -18,16 +18,16 @@ public enum ConversionError: LocalizedError, Sendable {
         switch self {
         case .inputDoesNotExist(let url):
             "Input does not exist: \(url.path)"
-        case .inputIsNotRTFD(let url):
-            "Input is not an RTFD package: \(url.path)"
-        case .invalidRTFD(let url, let reason):
-            "Invalid RTFD package at \(url.path): \(reason)"
+        case .inputIsNotRichText(let url):
+            "Input is not an RTF or RTFD document: \(url.path)"
+        case .invalidRichText(let url, let reason):
+            "Invalid rich-text document at \(url.path): \(reason)"
         case .outputAlreadyExists(let url):
             "Output already exists and will not be overwritten: \(url.path)"
         case .outputParentDoesNotExist(let url):
             "The output parent directory does not exist: \(url.path)"
         case .outputInsideInput(let url):
-            "The output directory must not be inside the source RTFD package: \(url.path)"
+            "The output directory must not be inside the source document: \(url.path)"
         case .pandocNotFound:
             "Pandoc was not found. Install Pandoc or pass --pandoc PATH."
         case .unsafeImageReference(let reference):

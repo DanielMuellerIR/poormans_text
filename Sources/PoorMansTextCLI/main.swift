@@ -33,9 +33,9 @@ private struct JSONResponse: Encodable {
 }
 
 private let usage = """
-Usage: poormans-text [options] INPUT.rtfd
+Usage: poormans-text [options] INPUT
 
-Convert a macOS RTFD package into a new folder containing Markdown and images.
+Convert an RTF or macOS RTFD document into a new folder containing Markdown and images.
 
 Options:
   -o, --output DIRECTORY  Set the new output directory.
@@ -117,7 +117,7 @@ private enum CLIArgumentError: LocalizedError {
         case .unknownOption(let option):
             "Unknown option: \(option)"
         case .tooManyInputs:
-            "Only one RTFD input can be converted at a time."
+            "Only one RTF or RTFD input can be converted at a time."
         }
     }
 }
@@ -130,7 +130,7 @@ private func exitCode(for error: Error) -> CLIExitCode {
     switch conversionError {
     case .inputDoesNotExist:
         return .noInput
-    case .inputIsNotRTFD, .invalidRTFD, .unsafeImageReference:
+    case .inputIsNotRichText, .invalidRichText, .unsafeImageReference:
         return .dataError
     case .pandocNotFound:
         return .unavailable
@@ -170,10 +170,10 @@ do {
     }
 
     guard let inputURL = arguments.inputURL else {
-        throw CLIArgumentError.missingValue("INPUT.rtfd")
+        throw CLIArgumentError.missingValue("INPUT")
     }
 
-    let result = try RTFDConverter().convert(
+    let result = try RichTextConverter().convert(
         inputURL: inputURL,
         outputDirectory: arguments.outputURL,
         pandocExecutable: arguments.pandocURL

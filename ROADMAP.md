@@ -6,8 +6,9 @@ dieser Datei entfernt und in [CHANGELOG.md](CHANGELOG.md) festgehalten.
 ## Zielarchitektur vor weiteren Formaten
 
 Der vorhandene `PoorMansTextCore` ist bereits unabhängig von SwiftUI und wird von
-App und CLI gemeinsam benutzt. Vor dem zweiten Konverter wird daraus eine kleine
-formatneutrale API gemäß [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md):
+App und CLI gemeinsam benutzt. RTF und RTFD teilen bereits die sichere Ausgabe-
+und Asset-Strecke. Vor DOCX, ODT oder einem weiteren Importformat wird daraus eine
+kleine formatneutrale API gemäß [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md):
 
 - Eingabeformat sicher erkennen statt nur die Dateiendung zu glauben.
 - Einheitliche Anfrage, Optionen, Fortschritt, Warnungen und Ergebnisstruktur.
@@ -30,30 +31,28 @@ keinen zusätzlichen OCR-Dienst.
 
 | Format | Geplanter Importweg | Aufwand | Erwartbare Qualität | Priorität |
 |---|---|---:|---|---:|
-| RTF | Pandoc direkt mit Medienextraktion; Cocoa-HTML als Vergleich/Fallback | klein | ähnlich RTFD, eingebettete Bilder separat prüfen | 1 |
-| DOCX | Pandoc direkt mit `--extract-media`; Änderungsmodus explizit festlegen | mittel | gute Struktur, Bilder, Listen und Tabellen | 2 |
-| ODT | Pandoc direkt mit Medienextraktion | klein–mittel | meist ähnlich DOCX | 2 |
-| DOC | `textutil` nach HTML, danach vorhandene HTML-/Pandoc-Pipeline | mittel | abhängig vom macOS-Importer; alte Sonderobjekte verlustreich | 3 |
-| Bilder | Original als Asset plus lokales Vision-OCR in Leserichtung | mittel | Text gut bei sauberen Scans, Layout nur angenähert | 4 |
-| PDF | PDFKit-Text zuerst, seitenweises Vision-OCR als Fallback | groß | Inhalt brauchbar, Layout/Spalten/Tabellen deutlich verlustbehaftet | 5 |
-| ODM | OpenDocument-Master samt verlinkten Teildokumenten sicher auflösen | groß | nur mit vollständigem lokalem Dokumentverbund zuverlässig | 6 |
+| DOCX | Pandoc direkt mit `--extract-media`; Änderungsmodus explizit festlegen | mittel | gute Struktur, Bilder, Listen und Tabellen | 1 |
+| ODT | Pandoc direkt mit Medienextraktion | klein–mittel | meist ähnlich DOCX | 1 |
+| DOC | `textutil` nach HTML, danach vorhandene HTML-/Pandoc-Pipeline | mittel | abhängig vom macOS-Importer; alte Sonderobjekte verlustreich | 2 |
+| Bilder | Original als Asset plus lokales Vision-OCR in Leserichtung | mittel | Text gut bei sauberen Scans, Layout nur angenähert | 3 |
+| PDF | PDFKit-Text zuerst, seitenweises Vision-OCR als Fallback | groß | Inhalt brauchbar, Layout/Spalten/Tabellen deutlich verlustbehaftet | 4 |
+| ODM | OpenDocument-Master samt verlinkten Teildokumenten sicher auflösen | groß | nur mit vollständigem lokalem Dokumentverbund zuverlässig | 5 |
 
 Falls mit „ODM“ eigentlich „ODT“ gemeint war, ist es bereits in Priorität 2
 abgedeckt. Echtes `.odm` bleibt separat: Ein Masterdokument kann lokale oder
 fehlende/externe Teildokumente referenzieren und darf diese nicht still laden.
 
-## Etappe 1 — RTF und formatneutrale Engine
+## Etappe 1 — formatneutrale Engine
 
 - `InputFormat`, `ConversionRequest` und `DocumentConverter` einführen.
-- Bestehenden RTFD-Konverter als ersten Adapter weiterführen.
-- RTF-Adapter mit echten Fixtures für Fett/Kursiv, Farben, Leerzeilen, Listen,
-  Links und mindestens ein eingebettetes Bild bauen.
-- Pandoc-Direktweg und `textutil`-HTML anhand derselben Fixtures vergleichen;
-  Expected Output nie still regenerieren.
-- CLI und App auf `.rtf` erweitern, ohne Formatlogik in deren Targets zu legen.
+- Bestehenden Rich-Text-Konverter als Adapter für RTFD und RTF weiterführen.
+- Formaterkennung und Veröffentlichung aus dem Rich-Text-Adapter herausziehen,
+  ohne dessen geprüfte Cocoa- und Pandoc-Importwege zusammenzulegen.
+- CLI und App auf die formatneutrale Anfrage umstellen, ohne Formatlogik in deren
+  Targets zu legen.
 
-Freigabekriterium: kein Text- oder Bildverlust in den Fixtures, dieselben
-atomaren Kollisionsregeln wie bei RTFD und unveränderte JSON-Exit-Semantik.
+Freigabekriterium: unveränderte RTF-/RTFD-Fixtures, dieselben atomaren
+Kollisionsregeln und unveränderte JSON-Exit-Semantik.
 
 ## Etappe 2 — DOCX und ODT
 

@@ -2,7 +2,10 @@ import Foundation
 
 /// Bereinigt typische Pandoc-Artefakte, ohne den eigentlichen Inhalt zu verändern.
 enum MarkdownNormalizer {
-    static func normalize(_ markdown: String) -> String {
+    static func normalize(
+        _ markdown: String,
+        joinsAdjacentPlainLines: Bool = true
+    ) -> String {
         let unified = markdown.replacingOccurrences(of: "\r\n", with: "\n")
         let keepsFinalNewline = unified.hasSuffix("\n")
         var lines = unified.components(separatedBy: "\n")
@@ -35,7 +38,10 @@ enum MarkdownNormalizer {
             }
         }
 
-        let compacted = compactPandocParagraphSpacing(transformed)
+        let compacted = compactPandocParagraphSpacing(
+            transformed,
+            joinsAdjacentPlainLines: joinsAdjacentPlainLines
+        )
         let result = compacted.joined(separator: "\n")
         return keepsFinalNewline ? result + "\n" : result
     }
@@ -104,7 +110,10 @@ enum MarkdownNormalizer {
         return indent + body.dropFirst().description
     }
 
-    private static func compactPandocParagraphSpacing(_ lines: [String]) -> [String] {
+    private static func compactPandocParagraphSpacing(
+        _ lines: [String],
+        joinsAdjacentPlainLines: Bool
+    ) -> [String] {
         var result = [String]()
         result.reserveCapacity(lines.count)
 
@@ -124,7 +133,8 @@ enum MarkdownNormalizer {
                next.trimmingCharacters(in: .whitespaces) == "-" {
                 continue
             }
-            if shouldJoinWithHardBreak(previous: previous, next: next) {
+            if joinsAdjacentPlainLines,
+               shouldJoinWithHardBreak(previous: previous, next: next) {
                 result[result.count - 1] = previous.trimmingTrailingSpaces() + "  "
                 continue
             }

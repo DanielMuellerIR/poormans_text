@@ -42,7 +42,7 @@ enum HTMLImageRewriter {
             var isDirectory: ObjCBool = false
             guard fileManager.fileExists(atPath: sourceURL.path, isDirectory: &isDirectory),
                   !isDirectory.boolValue else {
-                throw ConversionError.invalidRTFD(
+                throw ConversionError.invalidRichText(
                     resourceDirectory,
                     reason: "generated image resource is missing: \(sourceName)"
                 )

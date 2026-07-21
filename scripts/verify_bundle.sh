@@ -25,12 +25,28 @@ bundled_cli="$app/Contents/Resources/poormans-text"
 codesign --verify --deep --strict --verbose=2 "$app"
 codesign --verify --strict --verbose=2 "$bundled_cli"
 
-if [ "$signed" -eq 1 ]; then
-    signature_details="$(codesign -d --verbose=4 "$app" 2>&1)"
+verify_distribution_signature() {
+    local executable="$1"
+    local label="$2"
+    local signature_details
+    signature_details="$(codesign -d --verbose=4 "$executable" 2>&1)"
     if ! printf '%s\n' "$signature_details" | grep -q 'flags=.*runtime'; then
-        echo "Hardened Runtime fehlt in der App-Signatur." >&2
+        echo "Hardened Runtime fehlt in der $label-Signatur." >&2
         exit 65
     fi
+    if ! printf '%s\n' "$signature_details" | grep -q '^Authority=Developer ID Application:'; then
+        echo "Developer-ID-Application-Autorität fehlt in der $label-Signatur." >&2
+        exit 65
+    fi
+    if ! printf '%s\n' "$signature_details" | grep -q '^Timestamp='; then
+        echo "Sicherer Zeitstempel fehlt in der $label-Signatur." >&2
+        exit 65
+    fi
+}
+
+if [ "$signed" -eq 1 ]; then
+    verify_distribution_signature "$app" "App"
+    verify_distribution_signature "$bundled_cli" "CLI"
 fi
 
 version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$info_plist")"

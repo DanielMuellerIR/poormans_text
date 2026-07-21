@@ -5,19 +5,20 @@ derselbe Kern von CLI, eigener App und später Fastra benutzt werden kann.
 
 ## Heutige Modulgrenzen
 
-- `PoorMansTextCore`: Konvertierung, temporäre Arbeitsbereiche, Assets,
+- `PoorMansTextCore`: RTF-/RTFD-Konvertierung, temporäre Arbeitsbereiche, Assets,
   Pandoc-/`textutil`-Aufrufe, Normalisierung, Warnungen und Ergebnisobjekte.
 - `PoorMansTextAppSupport`: App-Zustand, Dateiauswahl und Drop-Übergabe.
 - `PoorMansTextCLI`: Argumente, Exit-Codes und JSON-/Textausgabe.
 - `PoorMansTextApp`: ausschließlich SwiftUI-Darstellung.
 
 Der Kern ist GUI-frei, aber macOS-spezifisch: Die RTFD-Farbübernahme benutzt
-AppKit. Das ist für Fastra kompatibel, soll bei weiteren Formaten jedoch nicht
-die formatneutrale API bestimmen.
+AppKit. RTF läuft wegen standardkonform eingebetteter Bilder direkt über Pandoc;
+ein Cocoa-Roundtrip würde diese Bilder verwerfen. Das ist für Fastra kompatibel,
+soll bei weiteren Formaten jedoch nicht die formatneutrale API bestimmen.
 
 ## Ziel mit mehreren Importformaten
 
-Die erste Format-Erweiterung führt folgende Verantwortungen ein:
+Vor dem nächsten Importformat werden folgende Verantwortungen eingeführt:
 
 ```text
 App / CLI / Fastra
@@ -25,7 +26,7 @@ App / CLI / Fastra
         ▼
 ConversionEngine ── Format erkennen, Adapter wählen, atomar veröffentlichen
         │
-        ├── RichTextAdapter      RTFD, RTF, Legacy-DOC über macOS-Textsystem
+        ├── RichTextAdapter      RTFD über AppKit, RTF über Pandoc
         ├── PandocAdapter        DOCX, ODT und extrahierte Medien
         ├── ImageOCRAdapter      ImageIO + Vision
         └── PDFAdapter           PDFKit + optional Vision
@@ -35,7 +36,7 @@ Die Typen für Anfrage, Format, Warnung und Ergebnis sollen nur Foundation
 benötigen. AppKit, Vision, PDFKit und externe Prozesse bleiben hinter Adaptern.
 Ein späterer Split in ein formatneutrales Library-Target und ein macOS-Import-
 Target ist vorgesehen, sobald der zweite Adapter implementiert wird; ein
-vorsorglicher Umbau ohne zweiten Anwendungsfall würde heute nur API-Ballast
+vorsorglicher Umbau vor dem nächsten Containerformat würde heute nur API-Ballast
 erzeugen.
 
 ## Vertrag für aufrufende Apps
@@ -57,7 +58,8 @@ schreiben.
 
 ## Testgrenzen
 
-- Adaptertests verwenden echte temporär erzeugte Dokumente.
+- Adaptertests verwenden echte temporär erzeugte RTF- und RTFD-Dokumente und
+  vergleichen eingebettete Bilddaten unabhängig.
 - Engine-Tests prüfen Formaterkennung, Auswahl, Kollisionsschutz und atomare
   Veröffentlichung unabhängig von SwiftUI.
 - CLI-Tests prüfen Exit-Codes und JSON; App-Tests prüfen nur Übergabe und Zustand.

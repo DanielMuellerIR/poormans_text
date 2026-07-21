@@ -10,8 +10,10 @@ Vom Repo-Root:
 swift test
 ```
 
-`build.sh` ist ein dünner Wrapper für `scripts/build_app.sh`. Ein erfolgreicher
-Lauf legt zwei gitignorierte Artefakte sichtbar im Repo-Root ab:
+`build.sh` ist ein dünner Wrapper für `scripts/build_app.sh`. Release-Builds sind
+Universal Binaries für `arm64` und `x86_64`; Debug-Builds verwenden die lokale
+Architektur. Ein erfolgreicher Lauf legt zwei gitignorierte Artefakte sichtbar
+im Repo-Root ab:
 
 - `Poor Man's Text.app`
 - `poormans-text`
@@ -53,9 +55,17 @@ Der Vollpfad führt in dieser Reihenfolge aus:
 2. Developer-ID-Signatur von innen nach außen, Hardened Runtime und Zeitstempel.
 3. ZIP-Einreichung bei Apple mit `notarytool --wait`.
 4. Ticket stapeln; Codesign, Stapler und Gatekeeper prüfen.
-5. App nach `/Applications/Poor Man's Text.app` kopieren und erneut prüfen.
-6. `/usr/local/bin/poormans-text` auf die exakt gleiche eingebettete CLI
+5. Signiertes DMG mit der gestapelten App und einem `/Applications`-Link bauen.
+6. DMG separat notarisieren, stapeln, per Gatekeeper prüfen, headless mounten und
+   eine SHA-256-Datei erzeugen.
+7. Erst danach die App nach `/Applications/Poor Man's Text.app` kopieren und
+   erneut prüfen.
+8. `/usr/local/bin/poormans-text` auf die exakt gleiche eingebettete CLI
    verlinken und die Versionsgleichheit prüfen.
+
+Der Lauf erzeugt zusätzlich `Poor-Mans-Text-<Version>.dmg` und
+`Poor-Mans-Text-<Version>.dmg.sha256` im Repo-Root. Nach manueller Installation
+aus dem DMG bietet die App die CLI-Einrichtung beim ersten Start optional an.
 
 Ein fremdes vorhandenes App- oder CLI-Ziel wird nicht überschrieben. Falls
 `/usr/local/bin` nicht beschreibbar ist, fordert der Installer im Terminal
@@ -72,7 +82,8 @@ swift test
 scripts/verify_bundle.sh "Poor Man's Text.app"
 ```
 
-Zusätzlich ein echtes RTFD über die gebaute Root-CLI konvertieren, Bilder per
-Hash vergleichen und die App als Bundle ohne Fokuswechsel starten. Für einen
-installierten Build müssen `stapler`, `spctl` und `codesign` am tatsächlichen
-Ziel erfolgreich sein; ein grüner SwiftPM-Build allein genügt nicht.
+Zusätzlich je ein echtes RTF und RTFD über die gebaute Root-CLI konvertieren,
+Bilder per Hash vergleichen und die App als Bundle ohne Fokuswechsel starten.
+Für einen installierten Build und das DMG müssen `stapler`, `spctl`, `codesign`
+und `hdiutil verify` am tatsächlichen Ziel erfolgreich sein; ein grüner
+SwiftPM-Build allein genügt nicht.

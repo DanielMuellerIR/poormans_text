@@ -28,10 +28,10 @@ public final class AppModel: ObservableObject {
         guard !isConverting else {
             return
         }
-        guard inputURL.pathExtension.lowercased() == "rtfd" else {
+        guard ["rtf", "rtfd"].contains(inputURL.pathExtension.lowercased()) else {
             state = .failed(
                 input: inputURL,
-                message: "Please choose a macOS Rich Text with Attachments (.rtfd) document."
+                message: "Please choose an RTF or macOS Rich Text with Attachments (.rtfd) document."
             )
             return
         }
@@ -43,7 +43,7 @@ public final class AppModel: ObservableObject {
         Task {
             do {
                 let result = try await Task.detached(priority: .userInitiated) {
-                    try RTFDConverter().convert(inputURL: inputURL)
+                    try RichTextConverter().convert(inputURL: inputURL)
                 }.value
                 state = .succeeded(result)
             } catch {
@@ -75,9 +75,9 @@ public final class AppModel: ObservableObject {
 
     public func chooseDocument() {
         let panel = NSOpenPanel()
-        panel.title = "Choose an RTFD Document"
+        panel.title = "Choose an RTF or RTFD Document"
         panel.prompt = "Convert"
-        panel.allowedContentTypes = [.rtfd]
+        panel.allowedContentTypes = [.rtf, .rtfd]
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
         panel.canChooseFiles = true

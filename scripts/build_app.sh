@@ -31,9 +31,19 @@ remove_exact_path() {
 }
 
 cd "$project_root"
-swift build --configuration "$build_configuration" --product PoorMansTextApp
-swift build --configuration "$build_configuration" --product poormans-text
-binary_directory="$(swift build --configuration "$build_configuration" --show-bin-path)"
+build_arguments=(--configuration "$build_configuration")
+if [ "$build_configuration" = "release" ]; then
+    build_arguments+=(--arch arm64 --arch x86_64)
+fi
+
+swift build "${build_arguments[@]}" --product PoorMansTextApp
+swift build "${build_arguments[@]}" --product poormans-text
+binary_directory="$(swift build "${build_arguments[@]}" --show-bin-path)"
+
+if [ "$build_configuration" = "release" ]; then
+    lipo "$binary_directory/PoorMansTextApp" -verify_arch arm64 x86_64
+    lipo "$binary_directory/poormans-text" -verify_arch arm64 x86_64
+fi
 
 # Das Bundle ist ein vollständig generiertes Artefakt unter .build. Ein alter
 # lokaler Test-Build wird nur innerhalb dieses eindeutig begrenzten Pfads ersetzt.
@@ -50,7 +60,7 @@ codesign --force --sign - "$bundled_cli"
 codesign --force --sign - "$bundle_path"
 codesign --verify --deep --strict "$bundle_path"
 
-# Sichtbare, gitignorierte Artefakte im Repo-Root wie bei Daniels anderen Apps.
+# Sichtbare, gitignorierte Artefakte im Repo-Root erleichtern lokale Prüfungen.
 remove_exact_path "$root_app"
 remove_exact_path "$root_cli"
 ditto "$bundle_path" "$root_app"

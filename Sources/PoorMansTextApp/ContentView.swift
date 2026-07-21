@@ -5,6 +5,9 @@ import UniformTypeIdentifiers
 
 struct ContentView: View {
     @EnvironmentObject private var model: AppModel
+    @AppStorage("CLIInstallDeclined") private var cliInstallDeclined = false
+    @State private var showsCLIInstallOffer = false
+    @State private var cliInstallError: String?
 
     var body: some View {
         VStack(spacing: 24) {
@@ -27,6 +30,40 @@ struct ContentView: View {
         .onOpenURL { url in
             model.convert(url)
         }
+        .task {
+            prepareCLIInstallationOffer()
+        }
+        .confirmationDialog(
+            "Install Command-Line Tool?",
+            isPresented: $showsCLIInstallOffer,
+            titleVisibility: .visible
+        ) {
+            Button("Install") {
+                installCLI()
+            }
+            Button("Later", role: .cancel) {
+                showsCLIInstallOffer = false
+            }
+            Button("Don't Ask Again") {
+                cliInstallDeclined = true
+                showsCLIInstallOffer = false
+            }
+        } message: {
+            Text("Make poormans-text available in Terminal by linking it to the copy embedded in this app.")
+        }
+        .alert(
+            "Command-Line Installation Failed",
+            isPresented: Binding(
+                get: { cliInstallError != nil },
+                set: { if !$0 { cliInstallError = nil } }
+            )
+        ) {
+            Button("OK", role: .cancel) {
+                cliInstallError = nil
+            }
+        } message: {
+            Text(cliInstallError ?? "Unknown error")
+        }
     }
 
     private var header: some View {
@@ -39,7 +76,7 @@ struct ContentView: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text(ProductInfo.name)
                     .font(.title.bold())
-                Text("RTFD to Markdown, with images kept in place")
+                Text("RTF and RTFD to Markdown, with images kept in place")
                     .foregroundStyle(.secondary)
             }
 
@@ -81,13 +118,13 @@ struct ContentView: View {
                 .font(.system(size: 45, weight: .medium))
                 .foregroundStyle(.tint)
                 .accessibilityHidden(true)
-            Text("Drop an RTFD document here")
+            Text("Drop an RTF or RTFD document here")
                 .font(.title3.bold())
             Text("A new folder with Markdown and an images directory will be created next to it.")
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: 390)
-            Button("Choose RTFD…") {
+            Button("Choose Document…") {
                 model.chooseDocument()
             }
             .controlSize(.large)
@@ -145,7 +182,7 @@ struct ContentView: View {
                 .textSelection(.enabled)
                 .frame(maxWidth: 430)
             HStack {
-                Button("Choose RTFD…") {
+                Button("Choose Document…") {
                     model.chooseDocument()
                 }
                 .keyboardShortcut(.defaultAction)
@@ -175,6 +212,48 @@ struct ContentView: View {
             "1 image asset"
         default:
             "\(result.assets.count) image assets"
+        }
+    }
+
+    private func prepareCLIInstallationOffer() {
+        guard !cliInstallDeclined,
+              Bundle.main.bundleURL.deletingLastPathComponent().standardizedFileURL.path
+                == "/Applications" else {
+            return
+        }
+
+        let sourceURL = Bundle.main.bundleURL
+            .appendingPathComponent("Contents/Resources/poormans-text")
+        let statuses = CLIInstaller.standardTargetURLs.map {
+            CLIInstaller.status(sourceURL: sourceURL, targetURL: $0)
+        }
+        if statuses.contains(.installed) || statuses.contains(.conflict) {
+            return
+        }
+
+        guard CLIInstaller.status(
+            sourceURL: sourceURL,
+            targetURL: CLIInstaller.defaultTargetURL
+        ) == .available else {
+            return
+        }
+        showsCLIInstallOffer = true
+    }
+
+    private func installCLI() {
+        showsCLIInstallOffer = false
+        let sourceURL = Bundle.main.bundleURL
+            .appendingPathComponent("Contents/Resources/poormans-text")
+        let targetURL = CLIInstaller.defaultTargetURL
+
+        Task {
+            do {
+                try await Task.detached(priority: .userInitiated) {
+                    try CLIInstaller.install(sourceURL: sourceURL, targetURL: targetURL)
+                }.value
+            } catch {
+                cliInstallError = error.localizedDescription
+            }
         }
     }
 }

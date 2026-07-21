@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.4.0 - 2026-07-21
+
+- Add guarded RTF conversion through Pandoc while retaining the existing safe,
+  atomic RTFD pipeline and structured CLI results.
+- Preserve formatting, links, lists, blank lines, image order, and embedded RTF
+  image bytes; report RTF color loss explicitly instead of dropping text or images.
+- Accept RTF in the CLI, app picker, file opening, and drag-and-drop workflow.
+- Offer consent-based first-launch installation of the CLI embedded in an app
+  copied to `/Applications`, without replacing unrelated targets.
+- Build universal release binaries for Apple silicon and Intel Macs.
+- Create, sign, notarize, staple, mount-test, and checksum a distributable DMG
+  before changing the installed app.
+
 ## 0.3.0 - 2026-07-21
 
 - Add a root build command that produces visible app and CLI artifacts.

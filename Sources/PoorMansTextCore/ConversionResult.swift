@@ -1,6 +1,6 @@
 import Foundation
 
-/// Ergebnis einer erfolgreichen RTFD-Konvertierung.
+/// Ergebnis einer erfolgreichen Rich-Text-Konvertierung.
 public struct ConversionResult: Sendable {
     public let inputURL: URL
     public let outputDirectory: URL

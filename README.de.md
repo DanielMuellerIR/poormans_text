@@ -2,12 +2,14 @@
 
 # Poor Man's Text
 
-Poor Man's Text wandelt macOS-Dokumente im Format „Rich Text with Attachments“ (`.rtfd`) in Ordner mit Markdown und separat gespeicherten Bildern um.
+Poor Man's Text wandelt Rich-Text-Dokumente (`.rtf`) und macOS-Dokumentpakete im
+Format „Rich Text with Attachments“ (`.rtfd`) in Ordner mit Markdown und separat
+gespeicherten Bildern um.
 
 Das Projekt stellt zwei Oberflächen für denselben Konvertierungskern bereit:
 
 - `poormans-text`, ein automatisierbares Kommandozeilenwerkzeug
-- eine native macOS-App zum Öffnen oder Ablegen von RTFD-Dokumenten
+- eine native macOS-App zum Öffnen oder Ablegen von RTF- und RTFD-Dokumenten
 
 Die Konvertierung ist bewusst verlustbehaftet. Markdown kann Dokumentstruktur,
 Links, einfache Hervorhebungen, Listen und Bilder bewahren, aber nicht jede
@@ -15,8 +17,8 @@ Schrift, Anordnung oder TextKit-spezifische Eigenschaft.
 
 ## Ausgabe
 
-Die Konvertierung von `Dokument.rtfd` erzeugt einen neuen Nachbarordner, ohne die
-Quelle zu verändern:
+Die Konvertierung von `Dokument.rtf` oder `Dokument.rtfd` erzeugt einen neuen
+Nachbarordner, ohne die Quelle zu verändern:
 
 ```text
 Dokument-markdown/
@@ -31,9 +33,11 @@ Textposition wie im Ausgangsdokument. Vorhandene Ausgabeordner werden nie
 überschrieben.
 
 Manuelle Zeilenumbrüche enden im Markdown mit zwei Leerzeichen. Chromatischer
-Text wird als `==Text==` markiert. Diese von Fastra unterstützte Schreibweise
-ist eine verbreitete Markdown-Erweiterung, gehört aber nicht zum GFM-Standard;
-der konkrete Farbwert bleibt dabei nicht erhalten.
+Text aus RTFD wird als `==Text==` markiert. Diese von Fastra unterstützte
+Schreibweise ist eine verbreitete Markdown-Erweiterung, gehört aber nicht zum
+GFM-Standard; der konkrete Farbwert bleibt dabei nicht erhalten. Im bildsicheren
+RTF-Import lassen sich Farbinformationen nicht erhalten; der Text bleibt erhalten
+und der Konverter meldet den Verlust als Warnung.
 
 ## Voraussetzungen
 
@@ -49,6 +53,7 @@ Der Konverter sucht Pandoc in den üblichen Homebrew-Verzeichnissen und danach
 
 ```sh
 swift run poormans-text Dokument.rtfd
+swift run poormans-text Dokument.rtf
 swift run poormans-text --output Konvertiert Dokument.rtfd
 swift run poormans-text --json Dokument.rtfd
 ```
@@ -61,8 +66,8 @@ Die Exit-Codes folgen den üblichen `sysexits`-Werten: `64` für Aufruffehler,
 fehlendes Pandoc, `70` für einen fehlgeschlagenen Konvertierungsprozess, `73`
 für eine Kollision am Ausgabeziel und `74` für einen Dateisystemfehler. Mit
 `--json` werden Erfolge und Fehler als JSON auf der Standardausgabe gemeldet;
-andernfalls gehen Diagnosen an die Standardfehlerausgabe. Ein RTFD-Paket ist ein
-Verzeichnis und kann deshalb nicht über die Standardeingabe übergeben werden.
+andernfalls gehen Diagnosen an die Standardfehlerausgabe. Eingaben werden als
+Dateisystempfade und nicht über die Standardeingabe entgegengenommen.
 
 ## macOS-App
 
@@ -77,18 +82,19 @@ Der Build legt `Poor Man's Text.app` und `poormans-text` zusätzlich direkt im
 Repo-Root ab. Diese lokalen Artefakte sind ad-hoc-signiert und nicht für
 `/Applications` bestimmt.
 
-Ein RTFD-Paket kann in das Fenster oder auf die App gezogen oder über den
-Dateidialog ausgewählt werden. Die App zeigt das Ergebnis und kann die erzeugte
-Markdown-Datei im Finder anzeigen.
+Ein RTF- oder RTFD-Dokument kann in das Fenster oder auf die App gezogen oder
+über den Dateidialog ausgewählt werden. Die App zeigt das Ergebnis und kann die
+erzeugte Markdown-Datei im Finder anzeigen.
 
 Das erzeugte Bundle wird für lokale Tests ad-hoc signiert und bleibt unter
 `.build/app/`. Es ist kein notarisierter Distributions-Build.
 
 ## Signierte Installation
 
-Der vollständige Installer baut App und CLI als Release, signiert beide mit
-Developer ID und Hardened Runtime, notarisiert die App bei Apple, stapelt und
-prüft das Ticket und installiert erst danach:
+Der vollständige Installer baut App und CLI als Universal Binaries, signiert
+beide mit Developer ID und Hardened Runtime, notarisiert und stapelt die App,
+erzeugt ein signiertes DMG, notarisiert und stapelt auch dieses und installiert
+erst danach die geprüfte App:
 
 ```sh
 NOTARY_PROFILE=<profil> ./install.sh
@@ -100,12 +106,20 @@ Terminalpfad verfügbar. Ein fremdes vorhandenes Ziel wird nicht überschrieben.
 Der schnelle Testpfad `./install.sh --no-notarize` belässt die nur signierten
 Artefakte zwingend im Repo-Root.
 
+Der vollständige Lauf erzeugt außerdem `Poor-Mans-Text-<Version>.dmg` und eine
+passende `.sha256`-Datei im Repo-Root. Wer die App aus diesem DMG nach
+`/Applications` zieht, erhält beim ersten Start optional die Einrichtung der
+eingebetteten CLI angeboten. Ein fremdes Kommandozeilenwerkzeug wird nie ersetzt;
+Administratorrechte werden erst nach Zustimmung angefordert.
+
 ## Konvertierung
 
 RTFD speichert den Text in `TXT.rtf` und Anhänge als separate Dateien innerhalb
 eines macOS-Pakets. Poor Man's Text lässt das macOS-Textsystem daraus HTML und
-die Anhänge erzeugen, ersetzt die von Cocoa erzeugten Bild-URLs durch sichere
-relative Pfade und erstellt anschließend mit Pandoc GitHub-Flavored Markdown.
+die Anhänge erzeugen. Normales RTF speichert Bilder in der Datei; Pandoc liest
+diesen Container und extrahiert die Medien ohne Cocoa-Zwischenschritt. Beide Wege
+prüfen und ersetzen anschließend Bildverweise, bevor Pandoc GitHub-Flavored
+Markdown erstellt.
 
 Die Konvertierung läuft in einem privaten temporären Verzeichnis. Erst nach
 erfolgreichem Abschluss aller Stufen wird das Ergebnis an seinen Zielort
@@ -119,7 +133,7 @@ In der Regel erhalten:
 
 - Absätze und manuelle Zeilenumbrüche mit zwei Leerzeichen
 - fette und kursive Schrift
-- chromatischer Text als `==Text==`-Markierung
+- chromatischer RTFD-Text als `==Text==`-Markierung
 - Hyperlinks
 - einfache nummerierte Listen und Aufzählungen
 - Reihenfolge und relative Verweise der Bilder
@@ -143,13 +157,14 @@ swift test
 
 Build-, Signatur- und Installationsdetails stehen in
 [docs/BUILD-AND-TEST.md](docs/BUILD-AND-TEST.md). Die geplanten Importformate
-RTF, DOCX, ODT, DOC, Bilder, PDF und ODM stehen in [ROADMAP.md](ROADMAP.md).
+DOCX, ODT, DOC, Bilder, PDF und ODM stehen in [ROADMAP.md](ROADMAP.md).
 
-Die Tests erzeugen echte temporäre Cocoa-RTFD-Pakete mit Formatierungen, Farben,
-Leerzeilen, Links, Listen, Unicode-Dateinamen, wiederholten Anhangsnamen und
-mehreren Bildern. Außerdem prüfen sie vorhandene Ziele, defekte Pakete,
-unsichere Bildverweise, fehlende Abhängigkeiten, Warnungen und den
+Die Tests erzeugen echte temporäre Cocoa-RTFD-Pakete und monolithische RTF-Dateien
+mit Formatierungen, Farben, Leerzeilen, Links, Listen, Unicode-Dateinamen und
+eingebetteten Bildern. Sie vergleichen extrahierte Bild- und Quelldaten und
+prüfen außerdem vorhandene Ziele, defekte Eingaben, unsichere Bildverweise,
+fehlende Abhängigkeiten, Warnungen, den CLI-Link-Schutz und den
 `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.3.0. Eine Open-Source-Lizenz wurde noch nicht
+Die aktuelle Version ist 0.4.0. Eine Open-Source-Lizenz wurde noch nicht
 festgelegt.

@@ -6,7 +6,93 @@ struct RichRTFDFixture {
     let imageData: [Data]
 }
 
+struct RichRTFFixture {
+    let fileURL: URL
+    let imageData: Data
+}
+
 enum FixtureFactory {
+    static func createRichRTF(in directory: URL) throws -> RichRTFFixture {
+        let document = NSMutableAttributedString()
+        append("Start ", to: document)
+        append(
+            "bold",
+            attributes: [.font: NSFont.boldSystemFont(ofSize: 14)],
+            to: document
+        )
+        append(" before ", to: document)
+
+        let imageMarker = "POORMANS_TEXT_EMBEDDED_IMAGE_MARKER"
+        append(imageMarker, to: document)
+        append(" then ", to: document)
+        append(
+            "italic",
+            attributes: [
+                .font: NSFontManager.shared.convert(
+                    NSFont.systemFont(ofSize: 14),
+                    toHaveTrait: .italicFontMask
+                ),
+            ],
+            to: document
+        )
+        append(" and ", to: document)
+        append(
+            "example",
+            attributes: [.link: URL(string: "https://example.com/path")!],
+            to: document
+        )
+        append(".\n", to: document)
+        append(
+            "Purple text",
+            attributes: [.foregroundColor: NSColor.systemPurple],
+            to: document
+        )
+        append(" remains readable.\n\nAfter the blank line.\n", to: document)
+
+        let listStart = document.length
+        append("First item\nSecond item\n", to: document)
+        let listStyle = NSMutableParagraphStyle()
+        listStyle.textLists = [NSTextList(markerFormat: .disc, options: 0)]
+        document.addAttribute(
+            .paragraphStyle,
+            value: listStyle,
+            range: NSRange(location: listStart, length: document.length - listStart)
+        )
+
+        let rtfData = try document.data(
+            from: NSRange(location: 0, length: document.length),
+            documentAttributes: [.documentType: NSAttributedString.DocumentType.rtf]
+        )
+        guard var rtf = String(data: rtfData, encoding: .utf8),
+              let markerRange = rtf.range(of: imageMarker) else {
+            throw FixtureError.rtfSerializationFailed
+        }
+
+        // AppKit kann RTF-Attachments nicht schreiben. Das echte PNG wird deshalb
+        // unabhängig als standardkonforme RTF-\pict-Gruppe eingebettet.
+        let imageData = try makePNG(color: .systemTeal)
+        let imageHex = imageData.map { String(format: "%02x", $0) }.joined()
+        let picture = "{\\pict\\pngblip\\picw12\\pich12\\picwgoal180\\pichgoal180\n\(imageHex)\n}"
+        rtf.replaceSubrange(markerRange, with: picture)
+
+        let fileURL = directory.appendingPathComponent("Example ä.rtf")
+        try Data(rtf.utf8).write(to: fileURL, options: .atomic)
+        return RichRTFFixture(fileURL: fileURL, imageData: imageData)
+    }
+
+    static func createMinimalRTF(in directory: URL, name: String = "Minimal.rtf") throws -> URL {
+        let fileURL = directory.appendingPathComponent(name)
+        try Data(#"{\rtf1\ansi Minimal}"#.utf8).write(to: fileURL, options: .atomic)
+        return fileURL
+    }
+
+    static func createHighlightedRTF(in directory: URL) throws -> URL {
+        let fileURL = directory.appendingPathComponent("Highlighted.rtf")
+        let rtf = #"{\rtf1\ansi{\colortbl;\red255\green0\blue0;}\highlight1 Highlighted\highlight0}"#
+        try Data(rtf.utf8).write(to: fileURL, options: .atomic)
+        return fileURL
+    }
+
     static func createRichRTFD(in directory: URL) throws -> RichRTFDFixture {
         let document = NSMutableAttributedString()
         append("Start ", to: document)
@@ -178,5 +264,6 @@ enum FixtureFactory {
 
     private enum FixtureError: Error {
         case imageCreationFailed
+        case rtfSerializationFailed
     }
 }

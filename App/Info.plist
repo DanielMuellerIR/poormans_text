@@ -61,5 +61,7 @@
     <string>13.0</string>
     <key>NSHighResolutionCapable</key>
     <true/>
+    <key>NSHumanReadableCopyright</key>
+    <string>© 2026 Daniel Müller</string>
 </dict>
 </plist>

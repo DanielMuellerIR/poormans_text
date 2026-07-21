@@ -166,5 +166,12 @@ prüfen außerdem vorhandene Ziele, defekte Eingaben, unsichere Bildverweise,
 fehlende Abhängigkeiten, Warnungen, den CLI-Link-Schutz und den
 `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.4.0. Eine Open-Source-Lizenz wurde noch nicht
-festgelegt.
+Die aktuelle Version ist 0.4.0.
+
+## Lizenz
+
+Poor Man's Text steht unter der **WTFPL**, Version 2
+(Do What The Fuck You Want To Public License) — siehe [LICENSE](LICENSE).
+
+Pandoc ist eine externe Laufzeitabhängigkeit und wird nicht mit Poor Man's Text
+ausgeliefert. Für Pandoc gilt seine eigene Lizenz.

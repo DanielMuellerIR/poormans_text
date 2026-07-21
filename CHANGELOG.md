@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+- License the project-owned source code and documentation under WTFPL Version 2
+  and include the license in generated app bundles.
+
 ## 0.4.0 - 2026-07-21
 
 - Add guarded RTF conversion through Pandoc while retaining the existing safe,

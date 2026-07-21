@@ -161,4 +161,12 @@ covers output collisions, malformed inputs, unsafe image references, missing
 dependencies, warnings, the CLI-link guard, and the app's `NSItemProvider` drop
 path.
 
-The current version is 0.4.0. No open-source license has been selected yet.
+The current version is 0.4.0.
+
+## License
+
+Poor Man's Text is released under the **WTFPL**, Version 2
+(Do What The Fuck You Want To Public License) — see [LICENSE](LICENSE).
+
+Pandoc is an external runtime dependency and is not bundled with Poor Man's
+Text. Pandoc remains subject to its own license.

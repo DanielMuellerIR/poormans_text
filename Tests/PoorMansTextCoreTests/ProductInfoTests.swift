@@ -20,6 +20,7 @@ final class ProductInfoTests: XCTestCase {
 
         XCTAssertEqual(plist["CFBundleShortVersionString"] as? String, ProductInfo.version)
         XCTAssertEqual(plist["CFBundleVersion"] as? String, "4")
+        XCTAssertEqual(plist["NSHumanReadableCopyright"] as? String, "© 2026 Daniel Müller")
     }
 
     func testPublicDocumentationNamesCurrentVersion() throws {
@@ -36,6 +37,25 @@ final class ProductInfoTests: XCTestCase {
             encoding: .utf8
         )
         XCTAssertTrue(changelog.contains("## 0.4.0 - 2026-07-21"))
+    }
+
+    func testPublicLicenseMetadataUsesWTFPLVersion2() throws {
+        let license = try String(
+            contentsOf: projectRoot.appendingPathComponent("LICENSE"),
+            encoding: .utf8
+        )
+        XCTAssertTrue(license.contains("DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE"))
+        XCTAssertTrue(license.contains("Version 2, December 2004"))
+        XCTAssertTrue(license.contains("not part of the license text"))
+
+        for filename in ["README.md", "README.de.md"] {
+            let contents = try String(
+                contentsOf: projectRoot.appendingPathComponent(filename),
+                encoding: .utf8
+            )
+            XCTAssertTrue(contents.contains("**WTFPL**, Version 2"))
+            XCTAssertTrue(contents.contains("[LICENSE](LICENSE)"))
+        }
     }
 
     private var projectRoot: URL {

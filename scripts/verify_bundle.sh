@@ -19,8 +19,10 @@ esac
 
 info_plist="$app/Contents/Info.plist"
 bundled_cli="$app/Contents/Resources/poormans-text"
+bundled_license="$app/Contents/Resources/LICENSE.txt"
 [ -f "$info_plist" ] || { echo "Info.plist fehlt im Bundle." >&2; exit 66; }
 [ -x "$bundled_cli" ] || { echo "Ausführbare CLI fehlt im Bundle." >&2; exit 66; }
+[ -f "$bundled_license" ] || { echo "Lizenzdatei fehlt im Bundle." >&2; exit 66; }
 
 codesign --verify --deep --strict --verbose=2 "$app"
 codesign --verify --strict --verbose=2 "$bundled_cli"

@@ -18,9 +18,9 @@ im Repo-Root ab:
 - `Poor Man's Text.app`
 - `poormans-text`
 
-Die CLI ist zusätzlich unter `Contents/Resources/poormans-text` ins App-Bundle
-eingebettet. Lokale Builds sind ad-hoc-signiert und dürfen nicht nach
-`/Applications` kopiert werden.
+Das App-Bundle enthält die CLI unter `Contents/Resources/poormans-text` und die
+Projektlizenz unter `Contents/Resources/LICENSE.txt`. Lokale Builds sind
+ad-hoc-signiert und dürfen nicht nach `/Applications` kopiert werden.
 
 ## Schneller Developer-ID-Test
 

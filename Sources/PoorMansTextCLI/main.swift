@@ -173,10 +173,14 @@ do {
         throw CLIArgumentError.missingValue("INPUT")
     }
 
-    let result = try RichTextConverter().convert(
-        inputURL: inputURL,
-        outputDirectory: arguments.outputURL,
-        pandocExecutable: arguments.pandocURL
+    let destination = arguments.outputURL.map(ConversionDestination.directory)
+        ?? .adjacentToInput
+    let result = try DocumentConverter().convert(
+        ConversionRequest(
+            inputURL: inputURL,
+            destination: destination,
+            options: ConversionOptions(pandocExecutable: arguments.pandocURL)
+        )
     )
 
     if arguments.json {

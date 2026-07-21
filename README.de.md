@@ -140,15 +140,16 @@ Administratorrechte werden erst nach Zustimmung angefordert.
 RTFD speichert den Text in `TXT.rtf` und Anhänge als separate Dateien innerhalb
 eines macOS-Pakets. Poor Man's Text lässt das macOS-Textsystem daraus HTML und
 die Anhänge erzeugen. Normales RTF speichert Bilder in der Datei; Pandoc liest
-diesen Container und extrahiert die Medien ohne Cocoa-Zwischenschritt. Beide Wege
-prüfen und ersetzen anschließend Bildverweise, bevor Pandoc GitHub-Flavored
-Markdown erstellt.
+diesen Container und extrahiert die Medien ohne Cocoa-Zwischenschritt. Die
+formatneutrale Engine prüft den Quellinhalt, statt nur der Dateiendung zu glauben,
+und wählt danach den passenden Weg. Beide Wege prüfen und ersetzen anschließend
+Bildverweise, bevor Pandoc GitHub-Flavored Markdown erstellt.
 
-Die Konvertierung läuft in einem privaten temporären Verzeichnis. Erst nach
-erfolgreichem Abschluss aller Stufen wird das Ergebnis an seinen Zielort
-verschoben. Entfernte Bildverweise werden nicht heruntergeladen, sondern
-abgelehnt. Anhänge, die nicht im Markdown dargestellt werden können, erzeugen
-Warnungen.
+Die Konvertierung läuft in einem privaten Staging-Verzeichnis. Erst nach
+erfolgreichem Abschluss aller Stufen wird das Ergebnis an ein dauerhaftes oder
+vom Aufrufer verwaltetes temporäres Ziel verschoben. Entfernte Bildverweise werden
+nicht heruntergeladen, sondern abgelehnt. Anhänge, die nicht im Markdown
+dargestellt werden können, erzeugen Warnungen.
 
 ## Formatunterstützung und Grenzen
 

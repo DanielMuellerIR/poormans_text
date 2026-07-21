@@ -1,6 +1,6 @@
 import Foundation
 
-/// Konvertiert RTF- und macOS-RTFD-Dokumente synchron in Markdown und Bilddateien.
+/// Quellkompatible Fassade für Aufrufer der bisherigen Rich-Text-API.
 public struct RichTextConverter: Sendable {
     public init() {}
 
@@ -9,35 +9,43 @@ public struct RichTextConverter: Sendable {
         outputDirectory requestedOutputDirectory: URL? = nil,
         pandocExecutable requestedPandocExecutable: URL? = nil
     ) throws -> ConversionResult {
-        let fileManager = FileManager.default
-        let inputURL = inputURL.standardizedFileURL
-        let inputKind = try validateInput(inputURL, fileManager: fileManager)
-
-        let outputDirectory = (
-            requestedOutputDirectory ?? Self.defaultOutputDirectory(for: inputURL)
-        ).standardizedFileURL
-        try validateOutput(outputDirectory, inputURL: inputURL, fileManager: fileManager)
-
-        let pandocExecutable = try resolvePandoc(requestedPandocExecutable, fileManager: fileManager)
-        let outputParent = outputDirectory.deletingLastPathComponent()
-        let temporaryRoot = outputParent.appendingPathComponent(
-            ".poormans-text-\(UUID().uuidString).tmp",
-            isDirectory: true
+        let destination = requestedOutputDirectory.map(ConversionDestination.directory)
+            ?? .adjacentToInput
+        return try DocumentConverter().convert(
+            ConversionRequest(
+                inputURL: inputURL,
+                destination: destination,
+                options: ConversionOptions(pandocExecutable: requestedPandocExecutable)
+            )
         )
-        let workDirectory = temporaryRoot.appendingPathComponent("work", isDirectory: true)
-        let stagedResult = temporaryRoot.appendingPathComponent("result", isDirectory: true)
+    }
 
-        do {
-            try fileManager.createDirectory(at: workDirectory, withIntermediateDirectories: true)
-            try fileManager.createDirectory(at: stagedResult, withIntermediateDirectories: true)
-        } catch {
-            throw ConversionError.fileSystemFailure(error.localizedDescription)
+    public static func defaultOutputDirectory(for inputURL: URL) -> URL {
+        DocumentConverter.defaultOutputDirectory(for: inputURL)
+    }
+}
+
+/// RTF und RTFD behalten getrennte Importwege, liefern aber dasselbe gestagte Ergebnis.
+struct RichTextAdapter: DocumentConversionAdapter {
+    let supportedFormats: Set<InputFormat> = [.rtf, .rtfd]
+
+    func expectedWarnings(for inputURL: URL, format: InputFormat) -> [ConversionWarning] {
+        guard format == .rtf, ColoredTextMarker.containsChromaticText(inRTF: inputURL) else {
+            return []
         }
+        return [.richTextColorNotPreserved]
+    }
 
-        defer {
-            try? fileManager.removeItem(at: temporaryRoot)
-        }
-
+    func convert(_ context: AdapterConversionContext) throws -> StagedConversionResult {
+        let fileManager = FileManager.default
+        let inputURL = context.inputURL
+        let inputKind = context.format
+        let workDirectory = context.workDirectory
+        let stagedResult = context.stagedOutputDirectory
+        let pandocExecutable = try resolvePandoc(
+            context.options.pandocExecutable,
+            fileManager: fileManager
+        )
         let htmlURL = workDirectory.appendingPathComponent("document.html")
         let emptyParagraphMarker = inputKind == .rtf
             ? "POORMANSTEXTEMPTY\(UUID().uuidString.replacingOccurrences(of: "-", with: ""))"
@@ -121,15 +129,10 @@ public struct RichTextConverter: Sendable {
 
         do {
             try fileManager.removeItem(at: normalizedHTML)
-            try fileManager.moveItem(at: stagedResult, to: outputDirectory)
         } catch {
             throw ConversionError.fileSystemFailure(error.localizedDescription)
         }
 
-        let finalMarkdown = outputDirectory.appendingPathComponent(markdownName)
-        let finalAssets = rewriteResult.assetNames.sorted().map {
-            outputDirectory.appendingPathComponent("images").appendingPathComponent($0)
-        }
         let warnings = warnings(
             inputURL: inputURL,
             kind: inputKind,
@@ -137,74 +140,16 @@ public struct RichTextConverter: Sendable {
             fileManager: fileManager
         )
 
-        return ConversionResult(
-            inputURL: inputURL,
-            outputDirectory: outputDirectory,
-            markdownFile: finalMarkdown,
-            assets: finalAssets,
+        return StagedConversionResult(
+            markdownRelativePath: markdownName,
+            assetRelativePaths: rewriteResult.assetNames.sorted().map { "images/\($0)" },
             warnings: warnings
         )
     }
 
-    public static func defaultOutputDirectory(for inputURL: URL) -> URL {
-        inputURL
-            .deletingLastPathComponent()
-            .appendingPathComponent(
-                inputURL.deletingPathExtension().lastPathComponent + "-markdown",
-                isDirectory: true
-            )
-    }
-
-    private func validateInput(_ inputURL: URL, fileManager: FileManager) throws -> InputKind {
-        var isDirectory: ObjCBool = false
-        guard fileManager.fileExists(atPath: inputURL.path, isDirectory: &isDirectory) else {
-            throw ConversionError.inputDoesNotExist(inputURL)
-        }
-
-        switch inputURL.pathExtension.lowercased() {
-        case "rtfd":
-            guard isDirectory.boolValue else {
-                throw ConversionError.inputIsNotRichText(inputURL)
-            }
-            let rtfURL = inputURL.appendingPathComponent("TXT.rtf")
-            var rtfIsDirectory: ObjCBool = false
-            guard fileManager.fileExists(atPath: rtfURL.path, isDirectory: &rtfIsDirectory),
-                  !rtfIsDirectory.boolValue else {
-                throw ConversionError.invalidRichText(inputURL, reason: "TXT.rtf is missing")
-            }
-            guard try hasRTFHeader(at: rtfURL) else {
-                throw ConversionError.invalidRichText(inputURL, reason: "TXT.rtf has no RTF header")
-            }
-            return .rtfd
-
-        case "rtf":
-            guard !isDirectory.boolValue else {
-                throw ConversionError.inputIsNotRichText(inputURL)
-            }
-            guard try hasRTFHeader(at: inputURL) else {
-                throw ConversionError.invalidRichText(inputURL, reason: "the RTF header is missing")
-            }
-            return .rtf
-
-        default:
-            throw ConversionError.inputIsNotRichText(inputURL)
-        }
-    }
-
-    private func hasRTFHeader(at url: URL) throws -> Bool {
-        do {
-            let handle = try FileHandle(forReadingFrom: url)
-            defer { try? handle.close() }
-            let prefix = try handle.read(upToCount: 16) ?? Data()
-            return prefix.starts(with: Data(#"{\rtf"#.utf8))
-        } catch {
-            throw ConversionError.fileSystemFailure(error.localizedDescription)
-        }
-    }
-
     private func createHTML(
         from inputURL: URL,
-        kind: InputKind,
+        kind: InputFormat,
         at htmlURL: URL,
         workDirectory: URL,
         pandocExecutable: URL,
@@ -377,29 +322,6 @@ public struct RichTextConverter: Sendable {
         (byte >= 0x41 && byte <= 0x5A) || (byte >= 0x61 && byte <= 0x7A)
     }
 
-    private func validateOutput(
-        _ outputURL: URL,
-        inputURL: URL,
-        fileManager: FileManager
-    ) throws {
-        guard !fileManager.fileExists(atPath: outputURL.path) else {
-            throw ConversionError.outputAlreadyExists(outputURL)
-        }
-
-        let resolvedInputPath = inputURL.resolvingSymlinksInPath().path + "/"
-        let resolvedOutputPath = outputURL.resolvingSymlinksInPath().path + "/"
-        guard !resolvedOutputPath.hasPrefix(resolvedInputPath) else {
-            throw ConversionError.outputInsideInput(outputURL)
-        }
-
-        let parent = outputURL.deletingLastPathComponent()
-        var isDirectory: ObjCBool = false
-        guard fileManager.fileExists(atPath: parent.path, isDirectory: &isDirectory),
-              isDirectory.boolValue else {
-            throw ConversionError.outputParentDoesNotExist(parent)
-        }
-    }
-
     private func resolvePandoc(_ requestedURL: URL?, fileManager: FileManager) throws -> URL {
         if let requestedURL {
             let standardizedURL = requestedURL.standardizedFileURL
@@ -428,13 +350,13 @@ public struct RichTextConverter: Sendable {
 
     private func warnings(
         inputURL: URL,
-        kind: InputKind,
+        kind: InputFormat,
         referencedResourceNames: Set<String>,
         fileManager: FileManager
-    ) -> [String] {
+    ) -> [ConversionWarning] {
         guard kind == .rtfd else {
             if ColoredTextMarker.containsChromaticText(inRTF: inputURL) {
-                return ["Chromatic text colors in RTF cannot be represented and were not preserved."]
+                return [.richTextColorNotPreserved]
             }
             return []
         }
@@ -452,13 +374,8 @@ public struct RichTextConverter: Sendable {
                   !referencedResourceNames.contains(url.lastPathComponent) else {
                 return nil
             }
-            return "Attachment was not represented in the generated Markdown: \(url.lastPathComponent)"
-        }.sorted()
-    }
-
-    private enum InputKind {
-        case rtf
-        case rtfd
+            return .richTextAttachmentNotRepresented(url.lastPathComponent)
+        }.sorted { $0.message < $1.message }
     }
 }
 

@@ -137,13 +137,14 @@ RTFD stores text in `TXT.rtf` and keeps attachments as separate files inside a
 macOS package. Poor Man's Text uses the macOS text system to create HTML and
 materialize those attachments. Standard RTF stores images inside the file;
 Pandoc reads that container and extracts its media without a Cocoa round trip.
-Both paths then validate and rewrite image references before Pandoc creates
-GitHub-Flavored Markdown.
+The format-neutral engine verifies the source contents instead of trusting only
+the filename extension, then selects the matching path. Both paths validate and
+rewrite image references before Pandoc creates GitHub-Flavored Markdown.
 
-The conversion runs in a private temporary directory and moves the completed
-result into place only after all stages succeed. Remote image references are
-rejected rather than downloaded. Attachments that cannot be represented in the
-generated Markdown produce warnings.
+The conversion runs in a private staging directory and moves the completed
+result into a persistent or caller-owned temporary destination only after all
+stages succeed. Remote image references are rejected rather than downloaded.
+Attachments that cannot be represented in the generated Markdown produce warnings.
 
 ## Format support and limitations
 

@@ -21,6 +21,33 @@ final class AppModelDropTests: XCTestCase {
     }
 
     @MainActor
+    func testUnsupportedInputUsesCoreValidation() async throws {
+        try await withTemporaryDirectory { temporaryDirectory in
+            let inputURL = temporaryDirectory.appendingPathComponent("Plain text.data")
+            try Data("plain text".utf8).write(to: inputURL)
+            let model = AppModel()
+
+            model.convert(inputURL)
+
+            let deadline = Date().addingTimeInterval(2)
+            while Date() < deadline {
+                switch model.state {
+                case .failed(let failedInput, let message):
+                    XCTAssertEqual(failedInput, inputURL)
+                    XCTAssertTrue(message.hasPrefix("Input is not an RTF or RTFD document:"))
+                    return
+                case .succeeded:
+                    return XCTFail("Unsupported input was converted.")
+                case .idle, .converting:
+                    try await Task.sleep(for: .milliseconds(20))
+                }
+            }
+
+            XCTFail("Core validation did not finish within two seconds.")
+        }
+    }
+
+    @MainActor
     private func assertDropConverts(_ inputURL: URL, expectedAssetCount: Int) async throws {
         let pandocCandidates = ["/opt/homebrew/bin/pandoc", "/usr/local/bin/pandoc"]
         try XCTSkipUnless(

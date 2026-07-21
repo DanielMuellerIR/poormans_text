@@ -13,7 +13,7 @@ struct PoorMansTextDesktopApp: App {
         .defaultSize(width: 620, height: 480)
         .commands {
             CommandGroup(replacing: .newItem) {
-                Button("Open RTFD…") {
+                Button("Open RTF or RTFD…") {
                     model.chooseDocument()
                 }
                 .keyboardShortcut("o")

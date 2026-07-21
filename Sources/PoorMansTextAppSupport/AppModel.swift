@@ -28,22 +28,16 @@ public final class AppModel: ObservableObject {
         guard !isConverting else {
             return
         }
-        guard ["rtf", "rtfd"].contains(inputURL.pathExtension.lowercased()) else {
-            state = .failed(
-                input: inputURL,
-                message: "Please choose an RTF or macOS Rich Text with Attachments (.rtfd) document."
-            )
-            return
-        }
 
         state = .converting(inputURL)
+        let request = ConversionRequest(inputURL: inputURL)
 
         // Die Dateikonvertierung läuft außerhalb des Main Actors, damit das Fenster
         // während textutil und Pandoc weiterhin reagiert.
         Task {
             do {
                 let result = try await Task.detached(priority: .userInitiated) {
-                    try RichTextConverter().convert(inputURL: inputURL)
+                    try DocumentConverter().convert(request)
                 }.value
                 state = .succeeded(result)
             } catch {

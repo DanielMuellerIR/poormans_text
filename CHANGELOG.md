@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+- Add a format-neutral conversion engine with content-based RTF/RTFD detection,
+  typed requests, progress, diagnostics, and persistent or temporary destinations.
+- Keep the distinct AppKit RTFD and Pandoc RTF import paths behind one adapter,
+  while moving staging, collision checks, and atomic publication into the engine.
+- Move the app and CLI onto the shared request API without changing CLI JSON,
+  warning, or exit-code semantics.
+
 ## 0.5.0 - 2026-07-21
 
 - License the project-owned source code and documentation under WTFPL Version 2

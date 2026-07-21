@@ -3,24 +3,9 @@
 Hier steht nur offene Produktarbeit. Erledigte Punkte werden beim Release aus
 dieser Datei entfernt und in [CHANGELOG.md](CHANGELOG.md) festgehalten.
 
-## Zielarchitektur vor weiteren Formaten
-
-Der vorhandene `PoorMansTextCore` ist bereits unabhängig von SwiftUI und wird von
-App und CLI gemeinsam benutzt. RTF und RTFD teilen bereits die sichere Ausgabe-
-und Asset-Strecke. Vor DOCX, ODT oder einem weiteren Importformat wird daraus eine
-kleine formatneutrale API gemäß [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md):
-
-- Eingabeformat sicher erkennen statt nur die Dateiendung zu glauben.
-- Einheitliche Anfrage, Optionen, Fortschritt, Warnungen und Ergebnisstruktur.
-- Formatadapter registrieren, ohne GUI-Rückfragen in den Kern einzubauen.
-- Plattformnahe Leser für AppKit, Vision und PDFKit von der formatneutralen
-  Orchestrierung trennen.
-- Ausgabeziel wählbar machen: dauerhafter Nachbarordner für Poor Man's Text,
-  temporärer Import für eine spätere Fastra-Integration.
-
-Erfolgskriterium: Fastra kann das Library-Produkt später einbinden, vor einer
-Konvertierung selbst fragen und danach die erzeugte Markdown-Datei öffnen, ohne
-Code aus der Poor-Man's-Text-GUI zu übernehmen.
+Die formatneutrale Engine, sichere Inhaltserkennung und wählbare dauerhafte oder
+temporäre Veröffentlichung sind vorhanden. Die offenen Formate bauen auf der in
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) beschriebenen Adaptergrenze auf.
 
 ## Formatplan
 
@@ -41,18 +26,6 @@ keinen zusätzlichen OCR-Dienst.
 Falls mit „ODM“ eigentlich „ODT“ gemeint war, ist es bereits in Priorität 2
 abgedeckt. Echtes `.odm` bleibt separat: Ein Masterdokument kann lokale oder
 fehlende/externe Teildokumente referenzieren und darf diese nicht still laden.
-
-## Etappe 1 — formatneutrale Engine
-
-- `InputFormat`, `ConversionRequest` und `DocumentConverter` einführen.
-- Bestehenden Rich-Text-Konverter als Adapter für RTFD und RTF weiterführen.
-- Formaterkennung und Veröffentlichung aus dem Rich-Text-Adapter herausziehen,
-  ohne dessen geprüfte Cocoa- und Pandoc-Importwege zusammenzulegen.
-- CLI und App auf die formatneutrale Anfrage umstellen, ohne Formatlogik in deren
-  Targets zu legen.
-
-Freigabekriterium: unveränderte RTF-/RTFD-Fixtures, dieselben atomaren
-Kollisionsregeln und unveränderte JSON-Exit-Semantik.
 
 ## Etappe 2 — DOCX und ODT
 

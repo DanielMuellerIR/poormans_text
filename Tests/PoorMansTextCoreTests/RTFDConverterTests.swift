@@ -101,6 +101,20 @@ final class RTFDConverterTests: XCTestCase {
         )
     }
 
+    func testMarksChromaticTextAndUsesWhitespaceHardBreaks() throws {
+        try requirePandoc()
+        let inputURL = try FixtureFactory.createColoredRTFD(in: temporaryDirectory)
+
+        let result = try RTFDConverter().convert(inputURL: inputURL)
+        let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+
+        XCTAssertTrue(markdown.contains("**Plain** ==**Purple one**=="))
+        XCTAssertTrue(markdown.contains("==**Purple two**=="))
+        XCTAssertTrue(markdown.contains("**Gray**"))
+        XCTAssertFalse(markdown.contains("==**Gray**=="))
+        XCTAssertTrue(markdown.components(separatedBy: "\n").contains("  "))
+    }
+
     func testRejectsOutputInsideInputPackage() throws {
         let inputURL = try FixtureFactory.createMinimalRTFD(in: temporaryDirectory)
         let outputURL = inputURL.appendingPathComponent("Converted", isDirectory: true)

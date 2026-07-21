@@ -38,12 +38,17 @@ public struct RTFDConverter: Sendable {
             try? fileManager.removeItem(at: temporaryRoot)
         }
 
+        let markedRTFD = workDirectory.appendingPathComponent("marked.rtfd", isDirectory: true)
+        let textutilInput = try ColoredTextMarker.markedInputURL(
+            from: inputURL,
+            outputURL: markedRTFD
+        )
         let htmlURL = workDirectory.appendingPathComponent("document.html")
         let textutilResult: ProcessResult
         do {
             textutilResult = try ProcessRunner.run(
                 executable: URL(fileURLWithPath: "/usr/bin/textutil"),
-                arguments: ["-convert", "html", "-output", htmlURL.path, inputURL.path],
+                arguments: ["-convert", "html", "-output", htmlURL.path, textutilInput.path],
                 currentDirectory: workDirectory
             )
         } catch {

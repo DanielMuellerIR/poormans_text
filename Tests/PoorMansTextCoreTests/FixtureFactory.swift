@@ -104,6 +104,41 @@ enum FixtureFactory {
         )
     }
 
+    static func createColoredRTFD(in directory: URL) throws -> URL {
+        let document = NSMutableAttributedString()
+        append(
+            "Plain ",
+            attributes: [.font: NSFont.boldSystemFont(ofSize: 14)],
+            to: document
+        )
+        append(
+            "Purple one\nPurple two",
+            attributes: [
+                .font: NSFont.boldSystemFont(ofSize: 14),
+                .foregroundColor: NSColor.systemPurple,
+            ],
+            to: document
+        )
+        append("\n", to: document)
+        append(
+            "Gray",
+            attributes: [
+                .font: NSFont.boldSystemFont(ofSize: 14),
+                .foregroundColor: NSColor.gray,
+            ],
+            to: document
+        )
+        append("\n\nAfter break", to: document)
+
+        let packageURL = directory.appendingPathComponent("Colors.rtfd", isDirectory: true)
+        let wrapper = try document.fileWrapper(
+            from: NSRange(location: 0, length: document.length),
+            documentAttributes: [.documentType: NSAttributedString.DocumentType.rtfd]
+        )
+        try wrapper.write(to: packageURL, options: .atomic, originalContentsURL: nil)
+        return packageURL
+    }
+
     private static func append(
         _ text: String,
         attributes: [NSAttributedString.Key: Any] = [:],

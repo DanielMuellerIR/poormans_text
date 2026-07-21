@@ -46,6 +46,21 @@ path; the converter keeps the text and returns a warning instead.
 The converter searches for Pandoc in the common Homebrew locations and then on
 `PATH`. The CLI also accepts an explicit executable through `--pandoc PATH`.
 
+## Download
+
+Download the DMG and its `.sha256` file from the
+[latest GitHub release](../../releases/latest). With both files in the same
+directory, verify the download before opening it:
+
+```sh
+shasum -a 256 -c Poor-Mans-Text-0.5.0.dmg.sha256
+```
+
+Open the DMG and drag Poor Man's Text to Applications. The app is signed with
+Developer ID, notarized by Apple, and includes the matching universal CLI.
+Pandoc remains a separate requirement and can, for example, be installed with
+`brew install pandoc`.
+
 ## Command line
 
 ```sh
@@ -161,12 +176,17 @@ covers output collisions, malformed inputs, unsafe image references, missing
 dependencies, warnings, the CLI-link guard, and the app's `NSItemProvider` drop
 path.
 
-The current version is 0.4.0.
+The current version is 0.5.0.
 
 ## License
 
 Poor Man's Text is released under the **WTFPL**, Version 2
 (Do What The Fuck You Want To Public License) — see [LICENSE](LICENSE).
+The app-icon provenance is documented in [ASSETS.md](ASSETS.md).
 
 Pandoc is an external runtime dependency and is not bundled with Poor Man's
 Text. Pandoc remains subject to its own license.
+
+Poor Man's Text processes documents locally and does not include telemetry or
+network services. Details are in [PRIVACY.md](PRIVACY.md); support information
+is in [SUPPORT.md](SUPPORT.md).

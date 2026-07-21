@@ -1,5 +1,6 @@
 import Foundation
 import XCTest
+@testable import PoorMansTextCore
 
 final class CLIIntegrationTests: XCTestCase {
     func testRTFSuccessAndInvalidDataKeepJSONAndExitSemantics() throws {
@@ -20,7 +21,7 @@ final class CLIIntegrationTests: XCTestCase {
         XCTAssertEqual(success.status, 0, success.standardError)
         let successJSON = try decodeJSON(success.standardOutput)
         XCTAssertEqual(successJSON["ok"] as? Bool, true)
-        XCTAssertEqual(successJSON["version"] as? String, "0.4.0")
+        XCTAssertEqual(successJSON["version"] as? String, ProductInfo.version)
         XCTAssertTrue(
             FileManager.default.fileExists(
                 atPath: temporaryDirectory.appendingPathComponent("Minimal-markdown/Minimal.md").path

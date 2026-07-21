@@ -2,19 +2,37 @@
 # Prüft DMG, Ticket und die darin ausgelieferte App ohne Finder-Fenster.
 set -euo pipefail
 
-if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
-    echo "Aufruf: verify_dmg.sh <Datei.dmg> [--signed|--notarized]" >&2
+if [ "$#" -lt 1 ]; then
+    echo "Aufruf: verify_dmg.sh <Datei.dmg> [--signed|--notarized] [--matches-app <App>]" >&2
     exit 64
 fi
 
 dmg="$1"
-mode="${2:-}"
-case "$mode" in
-    ""|--signed|--notarized) ;;
-    *) echo "Unbekannte Option: $mode" >&2; exit 64 ;;
-esac
+shift
+mode=""
+expected_app=""
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        --signed|--notarized)
+            [ -z "$mode" ] || { echo "Signaturmodus mehrfach angegeben." >&2; exit 64; }
+            mode="$1"
+            shift
+            ;;
+        --matches-app)
+            [ -z "$expected_app" ] || { echo "Vergleichs-App mehrfach angegeben." >&2; exit 64; }
+            [ "$#" -ge 2 ] || { echo "App-Pfad nach --matches-app fehlt." >&2; exit 64; }
+            expected_app="$2"
+            shift 2
+            ;;
+        *) echo "Unbekannte Option: $1" >&2; exit 64 ;;
+    esac
+done
 
 [ -f "$dmg" ] || { echo "DMG fehlt: $dmg" >&2; exit 66; }
+[ -z "$expected_app" ] || [ -d "$expected_app" ] || {
+    echo "Vergleichs-App fehlt: $expected_app" >&2
+    exit 66
+}
 hdiutil verify "$dmg" >/dev/null
 
 if [ "$mode" = "--signed" ] || [ "$mode" = "--notarized" ]; then
@@ -91,6 +109,24 @@ print(device)
 app="$mount_root/Poor Man's Text.app"
 script_directory="$(cd "$(dirname "$0")" && pwd)"
 "$script_directory/verify_bundle.sh" "$app" "$mode"
+
+code_directory_hash() {
+    local target="$1"
+    codesign -d --verbose=4 "$target" 2>&1 \
+        | awk -F= '/^CDHash=/ && !found { print $2; found = 1 }'
+}
+
+if [ -n "$expected_app" ]; then
+    for relative_path in "" "/Contents/Resources/poormans-text"; do
+        actual_hash="$(code_directory_hash "$app$relative_path")"
+        expected_hash="$(code_directory_hash "$expected_app$relative_path")"
+        if [ -z "$actual_hash" ] || [ "$actual_hash" != "$expected_hash" ]; then
+            echo "Die App im DMG stimmt nicht mit der erwarteten Release-App überein." >&2
+            exit 65
+        fi
+    done
+fi
+
 [ -L "$mount_root/Applications" ] || { echo "Applications-Link fehlt im DMG." >&2; exit 65; }
 [ "$(readlink "$mount_root/Applications")" = "/Applications" ] || {
     echo "Applications-Link im DMG zeigt auf ein falsches Ziel." >&2

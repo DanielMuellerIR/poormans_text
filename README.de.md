@@ -49,6 +49,21 @@ Der Konverter sucht Pandoc in den üblichen Homebrew-Verzeichnissen und danach
 über `PATH`. Dem CLI kann mit `--pandoc PFAD` auch ein bestimmtes Programm
 übergeben werden.
 
+## Download
+
+DMG und zugehörige `.sha256`-Datei stehen im
+[neuesten GitHub-Release](../../releases/latest). Liegen beide Dateien im selben
+Ordner, lässt sich der Download vor dem Öffnen prüfen:
+
+```sh
+shasum -a 256 -c Poor-Mans-Text-0.5.0.dmg.sha256
+```
+
+Danach das DMG öffnen und Poor Man's Text in den Programme-Ordner ziehen. Die
+App ist mit Developer ID signiert, von Apple notarisiert und enthält die passende
+universelle CLI. Pandoc bleibt eine getrennte Voraussetzung und lässt sich
+beispielsweise mit `brew install pandoc` installieren.
+
 ## Kommandozeile
 
 ```sh
@@ -166,12 +181,17 @@ prüfen außerdem vorhandene Ziele, defekte Eingaben, unsichere Bildverweise,
 fehlende Abhängigkeiten, Warnungen, den CLI-Link-Schutz und den
 `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.4.0.
+Die aktuelle Version ist 0.5.0.
 
 ## Lizenz
 
 Poor Man's Text steht unter der **WTFPL**, Version 2
 (Do What The Fuck You Want To Public License) — siehe [LICENSE](LICENSE).
+Die Herkunft des App-Icons ist in [ASSETS.md](ASSETS.md) dokumentiert.
 
 Pandoc ist eine externe Laufzeitabhängigkeit und wird nicht mit Poor Man's Text
 ausgeliefert. Für Pandoc gilt seine eigene Lizenz.
+
+Poor Man's Text verarbeitet Dokumente lokal und enthält weder Telemetrie noch
+Netzwerkdienste. Einzelheiten stehen in [PRIVACY.md](PRIVACY.md), Hinweise zum
+Support in [SUPPORT.md](SUPPORT.md).

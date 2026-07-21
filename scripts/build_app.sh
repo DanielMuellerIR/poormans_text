@@ -19,6 +19,7 @@ bundle_path="$bundle_root/Poor Man's Text.app"
 contents_path="$bundle_path/Contents"
 bundled_cli="$contents_path/Resources/poormans-text"
 bundled_license="$contents_path/Resources/LICENSE.txt"
+bundled_icon="$contents_path/Resources/AppIcon.icns"
 root_app="$project_root/Poor Man's Text.app"
 root_cli="$project_root/poormans-text"
 
@@ -40,6 +41,7 @@ fi
 swift build "${build_arguments[@]}" --product PoorMansTextApp
 swift build "${build_arguments[@]}" --product poormans-text
 binary_directory="$(swift build "${build_arguments[@]}" --show-bin-path)"
+"$script_directory/build_icon.sh"
 
 if [ "$build_configuration" = "release" ]; then
     lipo "$binary_directory/PoorMansTextApp" -verify_arch arm64 x86_64
@@ -54,6 +56,7 @@ mkdir -p "$contents_path/MacOS" "$contents_path/Resources"
 cp "$binary_directory/PoorMansTextApp" "$contents_path/MacOS/PoorMansTextApp"
 cp "$binary_directory/poormans-text" "$bundled_cli"
 cp "$project_root/LICENSE" "$bundled_license"
+cp "$project_root/.build/icon/AppIcon.icns" "$bundled_icon"
 cp "$project_root/App/Info.plist" "$contents_path/Info.plist"
 chmod 755 "$contents_path/MacOS/PoorMansTextApp" "$bundled_cli"
 

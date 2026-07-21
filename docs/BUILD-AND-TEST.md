@@ -18,9 +18,11 @@ im Repo-Root ab:
 - `Poor Man's Text.app`
 - `poormans-text`
 
-Das App-Bundle enthält die CLI unter `Contents/Resources/poormans-text` und die
-Projektlizenz unter `Contents/Resources/LICENSE.txt`. Lokale Builds sind
-ad-hoc-signiert und dürfen nicht nach `/Applications` kopiert werden.
+Das App-Bundle enthält die CLI unter `Contents/Resources/poormans-text`, die
+Projektlizenz unter `Contents/Resources/LICENSE.txt` und das aus
+`Assets/AppIcon.png` erzeugte App-Icon. `scripts/build_icon.sh` baut daraus das
+vollständige ICNS-Größenset unter `.build/icon/`. Lokale Builds sind ad-hoc-signiert
+und dürfen nicht nach `/Applications` kopiert werden.
 
 ## Schneller Developer-ID-Test
 
@@ -87,3 +89,9 @@ Bilder per Hash vergleichen und die App als Bundle ohne Fokuswechsel starten.
 Für einen installierten Build und das DMG müssen `stapler`, `spctl`, `codesign`
 und `hdiutil verify` am tatsächlichen Ziel erfolgreich sein; ein grüner
 SwiftPM-Build allein genügt nicht.
+
+Nach Commit, annotiertem Release-Tag und vollständiger Notarisierung prüft
+`scripts/verify_release.sh <Version>` zusätzlich einen sauberen Git-Stand, die
+Tag- und Versionsgleichheit, Universal Binaries, beide App-Kopien, DMG und
+SHA-256-Datei. Der öffentliche Ablauf steht in
+[GITHUB-RELEASE.md](GITHUB-RELEASE.md).

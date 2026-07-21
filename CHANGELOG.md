@@ -2,10 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 0.5.0 - 2026-07-21
 
 - License the project-owned source code and documentation under WTFPL Version 2
   and include the license in generated app bundles.
+- Add the sapphire-and-amethyst document icon selected for the public release,
+  with a reproducible macOS icon build and documented asset provenance.
+- Add GitHub Actions verification, public download and support documentation,
+  release notes, and a tag-aware local release verifier.
 
 ## 0.4.0 - 2026-07-21
 

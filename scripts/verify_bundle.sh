@@ -20,9 +20,18 @@ esac
 info_plist="$app/Contents/Info.plist"
 bundled_cli="$app/Contents/Resources/poormans-text"
 bundled_license="$app/Contents/Resources/LICENSE.txt"
+bundled_icon="$app/Contents/Resources/AppIcon.icns"
 [ -f "$info_plist" ] || { echo "Info.plist fehlt im Bundle." >&2; exit 66; }
 [ -x "$bundled_cli" ] || { echo "Ausführbare CLI fehlt im Bundle." >&2; exit 66; }
 [ -f "$bundled_license" ] || { echo "Lizenzdatei fehlt im Bundle." >&2; exit 66; }
+[ -f "$bundled_icon" ] || { echo "App-Icon fehlt im Bundle." >&2; exit 66; }
+
+icon_name="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIconFile' "$info_plist")"
+[ "$icon_name" = "AppIcon" ] || { echo "CFBundleIconFile verweist nicht auf AppIcon." >&2; exit 65; }
+[ "$(sips -g format "$bundled_icon" | awk '/format:/{print $2}')" = "icns" ] || {
+    echo "AppIcon.icns ist ungültig." >&2
+    exit 65
+}
 
 codesign --verify --deep --strict --verbose=2 "$app"
 codesign --verify --strict --verbose=2 "$bundled_cli"

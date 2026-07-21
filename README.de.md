@@ -1,6 +1,14 @@
+<p align="center">
+  <img src="Assets/AppIcon.png" width="128" alt="App-Icon von Poor Man's Text">
+</p>
+
+<h1 align="center">Poor Man's Text</h1>
+
 **🌐 Sprache / Language:** [English](README.md) · [Deutsch](README.de.md)
 
-# Poor Man's Text
+<p align="center">
+  <strong>macOS-RTF- und RTFD-Dokumente in Markdown mit extrahierten Bildern umwandeln.</strong>
+</p>
 
 Poor Man's Text wandelt Rich-Text-Dokumente (`.rtf`) und macOS-Dokumentpakete im
 Format „Rich Text with Attachments“ (`.rtfd`) in Ordner mit Markdown und separat

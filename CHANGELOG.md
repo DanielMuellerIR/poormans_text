@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 0.5.1 - 2026-07-22
 
 - Preserve real RTFD paragraph boundaries independently from manual line breaks,
   keep CommonMark fenced code untouched, and show every conversion warning in the app.

@@ -190,7 +190,7 @@ prüfen außerdem vorhandene Ziele, defekte Eingaben, unsichere Bildverweise,
 fehlende Abhängigkeiten, Warnungen, den CLI-Link-Schutz und den
 `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.5.0.
+Die aktuelle Version ist 0.5.1.
 
 ## Lizenz
 

@@ -185,7 +185,7 @@ covers output collisions, malformed inputs, unsafe image references, missing
 dependencies, warnings, the CLI-link guard, and the app's `NSItemProvider` drop
 path.
 
-The current version is 0.5.0.
+The current version is 0.5.1.
 
 ## License
 

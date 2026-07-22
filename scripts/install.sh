@@ -4,6 +4,8 @@ set -euo pipefail
 
 script_directory="$(cd "$(dirname "$0")" && pwd)"
 project_root="$(cd "$script_directory/.." && pwd)"
+# shellcheck source=install_transaction.sh
+source "$script_directory/install_transaction.sh"
 cd "$project_root"
 
 notarize=1
@@ -71,8 +73,10 @@ fi
 temporary_directory="$(mktemp -d "$project_root/.build/poormans-notary.XXXXXX")"
 published_checksum=0
 cleanup() {
+    local original_status=$?
+    local installation_cleanup_status=0
     if declare -F cleanup_installation >/dev/null; then
-        cleanup_installation || true
+        cleanup_installation || installation_cleanup_status=$?
     fi
     if [ "${published_checksum:-0}" -eq 1 ] \
        && [ ! -e "${dmg:-}" ] && [ ! -L "${dmg:-}" ] \
@@ -85,6 +89,11 @@ cleanup() {
             'import Foundation; try FileManager.default.removeItem(atPath: CommandLine.arguments[1])' \
             "$temporary_directory"
     fi
+    if [ "$installation_cleanup_status" -ne 0 ]; then
+        trap - EXIT
+        exit "$installation_cleanup_status"
+    fi
+    return "$original_status"
 }
 trap cleanup EXIT
 trap 'exit 130' INT
@@ -304,35 +313,7 @@ copy_staged_app() {
 }
 
 cleanup_installation() {
-    if [ "${created_cli:-0}" -eq 1 ] && [ -L "$destination_cli" ] \
-       && [ "$(readlink "$destination_cli" 2>/dev/null || true)" = "$installed_cli" ]; then
-        remove_install_path "$destination_cli" || true
-        created_cli=0
-    fi
-
-    case "${installation_state:-preparing}" in
-        swapped)
-            # Nach RENAME_SWAP liegt die alte App am eindeutigen Stage-Pfad.
-            # Ein weiterer Swap stellt den vorherigen Zustand ohne Lücke wieder her.
-            if [ -e "$staged_app" ] && [ -e "$destination_app" ]; then
-                swap_install_paths "$staged_app" "$destination_app" || true
-            fi
-            remove_install_path "$staged_app" || true
-            ;;
-        installed-new)
-            if app_matches_release_identity "$destination_app"; then
-                remove_install_path "$destination_app" || true
-            fi
-            ;;
-        committed)
-            # Hier enthält der Stage-Pfad nur noch die validierte alte App.
-            remove_install_path "$staged_app" || true
-            ;;
-        *)
-            remove_install_path "$staged_app" || true
-            ;;
-    esac
-    installation_state="clean"
+    poormans_text_cleanup_installation
 }
 
 rollback_app_installation() {

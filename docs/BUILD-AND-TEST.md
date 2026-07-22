@@ -74,6 +74,11 @@ Ein fremdes vorhandenes App- oder CLI-Ziel wird nicht überschrieben. Falls
 Administratorrechte an. Ein anderes absolutes Ziel kann für kontrollierte Tests
 über `CLI_INSTALL_DIR` gesetzt werden; es muss im aktuellen `PATH` liegen.
 
+Beim atomaren Austausch bleibt die bisherige App bis zur erfolgreichen
+Endprüfung an einem eindeutigen Stage-Pfad erhalten. Schlägt auch der Rücktausch
+fehl, löscht der Cleanup diesen Rettungspfad nicht, meldet ihn ausdrücklich und
+beendet den Lauf mit einem Fehlerstatus.
+
 ## Verifikation
 
 Vor einem Release mindestens:

@@ -3,7 +3,9 @@ import Foundation
 /// Fehler, die Aufrufer des Konvertierungskerns gezielt behandeln können.
 public enum ConversionError: LocalizedError, Sendable {
     case inputDoesNotExist(URL)
-    case inputIsNotRichText(URL)
+    case unsupportedInput(URL)
+    case invalidInput(URL, format: InputFormat, reason: String)
+    case ambiguousInput(URL, formats: [InputFormat])
     case invalidRichText(URL, reason: String)
     case outputAlreadyExists(URL)
     case outputParentDoesNotExist(URL)
@@ -17,27 +19,32 @@ public enum ConversionError: LocalizedError, Sendable {
     public var errorDescription: String? {
         switch self {
         case .inputDoesNotExist(let url):
-            "Input does not exist: \(url.path)"
-        case .inputIsNotRichText(let url):
-            "Input is not an RTF or RTFD document: \(url.path)"
+            return "Input does not exist: \(url.path)"
+        case .unsupportedInput(let url):
+            return "Unsupported input format: \(url.path)"
+        case .invalidInput(let url, let format, let reason):
+            return "Invalid \(format.rawValue.uppercased()) input at \(url.path): \(reason)"
+        case .ambiguousInput(let url, let formats):
+            let names = formats.map(\.rawValue).sorted().joined(separator: ", ")
+            return "Input matches more than one format at \(url.path): \(names)"
         case .invalidRichText(let url, let reason):
-            "Invalid rich-text document at \(url.path): \(reason)"
+            return "Invalid rich-text document at \(url.path): \(reason)"
         case .outputAlreadyExists(let url):
-            "Output already exists and will not be overwritten: \(url.path)"
+            return "Output already exists and will not be overwritten: \(url.path)"
         case .outputParentDoesNotExist(let url):
-            "The output parent directory does not exist: \(url.path)"
+            return "The output parent directory does not exist: \(url.path)"
         case .outputInsideInput(let url):
-            "The output directory must not be inside the source document: \(url.path)"
+            return "The output directory must not be inside the source document: \(url.path)"
         case .pandocNotFound:
-            "Pandoc was not found. Install Pandoc or pass --pandoc PATH."
+            return "Pandoc was not found. Install Pandoc or pass --pandoc PATH."
         case .unsafeImageReference(let reference):
-            "The generated document contains an unsafe image reference: \(reference)"
+            return "The generated document contains an unsafe image reference: \(reference)"
         case .textutilFailed(let status, let message):
-            externalToolMessage(tool: "textutil", status: status, message: message)
+            return externalToolMessage(tool: "textutil", status: status, message: message)
         case .pandocFailed(let status, let message):
-            externalToolMessage(tool: "pandoc", status: status, message: message)
+            return externalToolMessage(tool: "pandoc", status: status, message: message)
         case .fileSystemFailure(let message):
-            "File-system operation failed: \(message)"
+            return "File-system operation failed: \(message)"
         }
     }
 

@@ -108,6 +108,19 @@ final class CLIIntegrationTests: XCTestCase {
         try assertJSONFailure(["--json", unreadableInput.path], expectedStatus: 74)
     }
 
+    func testJSONModeUsesOnlyOptionsRecognizedByParser() throws {
+        let inputNamedJSON = try runCLI(["--", "--json"])
+        assertTextFailure(inputNamedJSON, expectedStatus: 66)
+
+        let pandocNamedJSON = try runCLI(["--pandoc", "--json"])
+        assertTextFailure(pandocNamedJSON, expectedStatus: 64)
+
+        let outputNamedJSON = try runCLI(["--output", "--json"])
+        assertTextFailure(outputNamedJSON, expectedStatus: 64)
+
+        try assertJSONFailure(["--json", "--unknown"], expectedStatus: 64)
+    }
+
     private func runCLI(_ arguments: [String]) throws -> CLIProcessResult {
         let executable = Bundle(for: Self.self).bundleURL
             .deletingLastPathComponent()
@@ -155,6 +168,16 @@ final class CLIIntegrationTests: XCTestCase {
         XCTAssertEqual(json["ok"] as? Bool, false)
         XCTAssertEqual(json["version"] as? String, ProductInfo.version)
         XCTAssertNotNil(json["error"] as? String)
+    }
+
+    private func assertTextFailure(
+        _ result: CLIProcessResult,
+        expectedStatus: Int32
+    ) {
+        XCTAssertEqual(result.status, expectedStatus)
+        XCTAssertTrue(result.standardOutput.isEmpty)
+        XCTAssertTrue(result.standardError.hasPrefix("Error: "))
+        XCTAssertFalse(result.standardError.contains("\"ok\""))
     }
 
     private struct CLIProcessResult {

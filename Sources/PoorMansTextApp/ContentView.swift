@@ -152,11 +152,21 @@ struct ContentView: View {
                 .textSelection(.enabled)
             Text(assetSummary(result))
                 .foregroundStyle(.secondary)
-            if let warning = result.warnings.first {
-                Label(warning, systemImage: "exclamationmark.triangle.fill")
-                    .font(.callout)
-                    .foregroundStyle(.orange)
-                    .lineLimit(3)
+            let warningMessages = WarningPresentation(warnings: result.warnings).messages
+            if !warningMessages.isEmpty {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 8) {
+                        ForEach(Array(warningMessages.enumerated()), id: \.offset) { _, warning in
+                            Label(warning, systemImage: "exclamationmark.triangle.fill")
+                                .font(.callout)
+                                .foregroundStyle(.orange)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .textSelection(.enabled)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .frame(maxHeight: 110)
             }
             HStack {
                 Button("Show in Finder") {

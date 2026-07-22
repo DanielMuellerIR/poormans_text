@@ -2,43 +2,42 @@ import Foundation
 
 /// Formatneutrale Orchestrierung für Erkennung, Adapterwahl und Veröffentlichung.
 public struct DocumentConverter: Sendable {
-    private let adapters: [InputFormat: any DocumentConversionAdapter]
+    private let adapters: [any DocumentConversionAdapter]
 
     public init() {
         self.init(adapters: [RichTextAdapter()])
     }
 
     init(adapters: [any DocumentConversionAdapter]) {
-        var registry = [InputFormat: any DocumentConversionAdapter]()
+        var registeredFormats = Set<InputFormat>()
         for adapter in adapters {
             for format in adapter.supportedFormats {
-                precondition(registry[format] == nil, "More than one adapter handles \(format.rawValue)")
-                registry[format] = adapter
+                precondition(
+                    registeredFormats.insert(format).inserted,
+                    "More than one adapter handles \(format.rawValue)"
+                )
             }
         }
-        self.adapters = registry
+        self.adapters = adapters
     }
 
     public var supportedFormats: Set<InputFormat> {
-        Set(adapters.keys)
+        Set(adapters.flatMap(\.supportedFormats))
     }
 
     /// Erkennt das Format erneut aus der Quelle und beschreibt bekannte Verluste.
     public func inspect(_ requestedInputURL: URL) throws -> InputInspection {
         let inputURL = requestedInputURL.standardizedFileURL
-        let format = try detectFormat(at: inputURL)
-        guard let adapter = adapters[format] else {
-            throw ConversionError.inputIsNotRichText(inputURL)
-        }
+        let detected = try detectInput(at: inputURL)
         return InputInspection(
             inputURL: inputURL,
-            format: format,
-            expectedWarnings: adapter.expectedWarnings(for: inputURL, format: format)
+            format: detected.inspection.format,
+            expectedWarnings: detected.inspection.expectedWarnings
         )
     }
 
     public func detectFormat(at requestedInputURL: URL) throws -> InputFormat {
-        try detectInputFormat(at: requestedInputURL.standardizedFileURL)
+        try detectInput(at: requestedInputURL.standardizedFileURL).inspection.format
     }
 
     public func convert(
@@ -47,7 +46,8 @@ public struct DocumentConverter: Sendable {
     ) throws -> ConversionResult {
         progress?(ConversionProgress(phase: .detectingInput))
         let inputURL = request.inputURL.standardizedFileURL
-        let format = try detectInputFormat(at: inputURL)
+        let detected = try detectInput(at: inputURL)
+        let format = detected.inspection.format
 
         progress?(ConversionProgress(phase: .preparingOutput, format: format))
         let destination = resolveDestination(for: request, inputURL: inputURL)
@@ -73,11 +73,8 @@ public struct DocumentConverter: Sendable {
             try? fileManager.removeItem(at: temporaryRoot)
         }
 
-        guard let adapter = adapters[format] else {
-            throw ConversionError.inputIsNotRichText(inputURL)
-        }
         progress?(ConversionProgress(phase: .converting, format: format))
-        let stagedResult = try adapter.convert(
+        let stagedResult = try detected.adapter.convert(
             AdapterConversionContext(
                 inputURL: inputURL,
                 format: format,
@@ -131,55 +128,56 @@ public struct DocumentConverter: Sendable {
             )
     }
 
-    private func detectInputFormat(at inputURL: URL) throws -> InputFormat {
+    private func detectInput(at inputURL: URL) throws -> DetectedInput {
         let fileManager = FileManager.default
-        var isDirectory: ObjCBool = false
-        guard fileManager.fileExists(atPath: inputURL.path, isDirectory: &isDirectory) else {
+        guard fileManager.fileExists(atPath: inputURL.path) else {
             throw ConversionError.inputDoesNotExist(inputURL)
         }
 
-        if isDirectory.boolValue {
-            let rtfURL = inputURL.appendingPathComponent("TXT.rtf")
-            var rtfIsDirectory: ObjCBool = false
-            let hasRTFFile = fileManager.fileExists(atPath: rtfURL.path, isDirectory: &rtfIsDirectory)
-                && !rtfIsDirectory.boolValue
-
-            if hasRTFFile, try hasRTFHeader(at: rtfURL) {
-                return .rtfd
+        var matches = [DetectedInput]()
+        var invalidInputs = [InvalidDetectedInput]()
+        for adapter in adapters {
+            switch try adapter.inspectInput(at: inputURL) {
+            case .noMatch:
+                continue
+            case .match(let inspection):
+                precondition(
+                    adapter.supportedFormats.contains(inspection.format),
+                    "Adapter inspected unsupported format \(inspection.format.rawValue)"
+                )
+                matches.append(DetectedInput(inspection: inspection, adapter: adapter))
+            case .invalid(let format, let priority, let reason):
+                precondition(
+                    adapter.supportedFormats.contains(format),
+                    "Adapter rejected unsupported format \(format.rawValue)"
+                )
+                invalidInputs.append(
+                    InvalidDetectedInput(format: format, priority: priority, reason: reason)
+                )
             }
-            if inputURL.pathExtension.lowercased() == "rtfd" {
-                let reason = hasRTFFile ? "TXT.rtf has no RTF header" : "TXT.rtf is missing"
-                throw ConversionError.invalidRichText(inputURL, reason: reason)
+        }
+
+        if !matches.isEmpty {
+            let highestPriority = matches.map(\.inspection.priority).max() ?? 0
+            let preferred = matches.filter { $0.inspection.priority == highestPriority }
+            guard preferred.count == 1, let detected = preferred.first else {
+                throw ConversionError.ambiguousInput(
+                    inputURL,
+                    formats: preferred.map(\.inspection.format)
+                )
             }
-            throw ConversionError.inputIsNotRichText(inputURL)
+            return detected
         }
 
-        if try hasRTFHeader(at: inputURL) {
-            return .rtf
+        if let invalid = invalidInputs.max(by: { $0.priority < $1.priority }) {
+            throw ConversionError.invalidInput(
+                inputURL,
+                format: invalid.format,
+                reason: invalid.reason
+            )
         }
-        if inputURL.pathExtension.lowercased() == "rtf" {
-            throw ConversionError.invalidRichText(inputURL, reason: "the RTF header is missing")
-        }
-        throw ConversionError.inputIsNotRichText(inputURL)
-    }
 
-    private func hasRTFHeader(at url: URL) throws -> Bool {
-        do {
-            let handle = try FileHandle(forReadingFrom: url)
-            defer { try? handle.close() }
-            let bytes = [UInt8](try handle.read(upToCount: 32) ?? Data())
-            let signature = [UInt8](#"{\rtf"#.utf8)
-            guard bytes.starts(with: signature) else {
-                return false
-            }
-
-            // `\rtf` ist ein Steuerwort mit verpflichtender Versionszahl.
-            // Ohne Zifferngrenze würde etwa `\rtfake` als Dokument gelten.
-            let versionStart = signature.count
-            return versionStart < bytes.count && bytes[versionStart].isASCIIDigit
-        } catch {
-            throw ConversionError.fileSystemFailure(error.localizedDescription)
-        }
+        throw ConversionError.unsupportedInput(inputURL)
     }
 
     private func resolveDestination(
@@ -265,19 +263,36 @@ public struct DocumentConverter: Sendable {
         let url: URL
         let lifetime: ConversionOutputLifetime
     }
-}
 
-private extension UInt8 {
-    var isASCIIDigit: Bool {
-        self >= 0x30 && self <= 0x39
+    private struct DetectedInput: Sendable {
+        let inspection: AdapterInputInspection
+        let adapter: any DocumentConversionAdapter
+    }
+
+    private struct InvalidDetectedInput {
+        let format: InputFormat
+        let priority: Int
+        let reason: String
     }
 }
 
 protocol DocumentConversionAdapter: Sendable {
     var supportedFormats: Set<InputFormat> { get }
 
-    func expectedWarnings(for inputURL: URL, format: InputFormat) -> [ConversionWarning]
+    func inspectInput(at inputURL: URL) throws -> AdapterInputDetection
     func convert(_ context: AdapterConversionContext) throws -> StagedConversionResult
+}
+
+enum AdapterInputDetection: Sendable {
+    case noMatch
+    case match(AdapterInputInspection)
+    case invalid(format: InputFormat, priority: Int, reason: String)
+}
+
+struct AdapterInputInspection: Sendable {
+    let format: InputFormat
+    let priority: Int
+    let expectedWarnings: [ConversionWarning]
 }
 
 struct AdapterConversionContext: Sendable {

@@ -1,9 +1,36 @@
 import Foundation
 
 /// Vom Konvertierungskern eindeutig erkanntes Quelldokumentformat.
-public enum InputFormat: String, CaseIterable, Codable, Hashable, Sendable {
-    case rtf
-    case rtfd
+///
+/// Der offene String-Wert erlaubt neuen Adaptern ein eigenes Format, ohne diese
+/// zentrale Foundation-Grenze um einen Enum-Fall erweitern zu müssen.
+public struct InputFormat: RawRepresentable, Codable, Hashable, Sendable {
+    public let rawValue: String
+
+    public init(rawValue: String) {
+        precondition(!rawValue.isEmpty, "An input format identifier must not be empty")
+        self.rawValue = rawValue
+    }
+
+    public static let rtf = InputFormat(rawValue: "rtf")
+    public static let rtfd = InputFormat(rawValue: "rtfd")
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let rawValue = try container.decode(String.self)
+        guard !rawValue.isEmpty else {
+            throw DecodingError.dataCorruptedError(
+                in: container,
+                debugDescription: "An input format identifier must not be empty"
+            )
+        }
+        self.rawValue = rawValue
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
 }
 
 /// Ergebnis der Formatprüfung, das eine aufrufende App vor der Konvertierung

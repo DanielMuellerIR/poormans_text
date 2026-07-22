@@ -34,7 +34,7 @@ final class AppModelDropTests: XCTestCase {
                 switch model.state {
                 case .failed(let failedInput, let message):
                     XCTAssertEqual(failedInput, inputURL)
-                    XCTAssertTrue(message.hasPrefix("Input is not an RTF or RTFD document:"))
+                    XCTAssertTrue(message.hasPrefix("Unsupported input format:"))
                     return
                 case .succeeded:
                     return XCTFail("Unsupported input was converted.")

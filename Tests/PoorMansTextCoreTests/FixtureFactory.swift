@@ -168,6 +168,22 @@ enum FixtureFactory {
         return packageURL
     }
 
+    static func createTwoParagraphRTFD(in directory: URL) throws -> URL {
+        try createTextRTFD(
+            in: directory,
+            name: "Two paragraphs.rtfd",
+            text: "First paragraph\nSecond paragraph\n"
+        )
+    }
+
+    static func createManualLineBreakRTFD(in directory: URL) throws -> URL {
+        try createTextRTFD(
+            in: directory,
+            name: "Manual line break.rtfd",
+            text: "First line\u{2028}Second line\nThird paragraph\n"
+        )
+    }
+
     static func createDuplicateImageNameRTFD(in directory: URL) throws -> RichRTFDFixture {
         let document = NSMutableAttributedString(string: "One ")
         let firstImage = try makePNG(color: .systemGreen)
@@ -235,6 +251,24 @@ enum FixtureFactory {
             attributes[.font] = NSFont.systemFont(ofSize: 14)
         }
         document.append(NSAttributedString(string: text, attributes: attributes))
+    }
+
+    private static func createTextRTFD(
+        in directory: URL,
+        name: String,
+        text: String
+    ) throws -> URL {
+        let document = NSAttributedString(
+            string: text,
+            attributes: [.font: NSFont.systemFont(ofSize: 14)]
+        )
+        let wrapper = try document.fileWrapper(
+            from: NSRange(location: 0, length: document.length),
+            documentAttributes: [.documentType: NSAttributedString.DocumentType.rtfd]
+        )
+        let packageURL = directory.appendingPathComponent(name, isDirectory: true)
+        try wrapper.write(to: packageURL, options: .atomic, originalContentsURL: nil)
+        return packageURL
     }
 
     private static func appendImage(

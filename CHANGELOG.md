@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Preserve real RTFD paragraph boundaries independently from manual line breaks,
+  keep CommonMark fenced code untouched, and show every conversion warning in the app.
+- Keep CLI JSON errors aligned with parsed options and discard unused external-tool
+  standard output instead of buffering it in full.
+- Preserve the previous installed app at a reported rescue path when an atomic
+  rollback fails, with the transaction paths covered by isolated tests.
+- Let adapters own format inspection and expected warnings, with central priority
+  and ambiguity handling for extensible format identifiers.
 - Add a format-neutral conversion engine with content-based RTF/RTFD detection,
   typed requests, progress, diagnostics, and persistent or temporary destinations.
 - Keep the distinct AppKit RTFD and Pandoc RTF import paths behind one adapter,

@@ -20,18 +20,43 @@ final class MarkdownNormalizerTests: XCTestCase {
         )
     }
 
-    func testJoinsAdjacentPlainLinesButKeepsIntroductionParagraph() {
+    func testKeepsAdjacentPlainParagraphsSeparate() {
         let markdown = "Intro:\n\nFirst line\n\nSecond line\n\n**Heading**\n"
 
-        XCTAssertEqual(
-            MarkdownNormalizer.normalize(markdown),
-            "Intro:\n\nFirst line  \nSecond line\n\n**Heading**\n"
-        )
+        XCTAssertEqual(MarkdownNormalizer.normalize(markdown), markdown)
     }
 
     func testLeavesFencedCodeUnchanged() {
         let markdown = "```text\n\\- item\n\\_\\_\\_\n\\\n```\n"
 
         XCTAssertEqual(MarkdownNormalizer.normalize(markdown), markdown)
+    }
+
+    func testDoesNotCloseFenceWhenTextFollowsDelimiter() {
+        let markdown = #"""
+        ````text
+        ````not-a-closing-fence
+        \- literal
+        ````
+        """#
+
+        XCTAssertEqual(MarkdownNormalizer.normalize(markdown), markdown)
+    }
+
+    func testClosesFenceWithLongerWhitespaceOnlyDelimiter() {
+        let markdown = #"""
+        ~~~text
+        \- code
+         ~~~~
+        \- prose
+        """#
+        let expected = #"""
+        ~~~text
+        \- code
+         ~~~~
+        - prose
+        """#
+
+        XCTAssertEqual(MarkdownNormalizer.normalize(markdown), expected)
     }
 }

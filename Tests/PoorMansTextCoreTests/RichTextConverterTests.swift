@@ -123,18 +123,20 @@ final class RichTextConverterTests: XCTestCase {
         XCTAssertEqual(Set(convertedImageData), Set(fixture.imageData))
     }
 
-    func testWarnsAboutAttachmentMissingFromGeneratedHTML() throws {
+    func testWarnsAboutEveryAttachmentMissingFromGeneratedHTML() throws {
         try requirePandoc()
         let inputURL = try FixtureFactory.createMinimalRTFD(in: temporaryDirectory)
-        try Data("unrepresented".utf8).write(
-            to: inputURL.appendingPathComponent("notes.bin")
-        )
+        try Data("first".utf8).write(to: inputURL.appendingPathComponent("first.bin"))
+        try Data("second".utf8).write(to: inputURL.appendingPathComponent("second.dat"))
 
         let result = try RTFDConverter().convert(inputURL: inputURL)
 
         XCTAssertEqual(
             result.warnings,
-            ["Attachment was not represented in the generated Markdown: notes.bin"]
+            [
+                "Attachment was not represented in the generated Markdown: first.bin",
+                "Attachment was not represented in the generated Markdown: second.dat",
+            ]
         )
     }
 
@@ -171,7 +173,7 @@ final class RichTextConverterTests: XCTestCase {
         try FileManager.default.createDirectory(at: inputURL, withIntermediateDirectories: false)
 
         XCTAssertThrowsError(try RTFDConverter().convert(inputURL: inputURL)) { error in
-            guard case ConversionError.invalidRichText = error else {
+            guard case ConversionError.invalidInput = error else {
                 return XCTFail("Unexpected error: \(error)")
             }
         }
@@ -182,7 +184,7 @@ final class RichTextConverterTests: XCTestCase {
         try Data("plain text".utf8).write(to: inputURL)
 
         XCTAssertThrowsError(try RichTextConverter().convert(inputURL: inputURL)) { error in
-            guard case ConversionError.invalidRichText = error else {
+            guard case ConversionError.invalidInput = error else {
                 return XCTFail("Unexpected error: \(error)")
             }
         }
@@ -199,6 +201,36 @@ final class RichTextConverterTests: XCTestCase {
 
         XCTAssertTrue(markdown.contains("First paragraph\n\nSecond paragraph"))
         XCTAssertFalse(markdown.contains("First paragraph  \nSecond paragraph"))
+    }
+
+    func testKeepsRealRTFDParagraphsSeparate() throws {
+        try requirePandoc()
+        let inputURL = try FixtureFactory.createTwoParagraphRTFD(in: temporaryDirectory)
+        let sourceBefore = try Data(contentsOf: inputURL.appendingPathComponent("TXT.rtf"))
+
+        let result = try RTFDConverter().convert(inputURL: inputURL)
+        let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+
+        XCTAssertEqual(markdown, "First paragraph\n\nSecond paragraph\n")
+        XCTAssertEqual(
+            try Data(contentsOf: inputURL.appendingPathComponent("TXT.rtf")),
+            sourceBefore
+        )
+    }
+
+    func testKeepsRealRTFDManualLineBreakDistinctFromParagraph() throws {
+        try requirePandoc()
+        let inputURL = try FixtureFactory.createManualLineBreakRTFD(in: temporaryDirectory)
+        let sourceBefore = try Data(contentsOf: inputURL.appendingPathComponent("TXT.rtf"))
+
+        let result = try RTFDConverter().convert(inputURL: inputURL)
+        let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+
+        XCTAssertEqual(markdown, "First line  \nSecond line\n\nThird paragraph\n")
+        XCTAssertEqual(
+            try Data(contentsOf: inputURL.appendingPathComponent("TXT.rtf")),
+            sourceBefore
+        )
     }
 
     func testPreservesEmptyRTFParagraph() throws {

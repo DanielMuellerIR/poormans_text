@@ -2,10 +2,7 @@ import Foundation
 
 /// Bereinigt typische Pandoc-Artefakte, ohne den eigentlichen Inhalt zu verändern.
 enum MarkdownNormalizer {
-    static func normalize(
-        _ markdown: String,
-        joinsAdjacentPlainLines: Bool = true
-    ) -> String {
+    static func normalize(_ markdown: String) -> String {
         let unified = markdown.replacingOccurrences(of: "\r\n", with: "\n")
         let keepsFinalNewline = unified.hasSuffix("\n")
         var lines = unified.components(separatedBy: "\n")
@@ -18,30 +15,24 @@ enum MarkdownNormalizer {
         var fence: Fence?
 
         for line in lines {
-            if let delimiter = fenceDelimiter(in: line) {
+            if let currentFence = fence {
                 transformed.append(line)
-                if let currentFence = fence {
-                    if delimiter.character == currentFence.character,
-                       delimiter.length >= currentFence.length {
-                        fence = nil
-                    }
-                } else {
-                    fence = delimiter
+                if isClosingFence(line, matching: currentFence) {
+                    fence = nil
                 }
                 continue
             }
 
-            if fence != nil {
+            if let delimiter = openingFence(in: line) {
                 transformed.append(line)
-            } else {
-                transformed.append(normalizeLine(line))
+                fence = delimiter
+                continue
             }
+
+            transformed.append(normalizeLine(line))
         }
 
-        let compacted = compactPandocParagraphSpacing(
-            transformed,
-            joinsAdjacentPlainLines: joinsAdjacentPlainLines
-        )
+        let compacted = compactPandocParagraphSpacing(transformed)
         let result = compacted.joined(separator: "\n")
         return keepsFinalNewline ? result + "\n" : result
     }
@@ -110,10 +101,7 @@ enum MarkdownNormalizer {
         return indent + body.dropFirst().description
     }
 
-    private static func compactPandocParagraphSpacing(
-        _ lines: [String],
-        joinsAdjacentPlainLines: Bool
-    ) -> [String] {
+    private static func compactPandocParagraphSpacing(_ lines: [String]) -> [String] {
         var result = [String]()
         result.reserveCapacity(lines.count)
 
@@ -133,33 +121,10 @@ enum MarkdownNormalizer {
                next.trimmingCharacters(in: .whitespaces) == "-" {
                 continue
             }
-            if joinsAdjacentPlainLines,
-               shouldJoinWithHardBreak(previous: previous, next: next) {
-                result[result.count - 1] = previous.trimmingTrailingSpaces() + "  "
-                continue
-            }
-
             result.append(line)
         }
 
         return result
-    }
-
-    private static func shouldJoinWithHardBreak(previous: String, next: String) -> Bool {
-        let previousText = previous.trimmingCharacters(in: .whitespaces)
-        guard !previousText.hasSuffix(":"), isPlainTextLine(previous), isPlainTextLine(next) else {
-            return false
-        }
-        return true
-    }
-
-    private static func isPlainTextLine(_ line: String) -> Bool {
-        let text = line.trimmingCharacters(in: .whitespaces)
-        guard !text.isEmpty, text != "-" else {
-            return false
-        }
-        let markdownSyntax = CharacterSet(charactersIn: "*_[]!`#<>=|\\")
-        return text.rangeOfCharacter(from: markdownSyntax) == nil
     }
 
     private static func isWhitespaceHardBreak(_ line: String) -> Bool {
@@ -170,16 +135,46 @@ enum MarkdownNormalizer {
         String(line.prefix(while: { $0 == " " || $0 == "\t" }))
     }
 
-    private static func fenceDelimiter(in line: String) -> Fence? {
-        let trimmed = line.drop(while: { $0 == " " || $0 == "\t" })
-        guard let character = trimmed.first, character == "`" || character == "~" else {
+    private static func openingFence(in line: String) -> Fence? {
+        guard let trimmed = fenceCandidate(in: line),
+              let character = trimmed.first,
+              character == "`" || character == "~" else {
             return nil
         }
         let length = trimmed.prefix(while: { $0 == character }).count
         guard length >= 3 else {
             return nil
         }
+        let remainder = trimmed.dropFirst(length)
+        guard character != "`" || !remainder.contains("`") else {
+            return nil
+        }
         return Fence(character: character, length: length)
+    }
+
+    private static func isClosingFence(_ line: String, matching fence: Fence) -> Bool {
+        guard let trimmed = fenceCandidate(in: line),
+              trimmed.first == fence.character else {
+            return false
+        }
+        let length = trimmed.prefix(while: { $0 == fence.character }).count
+        guard length >= fence.length else {
+            return false
+        }
+        return trimmed.dropFirst(length).allSatisfy { $0 == " " || $0 == "\t" }
+    }
+
+    /// CommonMark erlaubt vor einem Fence höchstens drei Leerzeichen, aber keinen Tab.
+    private static func fenceCandidate(in line: String) -> Substring? {
+        let indentation = line.prefix(while: { $0 == " " }).count
+        guard indentation <= 3 else {
+            return nil
+        }
+        let trimmed = line.dropFirst(indentation)
+        guard let character = trimmed.first, character == "`" || character == "~" else {
+            return nil
+        }
+        return trimmed
     }
 
     private static let markerWhitespace: CharacterSet = {

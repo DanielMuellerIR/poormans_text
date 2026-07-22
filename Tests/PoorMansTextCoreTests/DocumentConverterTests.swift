@@ -50,17 +50,17 @@ final class DocumentConverterTests: XCTestCase {
         try FileManager.default.createDirectory(at: falseRTFD, withIntermediateDirectories: false)
 
         XCTAssertThrowsError(try DocumentConverter().detectFormat(at: falseRTF)) { error in
-            guard case ConversionError.invalidRichText = error else {
+            guard case ConversionError.invalidInput = error else {
                 return XCTFail("Unexpected error: \(error)")
             }
         }
         XCTAssertThrowsError(try DocumentConverter().detectFormat(at: falseRTFD)) { error in
-            guard case ConversionError.invalidRichText = error else {
+            guard case ConversionError.invalidInput = error else {
                 return XCTFail("Unexpected error: \(error)")
             }
         }
         XCTAssertThrowsError(try DocumentConverter().detectFormat(at: nearMiss)) { error in
-            guard case ConversionError.inputIsNotRichText = error else {
+            guard case ConversionError.unsupportedInput = error else {
                 return XCTFail("Unexpected error: \(error)")
             }
         }
@@ -195,6 +195,89 @@ final class DocumentConverterTests: XCTestCase {
         XCTAssertEqual(inspection.expectedWarnings.map(\.code), ["richText.colorNotPreserved"])
     }
 
+    func testRegisteredAdapterOwnsDetectionInspectionAndConversion() throws {
+        let fixtureFormat = InputFormat(rawValue: "fixture")
+        let inputURL = temporaryDirectory.appendingPathComponent("Sample.data")
+        try Data("fixture document".utf8).write(to: inputURL)
+        let adapter = SyntheticAdapter(
+            format: fixtureFormat,
+            marker: "fixture",
+            priority: 40,
+            warning: ConversionWarning(code: "fixture.loss", message: "Fixture warning")
+        )
+        let converter = DocumentConverter(adapters: [adapter])
+        let outputURL = temporaryDirectory.appendingPathComponent("Fixture output")
+
+        XCTAssertEqual(converter.supportedFormats, [fixtureFormat])
+        XCTAssertEqual(try converter.detectFormat(at: inputURL), fixtureFormat)
+        XCTAssertEqual(
+            try converter.inspect(inputURL).expectedWarnings.map(\.code),
+            ["fixture.loss"]
+        )
+
+        let result = try converter.convert(
+            ConversionRequest(inputURL: inputURL, destination: .directory(outputURL))
+        )
+        XCTAssertEqual(result.format, fixtureFormat)
+        XCTAssertEqual(
+            try String(contentsOf: result.markdownFile, encoding: .utf8),
+            "Converted fixture\n"
+        )
+
+        let encoded = try JSONEncoder().encode(fixtureFormat)
+        XCTAssertEqual(String(decoding: encoded, as: UTF8.self), "\"fixture\"")
+        XCTAssertEqual(try JSONDecoder().decode(InputFormat.self, from: encoded), fixtureFormat)
+    }
+
+    func testDetectorPriorityAndAmbiguityAreResolvedCentrally() throws {
+        let inputURL = temporaryDirectory.appendingPathComponent("Shared.data")
+        try Data("shared document".utf8).write(to: inputURL)
+        let lowFormat = InputFormat(rawValue: "low")
+        let highFormat = InputFormat(rawValue: "high")
+        let peerFormat = InputFormat(rawValue: "peer")
+
+        let prioritized = DocumentConverter(adapters: [
+            SyntheticAdapter(format: lowFormat, marker: "shared", priority: 10),
+            SyntheticAdapter(format: highFormat, marker: "shared", priority: 20),
+        ])
+        XCTAssertEqual(try prioritized.detectFormat(at: inputURL), highFormat)
+
+        let ambiguous = DocumentConverter(adapters: [
+            SyntheticAdapter(format: highFormat, marker: "shared", priority: 20),
+            SyntheticAdapter(format: peerFormat, marker: "shared", priority: 20),
+        ])
+        XCTAssertThrowsError(try ambiguous.detectFormat(at: inputURL)) { error in
+            guard case ConversionError.ambiguousInput(_, let formats) = error else {
+                return XCTFail("Unexpected error: \(error)")
+            }
+            XCTAssertEqual(Set(formats), [highFormat, peerFormat])
+        }
+    }
+
+    func testDetectorReportsGenericUnsupportedAndInvalidInput() throws {
+        let fixtureFormat = InputFormat(rawValue: "fixture")
+        let converter = DocumentConverter(adapters: [
+            SyntheticAdapter(format: fixtureFormat, marker: "fixture", priority: 10),
+        ])
+        let unsupportedURL = temporaryDirectory.appendingPathComponent("Unsupported.data")
+        try Data("other".utf8).write(to: unsupportedURL)
+        XCTAssertThrowsError(try converter.detectFormat(at: unsupportedURL)) { error in
+            guard case ConversionError.unsupportedInput = error else {
+                return XCTFail("Unexpected error: \(error)")
+            }
+        }
+
+        let invalidURL = temporaryDirectory.appendingPathComponent("Invalid.data")
+        try Data("invalid:fixture".utf8).write(to: invalidURL)
+        XCTAssertThrowsError(try converter.detectFormat(at: invalidURL)) { error in
+            guard case ConversionError.invalidInput(_, let format, let reason) = error else {
+                return XCTFail("Unexpected error: \(error)")
+            }
+            XCTAssertEqual(format, fixtureFormat)
+            XCTAssertEqual(reason, "fixture detector rejected the input")
+        }
+    }
+
     private func requirePandoc() throws {
         let candidates = ["/opt/homebrew/bin/pandoc", "/usr/local/bin/pandoc"]
         try XCTSkipUnless(
@@ -216,5 +299,61 @@ final class DocumentConverterTests: XCTestCase {
                 storedEvents.append(event)
             }
         }
+    }
+}
+
+private struct SyntheticAdapter: DocumentConversionAdapter {
+    let format: InputFormat
+    let marker: String
+    let priority: Int
+    let warning: ConversionWarning?
+
+    init(
+        format: InputFormat,
+        marker: String,
+        priority: Int,
+        warning: ConversionWarning? = nil
+    ) {
+        self.format = format
+        self.marker = marker
+        self.priority = priority
+        self.warning = warning
+    }
+
+    var supportedFormats: Set<InputFormat> {
+        [format]
+    }
+
+    func inspectInput(at inputURL: URL) throws -> AdapterInputDetection {
+        let contents = try String(contentsOf: inputURL, encoding: .utf8)
+        if contents.hasPrefix("invalid:\(marker)") {
+            return .invalid(
+                format: format,
+                priority: priority,
+                reason: "\(marker) detector rejected the input"
+            )
+        }
+        guard contents.hasPrefix(marker) else {
+            return .noMatch
+        }
+        return .match(
+            AdapterInputInspection(
+                format: format,
+                priority: priority,
+                expectedWarnings: warning.map { [$0] } ?? []
+            )
+        )
+    }
+
+    func convert(_ context: AdapterConversionContext) throws -> StagedConversionResult {
+        let markdownName = "Converted.md"
+        try Data("Converted \(format.rawValue)\n".utf8).write(
+            to: context.stagedOutputDirectory.appendingPathComponent(markdownName)
+        )
+        return StagedConversionResult(
+            markdownRelativePath: markdownName,
+            assetRelativePaths: [],
+            warnings: warning.map { [$0] } ?? []
+        )
     }
 }

@@ -29,11 +29,46 @@ public struct RichTextConverter: Sendable {
 struct RichTextAdapter: DocumentConversionAdapter {
     let supportedFormats: Set<InputFormat> = [.rtf, .rtfd]
 
-    func expectedWarnings(for inputURL: URL, format: InputFormat) -> [ConversionWarning] {
-        guard format == .rtf, ColoredTextMarker.containsChromaticText(inRTF: inputURL) else {
-            return []
+    func inspectInput(at inputURL: URL) throws -> AdapterInputDetection {
+        let fileManager = FileManager.default
+        var isDirectory: ObjCBool = false
+        guard fileManager.fileExists(atPath: inputURL.path, isDirectory: &isDirectory) else {
+            return .noMatch
         }
-        return [.richTextColorNotPreserved]
+
+        if isDirectory.boolValue {
+            let rtfURL = inputURL.appendingPathComponent("TXT.rtf")
+            var rtfIsDirectory: ObjCBool = false
+            let hasRTFFile = fileManager.fileExists(atPath: rtfURL.path, isDirectory: &rtfIsDirectory)
+                && !rtfIsDirectory.boolValue
+            if hasRTFFile, try hasRTFHeader(at: rtfURL) {
+                return .match(
+                    AdapterInputInspection(format: .rtfd, priority: 100, expectedWarnings: [])
+                )
+            }
+            if inputURL.pathExtension.lowercased() == "rtfd" {
+                let reason = hasRTFFile ? "TXT.rtf has no RTF header" : "TXT.rtf is missing"
+                return .invalid(format: .rtfd, priority: 100, reason: reason)
+            }
+            return .noMatch
+        }
+
+        if try hasRTFHeader(at: inputURL) {
+            let warnings: [ConversionWarning] = ColoredTextMarker.containsChromaticText(
+                inRTF: inputURL
+            ) ? [.richTextColorNotPreserved] : []
+            return .match(
+                AdapterInputInspection(format: .rtf, priority: 100, expectedWarnings: warnings)
+            )
+        }
+        if inputURL.pathExtension.lowercased() == "rtf" {
+            return .invalid(
+                format: .rtf,
+                priority: 100,
+                reason: "the RTF header is missing"
+            )
+        }
+        return .noMatch
     }
 
     func convert(_ context: AdapterConversionContext) throws -> StagedConversionResult {
@@ -118,10 +153,7 @@ struct RichTextAdapter: DocumentConversionAdapter {
 
         do {
             let markdown = try String(contentsOf: stagedMarkdown, encoding: .utf8)
-            let normalizedMarkdown = MarkdownNormalizer.normalize(
-                markdown,
-                joinsAdjacentPlainLines: inputKind == .rtfd
-            )
+            let normalizedMarkdown = MarkdownNormalizer.normalize(markdown)
             try Data(normalizedMarkdown.utf8).write(to: stagedMarkdown, options: .atomic)
         } catch {
             throw ConversionError.fileSystemFailure(error.localizedDescription)
@@ -155,8 +187,7 @@ struct RichTextAdapter: DocumentConversionAdapter {
         pandocExecutable: URL,
         emptyParagraphMarker: String?
     ) throws {
-        switch kind {
-        case .rtfd:
+        if kind == .rtfd {
             let markedRTFD = workDirectory.appendingPathComponent("marked.rtfd", isDirectory: true)
             let textutilInput = try ColoredTextMarker.markedInputURL(
                 from: inputURL,
@@ -179,7 +210,7 @@ struct RichTextAdapter: DocumentConversionAdapter {
                 )
             }
 
-        case .rtf:
+        } else if kind == .rtf {
             guard let emptyParagraphMarker else {
                 throw ConversionError.fileSystemFailure("internal RTF marker is missing")
             }
@@ -218,6 +249,26 @@ struct RichTextAdapter: DocumentConversionAdapter {
                     message: result.standardError
                 )
             }
+        } else {
+            throw ConversionError.unsupportedInput(inputURL)
+        }
+    }
+
+    private func hasRTFHeader(at url: URL) throws -> Bool {
+        do {
+            let handle = try FileHandle(forReadingFrom: url)
+            defer { try? handle.close() }
+            let bytes = [UInt8](try handle.read(upToCount: 32) ?? Data())
+            let signature = [UInt8](#"{\rtf"#.utf8)
+            guard bytes.starts(with: signature) else {
+                return false
+            }
+
+            // `\rtf` ist ein Steuerwort mit verpflichtender Versionszahl.
+            let versionStart = signature.count
+            return versionStart < bytes.count && bytes[versionStart].isASCIIDigit
+        } catch {
+            throw ConversionError.fileSystemFailure(error.localizedDescription)
         }
     }
 
@@ -381,3 +432,9 @@ struct RichTextAdapter: DocumentConversionAdapter {
 
 /// Quellkompatibler Alias für Aufrufer der ursprünglichen RTFD-API.
 public typealias RTFDConverter = RichTextConverter
+
+private extension UInt8 {
+    var isASCIIDigit: Bool {
+        self >= 0x30 && self <= 0x39
+    }
+}

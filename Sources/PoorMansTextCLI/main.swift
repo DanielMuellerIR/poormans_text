@@ -50,8 +50,10 @@ output directories are never overwritten. Exit codes follow sysexits values:
 70 conversion failure, 73 output collision, and 74 file-system failure.
 """
 
-private func parseArguments(_ rawArguments: [String]) throws -> ParsedArguments {
-    var parsed = ParsedArguments()
+private func parseArguments(
+    _ rawArguments: [String],
+    into parsed: inout ParsedArguments
+) throws {
     var index = 0
     var optionsEnded = false
 
@@ -97,7 +99,6 @@ private func parseArguments(_ rawArguments: [String]) throws -> ParsedArguments 
         index += 1
     }
 
-    return parsed
 }
 
 private func fileURL(_ path: String) -> URL {
@@ -130,7 +131,8 @@ private func exitCode(for error: Error) -> CLIExitCode {
     switch conversionError {
     case .inputDoesNotExist:
         return .noInput
-    case .inputIsNotRichText, .invalidRichText, .unsafeImageReference:
+    case .unsupportedInput, .invalidInput, .ambiguousInput,
+         .invalidRichText, .unsafeImageReference:
         return .dataError
     case .pandocNotFound:
         return .unavailable
@@ -156,8 +158,11 @@ private func writeError(_ message: String) {
     FileHandle.standardError.write(Data("Error: \(message)\n".utf8))
 }
 
+private var parsedArguments = ParsedArguments()
+
 do {
-    let arguments = try parseArguments(Array(CommandLine.arguments.dropFirst()))
+    try parseArguments(Array(CommandLine.arguments.dropFirst()), into: &parsedArguments)
+    let arguments = parsedArguments
 
     if arguments.showHelp {
         print(usage)
@@ -206,9 +211,8 @@ do {
     exit(CLIExitCode.success.rawValue)
 } catch {
     let message = error.localizedDescription
-    let requestedJSON = CommandLine.arguments.dropFirst().contains("--json")
 
-    if requestedJSON {
+    if parsedArguments.json {
         writeJSON(
             JSONResponse(
                 ok: false,

@@ -5,7 +5,7 @@ derselbe Kern von CLI, eigener App und später Fastra benutzt werden kann.
 
 ## Heutige Modulgrenzen
 
-- `PoorMansTextCore`: formatneutrale Anfrage, Formaterkennung, Adapterwahl,
+- `PoorMansTextCore`: formatneutrale Anfrage, adaptereigene Formaterkennung, Adapterwahl,
   temporäre Arbeitsbereiche, atomare Veröffentlichung, Assets, Warnungen und
   Ergebnisobjekte.
 - `PoorMansTextAppSupport`: App-Zustand, Dateiauswahl und Drop-Übergabe.
@@ -26,7 +26,7 @@ Die aktuelle Grenze sieht so aus:
 App / CLI / Fastra
         │  Anfrage, Bestätigung, Fortschritt
         ▼
-DocumentConverter ─ Format erkennen, Adapter wählen, atomar veröffentlichen
+DocumentConverter ─ Inspections priorisieren, Adapter wählen, atomar veröffentlichen
         │
         ├── RichTextAdapter      RTFD über AppKit, RTF über Pandoc (vorhanden)
         ├── PandocAdapter        DOCX, ODT und extrahierte Medien (geplant)
@@ -41,12 +41,19 @@ Foundation. `DocumentConverter.inspect` beschreibt Format und bekannte Verluste;
 veränderte Datei durchwinkt. AppKit, Vision, PDFKit und externe Prozesse bleiben
 hinter Adaptern.
 
+Jeder Adapter liefert seine eigenen inhaltsbasierten Inspections samt Priorität,
+Format und erwarteten Warnungen. `DocumentConverter` löst eindeutige Treffer oder
+meldet Mehrdeutigkeit; unbekannte Formate erhalten einen allgemeinen Fehler statt
+einer Rich-Text-Diagnose. `InputFormat` ist dafür ein offener, Codable-kompatibler
+String-Wert. Ein neuer Adapter benötigt somit keine zusätzliche Erkennungslogik im
+Orchestrator.
+
 Adapter erzeugen ausschließlich ein vollständiges Ergebnis im Staging-Bereich.
 Nur `DocumentConverter` bestimmt das dauerhafte oder temporäre Ziel und verschiebt
 das Ergebnis nach einer zweiten Kollisionsprüfung atomar dorthin. Die
-Adapterregistrierung bleibt bis zum zweiten Adapter intern; dann kann sie beim
-geplanten Split in ein formatneutrales Library-Target und ein macOS-Import-Target
-gezielt als öffentliche oder SPI-Grenze stabilisiert werden.
+Adapterregistrierung bleibt bis zum zweiten Produktiv-Adapter intern; dann kann
+sie beim geplanten Split in ein formatneutrales Library-Target und ein
+macOS-Import-Target gezielt als öffentliche oder SPI-Grenze stabilisiert werden.
 
 ## Vertrag für aufrufende Apps
 
@@ -86,9 +93,9 @@ openMarkdown(result.markdownFile)
 
 - Adaptertests verwenden echte temporär erzeugte RTF- und RTFD-Dokumente und
   vergleichen eingebettete Bilddaten unabhängig.
-- Engine-Tests prüfen Formaterkennung, Auswahl, Kollisionsschutz und atomare
-  Veröffentlichung einschließlich einer erst während der Konvertierung
-  entstehenden Zielkollision unabhängig von SwiftUI.
+- Engine-Tests prüfen Adapter-Inspections, Priorität und Mehrdeutigkeit sowie
+  Kollisionsschutz und atomare Veröffentlichung einschließlich einer erst während
+  der Konvertierung entstehenden Zielkollision unabhängig von SwiftUI.
 - CLI-Tests prüfen Exit-Codes und JSON; App-Tests prüfen nur Übergabe und Zustand.
 - Reale Dokumente bleiben außerhalb des öffentlichen Repos und dienen als
   zusätzlicher Output-Diff, nicht als still aktualisierbares Golden Master.

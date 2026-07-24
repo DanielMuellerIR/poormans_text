@@ -84,6 +84,38 @@ Regressionstests und können trotz OCR manuelle Korrektur erfordern.
 - Eine dauerhafte Exportkopie entsteht nur auf einen zweiten ausdrücklichen
   Nutzerbefehl.
 
+## Code-Review-Nacharbeiten
+
+Quelle: Code-Review-Triage 2026-07-24. Offene Härtungs- und Aufräumpunkte aus der
+Review; unabhängig von den Formatetappen.
+
+Stark:
+
+- `scripts/install.sh:401-405` (stark): Nach einer bereits validierten
+  Neuinstallation kann der Rollback ein zuvor als verdächtig eingestuftes Backup
+  zurücktauschen. Rollback-on-suspicious-backup-Semantik prüfen; sicherer ist, das
+  validierte neue Bundle zu behalten statt es zu verwerfen.
+- `Sources/PoorMansTextAppSupport/CLIInstaller.swift:100-105` (stark): Latenter
+  Pipe-Deadlock — stderr wird erst nach `waitUntilExit()` gelesen, sodass ein Kind
+  mit mehr Ausgabe als der Pipe-Buffer blockiert. Korrekt ist nebenläufiges Lesen
+  der Pipe während der Kindprozess läuft; das Read-Ende darf dafür nicht vorab
+  geschlossen werden.
+- `Sources/PoorMansTextCore/RichTextConverter.swift:278-325` (stark):
+  `preservingEmptyRTFParagraphs` (bin-Skip, Lookahead) ist bislang nur durch
+  Round-Trip-Tests abgedeckt. Gezielte Edge-Case-Tests ergänzen (z. B. escapte
+  Backslashes, `\bin`-Blöcke, Marker an Puffergrenzen).
+
+Optional/niedrig:
+
+- `Sources/PoorMansTextCore/ConversionResult.swift:43-59` (optional): Legacy-Init
+  ohne repo-internen Aufrufer. Externe Nutzung ausschließen, dann entfernen.
+- `Sources/PoorMansTextAppSupport/WarningPresentation.swift` (optional): Trivialer
+  `[String]`-Wrapper; einzige Nutzung `ContentView.swift:155` ist eine
+  Identitätstransformation. Wrapper samt Test auflösen.
+- `Sources/PoorMansTextCLI/main.swift:215-227` (optional): Manuelle nil-Defaults im
+  Fehlerpfad. Defaults in `JSONResponse` selbst oder in einen kleinen Helper
+  verlagern.
+
 ## Technische Referenzen
 
 - [Pandoc User's Guide](https://pandoc.org/MANUAL.html) — Eingabeformate,

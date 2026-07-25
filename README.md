@@ -7,17 +7,18 @@
 **🌐 Sprache / Language:** [English](README.md) · [Deutsch](README.de.md)
 
 <p align="center">
-  <strong>Convert macOS RTF and RTFD documents to Markdown with extracted images.</strong>
+  <strong>Convert RTF, RTFD, DOCX, ODT, and DOC documents to Markdown with extracted images.</strong>
 </p>
 
 Poor Man's Text converts Rich Text Format (`.rtf`) and macOS Rich Text with
-Attachments (`.rtfd`) documents into folders containing Markdown and separately
-stored image assets.
+Attachments (`.rtfd`) documents as well as DOCX, OpenDocument Text (`.odt`), and
+legacy Word (`.doc`) files into folders containing Markdown and separately stored
+image assets.
 
 The project provides two interfaces over the same conversion core:
 
 - `poormans-text`, an automation-friendly command-line tool
-- a native macOS app for opening or dropping RTF and RTFD documents
+- a native macOS app for opening or dropping supported word-processing documents
 
 Conversion is deliberately lossy. Markdown can preserve document structure,
 links, simple emphasis, lists, and images, but not every font, layout, or
@@ -25,8 +26,8 @@ TextKit-specific attribute.
 
 ## Output
 
-Converting `Document.rtf` or `Document.rtfd` creates a new sibling directory
-without changing the source:
+Converting a supported document creates a new sibling directory without changing
+the source:
 
 ```text
 Document-markdown/
@@ -74,6 +75,9 @@ Pandoc remains a separate requirement and can, for example, be installed with
 ```sh
 swift run poormans-text Document.rtfd
 swift run poormans-text Document.rtf
+swift run poormans-text Document.docx
+swift run poormans-text Document.odt
+swift run poormans-text Document.doc
 swift run poormans-text --output Converted Document.rtfd
 swift run poormans-text --json Document.rtfd
 ```
@@ -101,9 +105,9 @@ The build also places `Poor Man's Text.app` and `poormans-text` directly in the
 repository root. These local artifacts are ad-hoc signed and must not be copied
 to `/Applications`.
 
-Drop an RTF or RTFD document into the window, drop it onto the app, or choose one
-from the open panel. The app shows the conversion result and can reveal the
-generated Markdown in Finder.
+Drop an RTF, RTFD, DOCX, ODT, or DOC document into the window or onto the app,
+or choose one from the open panel. The app shows the conversion result and can
+reveal the generated Markdown in Finder.
 
 The generated bundle is ad-hoc signed for local testing and remains under
 `.build/app/`. It is not a notarized distribution build.
@@ -137,9 +141,16 @@ RTFD stores text in `TXT.rtf` and keeps attachments as separate files inside a
 macOS package. Poor Man's Text uses the macOS text system to create HTML and
 materialize those attachments. Standard RTF stores images inside the file;
 Pandoc reads that container and extracts its media without a Cocoa round trip.
-The format-neutral engine verifies the source contents instead of trusting only
-the filename extension, then selects the matching path. Both paths validate and
-rewrite image references before Pandoc creates GitHub-Flavored Markdown.
+DOCX and ODT pass through a shared, sandboxed Pandoc container adapter that
+validates every ZIP entry and extracts media only inside the private work area.
+DOC remains a separate legacy adapter: macOS `textutil` creates local HTML, and
+the converter warns that OLE objects, text boxes, macros, and some embedded
+content may be lost. DOCX tracked changes are explicitly accepted; comments and
+accepted changes are reported as diagnostics.
+
+The format-neutral engine verifies source contents instead of trusting only the
+filename extension, then selects the matching path. Every path validates and
+rewrites image references before Pandoc creates GitHub-Flavored Markdown.
 
 The conversion runs in a private staging directory and moves the completed
 result into a persistent or caller-owned temporary destination only after all
@@ -155,6 +166,7 @@ Typically preserved:
 - chromatic RTFD text using `==text==` markers
 - hyperlinks
 - simple ordered and unordered lists
+- semantic headings, footnotes, and simple tables in DOCX and ODT
 - image order and relative image references
 
 Expected losses or approximations:
@@ -165,6 +177,8 @@ Expected losses or approximations:
 - complex tables, text boxes, and multi-column layouts
 - equations and application-specific rich-text attributes
 - semantic heading levels when the source only expresses larger font sizes
+- DOCX/ODT comments and DOC change markup
+- DOC OLE objects, text boxes, macros, and images unsupported by `textutil`
 
 ## Development
 
@@ -175,15 +189,18 @@ swift test
 ```
 
 See [docs/BUILD-AND-TEST.md](docs/BUILD-AND-TEST.md) for build, signing, and
-installation details. Planned import formats—DOCX, ODT, DOC, images, PDF, and
-ODM—are tracked in [ROADMAP.md](ROADMAP.md).
+installation details. ODS, XLSX, XLS, images, PDF, and ODM are tracked in
+[ROADMAP.md](ROADMAP.md). The tested workbook model, two table representations,
+and multi-sheet decision are described in
+[docs/SPREADSHEET-IMPORT.md](docs/SPREADSHEET-IMPORT.md).
 
 The test suite creates real temporary Cocoa RTFD packages and monolithic RTF
 files with formatting, colors, empty lines, links, lists, Unicode filenames,
-and embedded images. It compares extracted image bytes and source bytes and also
-covers output collisions, malformed inputs, unsafe image references, missing
-dependencies, warnings, the CLI-link guard, and the app's `NSItemProvider` drop
-path.
+and embedded images. Versioned DOCX, ODT, and binary DOC fixtures from independent
+producers cover headings, footnotes, tables, lists, links, comments, tracked
+changes, Unicode, and media hashes. Tests also cover output collisions, malformed
+or unsafe packages, an XLS/DOC OLE distinction, missing dependencies, warnings,
+the CLI-link guard, and the app's `NSItemProvider` drop path.
 
 The current version is 0.5.1.
 

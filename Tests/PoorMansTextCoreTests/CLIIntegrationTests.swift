@@ -121,6 +121,40 @@ final class CLIIntegrationTests: XCTestCase {
         try assertJSONFailure(["--json", "--unknown"], expectedStatus: 64)
     }
 
+    func testDOCXUsesTheSameJSONContract() throws {
+        let temporaryDirectory = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "PoorMansTextCLIDOCXTests-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        try FileManager.default.createDirectory(
+            at: temporaryDirectory,
+            withIntermediateDirectories: false
+        )
+        defer {
+            try? FileManager.default.removeItem(at: temporaryDirectory)
+        }
+
+        let inputURL = Bundle.module.resourceURL!
+            .appendingPathComponent("Fixtures/WordProcessing/pandoc.docx")
+        let outputURL = temporaryDirectory.appendingPathComponent("DOCX result")
+        let result = try runCLI([
+            "--json",
+            "--output", outputURL.path,
+            inputURL.path,
+        ])
+
+        XCTAssertEqual(result.status, 0, result.standardError)
+        XCTAssertTrue(result.standardError.isEmpty)
+        let json = try decodeJSON(result.standardOutput)
+        XCTAssertEqual(json["ok"] as? Bool, true)
+        XCTAssertEqual((json["assets"] as? [String])?.count, 1)
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: outputURL.appendingPathComponent("pandoc.md").path
+            )
+        )
+    }
+
     private func runCLI(_ arguments: [String]) throws -> CLIProcessResult {
         let executable = Bundle(for: Self.self).bundleURL
             .deletingLastPathComponent()

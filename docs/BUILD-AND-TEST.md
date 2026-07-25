@@ -89,8 +89,11 @@ swift test
 scripts/verify_bundle.sh "Poor Man's Text.app"
 ```
 
-Zusätzlich je ein echtes RTF und RTFD über die gebaute Root-CLI konvertieren,
-Bilder per Hash vergleichen und die App als Bundle ohne Fokuswechsel starten.
+Zusätzlich je ein echtes RTF, RTFD, DOCX, ODT und DOC über die gebaute Root-CLI
+konvertieren, vorhandene Bilder per Hash vergleichen und die App als Bundle ohne
+Fokuswechsel starten. DOCX und ODT müssen aus einem anderen Erzeuger als die
+Unit-Testdatei stammen; DOC wird wegen möglicher Systemimportverluste zusätzlich
+inhaltlich gegen `textutil -convert txt` geprüft.
 Für einen installierten Build und das DMG müssen `stapler`, `spctl`, `codesign`
 und `hdiutil verify` am tatsächlichen Ziel erfolgreich sein; ein grüner
 SwiftPM-Build allein genügt nicht.

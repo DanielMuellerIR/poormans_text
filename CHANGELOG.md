@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+- Add content-based DOCX and ODT package imports through a shared sandboxed
+  Pandoc adapter with isolated media extraction, archive budgets, traversal and
+  symlink rejection, remote-image blocking, explicit accepted DOCX changes, and
+  structured annotation diagnostics.
+- Add a separate content-based legacy DOC adapter through macOS `textutil`, with
+  independent text-retention checks and explicit warnings for unsupported OLE
+  objects, text boxes, macros, and embedded content.
+- Cover DOCX, ODT, and binary DOC with real fixtures from independent producers,
+  direct Pandoc output comparisons, media hashes, source-integrity checks, and a
+  real XLS/DOC OLE distinction.
+- Verify multi-sheet ODS feasibility and document the future shared workbook
+  model, Markdown-table and escaped-TSV renderings, sheet ordering, budgets, and
+  subsequent XLSX/XLS sequence.
+
 ## 0.5.1 - 2026-07-22
 
 - Preserve real RTFD paragraph boundaries independently from manual line breaks,

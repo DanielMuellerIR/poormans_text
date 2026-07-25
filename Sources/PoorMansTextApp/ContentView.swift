@@ -76,7 +76,7 @@ struct ContentView: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text(ProductInfo.name)
                     .font(.title.bold())
-                Text("RTF and RTFD to Markdown, with images kept in place")
+                Text("Word-processing documents to Markdown, with images kept in place")
                     .foregroundStyle(.secondary)
             }
 
@@ -118,7 +118,7 @@ struct ContentView: View {
                 .font(.system(size: 45, weight: .medium))
                 .foregroundStyle(.tint)
                 .accessibilityHidden(true)
-            Text("Drop an RTF or RTFD document here")
+            Text("Drop an RTF, RTFD, DOCX, ODT, or DOC document here")
                 .font(.title3.bold())
             Text("A new folder with Markdown and an images directory will be created next to it.")
                 .multilineTextAlignment(.center)

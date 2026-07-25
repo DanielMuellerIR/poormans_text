@@ -35,7 +35,7 @@ private struct JSONResponse: Encodable {
 private let usage = """
 Usage: poormans-text [options] INPUT
 
-Convert an RTF or macOS RTFD document into a new folder containing Markdown and images.
+Convert an RTF, RTFD, DOCX, ODT, or DOC document into a new folder containing Markdown and images.
 
 Options:
   -o, --output DIRECTORY  Set the new output directory.
@@ -118,7 +118,7 @@ private enum CLIArgumentError: LocalizedError {
         case .unknownOption(let option):
             "Unknown option: \(option)"
         case .tooManyInputs:
-            "Only one RTF or RTFD input can be converted at a time."
+            "Only one input document can be converted at a time."
         }
     }
 }

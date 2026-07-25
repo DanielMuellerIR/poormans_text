@@ -9,19 +9,22 @@ temporäre Veröffentlichung sind vorhanden. Die offenen Formate bauen auf der i
 
 ## Formatplan
 
-Stand der lokalen Werkzeuge am 2026-07-21: Pandoc 3.9 liest `rtf`, `docx` und
-`odt`; macOS `textutil` liest zusätzlich das alte Binärformat `doc`; PDF ist
-kein Pandoc-Eingabeformat. Vision und PDFKit sind Systemframeworks und benötigen
-keinen zusätzlichen OCR-Dienst.
+Stand der lokalen Werkzeuge am 2026-07-25: Pandoc 3.9.0.2 liest `rtf`, `docx`,
+`odt` und `xlsx`, aber weder `ods` noch `xls`; macOS `textutil` liest zusätzlich
+das alte Binärformat `doc`. PDF ist kein Pandoc-Eingabeformat. Vision und PDFKit
+sind Systemframeworks und benötigen keinen zusätzlichen OCR-Dienst.
 
 | Format | Geplanter Importweg | Aufwand | Erwartbare Qualität | Priorität |
 |---|---|---:|---|---:|
 | DOCX | Pandoc direkt mit `--extract-media`; Änderungsmodus explizit festlegen | mittel | gute Struktur, Bilder, Listen und Tabellen | 1 |
 | ODT | Pandoc direkt mit Medienextraktion | klein–mittel | meist ähnlich DOCX | 1 |
 | DOC | `textutil` nach HTML, danach vorhandene HTML-/Pandoc-Pipeline | mittel | abhängig vom macOS-Importer; alte Sonderobjekte verlustreich | 2 |
-| Bilder | Original als Asset plus lokales Vision-OCR in Leserichtung | mittel | Text gut bei sauberen Scans, Layout nur angenähert | 3 |
-| PDF | PDFKit-Text zuerst, seitenweises Vision-OCR als Fallback | groß | Inhalt brauchbar, Layout/Spalten/Tabellen deutlich verlustbehaftet | 4 |
-| ODM | OpenDocument-Master samt verlinkten Teildokumenten sicher auflösen | groß | nur mit vollständigem lokalem Dokumentverbund zuverlässig | 5 |
+| ODS | Nativer Paketleser in ein gemeinsames Workbook-Modell | mittel | Werte und mehrere Blätter gut; Layout, Diagramme und Merges verlustbehaftet | 3 |
+| XLSX | Nach ODS in dasselbe Workbook-Modell; Pandoc als unabhängiger Vergleich | mittel | Werte und mehrere Blätter gut | 3 |
+| XLS | Eigener OLE-Adapter nach XLSX | groß | abhängig von Formeln, Altobjekten und Makros | 3 |
+| Bilder | Original als Asset plus lokales Vision-OCR in Leserichtung | mittel | Text gut bei sauberen Scans, Layout nur angenähert | 4 |
+| PDF | PDFKit-Text zuerst, seitenweises Vision-OCR als Fallback | groß | Inhalt brauchbar, Layout/Spalten/Tabellen deutlich verlustbehaftet | 5 |
+| ODM | OpenDocument-Master samt verlinkten Teildokumenten sicher auflösen | groß | nur mit vollständigem lokalem Dokumentverbund zuverlässig | 6 |
 
 Falls mit „ODM“ eigentlich „ODT“ gemeint war, ist es bereits in Priorität 2
 abgedeckt. Echtes `.odm` bleibt separat: Ein Masterdokument kann lokale oder
@@ -48,7 +51,20 @@ pro Format; Output-Diff gegen Pandoc direkt und gegen die jeweilige Quellansicht
 Freigabekriterium: ehrlicher Fehler statt leerer oder teilweise verschwundener
 Ausgabe; Quelle bleibt auch bei einem fehlerhaften Systemimport unverändert.
 
-## Etappe 4 — Bilder und OCR
+## Etappe 4 — Tabellendokumente
+
+- Zuerst ODS in ein formatneutrales Workbook-Modell lesen.
+- Pro Import zwischen GFM-Tabelle und reversibel escaptem tab-getrenntem Text
+  wählen können.
+- Mehrere Blätter in Quellreihenfolge als getrennte Markdown-Abschnitte ausgeben.
+- Wiederholungen, leere Zellen, interne Umbrüche, Pipes, Formeln, Merges und
+  Größenbudgets mit echten Mehrblatt-Fixtures testen.
+- Danach XLSX und zuletzt XLS an dasselbe Modell anbinden.
+
+Die geprüfte Darstellung und die bewussten Grenzen stehen in
+[docs/SPREADSHEET-IMPORT.md](docs/SPREADSHEET-IMPORT.md).
+
+## Etappe 5 — Bilder und OCR
 
 - Zunächst PNG, JPEG, HEIC und TIFF über ImageIO/NSImage akzeptieren.
 - Originalbild immer unverändert in `images/` übernehmen und im Markdown
@@ -60,7 +76,7 @@ Ausgabe; Quelle bleibt auch bei einem fehlerhaften Systemimport unverändert.
 Vor Implementierung ist eine Produktentscheidung nötig: Standardmäßig nur Bild,
 Bild plus OCR oder eine CLI-Option für beide Varianten.
 
-## Etappe 5 — PDF
+## Etappe 6 — PDF
 
 - Pro Seite zuerst eingebetteten Text mit PDFKit extrahieren.
 - Seiten ohne ausreichenden Text lokal rendern und mit Vision OCR lesen.

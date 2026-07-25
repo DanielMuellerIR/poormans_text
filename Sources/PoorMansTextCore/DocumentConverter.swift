@@ -5,7 +5,11 @@ public struct DocumentConverter: Sendable {
     private let adapters: [any DocumentConversionAdapter]
 
     public init() {
-        self.init(adapters: [RichTextAdapter()])
+        self.init(adapters: [
+            RichTextAdapter(),
+            WordProcessingPackageAdapter(),
+            LegacyWordAdapter(),
+        ])
     }
 
     init(adapters: [any DocumentConversionAdapter]) {

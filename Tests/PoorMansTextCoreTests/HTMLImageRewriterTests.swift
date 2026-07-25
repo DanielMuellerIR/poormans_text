@@ -64,5 +64,46 @@ final class HTMLImageRewriterTests: XCTestCase {
             }
         }
     }
-}
 
+    func testAcceptsNestedExtractedMediaButRejectsTraversalAndSymlinks() throws {
+        let mediaDirectory = temporaryDirectory.appendingPathComponent("media")
+        try FileManager.default.createDirectory(
+            at: mediaDirectory,
+            withIntermediateDirectories: false
+        )
+        let sourceData = Data([4, 5, 6])
+        try sourceData.write(to: mediaDirectory.appendingPathComponent("nested.png"))
+
+        let result = try HTMLImageRewriter.rewrite(
+            html: #"<img src="media/nested.png">"#,
+            resourceDirectory: temporaryDirectory,
+            imageDirectory: temporaryDirectory.appendingPathComponent("output/images"),
+            fileManager: .default
+        )
+        XCTAssertEqual(result.assetNames, ["nested.png"])
+
+        let outsideURL = temporaryDirectory.deletingLastPathComponent()
+            .appendingPathComponent("outside-\(UUID().uuidString).png")
+        try Data([7]).write(to: outsideURL)
+        defer {
+            try? FileManager.default.removeItem(at: outsideURL)
+        }
+        let symlinkURL = temporaryDirectory.appendingPathComponent("link.png")
+        try FileManager.default.createSymbolicLink(at: symlinkURL, withDestinationURL: outsideURL)
+
+        for unsafeReference in ["../outside.png", "link.png"] {
+            XCTAssertThrowsError(
+                try HTMLImageRewriter.rewrite(
+                    html: #"<img src="\#(unsafeReference)">"#,
+                    resourceDirectory: temporaryDirectory,
+                    imageDirectory: temporaryDirectory.appendingPathComponent("rejected/images"),
+                    fileManager: .default
+                )
+            ) { error in
+                guard case ConversionError.unsafeImageReference = error else {
+                    return XCTFail("Unexpected error: \(error)")
+                }
+            }
+        }
+    }
+}

@@ -39,7 +39,8 @@ let package = Package(
         ),
         .testTarget(
             name: "PoorMansTextCoreTests",
-            dependencies: ["PoorMansTextAppSupport", "PoorMansTextCore"]
+            dependencies: ["PoorMansTextAppSupport", "PoorMansTextCore"],
+            resources: [.copy("Fixtures")]
         ),
     ],
     swiftLanguageModes: [.v6]

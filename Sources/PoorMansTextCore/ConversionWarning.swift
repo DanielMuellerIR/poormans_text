@@ -23,4 +23,24 @@ extension ConversionWarning {
             message: "Attachment was not represented in the generated Markdown: \(name)"
         )
     }
+
+    static let wordProcessingCommentsNotPreserved = ConversionWarning(
+        code: "wordProcessing.commentsNotPreserved",
+        message: "Document comments are not represented in the generated Markdown."
+    )
+
+    static let wordProcessingChangesAccepted = ConversionWarning(
+        code: "wordProcessing.changesAccepted",
+        message: "Tracked changes were accepted before the Markdown was generated."
+    )
+
+    static let openDocumentChangesNotPreserved = ConversionWarning(
+        code: "openDocument.changesNotPreserved",
+        message: "Tracked changes in ODT are not represented reliably in the generated Markdown."
+    )
+
+    static let legacyWordPotentialLoss = ConversionWarning(
+        code: "legacyWord.potentialLoss",
+        message: "Legacy DOC import can omit OLE objects, text boxes, macros, and other unsupported Word content."
+    )
 }

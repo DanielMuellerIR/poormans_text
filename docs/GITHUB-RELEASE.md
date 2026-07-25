@@ -7,11 +7,12 @@ notarization credentials are intentionally not stored in GitHub Actions.
 
 Suggested description:
 
-> Convert macOS RTF and RTFD documents to Markdown with extracted images.
+> Convert RTF, RTFD, DOCX, ODT, and DOC documents to Markdown with extracted images.
 
 Suggested topics:
 
-`macos`, `swift`, `markdown`, `rtf`, `rtfd`, `pandoc`, `document-conversion`
+`macos`, `swift`, `markdown`, `rtf`, `rtfd`, `docx`, `odt`, `pandoc`,
+`document-conversion`
 
 ## Release checklist
 

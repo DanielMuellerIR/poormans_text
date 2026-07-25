@@ -77,7 +77,7 @@ struct RichTextAdapter: DocumentConversionAdapter {
         let inputKind = context.format
         let workDirectory = context.workDirectory
         let stagedResult = context.stagedOutputDirectory
-        let pandocExecutable = try resolvePandoc(
+        let pandocExecutable = try PandocTool.resolve(
             context.options.pandocExecutable,
             fileManager: fileManager
         )
@@ -110,71 +110,26 @@ struct RichTextAdapter: DocumentConversionAdapter {
             html = html.replacingOccurrences(of: emptyParagraphMarker, with: "<br>")
         }
 
-        let imageDirectory = stagedResult.appendingPathComponent("images", isDirectory: true)
-        let rewriteResult = try HTMLImageRewriter.rewrite(
+        let converted = try HTMLDocumentConverter.convert(
             html: html,
+            inputURL: inputURL,
+            format: inputKind,
             resourceDirectory: workDirectory,
-            imageDirectory: imageDirectory,
+            stagedOutputDirectory: stagedResult,
+            pandocExecutable: pandocExecutable,
             fileManager: fileManager
         )
-        let normalizedHTML = stagedResult.appendingPathComponent(".conversion.html")
-
-        do {
-            try Data(rewriteResult.html.utf8).write(to: normalizedHTML, options: .atomic)
-        } catch {
-            throw ConversionError.fileSystemFailure(error.localizedDescription)
-        }
-
-        let markdownName = inputURL.deletingPathExtension().lastPathComponent + ".md"
-        let stagedMarkdown = stagedResult.appendingPathComponent(markdownName)
-        let pandocResult: ProcessResult
-        do {
-            pandocResult = try ProcessRunner.run(
-                executable: pandocExecutable,
-                arguments: [
-                    "--from=html",
-                    "--to=gfm-raw_html",
-                    "--wrap=preserve",
-                    "--output", stagedMarkdown.path,
-                    normalizedHTML.path,
-                ],
-                currentDirectory: stagedResult
-            )
-        } catch {
-            throw ConversionError.pandocFailed(status: -1, message: error.localizedDescription)
-        }
-
-        guard pandocResult.status == 0 else {
-            throw ConversionError.pandocFailed(
-                status: pandocResult.status,
-                message: pandocResult.standardError
-            )
-        }
-
-        do {
-            let markdown = try String(contentsOf: stagedMarkdown, encoding: .utf8)
-            let normalizedMarkdown = MarkdownNormalizer.normalize(markdown)
-            try Data(normalizedMarkdown.utf8).write(to: stagedMarkdown, options: .atomic)
-        } catch {
-            throw ConversionError.fileSystemFailure(error.localizedDescription)
-        }
-
-        do {
-            try fileManager.removeItem(at: normalizedHTML)
-        } catch {
-            throw ConversionError.fileSystemFailure(error.localizedDescription)
-        }
 
         let warnings = warnings(
             inputURL: inputURL,
             kind: inputKind,
-            referencedResourceNames: rewriteResult.sourceNames,
+            referencedResourceNames: converted.referencedResourceNames,
             fileManager: fileManager
         )
 
         return StagedConversionResult(
-            markdownRelativePath: markdownName,
-            assetRelativePaths: rewriteResult.assetNames.sorted().map { "images/\($0)" },
+            markdownRelativePath: converted.markdownRelativePath,
+            assetRelativePaths: converted.assetRelativePaths,
             warnings: warnings
         )
     }
@@ -371,32 +326,6 @@ struct RichTextAdapter: DocumentConversionAdapter {
 
     private func isASCIIAlpha(_ byte: UInt8) -> Bool {
         (byte >= 0x41 && byte <= 0x5A) || (byte >= 0x61 && byte <= 0x7A)
-    }
-
-    private func resolvePandoc(_ requestedURL: URL?, fileManager: FileManager) throws -> URL {
-        if let requestedURL {
-            let standardizedURL = requestedURL.standardizedFileURL
-            guard fileManager.isExecutableFile(atPath: standardizedURL.path) else {
-                throw ConversionError.pandocNotFound
-            }
-            return standardizedURL
-        }
-
-        var candidates = [
-            URL(fileURLWithPath: "/opt/homebrew/bin/pandoc"),
-            URL(fileURLWithPath: "/usr/local/bin/pandoc"),
-        ]
-
-        if let path = ProcessInfo.processInfo.environment["PATH"] {
-            candidates.append(contentsOf: path.split(separator: ":").map {
-                URL(fileURLWithPath: String($0)).appendingPathComponent("pandoc")
-            })
-        }
-
-        if let executable = candidates.first(where: { fileManager.isExecutableFile(atPath: $0.path) }) {
-            return executable
-        }
-        throw ConversionError.pandocNotFound
     }
 
     private func warnings(

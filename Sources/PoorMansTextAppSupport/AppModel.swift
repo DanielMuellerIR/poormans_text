@@ -69,9 +69,11 @@ public final class AppModel: ObservableObject {
 
     public func chooseDocument() {
         let panel = NSOpenPanel()
-        panel.title = "Choose an RTF or RTFD Document"
+        panel.title = "Choose a Word-Processing Document"
         panel.prompt = "Convert"
-        panel.allowedContentTypes = [.rtf, .rtfd]
+        panel.allowedContentTypes = ["rtf", "rtfd", "docx", "odt", "doc"].compactMap {
+            UTType(filenameExtension: $0)
+        }
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
         panel.canChooseFiles = true

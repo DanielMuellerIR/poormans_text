@@ -14,6 +14,9 @@ public struct InputFormat: RawRepresentable, Codable, Hashable, Sendable {
 
     public static let rtf = InputFormat(rawValue: "rtf")
     public static let rtfd = InputFormat(rawValue: "rtfd")
+    public static let docx = InputFormat(rawValue: "docx")
+    public static let odt = InputFormat(rawValue: "odt")
+    public static let doc = InputFormat(rawValue: "doc")
 
     public init(from decoder: any Decoder) throws {
         let container = try decoder.singleValueContainer()

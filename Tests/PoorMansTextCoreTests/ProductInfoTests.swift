@@ -22,6 +22,11 @@ final class ProductInfoTests: XCTestCase {
         XCTAssertEqual(plist["CFBundleVersion"] as? String, "6")
         XCTAssertEqual(plist["CFBundleIconFile"] as? String, "AppIcon")
         XCTAssertEqual(plist["NSHumanReadableCopyright"] as? String, "© 2026 Daniel Müller")
+        let documentTypes = try XCTUnwrap(plist["CFBundleDocumentTypes"] as? [[String: Any]])
+        let extensions = documentTypes.flatMap {
+            $0["CFBundleTypeExtensions"] as? [String] ?? []
+        }
+        XCTAssertEqual(Set(extensions), ["rtf", "rtfd", "docx", "odt", "doc"])
     }
 
     func testPublicDocumentationNamesCurrentVersion() throws {

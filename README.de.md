@@ -7,17 +7,18 @@
 **🌐 Sprache / Language:** [English](README.md) · [Deutsch](README.de.md)
 
 <p align="center">
-  <strong>macOS-RTF- und RTFD-Dokumente in Markdown mit extrahierten Bildern umwandeln.</strong>
+  <strong>RTF, RTFD, DOCX, ODT und DOC in Markdown mit extrahierten Bildern umwandeln.</strong>
 </p>
 
 Poor Man's Text wandelt Rich-Text-Dokumente (`.rtf`) und macOS-Dokumentpakete im
-Format „Rich Text with Attachments“ (`.rtfd`) in Ordner mit Markdown und separat
+Format „Rich Text with Attachments“ (`.rtfd`) sowie DOCX, OpenDocument Text
+(`.odt`) und alte Word-Dateien (`.doc`) in Ordner mit Markdown und separat
 gespeicherten Bildern um.
 
 Das Projekt stellt zwei Oberflächen für denselben Konvertierungskern bereit:
 
 - `poormans-text`, ein automatisierbares Kommandozeilenwerkzeug
-- eine native macOS-App zum Öffnen oder Ablegen von RTF- und RTFD-Dokumenten
+- eine native macOS-App zum Öffnen oder Ablegen unterstützter Textdokumente
 
 Die Konvertierung ist bewusst verlustbehaftet. Markdown kann Dokumentstruktur,
 Links, einfache Hervorhebungen, Listen und Bilder bewahren, aber nicht jede
@@ -25,8 +26,8 @@ Schrift, Anordnung oder TextKit-spezifische Eigenschaft.
 
 ## Ausgabe
 
-Die Konvertierung von `Dokument.rtf` oder `Dokument.rtfd` erzeugt einen neuen
-Nachbarordner, ohne die Quelle zu verändern:
+Die Konvertierung eines unterstützten Dokuments erzeugt einen neuen Nachbarordner,
+ohne die Quelle zu verändern:
 
 ```text
 Dokument-markdown/
@@ -77,6 +78,9 @@ beispielsweise mit `brew install pandoc` installieren.
 ```sh
 swift run poormans-text Dokument.rtfd
 swift run poormans-text Dokument.rtf
+swift run poormans-text Dokument.docx
+swift run poormans-text Dokument.odt
+swift run poormans-text Dokument.doc
 swift run poormans-text --output Konvertiert Dokument.rtfd
 swift run poormans-text --json Dokument.rtfd
 ```
@@ -105,9 +109,9 @@ Der Build legt `Poor Man's Text.app` und `poormans-text` zusätzlich direkt im
 Repo-Root ab. Diese lokalen Artefakte sind ad-hoc-signiert und nicht für
 `/Applications` bestimmt.
 
-Ein RTF- oder RTFD-Dokument kann in das Fenster oder auf die App gezogen oder
-über den Dateidialog ausgewählt werden. Die App zeigt das Ergebnis und kann die
-erzeugte Markdown-Datei im Finder anzeigen.
+Ein RTF-, RTFD-, DOCX-, ODT- oder DOC-Dokument kann in das Fenster oder auf die
+App gezogen oder über den Dateidialog ausgewählt werden. Die App zeigt das
+Ergebnis und kann die erzeugte Markdown-Datei im Finder anzeigen.
 
 Das erzeugte Bundle wird für lokale Tests ad-hoc signiert und bleibt unter
 `.build/app/`. Es ist kein notarisierter Distributions-Build.
@@ -140,9 +144,16 @@ Administratorrechte werden erst nach Zustimmung angefordert.
 RTFD speichert den Text in `TXT.rtf` und Anhänge als separate Dateien innerhalb
 eines macOS-Pakets. Poor Man's Text lässt das macOS-Textsystem daraus HTML und
 die Anhänge erzeugen. Normales RTF speichert Bilder in der Datei; Pandoc liest
-diesen Container und extrahiert die Medien ohne Cocoa-Zwischenschritt. Die
-formatneutrale Engine prüft den Quellinhalt, statt nur der Dateiendung zu glauben,
-und wählt danach den passenden Weg. Beide Wege prüfen und ersetzen anschließend
+diesen Container und extrahiert die Medien ohne Cocoa-Zwischenschritt. DOCX und
+ODT laufen durch einen gemeinsamen, abgeschotteten Pandoc-Containeradapter, der
+jeden ZIP-Eintrag prüft und Medien nur im privaten Arbeitsbereich extrahiert. DOC
+bleibt ein eigener Altformatadapter: macOS `textutil` erzeugt lokales HTML, und
+der Konverter warnt vor möglichen Verlusten bei OLE-Objekten, Textfeldern, Makros
+und manchen eingebetteten Inhalten. DOCX-Änderungen werden bewusst angenommen;
+Kommentare und angenommene Änderungen erscheinen als Diagnosen.
+
+Die formatneutrale Engine prüft den Quellinhalt, statt nur der Dateiendung zu
+glauben, und wählt danach den passenden Weg. Alle Wege prüfen und ersetzen
 Bildverweise, bevor Pandoc GitHub-Flavored Markdown erstellt.
 
 Die Konvertierung läuft in einem privaten Staging-Verzeichnis. Erst nach
@@ -160,6 +171,7 @@ In der Regel erhalten:
 - chromatischer RTFD-Text als `==Text==`-Markierung
 - Hyperlinks
 - einfache nummerierte Listen und Aufzählungen
+- semantische Überschriften, Fußnoten und einfache Tabellen aus DOCX und ODT
 - Reihenfolge und relative Verweise der Bilder
 
 Erwartbare Verluste oder Annäherungen:
@@ -170,6 +182,8 @@ Erwartbare Verluste oder Annäherungen:
 - komplexe Tabellen, Textfelder und mehrspaltige Anordnungen
 - Gleichungen und anwendungsspezifische Rich-Text-Eigenschaften
 - semantische Überschriftenebenen, wenn die Quelle nur größere Schrift verwendet
+- DOCX-/ODT-Kommentare und DOC-Änderungsmarkup
+- DOC-OLE-Objekte, Textfelder, Makros und von `textutil` nicht gelesene Bilder
 
 ## Entwicklung
 
@@ -180,14 +194,18 @@ swift test
 ```
 
 Build-, Signatur- und Installationsdetails stehen in
-[docs/BUILD-AND-TEST.md](docs/BUILD-AND-TEST.md). Die geplanten Importformate
-DOCX, ODT, DOC, Bilder, PDF und ODM stehen in [ROADMAP.md](ROADMAP.md).
+[docs/BUILD-AND-TEST.md](docs/BUILD-AND-TEST.md). ODS, XLSX, XLS, Bilder, PDF und
+ODM stehen in [ROADMAP.md](ROADMAP.md). Das geprüfte Workbook-Modell, beide
+Tabellendarstellungen und die Mehrblatt-Entscheidung beschreibt
+[docs/SPREADSHEET-IMPORT.md](docs/SPREADSHEET-IMPORT.md).
 
 Die Tests erzeugen echte temporäre Cocoa-RTFD-Pakete und monolithische RTF-Dateien
 mit Formatierungen, Farben, Leerzeilen, Links, Listen, Unicode-Dateinamen und
-eingebetteten Bildern. Sie vergleichen extrahierte Bild- und Quelldaten und
-prüfen außerdem vorhandene Ziele, defekte Eingaben, unsichere Bildverweise,
-fehlende Abhängigkeiten, Warnungen, den CLI-Link-Schutz und den
+eingebetteten Bildern. Versionierte DOCX-, ODT- und binäre DOC-Fixtures aus
+unabhängigen Erzeugern decken Überschriften, Fußnoten, Tabellen, Listen, Links,
+Kommentare, Änderungen, Unicode und Medien-Hashes ab. Die Tests prüfen außerdem
+vorhandene Ziele, defekte oder unsichere Pakete, die XLS-/DOC-Unterscheidung im
+OLE-Container, fehlende Abhängigkeiten, Warnungen, den CLI-Link-Schutz und den
 `NSItemProvider`-Drop-Pfad der App.
 
 Die aktuelle Version ist 0.5.1.

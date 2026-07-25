@@ -21,6 +21,18 @@ final class AppModelDropTests: XCTestCase {
     }
 
     @MainActor
+    func testFileURLItemProviderRunsRealDOCXConversion() async throws {
+        try await withTemporaryDirectory { temporaryDirectory in
+            let inputURL = temporaryDirectory.appendingPathComponent("Dropped.docx")
+            try FileManager.default.copyItem(
+                at: wordProcessingFixture("pandoc.docx"),
+                to: inputURL
+            )
+            try await assertDropConverts(inputURL, expectedAssetCount: 1)
+        }
+    }
+
+    @MainActor
     func testUnsupportedInputUsesCoreValidation() async throws {
         try await withTemporaryDirectory { temporaryDirectory in
             let inputURL = temporaryDirectory.appendingPathComponent("Plain text.data")
@@ -92,5 +104,11 @@ final class AppModelDropTests: XCTestCase {
             try? FileManager.default.removeItem(at: temporaryDirectory)
         }
         try await body(temporaryDirectory)
+    }
+
+    private func wordProcessingFixture(_ name: String) -> URL {
+        Bundle.module.resourceURL!
+            .appendingPathComponent("Fixtures/WordProcessing")
+            .appendingPathComponent(name)
     }
 }

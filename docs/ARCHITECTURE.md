@@ -15,7 +15,8 @@ derselbe Kern von CLI, eigener App und später Fastra benutzt werden kann.
 Der Kern ist GUI-frei, aber das aktuelle Target bleibt macOS-spezifisch: Der
 Rich-Text-Adapter benutzt für die RTFD-Farbübernahme AppKit. RTF läuft wegen
 standardkonform eingebetteter Bilder direkt über Pandoc; ein Cocoa-Roundtrip
-würde diese Bilder verwerfen. Beide Wege liegen hinter derselben
+würde diese Bilder verwerfen. DOC benutzt den macOS-Systemimport über `textutil`.
+DOCX und ODT teilen einen Pandoc-Paketadapter. Alle Wege liegen hinter derselben
 Foundation-basierten Anfrage und bestimmen deren API nicht.
 
 ## Formatneutrale Konvertierung
@@ -28,8 +29,10 @@ App / CLI / Fastra
         ▼
 DocumentConverter ─ Inspections priorisieren, Adapter wählen, atomar veröffentlichen
         │
-        ├── RichTextAdapter      RTFD über AppKit, RTF über Pandoc (vorhanden)
-        ├── PandocAdapter        DOCX, ODT und extrahierte Medien (geplant)
+        ├── RichTextAdapter      RTFD über AppKit, RTF über Pandoc
+        ├── WordProcessing…      DOCX, ODT und isoliert extrahierte Medien
+        ├── LegacyWordAdapter    DOC über textutil, danach HTML/Pandoc
+        ├── SpreadsheetAdapter   ODS, später XLSX und XLS (geplant)
         ├── ImageOCRAdapter      ImageIO + Vision (geplant)
         └── PDFAdapter           PDFKit + optional Vision (geplant)
 ```
@@ -51,9 +54,20 @@ Orchestrator.
 Adapter erzeugen ausschließlich ein vollständiges Ergebnis im Staging-Bereich.
 Nur `DocumentConverter` bestimmt das dauerhafte oder temporäre Ziel und verschiebt
 das Ergebnis nach einer zweiten Kollisionsprüfung atomar dorthin. Die
-Adapterregistrierung bleibt bis zum zweiten Produktiv-Adapter intern; dann kann
-sie beim geplanten Split in ein formatneutrales Library-Target und ein
-macOS-Import-Target gezielt als öffentliche oder SPI-Grenze stabilisiert werden.
+Adapterregistrierung bleibt intern. Ein späterer Split in ein formatneutrales
+Library-Target und ein macOS-Import-Target kann sie gezielt als öffentliche oder
+SPI-Grenze stabilisieren.
+
+DOCX und ODT werden vor Pandoc anhand ihres ZIP-Inhalts erkannt. Das zentrale
+Paket-Gate lehnt Traversal, Symlinks, verschlüsselte Einträge, unbekannte
+Kompressionsarten, doppelte Namen und überschrittene Größenbudgets ab. Pandoc
+läuft danach mit `--sandbox` und extrahiert Medien ausschließlich in den
+Arbeitsordner. Externe Bildbeziehungen werden nie geladen.
+
+Der spätere Tabellenimport liest ODS zunächst in ein eigenes Workbook-Modell und
+rendert erst danach Markdown. So können XLSX und XLS dieselbe Blatt-, Zell- und
+Diagnosegrenze verwenden. Darstellung und Mehrblatt-Regel stehen in
+[SPREADSHEET-IMPORT.md](SPREADSHEET-IMPORT.md).
 
 ## Vertrag für aufrufende Apps
 
@@ -91,11 +105,15 @@ openMarkdown(result.markdownFile)
 
 ## Testgrenzen
 
-- Adaptertests verwenden echte temporär erzeugte RTF- und RTFD-Dokumente und
-  vergleichen eingebettete Bilddaten unabhängig.
+- Adaptertests verwenden echte temporär erzeugte RTF- und RTFD-Dokumente sowie
+  versionierte DOCX-, ODT- und DOC-Dateien aus unabhängigen Erzeugern. Bilddaten
+  werden per Bytevergleich geprüft; DOCX/ODT zusätzlich gegen Pandoc direkt.
+- Pakettests prüfen Traversal, externe Bilder, Kommentare, angenommene Änderungen
+  und die inhaltsbasierte Unterscheidung eines echten XLS vom alten DOC.
 - Engine-Tests prüfen Adapter-Inspections, Priorität und Mehrdeutigkeit sowie
   Kollisionsschutz und atomare Veröffentlichung einschließlich einer erst während
   der Konvertierung entstehenden Zielkollision unabhängig von SwiftUI.
 - CLI-Tests prüfen Exit-Codes und JSON; App-Tests prüfen nur Übergabe und Zustand.
-- Reale Dokumente bleiben außerhalb des öffentlichen Repos und dienen als
-  zusätzlicher Output-Diff, nicht als still aktualisierbares Golden Master.
+- Weitere manuelle Editorproben bleiben außerhalb des öffentlichen Repos und
+  dienen als zusätzlicher Output-Diff, nicht als still aktualisierbares Golden
+  Master.

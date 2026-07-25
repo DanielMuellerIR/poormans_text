@@ -32,9 +32,35 @@ final class ProcessRunnerTests: XCTestCase {
         )
 
         XCTAssertEqual(result.status, 42)
+        XCTAssertTrue(result.standardOutput.isEmpty)
         XCTAssertEqual(result.standardError, "diagnostic\n")
         let leftovers = try FileManager.default.contentsOfDirectory(atPath: temporaryDirectory.path)
             .filter { $0.hasPrefix(".process-") }
         XCTAssertTrue(leftovers.isEmpty, "Process files remain: \(leftovers)")
+    }
+
+    func testCapturesStandardOutputWithoutUsingAPipe() throws {
+        let temporaryDirectory = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "PoorMansTextProcessRunnerCaptureTests-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        try FileManager.default.createDirectory(
+            at: temporaryDirectory,
+            withIntermediateDirectories: false
+        )
+        defer {
+            try? FileManager.default.removeItem(at: temporaryDirectory)
+        }
+
+        let result = try ProcessRunner.run(
+            executable: URL(fileURLWithPath: "/bin/echo"),
+            arguments: ["captured"],
+            currentDirectory: temporaryDirectory,
+            captureStandardOutput: true
+        )
+
+        XCTAssertEqual(result.status, 0)
+        XCTAssertEqual(result.standardOutput, "captured\n")
+        XCTAssertTrue(result.standardError.isEmpty)
     }
 }

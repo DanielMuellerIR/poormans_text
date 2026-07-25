@@ -8,16 +8,31 @@ project_root="$(cd "$script_directory/.." && pwd)"
 source "$script_directory/install_transaction.sh"
 cd "$project_root"
 
+# Dieses Skript trägt beide notarisierten Wege, weil sie sich Build, Signatur,
+# App-Notarisierung und Zielprüfung vollständig teilen. Die Root-Wrapper wählen
+# den Ausschnitt: install.sh installiert ohne DMG, release.sh baut das DMG und
+# installiert nicht (Schema aus theplan, knowledge/macos-app-distribution.md).
 notarize=1
+make_dmg=1
+do_install=1
 for argument in "$@"; do
     case "$argument" in
         --no-notarize) notarize=0 ;;
+        --no-dmg) make_dmg=0 ;;
+        --no-install) do_install=0 ;;
         *)
-            echo "Aufruf: ./install.sh [--no-notarize]" >&2
+            echo "Aufruf: $(basename "$0") [--no-notarize] [--no-dmg] [--no-install]" >&2
             exit 64
             ;;
     esac
 done
+if [ "$make_dmg" -eq 0 ] && [ "$do_install" -eq 0 ]; then
+    echo "--no-dmg und --no-install zusammen ergeben keinen Lauf." >&2
+    exit 64
+fi
+# --no-notarize ist dominant: der Lauf endet dann direkt nach Build und Signatur,
+# ohne DMG und ohne /Applications — beides wäre ohne Ticket ohnehin unzulässig.
+# Die Wrapper reichen ihre Modus-Flags trotzdem durch; sie laufen hier ins Leere.
 
 if [ "$notarize" -eq 1 ]; then
     # shellcheck source=notary_profile.sh
@@ -102,12 +117,16 @@ trap 'exit 143' TERM
 version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$app/Contents/Info.plist")"
 dmg="$project_root/Poor-Mans-Text-$version.dmg"
 checksum="$dmg.sha256"
-for final_artifact in "$dmg" "$checksum"; do
-    if [ -e "$final_artifact" ] || [ -L "$final_artifact" ]; then
-        echo "Das Release-Artefakt existiert bereits und wird nicht überschrieben: $final_artifact" >&2
-        exit 73
-    fi
-done
+# Nur der Release-Weg legt diese Artefakte an. Ein reiner Installationslauf darf
+# nicht daran scheitern, dass das DMG dieser Version schon veröffentlicht ist.
+if [ "$make_dmg" -eq 1 ]; then
+    for final_artifact in "$dmg" "$checksum"; do
+        if [ -e "$final_artifact" ] || [ -L "$final_artifact" ]; then
+            echo "Das Release-Artefakt existiert bereits und wird nicht überschrieben: $final_artifact" >&2
+            exit 73
+        fi
+    done
+fi
 staged_dmg="$temporary_directory/$(basename "$dmg")"
 staged_checksum="$temporary_directory/$(basename "$checksum")"
 
@@ -149,35 +168,42 @@ xcrun stapler staple "$app"
 "$script_directory/verify_bundle.sh" "$app" --notarized
 refresh_root_artifacts
 
-echo "Erzeuge und signiere das Distributions-DMG …"
-"$script_directory/create_dmg.sh" "$app" "$staged_dmg"
-codesign --force --sign "$sign_identity" --timestamp "$staged_dmg"
-"$script_directory/verify_dmg.sh" "$staged_dmg" --signed
+if [ "$make_dmg" -eq 1 ]; then
+    echo "Erzeuge und signiere das Distributions-DMG …"
+    "$script_directory/create_dmg.sh" "$app" "$staged_dmg"
+    codesign --force --sign "$sign_identity" --timestamp "$staged_dmg"
+    "$script_directory/verify_dmg.sh" "$staged_dmg" --signed
 
-echo "Reiche das DMG zur Notarisierung ein und warte auf Apple …"
-notarize_and_check_log "$staged_dmg" "dmg"
-xcrun stapler staple "$staged_dmg"
-"$script_directory/verify_dmg.sh" "$staged_dmg" --notarized
-(
-    cd "$temporary_directory"
-    shasum -a 256 "$(basename "$staged_dmg")" > "$(basename "$staged_checksum")"
-)
+    echo "Reiche das DMG zur Notarisierung ein und warte auf Apple …"
+    notarize_and_check_log "$staged_dmg" "dmg"
+    xcrun stapler staple "$staged_dmg"
+    "$script_directory/verify_dmg.sh" "$staged_dmg" --notarized
+    (
+        cd "$temporary_directory"
+        shasum -a 256 "$(basename "$staged_dmg")" > "$(basename "$staged_checksum")"
+    )
 
-# Die finale DMG-Datei erscheint zuletzt und kennzeichnet damit ein vollständiges
-# Release-Paar. FileManager verweigert dabei weiterhin vorhandene Ziele.
-checksum_identity="$(/usr/bin/stat -f '%d:%i' "$staged_checksum")"
-published_checksum=1
-/usr/bin/swift -e \
-    'import Foundation; try FileManager.default.moveItem(atPath: CommandLine.arguments[1], toPath: CommandLine.arguments[2])' \
-    "$staged_checksum" "$checksum"
-if ! /usr/bin/swift -e \
-    'import Foundation; try FileManager.default.moveItem(atPath: CommandLine.arguments[1], toPath: CommandLine.arguments[2])' \
-    "$staged_dmg" "$dmg"; then
-    remove_exact_path "$checksum"
-    echo "Das fertige DMG konnte nicht veröffentlicht werden." >&2
-    exit 74
+    # Die finale DMG-Datei erscheint zuletzt und kennzeichnet damit ein vollständiges
+    # Release-Paar. FileManager verweigert dabei weiterhin vorhandene Ziele.
+    checksum_identity="$(/usr/bin/stat -f '%d:%i' "$staged_checksum")"
+    published_checksum=1
+    /usr/bin/swift -e \
+        'import Foundation; try FileManager.default.moveItem(atPath: CommandLine.arguments[1], toPath: CommandLine.arguments[2])' \
+        "$staged_checksum" "$checksum"
+    if ! /usr/bin/swift -e \
+        'import Foundation; try FileManager.default.moveItem(atPath: CommandLine.arguments[1], toPath: CommandLine.arguments[2])' \
+        "$staged_dmg" "$dmg"; then
+        remove_exact_path "$checksum"
+        echo "Das fertige DMG konnte nicht veröffentlicht werden." >&2
+        exit 74
+    fi
+    published_checksum=0
 fi
-published_checksum=0
+
+if [ "$do_install" -eq 0 ]; then
+    echo "RELEASE OK: $dmg ($version)"
+    exit 0
+fi
 
 destination_app="/Applications/Poor Man's Text.app"
 cli_directory="${CLI_INSTALL_DIR:-/usr/local/bin}"
@@ -408,4 +434,8 @@ created_cli=0
 remove_install_path "$staged_app"
 installation_state="clean"
 
-echo "INSTALL OK: $destination_app ($installed_version); CLI: $destination_cli; DMG: $dmg"
+if [ "$make_dmg" -eq 1 ]; then
+    echo "INSTALL OK: $destination_app ($installed_version); CLI: $destination_cli; DMG: $dmg"
+else
+    echo "INSTALL OK: $destination_app ($installed_version); CLI: $destination_cli"
+fi

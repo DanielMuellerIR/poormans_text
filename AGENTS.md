@@ -28,7 +28,11 @@ Roadmap-Punkte beim Release ins Changelog überführen und aus der Roadmap entfe
 - Änderungen am Konverter brauchen Unit-Tests und mindestens ein echtes,
   temporär erzeugtes Dokumentfixture. Inhaltsverlust durch Zählungen oder
   unabhängige Output-Vergleiche ausschließen.
-- `./build.sh` erzeugt nur lokale Artefakte im Repo-Root.
+- Drei Einstiegspunkte, klar getrennt: `./build.sh` erzeugt nur lokale Artefakte
+  im Repo-Root, `./install.sh` baut, notarisiert und installiert (kein DMG),
+  `./release.sh` baut, notarisiert und packt das DMG (installiert nie). Beide
+  notarisierten Wege laufen über `scripts/install.sh`, das sie per `--no-dmg`
+  bzw. `--no-install` ansteuern.
 - Ausschließlich `./install.sh` ohne `--no-notarize` darf nach `/Applications`
   oder in einen globalen CLI-Pfad schreiben. Vorher sind Developer-ID-Signatur,
   Hardened Runtime, Notary-Ticket, Stapler und Gatekeeper verbindlich.

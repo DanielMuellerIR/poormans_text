@@ -118,10 +118,9 @@ Das erzeugte Bundle wird für lokale Tests ad-hoc signiert und bleibt unter
 
 ## Signierte Installation
 
-Der vollständige Installer baut App und CLI als Universal Binaries, signiert
-beide mit Developer ID und Hardened Runtime, notarisiert und stapelt die App,
-erzeugt ein signiertes DMG, notarisiert und stapelt auch dieses und installiert
-erst danach die geprüfte App:
+Der Installer baut App und CLI als Universal Binaries, signiert beide mit
+Developer ID und Hardened Runtime, notarisiert und stapelt die App und
+installiert erst danach das geprüfte Bundle:
 
 ```sh
 NOTARY_PROFILE=<profil> ./install.sh
@@ -133,11 +132,25 @@ Terminalpfad verfügbar. Ein fremdes vorhandenes Ziel wird nicht überschrieben.
 Der schnelle Testpfad `./install.sh --no-notarize` belässt die nur signierten
 Artefakte zwingend im Repo-Root.
 
-Der vollständige Lauf erzeugt außerdem `Poor-Mans-Text-<Version>.dmg` und eine
-passende `.sha256`-Datei im Repo-Root. Wer die App aus diesem DMG nach
-`/Applications` zieht, erhält beim ersten Start optional die Einrichtung der
-eingebetteten CLI angeboten. Ein fremdes Kommandozeilenwerkzeug wird nie ersetzt;
-Administratorrechte werden erst nach Zustimmung angefordert.
+## Release-DMG
+
+Das Distributions-DMG baut ein eigener Einstiegspunkt, der bewusst nichts
+installiert:
+
+```sh
+NOTARY_PROFILE=<profil> ./release.sh
+```
+
+Er durchläuft denselben Bau-, Signatur- und Notarisierungsweg, erzeugt danach
+das signierte DMG, notarisiert und stapelt auch dieses und legt am Ende
+`Poor-Mans-Text-<Version>.dmg` samt passender `.sha256`-Datei im Repo-Root ab.
+Vorhandene Artefakte werden nie überschrieben: Existiert das Paar dieser Version
+bereits, bricht der Lauf ab.
+
+Wer die App aus dem DMG nach `/Applications` zieht, erhält beim ersten Start
+optional die Einrichtung der eingebetteten CLI angeboten. Ein fremdes
+Kommandozeilenwerkzeug wird nie ersetzt; Administratorrechte werden erst nach
+Zustimmung angefordert.
 
 ## Konvertierung
 

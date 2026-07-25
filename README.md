@@ -114,10 +114,9 @@ The generated bundle is ad-hoc signed for local testing and remains under
 
 ## Signed installation
 
-The complete installer builds universal app and CLI binaries, signs both with
-Developer ID and the hardened runtime, notarizes and staples the app, creates a
-signed disk image, notarizes and staples that disk image, and only then installs
-the verified app:
+The installer builds universal app and CLI binaries, signs both with Developer
+ID and the hardened runtime, notarizes and staples the app, and only then
+installs the verified bundle:
 
 ```sh
 NOTARY_PROFILE=<profile> ./install.sh
@@ -129,11 +128,24 @@ embedded in the bundle becomes available on the terminal path through
 overwritten. The faster `./install.sh --no-notarize` path keeps the signed but
 unnotarized artifacts in the repository root.
 
-The full run also produces `Poor-Mans-Text-<version>.dmg` and a matching
-`.sha256` file in the repository root. Users who drag the app from that disk
-image into `/Applications` are offered an optional first-launch setup for the
-embedded CLI. It never replaces another command-line tool and always asks before
-requesting administrator privileges.
+## Release disk image
+
+Building the distribution disk image is a separate entry point that installs
+nothing:
+
+```sh
+NOTARY_PROFILE=<profile> ./release.sh
+```
+
+It runs the same build, signing and notarization path, then creates the signed
+disk image, notarizes and staples that image as well, and finally writes
+`Poor-Mans-Text-<version>.dmg` and a matching `.sha256` file to the repository
+root. Existing artifacts are never overwritten: if the pair for that version is
+already there, the run stops.
+
+Users who drag the app from that disk image into `/Applications` are offered an
+optional first-launch setup for the embedded CLI. It never replaces another
+command-line tool and always asks before requesting administrator privileges.
 
 ## Conversion pipeline
 

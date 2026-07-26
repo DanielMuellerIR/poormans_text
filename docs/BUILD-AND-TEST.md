@@ -62,15 +62,21 @@ Der Vollpfad führt in dieser Reihenfolge aus:
    eine SHA-256-Datei erzeugen.
 7. Erst danach die App nach `/Applications/Poor Man's Text.app` kopieren und
    erneut prüfen.
-8. `/usr/local/bin/poormans-text` auf die exakt gleiche eingebettete CLI
+8. `poormans-text` im Terminalpfad auf die exakt gleiche eingebettete CLI
    verlinken und die Versionsgleichheit prüfen.
 
 Der Lauf erzeugt zusätzlich `Poor-Mans-Text-<Version>.dmg` und
 `Poor-Mans-Text-<Version>.dmg.sha256` im Repo-Root. Nach manueller Installation
 aus dem DMG bietet die App die CLI-Einrichtung beim ersten Start optional an.
 
-Ein fremdes vorhandenes App- oder CLI-Ziel wird nicht überschrieben. Falls
-`/usr/local/bin` nicht beschreibbar ist, fordert der Installer im Terminal
+Das CLI-Verzeichnis ermittelt der Installer selbst: Liegt bereits ein
+`poormans-text` im `PATH`, gewinnt dessen Verzeichnis — sonst entstünde eine
+zweite Kopie, die von der älteren verschattet würde. Sonst nimmt er das erste
+Homebrew-`bin` im `PATH` (`/opt/homebrew/bin`, auf Intel `/usr/local/bin`) und
+andernfalls `/usr/local/bin`.
+
+Ein fremdes vorhandenes App- oder CLI-Ziel wird nicht überschrieben. Ist das
+Zielverzeichnis nicht beschreibbar, fordert der Installer im Terminal
 Administratorrechte an. Ein anderes absolutes Ziel kann für kontrollierte Tests
 über `CLI_INSTALL_DIR` gesetzt werden; es muss im aktuellen `PATH` liegen.
 

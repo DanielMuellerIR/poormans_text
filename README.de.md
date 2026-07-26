@@ -153,8 +153,10 @@ NOTARY_PROFILE=<profil> ./install.sh
 ```
 
 Die App landet unter `/Applications/Poor Man's Text.app`. Die exakt gleiche,
-ins Bundle eingebettete CLI wird über `/usr/local/bin/poormans-text` im
-Terminalpfad verfügbar. Ein fremdes vorhandenes Ziel wird nicht überschrieben.
+ins Bundle eingebettete CLI wird als `poormans-text` im Terminalpfad
+verfügbar. Der Installer behält das Verzeichnis einer bereits installierten
+Fassung und nimmt sonst das erste Homebrew-`bin` im `PATH`; `CLI_INSTALL_DIR`
+setzt es außer Kraft. Ein fremdes vorhandenes Ziel wird nicht überschrieben.
 Der schnelle Testpfad `./install.sh --no-notarize` belässt die nur signierten
 Artefakte zwingend im Repo-Root.
 

@@ -149,10 +149,12 @@ NOTARY_PROFILE=<profile> ./install.sh
 ```
 
 The app is installed as `/Applications/Poor Man's Text.app`. The exact same CLI
-embedded in the bundle becomes available on the terminal path through
-`/usr/local/bin/poormans-text`. An unrelated existing target is never
-overwritten. The faster `./install.sh --no-notarize` path keeps the signed but
-unnotarized artifacts in the repository root.
+embedded in the bundle becomes available on the terminal path as
+`poormans-text`. The installer keeps an already installed copy's directory and
+otherwise uses the first Homebrew `bin` on your `PATH`; `CLI_INSTALL_DIR`
+overrides it. An unrelated existing target is never overwritten. The faster
+`./install.sh --no-notarize` path keeps the signed but unnotarized artifacts in
+the repository root.
 
 ## Release disk image
 

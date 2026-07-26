@@ -206,7 +206,30 @@ if [ "$do_install" -eq 0 ]; then
 fi
 
 destination_app="/Applications/Poor Man's Text.app"
-cli_directory="${CLI_INSTALL_DIR:-/usr/local/bin}"
+
+# Standardziel der CLI. Kein fester Pfad: `/usr/local/bin` ist auf Apple Silicon
+# nicht das Homebrew-bin, und ein dort neu angelegtes `poormans-text` würde von
+# einem bereits vorhandenen in `/opt/homebrew/bin` verschattet — der Installer
+# bricht dann berechtigt mit 73 ab (am 2026-07-26 auf M3 genau so passiert).
+# Deshalb: ein bereits installiertes Ziel gewinnt, sonst das erste
+# Homebrew-Verzeichnis im aktuellen PATH, sonst der alte Standard.
+default_cli_directory() {
+    local existing
+    existing="$(command -v poormans-text 2>/dev/null || true)"
+    if [ -n "$existing" ]; then
+        dirname "$existing"
+        return
+    fi
+    local candidate
+    for candidate in /opt/homebrew/bin /usr/local/bin; do
+        case ":${PATH:-}:" in
+            *":$candidate:"*) printf '%s\n' "$candidate"; return ;;
+        esac
+    done
+    printf '%s\n' /usr/local/bin
+}
+
+cli_directory="${CLI_INSTALL_DIR:-$(default_cli_directory)}"
 case "$cli_directory" in
     /*) ;;
     *) echo "CLI_INSTALL_DIR muss ein absoluter Pfad sein." >&2; exit 64 ;;

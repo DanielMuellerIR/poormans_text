@@ -96,6 +96,32 @@ für eine Kollision am Ausgabeziel und `74` für einen Dateisystemfehler. Mit
 andernfalls gehen Diagnosen an die Standardfehlerausgabe. Eingaben werden als
 Dateisystempfade und nicht über die Standardeingabe entgegengenommen.
 
+### Unterstützte Formate abfragen
+
+```sh
+poormans-text --formats
+poormans-text --formats --json
+```
+
+`--formats` fasst kein Dokument an und endet immer mit `0`. Die Ausgabe nennt
+jedes Format, das dieser Stand lesen kann, seine Dateiendungen, ob die Quelle
+eine einzelne Datei oder ein Ordner-Paket wie `.rtfd` ist, welche externen
+Werkzeuge nötig sind und ob diese gerade installiert sind:
+
+```text
+rtf   .rtf   file     available
+rtfd  .rtfd  package  available
+docx  .docx  file     available
+odt   .odt   file     available
+doc   .doc   file     unavailable (missing required tool: pandoc)
+```
+
+So entscheidet eine andere App, ob sie eine Umwandlung anbietet. Weil die Liste
+aus dem Konverter selbst stammt, übernimmt ein Aufrufer später hinzukommende
+Formate, ohne selbst geändert zu werden. Die Endungen sind dabei nur ein
+schneller Vorfilter — die Umwandlung erkennt das Format immer erneut am Inhalt
+und meldet einen ehrlichen Fehler, wenn beides nicht zusammenpasst.
+
 ## macOS-App
 
 App und CLI lassen sich vom Repo-Root bauen:

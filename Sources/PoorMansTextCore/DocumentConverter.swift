@@ -29,6 +29,44 @@ public struct DocumentConverter: Sendable {
         Set(adapters.flatMap(\.supportedFormats))
     }
 
+    /// Alle bekannten Formate in stabiler Reihenfolge (Adapterreihenfolge, darin
+    /// wie deklariert). Reine Deklaration, ohne jede Dateisystem- oder
+    /// Prozessarbeit.
+    public var supportedFormatDescriptors: [SupportedFormat] {
+        adapters.flatMap(\.supportedFormatDescriptors)
+    }
+
+    /// Derselbe Katalog, zusätzlich mit der Verfügbarkeit auf DIESEM Rechner.
+    ///
+    /// Gedacht für Hosts, die vor dem Anbieten wissen müssen, ob eine
+    /// Umwandlung überhaupt gelingen kann. Die Prüfung fasst nur das Dateisystem
+    /// an und startet keinen Prozess — ein Host darf sie deshalb bei jedem
+    /// Öffnen aufrufen.
+    public func formatCatalog(
+        resolver: ExternalToolResolver = ExternalToolResolver()
+    ) -> [FormatAvailability] {
+        // Jedes Werkzeug höchstens einmal prüfen: `pandoc` steht bei fast jedem
+        // Format und würde sonst pro Format erneut im Dateisystem gesucht.
+        var checked = [ExternalTool: Bool]()
+        return supportedFormatDescriptors.map { descriptor in
+            let missing = descriptor.requiredTools.filter { tool in
+                if let known = checked[tool] { return !known }
+                let available = resolver.isAvailable(tool)
+                checked[tool] = available
+                return !available
+            }
+            return FormatAvailability(
+                format: descriptor,
+                isAvailable: missing.isEmpty,
+                unavailableReason: missing.isEmpty
+                    ? nil
+                    : "missing required tool: "
+                        + missing.map(\.rawValue).joined(separator: ", "),
+                missingTools: missing
+            )
+        }
+    }
+
     /// Erkennt das Format erneut aus der Quelle und beschreibt bekannte Verluste.
     public func inspect(_ requestedInputURL: URL) throws -> InputInspection {
         let inputURL = requestedInputURL.standardizedFileURL
@@ -281,10 +319,21 @@ public struct DocumentConverter: Sendable {
 }
 
 protocol DocumentConversionAdapter: Sendable {
-    var supportedFormats: Set<InputFormat> { get }
+    /// Die vollständige Beschreibung jedes angebotenen Formats. Sie ist die
+    /// EINZIGE Stelle, an der ein Adapter seine Formate deklariert — Endungen,
+    /// Ablageform und nötige Werkzeuge inklusive. Dadurch bleibt der
+    /// veröffentlichte Formatkatalog automatisch vollständig, wenn ein neuer
+    /// Adapter dazukommt.
+    var supportedFormatDescriptors: [SupportedFormat] { get }
 
     func inspectInput(at inputURL: URL) throws -> AdapterInputDetection
     func convert(_ context: AdapterConversionContext) throws -> StagedConversionResult
+}
+
+extension DocumentConversionAdapter {
+    var supportedFormats: Set<InputFormat> {
+        Set(supportedFormatDescriptors.map(\.format))
+    }
 }
 
 enum AdapterInputDetection: Sendable {

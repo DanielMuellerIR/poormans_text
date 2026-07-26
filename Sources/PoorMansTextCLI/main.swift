@@ -19,6 +19,7 @@ private struct ParsedArguments {
     var json = false
     var showHelp = false
     var showVersion = false
+    var listFormats = false
 }
 
 private struct JSONResponse: Encodable {
@@ -32,14 +33,34 @@ private struct JSONResponse: Encodable {
     let error: String?
 }
 
+/// Maschinenlesbarer Formatkatalog. Bewusst eine eigene Antwortform: Ein
+/// aufrufendes Programm soll den Katalog nicht aus einer Konvertierungsantwort
+/// heraussuchen müssen.
+private struct FormatsJSONResponse: Encodable {
+    struct Entry: Encodable {
+        let format: String
+        let extensions: [String]
+        let container: String
+        let requires: [String]
+        let available: Bool
+        let unavailableReason: String?
+    }
+
+    let ok: Bool
+    let version: String
+    let formats: [Entry]
+}
+
 private let usage = """
 Usage: poormans-text [options] INPUT
+       poormans-text --formats [--json] [--pandoc PATH]
 
 Convert an RTF, RTFD, DOCX, ODT, or DOC document into a new folder containing Markdown and images.
 
 Options:
   -o, --output DIRECTORY  Set the new output directory.
       --pandoc PATH       Use a specific Pandoc executable.
+      --formats           List the supported input formats instead of converting.
       --json              Write a machine-readable result to stdout.
   -h, --help              Show this help text.
   -V, --version           Show the product version.
@@ -48,6 +69,10 @@ The default output directory is INPUT-markdown next to the source. Existing
 output directories are never overwritten. Exit codes follow sysexits values:
 64 usage, 65 invalid data, 66 missing input, 69 missing dependency,
 70 conversion failure, 73 output collision, and 74 file-system failure.
+
+--formats reports every format this build can read, its file extensions, whether
+it is a single file or a folder package, and whether the tools it needs are
+installed right now. It never inspects a document and always exits 0.
 """
 
 private func parseArguments(
@@ -72,6 +97,8 @@ private func parseArguments(
             parsed.showVersion = true
         } else if !optionsEnded && argument == "--json" {
             parsed.json = true
+        } else if !optionsEnded && argument == "--formats" {
+            parsed.listFormats = true
         } else if !optionsEnded && (argument == "-o" || argument == "--output") {
             index += 1
             guard index < rawArguments.count else {
@@ -110,6 +137,7 @@ private enum CLIArgumentError: LocalizedError {
     case missingValue(String)
     case unknownOption(String)
     case tooManyInputs
+    case formatsTakesNoInput
 
     var errorDescription: String? {
         switch self {
@@ -119,7 +147,66 @@ private enum CLIArgumentError: LocalizedError {
             "Unknown option: \(option)"
         case .tooManyInputs:
             "Only one input document can be converted at a time."
+        case .formatsTakesNoInput:
+            // Streng statt tolerant: Sonst bliebe unklar, ob der Aufruf gelistet
+            // oder konvertiert hat — und ein Skript würde das erst am Ergebnis merken.
+            "--formats lists formats only; it takes no input document or output directory."
         }
+    }
+}
+
+/// Baut die Katalogantwort. Ausgelagert, damit Text- und JSON-Ausgabe
+/// garantiert denselben Katalog beschreiben.
+private func formatCatalog(pandocURL: URL?) -> [FormatAvailability] {
+    DocumentConverter().formatCatalog(
+        resolver: ExternalToolResolver(pandocExecutable: pandocURL)
+    )
+}
+
+private func writeFormats(_ catalog: [FormatAvailability], json: Bool) {
+    if json {
+        let response = FormatsJSONResponse(
+            ok: true,
+            version: ProductInfo.version,
+            formats: catalog.map {
+                FormatsJSONResponse.Entry(
+                    format: $0.format.format.rawValue,
+                    extensions: $0.format.fileExtensions,
+                    container: $0.format.containerKind.rawValue,
+                    requires: $0.format.requiredTools.map(\.rawValue),
+                    available: $0.isAvailable,
+                    unavailableReason: $0.unavailableReason
+                )
+            }
+        )
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
+        if let data = try? encoder.encode(response) {
+            FileHandle.standardOutput.write(data)
+            FileHandle.standardOutput.write(Data("\n".utf8))
+        }
+        return
+    }
+
+    // Spaltenbreiten aus dem echten Inhalt, damit die Textausgabe auch mit
+    // später hinzukommenden Formaten lesbar bleibt.
+    let rows = catalog.map { entry -> (String, String, String, String) in
+        (
+            entry.format.format.rawValue,
+            entry.format.fileExtensions.map { ".\($0)" }.joined(separator: " "),
+            entry.format.containerKind.rawValue,
+            entry.isAvailable ? "available" : "unavailable (\(entry.unavailableReason ?? "unknown"))"
+        )
+    }
+    let formatWidth = rows.map(\.0.count).max() ?? 0
+    let extensionWidth = rows.map(\.1.count).max() ?? 0
+    let containerWidth = rows.map(\.2.count).max() ?? 0
+    for row in rows {
+        let line = row.0.padding(toLength: max(formatWidth, row.0.count) + 2, withPad: " ", startingAt: 0)
+            + row.1.padding(toLength: max(extensionWidth, row.1.count) + 2, withPad: " ", startingAt: 0)
+            + row.2.padding(toLength: max(containerWidth, row.2.count) + 2, withPad: " ", startingAt: 0)
+            + row.3
+        print(line)
     }
 }
 
@@ -171,6 +258,14 @@ do {
 
     if arguments.showVersion {
         print("\(ProductInfo.name) \(ProductInfo.version)")
+        exit(CLIExitCode.success.rawValue)
+    }
+
+    if arguments.listFormats {
+        guard arguments.inputURL == nil, arguments.outputURL == nil else {
+            throw CLIArgumentError.formatsTakesNoInput
+        }
+        writeFormats(formatCatalog(pandocURL: arguments.pandocURL), json: arguments.json)
         exit(CLIExitCode.success.rawValue)
     }
 

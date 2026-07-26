@@ -92,6 +92,32 @@ and `74` for a file-system error. With `--json`, successes and failures are
 reported as JSON on standard output; diagnostics otherwise go to standard
 error. Inputs are accepted as file-system paths, not through standard input.
 
+### Asking which formats are supported
+
+```sh
+poormans-text --formats
+poormans-text --formats --json
+```
+
+`--formats` never touches a document and always exits `0`. It reports every
+format this build can read, its file extensions, whether the source is a single
+file or a folder package such as `.rtfd`, the external tools it needs, and
+whether those tools are installed right now:
+
+```text
+rtf   .rtf   file     available
+rtfd  .rtfd  package  available
+docx  .docx  file     available
+odt   .odt   file     available
+doc   .doc   file     unavailable (missing required tool: pandoc)
+```
+
+This is the intended way for another application to decide whether to offer a
+conversion. Because the list comes from the converter itself, a host picks up
+formats added in a later version without being changed. The extensions are a
+fast pre-filter only — the conversion always re-detects the format from the file
+contents and reports an honest error when they disagree.
+
 ## macOS app
 
 Build the app and CLI from the repository root:

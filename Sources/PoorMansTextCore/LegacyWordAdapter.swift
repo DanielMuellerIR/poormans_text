@@ -2,7 +2,19 @@ import Foundation
 
 /// Eigenständiger Importweg für das alte OLE-basierte Word-DOC-Format.
 struct LegacyWordAdapter: DocumentConversionAdapter {
-    let supportedFormats: Set<InputFormat> = [.doc]
+    /// Fester Systempfad — `textutil` gehört zu macOS und wird nie im PATH gesucht.
+    /// Auch die Verfügbarkeitsprüfung des Formatkatalogs benutzt genau diesen Pfad.
+    static let textutilPath = "/usr/bin/textutil"
+
+    let supportedFormatDescriptors: [SupportedFormat] = [
+        SupportedFormat(
+            format: .doc,
+            fileExtensions: ["doc"],
+            containerKind: .file,
+            // Erst `textutil` nach HTML, danach dieselbe Pandoc-Stufe wie RTF.
+            requiredTools: [.textutil, .pandoc]
+        )
+    ]
 
     func inspectInput(at inputURL: URL) throws -> AdapterInputDetection {
         var isDirectory: ObjCBool = false
@@ -25,7 +37,7 @@ struct LegacyWordAdapter: DocumentConversionAdapter {
         let info: ProcessResult
         do {
             info = try ProcessRunner.run(
-                executable: URL(fileURLWithPath: "/usr/bin/textutil"),
+                executable: URL(fileURLWithPath: Self.textutilPath),
                 arguments: ["-info", "--", inputURL.path],
                 currentDirectory: FileManager.default.temporaryDirectory,
                 captureStandardOutput: true
@@ -137,7 +149,7 @@ struct LegacyWordAdapter: DocumentConversionAdapter {
         let result: ProcessResult
         do {
             result = try ProcessRunner.run(
-                executable: URL(fileURLWithPath: "/usr/bin/textutil"),
+                executable: URL(fileURLWithPath: Self.textutilPath),
                 arguments: arguments,
                 currentDirectory: currentDirectory
             )

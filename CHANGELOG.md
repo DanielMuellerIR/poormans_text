@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Publish the supported input formats as a queryable catalog: adapters now
+  declare their file extensions, whether the source is a single file or a folder
+  package, and the external tools they need. `poormans-text --formats [--json]`
+  reports that catalog together with the current availability of each tool, so a
+  host application never has to hard-code format knowledge and picks up new
+  formats without being changed itself.
 - Add content-based DOCX and ODT package imports through a shared sandboxed
   Pandoc adapter with isolated media extraction, archive budgets, traversal and
   symlink rejection, remote-image blocking, explicit accepted DOCX changes, and

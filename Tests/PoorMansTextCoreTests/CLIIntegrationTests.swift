@@ -155,6 +155,55 @@ final class CLIIntegrationTests: XCTestCase {
         )
     }
 
+    /// `--formats` ist der Weg, auf dem ein Host (Fastra) beim Öffnen einer
+    /// Datei entscheidet, ob er eine Umwandlung anbietet. Der Aufruf darf
+    /// deshalb nie ein Dokument anfassen, nie scheitern und muss die Endungen
+    /// mitliefern — sonst müsste der Host eigenes Formatwissen pflegen.
+    func testFormatsListingIsSelfContainedAndNeverFails() throws {
+        let text = try runCLI(["--formats"])
+        XCTAssertEqual(text.status, 0, text.standardError)
+        XCTAssertTrue(text.standardError.isEmpty)
+        XCTAssertTrue(text.standardOutput.contains("rtfd"))
+        XCTAssertTrue(text.standardOutput.contains("package"))
+
+        let json = try decodeJSON(try runCLI(["--formats", "--json"]).standardOutput)
+        XCTAssertEqual(json["ok"] as? Bool, true)
+        XCTAssertEqual(json["version"] as? String, ProductInfo.version)
+        let formats = try XCTUnwrap(json["formats"] as? [[String: Any]])
+        XCTAssertEqual(
+            Set(formats.compactMap { $0["format"] as? String }),
+            Set(DocumentConverter().supportedFormats.map(\.rawValue))
+        )
+        for entry in formats {
+            XCTAssertFalse((entry["extensions"] as? [String] ?? []).isEmpty)
+            XCTAssertTrue(["file", "package"].contains(entry["container"] as? String ?? ""))
+            XCTAssertNotNil(entry["available"] as? Bool)
+        }
+        let rtfd = try XCTUnwrap(formats.first { $0["format"] as? String == "rtfd" })
+        XCTAssertEqual(rtfd["container"] as? String, "package")
+        XCTAssertEqual(rtfd["extensions"] as? [String], ["rtfd"])
+    }
+
+    func testFormatsReportsMissingToolInsteadOfFailing() throws {
+        let result = try runCLI([
+            "--formats", "--json",
+            "--pandoc", "/nonexistent/pandoc",
+        ])
+        // Exit 0 trotz fehlendem Pandoc: Die Liste ist die Antwort, nicht der Fehler.
+        XCTAssertEqual(result.status, 0, result.standardError)
+        let formats = try XCTUnwrap(decodeJSON(result.standardOutput)["formats"] as? [[String: Any]])
+        XCTAssertFalse(formats.isEmpty)
+        for entry in formats {
+            XCTAssertEqual(entry["available"] as? Bool, false)
+            XCTAssertNotNil(entry["unavailableReason"] as? String)
+        }
+    }
+
+    func testFormatsRejectsAConversionArgumentInsteadOfGuessing() throws {
+        assertTextFailure(try runCLI(["--formats", "Document.rtf"]), expectedStatus: 64)
+        assertTextFailure(try runCLI(["--formats", "-o", "out"]), expectedStatus: 64)
+    }
+
     private func runCLI(_ arguments: [String]) throws -> CLIProcessResult {
         let executable = Bundle(for: Self.self).bundleURL
             .deletingLastPathComponent()

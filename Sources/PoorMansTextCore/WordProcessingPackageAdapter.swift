@@ -2,7 +2,20 @@ import Foundation
 
 /// Gemeinsamer Pandoc-Adapter für die ZIP-Container DOCX und ODT.
 struct WordProcessingPackageAdapter: DocumentConversionAdapter {
-    let supportedFormats: Set<InputFormat> = [.docx, .odt]
+    let supportedFormatDescriptors: [SupportedFormat] = [
+        SupportedFormat(
+            format: .docx,
+            fileExtensions: ["docx"],
+            containerKind: .file,
+            requiredTools: [.pandoc]
+        ),
+        SupportedFormat(
+            format: .odt,
+            fileExtensions: ["odt"],
+            containerKind: .file,
+            requiredTools: [.pandoc]
+        ),
+    ]
 
     func inspectInput(at inputURL: URL) throws -> AdapterInputDetection {
         var isDirectory: ObjCBool = false

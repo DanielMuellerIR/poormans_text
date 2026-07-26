@@ -51,6 +51,15 @@ einer Rich-Text-Diagnose. `InputFormat` ist dafür ein offener, Codable-kompatib
 String-Wert. Ein neuer Adapter benötigt somit keine zusätzliche Erkennungslogik im
 Orchestrator.
 
+Ein Adapter deklariert seine Formate ausschließlich über
+`supportedFormatDescriptors`: Format, Dateiendungen, `containerKind` und die
+benötigten `ExternalTool`-Werte. `supportedFormats` leitet sich daraus ab, und
+`DocumentConverter.formatCatalog` ergänzt die Verfügbarkeit auf dem aktuellen
+Rechner. Der Katalog kostet nur Dateisystemprüfungen und startet keinen Prozess —
+ein Host darf ihn beim Öffnen jeder Datei abfragen. Ein Werkzeug ohne bekannten
+Prüfweg gilt bewusst als nicht verfügbar; lieber ein Format zu wenig anbieten als
+eine Umwandlung, die verlässlich scheitert.
+
 Adapter erzeugen ausschließlich ein vollständiges Ergebnis im Staging-Bereich.
 Nur `DocumentConverter` bestimmt das dauerhafte oder temporäre Ziel und verschiebt
 das Ergebnis nach einer zweiten Kollisionsprüfung atomar dorthin. Die
@@ -73,6 +82,8 @@ Diagnosegrenze verwenden. Darstellung und Mehrblatt-Regel stehen in
 
 Der Kern:
 
+- veröffentlicht seinen vollständigen Formatkatalog samt Dateiendungen,
+  Ablageform (Datei oder Ordner-Paket) und nötigen externen Werkzeugen;
 - erkennt unterstützte Formate und beschreibt erwartbare Verluste;
 - konvertiert nur nach einem expliziten Aufruf;
 - verändert die Quelle nie;

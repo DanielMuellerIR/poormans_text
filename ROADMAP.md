@@ -89,16 +89,21 @@ PDF bleibt ausdrücklich eine Inhaltsübernahme, keine Layoutreproduktion.
 Mehrspalten, Tabellen, Kopf-/Fußzeilen und Lesereihenfolge brauchen reale
 Regressionstests und können trotz OCR manuelle Korrektur erfordern.
 
-## Später — Fastra-Integration
+## Fastra-Integration
 
-- Fastra erkennt ein importierbares Nicht-Markdown-Dokument und fragt vor jeder
-  Konvertierung sichtbar nach.
-- Erst nach Zustimmung ruft Fastra die Library mit einem temporären Ziel auf.
-- Original und erzeugtes Markdown bleiben getrennt; Fastra schreibt nie zurück
-  in das Quelldokument.
-- Warnungen und Formatverluste werden vor dem Öffnen zusammengefasst.
-- Eine dauerhafte Exportkopie entsteht nur auf einen zweiten ausdrücklichen
-  Nutzerbefehl.
+Die Seite von Poor Man's Text ist erledigt: `poormans-text --formats [--json]`
+veröffentlicht den Formatkatalog samt Endungen, Ablageform und
+Werkzeugverfügbarkeit, sodass Fastra beim Öffnen entscheiden kann, ohne eigenes
+Formatwissen zu pflegen. Fastra ruft die CLI mit einem eigenen Ziel auf, fragt
+vorher sichtbar nach und lässt Quelle und erzeugtes Markdown getrennt.
+
+Offen bleibt hier nur:
+
+- Warnungen und Formatverluste vor dem Öffnen zusammenfassen — Fastra bekommt
+  sie bereits über `--json`, die Darstellung liegt beim Host.
+- Eine direkte Library-Anbindung statt des CLI-Aufrufs wäre erst nötig, wenn
+  Fortschrittsanzeige oder Abbruch während einer Umwandlung gefordert werden.
+  Der Prozessweg bleibt bis dahin die einfachere und besser isolierte Grenze.
 
 ## Code-Review-Nacharbeiten
 

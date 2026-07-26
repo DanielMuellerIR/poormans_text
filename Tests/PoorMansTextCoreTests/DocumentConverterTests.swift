@@ -320,8 +320,15 @@ private struct SyntheticAdapter: DocumentConversionAdapter {
         self.warning = warning
     }
 
-    var supportedFormats: Set<InputFormat> {
-        [format]
+    var supportedFormatDescriptors: [SupportedFormat] {
+        [
+            SupportedFormat(
+                format: format,
+                fileExtensions: [format.rawValue],
+                containerKind: .file,
+                requiredTools: []
+            )
+        ]
     }
 
     func inspectInput(at inputURL: URL) throws -> AdapterInputDetection {

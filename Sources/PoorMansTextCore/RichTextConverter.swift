@@ -27,7 +27,22 @@ public struct RichTextConverter: Sendable {
 
 /// RTF und RTFD behalten getrennte Importwege, liefern aber dasselbe gestagte Ergebnis.
 struct RichTextAdapter: DocumentConversionAdapter {
-    let supportedFormats: Set<InputFormat> = [.rtf, .rtfd]
+    let supportedFormatDescriptors: [SupportedFormat] = [
+        SupportedFormat(
+            format: .rtf,
+            fileExtensions: ["rtf"],
+            containerKind: .file,
+            requiredTools: [.pandoc]
+        ),
+        // RTFD ist im Finder ein Ordner mit `TXT.rtf` und Bildern. Ein Host, der
+        // Ordner sonst anders behandelt, erkennt das an `containerKind`.
+        SupportedFormat(
+            format: .rtfd,
+            fileExtensions: ["rtfd"],
+            containerKind: .package,
+            requiredTools: [.pandoc]
+        ),
+    ]
 
     func inspectInput(at inputURL: URL) throws -> AdapterInputDetection {
         let fileManager = FileManager.default

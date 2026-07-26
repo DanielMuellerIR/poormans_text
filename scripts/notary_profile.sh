@@ -23,7 +23,22 @@ poormans_text_require_notary_profile() {
     fi
 
     # Nur ein echter notarytool-Aufruf erkennt alle gültigen Profil-Speicherorte.
-    if ! xcrun notarytool history --keychain-profile "$profile" >/dev/null 2>&1; then
+    #
+    # Fünf Versuche statt einem: `history` meldet gelegentlich fälschlich „No
+    # Keychain password item found", obwohl das Profil da ist (2026-07-26 auf M3
+    # belegt — Versuch 1 fehlgeschlagen, Versuch 2 sofort ok). Ein einzelner
+    # Fehlversuch würde sonst einen ganzen Lauf grundlos abbrechen oder unnötig
+    # nach store-credentials fragen; ein wirklich fehlendes Profil scheitert auch
+    # nach fünf Versuchen.
+    local attempt profile_ok=0
+    for attempt in 1 2 3 4 5; do
+        if xcrun notarytool history --keychain-profile "$profile" >/dev/null 2>&1; then
+            profile_ok=1
+            break
+        fi
+        sleep 3
+    done
+    if [ "$profile_ok" = 0 ]; then
         echo "Das Notary-Profil '$profile' ist auf diesem Mac nicht verwendbar." >&2
         echo "Keychain-Profile werden nicht zwischen Macs synchronisiert." >&2
 

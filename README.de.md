@@ -76,17 +76,18 @@ beispielsweise mit `brew install pandoc` installieren.
 ## Kommandozeile
 
 ```sh
-swift run poormans-text Dokument.rtfd
-swift run poormans-text Dokument.rtf
-swift run poormans-text Dokument.docx
-swift run poormans-text Dokument.odt
-swift run poormans-text Dokument.doc
-swift run poormans-text --output Konvertiert Dokument.rtfd
-swift run poormans-text --json Dokument.rtfd
+poormans-text Dokument.rtfd
+poormans-text Dokument.rtf
+poormans-text Dokument.docx
+poormans-text Dokument.odt
+poormans-text Dokument.doc
+poormans-text --output Konvertiert Dokument.rtfd
+poormans-text --json Dokument.rtfd
 ```
 
 Standardmäßig entsteht `Dokument-markdown` neben der Quelle. Alle Optionen zeigt
-`swift run poormans-text --help`.
+`poormans-text --help`. Ohne Installation funktionieren dieselben Aufrufe im
+Quellcode-Verzeichnis als `swift run poormans-text …`.
 
 Die Exit-Codes folgen den üblichen `sysexits`-Werten: `64` für Aufruffehler,
 `65` für ungültige Eingabedaten, `66` für eine fehlende Eingabe, `69` für ein
@@ -113,8 +114,12 @@ rtf   .rtf   file     available
 rtfd  .rtfd  package  available
 docx  .docx  file     available
 odt   .odt   file     available
-doc   .doc   file     unavailable (missing required tool: pandoc)
+doc   .doc   file     available
 ```
+
+Fehlt Pandoc, steht in jeder Zeile `unavailable (missing required tool: pandoc)`,
+denn alle derzeitigen Formate brauchen es. Das für DOC zusätzlich nötige
+`textutil` gehört zu macOS.
 
 So entscheidet eine andere App, ob sie eine Umwandlung anbietet. Weil die Liste
 aus dem Konverter selbst stammt, übernimmt ein Aufrufer später hinzukommende
@@ -131,16 +136,14 @@ App und CLI lassen sich vom Repo-Root bauen:
 open "Poor Man's Text.app"
 ```
 
-Der Build legt `Poor Man's Text.app` und `poormans-text` zusätzlich direkt im
-Repo-Root ab. Diese lokalen Artefakte sind ad-hoc-signiert und nicht für
-`/Applications` bestimmt.
+`./build.sh` erzeugt das Bundle unter `.build/app/` und legt es zusammen mit der
+CLI zusätzlich im Repo-Root ab. Beide Kopien sind nur für lokale Tests
+ad-hoc-signiert: Sie sind kein notarisierter Distributions-Build und gehören
+nicht nach `/Applications`.
 
 Ein RTF-, RTFD-, DOCX-, ODT- oder DOC-Dokument kann in das Fenster oder auf die
 App gezogen oder über den Dateidialog ausgewählt werden. Die App zeigt das
 Ergebnis und kann die erzeugte Markdown-Datei im Finder anzeigen.
-
-Das erzeugte Bundle wird für lokale Tests ad-hoc signiert und bleibt unter
-`.build/app/`. Es ist kein notarisierter Distributions-Build.
 
 ## Signierte Installation
 

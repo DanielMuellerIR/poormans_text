@@ -129,15 +129,6 @@ JSON-Vertrag, nicht das Verhalten — Fastra kommt mit beiden zurecht):
   Ein Host, der die Pfade gegeneinander vergleicht, stolpert darüber. Entweder
   beide Seiten auflösen oder beide roh lassen.
 
-## Nächster Schritt: Release 0.6.0 veröffentlichen
-
-Version, Changelog, Roadmap, READMEs und `docs/releases/0.6.0.md` sind seit
-`021034c` konsistent auf 0.6.0, Tests grün (75/75) und die drei Formate über die
-CLI mit echten Fixtures gegengeprüft. Offen ist nur noch der Veröffentlichungsweg
-aus [docs/GITHUB-RELEASE.md](docs/GITHUB-RELEASE.md): `./release.sh` für das
-notarisierte DMG, annotierter Tag `v0.6.0`, `scripts/verify_release.sh 0.6.0`,
-Privacy-Scan über den ausgehenden Stand und erst danach das GitHub-Release.
-
 ## Technische Referenzen
 
 - [Pandoc User's Guide](https://pandoc.org/MANUAL.html) — Eingabeformate,

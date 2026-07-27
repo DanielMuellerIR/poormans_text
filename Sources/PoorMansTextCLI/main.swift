@@ -72,7 +72,9 @@ output directories are never overwritten. Exit codes follow sysexits values:
 
 --formats reports every format this build can read, its file extensions, whether
 it is a single file or a folder package, and whether the tools it needs are
-installed right now. It never inspects a document and always exits 0.
+installed right now. It never inspects a document, and a valid call always exits
+0 — even when no format is currently available. Combining --formats with an
+input document or an output directory is a usage error and exits 64.
 """
 
 private func parseArguments(

@@ -62,7 +62,7 @@ Download the DMG and its `.sha256` file from the
 directory, verify the download before opening it:
 
 ```sh
-shasum -a 256 -c Poor-Mans-Text-0.5.0.dmg.sha256
+shasum -a 256 -c Poor-Mans-Text-0.6.0.dmg.sha256
 ```
 
 Open the DMG and drag Poor Man's Text to Applications. The app is signed with
@@ -242,7 +242,7 @@ changes, Unicode, and media hashes. Tests also cover output collisions, malforme
 or unsafe packages, an XLS/DOC OLE distinction, missing dependencies, warnings,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current version is 0.5.1.
+The current version is 0.6.0.
 
 ## License
 

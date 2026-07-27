@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 0.6.0 - 2026-07-27
+
 - Publish the supported input formats as a queryable catalog: adapters now
   declare their file extensions, whether the source is a single file or a folder
   package, and the external tools they need. `poormans-text --formats [--json]`

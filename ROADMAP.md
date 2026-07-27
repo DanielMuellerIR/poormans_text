@@ -14,11 +14,12 @@ Stand der lokalen Werkzeuge am 2026-07-25: Pandoc 3.9.0.2 liest `rtf`, `docx`,
 das alte Binärformat `doc`. PDF ist kein Pandoc-Eingabeformat. Vision und PDFKit
 sind Systemframeworks und benötigen keinen zusätzlichen OCR-Dienst.
 
+DOCX, ODT und DOC sind seit 0.6.0 implementiert und stehen nicht mehr in dieser
+Tabelle; ihr tatsächlicher Importweg steht in [CHANGELOG.md](CHANGELOG.md) und
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
 | Format | Geplanter Importweg | Aufwand | Erwartbare Qualität | Priorität |
 |---|---|---:|---|---:|
-| DOCX | Pandoc direkt mit `--extract-media`; Änderungsmodus explizit festlegen | mittel | gute Struktur, Bilder, Listen und Tabellen | 1 |
-| ODT | Pandoc direkt mit Medienextraktion | klein–mittel | meist ähnlich DOCX | 1 |
-| DOC | `textutil` nach HTML, danach vorhandene HTML-/Pandoc-Pipeline | mittel | abhängig vom macOS-Importer; alte Sonderobjekte verlustreich | 2 |
 | ODS | Nativer Paketleser in ein gemeinsames Workbook-Modell | mittel | Werte und mehrere Blätter gut; Layout, Diagramme und Merges verlustbehaftet | 3 |
 | XLSX | Nach ODS in dasselbe Workbook-Modell; Pandoc als unabhängiger Vergleich | mittel | Werte und mehrere Blätter gut | 3 |
 | XLS | Eigener OLE-Adapter nach XLSX | groß | abhängig von Formeln, Altobjekten und Makros | 3 |
@@ -29,27 +30,6 @@ sind Systemframeworks und benötigen keinen zusätzlichen OCR-Dienst.
 Falls mit „ODM“ eigentlich „ODT“ gemeint war, ist es bereits in Priorität 2
 abgedeckt. Echtes `.odm` bleibt separat: Ein Masterdokument kann lokale oder
 fehlende/externe Teildokumente referenzieren und darf diese nicht still laden.
-
-## Etappe 2 — DOCX und ODT
-
-- Gemeinsamen Pandoc-Containeradapter mit isoliertem Medienverzeichnis bauen.
-- Pfade aus dem Container normalisieren und Traversal/entfernte Ressourcen
-  weiterhin ablehnen.
-- Überschriften, Fußnoten, Tabellen, Listen, Links, Bilder und Kommentare testen.
-- Für DOCX bewusst entscheiden und dokumentieren, ob Änderungen angenommen,
-  verworfen oder als Markup erhalten werden.
-
-Freigabekriterium: reale, selbst erzeugte Dateien aus mindestens zwei Editoren
-pro Format; Output-Diff gegen Pandoc direkt und gegen die jeweilige Quellansicht.
-
-## Etappe 3 — Legacy-DOC
-
-- `textutil`-Import als separaten Adapter kapseln, nicht als DOCX-Fallback tarnen.
-- Klare Warnungen für nicht darstellbare OLE-Objekte, Textfelder und Makroinhalt.
-- Binär-DOC-Fixtures mit Bildern, Tabellen und Umlauten versionieren.
-
-Freigabekriterium: ehrlicher Fehler statt leerer oder teilweise verschwundener
-Ausgabe; Quelle bleibt auch bei einem fehlerhaften Systemimport unverändert.
 
 ## Etappe 4 — Tabellendokumente
 

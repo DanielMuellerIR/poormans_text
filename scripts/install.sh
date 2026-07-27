@@ -11,7 +11,7 @@ cd "$project_root"
 # Dieses Skript trägt beide notarisierten Wege, weil sie sich Build, Signatur,
 # App-Notarisierung und Zielprüfung vollständig teilen. Die Root-Wrapper wählen
 # den Ausschnitt: install.sh installiert ohne DMG, release.sh baut das DMG und
-# installiert nicht (Schema aus theplan, knowledge/macos-app-distribution.md).
+# installiert nicht.
 notarize=1
 make_dmg=1
 do_install=1
@@ -210,7 +210,7 @@ destination_app="/Applications/Poor Man's Text.app"
 # Standardziel der CLI. Kein fester Pfad: `/usr/local/bin` ist auf Apple Silicon
 # nicht das Homebrew-bin, und ein dort neu angelegtes `poormans-text` würde von
 # einem bereits vorhandenen in `/opt/homebrew/bin` verschattet — der Installer
-# bricht dann berechtigt mit 73 ab (am 2026-07-26 auf M3 genau so passiert).
+# bricht dann berechtigt mit 73 ab (am 2026-07-26 genau so beobachtet).
 # Deshalb: ein bereits installiertes Ziel gewinnt, sonst das erste
 # Homebrew-Verzeichnis im aktuellen PATH, sonst der alte Standard.
 default_cli_directory() {

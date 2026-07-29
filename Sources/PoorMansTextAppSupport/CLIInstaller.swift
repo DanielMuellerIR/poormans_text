@@ -76,32 +76,29 @@ public enum CLIInstaller {
         end run
         """#
 
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
-        process.arguments = [
-            "-e", script,
-            "--",
-            sourceURL.path,
-            targetURL.path,
-            targetURL.deletingLastPathComponent().path,
-            administratorPrivileges ? "true" : "false",
-        ]
-        let standardError = Pipe()
-        process.standardOutput = Pipe()
-        process.standardError = standardError
-
+        // CapturedProcess leert die Fehler-Pipe, bevor es auf das Prozessende
+        // wartet — sonst könnte ein gesprächiges osascript am vollen
+        // Pipe-Puffer hängen bleiben, während wir auf es warten.
+        let result: (status: Int32, standardError: String)
         do {
-            try process.run()
-            process.waitUntilExit()
+            result = try CapturedProcess.run(
+                executable: URL(fileURLWithPath: "/usr/bin/osascript"),
+                arguments: [
+                    "-e", script,
+                    "--",
+                    sourceURL.path,
+                    targetURL.path,
+                    targetURL.deletingLastPathComponent().path,
+                    administratorPrivileges ? "true" : "false",
+                ]
+            )
         } catch {
             throw InstallError.processFailed(error.localizedDescription)
         }
 
-        guard process.terminationStatus == 0 else {
-            let data = standardError.fileHandleForReading.readDataToEndOfFile()
-            let message = String(data: data, encoding: .utf8)?
-                .trimmingCharacters(in: .whitespacesAndNewlines)
-            throw InstallError.processFailed(message ?? "unknown error")
+        guard result.status == 0 else {
+            let message = result.standardError.isEmpty ? "unknown error" : result.standardError
+            throw InstallError.processFailed(message)
         }
         guard status(sourceURL: sourceURL, targetURL: targetURL) == .installed else {
             throw InstallError.verificationFailed

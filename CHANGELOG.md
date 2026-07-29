@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Offer to install a missing Pandoc directly from the app: with Homebrew
+  present the app runs the installation itself, otherwise it opens the official
+  installation help. The offer returns at every launch until Pandoc exists or
+  "Don't Ask Again" is chosen.
+- Drain helper-process error pipes before waiting for the child to exit, so
+  chatty output can no longer deadlock the in-app CLI installation.
+
 ## 0.6.0 - 2026-07-27
 
 - Publish the supported input formats as a queryable catalog: adapters now

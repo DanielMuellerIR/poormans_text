@@ -55,6 +55,10 @@ path; the converter keeps the text and returns a warning instead.
 The converter searches for Pandoc in the common Homebrew locations and then on
 `PATH`. The CLI also accepts an explicit executable through `--pandoc PATH`.
 
+While Pandoc is missing, the app offers at every launch to install it through
+Homebrew, or points to the official installation help when Homebrew is absent.
+The offer stops once Pandoc exists or after choosing "Don't Ask Again".
+
 ## Download
 
 Download the DMG and its `.sha256` file from the

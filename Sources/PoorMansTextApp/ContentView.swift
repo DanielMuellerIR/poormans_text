@@ -6,8 +6,13 @@ import UniformTypeIdentifiers
 struct ContentView: View {
     @EnvironmentObject private var model: AppModel
     @AppStorage("CLIInstallDeclined") private var cliInstallDeclined = false
+    @AppStorage("PandocInstallDeclined") private var pandocInstallDeclined = false
     @State private var showsCLIInstallOffer = false
     @State private var cliInstallError: String?
+    @State private var pandocOffer: PandocInstaller.Offer?
+    @State private var isInstallingPandoc = false
+    @State private var showsPandocInstallSuccess = false
+    @State private var pandocInstallError: String?
 
     var body: some View {
         VStack(spacing: 24) {
@@ -31,7 +36,63 @@ struct ContentView: View {
             model.convert(url)
         }
         .task {
-            prepareCLIInstallationOffer()
+            preparePandocOffer()
+            // Höchstens ein Start-Dialog pro Start: Solange Pandoc fehlt, hat
+            // dessen Angebot Vorrang; das CLI-Angebot kommt beim nächsten Start.
+            if pandocOffer == nil {
+                prepareCLIInstallationOffer()
+            }
+        }
+        .confirmationDialog(
+            pandocOffer == .manualGuidance ? "Pandoc Required" : "Install Pandoc?",
+            isPresented: Binding(
+                get: { pandocOffer != nil },
+                set: { if !$0 { pandocOffer = nil } }
+            ),
+            titleVisibility: .visible
+        ) {
+            if case .homebrewInstall(let brewExecutable) = pandocOffer {
+                Button("Install with Homebrew") {
+                    installPandoc(brewExecutable: brewExecutable)
+                }
+            } else {
+                Button("Show Install Help") {
+                    NSWorkspace.shared.open(PandocInstaller.installationHelpURL)
+                }
+            }
+            Button("Later", role: .cancel) {
+                pandocOffer = nil
+            }
+            Button("Don't Ask Again") {
+                pandocInstallDeclined = true
+                pandocOffer = nil
+            }
+        } message: {
+            if case .homebrewInstall = pandocOffer {
+                Text("Pandoc is required to convert documents. Install it now with Homebrew? This can take a few minutes.")
+            } else {
+                Text("Pandoc is required to convert documents, but neither Pandoc nor Homebrew was found. The Pandoc website offers an official installer.")
+            }
+        }
+        .alert("Pandoc Installed", isPresented: $showsPandocInstallSuccess) {
+            Button("OK") {
+                showsPandocInstallSuccess = false
+            }
+        } message: {
+            Text("Pandoc is now available. You can start converting documents.")
+        }
+        .alert(
+            "Pandoc Installation Failed",
+            isPresented: Binding(
+                get: { pandocInstallError != nil },
+                set: { if !$0 { pandocInstallError = nil } }
+            )
+        ) {
+            Button("OK", role: .cancel) {
+                pandocInstallError = nil
+            }
+        } message: {
+            Text(pandocInstallError ?? "Unknown error")
         }
         .confirmationDialog(
             "Install Command-Line Tool?",
@@ -208,7 +269,13 @@ struct ContentView: View {
         HStack {
             Text("Version \(ProductInfo.version)")
             Spacer()
-            Text("Requires Pandoc")
+            if isInstallingPandoc {
+                ProgressView()
+                    .controlSize(.small)
+                Text("Installing Pandoc…")
+            } else {
+                Text("Requires Pandoc")
+            }
         }
         .font(.caption)
         .foregroundStyle(.tertiary)
@@ -222,6 +289,33 @@ struct ContentView: View {
             "1 image asset"
         default:
             "\(result.assets.count) image assets"
+        }
+    }
+
+    private func preparePandocOffer() {
+        pandocOffer = PandocInstaller.offer(
+            pandocIsAvailable: ExternalToolResolver().isAvailable(.pandoc),
+            installDeclined: pandocInstallDeclined,
+            brewExecutable: PandocInstaller.resolveHomebrew()
+        )
+    }
+
+    private func installPandoc(brewExecutable: URL) {
+        pandocOffer = nil
+        isInstallingPandoc = true
+
+        // Wie die Dateikonvertierung läuft der Homebrew-Aufruf außerhalb des
+        // Main Actors; `brew install` kann mehrere Minuten dauern.
+        Task {
+            do {
+                try await Task.detached(priority: .userInitiated) {
+                    try PandocInstaller.installPandoc(brewExecutable: brewExecutable)
+                }.value
+                showsPandocInstallSuccess = true
+            } catch {
+                pandocInstallError = error.localizedDescription
+            }
+            isInstallingPandoc = false
         }
     }
 

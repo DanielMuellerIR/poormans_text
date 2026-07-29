@@ -25,11 +25,39 @@ Tabelle; ihr tatsächlicher Importweg steht in [CHANGELOG.md](CHANGELOG.md) und
 | XLS | Eigener OLE-Adapter nach XLSX | groß | abhängig von Formeln, Altobjekten und Makros | 3 |
 | Bilder | Original als Asset plus lokales Vision-OCR in Leserichtung | mittel | Text gut bei sauberen Scans, Layout nur angenähert | 4 |
 | PDF | PDFKit-Text zuerst, seitenweises Vision-OCR als Fallback | groß | Inhalt brauchbar, Layout/Spalten/Tabellen deutlich verlustbehaftet | 5 |
+| Pages | Export über die installierte Pages-App nach DOCX, dann bestehender DOCX-Adapter | mittel | hoch (Apples eigener Exporter); ohne Pages-App nicht verfügbar | 4 |
+| Numbers | Export über die installierte Numbers-App nach XLSX, dann Workbook-Modell aus Etappe 4 | mittel | wie XLSX; ohne Numbers-App nicht verfügbar | 4 |
 | ODM | OpenDocument-Master samt verlinkten Teildokumenten sicher auflösen | groß | nur mit vollständigem lokalem Dokumentverbund zuverlässig | 6 |
 
 Falls mit „ODM“ eigentlich „ODT“ gemeint war, ist es bereits in Priorität 2
 abgedeckt. Echtes `.odm` bleibt separat: Ein Masterdokument kann lokale oder
 fehlende/externe Teildokumente referenzieren und darf diese nicht still laden.
+
+### iWork-Formate (Pages und Numbers)
+
+Wunsch vom 2026-07-29. Weder Pandoc noch `textutil` lesen iWork-Dateien. Die
+Formate haben sich einmal grundlegend geändert: Bis iWork ’09 war ein Dokument
+ein Paket beziehungsweise ZIP mit einer XML-Beschreibung (`index.xml`, teils
+gzip-komprimiert). Seit den 2013er-Versionen besteht ein Dokument aus
+Snappy-komprimierten Protobuf-Archiven (`.iwa`), wahlweise als Einzeldatei-ZIP
+oder als Paket. Dieses Prinzip ist seither stabil, das Schema aber
+undokumentiert und wächst mit jeder App-Version weiter.
+
+Mögliche Importwege, geordnet nach Tragfähigkeit:
+
+- Automation der installierten iWork-Apps: Pages beziehungsweise Numbers öffnen
+  das Dokument und exportieren nach DOCX beziehungsweise XLSX; danach übernimmt
+  der bestehende Adapterweg. Beste Qualität, deckt auch iWork-’09-Dateien ab,
+  weil die aktuellen Apple-Apps sie noch öffnen. Braucht die installierten Apps
+  und die macOS-Automation-Erlaubnis; ohne Apps ist das Format ehrlich
+  `unavailable` — der Formatkatalog drückt das über `requiredTools` bereits aus.
+- Eigener IWA-Leser: liefe ohne Apple-Apps, wäre aber ein großes und dauerhaft
+  zu pflegendes Reverse-Engineering des undokumentierten Schemas.
+- Die ganz alten XML-Varianten (’05–’08) öffnen auch die heutigen Apple-Apps
+  nicht mehr; sie bräuchten einen eigenen XML-Leser und bleiben zurückgestellt,
+  bis reale Dateien vorliegen.
+- Das in manchen Paketen enthaltene QuickLook-Vorschau-PDF ist optional beim
+  Speichern und layoutverlustbehaftet — kein tragfähiger Importweg.
 
 ## Etappe 4 — Tabellendokumente
 
@@ -96,11 +124,6 @@ Stark:
   Neuinstallation kann der Rollback ein zuvor als verdächtig eingestuftes Backup
   zurücktauschen. Rollback-on-suspicious-backup-Semantik prüfen; sicherer ist, das
   validierte neue Bundle zu behalten statt es zu verwerfen.
-- `Sources/PoorMansTextAppSupport/CLIInstaller.swift:100-105` (stark): Latenter
-  Pipe-Deadlock — stderr wird erst nach `waitUntilExit()` gelesen, sodass ein Kind
-  mit mehr Ausgabe als der Pipe-Buffer blockiert. Korrekt ist nebenläufiges Lesen
-  der Pipe während der Kindprozess läuft; das Read-Ende darf dafür nicht vorab
-  geschlossen werden.
 - `Sources/PoorMansTextCore/RichTextConverter.swift:278-325` (stark):
   `preservingEmptyRTFParagraphs` (bin-Skip, Lookahead) ist bislang nur durch
   Round-Trip-Tests abgedeckt. Gezielte Edge-Case-Tests ergänzen (z. B. escapte

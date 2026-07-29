@@ -129,6 +129,76 @@ JSON-Vertrag, nicht das Verhalten — Fastra kommt mit beiden zurecht):
   Ein Host, der die Pfade gegeneinander vergleicht, stolpert darüber. Entweder
   beide Seiten auflösen oder beide roh lassen.
 
+## Befunde aus dem Abgleich mit md_clip (2026-07-29)
+
+Quelle: Vergleich der Rich-Text-nach-Markdown-Strecke beider Projekte auf
+denselben Eingaben. Beide benutzen `pandoc --to=gfm-raw_html` und räumen danach
+nach. Hier stehen nur die Stellen, an denen md_clip nachweisbar besser liegt.
+Umgekehrt hat md_clip am 2026-07-29 den Nachbereitungs-Stil von Poor Man's Text
+übernommen: Hard-Break als zwei Leerzeichen statt sichtbarem Backslash, `\-` und
+`\_\_\_` entescapen, ein Absatz aus nur einem fett gesetzten Bullet wird ein
+Listenpunkt.
+
+Stark:
+
+- `Sources/PoorMansTextCore/MarkdownNormalizer.swift:17-33` (stark):
+  Die Fence-Erkennung schützt nur eingezäunte Code-Blöcke (``` und ~~~), nicht
+  eingerückte. Pandoc schreibt einen Code-Block ohne Sprachangabe aber immer
+  eingerückt — in **jedem** Zieldialekt, `gfm` eingeschlossen. Für solche Zeilen
+  greifen `hasPandocHardBreak` und `unescapeLeadingHyphen` und verändern echten
+  Code: eine Shell-Fortsetzung `gcc -o x x.c \` wird zu `gcc -o x x.c` plus zwei
+  Leerzeichen, ein `\-` am Zeilenanfang zu `-`. Das ist Inhaltsverlust, kein
+  Kosmetikfehler. Die Wortzählung in `LegacyWordAdapter.verifyTextContent`
+  fängt ihn nicht: sie läuft nur für `.doc`, zerlegt den Text an allem, was
+  weder Buchstabe noch Zahl ist, und akzeptiert ohnehin 80 Prozent Deckung —
+  ein verlorener Backslash ist dort kein Wort.
+  Nachstellen: ein Markdown mit einem eingerückten Code-Block, der eine Zeile
+  auf `\` enden lässt, per `pandoc -f gfm -t docx` in ein DOCX wandeln und
+  `poormans-text` darauf laufen lassen — der Backslash fehlt im Ergebnis.
+  md_clip markiert in `lib/pipeline.sh` (`tidy_markdown`) zuerst alle
+  Code-Zeilen: eingezäunte, eingerückte (vier Spalten jenseits des offenen
+  Listen-Containers) und die Leerzeilen innerhalb eines eingerückten Blocks.
+  Erst danach laufen die Aufräumregeln, jede mit `next if $is_code[$i]`.
+- `Sources/PoorMansTextCore/RichTextConverter.swift:199-212` (stark): Der
+  Pandoc-RTF-Reader verliert bei RTF von TextEdit, Pages und dem macOS-Clipboard
+  die Absatzgrenzen. Diese Programme schreiben das Absatzende als Backslash
+  gefolgt von einem echten Zeilenumbruch — im Schwesterprojekt md_clip liegt
+  ein solches RTF als `tests/fixtures/word-rtf.rtf`. Pandoc liest diese
+  Kurzform als Zeilenumbruch innerhalb eines Absatzes; aus zwei Absätzen wird
+  einer. md_clip korrigiert das vor pandoc in `rtf_fix_escaped_newlines`
+  (`\` + Newline → `\par` + Newline, escapte Backslashes bleiben unberührt) —
+  der byte-genaue Vorlauf `preservingEmptyRTFParagraphs` wäre hier die passende
+  Stelle. Alternative: `.rtf` genau wie `.rtfd` über `textutil` einlesen, das
+  die Kurzform von sich aus richtig umsetzt. Dagegen spricht nur die
+  Medienextraktion, die pandoc mit `--extract-media` mitbringt.
+  Nachstellen: `poormans-text` auf dieses Fixture laufen lassen — erwartet sind
+  zwei Absätze, geliefert wird einer.
+- `Sources/PoorMansTextCore/RichTextConverter.swift:112-127` (stark): Derselbe
+  RTF-Reader verpackt Listeneinträge in `<li><p>…</p></li>`, woraus pandoc eine
+  lose Liste mit Leerzeile zwischen den Einträgen schreibt. md_clip entfernt
+  diese Absatzhülle vor pandoc in `unwrap_list_paragraphs`; hier wäre die
+  Stelle, an der das erzeugte HTML schon einmal angefasst wird (der
+  Leerabsatz-Marker), bevor es an `HTMLDocumentConverter` geht. Derselbe
+  RTF-Fixture-Lauf zeigt es.
+
+Optional/niedrig:
+
+- `Sources/PoorMansTextCore/MarkdownNormalizer.swift:40-59` (optional): Ein
+  Hard-Break, der nur Layout war, wird unverändert zu zwei Leerzeichen. Bei
+  Text aus `<br>`-Ketten steht danach an jeder Zeile unnötiger Trailing-Space,
+  auch an Listeneinträgen, und eine Zeile aus zwei Leerzeichen ersetzt die
+  Leerzeile zwischen zwei Absätzen. md_clip löscht den Umbruch stattdessen
+  ganz, wenn die nächste Zeile leer ist, mit einem Listenpunkt beginnt oder das
+  Dokument endet. Für Dokumentimport ist das weniger dringend als für
+  Clipboard-Text, weil DOCX und ODT echte Absätze mitbringen.
+- `Sources/PoorMansTextCore/HTMLDocumentConverter.swift:53` (optional):
+  `--wrap=preserve` ist für Dokumente richtig, weil die Zwischenstufe
+  `--to=html5` ebenfalls mit `--wrap=preserve` erzeugt wird und damit keine
+  fremden Umbrüche einbringt. Sollte diese Strecke je HTML aus einer anderen
+  Quelle bekommen (Browser, Clipboard, fremde Konverter), wäre `--wrap=none`
+  nötig: dort ist der Zeilenumbruch im Quell-HTML reine Formatierung und
+  `preserve` schleppt ihn in das Markdown.
+
 ## Technische Referenzen
 
 - [Pandoc User's Guide](https://pandoc.org/MANUAL.html) — Eingabeformate,

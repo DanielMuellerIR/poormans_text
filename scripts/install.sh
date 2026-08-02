@@ -6,6 +6,8 @@ script_directory="$(cd "$(dirname "$0")" && pwd)"
 project_root="$(cd "$script_directory/.." && pwd)"
 # shellcheck source=install_transaction.sh
 source "$script_directory/install_transaction.sh"
+# shellcheck source=cli_target.sh
+source "$script_directory/cli_target.sh"
 cd "$project_root"
 
 # Dieses Skript trägt beide notarisierten Wege, weil sie sich Build, Signatur,
@@ -207,33 +209,12 @@ fi
 
 destination_app="/Applications/Poor Man's Text.app"
 
-# Standardziel der CLI. Kein fester Pfad: `/usr/local/bin` ist auf Apple Silicon
-# nicht das Homebrew-bin, und ein dort neu angelegtes `poormans-text` würde von
-# einem bereits vorhandenen in `/opt/homebrew/bin` verschattet — der Installer
-# bricht dann berechtigt mit 73 ab (am 2026-07-26 genau so beobachtet).
-# Deshalb: ein bereits installiertes Ziel gewinnt, sonst das erste
-# Homebrew-Verzeichnis im aktuellen PATH, sonst der alte Standard.
-default_cli_directory() {
-    local existing
-    existing="$(command -v poormans-text 2>/dev/null || true)"
-    if [ -n "$existing" ]; then
-        dirname "$existing"
-        return
-    fi
-    local candidate
-    for candidate in /opt/homebrew/bin /usr/local/bin; do
-        case ":${PATH:-}:" in
-            *":$candidate:"*) printf '%s\n' "$candidate"; return ;;
-        esac
-    done
-    printf '%s\n' /usr/local/bin
-}
-
-cli_directory="${CLI_INSTALL_DIR:-$(default_cli_directory)}"
+cli_directory="${CLI_INSTALL_DIR:-$(poormans_text_default_cli_directory)}"
 case "$cli_directory" in
     /*) ;;
     *) echo "CLI_INSTALL_DIR muss ein absoluter Pfad sein." >&2; exit 64 ;;
 esac
+cli_directory="$(poormans_text_normalize_path "$cli_directory")"
 destination_cli="$cli_directory/poormans-text"
 installed_cli="$destination_app/Contents/Resources/poormans-text"
 
@@ -277,19 +258,17 @@ elif [ -e "$destination_cli" ]; then
 fi
 
 current_command="$(command -v poormans-text 2>/dev/null || true)"
-if [ -n "$current_command" ] && [ "$current_command" != "$destination_cli" ]; then
+if [ -n "$current_command" ] \
+   && [ "$(poormans_text_normalize_path "$current_command")" != "$destination_cli" ]; then
     echo "Ein anderes poormans-text liegt früher im PATH: $current_command" >&2
     echo "CLI_INSTALL_DIR passend wählen oder das alte Ziel zuerst bewusst entfernen." >&2
     exit 73
 fi
 
-case ":${PATH:-}:" in
-    *":$cli_directory:"*) ;;
-    *)
-        echo "CLI_INSTALL_DIR liegt nicht im aktuellen PATH: $cli_directory" >&2
-        exit 64
-        ;;
-esac
+if ! poormans_text_path_contains_directory "$cli_directory"; then
+    echo "CLI_INSTALL_DIR liegt nicht im aktuellen PATH: $cli_directory" >&2
+    exit 64
+fi
 
 needs_admin=0
 if [ ! -w /Applications ] || { [ -d "$cli_directory" ] && [ ! -w "$cli_directory" ]; }; then

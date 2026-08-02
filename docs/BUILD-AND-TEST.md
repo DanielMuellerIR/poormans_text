@@ -51,23 +51,18 @@ Credentials bleiben im Schlüsselbund. Fehlt das Profil, kann das Skript es in
 einer interaktiven lokalen Terminalsitzung über `notarytool store-credentials`
 einrichten; das App-Passwort wird nie als Argument oder Datei verarbeitet.
 
-Der Vollpfad führt in dieser Reihenfolge aus:
+`./install.sh` führt in dieser Reihenfolge aus:
 
 1. Release-Build mit eingebetteter CLI.
 2. Developer-ID-Signatur von innen nach außen, Hardened Runtime und Zeitstempel.
 3. ZIP-Einreichung bei Apple mit `notarytool --wait`.
 4. Ticket stapeln; Codesign, Stapler und Gatekeeper prüfen.
-5. Signiertes DMG mit der gestapelten App und einem `/Applications`-Link bauen.
-6. DMG separat notarisieren, stapeln, per Gatekeeper prüfen, headless mounten und
-   eine SHA-256-Datei erzeugen.
-7. Erst danach die App nach `/Applications/Poor Man's Text.app` kopieren und
-   erneut prüfen.
-8. `poormans-text` im Terminalpfad auf die exakt gleiche eingebettete CLI
+5. Die App nach `/Applications/Poor Man's Text.app` kopieren und erneut prüfen.
+6. `poormans-text` im Terminalpfad auf die exakt gleiche eingebettete CLI
    verlinken und die Versionsgleichheit prüfen.
 
-Der Lauf erzeugt zusätzlich `Poor-Mans-Text-<Version>.dmg` und
-`Poor-Mans-Text-<Version>.dmg.sha256` im Repo-Root. Nach manueller Installation
-aus dem DMG bietet die App die CLI-Einrichtung beim ersten Start optional an.
+Dieser Lauf erzeugt **kein** DMG. Der Root-Wrapper ruft `scripts/install.sh` mit
+`--no-dmg` auf; das Distributionspaket baut `./release.sh` (siehe unten).
 
 Das CLI-Verzeichnis ermittelt der Installer selbst: Liegt bereits ein
 `poormans-text` im `PATH`, gewinnt dessen Verzeichnis — sonst entstünde eine
@@ -84,6 +79,33 @@ Beim atomaren Austausch bleibt die bisherige App bis zur erfolgreichen
 Endprüfung an einem eindeutigen Stage-Pfad erhalten. Schlägt auch der Rücktausch
 fehl, löscht der Cleanup diesen Rettungspfad nicht, meldet ihn ausdrücklich und
 beendet den Lauf mit einem Fehlerstatus.
+
+## Distributionspaket
+
+```sh
+./release.sh
+```
+
+`./release.sh` teilt sich mit `./install.sh` Build, Signatur, App-Notarisierung
+und Zielprüfung (Schritte 1 bis 4) und schließt statt der Installation so ab:
+
+5. Signiertes DMG mit der gestapelten App und einem `/Applications`-Link bauen.
+6. DMG separat notarisieren, stapeln, per Gatekeeper prüfen, headless mounten und
+   eine SHA-256-Datei erzeugen.
+
+Ergebnis sind `Poor-Mans-Text-<Version>.dmg` und
+`Poor-Mans-Text-<Version>.dmg.sha256` im Repo-Root; `/Applications` bleibt
+unberührt. Existiert das Paar dieser Version schon, bricht der Lauf mit Exit 73
+ab. Nach manueller Installation aus dem DMG bietet die App die CLI-Einrichtung
+beim ersten Start optional an.
+
+Beide Wege gehen über dasselbe `scripts/install.sh`, das die Root-Wrapper mit
+`--no-dmg` beziehungsweise `--no-install` ansteuern. Ein vollständiges Release
+braucht deshalb beide Läufe: `./release.sh` für DMG und Checksumme,
+`./install.sh` für die geprüfte Installation samt CLI-Link. `verify_release.sh`
+verlangt beide Ergebnisse und vergleicht zusätzlich die CodeDirectory-Hashes von
+Repo-App, installierter App und der App im DMG — die drei Kopien müssen also aus
+demselben signierten Bundle stammen.
 
 ## Verifikation
 

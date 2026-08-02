@@ -10,6 +10,28 @@ All notable changes to this project will be documented in this file.
   "Don't Ask Again" is chosen.
 - Drain helper-process error pipes before waiting for the child to exit, so
   chatty output can no longer deadlock the in-app CLI installation.
+- Verify every entry of a DOCX or ODT package against its ZIP directory entry —
+  actual expanded size and checksum, not just the declared size — and hand
+  Pandoc an immutable copy in the private work directory instead of the source
+  path that was inspected earlier.
+- Detect package features by XML element name with namespace processing enabled:
+  field codes such as `instrText` are no longer reported as tracked changes, and
+  external image references, ODT annotations, and ODT tracked changes are found
+  regardless of the namespace prefix a producer chose.
+- Keep indented code blocks out of the Markdown clean-up. Pandoc writes code
+  blocks without a language indented, and the clean-up rules silently changed
+  their content, dropping a trailing backslash or unescaping a leading hyphen.
+- Report the external tools of every format in the plain-text `--formats`
+  output as well, and declare `textutil` for RTFD, whose import path runs it.
+- Reject a directory as a Pandoc executable: POSIX search permission alone made
+  `--formats --pandoc /tmp` claim that every format was available.
+- Remove the intermediate HTML file explicitly instead of ignoring a failed
+  deletion, so it can no longer end up in the published output folder, and
+  report a missing or unreadable Pandoc artifact as a file-system error instead
+  of blaming a valid source document.
+- Compare `PATH` entries normalized when choosing the CLI install directory, so
+  a meaningless trailing slash no longer selects the wrong prefix or aborts the
+  run.
 
 ## 0.6.0 - 2026-07-27
 

@@ -137,6 +137,18 @@ JSON-Vertrag, nicht das Verhalten — Fastra kommt mit beiden zurecht):
   Ein Host, der die Pfade gegeneinander vergleicht, stolpert darüber. Entweder
   beide Seiten auflösen oder beide roh lassen.
 
+Ergänzung aus dem Code-Review 2026-08-02:
+
+- `Sources/PoorMansTextCore/ZIPArchiveInspector.swift` (mittel): Für DOCX genügen
+  die beiden Eintragsnamen `[Content_Types].xml` und `word/document.xml`. Weder
+  der Hauptinhaltstyp aus `[Content_Types].xml` noch die Wurzel von
+  `word/document.xml` werden geprüft; damit gelten auch DOCM- und DOTX-Pakete
+  als `.docx`. Makros verschwinden dann ohne eigene Verlustwarnung, und ein
+  späterer Pandoc-Fehler sieht wie ein Konverterfehler statt wie eine ungültige
+  Eingabe aus. Vor der Umsetzung ist zu entscheiden, ob solche Pakete abgelehnt
+  werden oder mit einer eigenen Warnung weiterlaufen: Ein reines Ablehnen nähme
+  Nutzern eine heute funktionierende Umwandlung.
+
 ## Befunde aus dem Abgleich mit md_clip (2026-07-29)
 
 Quelle: Vergleich der Rich-Text-nach-Markdown-Strecke beider Projekte auf
@@ -149,24 +161,6 @@ Listenpunkt.
 
 Stark:
 
-- `Sources/PoorMansTextCore/MarkdownNormalizer.swift:17-33` (stark):
-  Die Fence-Erkennung schützt nur eingezäunte Code-Blöcke (``` und ~~~), nicht
-  eingerückte. Pandoc schreibt einen Code-Block ohne Sprachangabe aber immer
-  eingerückt — in **jedem** Zieldialekt, `gfm` eingeschlossen. Für solche Zeilen
-  greifen `hasPandocHardBreak` und `unescapeLeadingHyphen` und verändern echten
-  Code: eine Shell-Fortsetzung `gcc -o x x.c \` wird zu `gcc -o x x.c` plus zwei
-  Leerzeichen, ein `\-` am Zeilenanfang zu `-`. Das ist Inhaltsverlust, kein
-  Kosmetikfehler. Die Wortzählung in `LegacyWordAdapter.verifyTextContent`
-  fängt ihn nicht: sie läuft nur für `.doc`, zerlegt den Text an allem, was
-  weder Buchstabe noch Zahl ist, und akzeptiert ohnehin 80 Prozent Deckung —
-  ein verlorener Backslash ist dort kein Wort.
-  Nachstellen: ein Markdown mit einem eingerückten Code-Block, der eine Zeile
-  auf `\` enden lässt, per `pandoc -f gfm -t docx` in ein DOCX wandeln und
-  `poormans-text` darauf laufen lassen — der Backslash fehlt im Ergebnis.
-  md_clip markiert in `lib/pipeline.sh` (`tidy_markdown`) zuerst alle
-  Code-Zeilen: eingezäunte, eingerückte (vier Spalten jenseits des offenen
-  Listen-Containers) und die Leerzeilen innerhalb eines eingerückten Blocks.
-  Erst danach laufen die Aufräumregeln, jede mit `next if $is_code[$i]`.
 - `Sources/PoorMansTextCore/RichTextConverter.swift:199-212` (stark): Der
   Pandoc-RTF-Reader verliert bei RTF von TextEdit, Pages und dem macOS-Clipboard
   die Absatzgrenzen. Diese Programme schreiben das Absatzende als Backslash

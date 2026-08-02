@@ -74,10 +74,19 @@ struct WordProcessingPackageAdapter: DocumentConversionAdapter {
     }
 
     func convert(_ context: AdapterConversionContext) throws -> StagedConversionResult {
+        // Erst kopieren, dann prüfen, dann genau diese Kopie umwandeln: Der
+        // Originalpfad könnte zwischen Prüfung und Pandoc-Lauf ausgetauscht
+        // werden, sodass Pandoc andere als die geprüften Bytes bekäme.
+        let stagedInputURL: URL
         let inspection: WordProcessingPackageInspection
         do {
+            stagedInputURL = try ZIPArchiveInspector.stageVerifiedPackage(
+                from: context.inputURL,
+                into: context.workDirectory,
+                named: "verified-source.\(context.format.rawValue)"
+            )
             guard let detected = try ZIPArchiveInspector.inspectWordProcessingPackage(
-                at: context.inputURL
+                at: stagedInputURL
             ), detected.format == context.format else {
                 throw ConversionError.invalidInput(
                     context.inputURL,
@@ -114,7 +123,7 @@ struct WordProcessingPackageAdapter: DocumentConversionAdapter {
         }
         arguments.append(contentsOf: [
             "--output", htmlURL.path,
-            context.inputURL.path,
+            stagedInputURL.path,
         ])
 
         let result: ProcessResult

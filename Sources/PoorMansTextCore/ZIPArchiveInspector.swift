@@ -78,6 +78,42 @@ enum ZIPArchiveInspector {
         return nil
     }
 
+    /// Kopiert das Paket unveränderlich in den privaten Arbeitsbereich und prüft
+    /// genau diese Kopie vollständig durch.
+    ///
+    /// Zwei Gründe für die Kopie: Der geprüfte Originalpfad kann zwischen Prüfung
+    /// und Pandoc-Lauf ausgetauscht werden (Time-of-check-to-time-of-use), und nur
+    /// eine Kopie im eigenen Arbeitsordner bleibt während der Umwandlung stabil.
+    /// Die Prüfung entpackt jeden Eintrag streamend und vergleicht dabei
+    /// tatsächliche Größe und Prüfsumme mit den Angaben im ZIP-Verzeichnis — ohne
+    /// das zählt das Entpackbudget nur die *deklarierten* Größen, und ein
+    /// präparierter Medieneintrag könnte beim Pandoc-Lauf beliebig groß werden.
+    static func stageVerifiedPackage(
+        from inputURL: URL,
+        into directory: URL,
+        named name: String,
+        fileManager: FileManager = .default
+    ) throws -> URL {
+        let values = try inputURL.resourceValues(forKeys: [.fileSizeKey, .isRegularFileKey])
+        guard values.isRegularFile == true else {
+            throw ArchiveError("the package is not a regular file")
+        }
+        guard let fileSize = values.fileSize, fileSize <= Limits.maximumArchiveSize else {
+            throw ArchiveError("the package exceeds the supported archive-size limit")
+        }
+
+        let stagedURL = directory.appendingPathComponent(name)
+        do {
+            try fileManager.copyItem(at: inputURL, to: stagedURL)
+        } catch {
+            throw ConversionError.fileSystemFailure(error.localizedDescription)
+        }
+
+        let archive = try Archive(url: stagedURL)
+        try archive.verifyEntryContents()
+        return stagedURL
+    }
+
     static func looksLikeZIP(at inputURL: URL) throws -> Bool {
         let handle = try FileHandle(forReadingFrom: inputURL)
         defer {
@@ -225,31 +261,15 @@ enum ZIPArchiveInspector {
             guard entry.uncompressedSize <= Limits.maximumMetadataEntrySize else {
                 throw ArchiveError("the package metadata entry \(entry.name) is too large")
             }
-            let offset = entry.localHeaderOffset
-            guard data.uint32(at: offset) == 0x04034B50 else {
-                throw ArchiveError("the local ZIP header for \(entry.name) is invalid")
-            }
-            let localFlags = data.uint16(at: offset + 6)
-            let localMethod = data.uint16(at: offset + 8)
-            let nameLength = Int(data.uint16(at: offset + 26))
-            let extraLength = Int(data.uint16(at: offset + 28))
-            let contentStart = offset + 30 + nameLength + extraLength
-            let contentEnd = contentStart + entry.compressedSize
-            guard localFlags == entry.flags,
-                  localMethod == entry.method,
-                  contentEnd <= data.count,
-                  data.subdata(in: (offset + 30)..<(offset + 30 + nameLength))
-                    == entry.rawName else {
-                throw ArchiveError("the local ZIP entry for \(entry.name) is inconsistent")
-            }
+            let contentRange = try contentRange(for: entry)
 
             let result: Data
             switch entry.method {
             case 0:
-                result = data.subdata(in: contentStart..<contentEnd)
+                result = data.subdata(in: contentRange)
             case 8:
                 result = try inflate(
-                    data.subdata(in: contentStart..<contentEnd),
+                    data.subdata(in: contentRange),
                     expectedSize: entry.uncompressedSize,
                     entryName: entry.name
                 )
@@ -270,6 +290,68 @@ enum ZIPArchiveInspector {
                 throw ArchiveError("the checksum of \(entry.name) is invalid")
             }
             return result
+        }
+
+        /// Prüft JEDEN Eintrag gegen seinen Verzeichniseintrag: tatsächliche
+        /// entpackte Größe und CRC-32. Erst danach ist das in `init` geprüfte
+        /// Entpackbudget wirklich belastbar, denn dort werden nur die vom Archiv
+        /// selbst deklarierten Größen addiert.
+        ///
+        /// Der Inhalt wird dabei absichtlich nicht behalten: Jeder Eintrag läuft
+        /// in Blöcken durch einen festen kleinen Puffer, und sobald mehr Bytes
+        /// entstehen als deklariert, bricht die Prüfung sofort ab. Ein präparierter
+        /// Eintrag kann so weder Speicher noch Zeit über sein deklariertes Maß
+        /// hinaus verbrauchen.
+        func verifyEntryContents() throws {
+            for entry in entries where !entry.isDirectory {
+                let contentRange = try contentRange(for: entry)
+                switch entry.method {
+                case 0:
+                    guard entry.compressedSize == entry.uncompressedSize else {
+                        throw ArchiveError(
+                            "the stored size of \(entry.name) does not match its declared size"
+                        )
+                    }
+                    try ZIPArchiveInspector.verifyChecksum(
+                        of: data.subdata(in: contentRange),
+                        expected: entry.crc,
+                        entryName: entry.name
+                    )
+                case 8:
+                    try ZIPArchiveInspector.verifyDeflated(
+                        data.subdata(in: contentRange),
+                        expectedSize: entry.uncompressedSize,
+                        expectedChecksum: entry.crc,
+                        entryName: entry.name
+                    )
+                default:
+                    throw ArchiveError("the ZIP compression method is unsupported")
+                }
+            }
+        }
+
+        /// Der Bytebereich des Eintragsinhalts, nachdem der lokale Header gegen
+        /// den Verzeichniseintrag geprüft wurde.
+        private func contentRange(for entry: Entry) throws -> Range<Int> {
+            let offset = entry.localHeaderOffset
+            guard data.uint32(at: offset) == 0x04034B50 else {
+                throw ArchiveError("the local ZIP header for \(entry.name) is invalid")
+            }
+            let localFlags = data.uint16(at: offset + 6)
+            let localMethod = data.uint16(at: offset + 8)
+            let nameLength = Int(data.uint16(at: offset + 26))
+            let extraLength = Int(data.uint16(at: offset + 28))
+            let contentStart = offset + 30 + nameLength + extraLength
+            let contentEnd = contentStart + entry.compressedSize
+            guard localFlags == entry.flags,
+                  localMethod == entry.method,
+                  entry.compressedSize >= 0,
+                  contentEnd <= data.count,
+                  data.subdata(in: (offset + 30)..<(offset + 30 + nameLength))
+                    == entry.rawName else {
+                throw ArchiveError("the local ZIP entry for \(entry.name) is inconsistent")
+            }
+            return contentStart..<contentEnd
         }
 
         private static func endOfCentralDirectory(in data: Data) -> Int? {
@@ -362,6 +444,86 @@ enum ZIPArchiveInspector {
         }
         output.count = expectedSize
         return output
+    }
+
+    /// Entpackt einen Deflate-Eintrag blockweise, ohne das Ergebnis zu behalten,
+    /// und vergleicht Größe und CRC-32 mit dem Verzeichniseintrag. Sobald mehr
+    /// Bytes entstehen als deklariert, endet der Lauf sofort — genau das ist der
+    /// Schutz gegen einen klein deklarierten, in Wahrheit riesigen Eintrag.
+    private static func verifyDeflated(
+        _ compressed: Data,
+        expectedSize: Int,
+        expectedChecksum: UInt32,
+        entryName: String
+    ) throws {
+        var stream = z_stream()
+        let initialization = inflateInit2_(
+            &stream,
+            -MAX_WBITS,
+            ZLIB_VERSION,
+            Int32(MemoryLayout<z_stream>.size)
+        )
+        guard initialization == Z_OK else {
+            throw ArchiveError("zlib could not initialize for \(entryName)")
+        }
+        defer {
+            inflateEnd(&stream)
+        }
+
+        var buffer = [UInt8](repeating: 0, count: 65_536)
+        var produced = 0
+        var checksum = zlib.crc32(0, nil, 0)
+        var status = Z_OK
+
+        compressed.withUnsafeBytes { input in
+            stream.next_in = UnsafeMutablePointer<Bytef>(
+                mutating: input.bindMemory(to: Bytef.self).baseAddress
+            )
+            stream.avail_in = uInt(input.count)
+
+            while status == Z_OK {
+                status = buffer.withUnsafeMutableBufferPointer { output -> Int32 in
+                    stream.next_out = output.baseAddress
+                    stream.avail_out = uInt(output.count)
+                    let step = zlib.inflate(&stream, Z_NO_FLUSH)
+                    let chunk = output.count - Int(stream.avail_out)
+                    if chunk > 0, let baseAddress = output.baseAddress {
+                        checksum = zlib.crc32(checksum, baseAddress, uInt(chunk))
+                        produced += chunk
+                    }
+                    return step
+                }
+                if produced > expectedSize {
+                    return
+                }
+            }
+        }
+
+        guard produced <= expectedSize else {
+            throw ArchiveError("\(entryName) expands beyond the size declared in the ZIP directory")
+        }
+        guard status == Z_STREAM_END, produced == expectedSize else {
+            throw ArchiveError("the compressed data for \(entryName) is invalid")
+        }
+        guard UInt32(truncatingIfNeeded: checksum) == expectedChecksum else {
+            throw ArchiveError("the checksum of \(entryName) is invalid")
+        }
+    }
+
+    private static func verifyChecksum(
+        of content: Data,
+        expected: UInt32,
+        entryName: String
+    ) throws {
+        let checksum = content.withUnsafeBytes { buffer -> UInt32 in
+            guard let baseAddress = buffer.bindMemory(to: Bytef.self).baseAddress else {
+                return UInt32(zlib.crc32(0, nil, 0))
+            }
+            return UInt32(zlib.crc32(0, baseAddress, uInt(buffer.count)))
+        }
+        guard checksum == expected else {
+            throw ArchiveError("the checksum of \(entryName) is invalid")
+        }
     }
 
     private struct ArchiveError: LocalizedError {

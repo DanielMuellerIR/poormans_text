@@ -49,6 +49,43 @@ enum ZIPFixtureBuilder {
         ])
     }
 
+    /// Ein DOCX-Paket mit frei wählbarem `word/document.xml`, damit Tests
+    /// Namensraum-Präfixe und Feldcodes durchspielen können.
+    static func docxPackage(
+        documentXML: String,
+        relationshipsXML: String? = nil
+    ) throws -> Data {
+        let contentTypes = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"/>
+        """
+        var entries = [
+            Entry(name: "[Content_Types].xml", content: Data(contentTypes.utf8)),
+            Entry(name: "word/document.xml", content: Data(documentXML.utf8)),
+        ]
+        if let relationshipsXML {
+            entries.append(
+                Entry(
+                    name: "word/_rels/document.xml.rels",
+                    content: Data(relationshipsXML.utf8)
+                )
+            )
+        }
+        return try archive(entries: entries)
+    }
+
+    /// Ein ODT-Paket mit frei wählbarem `content.xml`.
+    static func odtPackage(contentXML: String) throws -> Data {
+        try archive(entries: [
+            Entry(
+                name: "mimetype",
+                content: Data("application/vnd.oasis.opendocument.text".utf8),
+                isStored: true
+            ),
+            Entry(name: "content.xml", content: Data(contentXML.utf8)),
+        ])
+    }
+
     static func archive(entries: [Entry]) throws -> Data {
         var localSection = Data()
         var centralSection = Data()

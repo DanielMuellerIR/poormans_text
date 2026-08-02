@@ -35,15 +35,16 @@ enum ZIPArchiveInspector {
 
         if entryNames.contains("[Content_Types].xml"),
            entryNames.contains("word/document.xml") {
-            let documentXML = try archive.string(named: "word/document.xml")
-            let commentsXML = entryNames.contains("word/comments.xml")
-                ? try archive.string(named: "word/comments.xml")
-                : ""
-            let comments = documentXML.contains("<w:commentRangeStart")
-                || commentsXML.contains("<w:comment ")
-            let changes = [
-                "<w:ins", "<w:del", "<w:moveFrom", "<w:moveTo",
-            ].contains { documentXML.contains($0) }
+            let document = try WordprocessingContentParser.inspect(
+                try archive.data(named: "word/document.xml")
+            )
+            let commentDefinitions = entryNames.contains("word/comments.xml")
+                ? try WordprocessingContentParser.inspect(
+                    try archive.data(named: "word/comments.xml")
+                ).containsCommentDefinitions
+                : false
+            let comments = document.containsCommentAnchors || commentDefinitions
+            let changes = document.containsTrackedChanges
             let externalImages = try archive.entries
                 .filter { $0.name.hasSuffix(".rels") && !$0.isDirectory }
                 .flatMap { entry -> [String] in
@@ -64,13 +65,11 @@ enum ZIPArchiveInspector {
            try archive.string(named: "mimetype")
             .trimmingCharacters(in: .whitespacesAndNewlines)
             == "application/vnd.oasis.opendocument.text" {
-            let contentXML = try archive.data(named: "content.xml")
-            let content = String(decoding: contentXML, as: UTF8.self)
-            let parsed = try ODTContentParser.inspect(contentXML)
+            let parsed = try ODTContentParser.inspect(try archive.data(named: "content.xml"))
             return WordProcessingPackageInspection(
                 format: .odt,
-                containsComments: content.contains("<office:annotation"),
-                containsTrackedChanges: content.contains("<text:tracked-changes"),
+                containsComments: parsed.containsAnnotations,
+                containsTrackedChanges: parsed.containsTrackedChanges,
                 unsafeImageReferences: parsed.externalImageReferences.sorted()
             )
         }
@@ -539,15 +538,39 @@ enum ZIPArchiveInspector {
     }
 }
 
+/// Startet einen XML-Lauf mit Namensraumverarbeitung.
+///
+/// Ohne sie liefert `XMLParser` den Elementnamen samt Präfix (`r:Relationship`),
+/// und ein Paket mit einem anderen — aber völlig gültigen — Präfix rutscht an
+/// jeder Namensprüfung vorbei. Mit ihr ist `elementName` der lokale Name.
+/// Attributnamen behalten ihr Präfix auch dann; deshalb vergleichen die
+/// Delegates unten Attribute über ihren lokalen Namen.
+private func parseXML(_ xml: Data, with delegate: XMLParserDelegate) throws {
+    let parser = XMLParser(data: xml)
+    parser.delegate = delegate
+    parser.shouldProcessNamespaces = true
+    parser.shouldResolveExternalEntities = false
+    guard parser.parse() else {
+        throw parser.parserError ?? CocoaError(.fileReadCorruptFile)
+    }
+}
+
+/// Der Wert eines Attributs, unabhängig vom gewählten Namensraum-Präfix.
+private func attributeValue(
+    localName: String,
+    in attributes: [String: String]
+) -> String? {
+    if let direct = attributes[localName] {
+        return direct
+    }
+    let suffix = ":" + localName
+    return attributes.first { $0.key.hasSuffix(suffix) }?.value
+}
+
 private enum ExternalImageRelationshipParser {
     static func targets(in xml: Data) throws -> [String] {
         let delegate = RelationshipDelegate()
-        let parser = XMLParser(data: xml)
-        parser.delegate = delegate
-        parser.shouldResolveExternalEntities = false
-        guard parser.parse() else {
-            throw parser.parserError ?? CocoaError(.fileReadCorruptFile)
-        }
+        try parseXML(xml, with: delegate)
         return delegate.targets
     }
 
@@ -562,9 +585,11 @@ private enum ExternalImageRelationshipParser {
             attributes attributeDict: [String: String] = [:]
         ) {
             guard elementName == "Relationship",
-                  attributeDict["TargetMode"]?.lowercased() == "external",
-                  attributeDict["Type"]?.lowercased().hasSuffix("/image") == true,
-                  let target = attributeDict["Target"] else {
+                  attributeValue(localName: "TargetMode", in: attributeDict)?.lowercased()
+                    == "external",
+                  attributeValue(localName: "Type", in: attributeDict)?
+                    .lowercased().hasSuffix("/image") == true,
+                  let target = attributeValue(localName: "Target", in: attributeDict) else {
                 return
             }
             targets.append(target)
@@ -572,23 +597,75 @@ private enum ExternalImageRelationshipParser {
     }
 }
 
+private struct WordprocessingContentInspection {
+    let containsCommentAnchors: Bool
+    let containsCommentDefinitions: Bool
+    let containsTrackedChanges: Bool
+}
+
+/// Zählt WordprocessingML-Elemente über ihren exakten lokalen Namen.
+///
+/// Eine Teilstringsuche nach `<w:ins` trifft auch den ganz gewöhnlichen
+/// Feldcode `<w:instrText>`; ein Dokument mit Inhaltsverzeichnis oder Seitenzahl
+/// bekäme dann die falsche Warnung, nachverfolgte Änderungen seien angenommen
+/// worden.
+private enum WordprocessingContentParser {
+    static func inspect(_ xml: Data) throws -> WordprocessingContentInspection {
+        let delegate = ContentDelegate()
+        try parseXML(xml, with: delegate)
+        return WordprocessingContentInspection(
+            containsCommentAnchors: delegate.containsCommentAnchors,
+            containsCommentDefinitions: delegate.containsCommentDefinitions,
+            containsTrackedChanges: delegate.containsTrackedChanges
+        )
+    }
+
+    private final class ContentDelegate: NSObject, XMLParserDelegate {
+        var containsCommentAnchors = false
+        var containsCommentDefinitions = false
+        var containsTrackedChanges = false
+
+        func parser(
+            _ parser: XMLParser,
+            didStartElement elementName: String,
+            namespaceURI: String?,
+            qualifiedName qName: String?,
+            attributes attributeDict: [String: String] = [:]
+        ) {
+            switch elementName {
+            case "commentRangeStart":
+                containsCommentAnchors = true
+            case "comment":
+                containsCommentDefinitions = true
+            case "ins", "del", "moveFrom", "moveTo":
+                containsTrackedChanges = true
+            default:
+                break
+            }
+        }
+    }
+}
+
 private struct ODTContentInspection {
+    let containsAnnotations: Bool
+    let containsTrackedChanges: Bool
     let externalImageReferences: [String]
 }
 
 private enum ODTContentParser {
     static func inspect(_ xml: Data) throws -> ODTContentInspection {
         let delegate = ContentDelegate()
-        let parser = XMLParser(data: xml)
-        parser.delegate = delegate
-        parser.shouldResolveExternalEntities = false
-        guard parser.parse() else {
-            throw parser.parserError ?? CocoaError(.fileReadCorruptFile)
-        }
-        return ODTContentInspection(externalImageReferences: delegate.externalImages)
+        try parseXML(xml, with: delegate)
+        return ODTContentInspection(
+            containsAnnotations: delegate.containsAnnotations,
+            containsTrackedChanges: delegate.containsTrackedChanges,
+            externalImageReferences: delegate.externalImages
+        )
     }
 
     private final class ContentDelegate: NSObject, XMLParserDelegate {
+        var containsAnnotations = false
+        var containsTrackedChanges = false
         var externalImages = [String]()
 
         func parser(
@@ -598,12 +675,20 @@ private enum ODTContentParser {
             qualifiedName qName: String?,
             attributes attributeDict: [String: String] = [:]
         ) {
-            guard elementName == "draw:image",
-                  let reference = attributeDict["xlink:href"],
-                  isUnsafe(reference) else {
-                return
+            switch elementName {
+            case "annotation":
+                containsAnnotations = true
+            case "tracked-changes":
+                containsTrackedChanges = true
+            case "image":
+                guard let reference = attributeValue(localName: "href", in: attributeDict),
+                      isUnsafe(reference) else {
+                    return
+                }
+                externalImages.append(reference)
+            default:
+                break
             }
-            externalImages.append(reference)
         }
 
         private func isUnsafe(_ reference: String) -> Bool {

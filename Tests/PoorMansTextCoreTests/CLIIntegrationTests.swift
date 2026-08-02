@@ -165,6 +165,13 @@ final class CLIIntegrationTests: XCTestCase {
         XCTAssertTrue(text.standardError.isEmpty)
         XCTAssertTrue(text.standardOutput.contains("rtfd"))
         XCTAssertTrue(text.standardOutput.contains("package"))
+        // Die Textausgabe muss dieselben Werkzeuge nennen wie die JSON-Ausgabe,
+        // sonst verschweigt sie etwa, dass DOC neben Pandoc auch textutil braucht.
+        let docLine = try XCTUnwrap(
+            text.standardOutput.split(separator: "\n").first { $0.hasPrefix("doc ") }
+        )
+        XCTAssertTrue(docLine.contains("pandoc"), String(docLine))
+        XCTAssertTrue(docLine.contains("textutil"), String(docLine))
 
         let json = try decodeJSON(try runCLI(["--formats", "--json"]).standardOutput)
         XCTAssertEqual(json["ok"] as? Bool, true)

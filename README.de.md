@@ -115,16 +115,16 @@ eine einzelne Datei oder ein Ordner-Paket wie `.rtfd` ist, welche externen
 Werkzeuge nötig sind und ob diese gerade installiert sind:
 
 ```text
-rtf   .rtf   file     available
-rtfd  .rtfd  package  available
-docx  .docx  file     available
-odt   .odt   file     available
-doc   .doc   file     available
+rtf   .rtf   file     pandoc           available
+rtfd  .rtfd  package  pandoc+textutil  available
+docx  .docx  file     pandoc           available
+odt   .odt   file     pandoc           available
+doc   .doc   file     textutil+pandoc  available
 ```
 
 Fehlt Pandoc, steht in jeder Zeile `unavailable (missing required tool: pandoc)`,
-denn alle derzeitigen Formate brauchen es. Das für DOC zusätzlich nötige
-`textutil` gehört zu macOS.
+denn alle derzeitigen Formate brauchen es. Das für DOC und RTFD zusätzlich
+nötige `textutil` gehört zu macOS.
 
 So entscheidet eine andere App, ob sie eine Umwandlung anbietet. Weil die Liste
 aus dem Konverter selbst stammt, übernimmt ein Aufrufer später hinzukommende

@@ -36,11 +36,13 @@ struct RichTextAdapter: DocumentConversionAdapter {
         ),
         // RTFD ist im Finder ein Ordner mit `TXT.rtf` und Bildern. Ein Host, der
         // Ordner sonst anders behandelt, erkennt das an `containerKind`.
+        // RTFD braucht beide Werkzeuge: `textutil` erzeugt das HTML, Pandoc
+        // wandelt es anschließend nach Markdown.
         SupportedFormat(
             format: .rtfd,
             fileExtensions: ["rtfd"],
             containerKind: .package,
-            requiredTools: [.pandoc]
+            requiredTools: [.pandoc, .textutil]
         ),
     ]
 

@@ -7,7 +7,7 @@ enum PandocTool {
     ) throws -> URL {
         if let requestedURL {
             let standardizedURL = requestedURL.standardizedFileURL
-            guard fileManager.isExecutableFile(atPath: standardizedURL.path) else {
+            guard isRunnableFile(standardizedURL, fileManager: fileManager) else {
                 throw ConversionError.pandocNotFound
             }
             return standardizedURL
@@ -25,10 +25,25 @@ enum PandocTool {
         }
 
         if let executable = candidates.first(where: {
-            fileManager.isExecutableFile(atPath: $0.path)
+            isRunnableFile($0, fileManager: fileManager)
         }) {
             return executable
         }
         throw ConversionError.pandocNotFound
+    }
+
+    /// `isExecutableFile` prüft unter POSIX nur das Ausführ- beziehungsweise
+    /// Durchsuchrecht und hält deshalb auch ein durchsuchbares Verzeichnis wie
+    /// `/tmp` für ausführbar. Dann meldet `--formats` das Format als verfügbar,
+    /// und erst der Prozessstart scheitert als Softwarefehler.
+    ///
+    /// Symlinks werden vorher aufgelöst, weil Homebrew `pandoc` genau so verlinkt.
+    private static func isRunnableFile(_ url: URL, fileManager: FileManager) -> Bool {
+        guard fileManager.isExecutableFile(atPath: url.path) else {
+            return false
+        }
+        let values = try? url.resolvingSymlinksInPath()
+            .resourceValues(forKeys: [.isRegularFileKey])
+        return values?.isRegularFile == true
     }
 }

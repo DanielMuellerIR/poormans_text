@@ -83,6 +83,22 @@ final class FormatCatalogTests: XCTestCase {
         XCTAssertEqual(catalog.first?.missingTools.map(\.rawValue), ["not-a-known-tool"])
     }
 
+    func testEveryFormatWhoseImportRunsTextutilAlsoDeclaresIt() throws {
+        // RTFD geht über `textutil -convert html` (RichTextConverter) und erst
+        // danach über Pandoc; DOC ebenso. Fehlte `textutil` im Katalog, könnte
+        // ein Host das Format als verfügbar anbieten, obwohl das tatsächlich
+        // ausgeführte Werkzeug fehlt.
+        let descriptors = DocumentConverter().supportedFormatDescriptors
+        for format in [InputFormat.rtfd, .doc] {
+            let descriptor = try XCTUnwrap(descriptors.first { $0.format == format })
+            XCTAssertTrue(
+                descriptor.requiredTools.contains(.textutil),
+                "\(format.rawValue) runs textutil but does not declare it"
+            )
+            XCTAssertTrue(descriptor.requiredTools.contains(.pandoc))
+        }
+    }
+
     func testTextutilAvailabilityUsesTheSamePathTheAdapterRuns() {
         // Wenn Prüfpfad und Aufrufpfad auseinanderliefen, würde der Katalog
         // Verfügbarkeit für ein Format melden, das dann doch scheitert.

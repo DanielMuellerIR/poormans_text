@@ -71,8 +71,8 @@ output directories are never overwritten. Exit codes follow sysexits values:
 70 conversion failure, 73 output collision, and 74 file-system failure.
 
 --formats reports every format this build can read, its file extensions, whether
-it is a single file or a folder package, and whether the tools it needs are
-installed right now. It never inspects a document, and a valid call always exits
+it is a single file or a folder package, which external tools it needs, and
+whether those tools are installed right now. It never inspects a document, and a valid call always exits
 0 — even when no format is currently available. Combining --formats with an
 input document or an output directory is a usage error and exits 64.
 """
@@ -191,23 +191,29 @@ private func writeFormats(_ catalog: [FormatAvailability], json: Bool) {
     }
 
     // Spaltenbreiten aus dem echten Inhalt, damit die Textausgabe auch mit
-    // später hinzukommenden Formaten lesbar bleibt.
-    let rows = catalog.map { entry -> (String, String, String, String) in
+    // später hinzukommenden Formaten lesbar bleibt. Die Werkzeugspalte steht
+    // hier genauso wie in der JSON-Ausgabe: Ohne sie verschwiege der als
+    // selbstbeschreibend zugesagte Katalog etwa, dass DOC sowohl Pandoc als auch
+    // `textutil` braucht.
+    let rows = catalog.map { entry -> (String, String, String, String, String) in
         (
             entry.format.format.rawValue,
             entry.format.fileExtensions.map { ".\($0)" }.joined(separator: " "),
             entry.format.containerKind.rawValue,
+            entry.format.requiredTools.map(\.rawValue).joined(separator: "+"),
             entry.isAvailable ? "available" : "unavailable (\(entry.unavailableReason ?? "unknown"))"
         )
     }
     let formatWidth = rows.map(\.0.count).max() ?? 0
     let extensionWidth = rows.map(\.1.count).max() ?? 0
     let containerWidth = rows.map(\.2.count).max() ?? 0
+    let toolWidth = rows.map(\.3.count).max() ?? 0
     for row in rows {
         let line = row.0.padding(toLength: max(formatWidth, row.0.count) + 2, withPad: " ", startingAt: 0)
             + row.1.padding(toLength: max(extensionWidth, row.1.count) + 2, withPad: " ", startingAt: 0)
             + row.2.padding(toLength: max(containerWidth, row.2.count) + 2, withPad: " ", startingAt: 0)
-            + row.3
+            + row.3.padding(toLength: max(toolWidth, row.3.count) + 2, withPad: " ", startingAt: 0)
+            + row.4
         print(line)
     }
 }

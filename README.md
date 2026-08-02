@@ -110,16 +110,16 @@ file or a folder package such as `.rtfd`, the external tools it needs, and
 whether those tools are installed right now:
 
 ```text
-rtf   .rtf   file     available
-rtfd  .rtfd  package  available
-docx  .docx  file     available
-odt   .odt   file     available
-doc   .doc   file     available
+rtf   .rtf   file     pandoc           available
+rtfd  .rtfd  package  pandoc+textutil  available
+docx  .docx  file     pandoc           available
+odt   .odt   file     pandoc           available
+doc   .doc   file     textutil+pandoc  available
 ```
 
 Without Pandoc every line reads `unavailable (missing required tool: pandoc)`,
-because all current formats need it. The `textutil` that DOC additionally
-requires is part of macOS.
+because all current formats need it. The `textutil` that DOC and RTFD
+additionally require is part of macOS.
 
 This is the intended way for another application to decide whether to offer a
 conversion. Because the list comes from the converter itself, a host picks up

@@ -32,6 +32,43 @@ final class MarkdownNormalizerTests: XCTestCase {
         XCTAssertEqual(MarkdownNormalizer.normalize(markdown), markdown)
     }
 
+    /// Pandoc schreibt einen Code-Block ohne Sprachangabe eingerückt statt
+    /// eingezäunt — auch im GFM-Dialekt. Griffen die Aufräumregeln dort, verlöre
+    /// eine Shell-Fortsetzung ihren abschließenden Backslash, und aus `\-` würde
+    /// ein Listenpunkt. Das wäre stiller Inhaltsverlust.
+    func testLeavesIndentedCodeUnchangedIncludingItsBlankLines() {
+        let markdown = """
+        Intro:
+
+            gcc -o example example.c \\
+
+            \\- not a list
+            \\_\\_\\_
+
+        Done
+        """
+
+        XCTAssertEqual(MarkdownNormalizer.normalize(markdown), markdown)
+    }
+
+    /// Gegenprobe zur Code-Erkennung: Vier Leerzeichen sind nur dann Code, wenn
+    /// sie vier Spalten JENSEITS des offenen Listenpunkts liegen. Sonst wäre
+    /// jeder tiefer eingerückte Listeneintrag fälschlich Code.
+    func testStillNormalizesIndentedContentInsideAListItem() {
+        let markdown = "- item\n\n    ***• ***\n\n    \\- sub item\n"
+
+        XCTAssertEqual(
+            MarkdownNormalizer.normalize(markdown),
+            "- item\n\n    -\n\n    - sub item\n"
+        )
+    }
+
+    func testKeepsBlankLinesInsideFencedCode() {
+        let markdown = "```text\nfirst\n\n \nlast\n```\n"
+
+        XCTAssertEqual(MarkdownNormalizer.normalize(markdown), markdown)
+    }
+
     func testDoesNotCloseFenceWhenTextFollowsDelimiter() {
         let markdown = #"""
         ````text

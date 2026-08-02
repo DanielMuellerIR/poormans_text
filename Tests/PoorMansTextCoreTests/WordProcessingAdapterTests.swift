@@ -216,6 +216,38 @@ final class WordProcessingAdapterTests: XCTestCase {
         }
     }
 
+    /// Der dokumentierte Repro-Fall: Pandoc schreibt einen Code-Block ohne
+    /// Sprachangabe eingerückt statt eingezäunt. Vor der Code-Erkennung im
+    /// Normalisierer verlor eine Fortsetzungszeile dabei ihren Backslash — stiller
+    /// Inhaltsverlust bei einer scheinbar erfolgreichen Umwandlung.
+    func testIndentedCodeKeepsItsTrailingBackslashThroughTheDOCXRoundTrip() throws {
+        try requirePandoc()
+        let source = "Intro:\n\n    gcc -o example example.c \\\n    echo done\n"
+        let markdownURL = temporaryDirectory.appendingPathComponent("code.md")
+        try Data(source.utf8).write(to: markdownURL)
+
+        let docxURL = temporaryDirectory.appendingPathComponent("code.docx")
+        let pandocResult = try ProcessRunner.run(
+            executable: try PandocTool.resolve(nil),
+            arguments: [
+                "--from=gfm", "--to=docx",
+                "--output", docxURL.path, markdownURL.path,
+            ],
+            currentDirectory: temporaryDirectory
+        )
+        XCTAssertEqual(pandocResult.status, 0, pandocResult.standardError)
+
+        let result = try DocumentConverter().convert(
+            ConversionRequest(
+                inputURL: docxURL,
+                destination: .directory(temporaryDirectory.appendingPathComponent("code-result"))
+            )
+        )
+        let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+        XCTAssertTrue(markdown.contains("    gcc -o example example.c \\"), markdown)
+        XCTAssertTrue(markdown.contains("    echo done"), markdown)
+    }
+
     func testDoesNotTrustWordProcessingFilenameExtensions() throws {
         for fileExtension in ["docx", "odt", "doc"] {
             let sourceURL = temporaryDirectory.appendingPathComponent("False.\(fileExtension)")

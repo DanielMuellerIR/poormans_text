@@ -10,31 +10,133 @@ enum MarkdownNormalizer {
             lines.removeLast()
         }
 
+        // Erst alle Code-Zeilen markieren, dann aufräumen. Sonst greifen die
+        // Aufräumregeln auch in eingerückten Code-Blöcken, und eine Codezeile mit
+        // abschließendem Backslash (etwa eine Shell-Fortsetzung) verlöre ihn.
+        let isCode = markCodeLines(lines)
+
         var transformed = [String]()
         transformed.reserveCapacity(lines.count)
-        var fence: Fence?
+        for (index, line) in lines.enumerated() {
+            transformed.append(isCode[index] ? line : normalizeLine(line))
+        }
 
-        for line in lines {
+        let compacted = compactPandocParagraphSpacing(transformed, isCode: isCode)
+        let result = compacted.joined(separator: "\n")
+        return keepsFinalNewline ? result + "\n" : result
+    }
+
+    /// Markiert jede Zeile, die zu einem Code-Block gehört: eingezäunte Blöcke,
+    /// eingerückte Blöcke und die Leerzeilen innerhalb eines eingerückten Blocks.
+    ///
+    /// Eingerückt heißt hier „vier Spalten jenseits des offenen Listenpunkts".
+    /// Ohne diese Buchhaltung wäre jeder tiefer eingerückte Listeneintrag
+    /// fälschlich Code. Pandoc schreibt einen Code-Block ohne Sprachangabe immer
+    /// eingerückt — auch im GFM-Dialekt —, deshalb ist dieser Fall der Regelfall
+    /// und nicht die Ausnahme.
+    private static func markCodeLines(_ lines: [String]) -> [Bool] {
+        var isCode = [Bool](repeating: false, count: lines.count)
+        var fence: Fence?
+        var itemIndents = [Int]()
+
+        for (index, line) in lines.enumerated() {
             if let currentFence = fence {
-                transformed.append(line)
+                isCode[index] = true
                 if isClosingFence(line, matching: currentFence) {
                     fence = nil
                 }
                 continue
             }
 
+            // Eine Leerzeile beendet keinen Listenpunkt.
+            if isBlank(line) {
+                continue
+            }
+
+            let indent = indentWidth(of: line)
+            while let openItem = itemIndents.last, indent < openItem {
+                itemIndents.removeLast()
+            }
+            let container = itemIndents.last ?? 0
+
+            if indent >= container + 4 {
+                isCode[index] = true
+                continue
+            }
+
             if let delimiter = openingFence(in: line) {
-                transformed.append(line)
+                isCode[index] = true
                 fence = delimiter
                 continue
             }
 
-            transformed.append(normalizeLine(line))
+            if let contentIndent = listItemContentIndent(of: line, indent: indent) {
+                itemIndents.append(contentIndent)
+            }
         }
 
-        let compacted = compactPandocParagraphSpacing(transformed)
-        let result = compacted.joined(separator: "\n")
-        return keepsFinalNewline ? result + "\n" : result
+        // Eine Leerzeile mitten in einem eingerückten Code-Block ist selbst noch
+        // Code. Sie wird ja nicht eingerückt geschrieben und ist oben deshalb als
+        // Fließtext durchgelaufen; jeder Leerzeilen-Lauf zwischen zwei Code-Zeilen
+        // gehört nachträglich dazu.
+        var runStart: Int?
+        for index in lines.indices {
+            if !isCode[index], isBlank(lines[index]) {
+                if runStart == nil {
+                    runStart = index
+                }
+                continue
+            }
+            if let start = runStart {
+                if start > 0, isCode[start - 1], isCode[index] {
+                    for blank in start..<index {
+                        isCode[blank] = true
+                    }
+                }
+                runStart = nil
+            }
+        }
+
+        return isCode
+    }
+
+    /// Die Spalte, in der der Inhalt eines Listenpunkts beginnt — also hinter
+    /// Marker und folgendem Leerraum. `nil`, wenn die Zeile kein Listenpunkt ist.
+    private static func listItemContentIndent(of line: String, indent: Int) -> Int? {
+        var rest = Substring(line).drop(while: { $0 == " " || $0 == "\t" })
+        let markerLength: Int
+
+        if let marker = rest.first, marker == "-" || marker == "*" || marker == "+" {
+            markerLength = 1
+            rest = rest.dropFirst()
+        } else {
+            let digits = rest.prefix(while: { $0.isASCII && $0.isNumber })
+            guard !digits.isEmpty, digits.count <= 9 else {
+                return nil
+            }
+            rest = rest.dropFirst(digits.count)
+            guard let delimiter = rest.first, delimiter == "." || delimiter == ")" else {
+                return nil
+            }
+            markerLength = digits.count + 1
+            rest = rest.dropFirst()
+        }
+
+        let spacing = rest.prefix(while: { $0 == " " || $0 == "\t" })
+        guard !spacing.isEmpty else {
+            return nil
+        }
+        return indent + markerLength + spacing.count
+    }
+
+    private static func isBlank(_ line: String) -> Bool {
+        line.allSatisfy { $0 == " " || $0 == "\t" }
+    }
+
+    /// Ein Tabulator zählt wie vier Spalten — so misst CommonMark Einrückung.
+    private static func indentWidth(of line: String) -> Int {
+        line.prefix(while: { $0 == " " || $0 == "\t" })
+            .reduce(0) { $0 + ($1 == "\t" ? 4 : 1) }
     }
 
     private static func normalizeLine(_ line: String) -> String {
@@ -101,12 +203,18 @@ enum MarkdownNormalizer {
         return indent + body.dropFirst().description
     }
 
-    private static func compactPandocParagraphSpacing(_ lines: [String]) -> [String] {
+    private static func compactPandocParagraphSpacing(
+        _ lines: [String],
+        isCode: [Bool]
+    ) -> [String] {
         var result = [String]()
         result.reserveCapacity(lines.count)
 
         for (index, line) in lines.enumerated() {
+            // Eine Leerzeile innerhalb eines Code-Blocks gehört zum Code und
+            // darf nicht wegfallen.
             guard line.isEmpty,
+                  !isCode[index],
                   let previous = result.last,
                   index + 1 < lines.count else {
                 result.append(line)

@@ -147,10 +147,10 @@ struct WordProcessingPackageAdapter: DocumentConversionAdapter {
         do {
             html = try String(contentsOf: htmlURL, encoding: .utf8)
         } catch {
-            throw ConversionError.invalidInput(
-                context.inputURL,
-                format: context.format,
-                reason: "conversion produced no readable HTML"
+            // Pandoc hat mit 0 geendet — ein fehlendes oder unlesbares Ergebnis
+            // ist deshalb kein Fehler des Quelldokuments.
+            throw ConversionError.fileSystemFailure(
+                "conversion produced no readable HTML: \(error.localizedDescription)"
             )
         }
 

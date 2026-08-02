@@ -37,6 +37,10 @@ enum HTMLDocumentConverter {
             throw ConversionError.fileSystemFailure(error.localizedDescription)
         }
 
+        // Sicherheitsnetz für die Fehlerpfade. Im Erfolgsfall wird die Datei
+        // weiter unten ausdrücklich entfernt, und ein Fehler dabei wird gemeldet:
+        // `DocumentConverter` verschiebt das ganze Staging-Verzeichnis ans Ziel,
+        // eine übrig gebliebene Zwischendatei landete also im Ausgabeordner.
         defer {
             try? fileManager.removeItem(at: normalizedHTML)
         }
@@ -71,15 +75,23 @@ enum HTMLDocumentConverter {
         do {
             markdown = try String(contentsOf: stagedMarkdown, encoding: .utf8)
         } catch {
-            throw ConversionError.invalidInput(
-                inputURL,
-                format: format,
-                reason: "conversion produced no readable Markdown"
+            // Pandoc hat mit 0 geendet: Fehlt sein Ergebnis trotzdem oder ist es
+            // unlesbar, liegt das am Konverter oder am Dateisystem — nicht am
+            // Quelldokument. `invalidInput` gaebe der CLI sonst Exit 65 statt 74
+            // und schoebe einem gueltigen Dokument die Schuld zu.
+            throw ConversionError.fileSystemFailure(
+                "conversion produced no readable Markdown: \(error.localizedDescription)"
             )
         }
         do {
             let normalizedMarkdown = MarkdownNormalizer.normalize(markdown)
             try Data(normalizedMarkdown.utf8).write(to: stagedMarkdown, options: .atomic)
+        } catch {
+            throw ConversionError.fileSystemFailure(error.localizedDescription)
+        }
+
+        do {
+            try fileManager.removeItem(at: normalizedHTML)
         } catch {
             throw ConversionError.fileSystemFailure(error.localizedDescription)
         }

@@ -23,22 +23,22 @@ Suggested topics:
    to be public. Rewriting history requires a separate, explicit decision.
 3. Run `swift test` and `./build.sh release` from a clean checkout.
 4. Commit the intended release state and create the annotated `v0.6.0` tag.
-5. Run `./release.sh`. It builds, signs, and notarizes the app, then packs and
-   notarizes the DMG and writes its checksum. It never installs anything.
-6. Run `./install.sh`. It repeats build, signing, and notarization and then
-   installs the app and the CLI link. It never builds a DMG. Both entry points
-   are the same script behind `--no-install` and `--no-dmg`, so the two runs are
-   separate and both are required.
-7. Run `scripts/verify_release.sh 0.6.0`. It requires the clean, exact release
+5. Run `./install.sh --with-dmg`. One run builds, signs, and notarizes the app,
+   packs and notarizes the DMG, writes its checksum, and installs the app and
+   the CLI link — all from the same signed bundle. Do not split this into
+   `./release.sh` plus `./install.sh`: two runs build and sign twice, so the
+   repository app, the installed app, and the app inside the DMG no longer share
+   a CodeDirectory hash and step 6 fails.
+6. Run `scripts/verify_release.sh 0.6.0`. It requires the clean, exact release
    tag and independently checks the repository app, the installed app, the DMG,
    the checksum, and the CLI link — including that all three app copies carry
    the same CodeDirectory hash.
-8. Perform the public privacy and secret scan over the exact outgoing commit and
+7. Perform the public privacy and secret scan over the exact outgoing commit and
    the complete history intended for publication.
-9. Only after explicit publication approval, create the public remote, push
+8. Only after explicit publication approval, create the public remote, push
    `main` and the tag, enable secret scanning, push protection, Issues, and
    private vulnerability reporting, and wait for CI to pass.
-10. Create a draft GitHub release from the exact tag:
+9. Create a draft GitHub release from the exact tag:
 
     ```sh
     gh release create v0.6.0 \

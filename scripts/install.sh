@@ -8,30 +8,17 @@ project_root="$(cd "$script_directory/.." && pwd)"
 source "$script_directory/install_transaction.sh"
 # shellcheck source=cli_target.sh
 source "$script_directory/cli_target.sh"
+# shellcheck source=install_modes.sh
+source "$script_directory/install_modes.sh"
 cd "$project_root"
 
 # Dieses Skript trägt beide notarisierten Wege, weil sie sich Build, Signatur,
 # App-Notarisierung und Zielprüfung vollständig teilen. Die Root-Wrapper wählen
 # den Ausschnitt: install.sh installiert ohne DMG, release.sh baut das DMG und
-# installiert nicht.
-notarize=1
-make_dmg=1
-do_install=1
-for argument in "$@"; do
-    case "$argument" in
-        --no-notarize) notarize=0 ;;
-        --no-dmg) make_dmg=0 ;;
-        --no-install) do_install=0 ;;
-        *)
-            echo "Aufruf: $(basename "$0") [--no-notarize] [--no-dmg] [--no-install]" >&2
-            exit 64
-            ;;
-    esac
-done
-if [ "$make_dmg" -eq 0 ] && [ "$do_install" -eq 0 ]; then
-    echo "--no-dmg und --no-install zusammen ergeben keinen Lauf." >&2
-    exit 64
-fi
+# installiert nicht. `./install.sh --with-dmg` schaltet beides in einem Lauf ein;
+# das ist der Weg zu einem vollständigen, mit verify_release.sh prüfbaren Release.
+# Die Auswertung selbst steht in install_modes.sh, damit sie testbar bleibt.
+poormans_text_parse_install_modes "$@" || exit $?
 # --no-notarize ist dominant: der Lauf endet dann direkt nach Build und Signatur,
 # ohne DMG und ohne /Applications — beides wäre ohne Ticket ohnehin unzulässig.
 # Die Wrapper reichen ihre Modus-Flags trotzdem durch; sie laufen hier ins Leere.

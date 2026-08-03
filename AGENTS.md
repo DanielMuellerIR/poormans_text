@@ -33,6 +33,10 @@ Roadmap-Punkte beim Release ins Changelog überführen und aus der Roadmap entfe
   `./release.sh` baut, notarisiert und packt das DMG (installiert nie). Beide
   notarisierten Wege laufen über `scripts/install.sh`, das sie per `--no-dmg`
   bzw. `--no-install` ansteuern.
+- Ein vollständiges Release ist genau ein Lauf: `./install.sh --with-dmg`. Nur so
+  stammen Repo-App, installierte App und die App im DMG aus demselben signierten
+  Bundle, und nur so kann `scripts/verify_release.sh` ihre CodeDirectory-Hashes
+  vergleichen. Zwei getrennte Läufe bauen und signieren zweimal.
 - Ausschließlich `./install.sh` ohne `--no-notarize` darf nach `/Applications`
   oder in einen globalen CLI-Pfad schreiben. Vorher sind Developer-ID-Signatur,
   Hardened Runtime, Notary-Ticket, Stapler und Gatekeeper verbindlich.

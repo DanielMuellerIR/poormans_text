@@ -178,6 +178,13 @@ disk image, notarizes and staples that image as well, and finally writes
 root. Existing artifacts are never overwritten: if the pair for that version is
 already there, the run stops.
 
+A full release — disk image, checksum, and the verified installation from the
+very same signed bundle — is a single run instead:
+
+```sh
+NOTARY_PROFILE=<profile> ./install.sh --with-dmg
+```
+
 Users who drag the app from that disk image into `/Applications` are offered an
 optional first-launch setup for the embedded CLI. It never replaces another
 command-line tool and always asks before requesting administrator privileges.

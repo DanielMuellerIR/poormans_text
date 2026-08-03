@@ -48,6 +48,11 @@ source_version="$(sed -n 's/.*static let version = "\([^"]*\)".*/\1/p' \
     exit 65
 }
 
+# Repo-App, installierte App und die App im DMG müssen aus demselben Lauf
+# stammen. Zwei getrennte Läufe (`./release.sh` und danach `./install.sh`) bauen,
+# signieren und notarisieren zweimal; die Kopien tragen dann verschiedene
+# CodeDirectory-Hashes und dieser Vergleich scheitert zu Recht. Ein vollständiges
+# Release entsteht deshalb mit `./install.sh --with-dmg`.
 code_directory_hash() {
     local target="$1"
     codesign -d --verbose=4 "$target" 2>&1 \
@@ -73,10 +78,12 @@ for app in "$root_app" "$installed_app"; do
     lipo "$app/Contents/Resources/poormans-text" -verify_arch arm64 x86_64
     [ "$(code_directory_hash "$app")" = "$root_app_hash" ] || {
         echo "CodeDirectory-Hash stimmt nicht mit der Release-App überein: $app" >&2
+        echo "Alle Artefakte müssen aus einem Lauf stammen: ./install.sh --with-dmg" >&2
         exit 65
     }
     [ "$(code_directory_hash "$app/Contents/Resources/poormans-text")" = "$root_cli_hash" ] || {
         echo "CLI-CodeDirectory-Hash stimmt nicht mit der Release-App überein: $app" >&2
+        echo "Alle Artefakte müssen aus einem Lauf stammen: ./install.sh --with-dmg" >&2
         exit 65
     }
 done

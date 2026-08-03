@@ -183,6 +183,13 @@ das signierte DMG, notarisiert und stapelt auch dieses und legt am Ende
 Vorhandene Artefakte werden nie überschrieben: Existiert das Paar dieser Version
 bereits, bricht der Lauf ab.
 
+Ein vollständiges Release — DMG, Checksumme und die geprüfte Installation aus
+genau demselben signierten Bundle — ist dagegen ein einziger Lauf:
+
+```sh
+NOTARY_PROFILE=<profil> ./install.sh --with-dmg
+```
+
 Wer die App aus dem DMG nach `/Applications` zieht, erhält beim ersten Start
 optional die Einrichtung der eingebetteten CLI angeboten. Ein fremdes
 Kommandozeilenwerkzeug wird nie ersetzt; Administratorrechte werden erst nach

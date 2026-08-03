@@ -62,7 +62,9 @@ einrichten; das App-Passwort wird nie als Argument oder Datei verarbeitet.
    verlinken und die Versionsgleichheit prüfen.
 
 Dieser Lauf erzeugt **kein** DMG. Der Root-Wrapper ruft `scripts/install.sh` mit
-`--no-dmg` auf; das Distributionspaket baut `./release.sh` (siehe unten).
+`--no-dmg` auf; das Distributionspaket baut `./release.sh` (siehe unten). Für ein
+vollständiges Release gibt es `./install.sh --with-dmg` — ein Lauf, der beides
+aus demselben signierten Bundle erzeugt.
 
 Das CLI-Verzeichnis ermittelt der Installer selbst: Liegt bereits ein
 `poormans-text` im `PATH`, gewinnt dessen Verzeichnis — sonst entstünde eine
@@ -99,13 +101,31 @@ unberührt. Existiert das Paar dieser Version schon, bricht der Lauf mit Exit 73
 ab. Nach manueller Installation aus dem DMG bietet die App die CLI-Einrichtung
 beim ersten Start optional an.
 
+## Vollständiges Release in einem Lauf
+
+```sh
+./install.sh --with-dmg
+```
+
 Beide Wege gehen über dasselbe `scripts/install.sh`, das die Root-Wrapper mit
-`--no-dmg` beziehungsweise `--no-install` ansteuern. Ein vollständiges Release
-braucht deshalb beide Läufe: `./release.sh` für DMG und Checksumme,
-`./install.sh` für die geprüfte Installation samt CLI-Link. `verify_release.sh`
-verlangt beide Ergebnisse und vergleicht zusätzlich die CodeDirectory-Hashes von
-Repo-App, installierter App und der App im DMG — die drei Kopien müssen also aus
-demselben signierten Bundle stammen.
+`--no-dmg` beziehungsweise `--no-install` ansteuern. `--with-dmg` hebt die
+Vorgabe des Installations-Wrappers wieder auf, sodass ein einziger Lauf baut,
+signiert, notarisiert, das DMG samt Checksumme erzeugt **und** installiert.
+
+Das ist bewusst der einzige Weg zu einem vollständigen Release, denn
+`scripts/verify_release.sh` verlangt alle Artefakte auf einmal und vergleicht die
+CodeDirectory-Hashes von Repo-App, installierter App und der App im DMG. Zwei
+getrennte Läufe (`./release.sh`, danach `./install.sh`) bauen, signieren und
+notarisieren zweimal und überschreiben dabei jeweils die App im Repo-Root; die
+drei Kopien stammen dann nicht aus demselben signierten Bundle und der Vergleich
+scheitert zu Recht. `./release.sh` allein bleibt richtig, wenn nur ein DMG
+gebraucht wird, `./install.sh` allein, wenn nur installiert werden soll.
+
+Die Auswertung der Betriebsarten steht in `scripts/install_modes.sh`, damit sie
+ohne Build, Signatur und Notarisierung testbar ist
+(`Tests/PoorMansTextCoreTests/InstallModeTests.swift`). Mit `--no-notarize` endet
+jeder Lauf weiterhin nach Build und Signatur: ohne Ticket entsteht kein DMG, und
+`/Applications` bleibt unberührt.
 
 ## Verifikation
 

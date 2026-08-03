@@ -13,6 +13,12 @@ All notable changes to this project will be documented in this file.
   until `brew install pandoc` has finished, and the drop area says so. They used
   to stay active and answered with "Pandoc was not found." while the window was
   showing "Installing Pandoc…".
+- Produce a complete release in a single run: `./install.sh --with-dmg` builds,
+  signs, and notarizes once and then writes the disk image, its checksum, and the
+  installation from that same bundle. `scripts/verify_release.sh` compares the
+  CodeDirectory hashes of the repository app, the installed app, and the app
+  inside the image, which two separate runs of `./release.sh` and `./install.sh`
+  could not satisfy.
 - Drain helper-process error pipes before waiting for the child to exit, so
   chatty output can no longer deadlock the in-app CLI installation.
 - Verify every entry of a DOCX or ODT package against its ZIP directory entry —

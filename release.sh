@@ -10,6 +10,11 @@
 #   ./install.sh   baut, notarisiert und installiert nach /Applications
 #   ./release.sh   baut, notarisiert und packt das Release-DMG, installiert nie
 #
+# Für ein vollständiges, mit scripts/verify_release.sh prüfbares Release ist
+# dieser Wrapper der falsche: er baut nur das DMG, und ein zweiter Lauf für die
+# Installation würde erneut bauen und signieren. Dafür gibt es
+# `./install.sh --with-dmg` — ein Lauf, ein signiertes Bundle, alle Artefakte.
+#
 # Vorhandene DMG-/Checksummen-Dateien werden nie überschrieben: existiert das
 # Paar dieser Version schon, bricht der Lauf mit Exit 73 ab.
 #

@@ -8,6 +8,11 @@ All notable changes to this project will be documented in this file.
   present the app runs the installation itself, otherwise it opens the official
   installation help. The offer returns at every launch until Pandoc exists or
   "Don't Ask Again" is chosen.
+- Refuse every entry point while that installation runs: the drop zone, the
+  "Choose Document…" button, and documents opened from Finder are turned down
+  until `brew install pandoc` has finished, and the drop area says so. They used
+  to stay active and answered with "Pandoc was not found." while the window was
+  showing "Installing Pandoc…".
 - Drain helper-process error pipes before waiting for the child to exit, so
   chatty output can no longer deadlock the in-app CLI installation.
 - Verify every entry of a DOCX or ODT package against its ZIP directory entry —

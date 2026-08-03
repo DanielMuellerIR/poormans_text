@@ -14,6 +14,8 @@ public final class AppModel: ObservableObject {
 
     @Published public private(set) var state: State = .idle
     @Published public var isDropTargeted = false
+    /// Wahr, solange die App Pandoc über Homebrew nachinstalliert.
+    @Published public private(set) var isInstallingPandoc = false
 
     public var isConverting: Bool {
         if case .converting = state {
@@ -22,10 +24,18 @@ public final class AppModel: ObservableObject {
         return false
     }
 
+    /// Nimmt die App gerade ein neues Dokument an? Während einer laufenden
+    /// Umwandlung nicht — und ebenso wenig, solange Pandoc installiert wird:
+    /// ohne Pandoc scheitert jede Umwandlung sofort mit `pandocNotFound`,
+    /// obwohl das Fenster gerade „Installing Pandoc…" anzeigt.
+    public var acceptsNewDocuments: Bool {
+        !isConverting && !isInstallingPandoc
+    }
+
     public init() {}
 
     public func convert(_ inputURL: URL) {
-        guard !isConverting else {
+        guard acceptsNewDocuments else {
             return
         }
 
@@ -47,6 +57,9 @@ public final class AppModel: ObservableObject {
     }
 
     public func acceptDrop(_ providers: [NSItemProvider]) -> Bool {
+        guard acceptsNewDocuments else {
+            return false
+        }
         guard let provider = providers.first(where: {
             $0.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier)
         }) else {
@@ -67,7 +80,25 @@ public final class AppModel: ObservableObject {
         return true
     }
 
+    /// Der Einstieg der App: Öffnen-Dialog anzeigen und die Auswahl umwandeln.
     public func chooseDocument() {
+        chooseDocument(selectDocument: { AppModel.presentOpenPanel() })
+    }
+
+    /// Dieselbe Auswahl mit austauschbarem Dialog, damit Tests die Sperre prüfen
+    /// können, ohne ein echtes Fenster zu öffnen.
+    public func chooseDocument(selectDocument: () -> URL?) {
+        guard acceptsNewDocuments else {
+            return
+        }
+        guard let url = selectDocument() else {
+            return
+        }
+        convert(url)
+    }
+
+    /// Der echte Öffnen-Dialog von macOS.
+    private static func presentOpenPanel() -> URL? {
         let panel = NSOpenPanel()
         panel.title = "Choose a Word-Processing Document"
         panel.prompt = "Convert"
@@ -78,10 +109,36 @@ public final class AppModel: ObservableObject {
         panel.canChooseDirectories = false
         panel.canChooseFiles = true
 
-        guard panel.runModal() == .OK, let url = panel.url else {
+        guard panel.runModal() == .OK else {
+            return nil
+        }
+        return panel.url
+    }
+
+    /// Installiert Pandoc über Homebrew und sperrt für die Dauer des Laufs alle
+    /// Einstiege: Drop-Zone, „Choose Document…" und per `onOpenURL` geöffnete
+    /// Dateien. Ohne diese Sperre liefe jede Anfrage während der Installation in
+    /// `pandocNotFound`, obwohl die App die Installation gerade anzeigt.
+    ///
+    /// Die eigentliche Installation ist ein Parameter, damit Tests die Sperre
+    /// ohne Homebrew nachstellen können.
+    public func installPandoc(
+        brewExecutable: URL,
+        using install: @escaping @Sendable (URL) async throws -> Void = {
+            try PandocInstaller.installPandoc(brewExecutable: $0)
+        }
+    ) async throws {
+        guard !isInstallingPandoc else {
             return
         }
-        convert(url)
+        isInstallingPandoc = true
+        defer { isInstallingPandoc = false }
+
+        // Wie die Dateikonvertierung läuft der Homebrew-Aufruf außerhalb des
+        // Main Actors; `brew install` kann mehrere Minuten dauern.
+        try await Task.detached(priority: .userInitiated) {
+            try await install(brewExecutable)
+        }.value
     }
 
     public func revealResult() {

@@ -10,7 +10,6 @@ struct ContentView: View {
     @State private var showsCLIInstallOffer = false
     @State private var cliInstallError: String?
     @State private var pandocOffer: PandocInstaller.Offer?
-    @State private var isInstallingPandoc = false
     @State private var showsPandocInstallSuccess = false
     @State private var pandocInstallError: String?
 
@@ -175,21 +174,34 @@ struct ContentView: View {
     private var stateContent: some View {
         switch model.state {
         case .idle:
-            Image(systemName: "arrow.down.doc.fill")
-                .font(.system(size: 45, weight: .medium))
-                .foregroundStyle(.tint)
-                .accessibilityHidden(true)
-            Text("Drop an RTF, RTFD, DOCX, ODT, or DOC document here")
-                .font(.title3.bold())
-            Text("A new folder with Markdown and an images directory will be created next to it.")
-                .multilineTextAlignment(.center)
-                .foregroundStyle(.secondary)
-                .frame(maxWidth: 390)
-            Button("Choose Document…") {
-                model.chooseDocument()
+            // Während der Pandoc-Installation nimmt das Modell keine Dokumente
+            // an. Das muss man sehen, sonst wirkt die Drop-Zone nur kaputt.
+            if model.isInstallingPandoc {
+                ProgressView()
+                    .controlSize(.large)
+                Text("Installing Pandoc…")
+                    .font(.title3.bold())
+                Text("Documents are accepted again once the installation has finished.")
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: 390)
+            } else {
+                Image(systemName: "arrow.down.doc.fill")
+                    .font(.system(size: 45, weight: .medium))
+                    .foregroundStyle(.tint)
+                    .accessibilityHidden(true)
+                Text("Drop an RTF, RTFD, DOCX, ODT, or DOC document here")
+                    .font(.title3.bold())
+                Text("A new folder with Markdown and an images directory will be created next to it.")
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: 390)
+                Button("Choose Document…") {
+                    model.chooseDocument()
+                }
+                .controlSize(.large)
+                .keyboardShortcut(.defaultAction)
             }
-            .controlSize(.large)
-            .keyboardShortcut(.defaultAction)
 
         case .converting(let inputURL):
             ProgressView()
@@ -257,6 +269,8 @@ struct ContentView: View {
                     model.chooseDocument()
                 }
                 .keyboardShortcut(.defaultAction)
+                // Solange Pandoc installiert wird, nimmt das Modell nichts an.
+                .disabled(model.isInstallingPandoc)
                 Button("Back") {
                     model.reset()
                 }
@@ -269,7 +283,7 @@ struct ContentView: View {
         HStack {
             Text("Version \(ProductInfo.version)")
             Spacer()
-            if isInstallingPandoc {
+            if model.isInstallingPandoc {
                 ProgressView()
                     .controlSize(.small)
                 Text("Installing Pandoc…")
@@ -302,20 +316,16 @@ struct ContentView: View {
 
     private func installPandoc(brewExecutable: URL) {
         pandocOffer = nil
-        isInstallingPandoc = true
 
-        // Wie die Dateikonvertierung läuft der Homebrew-Aufruf außerhalb des
-        // Main Actors; `brew install` kann mehrere Minuten dauern.
+        // Der Installationszustand gehört ins Modell: nur dort können Drop-Zone,
+        // Dateiauswahl und `onOpenURL` gemeinsam gesperrt werden.
         Task {
             do {
-                try await Task.detached(priority: .userInitiated) {
-                    try PandocInstaller.installPandoc(brewExecutable: brewExecutable)
-                }.value
+                try await model.installPandoc(brewExecutable: brewExecutable)
                 showsPandocInstallSuccess = true
             } catch {
                 pandocInstallError = error.localizedDescription
             }
-            isInstallingPandoc = false
         }
     }
 

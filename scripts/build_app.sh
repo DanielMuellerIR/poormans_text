@@ -60,6 +60,16 @@ cp "$project_root/.build/icon/AppIcon.icns" "$bundled_icon"
 cp "$project_root/App/Info.plist" "$contents_path/Info.plist"
 chmod 755 "$contents_path/MacOS/PoorMansTextApp" "$bundled_cli"
 
+# Debug-Symbole entfernen, BEVOR signiert wird (strip macht eine vorhandene
+# Signatur ungültig). `swift build -c release` legt eine Debug-Map in jede
+# Binärdatei: für jede übersetzte Quelldatei einen Eintrag mit dem vollen Pfad
+# ihrer .o-Datei auf DIESEM Mac. Die App braucht das nicht, es verrät nur
+# Benutzernamen und Projektaufbau (gefunden am 2026-08-04). `strip -S` nimmt
+# genau diese Debug-Symbole und lässt die normale Symboltabelle stehen, damit
+# Absturzberichte lesbar bleiben. Xcode tut das bei Release-Builds von sich aus
+# (STRIP_STYLE=debugging), SwiftPM nicht.
+strip -S "$contents_path/MacOS/PoorMansTextApp" "$bundled_cli"
+
 # Verschachtelte ausführbare Dateien zuerst signieren, das Bundle zuletzt.
 codesign --force --sign - "$bundled_cli"
 codesign --force --sign - "$bundle_path"

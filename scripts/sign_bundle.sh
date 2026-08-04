@@ -17,6 +17,14 @@ bundled_cli="$app/Contents/Resources/poormans-text"
 # Quarantäne-/Finder-Metadaten dürfen die versiegelte Signatur nicht verändern.
 xattr -cr "$app"
 
+# Debug-Symbole entfernen, bevor signiert wird. `swift build -c release` legt
+# eine Debug-Map in jede Binärdatei: für jede übersetzte Quelldatei einen
+# Eintrag mit dem vollen Pfad ihrer .o-Datei auf dem Build-Mac. Das verrät nur
+# Benutzernamen und Projektaufbau (gefunden am 2026-08-04). build_app.sh macht
+# das schon; hier steht es noch einmal, weil dieses Skript auch auf ein anders
+# gebautes Bundle angewendet werden kann. Ein zweiter Lauf ändert nichts mehr.
+strip -S "$app/Contents/MacOS/PoorMansTextApp" "$bundled_cli"
+
 sign_arguments=(--force --sign "$identity")
 if [ "$identity" != "-" ]; then
     sign_arguments+=(--options runtime --timestamp)

@@ -72,9 +72,6 @@ Offen bleibt auf der Seite des Hosts:
 
 ## Externe Verifikation
 
-- Der echte Sparkle-Update-Weg, bei dem eine ältere installierte Fassung ersetzt
-  wird, ist erst mit dem nächsten Release prüfbar. Version 0.7.0 ist der Einstieg
-  und musste einmal von Hand installiert werden.
 - Die vom Nutzer korrigierte Markdown-Datei für die noch ausstehende
   RTFD-Ausgabeanalyse liegt noch nicht vor.
 

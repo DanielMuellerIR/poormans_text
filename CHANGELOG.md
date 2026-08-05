@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## 0.8.0 - 2026-08-05
 
+- Verify the complete published Sparkle path from 0.7.0 to 0.8.0: the older
+  installed app found the signed feed, installed the notarized release after
+  confirmation, restarted into build 10, and matched the published bundle's
+  CodeDirectory hash.
 - Add native ODS, XLSX, and BIFF8 XLS import without LibreOffice, Excel, or
   Pandoc. All three readers share a bounded workbook model, preserve sheet order
   and stored cell values, and render either GFM tables or reversibly escaped

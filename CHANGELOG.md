@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 0.8.0 - 2026-08-05
 
 - Add native ODS, XLSX, and BIFF8 XLS import without LibreOffice, Excel, or
   Pandoc. All three readers share a bounded workbook model, preserve sheet order

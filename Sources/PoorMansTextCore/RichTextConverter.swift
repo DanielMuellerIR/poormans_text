@@ -126,6 +126,7 @@ struct RichTextAdapter: DocumentConversionAdapter {
             // zurückübersetzt.
             html = html.replacingOccurrences(of: emptyParagraphMarker, with: "<br>")
         }
+        html = unwrappingListParagraphs(in: html)
 
         let converted = try HTMLDocumentConverter.convert(
             html: html,
@@ -247,7 +248,7 @@ struct RichTextAdapter: DocumentConversionAdapter {
     /// Schützt direkt aufeinanderfolgende `\\par`-Steuerwörter vor Pandocs
     /// Zusammenfaltung. Escapte Backslashes werden dabei nicht als Steuerwort
     /// interpretiert; das Quelldokument selbst bleibt unverändert.
-    private func preservingEmptyRTFParagraphs(in data: Data, marker: String) -> Data {
+    func preservingEmptyRTFParagraphs(in data: Data, marker: String) -> Data {
         let bytes = [UInt8](data)
         let markerBytes = [UInt8](" \(marker)".utf8)
         var result = Data()
@@ -257,6 +258,15 @@ struct RichTextAdapter: DocumentConversionAdapter {
         while index < bytes.count {
             guard bytes[index] == 0x5C, index + 1 < bytes.count else {
                 result.append(bytes[index])
+                index += 1
+                continue
+            }
+
+            // Manche Apple-Programme beenden einen Absatz mit einem Backslash
+            // direkt vor dem echten Zeilenumbruch. Pandoc liest das nur als
+            // manuellen Umbruch; `\\par` stellt die Absatzgrenze wieder her.
+            if bytes[index + 1] == 0x0A || bytes[index + 1] == 0x0D {
+                result.append(contentsOf: [0x5C, 0x70, 0x61, 0x72])
                 index += 1
                 continue
             }
@@ -282,7 +292,10 @@ struct RichTextAdapter: DocumentConversionAdapter {
                     result.append(bytes[binaryStart])
                     binaryStart += 1
                 }
-                let binaryEnd = min(binaryStart + byteCount, bytes.count)
+                let availableBytes = bytes.count - binaryStart
+                let binaryEnd = byteCount > availableBytes
+                    ? bytes.count
+                    : binaryStart + byteCount
                 result.append(contentsOf: bytes[binaryStart..<binaryEnd])
                 index = binaryEnd
                 continue
@@ -294,6 +307,26 @@ struct RichTextAdapter: DocumentConversionAdapter {
             index = control.end
         }
         return result
+    }
+
+    /// Pandocs RTF-Reader legt selbst einfache Listeneinträge als eigenen
+    /// Absatz in `<li>` ab. Ohne diese enge Korrektur schreibt der nächste
+    /// Pandoc-Lauf daraus eine lose Liste mit Leerzeilen. Einträge mit mehreren
+    /// Absätzen oder verschachtelten Elementen bleiben bewusst unverändert.
+    func unwrappingListParagraphs(in html: String) -> String {
+        let pattern = #"<li([^>]*)>\s*<p[^>]*>([^<]*)</p>\s*</li>"#
+        guard let expression = try? NSRegularExpression(
+            pattern: pattern,
+            options: [.caseInsensitive, .dotMatchesLineSeparators]
+        ) else {
+            return html
+        }
+        let range = NSRange(html.startIndex..<html.endIndex, in: html)
+        return expression.stringByReplacingMatches(
+            in: html,
+            range: range,
+            withTemplate: "<li$1>$2</li>"
+        )
     }
 
     private func nextRTFControlWord(

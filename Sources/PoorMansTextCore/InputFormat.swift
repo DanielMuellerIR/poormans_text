@@ -17,6 +17,10 @@ public struct InputFormat: RawRepresentable, Codable, Hashable, Sendable {
     public static let docx = InputFormat(rawValue: "docx")
     public static let odt = InputFormat(rawValue: "odt")
     public static let doc = InputFormat(rawValue: "doc")
+    public static let ods = InputFormat(rawValue: "ods")
+    public static let xlsx = InputFormat(rawValue: "xlsx")
+    public static let xls = InputFormat(rawValue: "xls")
+    public static let odm = InputFormat(rawValue: "odm")
 
     public init(from decoder: any Decoder) throws {
         let container = try decoder.singleValueContainer()

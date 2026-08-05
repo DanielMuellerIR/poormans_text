@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+- Add native ODS, XLSX, and BIFF8 XLS import without LibreOffice, Excel, or
+  Pandoc. All three readers share a bounded workbook model, preserve sheet order
+  and stored cell values, and render either GFM tables or reversibly escaped
+  TSV code blocks. Merges, missing formula results, unsupported objects, and
+  legacy XLS losses are reported explicitly.
+- Add ODM master-document import. Inline master text and local linked ODT files
+  are flattened in source order, child images receive unique names, and remote,
+  missing, traversing, or symlink-escaping references are rejected.
+- Accept DOCM, DOTX, and DOTM after validating the OOXML main content type and
+  document root. Macro and template semantics that Markdown cannot retain now
+  produce dedicated warnings instead of disappearing silently.
+- Keep a validated newly installed app and its CLI in place if the saved old
+  bundle changes identity during the final check. The suspicious backup remains
+  at its rescue path instead of being restored or deleted.
+- Preserve RTF paragraph boundaries written as a backslash plus physical newline,
+  leave escaped backslashes and binary payloads untouched, and keep simple list
+  items tight by removing only their redundant paragraph wrapper. Markdown hard
+  breaks that only precede a blank line, list item, or end of input are removed.
+- Make CLI JSON paths consistently symlink-resolved, emit an explicit
+  `unavailableReason: null` for available formats, and centralize response
+  defaults. Remove an unused legacy result initializer and the app's identity-only
+  warning wrapper.
+- Derive the app's open-panel types from the core format catalog and describe
+  Pandoc accurately as a requirement for word-processing and ODM files, while
+  native spreadsheet conversion remains available without it.
+
 ## 0.7.1 - 2026-08-05
 
 - Name extracted images in document order as `image01`, `image02`, and so on,

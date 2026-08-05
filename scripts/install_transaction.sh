@@ -40,6 +40,11 @@ poormans_text_cleanup_installation() {
             echo "Rollback weiterhin unvollständig; Rettungspfad bleibt erhalten: $staged_app" >&2
             return 74
             ;;
+        backup-suspicious)
+            # Die neue App ist bereits vollständig geprüft. Das alte Bundle am
+            # Stage-Pfad darf weder zurückgetauscht noch gelöscht werden, wenn
+            # sich seine Identität nach dem Tausch unerwartet geändert hat.
+            ;;
         installed-new)
             if app_matches_release_identity "$destination_app" \
                && ! remove_install_path "$destination_app"; then

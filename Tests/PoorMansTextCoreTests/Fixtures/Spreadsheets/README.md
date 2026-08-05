@@ -6,6 +6,7 @@
 - sheet `Summary` with typed numbers and two formulas;
 - sheet `Details & Notes` with Unicode, a multiline cell, a pipe, and a tab.
 
-The ODS file is the feasibility fixture for the future format-neutral workbook
-model. The XLS file currently verifies only that the legacy DOC detector does not
-mistake another OLE compound-document format for Word.
+Both files verify the native format-neutral workbook model. Their visible cell
+values are compared with each other, while the XLS file additionally proves that
+the legacy DOC detector does not mistake another OLE compound-document format
+for Word.

@@ -1,78 +1,79 @@
-# Geplanter Tabellenimport
+# Nativer Tabellenimport
 
-Stand der lokalen Prüfung am 2026-07-25: Pandoc 3.9.0.2 liest XLSX, aber weder
-ODS noch XLS. Ein ODS ist dagegen ein dokumentiertes ZIP-Paket; `content.xml`
-enthält die Tabellen in stabiler Reihenfolge als `table:table`. Die versionierte
-Probe `Tests/PoorMansTextCoreTests/Fixtures/Spreadsheets/multisheet.ods` enthält
-zwei Blätter, Unicode, Zahlen, Formeln, einen Zeilenumbruch, ein Pipe-Zeichen und
-einen Tabulator. LibreOffice konnte sie verlustfrei nach XLSX zurückschreiben;
-Werte, Blattnamen und Reihenfolge blieben erhalten.
+Poor Man's Text liest ODS, XLSX und binäres XLS ohne LibreOffice, Excel oder
+Pandoc. Die formatspezifischen Leser enden in demselben Arbeitsmappenmodell;
+erst danach entsteht Markdown. Dadurch gelten für alle drei Formate dieselbe
+Blattreihenfolge, Darstellung, Größenbegrenzung und Warnungssemantik.
 
-Damit ist ein lokaler ODS-Import ohne LibreOffice-Laufzeitabhängigkeit technisch
-machbar. Er soll erst nach DOCX, ODT und DOC entstehen und die vorhandene
-Paketprüfung für Traversal, Symlinks, Verschlüsselung und Entpackbudgets
-wiederverwenden.
+## Leser und Sicherheitsgrenzen
 
-## Gemeinsames Workbook-Modell
+- ODS wird als geprüftes OpenDocument-ZIP-Paket gelesen. `content.xml` liefert
+  Blätter, typisierte Werte, sichtbaren Text, Formeln, Wiederholungen und
+  Zellverbünde.
+- XLSX wird als geprüftes OOXML-ZIP-Paket gelesen. Arbeitsmappenbeziehungen
+  dürfen nur auf interne Arbeitsblätter zeigen; entfernte Beziehungen und
+  ausbrechende Pfade werden abgelehnt. Gemeinsame und inline gespeicherte Texte,
+  Zahlen, Wahrheitswerte, Formeln und zwischengespeicherte Ergebnisse werden
+  übernommen.
+- XLS wird als OLE-Compound-File mit BIFF8-Arbeitsmappe gelesen. FAT-, DIFAT-,
+  Verzeichnis- und Mini-Stream-Ketten werden begrenzt und auf Schleifen geprüft.
+  Als Altformat erhält XLS immer eine eigene Verlustwarnung.
 
-ODS, XLSX und später XLS sollen nicht jeweils direkt Markdown erzeugen. Ein
-formatneutraler Tabellenkern hält mindestens:
+Ein Import darf höchstens 256 Blätter, 100.000 Zeilen pro Blatt, 16.384 Spalten
+und insgesamt 1.000.000 expandierte Zellen enthalten. Dasselbe Limit gilt für
+die Tabelle gemeinsamer XLSX-Texte. Überschreitungen brechen mit einer
+verständlichen Fehlermeldung ab; Inhalte werden nicht still gekürzt.
 
-- Blattname und Blattreihenfolge;
-- Zellposition, typisierten Wert, sichtbaren Text und optionale Formel;
-- zusammengeführte Bereiche;
-- interne Zeilenumbrüche und leere Zellen;
-- Warnungen für nicht darstellbare Diagramme, Bilder, Kommentare und Makros.
+## Gemeinsames Arbeitsmappenmodell
 
-Wiederholte ODF-Zeilen und -Spalten werden nur innerhalb fester Zell-, Zeilen-
-und Spaltenbudgets expandiert. Bei Überschreitung bricht der Import verständlich
-ab; er kürzt keine Inhalte still.
+Das interne Modell hält Blattname und -reihenfolge sowie pro Zelle den
+typisierten Wert, den gespeicherten Text und eine optionale Formel. Leere Zellen,
+interne Zeilenumbrüche und wiederholte ODF-Zeilen oder -Spalten bleiben erhalten.
+
+Formeln werden nie ausgeführt. Vorhandene gespeicherte Ergebnisse werden
+ausgegeben; fehlt ein Ergebnis, erscheint eine Warnung. Zellverbünde werden auf
+den Wert der linken oberen Zelle reduziert und ebenfalls gemeldet. Diagramme,
+Zeichnungen, Kommentare, Makros und andere nicht darstellbare Objekte führen zu
+einer Verlustwarnung.
 
 ## Zwei Markdown-Darstellungen
 
-Die spätere `ConversionOptions` erhält eine Tabellen-Darstellung:
+Standard ist `markdownTable`: Jedes Blatt wird zu einer GFM-Tabelle. Die erste
+vorhandene Zeile bleibt vollständig erhalten und bildet die Kopfzeile. Pipes und
+Backslashes werden maskiert, interne Zeilenumbrüche als `<br>` geschrieben.
 
-1. `markdownTable` als Standard: GFM-Tabelle, Pipes maskiert und interne
-   Zeilenumbrüche als `<br>`. Die erste vorhandene Zeile bleibt vollständig
-   erhalten und bildet die Kopfzeile. Zusammenführungen werden auf den Wert der
-   linken oberen Zelle reduziert und gemeldet.
-2. `tabSeparated`: ein als `tsv` markierter Codeblock. Zellinterne Tabulatoren
-   und Zeilenumbrüche werden reversibel als `\t` und `\n` geschrieben, damit
-   Zeilen- und Spaltengrenzen eindeutig bleiben.
-
-Beide Varianten geben angezeigte Zellwerte aus. Formeln werden nicht ausgeführt
-und nicht anstelle ihres gespeicherten Ergebnisses angezeigt; fehlende oder
-veraltete Ergebniswerte erzeugen eine Warnung.
+Mit `--spreadsheet-format tsv` wählt das CLI `tabSeparated`: Jedes Blatt wird zu
+einem `tsv`-Codeblock. Zellinterne Backslashes, Tabulatoren und Zeilenumbrüche
+werden als `\\`, `\t` und `\n` geschrieben, sodass Zeilen- und Spaltengrenzen
+eindeutig bleiben.
 
 ## Mehrere Blätter
 
-Ein Workbook bleibt eine Markdown-Datei und passt damit zum heutigen
-`ConversionResult`:
+Eine Arbeitsmappe bleibt eine Markdown-Datei:
 
 ```markdown
 # Arbeitsmappe
 
-## Blatt: Summary
+## Sheet: Summary
 
 | Product | Units | Price |
-|---|---:|---:|
+| --- | --- | --- |
 | Äpfel | 12 | 1.50 |
 
-## Blatt: Details & Notes
+## Sheet: Details & Notes
 
 ...
 ```
 
-Blattnamen werden als Text behandelt, die Reihenfolge bleibt erhalten, und leere
-Blätter erhalten eine sichtbare Leermeldung. Ein späterer optionaler Split in
-ein Blatt pro Datei wäre eine zusätzliche Veröffentlichungsform und gehört
-nicht in den ersten Tabellenadapter.
+Blattnamen werden als Text behandelt, die Quellreihenfolge bleibt erhalten, und
+leere Blätter erhalten die sichtbare Meldung `_Empty sheet._`. Eine Ausgabe in
+eine Datei pro Blatt ist derzeit bewusst nicht Teil des Ergebnisvertrags.
 
-## Reihenfolge der Umsetzung
+## Verifikation
 
-1. ODS-Paket erkennen und in das gemeinsame Workbook-Modell lesen.
-2. Beide Darstellungen sowie Mehrblatt-, Formel-, Merge- und Budgettests bauen.
-3. XLSX in dasselbe Modell einlesen; Pandocs XLSX-Leser dient als unabhängiger
-   Output-Vergleich, nicht als Modellgrenze.
-4. XLS zuletzt als getrennten OLE-Adapter ergänzen. Der bestehende DOC-Detektor
-   weist ein echtes XLS-Fixture bereits als Nicht-Word zurück.
+Die Tests verwenden eine echte mehrblättrige ODS-Datei und ein echtes binäres
+XLS aus unabhängigen Erzeugern sowie selbst gebaute XLSX-Pakete. Sie vergleichen
+die XLS-Inhalte mit der unabhängigen ODS-Arbeitsmappe und den nativen XLSX-Inhalt
+zusätzlich direkt mit Pandoc. Blattreihenfolge, Unicode, Formeln, Zellverbünde,
+interne Umbrüche, Pipes, Tabulatoren, Budgets, Warnungen und unveränderte
+Quelldateien sind abgedeckt.

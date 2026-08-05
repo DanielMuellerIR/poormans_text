@@ -5,7 +5,7 @@ struct WordProcessingPackageAdapter: DocumentConversionAdapter {
     let supportedFormatDescriptors: [SupportedFormat] = [
         SupportedFormat(
             format: .docx,
-            fileExtensions: ["docx"],
+            fileExtensions: ["docx", "docm", "dotx", "dotm"],
             containerKind: .file,
             requiredTools: [.pandoc]
         ),
@@ -25,7 +25,7 @@ struct WordProcessingPackageAdapter: DocumentConversionAdapter {
         }
 
         let extensionFormat: InputFormat? = switch inputURL.pathExtension.lowercased() {
-        case "docx": .docx
+        case "docx", "docm", "dotx", "dotm": .docx
         case "odt": .odt
         default: nil
         }

@@ -9,6 +9,8 @@ public struct DocumentConverter: Sendable {
             RichTextAdapter(),
             WordProcessingPackageAdapter(),
             LegacyWordAdapter(),
+            SpreadsheetAdapter(),
+            OpenDocumentMasterAdapter(),
         ])
     }
 

@@ -35,7 +35,10 @@ final class DocumentConverterTests: XCTestCase {
         try Data(#"{\rtf1Text}"#.utf8).write(to: immediateTextRTF)
         let converter = DocumentConverter()
 
-        XCTAssertEqual(converter.supportedFormats, [.rtf, .rtfd, .docx, .odt, .doc])
+        XCTAssertEqual(
+            converter.supportedFormats,
+            [.rtf, .rtfd, .docx, .odt, .doc, .ods, .xlsx, .xls, .odm]
+        )
         XCTAssertEqual(try converter.detectFormat(at: rtfURL), .rtf)
         XCTAssertEqual(try converter.detectFormat(at: rtfdURL), .rtfd)
         XCTAssertEqual(try converter.detectFormat(at: immediateTextRTF), .rtf)

@@ -20,6 +20,7 @@ private struct ParsedArguments {
     var showHelp = false
     var showVersion = false
     var listFormats = false
+    var spreadsheetRendering: SpreadsheetRendering = .markdownTable
 }
 
 private struct JSONResponse: Encodable {
@@ -31,6 +32,40 @@ private struct JSONResponse: Encodable {
     let assets: [String]?
     let warnings: [String]?
     let error: String?
+
+    init(
+        ok: Bool,
+        input: String? = nil,
+        outputDirectory: String? = nil,
+        markdownFile: String? = nil,
+        assets: [String]? = nil,
+        warnings: [String]? = nil,
+        error: String? = nil
+    ) {
+        self.ok = ok
+        version = ProductInfo.version
+        self.input = input
+        self.outputDirectory = outputDirectory
+        self.markdownFile = markdownFile
+        self.assets = assets
+        self.warnings = warnings
+        self.error = error
+    }
+
+    static func success(_ result: ConversionResult) -> JSONResponse {
+        JSONResponse(
+            ok: true,
+            input: canonicalPath(result.inputURL),
+            outputDirectory: canonicalPath(result.outputDirectory),
+            markdownFile: canonicalPath(result.markdownFile),
+            assets: result.assets.map(canonicalPath),
+            warnings: result.warnings
+        )
+    }
+
+    static func failure(_ error: String) -> JSONResponse {
+        JSONResponse(ok: false, error: error)
+    }
 }
 
 /// Maschinenlesbarer Formatkatalog. Bewusst eine eigene Antwortform: Ein
@@ -44,6 +79,24 @@ private struct FormatsJSONResponse: Encodable {
         let requires: [String]
         let available: Bool
         let unavailableReason: String?
+
+        private enum CodingKeys: String, CodingKey {
+            case format, extensions, container, requires, available, unavailableReason
+        }
+
+        func encode(to encoder: any Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(format, forKey: .format)
+            try container.encode(extensions, forKey: .extensions)
+            try container.encode(self.container, forKey: .container)
+            try container.encode(requires, forKey: .requires)
+            try container.encode(available, forKey: .available)
+            if let unavailableReason {
+                try container.encode(unavailableReason, forKey: .unavailableReason)
+            } else {
+                try container.encodeNil(forKey: .unavailableReason)
+            }
+        }
     }
 
     let ok: Bool
@@ -55,12 +108,14 @@ private let usage = """
 Usage: poormans-text [options] INPUT
        poormans-text --formats [--json] [--pandoc PATH]
 
-Convert an RTF, RTFD, DOCX, ODT, or DOC document into a new folder containing Markdown and images.
+Convert a supported word-processing document or spreadsheet into a new folder containing Markdown.
 
 Options:
   -o, --output DIRECTORY  Set the new output directory.
       --pandoc PATH       Use a specific Pandoc executable.
       --formats           List the supported input formats instead of converting.
+      --spreadsheet-format table|tsv
+                          Render spreadsheets as a GFM table (default) or escaped TSV.
       --json              Write a machine-readable result to stdout.
   -h, --help              Show this help text.
   -V, --version           Show the product version.
@@ -72,9 +127,10 @@ output directories are never overwritten. Exit codes follow sysexits values:
 
 --formats reports every format this build can read, its file extensions, whether
 it is a single file or a folder package, which external tools it needs, and
-whether those tools are installed right now. It never inspects a document, and a valid call always exits
-0 — even when no format is currently available. Combining --formats with an
-input document or an output directory is a usage error and exits 64.
+whether those tools are installed right now. It never inspects a document, and
+a valid call always exits 0 — even when no format is currently available.
+Combining --formats with an input document or an output directory is a usage
+error and exits 64.
 """
 
 private func parseArguments(
@@ -101,6 +157,16 @@ private func parseArguments(
             parsed.json = true
         } else if !optionsEnded && argument == "--formats" {
             parsed.listFormats = true
+        } else if !optionsEnded && argument == "--spreadsheet-format" {
+            index += 1
+            guard index < rawArguments.count else {
+                throw CLIArgumentError.missingValue(argument)
+            }
+            parsed.spreadsheetRendering = try spreadsheetRendering(rawArguments[index])
+        } else if !optionsEnded && argument.hasPrefix("--spreadsheet-format=") {
+            parsed.spreadsheetRendering = try spreadsheetRendering(
+                String(argument.dropFirst("--spreadsheet-format=".count))
+            )
         } else if !optionsEnded && (argument == "-o" || argument == "--output") {
             index += 1
             guard index < rawArguments.count else {
@@ -135,11 +201,24 @@ private func fileURL(_ path: String) -> URL {
         .standardizedFileURL
 }
 
+private func canonicalPath(_ url: URL) -> String {
+    url.resolvingSymlinksInPath().path
+}
+
+private func spreadsheetRendering(_ value: String) throws -> SpreadsheetRendering {
+    switch value {
+    case "table": .markdownTable
+    case "tsv": .tabSeparated
+    default: throw CLIArgumentError.invalidSpreadsheetFormat(value)
+    }
+}
+
 private enum CLIArgumentError: LocalizedError {
     case missingValue(String)
     case unknownOption(String)
     case tooManyInputs
     case formatsTakesNoInput
+    case invalidSpreadsheetFormat(String)
 
     var errorDescription: String? {
         switch self {
@@ -153,6 +232,8 @@ private enum CLIArgumentError: LocalizedError {
             // Streng statt tolerant: Sonst bliebe unklar, ob der Aufruf gelistet
             // oder konvertiert hat — und ein Skript würde das erst am Ergebnis merken.
             "--formats lists formats only; it takes no input document or output directory."
+        case .invalidSpreadsheetFormat(let value):
+            "Unknown spreadsheet format: \(value). Use table or tsv."
         }
     }
 }
@@ -287,23 +368,15 @@ do {
         ConversionRequest(
             inputURL: inputURL,
             destination: destination,
-            options: ConversionOptions(pandocExecutable: arguments.pandocURL)
+            options: ConversionOptions(
+                pandocExecutable: arguments.pandocURL,
+                spreadsheetRendering: arguments.spreadsheetRendering
+            )
         )
     )
 
     if arguments.json {
-        writeJSON(
-            JSONResponse(
-                ok: true,
-                version: ProductInfo.version,
-                input: result.inputURL.path,
-                outputDirectory: result.outputDirectory.path,
-                markdownFile: result.markdownFile.path,
-                assets: result.assets.map(\.path),
-                warnings: result.warnings,
-                error: nil
-            )
-        )
+        writeJSON(.success(result))
     } else {
         print(result.outputDirectory.path)
         for warning in result.warnings {
@@ -316,18 +389,7 @@ do {
     let message = error.localizedDescription
 
     if parsedArguments.json {
-        writeJSON(
-            JSONResponse(
-                ok: false,
-                version: ProductInfo.version,
-                input: nil,
-                outputDirectory: nil,
-                markdownFile: nil,
-                assets: nil,
-                warnings: nil,
-                error: message
-            )
-        )
+        writeJSON(.failure(message))
     } else {
         writeError(message)
         if error is CLIArgumentError {

@@ -39,22 +39,4 @@ public struct ConversionResult: Sendable {
         self.diagnostics = diagnostics
     }
 
-    /// Behält den bisherigen öffentlichen Initializer für bestehende Aufrufer.
-    public init(
-        inputURL: URL,
-        outputDirectory: URL,
-        markdownFile: URL,
-        assets: [URL],
-        warnings: [String]
-    ) {
-        self.inputURL = inputURL
-        self.format = inputURL.pathExtension.lowercased() == "rtfd" ? .rtfd : .rtf
-        self.outputDirectory = outputDirectory
-        self.markdownFile = markdownFile
-        self.assets = assets
-        self.outputLifetime = .persistent
-        self.diagnostics = warnings.map {
-            ConversionWarning(code: "legacy.warning", message: $0)
-        }
-    }
 }

@@ -122,23 +122,14 @@ final class WordProcessingAdapterTests: XCTestCase {
         }
     }
 
-    func testDOCDetectorRejectsARealXLSCompoundDocument() throws {
+    func testContentDetectionKeepsARealXLSOutOfTheDOCAdapter() throws {
         let xlsURL = spreadsheetFixture("not-word.xls")
 
-        XCTAssertThrowsError(try DocumentConverter().detectFormat(at: xlsURL)) { error in
-            guard case ConversionError.unsupportedInput = error else {
-                return XCTFail("Unexpected error: \(error)")
-            }
-        }
+        XCTAssertEqual(try DocumentConverter().detectFormat(at: xlsURL), .xls)
 
         let falseDOC = temporaryDirectory.appendingPathComponent("Spreadsheet.doc")
         try FileManager.default.copyItem(at: xlsURL, to: falseDOC)
-        XCTAssertThrowsError(try DocumentConverter().detectFormat(at: falseDOC)) { error in
-            guard case ConversionError.invalidInput(_, let format, _) = error else {
-                return XCTFail("Unexpected error: \(error)")
-            }
-            XCTAssertEqual(format, .doc)
-        }
+        XCTAssertEqual(try DocumentConverter().detectFormat(at: falseDOC), .xls)
     }
 
     func testInspectionReportsDOCXAndODTAnnotationsAndTrackedChanges() throws {
@@ -195,6 +186,79 @@ final class WordProcessingAdapterTests: XCTestCase {
             odtResult.diagnostics.map(\.code),
             odtInspection.expectedWarnings.map(\.code)
         )
+    }
+
+    func testConvertsGeneratedDOCMAndTemplatePackagesWithTheirLossWarnings() throws {
+        try requirePandoc()
+        let cases = [
+            ("Generated.docm", ZIPFixtureBuilder.docmMainContentType, ["wordProcessing.macrosNotPreserved"]),
+            ("Generated.dotx", ZIPFixtureBuilder.dotxMainContentType, ["wordProcessing.templateSemanticsNotPreserved"]),
+            (
+                "Generated.dotm",
+                ZIPFixtureBuilder.dotmMainContentType,
+                [
+                    "wordProcessing.macrosNotPreserved",
+                    "wordProcessing.templateSemanticsNotPreserved",
+                ]
+            ),
+        ]
+
+        for (name, contentType, warningCodes) in cases {
+            let sourceURL = try createWordPackageVariant(name: name, contentType: contentType)
+            let sourceBefore = try Data(contentsOf: sourceURL)
+
+            let result = try DocumentConverter().convert(
+                ConversionRequest(
+                    inputURL: sourceURL,
+                    destination: .directory(
+                        temporaryDirectory.appendingPathComponent("\(name)-result")
+                    )
+                )
+            )
+
+            XCTAssertEqual(result.format, .docx)
+            XCTAssertEqual(result.diagnostics.map(\.code), warningCodes)
+            XCTAssertTrue(
+                try String(contentsOf: result.markdownFile, encoding: .utf8)
+                    .contains("Fixture heading ä")
+            )
+            XCTAssertEqual(try Data(contentsOf: sourceURL), sourceBefore)
+        }
+    }
+
+    private func createWordPackageVariant(name: String, contentType: String) throws -> URL {
+        let packageDirectory = temporaryDirectory.appendingPathComponent(
+            "\(name)-package",
+            isDirectory: true
+        )
+        try FileManager.default.createDirectory(
+            at: packageDirectory,
+            withIntermediateDirectories: false
+        )
+        let unpack = try ProcessRunner.run(
+            executable: URL(fileURLWithPath: "/usr/bin/ditto"),
+            arguments: ["-x", "-k", fixture("pandoc.docx").path, packageDirectory.path],
+            currentDirectory: temporaryDirectory
+        )
+        XCTAssertEqual(unpack.status, 0, unpack.standardError)
+
+        let contentTypesURL = packageDirectory.appendingPathComponent("[Content_Types].xml")
+        let original = try String(contentsOf: contentTypesURL, encoding: .utf8)
+        let changed = original.replacingOccurrences(
+            of: ZIPFixtureBuilder.docxMainContentType,
+            with: contentType
+        )
+        XCTAssertNotEqual(changed, original)
+        try Data(changed.utf8).write(to: contentTypesURL, options: .atomic)
+
+        let outputURL = temporaryDirectory.appendingPathComponent(name)
+        let pack = try ProcessRunner.run(
+            executable: URL(fileURLWithPath: "/usr/bin/zip"),
+            arguments: ["-q", "-r", outputURL.path, "."],
+            currentDirectory: packageDirectory
+        )
+        XCTAssertEqual(pack.status, 0, pack.standardError)
+        return outputURL
     }
 
     func testRejectsExternalImagesAndUnsafePackagePathsBeforePublishing() throws {

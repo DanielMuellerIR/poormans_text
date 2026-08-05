@@ -11,11 +11,21 @@ public enum ConversionDestination: Equatable, Sendable {
 }
 
 /// Werkzeugoptionen, die App, CLI und spätere Hosts einheitlich übergeben.
+public enum SpreadsheetRendering: String, Codable, Equatable, Sendable {
+    case markdownTable
+    case tabSeparated
+}
+
 public struct ConversionOptions: Equatable, Sendable {
     public var pandocExecutable: URL?
+    public var spreadsheetRendering: SpreadsheetRendering
 
-    public init(pandocExecutable: URL? = nil) {
+    public init(
+        pandocExecutable: URL? = nil,
+        spreadsheetRendering: SpreadsheetRendering = .markdownTable
+    ) {
         self.pandocExecutable = pandocExecutable
+        self.spreadsheetRendering = spreadsheetRendering
     }
 }
 

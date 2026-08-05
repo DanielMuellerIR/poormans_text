@@ -59,6 +59,20 @@
         <dict>
             <key>CFBundleTypeExtensions</key>
             <array>
+                <string>docm</string>
+                <string>dotx</string>
+                <string>dotm</string>
+            </array>
+            <key>CFBundleTypeName</key>
+            <string>Microsoft Word Open XML Macro or Template</string>
+            <key>CFBundleTypeRole</key>
+            <string>Viewer</string>
+            <key>LSHandlerRank</key>
+            <string>Alternate</string>
+        </dict>
+        <dict>
+            <key>CFBundleTypeExtensions</key>
+            <array>
                 <string>odt</string>
             </array>
             <key>CFBundleTypeName</key>
@@ -87,6 +101,62 @@
             <array>
                 <string>com.microsoft.word.doc</string>
             </array>
+        </dict>
+        <dict>
+            <key>CFBundleTypeExtensions</key>
+            <array>
+                <string>ods</string>
+            </array>
+            <key>CFBundleTypeName</key>
+            <string>OpenDocument Spreadsheet</string>
+            <key>CFBundleTypeRole</key>
+            <string>Viewer</string>
+            <key>LSHandlerRank</key>
+            <string>Alternate</string>
+            <key>LSItemContentTypes</key>
+            <array>
+                <string>org.oasis-open.opendocument.spreadsheet</string>
+            </array>
+        </dict>
+        <dict>
+            <key>CFBundleTypeExtensions</key>
+            <array>
+                <string>xlsx</string>
+            </array>
+            <key>CFBundleTypeName</key>
+            <string>Microsoft Excel Open XML Spreadsheet</string>
+            <key>CFBundleTypeRole</key>
+            <string>Viewer</string>
+            <key>LSHandlerRank</key>
+            <string>Alternate</string>
+        </dict>
+        <dict>
+            <key>CFBundleTypeExtensions</key>
+            <array>
+                <string>xls</string>
+            </array>
+            <key>CFBundleTypeName</key>
+            <string>Microsoft Excel Spreadsheet</string>
+            <key>CFBundleTypeRole</key>
+            <string>Viewer</string>
+            <key>LSHandlerRank</key>
+            <string>Alternate</string>
+            <key>LSItemContentTypes</key>
+            <array>
+                <string>com.microsoft.excel.xls</string>
+            </array>
+        </dict>
+        <dict>
+            <key>CFBundleTypeExtensions</key>
+            <array>
+                <string>odm</string>
+            </array>
+            <key>CFBundleTypeName</key>
+            <string>OpenDocument Master Document</string>
+            <key>CFBundleTypeRole</key>
+            <string>Viewer</string>
+            <key>LSHandlerRank</key>
+            <string>Alternate</string>
         </dict>
     </array>
     <key>CFBundleExecutable</key>

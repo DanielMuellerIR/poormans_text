@@ -1,14 +1,36 @@
 import Foundation
 import zlib
 
+enum WordProcessingPackageKind {
+    case document
+    case macroEnabledDocument
+    case template
+    case macroEnabledTemplate
+
+    var containsMacros: Bool {
+        self == .macroEnabledDocument || self == .macroEnabledTemplate
+    }
+
+    var isTemplate: Bool {
+        self == .template || self == .macroEnabledTemplate
+    }
+}
+
 struct WordProcessingPackageInspection {
     let format: InputFormat
+    let packageKind: WordProcessingPackageKind?
     let containsComments: Bool
     let containsTrackedChanges: Bool
     let unsafeImageReferences: [String]
 
     var warnings: [ConversionWarning] {
         var result = [ConversionWarning]()
+        if packageKind?.containsMacros == true {
+            result.append(.wordProcessingMacrosNotPreserved)
+        }
+        if packageKind?.isTemplate == true {
+            result.append(.wordProcessingTemplateSemanticsNotPreserved)
+        }
         if containsComments {
             result.append(.wordProcessingCommentsNotPreserved)
         }
@@ -23,10 +45,32 @@ struct WordProcessingPackageInspection {
     }
 }
 
+struct ZIPPackageContents {
+    let entryNames: Set<String>
+    let entries: [String: Data]
+}
+
 /// Liest nur das ZIP-Verzeichnis und wenige XML-Dateien. So wird ein Paket
 /// inhaltlich erkannt und auf Traversal, Symlinks und ZIP-Bomben geprüft, bevor
 /// Pandoc es in einem isolierten Arbeitsordner öffnet.
 enum ZIPArchiveInspector {
+    /// Stellt ausgewählte Paketdateien für andere native Adapter bereit. Schon
+    /// das Öffnen des Archivs prüft Namen, Größenbudgets, Verschlüsselung,
+    /// Kompressionsarten und Symlinks; die Konvertierung ruft diese Funktion auf
+    /// einer zuvor vollständig verifizierten Arbeitskopie auf.
+    static func packageContents(
+        at inputURL: URL,
+        entryNames requestedNames: [String]
+    ) throws -> ZIPPackageContents {
+        let archive = try Archive(url: inputURL)
+        let names = Set(archive.entries.map(\.name))
+        var entries = [String: Data]()
+        for name in requestedNames where names.contains(name) {
+            entries[name] = try archive.data(named: name)
+        }
+        return ZIPPackageContents(entryNames: names, entries: entries)
+    }
+
     static func inspectWordProcessingPackage(
         at inputURL: URL
     ) throws -> WordProcessingPackageInspection? {
@@ -35,9 +79,15 @@ enum ZIPArchiveInspector {
 
         if entryNames.contains("[Content_Types].xml"),
            entryNames.contains("word/document.xml") {
+            let packageKind = try WordprocessingContentTypesParser.packageKind(
+                in: try archive.data(named: "[Content_Types].xml")
+            )
             let document = try WordprocessingContentParser.inspect(
                 try archive.data(named: "word/document.xml")
             )
+            guard document.hasDocumentRoot else {
+                throw ArchiveError("word/document.xml has no valid WordprocessingML document root")
+            }
             let commentDefinitions = entryNames.contains("word/comments.xml")
                 ? try WordprocessingContentParser.inspect(
                     try archive.data(named: "word/comments.xml")
@@ -54,6 +104,7 @@ enum ZIPArchiveInspector {
 
             return WordProcessingPackageInspection(
                 format: .docx,
+                packageKind: packageKind,
                 containsComments: comments,
                 containsTrackedChanges: changes,
                 unsafeImageReferences: externalImages.sorted()
@@ -68,6 +119,7 @@ enum ZIPArchiveInspector {
             let parsed = try ODTContentParser.inspect(try archive.data(named: "content.xml"))
             return WordProcessingPackageInspection(
                 format: .odt,
+                packageKind: nil,
                 containsComments: parsed.containsAnnotations,
                 containsTrackedChanges: parsed.containsTrackedChanges,
                 unsafeImageReferences: parsed.externalImageReferences.sorted()
@@ -597,10 +649,96 @@ private enum ExternalImageRelationshipParser {
     }
 }
 
+/// Liest den Typ des Word-Hauptteils aus dem dafür verbindlichen
+/// `[Content_Types].xml`. So werden DOCM und DOTX nicht still wie ein normales
+/// DOCX behandelt, und ein beliebiges ZIP mit `word/document.xml` reicht nicht
+/// mehr als Formaterkennung aus.
+private enum WordprocessingContentTypesParser {
+    static func packageKind(in xml: Data) throws -> WordProcessingPackageKind {
+        let delegate = ContentTypesDelegate()
+        try parseXML(xml, with: delegate)
+        guard delegate.hasValidRoot else {
+            throw ContentTypeError("[Content_Types].xml has no valid Types root")
+        }
+        guard delegate.mainContentTypes.count == 1,
+              let contentType = delegate.mainContentTypes.first else {
+            throw ContentTypeError(
+                "[Content_Types].xml must declare exactly one content type for word/document.xml"
+            )
+        }
+
+        return switch contentType.lowercased() {
+        case "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml":
+            .document
+        case "application/vnd.ms-word.document.macroenabled.main+xml":
+            .macroEnabledDocument
+        case "application/vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml":
+            .template
+        case "application/vnd.ms-word.template.macroenabledtemplate.main+xml":
+            .macroEnabledTemplate
+        default:
+            throw ContentTypeError(
+                "word/document.xml has an unsupported main content type: \(contentType)"
+            )
+        }
+    }
+
+    private final class ContentTypesDelegate: NSObject, XMLParserDelegate {
+        var hasValidRoot = false
+        var mainContentTypes = Set<String>()
+        private var sawRoot = false
+
+        func parser(
+            _ parser: XMLParser,
+            didStartElement elementName: String,
+            namespaceURI: String?,
+            qualifiedName qName: String?,
+            attributes attributeDict: [String: String] = [:]
+        ) {
+            if !sawRoot {
+                sawRoot = true
+                hasValidRoot = elementName == "Types"
+                    && namespaceURI == "http://schemas.openxmlformats.org/package/2006/content-types"
+            }
+            guard elementName == "Override",
+                  let partName = attributeValue(localName: "PartName", in: attributeDict),
+                  "/" + partName.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+                    == "/word/document.xml",
+                  let contentType = attributeValue(
+                    localName: "ContentType",
+                    in: attributeDict
+                  ) else {
+                return
+            }
+            mainContentTypes.insert(contentType)
+        }
+    }
+
+    private struct ContentTypeError: LocalizedError {
+        let reason: String
+
+        init(_ reason: String) {
+            self.reason = reason
+        }
+
+        var errorDescription: String? { reason }
+    }
+}
+
 private struct WordprocessingContentInspection {
+    let rootElementName: String?
+    let rootNamespaceURI: String?
     let containsCommentAnchors: Bool
     let containsCommentDefinitions: Bool
     let containsTrackedChanges: Bool
+
+    var hasDocumentRoot: Bool {
+        guard rootElementName == "document", let rootNamespaceURI else {
+            return false
+        }
+        return rootNamespaceURI == "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+            || rootNamespaceURI == "http://purl.oclc.org/ooxml/wordprocessingml/main"
+    }
 }
 
 /// Zählt WordprocessingML-Elemente über ihren exakten lokalen Namen.
@@ -614,6 +752,8 @@ private enum WordprocessingContentParser {
         let delegate = ContentDelegate()
         try parseXML(xml, with: delegate)
         return WordprocessingContentInspection(
+            rootElementName: delegate.rootElementName,
+            rootNamespaceURI: delegate.rootNamespaceURI,
             containsCommentAnchors: delegate.containsCommentAnchors,
             containsCommentDefinitions: delegate.containsCommentDefinitions,
             containsTrackedChanges: delegate.containsTrackedChanges
@@ -624,6 +764,8 @@ private enum WordprocessingContentParser {
         var containsCommentAnchors = false
         var containsCommentDefinitions = false
         var containsTrackedChanges = false
+        var rootElementName: String?
+        var rootNamespaceURI: String?
 
         func parser(
             _ parser: XMLParser,
@@ -632,6 +774,10 @@ private enum WordprocessingContentParser {
             qualifiedName qName: String?,
             attributes attributeDict: [String: String] = [:]
         ) {
+            if rootElementName == nil {
+                rootElementName = elementName
+                rootNamespaceURI = namespaceURI
+            }
             switch elementName {
             case "commentRangeStart":
                 containsCommentAnchors = true

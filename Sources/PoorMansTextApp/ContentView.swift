@@ -68,9 +68,9 @@ struct ContentView: View {
             }
         } message: {
             if case .homebrewInstall = pandocOffer {
-                Text("Pandoc is required to convert documents. Install it now with Homebrew? This can take a few minutes.")
+                Text("Pandoc is required for word-processing documents and ODM master documents. ODS, XLSX, and XLS spreadsheets work without it. Install Pandoc now with Homebrew? This can take a few minutes.")
             } else {
-                Text("Pandoc is required to convert documents, but neither Pandoc nor Homebrew was found. The Pandoc website offers an official installer.")
+                Text("Pandoc is required for word-processing documents and ODM master documents. ODS, XLSX, and XLS spreadsheets work without it. The Pandoc website offers an official installer.")
             }
         }
         .alert("Pandoc Installed", isPresented: $showsPandocInstallSuccess) {
@@ -78,7 +78,7 @@ struct ContentView: View {
                 showsPandocInstallSuccess = false
             }
         } message: {
-            Text("Pandoc is now available. You can start converting documents.")
+            Text("Pandoc is now available for word-processing documents and ODM master documents.")
         }
         .alert(
             "Pandoc Installation Failed",
@@ -136,7 +136,7 @@ struct ContentView: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text(ProductInfo.name)
                     .font(.title.bold())
-                Text("Word-processing documents to Markdown, with images kept in place")
+                Text("Documents and spreadsheets to Markdown")
                     .foregroundStyle(.secondary)
             }
 
@@ -181,7 +181,7 @@ struct ContentView: View {
                     .controlSize(.large)
                 Text("Installing Pandoc…")
                     .font(.title3.bold())
-                Text("Documents are accepted again once the installation has finished.")
+                Text("Files are accepted again once the installation has finished.")
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: 390)
@@ -190,9 +190,9 @@ struct ContentView: View {
                     .font(.system(size: 45, weight: .medium))
                     .foregroundStyle(.tint)
                     .accessibilityHidden(true)
-                Text("Drop an RTF, RTFD, DOCX, ODT, or DOC document here")
+                Text("Drop a supported document or spreadsheet here")
                     .font(.title3.bold())
-                Text("A new folder with Markdown and an images directory will be created next to it.")
+                Text("A new folder with Markdown and any extracted assets will be created next to it.")
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: 390)
@@ -225,7 +225,7 @@ struct ContentView: View {
                 .textSelection(.enabled)
             Text(assetSummary(result))
                 .foregroundStyle(.secondary)
-            let warningMessages = WarningPresentation(warnings: result.warnings).messages
+            let warningMessages = result.warnings
             if !warningMessages.isEmpty {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 8) {
@@ -288,7 +288,7 @@ struct ContentView: View {
                     .controlSize(.small)
                 Text("Installing Pandoc…")
             } else {
-                Text("Requires Pandoc")
+                Text("Pandoc for word-processing and ODM formats")
             }
         }
         .font(.caption)

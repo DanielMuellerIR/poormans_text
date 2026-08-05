@@ -70,6 +70,92 @@ final class WordProcessingPackageInspectionTests: XCTestCase {
         )
     }
 
+    func testMacroEnabledDocumentIsAcceptedWithExplicitMacroWarning() throws {
+        let url = try write(
+            try ZIPFixtureBuilder.docxPackage(
+                documentXML: minimalDocumentXML,
+                mainContentType: ZIPFixtureBuilder.docmMainContentType
+            ),
+            as: "Macro.docm"
+        )
+
+        let inspection = try DocumentConverter().inspect(url)
+
+        XCTAssertEqual(inspection.format, .docx)
+        XCTAssertEqual(
+            inspection.expectedWarnings.map(\.code),
+            ["wordProcessing.macrosNotPreserved"]
+        )
+    }
+
+    func testTemplateIsAcceptedWithExplicitTemplateWarning() throws {
+        let url = try write(
+            try ZIPFixtureBuilder.docxPackage(
+                documentXML: minimalDocumentXML,
+                mainContentType: ZIPFixtureBuilder.dotxMainContentType
+            ),
+            as: "Template.dotx"
+        )
+
+        let inspection = try DocumentConverter().inspect(url)
+
+        XCTAssertEqual(inspection.format, .docx)
+        XCTAssertEqual(
+            inspection.expectedWarnings.map(\.code),
+            ["wordProcessing.templateSemanticsNotPreserved"]
+        )
+    }
+
+    func testMacroEnabledTemplateReportsBothLosses() throws {
+        let url = try write(
+            try ZIPFixtureBuilder.docxPackage(
+                documentXML: minimalDocumentXML,
+                mainContentType: ZIPFixtureBuilder.dotmMainContentType
+            ),
+            as: "MacroTemplate.dotm"
+        )
+
+        let inspection = try DocumentConverter().inspect(url)
+
+        XCTAssertEqual(inspection.format, .docx)
+        XCTAssertEqual(
+            inspection.expectedWarnings.map(\.code),
+            [
+                "wordProcessing.macrosNotPreserved",
+                "wordProcessing.templateSemanticsNotPreserved",
+            ]
+        )
+    }
+
+    func testRejectsWordPackageWithAnUnrelatedMainContentType() throws {
+        let url = try write(
+            try ZIPFixtureBuilder.docxPackage(
+                documentXML: minimalDocumentXML,
+                mainContentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"
+            ),
+            as: "NotWord.docx"
+        )
+
+        XCTAssertThrowsError(try DocumentConverter().inspect(url)) { error in
+            XCTAssertTrue(error.localizedDescription.contains("content type"))
+        }
+    }
+
+    func testRejectsWordPackageWhoseMainPartHasTheWrongRoot() throws {
+        let wrongRoot = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>
+        """
+        let url = try write(
+            try ZIPFixtureBuilder.docxPackage(documentXML: wrongRoot),
+            as: "WrongRoot.docx"
+        )
+
+        XCTAssertThrowsError(try DocumentConverter().inspect(url)) { error in
+            XCTAssertTrue(error.localizedDescription.contains("document root"))
+        }
+    }
+
     func testExternalImageRelationshipIsFoundWithAnUnusualPrefix() throws {
         let documentXML = """
         <?xml version="1.0" encoding="UTF-8"?>
@@ -154,5 +240,14 @@ final class WordProcessingPackageInspectionTests: XCTestCase {
         let url = temporaryDirectory.appendingPathComponent(name)
         try archive.write(to: url)
         return url
+    }
+
+    private var minimalDocumentXML: String {
+        """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+        <w:body><w:p><w:r><w:t>Fixture text</w:t></w:r></w:p></w:body>
+        </w:document>
+        """
     }
 }

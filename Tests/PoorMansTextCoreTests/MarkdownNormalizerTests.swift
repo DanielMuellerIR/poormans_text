@@ -3,11 +3,20 @@ import XCTest
 
 final class MarkdownNormalizerTests: XCTestCase {
     func testUsesTwoSpacesForPandocHardBreaksAndRemovesEmptyEmphasis() {
-        let markdown = "Text\\\n\n****\\\n\nNext\n"
+        let markdown = "Text\\\ncontinued\n\n****\\\n\nNext\n"
 
         XCTAssertEqual(
             MarkdownNormalizer.normalize(markdown),
-            "Text  \n  \nNext\n"
+            "Text  \ncontinued\n  \nNext\n"
+        )
+    }
+
+    func testDropsLayoutOnlyHardBreaksBeforeBlankListAndDocumentEnd() {
+        let markdown = "Paragraph\\\n\nBefore list\\\n- item\nEnd\\"
+
+        XCTAssertEqual(
+            MarkdownNormalizer.normalize(markdown),
+            "Paragraph\n\nBefore list\n- item\nEnd"
         )
     }
 

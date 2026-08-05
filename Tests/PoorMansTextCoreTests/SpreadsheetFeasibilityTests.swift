@@ -22,11 +22,7 @@ final class SpreadsheetFeasibilityTests: XCTestCase {
         XCTAssertTrue(content.contains("Grüße aus Köln"))
         XCTAssertTrue(content.contains("table:formula="))
 
-        XCTAssertThrowsError(try DocumentConverter().detectFormat(at: fixtureURL)) { error in
-            guard case ConversionError.unsupportedInput = error else {
-                return XCTFail("ODS must remain after the word-processing formats: \(error)")
-            }
-        }
+        XCTAssertEqual(try DocumentConverter().detectFormat(at: fixtureURL), .ods)
         XCTAssertEqual(try Data(contentsOf: fixtureURL), sourceBefore)
     }
 

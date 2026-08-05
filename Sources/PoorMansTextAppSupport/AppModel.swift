@@ -24,10 +24,8 @@ public final class AppModel: ObservableObject {
         return false
     }
 
-    /// Nimmt die App gerade ein neues Dokument an? Während einer laufenden
-    /// Umwandlung nicht — und ebenso wenig, solange Pandoc installiert wird:
-    /// ohne Pandoc scheitert jede Umwandlung sofort mit `pandocNotFound`,
-    /// obwohl das Fenster gerade „Installing Pandoc…" anzeigt.
+    /// Nimmt die App gerade eine neue Datei an? Während einer laufenden
+    /// Umwandlung oder Pandoc-Installation bleibt nur ein Auftrag aktiv.
     public var acceptsNewDocuments: Bool {
         !isConverting && !isInstallingPandoc
     }
@@ -100,9 +98,11 @@ public final class AppModel: ObservableObject {
     /// Der echte Öffnen-Dialog von macOS.
     private static func presentOpenPanel() -> URL? {
         let panel = NSOpenPanel()
-        panel.title = "Choose a Word-Processing Document"
+        panel.title = "Choose a Document or Spreadsheet"
         panel.prompt = "Convert"
-        panel.allowedContentTypes = ["rtf", "rtfd", "docx", "odt", "doc"].compactMap {
+        let extensions = DocumentConverter().supportedFormatDescriptors
+            .flatMap(\.fileExtensions)
+        panel.allowedContentTypes = Array(Set(extensions)).sorted().compactMap {
             UTType(filenameExtension: $0)
         }
         panel.allowsMultipleSelection = false
@@ -117,8 +117,7 @@ public final class AppModel: ObservableObject {
 
     /// Installiert Pandoc über Homebrew und sperrt für die Dauer des Laufs alle
     /// Einstiege: Drop-Zone, „Choose Document…" und per `onOpenURL` geöffnete
-    /// Dateien. Ohne diese Sperre liefe jede Anfrage während der Installation in
-    /// `pandocNotFound`, obwohl die App die Installation gerade anzeigt.
+    /// Dateien. So überlagert kein zweiter Auftrag die laufende Installation.
     ///
     /// Die eigentliche Installation ist ein Parameter, damit Tests die Sperre
     /// ohne Homebrew nachstellen können.

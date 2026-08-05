@@ -80,9 +80,10 @@ final class RichTextConverterTests: XCTestCase {
         XCTAssertTrue(markdown.contains("*italic*"))
         XCTAssertTrue(markdown.contains("[example](https://example.com/path)"))
         XCTAssertTrue(
-            markdown.contains("Purple text remains readable.  \n  \nAfter the blank line."),
+            markdown.contains("Purple text remains readable.\n\nAfter the blank line."),
             markdown
         )
+        XCTAssertFalse(markdown.contains("\n  \n"), markdown)
         XCTAssertTrue(markdown.contains("-   First item") || markdown.contains("- First item"))
         XCTAssertTrue(markdown.contains("-   Second item") || markdown.contains("- Second item"))
         XCTAssertEqual(markdown.components(separatedBy: "Purple text").count - 1, 1)
@@ -203,6 +204,92 @@ final class RichTextConverterTests: XCTestCase {
 
         XCTAssertTrue(markdown.contains("First paragraph\n\nSecond paragraph"))
         XCTAssertFalse(markdown.contains("First paragraph  \nSecond paragraph"))
+    }
+
+    func testRepairsEscapedNewlineParagraphsAndKeepsRTFListsTight() throws {
+        try requirePandoc()
+        let inputURL = temporaryDirectory.appendingPathComponent("Escaped newlines.rtf")
+        let rtf = #"""
+        {\rtf1\ansi
+        First paragraph\
+        Second paragraph\
+        \pard\tx220\tx720\li720\fi-720
+        \ls1\ilvl0{\listtext\u8226  }First item\
+        \ls1\ilvl0{\listtext\u8226  }Second item\
+        }
+        """#
+        try Data(rtf.utf8).write(to: inputURL)
+
+        let result = try RichTextConverter().convert(inputURL: inputURL)
+        let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+
+        XCTAssertTrue(
+            markdown.contains("First paragraph\n\nSecond paragraph"),
+            "Escaped RTF paragraph boundaries were lost:\n\(markdown)"
+        )
+        XCTAssertFalse(
+            markdown.contains("First item\n\n") || markdown.contains("First item\n  \n"),
+            "Pandoc produced a loose list:\n\(markdown)"
+        )
+        XCTAssertTrue(markdown.contains("First item"))
+        XCTAssertTrue(markdown.contains("Second item"))
+    }
+
+    func testRTFPreparationDoesNotTreatEscapedBackslashAsParagraphControl() {
+        let source = Data(#"{\rtf1 literal \\par trailing \par}"#.utf8)
+
+        let prepared = RichTextAdapter().preservingEmptyRTFParagraphs(
+            in: source,
+            marker: "EMPTY"
+        )
+
+        XCTAssertEqual(prepared, source)
+    }
+
+    func testRTFPreparationSkipsBinaryPayloadContainingParagraphBytes() {
+        let prefix = Data(#"{\rtf1\bin8 "#.utf8)
+        let binaryPayload = Data(#"\par\par"#.utf8)
+        let suffix = Data(#"\par\par}"#.utf8)
+        var source = prefix
+        source.append(binaryPayload)
+        source.append(suffix)
+
+        let prepared = RichTextAdapter().preservingEmptyRTFParagraphs(
+            in: source,
+            marker: "EMPTY"
+        )
+        let text = String(decoding: prepared, as: UTF8.self)
+
+        XCTAssertTrue(prepared.starts(with: prefix + binaryPayload))
+        XCTAssertEqual(text.components(separatedBy: "EMPTY").count - 1, 1)
+    }
+
+    func testRTFPreparationHandlesControlsAtDataBoundaries() {
+        let adapter = RichTextAdapter()
+        let trailingBackslash = Data([0x7B, 0x5C])
+        let trailingControl = Data(#"{\rtf1\par"#.utf8)
+
+        XCTAssertEqual(
+            adapter.preservingEmptyRTFParagraphs(in: trailingBackslash, marker: "EMPTY"),
+            trailingBackslash
+        )
+        XCTAssertEqual(
+            adapter.preservingEmptyRTFParagraphs(in: trailingControl, marker: "EMPTY"),
+            trailingControl
+        )
+    }
+
+    func testListParagraphUnwrapIsLimitedToSinglePlainParagraph() {
+        let adapter = RichTextAdapter()
+
+        XCTAssertEqual(
+            adapter.unwrappingListParagraphs(in: "<ul><li class=\"x\"><p>Item</p></li></ul>"),
+            "<ul><li class=\"x\">Item</li></ul>"
+        )
+        XCTAssertEqual(
+            adapter.unwrappingListParagraphs(in: "<li><p>First</p><p>Second</p></li>"),
+            "<li><p>First</p><p>Second</p></li>"
+        )
     }
 
     func testKeepsRealRTFDParagraphsSeparate() throws {

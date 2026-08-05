@@ -414,9 +414,15 @@ if [ "$installation_valid" -ne 1 ]; then
 fi
 
 if [ "$had_existing_app" -eq 1 ] && ! app_matches_release_identity "$staged_app"; then
-        rollback_app_installation
-        echo "Die atomar gesicherte alte App hat unerwartet die Identität gewechselt: $staged_app" >&2
-        exit 73
+    # Die neue App und ihr CLI-Link haben die Endprüfung bestanden. Ein
+    # verdächtiges Backup jetzt zurückzutauschen würde den validierten Stand
+    # durch genau das Bundle ersetzen, dem wir nicht mehr vertrauen.
+    installation_state="backup-suspicious"
+    created_cli=0
+    echo "Die atomar gesicherte alte App hat unerwartet die Identität gewechselt: $staged_app" >&2
+    echo "Die geprüfte neue App bleibt installiert: $destination_app; CLI: $destination_cli" >&2
+    echo "Das verdächtige Backup bleibt unangetastet." >&2
+    exit 73
 fi
 installation_state="committed"
 created_cli=0

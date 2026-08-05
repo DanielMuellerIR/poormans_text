@@ -93,6 +93,11 @@ Endprüfung an einem eindeutigen Stage-Pfad erhalten. Schlägt auch der Rücktau
 fehl, löscht der Cleanup diesen Rettungspfad nicht, meldet ihn ausdrücklich und
 beendet den Lauf mit einem Fehlerstatus.
 
+Ändert dieses Backup während der Endprüfung unerwartet seine Identität, bleibt
+das bereits validierte neue Bundle samt CLI installiert. Der verdächtige
+Rettungspfad wird weder zurückgetauscht noch gelöscht; der Installer meldet beide
+Pfade und endet mit Exit 73.
+
 ## Distributionspaket
 
 ```sh
@@ -148,11 +153,14 @@ swift test
 scripts/verify_bundle.sh "Poor Man's Text.app"
 ```
 
-Zusätzlich je ein echtes RTF, RTFD, DOCX, ODT und DOC über die gebaute Root-CLI
-konvertieren, vorhandene Bilder per Hash vergleichen und die App als Bundle ohne
-Fokuswechsel starten. DOCX und ODT müssen aus einem anderen Erzeuger als die
-Unit-Testdatei stammen; DOC wird wegen möglicher Systemimportverluste zusätzlich
-inhaltlich gegen `textutil -convert txt` geprüft.
+Zusätzlich je ein echtes RTF, RTFD, DOCX, ODT, DOC, ODS, XLSX und XLS über die
+gebaute Root-CLI konvertieren, vorhandene Bilder per Hash vergleichen und die App
+als Bundle ohne Fokuswechsel starten. DOCX und ODT müssen aus einem anderen
+Erzeuger als die Unit-Testdatei stammen; DOC wird wegen möglicher
+Systemimportverluste zusätzlich inhaltlich gegen `textutil -convert txt`
+geprüft. ODS und XLS werden gegeneinander auf dieselben Zellwerte geprüft; XLSX
+zusätzlich gegen einen unabhängigen Pandoc-Lauf. ODM braucht für den Reallauf
+mindestens zwei lokale ODT-Teildokumente in verschiedenen Unterverzeichnissen.
 Für einen installierten Build und das DMG müssen `stapler`, `spctl`, `codesign`
 und `hdiutil verify` am tatsächlichen Ziel erfolgreich sein; ein grüner
 SwiftPM-Build allein genügt nicht.

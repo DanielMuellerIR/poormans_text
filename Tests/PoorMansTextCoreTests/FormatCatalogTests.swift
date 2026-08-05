@@ -29,16 +29,22 @@ final class FormatCatalogTests: XCTestCase {
                     "extensions are stored lowercase"
                 )
             }
-            XCTAssertFalse(
-                descriptor.requiredTools.isEmpty,
-                "\(descriptor.format.rawValue) claims to need no external tool"
-            )
         }
 
         // Eine Endung darf höchstens ein Format bezeichnen, sonst könnte ein Host
         // sie nicht eindeutig zuordnen.
         let allExtensions = descriptors.flatMap(\.fileExtensions)
         XCTAssertEqual(allExtensions.count, Set(allExtensions).count)
+    }
+
+    func testNativeSpreadsheetFormatsRequireNoExternalTool() {
+        let descriptors = DocumentConverter().supportedFormatDescriptors
+        for format in [InputFormat.ods, .xlsx, .xls] {
+            XCTAssertEqual(
+                descriptors.first { $0.format == format }?.requiredTools,
+                []
+            )
+        }
     }
 
     func testRTFDIsTheOnlyPackageFormat() {

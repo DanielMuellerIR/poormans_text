@@ -26,7 +26,13 @@ final class ProductInfoTests: XCTestCase {
         let extensions = documentTypes.flatMap {
             $0["CFBundleTypeExtensions"] as? [String] ?? []
         }
-        XCTAssertEqual(Set(extensions), ["rtf", "rtfd", "docx", "odt", "doc"])
+        XCTAssertEqual(
+            Set(extensions),
+            [
+                "rtf", "rtfd", "docx", "docm", "dotx", "dotm", "odt", "doc",
+                "ods", "xlsx", "xls", "odm",
+            ]
+        )
     }
 
     func testPublicDocumentationNamesCurrentVersion() throws {

@@ -7,18 +7,17 @@
 **🌐 Sprache / Language:** [English](README.md) · [Deutsch](README.de.md)
 
 <p align="center">
-  <strong>Convert RTF, RTFD, DOCX, ODT, and DOC documents to Markdown with extracted images.</strong>
+  <strong>Convert word-processing documents and spreadsheets to Markdown.</strong>
 </p>
 
-Poor Man's Text converts Rich Text Format (`.rtf`) and macOS Rich Text with
-Attachments (`.rtfd`) documents as well as DOCX, OpenDocument Text (`.odt`), and
-legacy Word (`.doc`) files into folders containing Markdown and separately stored
-image assets.
+Poor Man's Text converts RTF, RTFD, DOCX (including DOCM and DOTX/DOTM), ODT,
+legacy Word (`.doc`), ODS, XLSX, XLS, and OpenDocument master (`.odm`) files into
+folders containing Markdown and any separately stored image assets.
 
 The project provides two interfaces over the same conversion core:
 
 - `poormans-text`, an automation-friendly command-line tool
-- a native macOS app for opening or dropping supported word-processing documents
+- a native macOS app for opening or dropping supported documents and spreadsheets
 
 Conversion is deliberately lossy. Markdown can preserve document structure,
 links, simple emphasis, lists, and images, but not every font, layout, or
@@ -26,8 +25,8 @@ TextKit-specific attribute.
 
 ## Output
 
-Converting a supported document creates a new sibling directory without changing
-the source:
+Converting a supported input creates a new sibling directory without changing
+the source. If the input contains extractable images, the result looks like this:
 
 ```text
 Document-markdown/
@@ -51,11 +50,13 @@ path; the converter keeps the text and returns a warning instead.
 ## Requirements
 
 - macOS 13 or newer
-- [Pandoc](https://pandoc.org/installing.html)
+- [Pandoc](https://pandoc.org/installing.html) for word-processing and ODM files
 - Swift 6.2 or newer when building from source
 
-The converter searches for Pandoc in the common Homebrew locations and then on
-`PATH`. The CLI also accepts an explicit executable through `--pandoc PATH`.
+ODS, XLSX, and XLS are read natively and need no external conversion tool. For
+the remaining formats, the converter searches for Pandoc in the common Homebrew
+locations and then on `PATH`. The CLI also accepts an explicit executable
+through `--pandoc PATH`.
 
 While Pandoc is missing, the app offers at every launch to install it through
 Homebrew, or points to the official installation help when Homebrew is absent.
@@ -73,8 +74,8 @@ shasum -a 256 -c Poor-Mans-Text-0.7.1.dmg.sha256
 
 Open the DMG and drag Poor Man's Text to Applications. The app is signed with
 Developer ID, notarized by Apple, and includes the matching universal CLI.
-Pandoc remains a separate requirement and can, for example, be installed with
-`brew install pandoc`.
+Pandoc remains a separate requirement for word-processing and ODM files and can,
+for example, be installed with `brew install pandoc`.
 
 ## Updates
 
@@ -97,6 +98,11 @@ poormans-text Document.rtf
 poormans-text Document.docx
 poormans-text Document.odt
 poormans-text Document.doc
+poormans-text Workbook.ods
+poormans-text Workbook.xlsx
+poormans-text Workbook.xls
+poormans-text Book.odm
+poormans-text --spreadsheet-format tsv Workbook.ods
 poormans-text --output Converted Document.rtfd
 poormans-text --json Document.rtfd
 ```
@@ -125,16 +131,21 @@ file or a folder package such as `.rtfd`, the external tools it needs, and
 whether those tools are installed right now:
 
 ```text
-rtf   .rtf   file     pandoc           available
-rtfd  .rtfd  package  pandoc+textutil  available
-docx  .docx  file     pandoc           available
-odt   .odt   file     pandoc           available
-doc   .doc   file     textutil+pandoc  available
+rtf   .rtf                     file     pandoc           available
+rtfd  .rtfd                    package  pandoc+textutil  available
+docx  .docx .docm .dotx .dotm  file     pandoc           available
+odt   .odt                     file     pandoc           available
+doc   .doc                     file     textutil+pandoc  available
+ods   .ods                     file                      available
+xlsx  .xlsx                    file                      available
+xls   .xls                     file                      available
+odm   .odm                     file     pandoc           available
 ```
 
-Without Pandoc every line reads `unavailable (missing required tool: pandoc)`,
-because all current formats need it. The `textutil` that DOC and RTFD
-additionally require is part of macOS.
+Without Pandoc, the word-processing and ODM lines read
+`unavailable (missing required tool: pandoc)`; ODS, XLSX, and XLS remain
+available. The `textutil` that DOC and RTFD additionally require is part of
+macOS.
 
 This is the intended way for another application to decide whether to offer a
 conversion. Because the list comes from the converter itself, a host picks up
@@ -156,8 +167,8 @@ the CLI, into the repository root. Both copies are ad-hoc signed for local
 testing only: they are not a notarized distribution build and must not be copied
 to `/Applications`.
 
-Drop an RTF, RTFD, DOCX, ODT, or DOC document into the window or onto the app,
-or choose one from the open panel. The app shows the conversion result and can
+Drop any supported document or spreadsheet into the window or onto the app, or
+choose one from the open panel. The app shows the conversion result and can
 reveal the generated Markdown in Finder.
 
 ## Signed installation
@@ -210,16 +221,27 @@ RTFD stores text in `TXT.rtf` and keeps attachments as separate files inside a
 macOS package. Poor Man's Text uses the macOS text system to create HTML and
 materialize those attachments. Standard RTF stores images inside the file;
 Pandoc reads that container and extracts its media without a Cocoa round trip.
-DOCX and ODT pass through a shared, sandboxed Pandoc container adapter that
-validates every ZIP entry and extracts media only inside the private work area.
+DOCX, DOCM, DOTX/DOTM, and ODT pass through a shared, sandboxed Pandoc container
+adapter that validates every ZIP entry and extracts media only inside the private
+work area. Macro-enabled packages and templates are accepted after their OOXML
+content type has been checked, with explicit warnings that macros and template
+behavior are not retained.
+
 DOC remains a separate legacy adapter: macOS `textutil` creates local HTML, and
 the converter warns that OLE objects, text boxes, macros, and some embedded
 content may be lost. DOCX tracked changes are explicitly accepted; comments and
 accepted changes are reported as diagnostics.
 
+ODS, XLSX, and binary XLS use native readers and a shared workbook model. Each
+sheet becomes a Markdown section, in source order, rendered either as a GFM
+table or as an escaped TSV code block. Formulas are not calculated; stored
+cell results are used. ODM master documents keep their own text and safely
+resolve only existing local ODT sections before flattening them in source order.
+
 The format-neutral engine verifies source contents instead of trusting only the
-filename extension, then selects the matching path. Every path validates and
-rewrites image references before Pandoc creates GitHub-Flavored Markdown.
+filename extension, then selects the matching path. Word-processing paths
+validate and rewrite image references before Pandoc creates GitHub-Flavored
+Markdown; native spreadsheet paths do not start Pandoc.
 
 The conversion runs in a private staging directory and moves the completed
 result into a persistent or caller-owned temporary destination only after all
@@ -237,6 +259,8 @@ Typically preserved:
 - simple ordered and unordered lists
 - semantic headings, footnotes, and simple tables in DOCX and ODT
 - image order and relative image references
+- stored spreadsheet values, sheet names, sheet order, empty cells, and internal line breaks
+- local ODM section order
 
 Expected losses or approximations:
 
@@ -248,6 +272,10 @@ Expected losses or approximations:
 - semantic heading levels when the source only expresses larger font sizes
 - DOCX/ODT comments and DOC change markup
 - DOC OLE objects, text boxes, macros, and images unsupported by `textutil`
+- DOCM/DOTM macros and DOTX/DOTM template behavior
+- spreadsheet formulas without stored results, merged-cell structure, charts,
+  drawings, comments, macros, and exact formatting
+- ODM section boundaries and master-document behavior after flattening
 
 ## Development
 
@@ -258,17 +286,19 @@ swift test
 ```
 
 See [docs/BUILD-AND-TEST.md](docs/BUILD-AND-TEST.md) for build, signing, and
-installation details. ODS, XLSX, XLS, images, PDF, and ODM are tracked in
-[ROADMAP.md](ROADMAP.md). The tested workbook model, two table representations,
-and multi-sheet decision are described in
+installation details. Image/OCR and PDF import are tracked in
+[ROADMAP.md](ROADMAP.md). The implemented workbook model, two table representations,
+and multi-sheet behavior are described in
 [docs/SPREADSHEET-IMPORT.md](docs/SPREADSHEET-IMPORT.md).
 
 The test suite creates real temporary Cocoa RTFD packages and monolithic RTF
 files with formatting, colors, empty lines, links, lists, Unicode filenames,
 and embedded images. Versioned DOCX, ODT, and binary DOC fixtures from independent
 producers cover headings, footnotes, tables, lists, links, comments, tracked
-changes, Unicode, and media hashes. Tests also cover output collisions, malformed
-or unsafe packages, an XLS/DOC OLE distinction, missing dependencies, warnings,
+changes, Unicode, and media hashes. Native spreadsheet tests cover real ODS and
+XLS files, generated XLSX packages, sheet order, cell budgets, warnings, and an
+independent Pandoc comparison. ODM tests use local linked ODT files. Tests also
+cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
 The current version is 0.7.1.

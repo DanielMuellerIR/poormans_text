@@ -27,6 +27,10 @@ final class CLIIntegrationTests: XCTestCase {
         )
         XCTAssertEqual(successJSON["ok"] as? Bool, true)
         XCTAssertEqual(successJSON["version"] as? String, ProductInfo.version)
+        for key in ["input", "outputDirectory", "markdownFile"] {
+            let path = try XCTUnwrap(successJSON[key] as? String)
+            XCTAssertEqual(path, URL(fileURLWithPath: path).resolvingSymlinksInPath().path)
+        }
         XCTAssertTrue(
             FileManager.default.fileExists(
                 atPath: temporaryDirectory.appendingPathComponent("Minimal-markdown/Minimal.md").path
@@ -185,10 +189,16 @@ final class CLIIntegrationTests: XCTestCase {
             XCTAssertFalse((entry["extensions"] as? [String] ?? []).isEmpty)
             XCTAssertTrue(["file", "package"].contains(entry["container"] as? String ?? ""))
             XCTAssertNotNil(entry["available"] as? Bool)
+            XCTAssertTrue(entry.keys.contains("unavailableReason"))
+            if entry["available"] as? Bool == true {
+                XCTAssertTrue(entry["unavailableReason"] is NSNull)
+            }
         }
         let rtfd = try XCTUnwrap(formats.first { $0["format"] as? String == "rtfd" })
         XCTAssertEqual(rtfd["container"] as? String, "package")
         XCTAssertEqual(rtfd["extensions"] as? [String], ["rtfd"])
+        let docx = try XCTUnwrap(formats.first { $0["format"] as? String == "docx" })
+        XCTAssertEqual(docx["extensions"] as? [String], ["docx", "docm", "dotx", "dotm"])
     }
 
     func testFormatsReportsMissingToolInsteadOfFailing() throws {
@@ -201,9 +211,44 @@ final class CLIIntegrationTests: XCTestCase {
         let formats = try XCTUnwrap(decodeJSON(result.standardOutput)["formats"] as? [[String: Any]])
         XCTAssertFalse(formats.isEmpty)
         for entry in formats {
-            XCTAssertEqual(entry["available"] as? Bool, false)
-            XCTAssertNotNil(entry["unavailableReason"] as? String)
+            let format = entry["format"] as? String
+            if ["ods", "xlsx", "xls"].contains(format) {
+                XCTAssertEqual(entry["available"] as? Bool, true)
+                XCTAssertTrue(entry["unavailableReason"] is NSNull)
+            } else {
+                XCTAssertEqual(entry["available"] as? Bool, false)
+                XCTAssertNotNil(entry["unavailableReason"] as? String)
+            }
         }
+    }
+
+    func testSpreadsheetRenderingOptionSelectsEscapedTSV() throws {
+        let temporaryDirectory = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "PoorMansTextCLISpreadsheetTests-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        try FileManager.default.createDirectory(at: temporaryDirectory, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: temporaryDirectory) }
+        let inputURL = Bundle.module.resourceURL!
+            .appendingPathComponent("Fixtures/Spreadsheets/multisheet.ods")
+        let outputURL = temporaryDirectory.appendingPathComponent("result")
+
+        let result = try runCLI([
+            "--spreadsheet-format", "tsv", "--output", outputURL.path, inputURL.path,
+        ])
+
+        XCTAssertEqual(result.status, 0, result.standardError)
+        let markdown = try String(
+            contentsOf: outputURL.appendingPathComponent("multisheet.md"),
+            encoding: .utf8
+        )
+        XCTAssertTrue(markdown.contains("```tsv"))
+        XCTAssertTrue(markdown.contains(#"First line\nSecond line"#))
+
+        assertTextFailure(
+            try runCLI(["--spreadsheet-format", "unknown", inputURL.path]),
+            expectedStatus: 64
+        )
     }
 
     func testFormatsRejectsAConversionArgumentInsteadOfGuessing() throws {

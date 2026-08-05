@@ -71,6 +71,34 @@ final class InstallScriptRollbackTests: XCTestCase {
         }
     }
 
+    func testSuspiciousBackupDoesNotReplaceValidatedNewApp() throws {
+        try withTransactionDirectories { stagedApp, destinationApp in
+            let script = #"""
+            source "$1"
+            set -u
+            staged_app="$2"
+            destination_app="$3"
+            installation_state=backup-suspicious
+            created_cli=0
+            swap_install_paths() { echo "unexpected swap" >&2; return 99; }
+            remove_install_path() { echo "unexpected remove: $1" >&2; return 99; }
+            app_matches_release_identity() { return 1; }
+            poormans_text_cleanup_installation
+            """#
+
+            let result = try runBash(script, stagedApp: stagedApp, destinationApp: destinationApp)
+
+            XCTAssertEqual(result.status, 0, result.standardError)
+            XCTAssertFalse(result.standardError.contains("unexpected"))
+            XCTAssertTrue(FileManager.default.fileExists(
+                atPath: stagedApp.appendingPathComponent("old-marker").path
+            ))
+            XCTAssertTrue(FileManager.default.fileExists(
+                atPath: destinationApp.appendingPathComponent("new-marker").path
+            ))
+        }
+    }
+
     private func withTransactionDirectories(
         _ body: (URL, URL) throws -> Void
     ) throws {

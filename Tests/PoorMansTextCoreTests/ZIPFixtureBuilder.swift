@@ -25,7 +25,8 @@ enum ZIPFixtureBuilder {
     static func wordProcessingPackage(
         mediaContent: Data = Data(repeating: 0x2E, count: 4096),
         declaredMediaSize: Int? = nil,
-        declaredMediaChecksum: UInt32? = nil
+        declaredMediaChecksum: UInt32? = nil,
+        mainContentType: String = docxMainContentType
     ) throws -> Data {
         let documentXML = """
         <?xml version="1.0" encoding="UTF-8"?>
@@ -33,10 +34,7 @@ enum ZIPFixtureBuilder {
         <w:body><w:p><w:r><w:t>Fixture text</w:t></w:r></w:p></w:body>
         </w:document>
         """
-        let contentTypes = """
-        <?xml version="1.0" encoding="UTF-8"?>
-        <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"/>
-        """
+        let contentTypes = contentTypesXML(mainContentType: mainContentType)
         return try archive(entries: [
             Entry(name: "[Content_Types].xml", content: Data(contentTypes.utf8)),
             Entry(name: "word/document.xml", content: Data(documentXML.utf8)),
@@ -53,12 +51,10 @@ enum ZIPFixtureBuilder {
     /// Namensraum-Präfixe und Feldcodes durchspielen können.
     static func docxPackage(
         documentXML: String,
-        relationshipsXML: String? = nil
+        relationshipsXML: String? = nil,
+        mainContentType: String = docxMainContentType
     ) throws -> Data {
-        let contentTypes = """
-        <?xml version="1.0" encoding="UTF-8"?>
-        <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"/>
-        """
+        let contentTypes = contentTypesXML(mainContentType: mainContentType)
         var entries = [
             Entry(name: "[Content_Types].xml", content: Data(contentTypes.utf8)),
             Entry(name: "word/document.xml", content: Data(documentXML.utf8)),
@@ -74,12 +70,124 @@ enum ZIPFixtureBuilder {
         return try archive(entries: entries)
     }
 
+    static let docxMainContentType =
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"
+    static let docmMainContentType =
+        "application/vnd.ms-word.document.macroEnabled.main+xml"
+    static let dotxMainContentType =
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml"
+    static let dotmMainContentType =
+        "application/vnd.ms-word.template.macroEnabledTemplate.main+xml"
+
+    private static func contentTypesXML(mainContentType: String) -> String {
+        """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+        <Override PartName="/word/document.xml" ContentType="\(mainContentType)"/>
+        </Types>
+        """
+    }
+
     /// Ein ODT-Paket mit frei wählbarem `content.xml`.
     static func odtPackage(contentXML: String) throws -> Data {
         try archive(entries: [
             Entry(
                 name: "mimetype",
                 content: Data("application/vnd.oasis.opendocument.text".utf8),
+                isStored: true
+            ),
+            Entry(name: "content.xml", content: Data(contentXML.utf8)),
+        ])
+    }
+
+    static func odsPackage(contentXML: String) throws -> Data {
+        try archive(entries: [
+            Entry(
+                name: "mimetype",
+                content: Data("application/vnd.oasis.opendocument.spreadsheet".utf8),
+                isStored: true
+            ),
+            Entry(name: "content.xml", content: Data(contentXML.utf8)),
+        ])
+    }
+
+    static func xlsxPackage(
+        firstSheetXML: String,
+        secondSheetXML: String,
+        secondSheetTargetMode: String? = nil
+    ) throws -> Data {
+        let contentTypes = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+          <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+          <Default Extension="xml" ContentType="application/xml"/>
+          <Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
+          <Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
+          <Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
+          <Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/>
+          <Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>
+        </Types>
+        """
+        let rootRelationships = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+          <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
+        </Relationships>
+        """
+        let workbook = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+          xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+          <sheets>
+            <sheet name="Summary" sheetId="1" r:id="rId1"/>
+            <sheet name="Details &amp; Notes" sheetId="2" r:id="rId2"/>
+          </sheets>
+        </workbook>
+        """
+        let targetMode = secondSheetTargetMode.map { " TargetMode=\"\($0)\"" } ?? ""
+        let workbookRelationships = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+          <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
+          <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"\(targetMode)/>
+          <Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings" Target="sharedStrings.xml"/>
+          <Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
+        </Relationships>
+        """
+        let sharedStrings = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="8" uniqueCount="8">
+          <si><t>Product</t></si><si><t>Units</t></si><si><t>Äpfel</t></si>
+          <si><t>Birnen</t></si><si><t>ID</t></si><si><t>Description</t></si>
+          <si><t>A-01</t></si><si><t>Grüße aus Köln</t></si>
+        </sst>
+        """
+        let styles = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+          <fonts count="1"><font/></fonts><fills count="1"><fill/></fills>
+          <borders count="1"><border/></borders>
+          <cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
+          <cellXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/></cellXfs>
+        </styleSheet>
+        """
+        return try archive(entries: [
+            Entry(name: "[Content_Types].xml", content: Data(contentTypes.utf8)),
+            Entry(name: "_rels/.rels", content: Data(rootRelationships.utf8)),
+            Entry(name: "xl/workbook.xml", content: Data(workbook.utf8)),
+            Entry(name: "xl/_rels/workbook.xml.rels", content: Data(workbookRelationships.utf8)),
+            Entry(name: "xl/sharedStrings.xml", content: Data(sharedStrings.utf8)),
+            Entry(name: "xl/styles.xml", content: Data(styles.utf8)),
+            Entry(name: "xl/worksheets/sheet1.xml", content: Data(firstSheetXML.utf8)),
+            Entry(name: "xl/worksheets/sheet2.xml", content: Data(secondSheetXML.utf8)),
+        ])
+    }
+
+    static func odmPackage(contentXML: String) throws -> Data {
+        try archive(entries: [
+            Entry(
+                name: "mimetype",
+                content: Data("application/vnd.oasis.opendocument.text-master".utf8),
                 isStored: true
             ),
             Entry(name: "content.xml", content: Data(contentXML.utf8)),

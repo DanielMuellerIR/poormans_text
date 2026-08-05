@@ -18,7 +18,10 @@ enum MarkdownNormalizer {
         var transformed = [String]()
         transformed.reserveCapacity(lines.count)
         for (index, line) in lines.enumerated() {
-            transformed.append(isCode[index] ? line : normalizeLine(line))
+            let nextLine = index + 1 < lines.count ? lines[index + 1] : nil
+            transformed.append(
+                isCode[index] ? line : normalizeLine(line, nextLine: nextLine)
+            )
         }
 
         let compacted = compactPandocParagraphSpacing(transformed, isCode: isCode)
@@ -139,7 +142,7 @@ enum MarkdownNormalizer {
             .reduce(0) { $0 + ($1 == "\t" ? 4 : 1) }
     }
 
-    private static func normalizeLine(_ line: String) -> String {
+    private static func normalizeLine(_ line: String, nextLine: String?) -> String {
         if isEmphasizedBullet(line) {
             return indentation(of: line) + "-"
         }
@@ -150,7 +153,10 @@ enum MarkdownNormalizer {
             if visibleContent.allSatisfy({ $0 == "*" || $0 == "_" }) {
                 return "  "
             }
-            return content.trimmingTrailingSpaces() + "  "
+            let normalizedContent = content.trimmingTrailingSpaces()
+            return hardBreakIsLayoutOnly(before: nextLine)
+                ? normalizedContent
+                : normalizedContent + "  "
         }
 
         if let separator = unescapedSeparator(line) {
@@ -158,6 +164,19 @@ enum MarkdownNormalizer {
         }
 
         return unescapeLeadingHyphen(line)
+    }
+
+    private static func hardBreakIsLayoutOnly(before nextLine: String?) -> Bool {
+        guard let nextLine else {
+            return true
+        }
+        if isBlank(nextLine) {
+            return true
+        }
+        return listItemContentIndent(
+            of: nextLine,
+            indent: indentWidth(of: nextLine)
+        ) != nil
     }
 
     private static func hasPandocHardBreak(_ line: String) -> Bool {

@@ -16,8 +16,10 @@ Der Kern ist GUI-frei, aber das aktuelle Target bleibt macOS-spezifisch: Der
 Rich-Text-Adapter benutzt für die RTFD-Farbübernahme AppKit. RTF läuft wegen
 standardkonform eingebetteter Bilder direkt über Pandoc; ein Cocoa-Roundtrip
 würde diese Bilder verwerfen. DOC benutzt den macOS-Systemimport über `textutil`.
-DOCX und ODT teilen einen Pandoc-Paketadapter. Alle Wege liegen hinter derselben
-Foundation-basierten Anfrage und bestimmen deren API nicht.
+DOCX einschließlich DOCM/DOTX/DOTM und ODT teilen einen Pandoc-Paketadapter.
+ODS, XLSX und XLS werden nativ in ein gemeinsames Arbeitsmappenmodell gelesen;
+ODM löst ausschließlich lokale ODT-Teildokumente auf. Alle Wege liegen hinter
+derselben Foundation-basierten Anfrage und bestimmen deren API nicht.
 
 ## Formatneutrale Konvertierung
 
@@ -30,9 +32,10 @@ App / CLI / Fastra
 DocumentConverter ─ Inspections priorisieren, Adapter wählen, atomar veröffentlichen
         │
         ├── RichTextAdapter      RTFD über AppKit, RTF über Pandoc
-        ├── WordProcessing…      DOCX, ODT und isoliert extrahierte Medien
+        ├── WordProcessing…      DOCX/DOCM/DOTX/DOTM, ODT und isolierte Medien
         ├── LegacyWordAdapter    DOC über textutil, danach HTML/Pandoc
-        ├── SpreadsheetAdapter   ODS, später XLSX und XLS (geplant)
+        ├── SpreadsheetAdapter   ODS, XLSX und XLS über native Leser
+        ├── OpenDocumentMaster…  ODM plus geprüfte lokale ODT-Teildokumente
         ├── ImageOCRAdapter      ImageIO + Vision (geplant)
         └── PDFAdapter           PDFKit + optional Vision (geplant)
 ```
@@ -67,16 +70,26 @@ Adapterregistrierung bleibt intern. Ein späterer Split in ein formatneutrales
 Library-Target und ein macOS-Import-Target kann sie gezielt als öffentliche oder
 SPI-Grenze stabilisieren.
 
-DOCX und ODT werden vor Pandoc anhand ihres ZIP-Inhalts erkannt. Das zentrale
-Paket-Gate lehnt Traversal, Symlinks, verschlüsselte Einträge, unbekannte
-Kompressionsarten, doppelte Namen und überschrittene Größenbudgets ab. Pandoc
+DOCX, DOCM, DOTX/DOTM und ODT werden vor Pandoc anhand ihres ZIP-Inhalts erkannt.
+Der OOXML-Hauptinhaltstyp und die Wurzel von `word/document.xml` unterscheiden
+Dokumente, makrofähige Dokumente und Vorlagen; Makros und Vorlagenverhalten
+werden als erwarteter Verlust gemeldet. Das zentrale Paket-Gate lehnt Traversal,
+Symlinks, verschlüsselte Einträge, unbekannte Kompressionsarten, doppelte Namen
+und überschrittene Größenbudgets ab. Pandoc
 läuft danach mit `--sandbox` und extrahiert Medien ausschließlich in den
 Arbeitsordner. Externe Bildbeziehungen werden nie geladen.
 
-Der spätere Tabellenimport liest ODS zunächst in ein eigenes Workbook-Modell und
-rendert erst danach Markdown. So können XLSX und XLS dieselbe Blatt-, Zell- und
-Diagnosegrenze verwenden. Darstellung und Mehrblatt-Regel stehen in
-[SPREADSHEET-IMPORT.md](SPREADSHEET-IMPORT.md).
+Der Tabellenimport liest ODS, XLSX und binäres XLS in ein eigenes
+Arbeitsmappenmodell und rendert erst danach Markdown. Die drei Leser verwenden
+dieselbe Blatt-, Zell-, Budget- und Diagnosegrenze; XLSX- und ODS-ZIP-Pakete
+durchlaufen zusätzlich das zentrale Paket-Gate. Darstellung und Mehrblatt-Regel
+stehen in [SPREADSHEET-IMPORT.md](SPREADSHEET-IMPORT.md).
+
+ODM wird als OpenDocument-Masterpaket erkannt. Nur relative, vorhandene
+ODT-Verweise im Verzeichnisbaum des Masters sind zulässig; entfernte Ziele,
+Pfadfluchten, fehlende Dateien und ausbrechende symbolische Links werden
+abgelehnt. Jeder Teil läuft anschließend durch denselben geprüften ODT-Adapter,
+und seine Bilder erhalten abschnittsweise eindeutige Namen.
 
 ## Vertrag für aufrufende Apps
 
@@ -117,10 +130,13 @@ openMarkdown(result.markdownFile)
 ## Testgrenzen
 
 - Adaptertests verwenden echte temporär erzeugte RTF- und RTFD-Dokumente sowie
-  versionierte DOCX-, ODT- und DOC-Dateien aus unabhängigen Erzeugern. Bilddaten
-  werden per Bytevergleich geprüft; DOCX/ODT zusätzlich gegen Pandoc direkt.
+  versionierte DOCX-, ODT-, DOC-, ODS- und XLS-Dateien aus unabhängigen
+  Erzeugern. Bilddaten werden per Bytevergleich geprüft; DOCX/ODT und XLSX
+  zusätzlich gegen Pandoc direkt.
 - Pakettests prüfen Traversal, externe Bilder, Kommentare, angenommene Änderungen
-  und die inhaltsbasierte Unterscheidung eines echten XLS vom alten DOC.
+  und die inhaltsbasierte Unterscheidung eines echten XLS vom alten DOC. Eigene
+  Tabellen- und ODM-Tests prüfen Blattreihenfolge, Zellbudgets,
+  Merge-/Formelwarnungen, lokale ODT-Verweise, Pfadfluchten und eindeutige Assets.
 - Engine-Tests prüfen Adapter-Inspections, Priorität und Mehrdeutigkeit sowie
   Kollisionsschutz und atomare Veröffentlichung einschließlich einer erst während
   der Konvertierung entstehenden Zielkollision unabhängig von SwiftUI.

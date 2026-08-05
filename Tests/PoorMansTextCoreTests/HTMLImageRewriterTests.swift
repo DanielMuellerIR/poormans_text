@@ -36,16 +36,40 @@ final class HTMLImageRewriterTests: XCTestCase {
             fileManager: .default
         )
 
-        XCTAssertEqual(result.assetNames, [sourceName])
+        XCTAssertEqual(result.assetNames, ["image01.png"])
         XCTAssertEqual(result.sourceNames, [sourceName])
         XCTAssertEqual(
-            result.html.components(separatedBy: "images/an%20image%20a%CC%88.png").count - 1,
+            result.html.components(separatedBy: "images/image01.png").count - 1,
             2
         )
         XCTAssertEqual(
-            try Data(contentsOf: imagesURL.appendingPathComponent(sourceName)),
+            try Data(contentsOf: imagesURL.appendingPathComponent("image01.png")),
             sourceData
         )
+    }
+
+    func testReplacesGeneratedCollisionPrefixesWithSequentialNamesInDocumentOrder() throws {
+        let firstName = "1__#$!@%!#__Pasted Graphic 5.PNG"
+        let secondName = "ordinary photo.jpg"
+        try Data([1]).write(to: temporaryDirectory.appendingPathComponent(firstName))
+        try Data([2]).write(to: temporaryDirectory.appendingPathComponent(secondName))
+        let imagesURL = temporaryDirectory.appendingPathComponent("output/images")
+        let html = #"<img src="1__%23%24%21%40%25%21%23__Pasted%20Graphic%205.PNG"><img src="ordinary%20photo.jpg">"#
+
+        let result = try HTMLImageRewriter.rewrite(
+            html: html,
+            resourceDirectory: temporaryDirectory,
+            imageDirectory: imagesURL,
+            fileManager: .default
+        )
+
+        XCTAssertEqual(result.assetNames, ["image01.png", "image02.jpg"])
+        XCTAssertEqual(
+            result.html,
+            #"<img src="images/image01.png"><img src="images/image02.jpg">"#
+        )
+        XCTAssertEqual(try Data(contentsOf: imagesURL.appendingPathComponent("image01.png")), Data([1]))
+        XCTAssertEqual(try Data(contentsOf: imagesURL.appendingPathComponent("image02.jpg")), Data([2]))
     }
 
     func testRejectsRemoteImageReference() throws {
@@ -80,7 +104,7 @@ final class HTMLImageRewriterTests: XCTestCase {
             imageDirectory: temporaryDirectory.appendingPathComponent("output/images"),
             fileManager: .default
         )
-        XCTAssertEqual(result.assetNames, ["nested.png"])
+        XCTAssertEqual(result.assetNames, ["image01.png"])
 
         let outsideURL = temporaryDirectory.deletingLastPathComponent()
             .appendingPathComponent("outside-\(UUID().uuidString).png")

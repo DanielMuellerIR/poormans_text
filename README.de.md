@@ -33,12 +33,14 @@ ohne die Quelle zu verändern:
 Dokument-markdown/
 ├── Dokument.md
 └── images/
-    ├── erstes-bild.png
-    └── zweites-bild.jpg
+    ├── image01.png
+    └── image02.jpg
 ```
 
 Die Bildverweise in `Dokument.md` sind relativ und stehen an derselben
-Textposition wie im Ausgangsdokument. Vorhandene Ausgabeordner werden nie
+Textposition wie im Ausgangsdokument. Extrahierte Bilder erhalten stabile,
+fortlaufende Namen statt technischer Anhangsnamen aus dem Quelldokument.
+Vorhandene Ausgabeordner werden nie
 überschrieben.
 
 Manuelle Zeilenumbrüche enden im Markdown mit zwei Leerzeichen. Chromatischer
@@ -70,7 +72,7 @@ DMG und zugehörige `.sha256`-Datei stehen im
 Ordner, lässt sich der Download vor dem Öffnen prüfen:
 
 ```sh
-shasum -a 256 -c Poor-Mans-Text-0.7.0.dmg.sha256
+shasum -a 256 -c Poor-Mans-Text-0.7.1.dmg.sha256
 ```
 
 Danach das DMG öffnen und Poor Man's Text in den Programme-Ordner ziehen. Die
@@ -277,7 +279,7 @@ vorhandene Ziele, defekte oder unsichere Pakete, die XLS-/DOC-Unterscheidung im
 OLE-Container, fehlende Abhängigkeiten, Warnungen, den CLI-Link-Schutz und den
 `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.7.0.
+Die aktuelle Version ist 0.7.1.
 
 ## Lizenz
 

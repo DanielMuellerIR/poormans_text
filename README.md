@@ -33,11 +33,13 @@ the source:
 Document-markdown/
 ├── Document.md
 └── images/
-    ├── first-image.png
-    └── second-image.jpg
+    ├── image01.png
+    └── image02.jpg
 ```
 
 Image links in `Document.md` are relative and retain their position in the text.
+Extracted images receive stable sequential names instead of carrying technical
+attachment names from the source document.
 Existing output directories are never overwritten.
 
 Manual line breaks end with two spaces in the generated Markdown. Chromatic
@@ -66,7 +68,7 @@ Download the DMG and its `.sha256` file from the
 directory, verify the download before opening it:
 
 ```sh
-shasum -a 256 -c Poor-Mans-Text-0.7.0.dmg.sha256
+shasum -a 256 -c Poor-Mans-Text-0.7.1.dmg.sha256
 ```
 
 Open the DMG and drag Poor Man's Text to Applications. The app is signed with
@@ -269,7 +271,7 @@ changes, Unicode, and media hashes. Tests also cover output collisions, malforme
 or unsafe packages, an XLS/DOC OLE distinction, missing dependencies, warnings,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current version is 0.7.0.
+The current version is 0.7.1.
 
 ## License
 

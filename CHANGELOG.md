@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.7.1 - 2026-08-05
+
+- Name extracted images in document order as `image01`, `image02`, and so on,
+  while keeping their file extensions. RTFD conversion no longer exposes
+  technical attachment-collision prefixes such as `1__#$!@%!#__`, whose
+  reserved characters also broke image previews in some Markdown editors.
+
 ## 0.7.0 - 2026-08-05
 
 - Keep the app up to date through Sparkle: it checks a signed update feed on its

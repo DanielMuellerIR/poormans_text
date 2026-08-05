@@ -25,7 +25,6 @@ enum HTMLImageRewriter {
         let matches = expression.matches(in: html, range: fullRange)
         let rewrittenHTML = NSMutableString(string: html)
         var outputNameBySource = [String: String]()
-        var usedOutputNames = Set<String>()
         var copiedAssetNames = [String]()
         var sourceNames = Set<String>()
 
@@ -37,8 +36,13 @@ enum HTMLImageRewriter {
             }
         }
 
-        for match in matches.reversed() {
-            let encodedReference = rewrittenHTML.substring(with: match.range(at: 2))
+        // Die von RTFD/textutil erzeugten Ressourcennamen können technische
+        // Kollisionspräfixe wie `1__#$!@%!#__` enthalten. Für die Ausgabe sind
+        // sie weder verständlich noch in allen Markdown-Renderern robust.
+        // Deshalb werden unterschiedliche Bilder in Dokumentreihenfolge stabil
+        // als image01, image02 usw. benannt; die Dateiendung bleibt erhalten.
+        for match in matches {
+            let encodedReference = (html as NSString).substring(with: match.range(at: 2))
             let sourceURL = try safeResourceURL(
                 from: encodedReference,
                 resourceDirectory: resourceDirectory
@@ -60,11 +64,11 @@ enum HTMLImageRewriter {
                 )
             }
 
-            let outputName: String
-            if let existingName = outputNameBySource[sourceURL.path] {
-                outputName = existingName
-            } else {
-                outputName = uniqueName(for: sourceName, usedNames: &usedOutputNames)
+            if outputNameBySource[sourceURL.path] == nil {
+                let outputName = sequentialName(
+                    number: copiedAssetNames.count + 1,
+                    sourceName: sourceName
+                )
                 let outputURL = imageDirectory.appendingPathComponent(outputName)
                 do {
                     try fileManager.copyItem(at: sourceURL, to: outputURL)
@@ -76,6 +80,21 @@ enum HTMLImageRewriter {
             }
 
             sourceNames.insert(sourceName)
+        }
+
+        // Von hinten ersetzen, damit die NSRanges der vorherigen Treffer trotz
+        // unterschiedlich langer neuer Namen gültig bleiben.
+        for match in matches.reversed() {
+            let encodedReference = (html as NSString).substring(with: match.range(at: 2))
+            let sourceURL = try safeResourceURL(
+                from: encodedReference,
+                resourceDirectory: resourceDirectory
+            )
+            guard let outputName = outputNameBySource[sourceURL.path] else {
+                throw ConversionError.fileSystemFailure(
+                    "internal image-name mapping is missing"
+                )
+            }
             let replacement = "images/" + percentEncodePathComponent(outputName)
             rewrittenHTML.replaceCharacters(in: match.range(at: 2), with: replacement)
         }
@@ -135,25 +154,10 @@ enum HTMLImageRewriter {
         return url.resolvingSymlinksInPath().standardizedFileURL.path.hasPrefix(directoryPath)
     }
 
-    private static func uniqueName(for requestedName: String, usedNames: inout Set<String>) -> String {
-        if usedNames.insert(requestedName).inserted {
-            return requestedName
-        }
-
-        let requestedURL = URL(fileURLWithPath: requestedName)
-        let fileExtension = requestedURL.pathExtension
-        let stem = requestedURL.deletingPathExtension().lastPathComponent
-        var number = 2
-
-        while true {
-            let candidate = fileExtension.isEmpty
-                ? "\(stem)-\(number)"
-                : "\(stem)-\(number).\(fileExtension)"
-            if usedNames.insert(candidate).inserted {
-                return candidate
-            }
-            number += 1
-        }
+    private static func sequentialName(number: Int, sourceName: String) -> String {
+        let fileExtension = URL(fileURLWithPath: sourceName).pathExtension.lowercased()
+        let stem = String(format: "image%02d", number)
+        return fileExtension.isEmpty ? stem : "\(stem).\(fileExtension)"
     }
 
     private static func percentEncodePathComponent(_ component: String) -> String {

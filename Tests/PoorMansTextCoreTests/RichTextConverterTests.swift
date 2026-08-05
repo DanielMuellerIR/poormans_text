@@ -32,6 +32,7 @@ final class RichTextConverterTests: XCTestCase {
         XCTAssertEqual(result.outputDirectory.lastPathComponent, "Example ä-markdown")
         XCTAssertEqual(result.markdownFile.lastPathComponent, "Example ä.md")
         XCTAssertEqual(result.assets.count, 2)
+        XCTAssertEqual(result.assets.map(\.lastPathComponent), ["image01.png", "image02.png"])
         XCTAssertTrue(result.warnings.isEmpty)
         XCTAssertTrue(markdown.contains("**bold**"))
         XCTAssertTrue(markdown.contains("*italic*"))
@@ -69,6 +70,7 @@ final class RichTextConverterTests: XCTestCase {
         XCTAssertEqual(result.outputDirectory.lastPathComponent, "Example ä-markdown")
         XCTAssertEqual(result.markdownFile.lastPathComponent, "Example ä.md")
         XCTAssertEqual(result.assets.count, 1)
+        XCTAssertEqual(result.assets.first?.lastPathComponent, "image01.png")
         XCTAssertEqual(try Data(contentsOf: try XCTUnwrap(result.assets.first)), fixture.imageData)
         XCTAssertEqual(
             result.warnings,
@@ -118,7 +120,7 @@ final class RichTextConverterTests: XCTestCase {
         let result = try RTFDConverter().convert(inputURL: fixture.packageURL)
 
         XCTAssertEqual(result.assets.count, 2)
-        XCTAssertEqual(Set(result.assets.map(\.lastPathComponent)).count, 2)
+        XCTAssertEqual(result.assets.map(\.lastPathComponent), ["image01.png", "image02.png"])
         let convertedImageData = try result.assets.map { try Data(contentsOf: $0) }
         XCTAssertEqual(Set(convertedImageData), Set(fixture.imageData))
     }

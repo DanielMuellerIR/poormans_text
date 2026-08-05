@@ -19,7 +19,9 @@ bundle_path="$bundle_root/Poor Man's Text.app"
 contents_path="$bundle_path/Contents"
 bundled_cli="$contents_path/Resources/poormans-text"
 bundled_license="$contents_path/Resources/LICENSE.txt"
+bundled_sparkle_license="$contents_path/Resources/Sparkle-LICENSE.txt"
 bundled_icon="$contents_path/Resources/AppIcon.icns"
+sparkle_framework="$contents_path/Frameworks/Sparkle.framework"
 root_app="$project_root/Poor Man's Text.app"
 root_cli="$project_root/poormans-text"
 
@@ -52,13 +54,39 @@ fi
 # lokaler Test-Build wird nur innerhalb dieses eindeutig begrenzten Pfads ersetzt.
 remove_exact_path "$bundle_path"
 
-mkdir -p "$contents_path/MacOS" "$contents_path/Resources"
+mkdir -p "$contents_path/MacOS" "$contents_path/Resources" "$contents_path/Frameworks"
 cp "$binary_directory/PoorMansTextApp" "$contents_path/MacOS/PoorMansTextApp"
 cp "$binary_directory/poormans-text" "$bundled_cli"
 cp "$project_root/LICENSE" "$bundled_license"
 cp "$project_root/.build/icon/AppIcon.icns" "$bundled_icon"
 cp "$project_root/App/Info.plist" "$contents_path/Info.plist"
 chmod 755 "$contents_path/MacOS/PoorMansTextApp" "$bundled_cli"
+
+# SwiftPM linkt Sparkle, kopiert das dynamische Framework aber nicht in ein
+# selbst gebautes App-Bundle. `ditto` erhält die für Frameworks nötigen
+# Symlinks und Rechte. Ohne diesen Schritt startet die App gar nicht: dyld
+# findet Sparkle zur Laufzeit nur unter Contents/Frameworks.
+sparkle_source="$(find "$project_root/.build/artifacts/sparkle" \
+    -type d -name Sparkle.framework -print -quit 2>/dev/null || true)"
+if [ -z "$sparkle_source" ]; then
+    echo "Sparkle.framework fehlt nach dem SwiftPM-Build." >&2
+    exit 70
+fi
+ditto "$sparkle_source" "$sparkle_framework"
+# Die App ist nicht sandboxed. Sparkles XPC-Dienste sind damit weder aktiviert
+# noch nötig und werden bewusst nicht ausgeliefert.
+remove_exact_path "$sparkle_framework/Versions/B/XPCServices"
+remove_exact_path "$sparkle_framework/XPCServices"
+
+# Die Lizenz der Fremdkomponente gehört in die verteilte App, nicht nur ins
+# Quellverzeichnis.
+sparkle_license="$(find "$project_root/.build/artifacts/sparkle" \
+    -type f -name LICENSE -print -quit 2>/dev/null || true)"
+if [ -z "$sparkle_license" ]; then
+    echo "Sparkles Lizenzdatei fehlt nach dem SwiftPM-Build." >&2
+    exit 70
+fi
+cp "$sparkle_license" "$bundled_sparkle_license"
 
 # Debug-Symbole entfernen, BEVOR signiert wird (strip macht eine vorhandene
 # Signatur ungültig). `swift build -c release` legt eine Debug-Map in jede
@@ -70,10 +98,11 @@ chmod 755 "$contents_path/MacOS/PoorMansTextApp" "$bundled_cli"
 # (STRIP_STYLE=debugging), SwiftPM nicht.
 strip -S "$contents_path/MacOS/PoorMansTextApp" "$bundled_cli"
 
-# Verschachtelte ausführbare Dateien zuerst signieren, das Bundle zuletzt.
-codesign --force --sign - "$bundled_cli"
-codesign --force --sign - "$bundle_path"
-codesign --verify --deep --strict "$bundle_path"
+# Ad-hoc signieren über dasselbe Skript wie der Developer-ID-Weg. Die
+# Reihenfolge der verschachtelten Signaturen — eingebettete CLI, Sparkles
+# Helfer, dann das Bundle — steht damit nur an einer Stelle und kann zwischen
+# lokalem Build und Release nicht auseinanderlaufen.
+"$script_directory/sign_bundle.sh" "$bundle_path" -
 
 # Sichtbare, gitignorierte Artefakte im Repo-Root erleichtern lokale Prüfungen.
 remove_exact_path "$root_app"

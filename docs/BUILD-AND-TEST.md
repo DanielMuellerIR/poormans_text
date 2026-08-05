@@ -24,6 +24,17 @@ Projektlizenz unter `Contents/Resources/LICENSE.txt` und das aus
 vollständige ICNS-Größenset unter `.build/icon/`. Lokale Builds sind ad-hoc-signiert
 und dürfen nicht nach `/Applications` kopiert werden.
 
+Dazu kommt der Updater: `scripts/build_app.sh` kopiert das von SwiftPM
+aufgelöste `Sparkle.framework` nach `Contents/Frameworks` und Sparkles Lizenz
+nach `Contents/Resources/Sparkle-LICENSE.txt`. Ohne diesen Schritt startet die
+App nicht, weil dyld Sparkle zur Laufzeit nur dort findet. Sparkles XPC-Dienste
+werden entfernt: Poor Man's Text ist nicht sandboxed und braucht sie nicht.
+Signiert wird über `scripts/sign_bundle.sh` — beim lokalen Build ad-hoc, beim
+Release mit Developer ID, in beiden Fällen von innen nach außen (eingebettete
+CLI, `Autoupdate`, `Updater.app`, Framework, zuletzt die App). Der
+Veröffentlichungsweg des Update-Feeds steht in
+[SPARKLE-RELEASE.md](SPARKLE-RELEASE.md).
+
 ## Schneller Developer-ID-Test
 
 ```sh

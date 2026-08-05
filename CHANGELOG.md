@@ -2,8 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 0.7.0 - 2026-08-05
 
+- Keep the app up to date through Sparkle: it checks a signed update feed on its
+  own and offers "Check for Updates …" in the application menu, but downloads
+  and installs nothing without consent. Feed and disk image must carry a valid
+  Ed25519 signature, the new version is verified before extraction, and no
+  system profile is transmitted. Version 0.6.0 and older have no updater, so
+  0.7.0 has to be installed once by hand from the DMG.
 - Offer to install a missing Pandoc directly from the app: with Homebrew
   present the app runs the installation itself, otherwise it opens the official
   installation help. The offer returns at every launch until Pandoc exists or

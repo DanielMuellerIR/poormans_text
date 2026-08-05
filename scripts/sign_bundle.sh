@@ -10,9 +10,11 @@ fi
 app="$1"
 identity="$2"
 bundled_cli="$app/Contents/Resources/poormans-text"
+sparkle_framework="$app/Contents/Frameworks/Sparkle.framework"
 
 [ -d "$app" ] || { echo "App-Bundle fehlt: $app" >&2; exit 66; }
 [ -x "$bundled_cli" ] || { echo "Eingebettete CLI fehlt: $bundled_cli" >&2; exit 66; }
+[ -d "$sparkle_framework" ] || { echo "Sparkle.framework fehlt: $sparkle_framework" >&2; exit 66; }
 
 # Quarantäne-/Finder-Metadaten dürfen die versiegelte Signatur nicht verändern.
 xattr -cr "$app"
@@ -31,5 +33,22 @@ if [ "$identity" != "-" ]; then
 fi
 
 codesign "${sign_arguments[@]}" "$bundled_cli"
+
+# Sparkles Helfer haben eigene, verschachtelte Signaturgrenzen und müssen von
+# innen nach außen signiert werden: erst das Hilfsprogramm, dann die Updater-App,
+# dann das Framework. `--deep` wäre beim Signieren falsch — es bleibt allein der
+# abschließenden Prüfung vorbehalten.
+for sparkle_target in \
+    "$sparkle_framework/Versions/B/Autoupdate" \
+    "$sparkle_framework/Versions/B/Updater.app" \
+    "$sparkle_framework"
+do
+    [ -e "$sparkle_target" ] || {
+        echo "Sparkle-Signaturziel fehlt: $sparkle_target" >&2
+        exit 66
+    }
+    codesign "${sign_arguments[@]}" "$sparkle_target"
+done
+
 codesign "${sign_arguments[@]}" "$app"
 codesign --verify --deep --strict --verbose=2 "$app"

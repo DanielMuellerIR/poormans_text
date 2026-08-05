@@ -7,6 +7,7 @@
 - `CHANGELOG.md`: erledigte Arbeit und historische Release-Entscheidungen.
 - `docs/ARCHITECTURE.md`: Modulgrenzen und Fastra-Integrationsziel.
 - `docs/BUILD-AND-TEST.md`: Build-, Signatur-, Installations- und Testablauf.
+- `docs/SPARKLE-RELEASE.md`: Update-Feed, Sparkle-Schlüssel und Appcast-Workflow.
 
 Status und erledigte Etappen gehören nicht in diese Datei. Abgeschlossene
 Roadmap-Punkte beim Release ins Changelog überführen und aus der Roadmap entfernen.
@@ -41,5 +42,13 @@ Roadmap-Punkte beim Release ins Changelog überführen und aus der Roadmap entfe
   oder in einen globalen CLI-Pfad schreiben. Vorher sind Developer-ID-Signatur,
   Hardened Runtime, Notary-Ticket, Stapler und Gatekeeper verbindlich.
 - Notary-Profile, Zertifikatsdetails und Credentials nie einchecken oder ausgeben.
+  Das gilt ebenso für den privaten Sparkle-Schlüssel: nur sein öffentlicher
+  Gegenpart steht als `SUPublicEDKey` in `App/Info.plist`.
+- Der Updater ist zusätzlich zur Apple-Kette abgesichert: Feed und Update-Archiv
+  brauchen eine gültige Ed25519-Signatur, und Sparkles Helfer werden mit
+  derselben Developer ID von innen nach außen signiert. Sparkle bleibt exakt
+  gepinnt; ein Versionssprung wird bewusst geprüft.
 - Versionen konsistent in `ProductInfo.swift`, `App/Info.plist`, README und
-  Changelog pflegen. Öffentliche Remotes nur auf ausdrücklichen Auftrag ändern.
+  Changelog pflegen; `CFBundleVersion` muss monoton steigen, weil Sparkle
+  Versionen darüber vergleicht. Öffentliche Remotes nur auf ausdrücklichen
+  Auftrag ändern.

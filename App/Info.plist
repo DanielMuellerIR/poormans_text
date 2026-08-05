@@ -102,9 +102,9 @@
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>0.6.0</string>
+    <string>0.7.0</string>
     <key>CFBundleVersion</key>
-    <string>7</string>
+    <string>8</string>
     <key>LSApplicationCategoryType</key>
     <string>public.app-category.utilities</string>
     <key>LSMinimumSystemVersion</key>
@@ -113,5 +113,25 @@
     <true/>
     <key>NSHumanReadableCopyright</key>
     <string>© 2026 Daniel Müller</string>
+    <!-- Sparkle. Die App sucht selbsttätig nach Updates, lädt und installiert
+         aber ausschließlich nach Zustimmung. Anonyme Hardware- und
+         Systemprofildaten werden nicht übertragen. Feed und Archiv müssen mit
+         dem hier hinterlegten öffentlichen Ed25519-Schlüssel signiert sein. -->
+    <key>SUAllowsAutomaticUpdates</key>
+    <false/>
+    <key>SUAutomaticallyUpdate</key>
+    <false/>
+    <key>SUEnableAutomaticChecks</key>
+    <true/>
+    <key>SUEnableSystemProfiling</key>
+    <false/>
+    <key>SUFeedURL</key>
+    <string>https://danielmuellerir.github.io/poormans_text/appcast.xml</string>
+    <key>SUPublicEDKey</key>
+    <string>Yo814iJMK/ZhDswOUNHuY+fW7ZxD3fRz9jFJRxnPeYY=</string>
+    <key>SURequireSignedFeed</key>
+    <true/>
+    <key>SUVerifyUpdateBeforeExtraction</key>
+    <true/>
 </dict>
 </plist>

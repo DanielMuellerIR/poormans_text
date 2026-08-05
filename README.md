@@ -66,13 +66,26 @@ Download the DMG and its `.sha256` file from the
 directory, verify the download before opening it:
 
 ```sh
-shasum -a 256 -c Poor-Mans-Text-0.6.0.dmg.sha256
+shasum -a 256 -c Poor-Mans-Text-0.7.0.dmg.sha256
 ```
 
 Open the DMG and drag Poor Man's Text to Applications. The app is signed with
 Developer ID, notarized by Apple, and includes the matching universal CLI.
 Pandoc remains a separate requirement and can, for example, be installed with
 `brew install pandoc`.
+
+## Updates
+
+From 0.7.0 on, the app keeps itself up to date through Sparkle. It checks a
+signed update feed on its own and offers "Check for Updates …" in the
+application menu; nothing is downloaded or installed without consent. Feed and
+disk image must carry a valid Ed25519 signature, and the new version is verified
+before it is unpacked. Version 0.6.0 and older have no updater, so 0.7.0 has to
+be installed once by hand from the DMG.
+
+The app transmits no profile of the Mac while checking. What GitHub as the host
+of feed and download receives is described in [PRIVACY.md](PRIVACY.md), together
+with the Terminal command that switches automatic checks off.
 
 ## Command line
 
@@ -256,7 +269,7 @@ changes, Unicode, and media hashes. Tests also cover output collisions, malforme
 or unsafe packages, an XLS/DOC OLE distinction, missing dependencies, warnings,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current version is 0.6.0.
+The current version is 0.7.0.
 
 ## License
 
@@ -267,6 +280,10 @@ The app-icon provenance is documented in [ASSETS.md](ASSETS.md).
 Pandoc is an external runtime dependency and is not bundled with Poor Man's
 Text. Pandoc remains subject to its own license.
 
-Poor Man's Text processes documents locally and does not include telemetry or
-network services. Details are in [PRIVACY.md](PRIVACY.md); support information
-is in [SUPPORT.md](SUPPORT.md).
+The updater [Sparkle](https://sparkle-project.org) is bundled and remains
+subject to its own license, which ships with the app as
+`Contents/Resources/Sparkle-LICENSE.txt`.
+
+Poor Man's Text processes documents locally and includes no telemetry. Its only
+network access is the update check. Details are in [PRIVACY.md](PRIVACY.md);
+support information is in [SUPPORT.md](SUPPORT.md).

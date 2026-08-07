@@ -52,15 +52,19 @@ jobs:
         run: |
           set -euo pipefail
           state="$(gh release view "$RELEASE_TAG" \
-            --json isDraft,isPrerelease,isLatest \
-            --jq '[.isDraft, .isPrerelease, .isLatest] | @tsv')"
-          IFS=$'\t' read -r is_draft is_prerelease is_latest <<< "$state"
+            --json isDraft,isPrerelease \
+            --jq '[.isDraft, .isPrerelease] | @tsv')"
+          IFS=$'\t' read -r is_draft is_prerelease <<< "$state"
           if [[ "$is_draft" != "false" ]] || [[ "$is_prerelease" != "false" ]]; then
             echo "FEHLER: $RELEASE_TAG ist ein Entwurf oder Prerelease." >&2
             exit 1
           fi
-          if [[ "$is_latest" != "true" ]]; then
-            echo "FEHLER: $RELEASE_TAG ist nicht das neueste stabile Release." >&2
+          # "Neuestes stabiles Release" ueber die API pruefen statt ueber das
+          # gh-Feld isLatest: die gh-Version des Runners kennt das Feld nicht
+          # (belegt im fehlgeschlagenen Lauf zu v0.8.1 am 2026-08-07).
+          latest_tag="$(gh api "repos/${GITHUB_REPOSITORY}/releases/latest" --jq .tag_name)"
+          if [[ "$latest_tag" != "$RELEASE_TAG" ]]; then
+            echo "FEHLER: $RELEASE_TAG ist nicht das neueste stabile Release (das ist $latest_tag)." >&2
             exit 1
           fi
 

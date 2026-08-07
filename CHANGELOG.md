@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 0.8.1 - 2026-08-07
 
 - Keep the Sparkle signing key out of every step but the one that signs, pin all
   workflow actions to reviewed commit SHAs, skip prereleases, and refuse a

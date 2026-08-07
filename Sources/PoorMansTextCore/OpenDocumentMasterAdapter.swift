@@ -129,9 +129,10 @@ struct OpenDocumentMasterAdapter: DocumentConversionAdapter {
                     } catch {
                         throw ConversionError.fileSystemFailure(error.localizedDescription)
                     }
-                    childMarkdown = childMarkdown.replacingOccurrences(
-                        of: asset.relativePath,
-                        with: "images/\(targetName)"
+                    childMarkdown = replacingLinkTarget(
+                        in: childMarkdown,
+                        from: asset.relativePath,
+                        to: "images/\(targetName)"
                     )
                     assetRelativePaths.append("images/\(targetName)")
                 }
@@ -153,6 +154,40 @@ struct OpenDocumentMasterAdapter: DocumentConversionAdapter {
             assetRelativePaths: assetRelativePaths,
             warnings: warnings
         )
+    }
+
+    /// Schreibt ein Bildziel nur dort um, wo es wirklich als Markdown-Linkziel
+    /// steht: unmittelbar hinter `](` und abgeschlossen durch `)`, Leerraum oder
+    /// spitze Klammern. Eine Ersetzung im ganzen Text würde denselben Pfad auch
+    /// im Fließtext oder in einem anderen Link treffen und ihn still auf den
+    /// neuen Abschnittsnamen umbiegen.
+    private func replacingLinkTarget(
+        in markdown: String,
+        from oldPath: String,
+        to newPath: String
+    ) -> String {
+        // Enthält der Pfad ein Leerzeichen, schreibt Pandoc das Ziel in spitze
+        // Klammern. Diese Form ist vorne und hinten begrenzt und kann direkt
+        // ersetzt werden.
+        let angleForm = markdown.replacingOccurrences(
+            of: "](<" + oldPath + ">",
+            with: "](<" + newPath + ">"
+        )
+        let needle = "](" + oldPath
+        var result = ""
+        var rest = Substring(angleForm)
+        while let match = rest.range(of: needle) {
+            result += rest[..<match.lowerBound]
+            // Ein Linkziel endet an ")" oder am Leerraum vor einem Titel.
+            // Steht dahinter etwas anderes, war es nur ein zufällig gleich
+            // beginnender längerer Pfad.
+            let following = rest[match.upperBound...].first
+            result += following == ")" || following == " " || following == "\t"
+                ? "](" + newPath
+                : needle
+            rest = rest[match.upperBound...]
+        }
+        return result + rest
     }
 
     private func masterPackage(at url: URL) throws -> (isMaster: Bool, content: Data) {

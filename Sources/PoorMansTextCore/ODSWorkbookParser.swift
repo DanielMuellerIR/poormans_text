@@ -31,6 +31,13 @@ enum ODSWorkbookParser {
         private var paragraphCount = 0
         private var expandedCellCount = 0
         private var tableDepth = 0
+        private var sawRoot = false
+        /// Wahr, solange der Parser im Container
+        /// `office:document-content/office:body/office:spreadsheet` steht. Nur
+        /// dort ist ein `table:table` wirklich ein Arbeitsblatt; in einem
+        /// `office:text` wäre es eine Textabelle.
+        private var isInSpreadsheetBody = false
+        private var bodyDepth = 0
 
         func parser(
             _ parser: XMLParser,
@@ -40,6 +47,24 @@ enum ODSWorkbookParser {
             attributes attributeDict: [String: String] = [:]
         ) {
             guard failure == nil else { return }
+
+            if !sawRoot {
+                sawRoot = true
+                guard namespaceURI == Namespaces.office,
+                      elementName == "document-content" else {
+                    return fail("content.xml has no valid OpenDocument content root", parser: parser)
+                }
+                return
+            }
+            if namespaceURI == Namespaces.office, elementName == "body" {
+                bodyDepth += 1
+                return
+            }
+            if namespaceURI == Namespaces.office, elementName == "spreadsheet", bodyDepth == 1 {
+                isInSpreadsheetBody = true
+                return
+            }
+            guard isInSpreadsheetBody else { return }
 
             if namespaceURI == Namespaces.table, elementName == "table" {
                 guard currentSheetName == nil else {
@@ -115,6 +140,12 @@ enum ODSWorkbookParser {
                 capturesCellText = true
                 return
             }
+            if namespaceURI == Namespaces.text, elementName == "a", capturesCellText {
+                // Der sichtbare Linktext bleibt erhalten, das Linkziel hat im
+                // Arbeitsmappenmodell keinen Platz. Das ist ein gemeldeter
+                // Verlust, kein stiller.
+                workbook.hasUnsupportedObjects = true
+            }
             if namespaceURI == Namespaces.text, elementName == "line-break", capturesCellText {
                 currentCell?.text.append("\n")
             } else if namespaceURI == Namespaces.text, elementName == "tab", capturesCellText {
@@ -146,6 +177,15 @@ enum ODSWorkbookParser {
             qualifiedName qName: String?
         ) {
             guard failure == nil else { return }
+            if namespaceURI == Namespaces.office, elementName == "spreadsheet" {
+                isInSpreadsheetBody = false
+                return
+            }
+            if namespaceURI == Namespaces.office, elementName == "body" {
+                bodyDepth -= 1
+                return
+            }
+            guard isInSpreadsheetBody else { return }
             if namespaceURI == Namespaces.table, elementName == "table" {
                 if tableDepth > 1 {
                     tableDepth -= 1

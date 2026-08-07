@@ -24,6 +24,9 @@ jobs:
     # Derselbe Runner wie in ci.yml: Package.swift verlangt swift-tools-version
     # 6.2, ältere Images bringen dafür kein passendes Xcode mit.
     runs-on: macos-26
+    # Ein Prerelease darf nie in den Produktions-Feed: Sparkle bietet den
+    # veröffentlichten Appcast allen normalen Installationen an.
+    if: github.event_name != 'release' || github.event.release.prerelease == false
     timeout-minutes: 30
     environment:
       name: github-pages
@@ -31,14 +34,35 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag }}
-      SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
 
     steps:
+      # Die Actions hängen an geprüften Commit-SHAs statt an beweglichen
+      # Major-Tags: Ein Tag kann jederzeit auf anderen Code umgesetzt werden,
+      # der dann im selben Lauf wie die Signatur ausgeführt würde.
       - name: Check out source
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Configure GitHub Pages
-        uses: actions/configure-pages@v6
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6
+
+      # Auch ein Lauf von Hand darf den Feed nicht auf einen alten oder
+      # unfertigen Stand zurücksetzen.
+      - name: Verify the release tag is the latest stable release
+        shell: bash
+        run: |
+          set -euo pipefail
+          state="$(gh release view "$RELEASE_TAG" \
+            --json isDraft,isPrerelease,isLatest \
+            --jq '[.isDraft, .isPrerelease, .isLatest] | @tsv')"
+          IFS=$'\t' read -r is_draft is_prerelease is_latest <<< "$state"
+          if [[ "$is_draft" != "false" ]] || [[ "$is_prerelease" != "false" ]]; then
+            echo "FEHLER: $RELEASE_TAG ist ein Entwurf oder Prerelease." >&2
+            exit 1
+          fi
+          if [[ "$is_latest" != "true" ]]; then
+            echo "FEHLER: $RELEASE_TAG ist nicht das neueste stabile Release." >&2
+            exit 1
+          fi
 
       - name: Download release disk image and release notes
         shell: bash
@@ -57,8 +81,14 @@ jobs:
           # Gleicher Basisname: generate_appcast ordnet die Markdown-Datei dem DMG zu.
           gh release view "$RELEASE_TAG" --json body --jq .body > "${dmgs[0]%.dmg}.md"
 
+      # Der private Update-Schlüssel steht nur in diesem einen Schritt. Im
+      # Job-`env` wäre er auch für Checkout, Pages-Actions und Deployment
+      # sichtbar — eine unbemerkt veränderte Action könnte ihn dort auslesen und
+      # damit fremde Updates gültig signieren.
       - name: Generate signed appcast
         shell: bash
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
         run: |
           set -euo pipefail
           if [[ -z "$SPARKLE_PRIVATE_KEY" ]]; then
@@ -87,10 +117,10 @@ jobs:
           xmllint --noout site/appcast.xml
 
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v5
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
         with:
           path: site
 
       - name: Publish appcast on GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v5
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5

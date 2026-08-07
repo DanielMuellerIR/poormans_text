@@ -43,10 +43,40 @@ final class AppModelPandocInstallationTests: XCTestCase {
         XCTAssertFalse(model.isConverting)
 
         await gate.release()
-        try await installation.value
+        _ = try await installation.value
 
         XCTAssertFalse(model.isInstallingPandoc)
         XCTAssertTrue(model.acceptsNewDocuments)
+    }
+
+    /// Ein zweiter, paralleler Aufruf läuft in die Sperre. Er darf nicht wie
+    /// eine abgeschlossene Installation aussehen — sonst zeigt die App
+    /// „Pandoc Installed", während der erste Homebrew-Lauf noch läuft.
+    @MainActor
+    func testASecondParallelInstallationIsNotReportedAsCompleted() async throws {
+        let model = AppModel()
+        let gate = InstallationGate()
+        let counter = InstallationCounter()
+
+        let installation = Task {
+            try await model.installPandoc(brewExecutable: Self.brewExecutable) { _ in
+                await counter.increment()
+                await gate.waitForRelease()
+            }
+        }
+        try await waitUntil("die Installation läuft") { model.isInstallingPandoc }
+
+        let second = try await model.installPandoc(brewExecutable: Self.brewExecutable) { _ in
+            await counter.increment()
+        }
+        XCTAssertFalse(second, "Der abgewiesene Aufruf meldete eine abgeschlossene Installation.")
+
+        await gate.release()
+        let first = try await installation.value
+
+        XCTAssertTrue(first, "Der ausführende Aufruf meldete keine Installation.")
+        let runs = await counter.count
+        XCTAssertEqual(runs, 1)
     }
 
     /// Die Sperre muss auch dann fallen, wenn Homebrew scheitert — sonst bliebe
@@ -117,6 +147,15 @@ private actor InstallationGate {
         isReleased = true
         waiting?.resume()
         waiting = nil
+    }
+}
+
+/// Zählt die wirklich ausgeführten Installationen über Taskgrenzen hinweg.
+private actor InstallationCounter {
+    private(set) var count = 0
+
+    func increment() {
+        count += 1
     }
 }
 

@@ -121,14 +121,20 @@ public final class AppModel: ObservableObject {
     ///
     /// Die eigentliche Installation ist ein Parameter, damit Tests die Sperre
     /// ohne Homebrew nachstellen können.
+    ///
+    /// Der Rückgabewert sagt, ob dieser Aufruf die Installation wirklich
+    /// durchgeführt hat. Ein zweiter, paralleler Aufruf läuft in die Sperre und
+    /// meldet `false`: Er darf keinen Erfolg anzeigen, während der erste
+    /// Homebrew-Lauf noch läuft oder später scheitert.
+    @discardableResult
     public func installPandoc(
         brewExecutable: URL,
         using install: @escaping @Sendable (URL) async throws -> Void = {
             try PandocInstaller.installPandoc(brewExecutable: $0)
         }
-    ) async throws {
+    ) async throws -> Bool {
         guard !isInstallingPandoc else {
-            return
+            return false
         }
         isInstallingPandoc = true
         defer { isInstallingPandoc = false }
@@ -138,6 +144,7 @@ public final class AppModel: ObservableObject {
         try await Task.detached(priority: .userInitiated) {
             try await install(brewExecutable)
         }.value
+        return true
     }
 
     public func revealResult() {

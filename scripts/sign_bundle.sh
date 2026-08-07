@@ -2,13 +2,19 @@
 # Signiert eingebettete Programme von innen nach außen.
 set -euo pipefail
 
-if [ "$#" -ne 2 ]; then
-    echo "Aufruf: sign_bundle.sh <App-Bundle> <Codesign-Identität>" >&2
+if [ "$#" -lt 2 ] || [ "$#" -gt 3 ]; then
+    echo "Aufruf: sign_bundle.sh <App-Bundle> <Codesign-Identität> [--strip-debug-symbols]" >&2
     exit 64
 fi
 
 app="$1"
 identity="$2"
+strip_debug_symbols=0
+case "${3:-}" in
+    "") ;;
+    --strip-debug-symbols) strip_debug_symbols=1 ;;
+    *) echo "Unbekannte Option: $3" >&2; exit 64 ;;
+esac
 bundled_cli="$app/Contents/Resources/poormans-text"
 sparkle_framework="$app/Contents/Frameworks/Sparkle.framework"
 
@@ -25,7 +31,13 @@ xattr -cr "$app"
 # Benutzernamen und Projektaufbau (gefunden am 2026-08-04). build_app.sh macht
 # das schon; hier steht es noch einmal, weil dieses Skript auch auf ein anders
 # gebautes Bundle angewendet werden kann. Ein zweiter Lauf ändert nichts mehr.
-strip -S "$app/Contents/MacOS/PoorMansTextApp" "$bundled_cli"
+#
+# Nur der Release-Weg setzt die Option. Ein Debug-Build braucht genau diese
+# Symbole für Quellzeilen im Debugger und lesbare lokale Absturzberichte, und
+# ausgeliefert wird er nie.
+if [ "$strip_debug_symbols" -eq 1 ]; then
+    strip -S "$app/Contents/MacOS/PoorMansTextApp" "$bundled_cli"
+fi
 
 sign_arguments=(--force --sign "$identity")
 if [ "$identity" != "-" ]; then

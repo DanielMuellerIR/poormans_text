@@ -120,7 +120,7 @@ final class SpreadsheetAdapterTests: XCTestCase {
             )
         )
         let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
-        let direct = try directPandocMarkdown(for: sourceURL)
+        let expectedValues = ["Product", "Äpfel", "Birnen", "19", "A-01", "Grüße aus Köln"]
 
         XCTAssertEqual(result.format, .xlsx)
         XCTAssertEqual(result.diagnostics, [])
@@ -128,13 +128,23 @@ final class SpreadsheetAdapterTests: XCTestCase {
             try XCTUnwrap(markdown.range(of: "## Sheet: Summary")).lowerBound,
             try XCTUnwrap(markdown.range(of: "## Sheet: Details & Notes")).lowerBound
         )
-        for value in ["Product", "Äpfel", "Birnen", "19", "A-01", "Grüße aus Köln"] {
+        for value in expectedValues {
             XCTAssertTrue(markdown.contains(value), "Native XLSX output lacks \(value)")
-            XCTAssertTrue(direct.contains(value), "Pandoc comparison lacks \(value)")
         }
         XCTAssertTrue(markdown.contains("First line<br>Second line"))
         XCTAssertTrue(markdown.contains(#"Contains a \| pipe"#))
         XCTAssertEqual(try Data(contentsOf: sourceURL), sourceBefore)
+
+        // Der native Weg braucht kein Pandoc. Nur der unabhängige Vergleich
+        // braucht es — fehlt das optionale Werkzeug, endet der Test hier
+        // ausdrücklich übersprungen statt mit einem Fehler.
+        guard let pandoc = try? PandocTool.resolve(nil) else {
+            throw XCTSkip("Pandoc is required for the independent XLSX comparison.")
+        }
+        let direct = try directPandocMarkdown(for: sourceURL, pandoc: pandoc)
+        for value in expectedValues {
+            XCTAssertTrue(direct.contains(value), "Pandoc comparison lacks \(value)")
+        }
     }
 
     func testXLSXReportsMergesAndMissingFormulaResults() throws {
@@ -206,6 +216,161 @@ final class SpreadsheetAdapterTests: XCTestCase {
         }
     }
 
+    /// Ein Diagrammblatt steht wie ein Arbeitsblatt in `<sheets>`, hat aber
+    /// keine Worksheet-Beziehung. Vorher scheiterte die ganze Mappe daran.
+    func testXLSXSkipsAChartsheetAndReportsItAsAnUnsupportedObject() throws {
+        let sourceURL = temporaryDirectory.appendingPathComponent("Chartsheet.xlsx")
+        try ZIPFixtureBuilder.xlsxPackage(
+            firstSheetXML: firstXLSXSheet,
+            secondSheetXML: secondXLSXSheet,
+            extraSheetDeclarations: #"<sheet name="Chart" sheetId="3" r:id="rId5"/>"#,
+            extraWorkbookRelationships: """
+            <Relationship Id="rId5" \
+            Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/chartsheet" \
+            Target="chartsheets/sheet1.xml"/>
+            """
+        ).write(to: sourceURL)
+
+        let inspection = try DocumentConverter().inspect(sourceURL)
+        let result = try DocumentConverter().convert(
+            ConversionRequest(
+                inputURL: sourceURL,
+                destination: .directory(temporaryDirectory.appendingPathComponent("chart-result"))
+            )
+        )
+        let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+
+        XCTAssertEqual(inspection.expectedWarnings.map(\.code), ["spreadsheet.unsupportedObjects"])
+        XCTAssertTrue(markdown.contains("## Sheet: Summary"))
+        XCTAssertTrue(markdown.contains("## Sheet: Details & Notes"))
+        XCTAssertFalse(markdown.contains("## Sheet: Chart"))
+    }
+
+    func testXLSXReportsModernThreadedCommentsAsUnsupportedObjects() throws {
+        let sourceURL = temporaryDirectory.appendingPathComponent("Threaded.xlsx")
+        try ZIPFixtureBuilder.xlsxPackage(
+            firstSheetXML: firstXLSXSheet,
+            secondSheetXML: secondXLSXSheet,
+            extraEntries: [
+                ZIPFixtureBuilder.Entry(
+                    name: "xl/threadedComments/threadedComment1.xml",
+                    content: Data(#"<?xml version="1.0"?><ThreadedComments/>"#.utf8)
+                ),
+            ]
+        ).write(to: sourceURL)
+
+        let inspection = try DocumentConverter().inspect(sourceURL)
+
+        XCTAssertEqual(inspection.expectedWarnings.map(\.code), ["spreadsheet.unsupportedObjects"])
+    }
+
+    /// Die Folgezelle einer gemeinsamen Formel darf ein leeres `<f/>` haben.
+    /// Ohne gespeichertes Ergebnis ist genau das der zugesagte Diagnosefall.
+    func testXLSXReportsASharedFormulaFollowerWithoutAStoredResult() throws {
+        let sharedFormulaSheet = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+          <sheetData>
+            <row r="1"><c r="A1"><v>1</v></c><c r="B1"><f t="shared" ref="B1:B2" si="0">A1*2</f><v>2</v></c></row>
+            <row r="2"><c r="A2"><v>3</v></c><c r="B2"><f t="shared" si="0"/></c></row>
+          </sheetData>
+        </worksheet>
+        """
+        let sourceURL = temporaryDirectory.appendingPathComponent("SharedFormula.xlsx")
+        try ZIPFixtureBuilder.xlsxPackage(
+            firstSheetXML: sharedFormulaSheet,
+            secondSheetXML: secondXLSXSheet
+        ).write(to: sourceURL)
+
+        let inspection = try DocumentConverter().inspect(sourceURL)
+
+        XCTAssertEqual(
+            inspection.expectedWarnings.map(\.code),
+            ["spreadsheet.formulaResultMissing"]
+        )
+    }
+
+    /// `c@r` ist in OOXML freigestellt. Ohne das Attribut standen vorher alle
+    /// Zellen einer Zeile auf Spalte A und die Zeile galt als ungültig.
+    func testXLSXReadsCellsWithoutExplicitReferences() throws {
+        let implicitSheet = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+          <sheetData>
+            <row><c t="inlineStr"><is><t>Left</t></is></c><c t="inlineStr"><is><t>Right</t></is></c></row>
+            <row><c><v>1</v></c><c><v>2</v></c></row>
+          </sheetData>
+        </worksheet>
+        """
+        let sourceURL = temporaryDirectory.appendingPathComponent("Implicit.xlsx")
+        try ZIPFixtureBuilder.xlsxPackage(
+            firstSheetXML: implicitSheet,
+            secondSheetXML: secondXLSXSheet
+        ).write(to: sourceURL)
+
+        let result = try DocumentConverter().convert(
+            ConversionRequest(
+                inputURL: sourceURL,
+                destination: .directory(temporaryDirectory.appendingPathComponent("implicit-result"))
+            )
+        )
+        let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+
+        XCTAssertTrue(markdown.contains("| Left | Right |"), markdown)
+        XCTAssertTrue(markdown.contains("| 1 | 2 |"), markdown)
+    }
+
+    /// Der ODS-Leser darf nur Tabellen aus dem Tabellenteil annehmen. Ein Paket
+    /// mit ODS-Mimetype, aber Textinhalt ist eine ungültige Eingabe.
+    func testODSRejectsATableOutsideTheSpreadsheetBody() throws {
+        let textBodyContent = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <office:document-content
+          xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
+          xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0"
+          xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0">
+          <office:body><office:text>
+            <table:table table:name="Inline">
+              <table:table-row>
+                <table:table-cell office:value-type="string"><text:p>Text table</text:p></table:table-cell>
+              </table:table-row>
+            </table:table>
+          </office:text></office:body>
+        </office:document-content>
+        """
+        let sourceURL = temporaryDirectory.appendingPathComponent("TextBody.ods")
+        try ZIPFixtureBuilder.odsPackage(contentXML: textBodyContent).write(to: sourceURL)
+
+        XCTAssertThrowsError(try DocumentConverter().inspect(sourceURL)) { error in
+            XCTAssertTrue(
+                error.localizedDescription.contains("no spreadsheet sheets"),
+                error.localizedDescription
+            )
+        }
+    }
+
+    func testODSReportsAHyperlinkTargetAsAnUnsupportedObject() throws {
+        let linked = generatedODSContent.replacingOccurrences(
+            of: "<text:p>Merged</text:p>",
+            with: #"<text:p><text:a xlink:href="https://example.com">Merged</text:a></text:p>"#
+        ).replacingOccurrences(
+            of: #"xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0""#,
+            with: #"""
+            xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"
+              xmlns:xlink="http://www.w3.org/1999/xlink"
+            """#
+        )
+        let sourceURL = temporaryDirectory.appendingPathComponent("Linked.ods")
+        try ZIPFixtureBuilder.odsPackage(contentXML: linked).write(to: sourceURL)
+
+        let inspection = try DocumentConverter().inspect(sourceURL)
+
+        XCTAssertTrue(
+            inspection.expectedWarnings.map(\.code).contains("spreadsheet.unsupportedObjects"),
+            "\(inspection.expectedWarnings.map(\.code))"
+        )
+    }
+
     func testRealXLSMatchesTheIndependentODSWorkbookAndKeepsSourceBytes() throws {
         let xlsURL = fixture("not-word.xls")
         let sourceBefore = try Data(contentsOf: xlsURL)
@@ -239,10 +404,10 @@ final class SpreadsheetAdapterTests: XCTestCase {
             .appendingPathComponent(name)
     }
 
-    private func directPandocMarkdown(for sourceURL: URL) throws -> String {
+    private func directPandocMarkdown(for sourceURL: URL, pandoc: URL) throws -> String {
         let outputURL = temporaryDirectory.appendingPathComponent("pandoc-xlsx.md")
         let result = try ProcessRunner.run(
-            executable: try PandocTool.resolve(nil),
+            executable: pandoc,
             arguments: [
                 "--from=xlsx", "--to=gfm-raw_html", "--wrap=preserve",
                 "--output", outputURL.path, sourceURL.path,

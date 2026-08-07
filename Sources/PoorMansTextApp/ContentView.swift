@@ -321,8 +321,12 @@ struct ContentView: View {
         // Dateiauswahl und `onOpenURL` gemeinsam gesperrt werden.
         Task {
             do {
-                try await model.installPandoc(brewExecutable: brewExecutable)
-                showsPandocInstallSuccess = true
+                // Nur der Aufruf, der die Installation wirklich ausgeführt hat,
+                // darf Erfolg melden. Ein paralleler zweiter Aufruf läuft in die
+                // Sperre des Modells und kehrt ohne Ergebnis zurück.
+                if try await model.installPandoc(brewExecutable: brewExecutable) {
+                    showsPandocInstallSuccess = true
+                }
             } catch {
                 pandocInstallError = error.localizedDescription
             }

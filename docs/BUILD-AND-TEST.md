@@ -31,7 +31,10 @@ App nicht, weil dyld Sparkle zur Laufzeit nur dort findet. Sparkles XPC-Dienste
 werden entfernt: Poor Man's Text ist nicht sandboxed und braucht sie nicht.
 Signiert wird über `scripts/sign_bundle.sh` — beim lokalen Build ad-hoc, beim
 Release mit Developer ID, in beiden Fällen von innen nach außen (eingebettete
-CLI, `Autoupdate`, `Updater.app`, Framework, zuletzt die App). Der
+CLI, `Autoupdate`, `Updater.app`, Framework, zuletzt die App). Die Debug-Symbole
+entfernt nur der Release-Weg, und zwar über die ausdrückliche Option
+`--strip-debug-symbols`; `./build.sh debug` behält sie, sonst wäre der Build
+weder auf Quellzeilen zu debuggen noch ein lokaler Absturz lesbar. Der
 Veröffentlichungsweg des Update-Feeds steht in
 [SPARKLE-RELEASE.md](SPARKLE-RELEASE.md).
 

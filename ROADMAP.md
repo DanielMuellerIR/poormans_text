@@ -19,6 +19,16 @@ ODT, DOC, ODS, XLSX, XLS und ODM sind implementiert. Ihre Importwege stehen in
 Vision und PDFKit sind macOS-Systemframeworks und benötigen keinen zusätzlichen
 OCR-Dienst. PDF ist kein Pandoc-Eingabeformat.
 
+### Linkziele in Tabellenzellen
+
+Das gemeinsame Arbeitsmappenmodell kennt nur Wert, Anzeigetext und Formel. Der
+sichtbare Text einer verlinkten Zelle bleibt deshalb erhalten, das Linkziel
+nicht; ODS, XLSX und XLS melden den Verlust seit dem 2026-08-07 als
+`spreadsheet.unsupportedObjects`. Für die echte Übernahme braucht
+`SpreadsheetCell` ein optionales Ziel, alle drei Leser müssen es füllen
+(`text:a`, XLSX-Hyperlink-Beziehungen, BIFF-`HLINK`) und der Renderer muss
+daraus einen Markdown-Link mit maskiertem Text erzeugen.
+
 ### iWork-Formate (Pages und Numbers) — bewusste Grenze
 
 Entscheidung vom 2026-07-29: kein iWork-Import. Weder Pandoc noch `textutil`

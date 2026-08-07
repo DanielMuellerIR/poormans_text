@@ -353,6 +353,11 @@ enum ZIPArchiveInspector {
         /// entstehen als deklariert, bricht die Prüfung sofort ab. Ein präparierter
         /// Eintrag kann so weder Speicher noch Zeit über sein deklariertes Maß
         /// hinaus verbrauchen.
+        ///
+        /// `data[contentRange]` liefert einen Ausschnitt auf denselben Speicher.
+        /// `subdata(in:)` würde stattdessen jeden Eintrag zusätzlich kopieren —
+        /// bei einem zulässigen Archiv von bis zu 1 GiB wäre die angeblich
+        /// streamende Prüfung dann der größte Speicherverbraucher überhaupt.
         func verifyEntryContents() throws {
             for entry in entries where !entry.isDirectory {
                 let contentRange = try contentRange(for: entry)
@@ -364,13 +369,13 @@ enum ZIPArchiveInspector {
                         )
                     }
                     try ZIPArchiveInspector.verifyChecksum(
-                        of: data.subdata(in: contentRange),
+                        of: data[contentRange],
                         expected: entry.crc,
                         entryName: entry.name
                     )
                 case 8:
                     try ZIPArchiveInspector.verifyDeflated(
-                        data.subdata(in: contentRange),
+                        data[contentRange],
                         expectedSize: entry.uncompressedSize,
                         expectedChecksum: entry.crc,
                         entryName: entry.name
@@ -595,12 +600,17 @@ enum ZIPArchiveInspector {
 /// Ohne sie liefert `XMLParser` den Elementnamen samt Präfix (`r:Relationship`),
 /// und ein Paket mit einem anderen — aber völlig gültigen — Präfix rutscht an
 /// jeder Namensprüfung vorbei. Mit ihr ist `elementName` der lokale Name.
-/// Attributnamen behalten ihr Präfix auch dann; deshalb vergleichen die
-/// Delegates unten Attribute über ihren lokalen Namen.
+///
+/// Attributnamen behalten ihr Präfix auch dann. Damit ein Delegate es auflösen
+/// kann, meldet `shouldReportNamespacePrefixes` zusätzlich jede
+/// Präfix-Deklaration; ohne dieses Flag ruft `XMLParser` die zugehörigen
+/// Delegate-Methoden gar nicht erst auf. In die Attributliste geraten die
+/// `xmlns`-Deklarationen dadurch nicht.
 private func parseXML(_ xml: Data, with delegate: XMLParserDelegate) throws {
     let parser = XMLParser(data: xml)
     parser.delegate = delegate
     parser.shouldProcessNamespaces = true
+    parser.shouldReportNamespacePrefixes = true
     parser.shouldResolveExternalEntities = false
     guard parser.parse() else {
         throw parser.parserError ?? CocoaError(.fileReadCorruptFile)
@@ -608,6 +618,11 @@ private func parseXML(_ xml: Data, with delegate: XMLParserDelegate) throws {
 }
 
 /// Der Wert eines Attributs, unabhängig vom gewählten Namensraum-Präfix.
+///
+/// Nur für Formate gedacht, deren Attribute laut Spezifikation ohne Namensraum
+/// stehen (OPC-`[Content_Types].xml` und `.rels`). Wo ein Attribut wie
+/// `xlink:href` zu einem bestimmten Namensraum gehört, ist
+/// `NamespacePrefixTracker.attributeValue` die richtige Wahl.
 private func attributeValue(
     localName: String,
     in attributes: [String: String]
@@ -617,6 +632,58 @@ private func attributeValue(
     }
     let suffix = ":" + localName
     return attributes.first { $0.key.hasSuffix(suffix) }?.value
+}
+
+/// Die im Dokument deklarierten Namensraum-Präfixe, solange sie gelten.
+///
+/// `XMLParser` löst mit `shouldProcessNamespaces` zwar Elementnamen auf, liefert
+/// Attributnamen aber weiterhin mit ihrem Präfix. Ohne diese Zuordnung müsste
+/// man das Präfix raten — und ein beliebiges fremdes `foo:href` würde den
+/// echten `xlink:href` verdecken. Weil dasselbe Präfix in einem inneren Element
+/// neu belegt werden darf, steht je Präfix ein Stapel.
+private final class NamespacePrefixTracker {
+    private var uris = [String: [String]]()
+
+    func startMapping(prefix: String, uri: String) {
+        uris[prefix, default: []].append(uri)
+    }
+
+    func endMapping(prefix: String) {
+        guard var stack = uris[prefix], !stack.isEmpty else { return }
+        stack.removeLast()
+        uris[prefix] = stack.isEmpty ? nil : stack
+    }
+
+    /// Der Wert des Attributs, dessen Präfix wirklich auf den erwarteten
+    /// Namensraum zeigt. Ein unpräfigiertes Attribut hat in XML keinen
+    /// Namensraum und zählt deshalb nie.
+    func attributeValue(
+        localName: String,
+        namespaceURI: String,
+        in attributes: [String: String]
+    ) -> String? {
+        for (name, value) in attributes {
+            guard let separator = name.firstIndex(of: ":"),
+                  name[name.index(after: separator)...] == localName,
+                  uris[String(name[..<separator])]?.last == namespaceURI else {
+                continue
+            }
+            return value
+        }
+        return nil
+    }
+}
+
+/// Die Namensräume, deren Elemente die Paketprüfung auswerten darf.
+private enum InspectedNamespaces {
+    static let office = "urn:oasis:names:tc:opendocument:xmlns:office:1.0"
+    static let text = "urn:oasis:names:tc:opendocument:xmlns:text:1.0"
+    static let drawing = "urn:oasis:names:tc:opendocument:xmlns:drawing:1.0"
+    static let xlink = "http://www.w3.org/1999/xlink"
+    static let wordprocessing: Set<String> = [
+        "http://schemas.openxmlformats.org/wordprocessingml/2006/main",
+        "http://purl.oclc.org/ooxml/wordprocessingml/main",
+    ]
 }
 
 private enum ExternalImageRelationshipParser {
@@ -736,17 +803,18 @@ private struct WordprocessingContentInspection {
         guard rootElementName == "document", let rootNamespaceURI else {
             return false
         }
-        return rootNamespaceURI == "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
-            || rootNamespaceURI == "http://purl.oclc.org/ooxml/wordprocessingml/main"
+        return InspectedNamespaces.wordprocessing.contains(rootNamespaceURI)
     }
 }
 
-/// Zählt WordprocessingML-Elemente über ihren exakten lokalen Namen.
+/// Zählt WordprocessingML-Elemente über ihren exakten lokalen Namen und ihren
+/// Namensraum.
 ///
 /// Eine Teilstringsuche nach `<w:ins` trifft auch den ganz gewöhnlichen
 /// Feldcode `<w:instrText>`; ein Dokument mit Inhaltsverzeichnis oder Seitenzahl
 /// bekäme dann die falsche Warnung, nachverfolgte Änderungen seien angenommen
-/// worden.
+/// worden. Und ein `ins`-Element aus einem fremden Namensraum — etwa aus
+/// eingebettetem HTML — ist überhaupt keine nachverfolgte Änderung.
 private enum WordprocessingContentParser {
     static func inspect(_ xml: Data) throws -> WordprocessingContentInspection {
         let delegate = ContentDelegate()
@@ -777,6 +845,10 @@ private enum WordprocessingContentParser {
             if rootElementName == nil {
                 rootElementName = elementName
                 rootNamespaceURI = namespaceURI
+            }
+            guard let namespaceURI,
+                  InspectedNamespaces.wordprocessing.contains(namespaceURI) else {
+                return
             }
             switch elementName {
             case "commentRangeStart":
@@ -813,6 +885,19 @@ private enum ODTContentParser {
         var containsAnnotations = false
         var containsTrackedChanges = false
         var externalImages = [String]()
+        private let prefixes = NamespacePrefixTracker()
+
+        func parser(
+            _ parser: XMLParser,
+            didStartMappingPrefix prefix: String,
+            toURI namespaceURI: String
+        ) {
+            prefixes.startMapping(prefix: prefix, uri: namespaceURI)
+        }
+
+        func parser(_ parser: XMLParser, didEndMappingPrefix prefix: String) {
+            prefixes.endMapping(prefix: prefix)
+        }
 
         func parser(
             _ parser: XMLParser,
@@ -821,14 +906,21 @@ private enum ODTContentParser {
             qualifiedName qName: String?,
             attributes attributeDict: [String: String] = [:]
         ) {
-            switch elementName {
-            case "annotation":
+            // Jedes Element zählt nur in seinem ODF-Namensraum. Ein fremdes
+            // `foo:image` oder `foo:annotation` ist kein ODF-Bild und keine
+            // ODF-Notiz und darf deshalb keine Warnung oder Ablehnung auslösen.
+            guard let namespaceURI else { return }
+            switch (namespaceURI, elementName) {
+            case (InspectedNamespaces.office, "annotation"):
                 containsAnnotations = true
-            case "tracked-changes":
+            case (InspectedNamespaces.text, "tracked-changes"):
                 containsTrackedChanges = true
-            case "image":
-                guard let reference = attributeValue(localName: "href", in: attributeDict),
-                      isUnsafe(reference) else {
+            case (InspectedNamespaces.drawing, "image"):
+                guard let reference = prefixes.attributeValue(
+                    localName: "href",
+                    namespaceURI: InspectedNamespaces.xlink,
+                    in: attributeDict
+                ), isUnsafe(reference) else {
                     return
                 }
                 externalImages.append(reference)

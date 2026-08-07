@@ -313,8 +313,16 @@ struct RichTextAdapter: DocumentConversionAdapter {
     /// Absatz in `<li>` ab. Ohne diese enge Korrektur schreibt der nächste
     /// Pandoc-Lauf daraus eine lose Liste mit Leerzeilen. Einträge mit mehreren
     /// Absätzen oder verschachtelten Elementen bleiben bewusst unverändert.
+    ///
+    /// Im Absatz sind neben reinem Text ausdrücklich die üblichen
+    /// Auszeichnungen erlaubt — ohne sie fiele schon ein fett gesetztes Wort im
+    /// Listeneintrag aus der Korrektur heraus. Alles andere, insbesondere ein
+    /// zweiter Absatz oder eine verschachtelte Liste, passt weiterhin nicht.
     func unwrappingListParagraphs(in html: String) -> String {
-        let pattern = #"<li([^>]*)>\s*<p[^>]*>([^<]*)</p>\s*</li>"#
+        let inlineElements = "a|abbr|b|br|cite|code|del|em|i|ins|kbd|mark|q|s"
+            + "|samp|small|span|strong|sub|sup|u|var"
+        let inlineContent = #"(?:[^<]|</?(?:\#(inlineElements))(?:\s[^>]*)?/?>)*"#
+        let pattern = #"<li([^>]*)>\s*<p[^>]*>(\#(inlineContent))</p>\s*</li>"#
         guard let expression = try? NSRegularExpression(
             pattern: pattern,
             options: [.caseInsensitive, .dotMatchesLineSeparators]

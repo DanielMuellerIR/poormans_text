@@ -36,6 +36,12 @@ den Wert der linken oberen Zelle reduziert und ebenfalls gemeldet. Diagramme,
 Zeichnungen, Kommentare, Makros und andere nicht darstellbare Objekte führen zu
 einer Verlustwarnung.
 
+Das Modell hat kein Feld für ein Linkziel. Der sichtbare Text einer verlinkten
+Zelle bleibt deshalb erhalten, das Ziel selbst nicht; die Leser melden das als
+`spreadsheet.unsupportedObjects`. Ein Diagramm- oder Dialogblatt hat kein
+Zellgitter: Es wird übersprungen und löst dieselbe Warnung aus, statt die ganze
+Arbeitsmappe abzulehnen.
+
 ## Zwei Markdown-Darstellungen
 
 Standard ist `markdownTable`: Jedes Blatt wird zu einer GFM-Tabelle. Die erste

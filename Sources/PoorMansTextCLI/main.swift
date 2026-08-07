@@ -21,6 +21,9 @@ private struct ParsedArguments {
     var showVersion = false
     var listFormats = false
     var spreadsheetRendering: SpreadsheetRendering = .markdownTable
+    /// Wurde `--spreadsheet-format` wirklich angegeben? Der Standardwert allein
+    /// verrät das nicht, im Katalogmodus ist aber genau die Angabe der Fehler.
+    var setsSpreadsheetRendering = false
 }
 
 private struct JSONResponse: Encodable {
@@ -129,8 +132,8 @@ output directories are never overwritten. Exit codes follow sysexits values:
 it is a single file or a folder package, which external tools it needs, and
 whether those tools are installed right now. It never inspects a document, and
 a valid call always exits 0 — even when no format is currently available.
-Combining --formats with an input document or an output directory is a usage
-error and exits 64.
+Combining --formats with an input document, an output directory, or a
+conversion option such as --spreadsheet-format is a usage error and exits 64.
 """
 
 private func parseArguments(
@@ -163,10 +166,12 @@ private func parseArguments(
                 throw CLIArgumentError.missingValue(argument)
             }
             parsed.spreadsheetRendering = try spreadsheetRendering(rawArguments[index])
+            parsed.setsSpreadsheetRendering = true
         } else if !optionsEnded && argument.hasPrefix("--spreadsheet-format=") {
             parsed.spreadsheetRendering = try spreadsheetRendering(
                 String(argument.dropFirst("--spreadsheet-format=".count))
             )
+            parsed.setsSpreadsheetRendering = true
         } else if !optionsEnded && (argument == "-o" || argument == "--output") {
             index += 1
             guard index < rawArguments.count else {
@@ -231,7 +236,12 @@ private enum CLIArgumentError: LocalizedError {
         case .formatsTakesNoInput:
             // Streng statt tolerant: Sonst bliebe unklar, ob der Aufruf gelistet
             // oder konvertiert hat — und ein Skript würde das erst am Ergebnis merken.
-            "--formats lists formats only; it takes no input document or output directory."
+            // Dasselbe gilt für eine Umwandlungsoption: Sie wirkt im Katalogmodus
+            // nicht und wäre still ein Tippfehler ohne Folgen.
+            """
+            --formats lists formats only; it takes no input document, output \
+            directory, or conversion option.
+            """
         case .invalidSpreadsheetFormat(let value):
             "Unknown spreadsheet format: \(value). Use table or tsv."
         }
@@ -351,7 +361,8 @@ do {
     }
 
     if arguments.listFormats {
-        guard arguments.inputURL == nil, arguments.outputURL == nil else {
+        guard arguments.inputURL == nil, arguments.outputURL == nil,
+              !arguments.setsSpreadsheetRendering else {
             throw CLIArgumentError.formatsTakesNoInput
         }
         writeFormats(formatCatalog(pandocURL: arguments.pandocURL), json: arguments.json)

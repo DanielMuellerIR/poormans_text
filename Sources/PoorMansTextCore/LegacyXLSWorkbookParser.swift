@@ -342,7 +342,18 @@ enum LegacyXLSWorkbookParser {
             return workbook
         }
 
-        private static func records(in data: Data, start: Int = 0) throws -> [Record] {
+        /// Liest BIFF-Records ab `start`.
+        ///
+        /// `stopAfterID` beendet den Lauf nach dem ersten Record dieser Art.
+        /// Für ein einzelnes Blatt ist das der EOF-Record: Ohne ihn würde für
+        /// jedes Blatt der gesamte restliche Arbeitsmappen-Stream eingelesen und
+        /// jede Nutzlast kopiert — bei bis zu 256 Blättern also immer wieder von
+        /// vorn, obwohl die Auswertung ohnehin am ersten EOF endet.
+        private static func records(
+            in data: Data,
+            start: Int = 0,
+            stopAfterID: UInt16? = nil
+        ) throws -> [Record] {
             var result = [Record]()
             var offset = start
             while offset + 4 <= data.count {
@@ -359,6 +370,9 @@ enum LegacyXLSWorkbookParser {
                     )
                 )
                 offset += 4 + length
+                if id == stopAfterID {
+                    break
+                }
             }
             return result
         }
@@ -397,7 +411,7 @@ enum LegacyXLSWorkbookParser {
                   data.legacyUInt16(at: offset) == 0x0809 else {
                 throw ParserError("an XLS worksheet BOF offset is invalid")
             }
-            let sheetRecords = try records(in: data, start: offset)
+            let sheetRecords = try records(in: data, start: offset, stopAfterID: 0x000A)
             var cells = [Int: [Int: SpreadsheetCell]]()
             var hasMerges = false
             var hasFormulaWithoutResult = false
@@ -495,7 +509,10 @@ enum LegacyXLSWorkbookParser {
                     }
                 case 0x00E5:
                     hasMerges = true
-                case 0x005D, 0x01B6, 0x00EC, 0x00EB:
+                // OBJ, TXO, MSODRAWING, MSODRAWINGGROUP und HLINK. Der sichtbare
+                // Zelltext bleibt jeweils erhalten, das Objekt selbst und bei
+                // HLINK das Linkziel nicht — deshalb die Verlustwarnung.
+                case 0x005D, 0x01B6, 0x00EC, 0x00EB, 0x01B8:
                     hasUnsupportedObjects = true
                 default:
                     break

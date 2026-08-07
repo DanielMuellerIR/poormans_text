@@ -69,3 +69,18 @@ Rotation beträfe damit beide Apps.
 Der Workflow kann für ein bestehendes Tag manuell gestartet werden. Er erwartet
 genau ein `*.dmg`; der Feed enthält nur das aktuelle Vollupdate und keine Deltas.
 Die Prüfsummendatei des Releases stört dabei nicht — sie endet nicht auf `.dmg`.
+
+## Absicherung des Workflows
+
+- `SPARKLE_PRIVATE_KEY` steht nur im `env` des Signierschritts. Im `env` des
+  ganzen Jobs wäre der Schlüssel auch für Checkout, Pages- und
+  Deployment-Actions lesbar.
+- Alle fremden Actions hängen an einem geprüften Commit-SHA mit der
+  Versionsnummer als Kommentar. Ein beweglicher Major-Tag kann jederzeit auf
+  anderen Code zeigen, der dann neben dem Schlüssel liefe. Beim Aktualisieren
+  einer Action den neuen SHA aus dem Tag der Action auflösen und den Kommentar
+  mitziehen.
+- Ein Prerelease startet den Job nicht, und vor dem Download prüft ein eigener
+  Schritt, dass das Tag das neueste stabile Release ist. Sonst könnte ein Lauf
+  von Hand den Feed auf einen alten Stand zurücksetzen — allen Installationen
+  wird immer genau dieser eine Appcast angeboten.

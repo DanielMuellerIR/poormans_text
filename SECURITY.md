@@ -2,7 +2,9 @@
 
 ## Supported versions
 
-Security fixes are provided for the latest `0.7.x` release.
+Security fixes are provided for the latest released version. Older releases
+receive no backports; update to the current release listed in
+[CHANGELOG.md](CHANGELOG.md).
 
 ## Reporting a vulnerability
 

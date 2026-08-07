@@ -26,11 +26,25 @@ enum XLSXWorkbookParser {
             throw ParserError("the workbook contains too many sheets")
         }
         let relationships = try RelationshipParser.parse(relationshipsXML)
-        let sheetPaths = try sheetDefinitions.map { definition -> String in
-            guard let target = relationships[definition.relationshipID] else {
+        // Ein Diagramm- oder Dialogblatt steht wie ein Arbeitsblatt in
+        // `<sheets>`, hat aber keine Worksheet-Beziehung. Es wird übersprungen
+        // und als nicht darstellbares Objekt gemeldet, statt die ganze
+        // Arbeitsmappe scheitern zu lassen.
+        var worksheetDefinitions = [SheetDefinition]()
+        var sheetPaths = [String]()
+        var hasSkippedSheets = false
+        for definition in sheetDefinitions {
+            if let target = relationships.worksheets[definition.relationshipID] {
+                worksheetDefinitions.append(definition)
+                sheetPaths.append(try normalizedWorksheetPath(target))
+            } else if relationships.otherSheetIDs.contains(definition.relationshipID) {
+                hasSkippedSheets = true
+            } else {
                 throw ParserError("a workbook sheet relationship is missing")
             }
-            return try normalizedWorksheetPath(target)
+        }
+        guard !worksheetDefinitions.isEmpty else {
+            throw ParserError("the workbook contains no readable worksheets")
         }
 
         let worksheetPackage = try ZIPArchiveInspector.packageContents(
@@ -46,7 +60,8 @@ enum XLSXWorkbookParser {
 
         var result = SpreadsheetWorkbook(sheets: [])
         var expandedCellCount = 0
-        for (definition, path) in zip(sheetDefinitions, sheetPaths) {
+        var hasHyperlinks = false
+        for (definition, path) in zip(worksheetDefinitions, sheetPaths) {
             guard let xml = worksheetPackage.entries[path] else {
                 throw ParserError("the worksheet part is missing: \(path)")
             }
@@ -60,14 +75,19 @@ enum XLSXWorkbookParser {
             result.hasFlattenedMerges = result.hasFlattenedMerges || parsed.hasMerges
             result.hasFormulaWithoutResult = result.hasFormulaWithoutResult
                 || parsed.hasFormulaWithoutResult
+            hasHyperlinks = hasHyperlinks || parsed.hasHyperlinks
         }
-        result.hasUnsupportedObjects = metadata.entryNames.contains {
-            $0.hasPrefix("xl/charts/")
-                || $0.hasPrefix("xl/drawings/")
-                || $0.hasPrefix("xl/media/")
-                || $0.hasPrefix("xl/comments")
-                || $0 == "xl/vbaProject.bin"
-        }
+        // `xl/threadedComments/…` ist der Ablageort moderner Excel-Kommentare;
+        // ohne ihn blieben genau die still verworfen.
+        result.hasUnsupportedObjects = hasSkippedSheets || hasHyperlinks
+            || metadata.entryNames.contains {
+                $0.hasPrefix("xl/charts/")
+                    || $0.hasPrefix("xl/drawings/")
+                    || $0.hasPrefix("xl/media/")
+                    || $0.hasPrefix("xl/comments")
+                    || $0.hasPrefix("xl/threadedComments/")
+                    || $0 == "xl/vbaProject.bin"
+            }
         return result
     }
 
@@ -200,8 +220,16 @@ enum XLSXWorkbookParser {
         }
     }
 
+    /// Die Beziehungen der Arbeitsmappe, getrennt nach lesbaren Arbeitsblättern
+    /// und den übrigen Blattarten. Ohne diese Trennung ließe sich ein
+    /// Diagrammblatt nicht von einer wirklich fehlenden Beziehung unterscheiden.
+    private struct WorkbookRelationships {
+        let worksheets: [String: String]
+        let otherSheetIDs: Set<String>
+    }
+
     private enum RelationshipParser {
-        static func parse(_ xml: Data) throws -> [String: String] {
+        static func parse(_ xml: Data) throws -> WorkbookRelationships {
             let delegate = Delegate()
             try XLSXWorkbookParser.parse(xml, delegate: delegate)
             guard delegate.hasValidRoot, delegate.failure == nil else {
@@ -212,11 +240,18 @@ enum XLSXWorkbookParser {
             if let unsafeTarget = delegate.unsafeTarget {
                 throw ParserError("an external XLSX relationship is not allowed: \(unsafeTarget)")
             }
-            return delegate.worksheets
+            return WorkbookRelationships(
+                worksheets: delegate.worksheets,
+                otherSheetIDs: delegate.otherSheetIDs
+            )
         }
+
+        /// Blattarten, die OOXML kennt, die aber kein Zellgitter enthalten.
+        private static let otherSheetTypes = ["/chartsheet", "/dialogsheet"]
 
         private final class Delegate: NSObject, XMLParserDelegate {
             var worksheets = [String: String]()
+            var otherSheetIDs = Set<String>()
             var unsafeTarget: String?
             var hasValidRoot = false
             var failure: String?
@@ -238,8 +273,14 @@ enum XLSXWorkbookParser {
                       elementName == "Relationship",
                       let id = xlsxAttribute("Id", in: attributeDict),
                       let target = xlsxAttribute("Target", in: attributeDict),
-                      xlsxAttribute("Type", in: attributeDict)?.lowercased()
-                        .hasSuffix("/worksheet") == true else {
+                      let type = xlsxAttribute("Type", in: attributeDict)?.lowercased() else {
+                    return
+                }
+                if otherSheetTypes.contains(where: type.hasSuffix) {
+                    otherSheetIDs.insert(id)
+                    return
+                }
+                guard type.hasSuffix("/worksheet") else {
                     return
                 }
                 if xlsxAttribute("TargetMode", in: attributeDict)?.lowercased() == "external" {
@@ -326,6 +367,7 @@ enum XLSXWorkbookParser {
         let rows: [[SpreadsheetCell]]
         let hasMerges: Bool
         let hasFormulaWithoutResult: Bool
+        let hasHyperlinks: Bool
         let expandedCellCount: Int
     }
 
@@ -350,6 +392,7 @@ enum XLSXWorkbookParser {
                 rows: delegate.rows,
                 hasMerges: delegate.hasMerges,
                 hasFormulaWithoutResult: delegate.hasFormulaWithoutResult,
+                hasHyperlinks: delegate.hasHyperlinks,
                 expandedCellCount: delegate.expandedCellCount
             )
         }
@@ -358,13 +401,13 @@ enum XLSXWorkbookParser {
             var rows = [[SpreadsheetCell]]()
             var hasMerges = false
             var hasFormulaWithoutResult = false
+            var hasHyperlinks = false
             var failure: Error?
             var hasValidRoot = false
 
             private let sharedStrings: [String]
             private let maximumCells: Int
             private var currentRow: [SpreadsheetCell]?
-            private var currentRowNumber = 0
             private var currentCell: CellBuilder?
             private var capture: Capture?
             private(set) var expandedCellCount = 0
@@ -398,10 +441,16 @@ enum XLSXWorkbookParser {
                     }
                     while rows.count + 1 < rowNumber { rows.append([]) }
                     currentRow = []
-                    currentRowNumber = rowNumber
-                } else if elementName == "c", currentRow != nil {
-                    let reference = xlsxAttribute("r", in: attributeDict) ?? "A\(currentRowNumber)"
-                    guard let column = columnIndex(reference), column < Limits.maximumColumns else {
+                } else if elementName == "c", let row = currentRow {
+                    // Das Attribut `r` ist laut OOXML freigestellt. Fehlt es,
+                    // steht die Zelle in der nächsten freien Spalte dieser Zeile.
+                    let column: Int?
+                    if let reference = xlsxAttribute("r", in: attributeDict) {
+                        column = columnIndex(reference)
+                    } else {
+                        column = row.count
+                    }
+                    guard let column, column < Limits.maximumColumns else {
                         return fail("an XLSX cell reference exceeds the column budget", parser: parser)
                     }
                     currentCell = CellBuilder(
@@ -411,11 +460,17 @@ enum XLSXWorkbookParser {
                 } else if elementName == "v", currentCell != nil {
                     capture = .value
                 } else if elementName == "f", currentCell != nil {
+                    // Eine Folgezelle einer gemeinsamen Formel darf leer sein
+                    // (`<f t="shared" si="0"/>`). Deshalb zählt hier, dass das
+                    // Element überhaupt da war, nicht sein Text.
+                    currentCell?.hasFormulaElement = true
                     capture = .formula
                 } else if elementName == "t", currentCell?.type == "inlineStr" {
                     capture = .inlineText
                 } else if elementName == "mergeCell" {
                     hasMerges = true
+                } else if elementName == "hyperlink" {
+                    hasHyperlinks = true
                 }
             }
 
@@ -464,7 +519,7 @@ enum XLSXWorkbookParser {
                     let cell = try builder.cell(sharedStrings: sharedStrings)
                     currentRow!.append(cell)
                     expandedCellCount += cellsToAppend
-                    if !builder.formula.isEmpty, cell.displayText.isEmpty {
+                    if builder.hasFormulaElement, cell.displayText.isEmpty {
                         hasFormulaWithoutResult = true
                     }
                 } catch {
@@ -484,10 +539,15 @@ enum XLSXWorkbookParser {
             let type: String?
             var rawValue = ""
             var formula = ""
+            /// Wahr, sobald ein `<f>`-Element auftauchte — auch ein leeres.
+            var hasFormulaElement = false
             var inlineText = ""
 
             func cell(sharedStrings: [String]) throws -> SpreadsheetCell {
-                let formulaValue = formula.isEmpty ? nil : formula
+                // Eine Zelle mit `<f/>`-Element ist eine Formelzelle, auch wenn
+                // der Formeltext bei einer gemeinsamen Formel nur in der ersten
+                // Zelle steht. Sonst gälte sie als leer und fiele weg.
+                let formulaValue = formula.isEmpty ? (hasFormulaElement ? "" : nil) : formula
                 switch type {
                 case "s":
                     guard let index = Int(rawValue), sharedStrings.indices.contains(index) else {

@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+- Keep the Sparkle signing key out of every step but the one that signs, pin all
+  workflow actions to reviewed commit SHAs, skip prereleases, and refuse a
+  manual appcast run whose tag is not the latest stable release.
+- Verify ZIP entries over the mapped archive instead of copying each entry, so a
+  large package no longer needs several times its own size in memory.
+- Read an XLS sheet only up to its own end-of-sheet record instead of
+  materializing the rest of the workbook stream once per sheet.
+- Keep master-document text around a nested annotation paragraph, write manual
+  line breaks as Markdown hard breaks, preserve explicit `text:s` spaces, and
+  escape master text so a paragraph like `# Text` stays a paragraph.
+- Replace only real Markdown image targets when merging ODM sections instead of
+  rewriting every occurrence of the same text.
+- Report a shared-formula cell without a stored result, read cells that omit the
+  optional `r` reference, skip chartsheets with an unsupported-object warning
+  instead of failing the workbook, and cover modern threaded comments.
+- Validate the ODS content hierarchy before accepting a table as a sheet, and
+  report spreadsheet hyperlink targets as an unsupported object in all three
+  readers instead of dropping them silently.
+- Decide package inspections by element namespace and resolve `xlink:href`
+  through its declared prefix, so foreign elements or attributes can neither
+  trigger nor hide a warning.
+- Publish the disk image and its checksum only after the installation passed its
+  final check, and roll the installation back if publishing fails.
+- Strip debug symbols only on the release path; `./build.sh debug` keeps them.
+- Unwrap list items that contain inline formatting, reject a conversion option in
+  `--formats`, report a rejected parallel Pandoc installation instead of showing
+  success, and skip the independent XLSX comparison when Pandoc is missing.
+
 ## 0.8.0 - 2026-08-05
 
 - Verify the complete published Sparkle path from 0.7.0 to 0.8.0: the older

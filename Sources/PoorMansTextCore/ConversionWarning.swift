@@ -66,7 +66,7 @@ extension ConversionWarning {
 
     static let spreadsheetUnsupportedObjects = ConversionWarning(
         code: "spreadsheet.unsupportedObjects",
-        message: "Charts, images, comments, macros, or other spreadsheet objects are not represented in the Markdown."
+        message: "Charts, images, comments, macros, hyperlink targets, or other spreadsheet objects are not represented in the Markdown."
     )
 
     static let legacySpreadsheetPotentialLoss = ConversionWarning(

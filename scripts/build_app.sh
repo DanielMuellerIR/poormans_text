@@ -96,13 +96,21 @@ cp "$sparkle_license" "$bundled_sparkle_license"
 # genau diese Debug-Symbole und lässt die normale Symboltabelle stehen, damit
 # Absturzberichte lesbar bleiben. Xcode tut das bei Release-Builds von sich aus
 # (STRIP_STYLE=debugging), SwiftPM nicht.
-strip -S "$contents_path/MacOS/PoorMansTextApp" "$bundled_cli"
+#
+# Ein ausdrücklich angeforderter Debug-Build behält seine Symbole: Ohne sie
+# könnte man ihn weder auf Quellzeilen debuggen noch einen lokalen Absturz
+# vernünftig lesen — und ausgeliefert wird er ohnehin nie.
+sign_arguments=("$bundle_path" -)
+if [ "$build_configuration" = "release" ]; then
+    strip -S "$contents_path/MacOS/PoorMansTextApp" "$bundled_cli"
+    sign_arguments+=(--strip-debug-symbols)
+fi
 
 # Ad-hoc signieren über dasselbe Skript wie der Developer-ID-Weg. Die
 # Reihenfolge der verschachtelten Signaturen — eingebettete CLI, Sparkles
 # Helfer, dann das Bundle — steht damit nur an einer Stelle und kann zwischen
 # lokalem Build und Release nicht auseinanderlaufen.
-"$script_directory/sign_bundle.sh" "$bundle_path" -
+"$script_directory/sign_bundle.sh" "${sign_arguments[@]}"
 
 # Sichtbare, gitignorierte Artefakte im Repo-Root erleichtern lokale Prüfungen.
 remove_exact_path "$root_app"

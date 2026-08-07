@@ -254,6 +254,16 @@ final class CLIIntegrationTests: XCTestCase {
     func testFormatsRejectsAConversionArgumentInsteadOfGuessing() throws {
         assertTextFailure(try runCLI(["--formats", "Document.rtf"]), expectedStatus: 64)
         assertTextFailure(try runCLI(["--formats", "-o", "out"]), expectedStatus: 64)
+        // Auch eine reine Umwandlungsoption gehört nicht in den Katalogmodus:
+        // Sie bliebe wirkungslos und der Aufruf endete trotzdem mit 0.
+        assertTextFailure(
+            try runCLI(["--formats", "--spreadsheet-format", "tsv"]),
+            expectedStatus: 64
+        )
+        assertTextFailure(
+            try runCLI(["--formats", "--spreadsheet-format=tsv"]),
+            expectedStatus: 64
+        )
     }
 
     private func runCLI(_ arguments: [String]) throws -> CLIProcessResult {

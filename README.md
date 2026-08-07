@@ -255,7 +255,7 @@ Typically preserved:
 - paragraphs and manual line breaks using two trailing spaces
 - bold and italic text
 - chromatic RTFD text using `==text==` markers
-- hyperlinks
+- hyperlinks in word-processing documents
 - simple ordered and unordered lists
 - semantic headings, footnotes, and simple tables in DOCX and ODT
 - image order and relative image references
@@ -275,6 +275,8 @@ Expected losses or approximations:
 - DOCM/DOTM macros and DOTX/DOTM template behavior
 - spreadsheet formulas without stored results, merged-cell structure, charts,
   drawings, comments, macros, and exact formatting
+- spreadsheet hyperlink targets; the visible cell text stays and the loss is
+  reported as a warning
 - ODM section boundaries and master-document behavior after flattening
 
 ## Development

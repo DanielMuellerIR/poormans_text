@@ -94,6 +94,74 @@ final class OpenDocumentMasterAdapterTests: XCTestCase {
         }
     }
 
+    /// Eine ODF-Notiz mitten im Absatz enthält selbst wieder `text:p`. Vorher
+    /// ersetzte der innere Absatz den äußeren, und der Text davor und danach
+    /// verschwand still aus dem Ergebnis.
+    func testMasterParagraphSurvivesANestedAnnotationParagraph() throws {
+        let markdown = try convertedMasterMarkdown(
+            body: """
+            <text:p>Before the note<office:annotation><text:p>Note</text:p></office:annotation> \
+            and after it.</text:p>
+            """,
+            name: "Annotated"
+        )
+
+        let paragraph = try XCTUnwrap(
+            markdown.split(separator: "\n").first { $0.contains("Before the note") }
+        )
+        XCTAssertTrue(paragraph.contains("and after it."), markdown)
+        XCTAssertTrue(markdown.contains("Note"), markdown)
+    }
+
+    /// Der Fließtext des Masters wird unverändert als Markdown eingesetzt.
+    /// Ohne Maskierung würde aus dem Absatz `# Kein Titel` eine Überschrift,
+    /// ein manueller Umbruch bliebe weich und `text:s` fiele dem Trimmen zum
+    /// Opfer.
+    func testMasterParagraphsEscapeMarkdownAndKeepBreaksAndSpaces() throws {
+        let markdown = try convertedMasterMarkdown(
+            body: """
+            <text:p># Kein Titel</text:p>
+            <text:p>Erste Zeile<text:line-break/>Zweite Zeile</text:p>
+            <text:p><text:s text:c="2"/>Eingerückter Anfang</text:p>
+            <text:p>Ein *Stern* bleibt Text</text:p>
+            """,
+            name: "Escaped"
+        )
+
+        XCTAssertTrue(markdown.contains("\\# Kein Titel"), markdown)
+        XCTAssertTrue(markdown.contains("Erste Zeile  \nZweite Zeile"), markdown)
+        XCTAssertTrue(markdown.contains("  Eingerückter Anfang"), markdown)
+        XCTAssertTrue(markdown.contains(#"Ein \*Stern\* bleibt Text"#), markdown)
+    }
+
+    /// Ein Masterdokument ohne verlinkte Abschnitte braucht kein Pandoc: Es
+    /// entsteht allein aus dem eigenen `content.xml`.
+    private func convertedMasterMarkdown(body: String, name: String) throws -> String {
+        let masterURL = temporaryDirectory.appendingPathComponent("\(name).odm")
+        let content = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <office:document-content
+          xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
+          xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"
+          xmlns:xlink="http://www.w3.org/1999/xlink">
+          <office:body><office:text>
+        \(body)
+          </office:text></office:body>
+        </office:document-content>
+        """
+        try ZIPFixtureBuilder.odmPackage(contentXML: content).write(to: masterURL)
+
+        let result = try DocumentConverter().convert(
+            ConversionRequest(
+                inputURL: masterURL,
+                destination: .directory(
+                    temporaryDirectory.appendingPathComponent("\(name)-result")
+                )
+            )
+        )
+        return try String(contentsOf: result.markdownFile, encoding: .utf8)
+    }
+
     private func masterContent(sections: [(String, String)]) -> String {
         let sectionXML = sections.map { name, reference in
             """

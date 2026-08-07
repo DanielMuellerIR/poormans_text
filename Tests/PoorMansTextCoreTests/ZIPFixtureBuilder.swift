@@ -111,10 +111,18 @@ enum ZIPFixtureBuilder {
         ])
     }
 
+    /// - Parameters:
+    ///   - extraSheetDeclarations: zusätzliche `<sheet …/>`-Zeilen für
+    ///     `xl/workbook.xml`, etwa ein Diagrammblatt.
+    ///   - extraWorkbookRelationships: die passenden `<Relationship …/>`-Zeilen.
+    ///   - extraEntries: weitere Paketdateien, etwa moderne Kommentare.
     static func xlsxPackage(
         firstSheetXML: String,
         secondSheetXML: String,
-        secondSheetTargetMode: String? = nil
+        secondSheetTargetMode: String? = nil,
+        extraSheetDeclarations: String = "",
+        extraWorkbookRelationships: String = "",
+        extraEntries: [Entry] = []
     ) throws -> Data {
         let contentTypes = """
         <?xml version="1.0" encoding="UTF-8"?>
@@ -141,6 +149,7 @@ enum ZIPFixtureBuilder {
           <sheets>
             <sheet name="Summary" sheetId="1" r:id="rId1"/>
             <sheet name="Details &amp; Notes" sheetId="2" r:id="rId2"/>
+            \(extraSheetDeclarations)
           </sheets>
         </workbook>
         """
@@ -152,6 +161,7 @@ enum ZIPFixtureBuilder {
           <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"\(targetMode)/>
           <Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings" Target="sharedStrings.xml"/>
           <Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
+          \(extraWorkbookRelationships)
         </Relationships>
         """
         let sharedStrings = """
@@ -180,7 +190,7 @@ enum ZIPFixtureBuilder {
             Entry(name: "xl/styles.xml", content: Data(styles.utf8)),
             Entry(name: "xl/worksheets/sheet1.xml", content: Data(firstSheetXML.utf8)),
             Entry(name: "xl/worksheets/sheet2.xml", content: Data(secondSheetXML.utf8)),
-        ])
+        ] + extraEntries)
     }
 
     static func odmPackage(contentXML: String) throws -> Data {

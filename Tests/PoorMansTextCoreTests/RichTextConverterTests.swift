@@ -290,6 +290,19 @@ final class RichTextConverterTests: XCTestCase {
             adapter.unwrappingListParagraphs(in: "<li><p>First</p><p>Second</p></li>"),
             "<li><p>First</p><p>Second</p></li>"
         )
+        // Ein formatierter Eintrag ist der Normalfall echter RTF-Listen und
+        // muss genauso ausgepackt werden wie reiner Text.
+        XCTAssertEqual(
+            adapter.unwrappingListParagraphs(
+                in: "<li><p>First <strong>bold</strong> and <em>italic</em></p></li>"
+            ),
+            "<li>First <strong>bold</strong> and <em>italic</em></li>"
+        )
+        // Eine verschachtelte Liste ist kein einfacher Eintrag und bleibt.
+        XCTAssertEqual(
+            adapter.unwrappingListParagraphs(in: "<li><p>Item</p><ul><li>Sub</li></ul></li>"),
+            "<li><p>Item</p><ul><li>Sub</li></ul></li>"
+        )
     }
 
     func testKeepsRealRTFDParagraphsSeparate() throws {

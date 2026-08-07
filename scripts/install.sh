@@ -47,7 +47,9 @@ root_cli="$project_root/poormans-text"
 [ -d "$app" ] || { echo "Build-Ergebnis fehlt: $app" >&2; exit 70; }
 
 echo "Signiere App und CLI mit Developer ID und Hardened Runtime …"
-"$script_directory/sign_bundle.sh" "$app" "$sign_identity"
+# Dieser Weg baut immer release (siehe build_app.sh-Aufruf oben) und liefert
+# aus; die Debug-Map darf deshalb nicht im Bundle bleiben.
+"$script_directory/sign_bundle.sh" "$app" "$sign_identity" --strip-debug-symbols
 
 remove_exact_path() {
     local path="$1"
@@ -157,6 +159,31 @@ xcrun stapler staple "$app"
 "$script_directory/verify_bundle.sh" "$app" --notarized
 refresh_root_artifacts
 
+# Veröffentlicht das fertige Paar aus DMG und Prüfsumme im Repo-Root.
+#
+# Die finale DMG-Datei erscheint zuletzt und kennzeichnet damit ein vollständiges
+# Release-Paar. FileManager verweigert dabei weiterhin vorhandene Ziele.
+publish_release_artifacts() {
+    checksum_identity="$(/usr/bin/stat -f '%d:%i' "$staged_checksum")"
+    published_checksum=1
+    if ! /usr/bin/swift -e \
+        'import Foundation; try FileManager.default.moveItem(atPath: CommandLine.arguments[1], toPath: CommandLine.arguments[2])' \
+        "$staged_checksum" "$checksum"; then
+        published_checksum=0
+        echo "Die Prüfsumme konnte nicht veröffentlicht werden." >&2
+        return 74
+    fi
+    if ! /usr/bin/swift -e \
+        'import Foundation; try FileManager.default.moveItem(atPath: CommandLine.arguments[1], toPath: CommandLine.arguments[2])' \
+        "$staged_dmg" "$dmg"; then
+        remove_exact_path "$checksum"
+        published_checksum=0
+        echo "Das fertige DMG konnte nicht veröffentlicht werden." >&2
+        return 74
+    fi
+    published_checksum=0
+}
+
 if [ "$make_dmg" -eq 1 ]; then
     echo "Erzeuge und signiere das Distributions-DMG …"
     "$script_directory/create_dmg.sh" "$app" "$staged_dmg"
@@ -171,28 +198,19 @@ if [ "$make_dmg" -eq 1 ]; then
         cd "$temporary_directory"
         shasum -a 256 "$(basename "$staged_dmg")" > "$(basename "$staged_checksum")"
     )
-
-    # Die finale DMG-Datei erscheint zuletzt und kennzeichnet damit ein vollständiges
-    # Release-Paar. FileManager verweigert dabei weiterhin vorhandene Ziele.
-    checksum_identity="$(/usr/bin/stat -f '%d:%i' "$staged_checksum")"
-    published_checksum=1
-    /usr/bin/swift -e \
-        'import Foundation; try FileManager.default.moveItem(atPath: CommandLine.arguments[1], toPath: CommandLine.arguments[2])' \
-        "$staged_checksum" "$checksum"
-    if ! /usr/bin/swift -e \
-        'import Foundation; try FileManager.default.moveItem(atPath: CommandLine.arguments[1], toPath: CommandLine.arguments[2])' \
-        "$staged_dmg" "$dmg"; then
-        remove_exact_path "$checksum"
-        echo "Das fertige DMG konnte nicht veröffentlicht werden." >&2
-        exit 74
-    fi
-    published_checksum=0
 fi
 
 if [ "$do_install" -eq 0 ]; then
+    # Reiner Release-Lauf: Es folgt keine Installation mehr, die noch scheitern
+    # könnte, also wird jetzt veröffentlicht.
+    publish_release_artifacts || exit $?
     echo "RELEASE OK: $dmg ($version)"
     exit 0
 fi
+# Im kombinierten Lauf bleiben DMG und Prüfsumme bis nach der bestandenen
+# Installationsprüfung im temporären Bereich. Sonst hinterließe jeder spätere
+# Fehler ein vollständig aussehendes Release-Paar, an dessen Existenzprüfung der
+# nächste Lauf scheitert.
 
 destination_app="/Applications/Poor Man's Text.app"
 
@@ -411,6 +429,21 @@ if [ "$installation_valid" -ne 1 ]; then
     rollback_app_installation
     echo "Die installierte App/CLI-Kombination hat die Endprüfung nicht bestanden." >&2
     exit 65
+fi
+
+if [ "$make_dmg" -eq 1 ]; then
+    # Letzter Schritt der Transaktion: Erst jetzt wird das Release-Paar sichtbar.
+    # Scheitert das, wird die noch nicht endgültig übernommene Installation
+    # zurückgerollt — sonst bliebe ein halber Release stehen.
+    if ! publish_release_artifacts; then
+        if [ "$created_cli" -eq 1 ] && [ -L "$destination_cli" ] \
+           && [ "$(readlink "$destination_cli")" = "$installed_cli" ]; then
+            remove_install_path "$destination_cli" || true
+        fi
+        rollback_app_installation
+        echo "Die Installation wurde zurückgenommen, weil das Release nicht veröffentlicht werden konnte." >&2
+        exit 74
+    fi
 fi
 
 if [ "$had_existing_app" -eq 1 ] && ! app_matches_release_identity "$staged_app"; then

@@ -265,7 +265,7 @@ In der Regel erhalten:
 - Absätze und manuelle Zeilenumbrüche mit zwei Leerzeichen
 - fette und kursive Schrift
 - chromatischer RTFD-Text als `==Text==`-Markierung
-- Hyperlinks
+- Hyperlinks in Textdokumenten
 - einfache nummerierte Listen und Aufzählungen
 - semantische Überschriften, Fußnoten und einfache Tabellen aus DOCX und ODT
 - Reihenfolge und relative Verweise der Bilder
@@ -285,6 +285,8 @@ Erwartbare Verluste oder Annäherungen:
 - DOCM-/DOTM-Makros und das Vorlagenverhalten von DOTX/DOTM
 - Tabellenformeln ohne gespeichertes Ergebnis, Zellverbünde, Diagramme,
   Zeichnungen, Kommentare, Makros und genaue Formatierung
+- Linkziele in Tabellenzellen; der sichtbare Zelltext bleibt, der Verlust wird
+  als Warnung gemeldet
 - ODM-Abschnittsgrenzen und Masterdokumentverhalten nach dem Zusammenführen
 
 ## Entwicklung

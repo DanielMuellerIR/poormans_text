@@ -37,8 +37,10 @@ Zeichnungen, Kommentare, Makros und andere nicht darstellbare Objekte führen zu
 einer Verlustwarnung.
 
 Das Modell hat kein Feld für ein Linkziel. Der sichtbare Text einer verlinkten
-Zelle bleibt deshalb erhalten, das Ziel selbst nicht; die Leser melden das als
-`spreadsheet.unsupportedObjects`. Ein Diagramm- oder Dialogblatt hat kein
+Zelle bleibt deshalb erhalten; bei einer sonst leeren XLSX-Zelle gilt dafür auch
+das `display`-Attribut des Hyperlinks. Das Ziel selbst bleibt nicht erhalten, und
+die Leser melden das als `spreadsheet.unsupportedObjects`. Ein Diagramm- oder
+Dialogblatt hat kein
 Zellgitter: Es wird übersprungen und löst dieselbe Warnung aus, statt die ganze
 Arbeitsmappe abzulehnen.
 

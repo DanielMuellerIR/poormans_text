@@ -69,12 +69,16 @@ Rotation beträfe damit beide Apps.
 Der Workflow kann für ein bestehendes Tag manuell gestartet werden. Er erwartet
 genau ein `*.dmg`; der Feed enthält nur das aktuelle Vollupdate und keine Deltas.
 Die Prüfsummendatei des Releases stört dabei nicht — sie endet nicht auf `.dmg`.
+Quellstand und Sparkle-Werkzeug stammen dabei exakt aus diesem Release-Tag, nicht
+aus dem Branch, von dem der manuelle Lauf gestartet wurde.
 
 ## Absicherung des Workflows
 
-- `SPARKLE_PRIVATE_KEY` steht nur im `env` des Signierschritts. Im `env` des
-  ganzen Jobs wäre der Schlüssel auch für Checkout, Pages- und
-  Deployment-Actions lesbar.
+- `swift package resolve` läuft vor dem Signierschritt ohne Secret. Erst der
+  Signierschritt erhält `SPARKLE_PRIVATE_KEY`, übernimmt ihn in eine nicht
+  exportierte Shell-Variable und entfernt ihn sofort aus der Umgebung. Im `env`
+  des ganzen Jobs wäre der Schlüssel auch für Checkout, Paketmanifeste, Pages-
+  und Deployment-Actions lesbar.
 - Alle fremden Actions hängen an einem geprüften Commit-SHA mit der
   Versionsnummer als Kommentar. Ein beweglicher Major-Tag kann jederzeit auf
   anderen Code zeigen, der dann neben dem Schlüssel liefe. Beim Aktualisieren

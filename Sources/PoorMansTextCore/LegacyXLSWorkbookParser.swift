@@ -299,7 +299,7 @@ enum LegacyXLSWorkbookParser {
                 throw ParserError("encrypted XLS workbooks are not supported")
             }
             let sharedStrings = try parseSharedStrings(records)
-            var bounds = [BoundSheet]()
+            var allBounds = [BoundSheet]()
             var hasUnsupportedObjects = false
             for record in records where record.id == 0x0085 {
                 guard record.payload.count >= 8 else {
@@ -307,27 +307,37 @@ enum LegacyXLSWorkbookParser {
                 }
                 let type = record.payload[5]
                 let name = try biffShortString(record.payload, at: 6)
-                if type == 0 {
-                    bounds.append(
-                        BoundSheet(offset: Int(record.payload.legacyUInt32(at: 0)), name: name)
-                    )
-                } else {
-                    hasUnsupportedObjects = true
+                let offset = Int(record.payload.legacyUInt32(at: 0))
+                guard offset >= 0, offset < data.count else {
+                    throw ParserError("an XLS sheet directory offset is invalid")
                 }
+                allBounds.append(BoundSheet(offset: offset, name: name, type: type))
+                hasUnsupportedObjects = hasUnsupportedObjects || type != 0
             }
+            let bounds = allBounds.filter { $0.type == 0 }
             guard !bounds.isEmpty else {
                 throw ParserError("the XLS workbook contains no worksheets")
             }
             guard bounds.count <= Limits.maximumSheets else {
                 throw ParserError("the XLS workbook contains too many sheets")
             }
+            // Auch Chart-, Makro- und andere BIFF-Unterstreams begrenzen das
+            // physisch davor liegende Worksheet. Erst die spätere Ausgabe wird
+            // nach Blatttyp gefiltert; sonst könnte deren EOF ein beschädigtes
+            // Worksheet fälschlich abschließen.
+            let physicalOffsets = allBounds.map(\.offset).sorted()
+            guard Set(physicalOffsets).count == physicalOffsets.count else {
+                throw ParserError("the XLS workbook contains duplicate sheet offsets")
+            }
 
             var workbook = SpreadsheetWorkbook(sheets: [])
             var expandedCellCount = 0
             for bound in bounds {
+                let endOffset = physicalOffsets.first(where: { $0 > bound.offset }) ?? data.count
                 let parsed = try parseSheet(
                     data,
                     at: bound.offset,
+                    before: endOffset,
                     sharedStrings: sharedStrings,
                     maximumCells: Limits.maximumCells - expandedCellCount
                 )
@@ -352,15 +362,20 @@ enum LegacyXLSWorkbookParser {
         private static func records(
             in data: Data,
             start: Int = 0,
+            end: Int? = nil,
             stopAfterID: UInt16? = nil
         ) throws -> [Record] {
             var result = [Record]()
             var offset = start
-            while offset + 4 <= data.count {
+            let end = end ?? data.count
+            guard start >= 0, start <= end, end <= data.count else {
+                throw ParserError("an XLS BIFF record range is invalid")
+            }
+            while offset + 4 <= end {
                 let id = data.legacyUInt16(at: offset)
                 let length = Int(data.legacyUInt16(at: offset + 2))
-                guard offset + 4 + length <= data.count else {
-                    throw ParserError("an XLS BIFF record extends beyond the workbook stream")
+                guard offset + 4 + length <= end else {
+                    throw ParserError("an XLS BIFF record extends beyond its stream range")
                 }
                 result.append(
                     Record(
@@ -404,14 +419,23 @@ enum LegacyXLSWorkbookParser {
         private static func parseSheet(
             _ data: Data,
             at offset: Int,
+            before endOffset: Int,
             sharedStrings: [String],
             maximumCells: Int
         ) throws -> SheetResult {
-            guard offset >= 0, offset + 8 <= data.count,
+            guard offset >= 0, offset + 8 <= endOffset, endOffset <= data.count,
                   data.legacyUInt16(at: offset) == 0x0809 else {
                 throw ParserError("an XLS worksheet BOF offset is invalid")
             }
-            let sheetRecords = try records(in: data, start: offset, stopAfterID: 0x000A)
+            let sheetRecords = try records(
+                in: data,
+                start: offset,
+                end: endOffset,
+                stopAfterID: 0x000A
+            )
+            guard sheetRecords.last?.id == 0x000A else {
+                throw ParserError("an XLS worksheet has no EOF before the next sheet")
+            }
             var cells = [Int: [Int: SpreadsheetCell]]()
             var hasMerges = false
             var hasFormulaWithoutResult = false
@@ -650,7 +674,11 @@ enum LegacyXLSWorkbookParser {
             let payload: Data
         }
 
-        private struct BoundSheet { let offset: Int; let name: String }
+        private struct BoundSheet {
+            let offset: Int
+            let name: String
+            let type: UInt8
+        }
 
         private struct SheetResult {
             let rows: [[SpreadsheetCell]]

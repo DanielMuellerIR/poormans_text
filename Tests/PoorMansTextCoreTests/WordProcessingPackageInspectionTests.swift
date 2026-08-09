@@ -141,6 +141,65 @@ final class WordProcessingPackageInspectionTests: XCTestCase {
         }
     }
 
+    func testForeignOverrideCannotReplaceTheWordMainContentType() throws {
+        let contentTypes = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"
+          xmlns:foo="urn:example:foreign">
+          <Override PartName="/word/document.xml"
+            ContentType="\(ZIPFixtureBuilder.docxMainContentType)"/>
+          <foo:Override PartName="/word/document.xml"
+            ContentType="application/vnd.ms-word.document.macroEnabled.main+xml"/>
+        </Types>
+        """
+        let url = try write(
+            try ZIPFixtureBuilder.docxPackage(
+                documentXML: minimalDocumentXML,
+                contentTypesOverride: contentTypes
+            ),
+            as: "ForeignOverride.docx"
+        )
+
+        let inspection = try DocumentConverter().inspect(url)
+
+        XCTAssertEqual(inspection.format, .docx)
+        XCTAssertEqual(inspection.expectedWarnings, [])
+    }
+
+    func testForeignPrefixedAttributesCannotDefineTheWordMainContentType() throws {
+        let invalidOverrides = [
+            """
+            <Override foo:PartName="/word/document.xml"
+              ContentType="\(ZIPFixtureBuilder.docxMainContentType)"/>
+            """,
+            """
+            <Override PartName="/word/document.xml"
+              foo:ContentType="\(ZIPFixtureBuilder.docxMainContentType)"/>
+            """,
+        ]
+
+        for (index, invalidOverride) in invalidOverrides.enumerated() {
+            let contentTypes = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"
+              xmlns:foo="urn:example:foreign">
+              \(invalidOverride)
+            </Types>
+            """
+            let url = try write(
+                try ZIPFixtureBuilder.docxPackage(
+                    documentXML: minimalDocumentXML,
+                    contentTypesOverride: contentTypes
+                ),
+                as: "ForeignAttributes\(index).docx"
+            )
+
+            XCTAssertThrowsError(try DocumentConverter().inspect(url)) { error in
+                XCTAssertTrue(error.localizedDescription.contains("content type"))
+            }
+        }
+    }
+
     func testRejectsWordPackageWhoseMainPartHasTheWrongRoot() throws {
         let wrongRoot = """
         <?xml version="1.0" encoding="UTF-8"?>

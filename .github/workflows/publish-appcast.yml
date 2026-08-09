@@ -41,6 +41,18 @@ jobs:
       # der dann im selben Lauf wie die Signatur ausgeführt würde.
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+
+      - name: Verify checked-out release commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag_commit="$(git rev-parse "$RELEASE_TAG^{commit}")"
+          if [[ "$(git rev-parse HEAD)" != "$tag_commit" ]]; then
+            echo "FEHLER: Der Checkout entspricht nicht dem Release-Tag $RELEASE_TAG." >&2
+            exit 1
+          fi
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6
@@ -85,6 +97,12 @@ jobs:
           # Gleicher Basisname: generate_appcast ordnet die Markdown-Datei dem DMG zu.
           gh release view "$RELEASE_TAG" --json body --jq .body > "${dmgs[0]%.dmg}.md"
 
+      # Die Paketauflösung wertet fremde Manifeste aus und läuft deshalb ohne
+      # Zugriff auf den privaten Update-Schlüssel.
+      - name: Resolve pinned Sparkle package
+        shell: bash
+        run: swift package resolve
+
       # Der private Update-Schlüssel steht nur in diesem einen Schritt. Im
       # Job-`env` wäre er auch für Checkout, Pages-Actions und Deployment
       # sichtbar — eine unbemerkt veränderte Action könnte ihn dort auslesen und
@@ -95,12 +113,13 @@ jobs:
           SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
         run: |
           set -euo pipefail
-          if [[ -z "$SPARKLE_PRIVATE_KEY" ]]; then
+          sparkle_private_key="$SPARKLE_PRIVATE_KEY"
+          unset SPARKLE_PRIVATE_KEY
+          if [[ -z "$sparkle_private_key" ]]; then
             echo "FEHLER: GitHub-Secret SPARKLE_PRIVATE_KEY fehlt." >&2
             exit 1
           fi
 
-          swift package resolve
           tool="$(find .build/artifacts/sparkle -type f -name generate_appcast -print -quit)"
           if [[ -z "$tool" ]]; then
             echo "FEHLER: Sparkles generate_appcast wurde nicht gefunden." >&2
@@ -108,7 +127,7 @@ jobs:
           fi
 
           # Der geheime Schlüssel steht weder in argv noch in einer Datei oder im Log.
-          printf '%s' "$SPARKLE_PRIVATE_KEY" | "$tool" \
+          printf '%s' "$sparkle_private_key" | "$tool" \
             --ed-key-file - \
             --embed-release-notes \
             --maximum-versions 1 \

@@ -97,20 +97,26 @@ final class OpenDocumentMasterAdapterTests: XCTestCase {
     /// Eine ODF-Notiz mitten im Absatz enthält selbst wieder `text:p`. Vorher
     /// ersetzte der innere Absatz den äußeren, und der Text davor und danach
     /// verschwand still aus dem Ergebnis.
-    func testMasterParagraphSurvivesANestedAnnotationParagraph() throws {
+    func testMasterParagraphKeepsANestedAnnotationParagraphInSourceOrder() throws {
         let markdown = try convertedMasterMarkdown(
             body: """
-            <text:p>Before the note<office:annotation><text:p>Note</text:p></office:annotation> \
-            and after it.</text:p>
+            <text:p>Before <office:annotation><text:p>Note</text:p></office:annotation> After</text:p>
             """,
             name: "Annotated"
         )
 
-        let paragraph = try XCTUnwrap(
-            markdown.split(separator: "\n").first { $0.contains("Before the note") }
+        XCTAssertEqual(markdown, "# Annotated\n\nBefore Note After\n")
+    }
+
+    func testAdjacentAnnotationParagraphsKeepSemanticBoundaries() throws {
+        let markdown = try convertedMasterMarkdown(
+            body: """
+            <text:p>Before<office:annotation><text:p>First</text:p><text:p>Second</text:p></office:annotation>After</text:p>
+            """,
+            name: "TwoNotes"
         )
-        XCTAssertTrue(paragraph.contains("and after it."), markdown)
-        XCTAssertTrue(markdown.contains("Note"), markdown)
+
+        XCTAssertEqual(markdown, "# TwoNotes\n\nBefore First Second After\n")
     }
 
     /// Der Fließtext des Masters wird unverändert als Markdown eingesetzt.
@@ -132,6 +138,326 @@ final class OpenDocumentMasterAdapterTests: XCTestCase {
         XCTAssertTrue(markdown.contains("Erste Zeile  \nZweite Zeile"), markdown)
         XCTAssertTrue(markdown.contains("  Eingerückter Anfang"), markdown)
         XCTAssertTrue(markdown.contains(#"Ein \*Stern\* bleibt Text"#), markdown)
+    }
+
+    func testMasterParagraphEscapesGFMStrikethroughAndEntitiesExactly() throws {
+        let markdown = try convertedMasterMarkdown(
+            body: "<text:p>~~kein Durchstreichen~~ &amp;copy;</text:p>",
+            name: "GFMLiterals"
+        )
+
+        XCTAssertEqual(
+            markdown,
+            "# GFMLiterals\n\n" + #"\~\~kein Durchstreichen\~\~ \&copy;"# + "\n"
+        )
+    }
+
+    func testEscapedGFMLiteralsSurviveAnIndependentPandocRender() throws {
+        try requirePandoc()
+        let markdown = try convertedMasterMarkdown(
+            body: "<text:p>~~kein Durchstreichen~~ &amp;copy;</text:p>",
+            name: "RenderedGFMLiterals"
+        )
+        let markdownURL = temporaryDirectory.appendingPathComponent("render-input.md")
+        let plainURL = temporaryDirectory.appendingPathComponent("render-output.txt")
+        try Data(markdown.utf8).write(to: markdownURL)
+        let result = try ProcessRunner.run(
+            executable: try PandocTool.resolve(nil),
+            arguments: [
+                "--from=gfm", "--to=plain", "--output", plainURL.path, markdownURL.path,
+            ],
+            currentDirectory: temporaryDirectory
+        )
+
+        XCTAssertEqual(result.status, 0, result.standardError)
+        XCTAssertEqual(
+            try String(contentsOf: plainURL, encoding: .utf8),
+            "RenderedGFMLiterals\n\n~~kein Durchstreichen~~ &copy;\n"
+        )
+    }
+
+    func testMasterParagraphKeepsCodeBlockIndentAsVisibleText() throws {
+        let markdown = try convertedMasterMarkdown(
+            body: """
+            <text:p><text:s text:c="4"/>Vier</text:p>
+            <text:p><text:tab/>Tab</text:p>
+            """,
+            name: "LeadingWhitespace"
+        )
+
+        XCTAssertEqual(
+            markdown,
+            "# LeadingWhitespace\n\n"
+                + "&nbsp;&nbsp;&nbsp;&nbsp;Vier\n\n&nbsp;&nbsp;&nbsp;&nbsp;Tab\n"
+        )
+    }
+
+    func testAssetRewriterChangesOnlyRealMarkdownLinkTargets() {
+        let markdown = #"""
+        ![real](images/image01.png)
+        [angle](<images/image01.png> "title")
+        `![inline](images/image01.png)`
+        \[escaped](images/image01.png)
+        ```text
+        ![fenced](images/image01.png)
+        ```
+        ~~~text
+        [tilde](images/image01.png)
+        ~~~
+        """#
+
+        XCTAssertEqual(
+            MarkdownLinkTargetRewriter.replacing(
+                in: markdown,
+                from: "images/image01.png",
+                to: "images/section01-image01.png"
+            ),
+            #"""
+            ![real](images/section01-image01.png)
+            [angle](<images/section01-image01.png> "title")
+            `![inline](images/image01.png)`
+            \[escaped](images/image01.png)
+            ```text
+            ![fenced](images/image01.png)
+            ```
+            ~~~text
+            [tilde](images/image01.png)
+            ~~~
+            """#
+        )
+    }
+
+    func testAssetRewriterClosesMultiBacktickSpanAfterRawBackslash() {
+        let markdown = #"``code\`` [bild](images/image01.png)"#
+
+        XCTAssertEqual(
+            MarkdownLinkTargetRewriter.replacing(
+                in: markdown,
+                from: "images/image01.png",
+                to: "images/section01-image01.png"
+            ),
+            #"``code\`` [bild](images/section01-image01.png)"#
+        )
+    }
+
+    func testAssetRewriterTreatsUnclosedBacktickRunAsLiteral() {
+        let markdown = #"`literal [bild](images/image01.png)"#
+
+        XCTAssertEqual(
+            MarkdownLinkTargetRewriter.replacing(
+                in: markdown,
+                from: "images/image01.png",
+                to: "images/section01-image01.png"
+            ),
+            #"`literal [bild](images/section01-image01.png)"#
+        )
+    }
+
+    func testAssetRewriterDoesNotCloseCodeSpanAcrossParagraphs() {
+        let markdown = #"""
+        `literal
+
+        [bild](images/image01.png)
+
+        `later
+        """#
+
+        XCTAssertEqual(
+            MarkdownLinkTargetRewriter.replacing(
+                in: markdown,
+                from: "images/image01.png",
+                to: "images/section01-image01.png"
+            ),
+            #"""
+            `literal
+
+            [bild](images/section01-image01.png)
+
+            `later
+            """#
+        )
+    }
+
+    func testAssetRewriterKeepsCodeSpanAcrossSoftLineBreak() {
+        let markdown = #"""
+        `code
+        [inside](images/image01.png)` [outside](images/image01.png)
+        """#
+
+        XCTAssertEqual(
+            MarkdownLinkTargetRewriter.replacing(
+                in: markdown,
+                from: "images/image01.png",
+                to: "images/section01-image01.png"
+            ),
+            #"""
+            `code
+            [inside](images/image01.png)` [outside](images/section01-image01.png)
+            """#
+        )
+    }
+
+    func testAssetRewriterEndsUnclosedFenceWithBlockquote() {
+        let markdown = #"""
+        > ```
+        > [inside](images/image01.png)
+        [outside](images/image01.png)
+        """#
+
+        XCTAssertEqual(
+            MarkdownLinkTargetRewriter.replacing(
+                in: markdown,
+                from: "images/image01.png",
+                to: "images/section01-image01.png"
+            ),
+            #"""
+            > ```
+            > [inside](images/image01.png)
+            [outside](images/section01-image01.png)
+            """#
+        )
+    }
+
+    func testAssetRewriterEndsUnclosedFenceWithListItem() {
+        let markdown = #"""
+        - ```
+          [inside](images/image01.png)
+        [outside](images/image01.png)
+        """#
+
+        XCTAssertEqual(
+            MarkdownLinkTargetRewriter.replacing(
+                in: markdown,
+                from: "images/image01.png",
+                to: "images/section01-image01.png"
+            ),
+            #"""
+            - ```
+              [inside](images/image01.png)
+            [outside](images/section01-image01.png)
+            """#
+        )
+    }
+
+    /// Eingerückter Code darf Links nicht umschreiben. Ohne trennende Leerzeile
+    /// ist derselbe Einzug laut GFM jedoch eine Absatzfortsetzung; deren echtes
+    /// Linkziel muss weiterhin den neuen Asset-Namen erhalten.
+    func testAssetRewriterDistinguishesIndentedCodeFromParagraphContinuations() {
+        let markdown = #"""
+        [real](images/image01.png)
+            [root-continuation](images/image01.png)
+
+            [root-code](images/image01.png)
+        -     [list-code](images/image01.png)
+        >     [quote-code](images/image01.png)
+        > -     [quoted-list-code](images/image01.png)
+        - item
+            [list-continuation](images/image01.png)
+
+              [list-continuation-code](images/image01.png)
+        > - item
+        >     [quoted-list-continuation](images/image01.png)
+        >
+        >       [quoted-list-continuation-code](images/image01.png)
+        """#
+
+        XCTAssertEqual(
+            MarkdownLinkTargetRewriter.replacing(
+                in: markdown,
+                from: "images/image01.png",
+                to: "images/section01-image01.png"
+            ),
+            #"""
+            [real](images/section01-image01.png)
+                [root-continuation](images/section01-image01.png)
+
+                [root-code](images/image01.png)
+            -     [list-code](images/image01.png)
+            >     [quote-code](images/image01.png)
+            > -     [quoted-list-code](images/image01.png)
+            - item
+                [list-continuation](images/section01-image01.png)
+
+                  [list-continuation-code](images/image01.png)
+            > - item
+            >     [quoted-list-continuation](images/section01-image01.png)
+            >
+            >       [quoted-list-continuation-code](images/image01.png)
+            """#
+        )
+    }
+
+    func testAssetRewriterStartsIndentedCodeDirectlyAfterHeadingsInContainers() {
+        let markdown = #"""
+        # Root
+            [root-code](images/image01.png)
+        - # List
+              [list-code](images/image01.png)
+        > # Quote
+        >     [quote-code](images/image01.png)
+        Paragraph
+            [continuation](images/image01.png)
+        """#
+
+        XCTAssertEqual(
+            MarkdownLinkTargetRewriter.replacing(
+                in: markdown,
+                from: "images/image01.png",
+                to: "images/section01-image01.png"
+            ),
+            #"""
+            # Root
+                [root-code](images/image01.png)
+            - # List
+                  [list-code](images/image01.png)
+            > # Quote
+            >     [quote-code](images/image01.png)
+            Paragraph
+                [continuation](images/section01-image01.png)
+            """#
+        )
+    }
+
+    func testAssetRewriterKeepsLazyBlockquoteParagraphContinuationOpen() {
+        let markdown = #"""
+        > Paragraph
+            [continuation](images/image01.png)
+        """#
+
+        XCTAssertEqual(
+            MarkdownLinkTargetRewriter.replacing(
+                in: markdown,
+                from: "images/image01.png",
+                to: "images/section01-image01.png"
+            ),
+            #"""
+            > Paragraph
+                [continuation](images/section01-image01.png)
+            """#
+        )
+    }
+
+    func testAssetRewriterStartsIndentedCodeAfterSetextHeadingsInContainers() {
+        let markdown = #"""
+        Root
+        ====
+            [root-code](images/image01.png)
+        - List
+          ----
+              [list-code](images/image01.png)
+        > Quote
+        > =====
+        >     [quote-code](images/image01.png)
+        """#
+
+        XCTAssertEqual(
+            MarkdownLinkTargetRewriter.replacing(
+                in: markdown,
+                from: "images/image01.png",
+                to: "images/section01-image01.png"
+            ),
+            markdown
+        )
     }
 
     /// Ein Masterdokument ohne verlinkte Abschnitte braucht kein Pandoc: Es

@@ -617,21 +617,16 @@ private func parseXML(_ xml: Data, with delegate: XMLParserDelegate) throws {
     }
 }
 
-/// Der Wert eines Attributs, unabhängig vom gewählten Namensraum-Präfix.
+/// Der Wert eines laut OPC unpräfigierten Attributs.
 ///
-/// Nur für Formate gedacht, deren Attribute laut Spezifikation ohne Namensraum
-/// stehen (OPC-`[Content_Types].xml` und `.rels`). Wo ein Attribut wie
-/// `xlink:href` zu einem bestimmten Namensraum gehört, ist
-/// `NamespacePrefixTracker.attributeValue` die richtige Wahl.
+/// Der XML-Standard legt unpräfigierte Attribute in keinen Namensraum. Deshalb
+/// darf ein fremdes `foo:PartName` oder `foo:Target` nicht allein wegen seines
+/// gleichen Suffixes als OPC-Attribut gelten.
 private func attributeValue(
     localName: String,
     in attributes: [String: String]
 ) -> String? {
-    if let direct = attributes[localName] {
-        return direct
-    }
-    let suffix = ":" + localName
-    return attributes.first { $0.key.hasSuffix(suffix) }?.value
+    attributes[localName]
 }
 
 /// Die im Dokument deklarierten Namensraum-Präfixe, solange sie gelten.
@@ -767,7 +762,8 @@ private enum WordprocessingContentTypesParser {
                 hasValidRoot = elementName == "Types"
                     && namespaceURI == "http://schemas.openxmlformats.org/package/2006/content-types"
             }
-            guard elementName == "Override",
+            guard namespaceURI == "http://schemas.openxmlformats.org/package/2006/content-types",
+                  elementName == "Override",
                   let partName = attributeValue(localName: "PartName", in: attributeDict),
                   "/" + partName.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
                     == "/word/document.xml",

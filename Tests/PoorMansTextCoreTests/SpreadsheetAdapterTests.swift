@@ -320,6 +320,135 @@ final class SpreadsheetAdapterTests: XCTestCase {
         XCTAssertTrue(markdown.contains("| 1 | 2 |"), markdown)
     }
 
+    func testXLSXUsesHyperlinkDisplayForAnEmptyReferencedCell() throws {
+        let linkedSheet = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+          <sheetData><row r="1"><c r="A1"/></row></sheetData>
+          <hyperlinks><hyperlink ref="A1" display="Sichtbarer Text"/></hyperlinks>
+        </worksheet>
+        """
+        let emptySheet = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+          <sheetData/>
+        </worksheet>
+        """
+        let sourceURL = temporaryDirectory.appendingPathComponent("Hyperlink.xlsx")
+        try ZIPFixtureBuilder.xlsxPackage(
+            firstSheetXML: linkedSheet,
+            secondSheetXML: emptySheet
+        ).write(to: sourceURL)
+
+        let result = try DocumentConverter().convert(
+            ConversionRequest(
+                inputURL: sourceURL,
+                destination: .directory(temporaryDirectory.appendingPathComponent("hyperlink-result"))
+            )
+        )
+        let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+
+        XCTAssertEqual(
+            markdown,
+            """
+            # Hyperlink
+
+            ## Sheet: Summary
+
+            | Sichtbarer Text |
+            | --- |
+
+            ## Sheet: Details & Notes
+
+            _Empty sheet._
+            """ + "\n"
+        )
+        XCTAssertEqual(result.diagnostics.map(\.code), ["spreadsheet.unsupportedObjects"])
+    }
+
+    func testXLSXHyperlinkDisplayHonorsRowColumnAndCellBudgets() throws {
+        let cases = [
+            ("Row", "A100001", "an XLSX hyperlink exceeds the row budget"),
+            ("Column", "XFE1", "an XLSX hyperlink exceeds the column budget"),
+            ("Cells", "A1:XFD100000", "the XLSX sheet exceeds the expanded-cell budget"),
+        ]
+        for (name, reference, expectedMessage) in cases {
+            let sheet = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+              <sheetData/>
+              <hyperlinks><hyperlink ref="\(reference)" display="Text"/></hyperlinks>
+            </worksheet>
+            """
+            let sourceURL = temporaryDirectory.appendingPathComponent("Hyperlink\(name).xlsx")
+            try ZIPFixtureBuilder.xlsxPackage(
+                firstSheetXML: sheet,
+                secondSheetXML: secondXLSXSheet
+            ).write(to: sourceURL)
+
+            XCTAssertThrowsError(try XLSXWorkbookParser.parse(packageAt: sourceURL)) { error in
+                XCTAssertEqual(error.localizedDescription, expectedMessage)
+            }
+        }
+    }
+
+    func testXLSXAcceptsOnlyRelationshipIDsFromTheDeclaredNamespace() throws {
+        let foreignOnlyWorkbook = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+          xmlns:foo="urn:example:foreign">
+          <sheets>
+            <sheet name="Summary" sheetId="1" foo:id="rId1"/>
+          </sheets>
+        </workbook>
+        """
+        let sourceURL = temporaryDirectory.appendingPathComponent("ForeignRelationship.xlsx")
+        try ZIPFixtureBuilder.xlsxPackage(
+            firstSheetXML: firstXLSXSheet,
+            secondSheetXML: secondXLSXSheet,
+            workbookOverride: foreignOnlyWorkbook
+        ).write(to: sourceURL)
+
+        XCTAssertThrowsError(try XLSXWorkbookParser.parse(packageAt: sourceURL)) { error in
+            XCTAssertEqual(error.localizedDescription, "an XLSX sheet declaration is incomplete")
+        }
+
+        let alternatePrefixWorkbook = foreignOnlyWorkbook
+            .replacingOccurrences(of: "xmlns:foo=\"urn:example:foreign\"", with: "xmlns:rel=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"")
+            .replacingOccurrences(of: "foo:id", with: "rel:id")
+        let validURL = temporaryDirectory.appendingPathComponent("AlternateRelationship.xlsx")
+        try ZIPFixtureBuilder.xlsxPackage(
+            firstSheetXML: firstXLSXSheet,
+            secondSheetXML: secondXLSXSheet,
+            workbookOverride: alternatePrefixWorkbook
+        ).write(to: validURL)
+
+        XCTAssertEqual(try XLSXWorkbookParser.parse(packageAt: validURL).sheets.map(\.name), ["Summary"])
+    }
+
+    func testXLSXRejectsForeignPrefixesOnUnnamespacedAttributes() throws {
+        let workbook = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+          xmlns:foo="urn:example:foreign"
+          xmlns:rel="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+          <sheets>
+            <sheet foo:name="Summary" sheetId="1" rel:id="rId1"/>
+          </sheets>
+        </workbook>
+        """
+        let sourceURL = temporaryDirectory.appendingPathComponent("ForeignName.xlsx")
+        try ZIPFixtureBuilder.xlsxPackage(
+            firstSheetXML: firstXLSXSheet,
+            secondSheetXML: secondXLSXSheet,
+            workbookOverride: workbook
+        ).write(to: sourceURL)
+
+        XCTAssertThrowsError(try XLSXWorkbookParser.parse(packageAt: sourceURL)) { error in
+            XCTAssertEqual(error.localizedDescription, "an XLSX sheet declaration is incomplete")
+        }
+    }
+
     /// Der ODS-Leser darf nur Tabellen aus dem Tabellenteil annehmen. Ein Paket
     /// mit ODS-Mimetype, aber Textinhalt ist eine ungültige Eingabe.
     func testODSRejectsATableOutsideTheSpreadsheetBody() throws {
@@ -346,6 +475,24 @@ final class SpreadsheetAdapterTests: XCTestCase {
                 error.localizedDescription.contains("no spreadsheet sheets"),
                 error.localizedDescription
             )
+        }
+    }
+
+    func testODSRejectsSpreadsheetNestedInsideATextBody() throws {
+        let nestedSpreadsheet = generatedODSContent
+            .replacingOccurrences(
+                of: "<office:body><office:spreadsheet>",
+                with: "<office:body><office:text><office:spreadsheet>"
+            )
+            .replacingOccurrences(
+                of: "</office:spreadsheet></office:body>",
+                with: "</office:spreadsheet></office:text></office:body>"
+            )
+        let sourceURL = temporaryDirectory.appendingPathComponent("NestedSpreadsheet.ods")
+        try ZIPFixtureBuilder.odsPackage(contentXML: nestedSpreadsheet).write(to: sourceURL)
+
+        XCTAssertThrowsError(try DocumentConverter().inspect(sourceURL)) { error in
+            XCTAssertTrue(error.localizedDescription.contains("no spreadsheet sheets"))
         }
     }
 

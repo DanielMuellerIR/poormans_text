@@ -101,6 +101,18 @@ das bereits validierte neue Bundle samt CLI installiert. Der verdächtige
 Rettungspfad wird weder zurückgetauscht noch gelöscht; der Installer meldet beide
 Pfade und endet mit Exit 73.
 
+Im kombinierten Lauf markiert der letzte atomare Move des DMG ein vollständig
+veröffentlichtes Release-Paar. Trifft danach ein Signal ein, übernimmt der
+Cleanup die bereits geprüfte Installation, statt sie zurückzurollen. Vor diesem
+Marker werden Installation und eine erst teilweise sichtbare Prüfsumme weiterhin
+vollständig zurückgenommen. Vor App-Tausch, Erstinstallations-Move und CLI-Link
+setzt der Installer einen Übergangszustand und merkt die Geräte-/Inode-Identitäten;
+der Cleanup erkennt damit auch ein Signal zwischen Dateisystemaufruf und
+Shell-Zuweisung. Nach dem DMG-Move müssen DMG und Prüfsumme noch einmal exakt den
+gemerkten Identitäten entsprechen. Bei einer Abweichung werden nur eigene,
+identitätsgeprüfte Artefakte entfernt; ersetzte Dateien bleiben unangetastet und
+die Installation wird zurückgerollt.
+
 ## Distributionspaket
 
 ```sh

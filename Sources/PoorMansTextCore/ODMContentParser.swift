@@ -59,7 +59,7 @@ enum ODMContentParser {
                 // ginge beim Rendern verloren.
                 appendToOpenParagraph("  \n")
             } else if namespaceURI == Namespaces.text, elementName == "tab", !texts.isEmpty {
-                appendToOpenParagraph("\t")
+                appendToOpenParagraph(ODMText.literalTab)
             } else if namespaceURI == Namespaces.text, elementName == "s", !texts.isEmpty {
                 let count = min(1_000, max(1, Int(odmAttribute("c", in: attributeDict) ?? "1") ?? 1))
                 // Diese Leerzeichen stehen ausdrücklich im Dokument. Sie werden
@@ -75,7 +75,34 @@ enum ODMContentParser {
 
         private func appendToOpenParagraph(_ string: String) {
             guard !texts.isEmpty else { return }
-            texts[texts.count - 1].value.append(string)
+            let index = texts.count - 1
+            if texts[index].needsSemanticBoundary {
+                if !string.hasLeadingODMWhitespace,
+                   !texts[index].value.hasTrailingODMWhitespace,
+                   !texts[index].value.isEmpty,
+                   !string.isEmpty {
+                    texts[index].value.append(ODMText.literalSpace)
+                }
+                texts[index].needsSemanticBoundary = false
+            }
+            texts[index].value.append(string)
+        }
+
+        private func appendNestedParagraph(_ raw: String) {
+            guard !texts.isEmpty else { return }
+            let value = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !value.isEmpty else { return }
+            let index = texts.count - 1
+            if !texts[index].value.isEmpty,
+               !texts[index].value.hasTrailingODMWhitespace,
+               !value.hasLeadingODMWhitespace {
+                // Zwei semantische ODF-Absätze dürfen auch dann nicht zu einem
+                // Wort verschmelzen, wenn die XML-Datei zwischen ihren Tags
+                // keinerlei Formatierungsleerraum enthält.
+                texts[index].value.append(ODMText.literalSpace)
+            }
+            texts[index].value.append(value)
+            texts[index].needsSemanticBoundary = true
         }
 
         func parser(
@@ -87,6 +114,13 @@ enum ODMContentParser {
             if namespaceURI == Namespaces.text,
                (elementName == "h" || elementName == "p"),
                let text = texts.popLast() {
+                if !texts.isEmpty {
+                    // Ein Absatz in einer Notiz gehört an genau diese Stelle des
+                    // noch offenen Elternabsatzes. Erst den äußeren Absatz als
+                    // Ganzes zu maskieren verhindert außerdem doppelte Escapes.
+                    appendNestedParagraph(text.value)
+                    return
+                }
                 let value = ODMText.markdown(from: text.value)
                 if !value.isEmpty {
                     let markdown = text.headingLevel.map {
@@ -128,6 +162,7 @@ enum ODMContentParser {
     private struct TextBuilder {
         let headingLevel: Int?
         var value = ""
+        var needsSemanticBoundary = false
     }
 
     private enum Namespaces {
@@ -146,10 +181,13 @@ enum ODMContentParser {
         /// XML-Inhalten nicht erlaubt und kann deshalb nie aus dem Dokument
         /// selbst stammen.
         static let literalSpace = "\u{FFFF}"
+        static let literalTab = "\u{FFFE}"
 
         static func markdown(from raw: String) -> String {
             let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-            let restored = trimmed.replacingOccurrences(of: literalSpace, with: " ")
+            let restored = trimmed
+                .replacingOccurrences(of: literalSpace, with: " ")
+                .replacingOccurrences(of: literalTab, with: "\t")
             guard !restored.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
                 return ""
             }
@@ -160,7 +198,7 @@ enum ODMContentParser {
 
         /// Zeichen, die überall in der Zeile eine Auszeichnung beginnen können.
         private static let inlineSpecials: Set<Character> = [
-            "\\", "`", "*", "_", "[", "]", "<", ">",
+            "\\", "`", "*", "_", "[", "]", "<", ">", "~", "&",
         ]
 
         private static func escapedLine(_ line: Substring) -> String {
@@ -182,6 +220,17 @@ enum ODMContentParser {
         private static func escapingLeadingBlockMarker(_ line: String) -> String {
             let indent = line.prefix { $0 == " " || $0 == "\t" }
             let rest = line[indent.endIndex...]
+            if indent.contains("\t") || indent.count >= 4 {
+                // Vier Leerzeichen oder ein Tab eröffnen in GFM einen Codeblock.
+                // Geschützte Leerzeichen bleiben sichtbar, ohne den Blocktyp des
+                // ursprünglichen ODF-Absatzes zu verändern.
+                let visibleIndent = indent.map { character in
+                    character == "\t"
+                        ? "&nbsp;&nbsp;&nbsp;&nbsp;"
+                        : "&nbsp;"
+                }.joined()
+                return visibleIndent + rest
+            }
             guard let first = rest.first else {
                 return line
             }
@@ -201,6 +250,22 @@ enum ODMContentParser {
         let reason: String
         init(_ reason: String) { self.reason = reason }
         var errorDescription: String? { reason }
+    }
+}
+
+private extension String {
+    var hasLeadingODMWhitespace: Bool {
+        guard let first else { return false }
+        return first.isWhitespace
+            || first == ODMContentParser.ODMText.literalSpace.first
+            || first == ODMContentParser.ODMText.literalTab.first
+    }
+
+    var hasTrailingODMWhitespace: Bool {
+        guard let last else { return false }
+        return last.isWhitespace
+            || last == ODMContentParser.ODMText.literalSpace.first
+            || last == ODMContentParser.ODMText.literalTab.first
     }
 }
 

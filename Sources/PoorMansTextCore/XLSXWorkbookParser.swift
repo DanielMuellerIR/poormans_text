@@ -140,6 +140,7 @@ enum XLSXWorkbookParser {
         let parser = XMLParser(data: xml)
         parser.delegate = delegate
         parser.shouldProcessNamespaces = true
+        parser.shouldReportNamespacePrefixes = true
         parser.shouldResolveExternalEntities = false
         guard parser.parse() else {
             throw parser.parserError ?? CocoaError(.fileReadCorruptFile)
@@ -193,6 +194,19 @@ enum XLSXWorkbookParser {
             var hasValidRoot = false
             var failure: String?
             private var sawRoot = false
+            private let prefixes = NamespacePrefixTracker()
+
+            func parser(
+                _ parser: XMLParser,
+                didStartMappingPrefix prefix: String,
+                toURI namespaceURI: String
+            ) {
+                prefixes.startMapping(prefix: prefix, uri: namespaceURI)
+            }
+
+            func parser(_ parser: XMLParser, didEndMappingPrefix prefix: String) {
+                prefixes.endMapping(prefix: prefix)
+            }
 
             func parser(
                 _ parser: XMLParser,
@@ -210,9 +224,12 @@ enum XLSXWorkbookParser {
                     return
                 }
                 guard let name = xlsxAttribute("name", in: attributeDict),
-                      let relationshipID = xlsxAttribute("id", in: attributeDict) else {
+                      let relationshipID = prefixes.attributeValue(
+                        localName: "id",
+                        namespaceURI: Namespaces.officeDocumentRelationships,
+                        in: attributeDict
+                      ) else {
                     failure = "an XLSX sheet declaration is incomplete"
-                    parser.abortParsing()
                     return
                 }
                 sheets.append(SheetDefinition(name: name, relationshipID: relationshipID))
@@ -288,7 +305,6 @@ enum XLSXWorkbookParser {
                 } else {
                     guard worksheets[id] == nil else {
                         failure = "an XLSX worksheet relationship ID is duplicated"
-                        parser.abortParsing()
                         return
                     }
                     worksheets[id] = target
@@ -412,6 +428,10 @@ enum XLSXWorkbookParser {
             private var capture: Capture?
             private(set) var expandedCellCount = 0
             private var sawRoot = false
+            /// Breite, die der Zellparser bereits gegen das Gesamtbudget
+            /// gerechnet hat. Das bleibt auch für eine später weggetrimmte leere
+            /// Zelle wahr, auf die ein Hyperlink seinen Anzeigetext schreibt.
+            private var accountedRowWidths = [Int]()
 
             init(sharedStrings: [String], maximumCells: Int) {
                 self.sharedStrings = sharedStrings
@@ -439,7 +459,10 @@ enum XLSXWorkbookParser {
                           rowNumber >= rows.count + 1 else {
                         return fail("an XLSX row index is invalid or exceeds the budget", parser: parser)
                     }
-                    while rows.count + 1 < rowNumber { rows.append([]) }
+                    while rows.count + 1 < rowNumber {
+                        rows.append([])
+                        accountedRowWidths.append(0)
+                    }
                     currentRow = []
                 } else if elementName == "c", let row = currentRow {
                     // Das Attribut `r` ist laut OOXML freigestellt. Fehlt es,
@@ -471,6 +494,16 @@ enum XLSXWorkbookParser {
                     hasMerges = true
                 } else if elementName == "hyperlink" {
                     hasHyperlinks = true
+                    guard let reference = xlsxAttribute("ref", in: attributeDict),
+                          let display = xlsxAttribute("display", in: attributeDict),
+                          !display.isEmpty else {
+                        return
+                    }
+                    do {
+                        try applyHyperlinkDisplay(display, to: reference)
+                    } catch {
+                        fail(error.localizedDescription, parser: parser)
+                    }
                 }
             }
 
@@ -495,6 +528,7 @@ enum XLSXWorkbookParser {
                 } else if elementName == "c" {
                     finishCell(parser: parser)
                 } else if elementName == "row", let row = currentRow {
+                    accountedRowWidths.append(row.count)
                     rows.append(trimmed(row))
                     currentRow = nil
                     guard rows.count <= Limits.maximumRows else {
@@ -525,6 +559,53 @@ enum XLSXWorkbookParser {
                 } catch {
                     fail(error.localizedDescription, parser: parser)
                 }
+            }
+
+            private func applyHyperlinkDisplay(_ display: String, to reference: String) throws {
+                let range = try cellRange(reference)
+                guard range.lastRow < Limits.maximumRows else {
+                    throw ParserError("an XLSX hyperlink exceeds the row budget")
+                }
+                guard range.lastColumn < Limits.maximumColumns else {
+                    throw ParserError("an XLSX hyperlink exceeds the column budget")
+                }
+
+                var addedCells = 0
+                for rowIndex in range.firstRow...range.lastRow {
+                    let accountedWidth = accountedRowWidths.indices.contains(rowIndex)
+                        ? accountedRowWidths[rowIndex]
+                        : 0
+                    addedCells += max(0, range.lastColumn + 1 - accountedWidth)
+                    guard expandedCellCount <= maximumCells - addedCells else {
+                        throw ParserError("the XLSX sheet exceeds the expanded-cell budget")
+                    }
+                }
+
+                while rows.count <= range.lastRow {
+                    rows.append([])
+                    accountedRowWidths.append(0)
+                }
+                for rowIndex in range.firstRow...range.lastRow {
+                    if rows[rowIndex].count <= range.lastColumn {
+                        rows[rowIndex].append(contentsOf: repeatElement(
+                            .empty,
+                            count: range.lastColumn + 1 - rows[rowIndex].count
+                        ))
+                    }
+                    for columnIndex in range.firstColumn...range.lastColumn
+                    where rows[rowIndex][columnIndex].isEmpty {
+                        rows[rowIndex][columnIndex] = SpreadsheetCell(
+                            value: .string(display),
+                            displayText: display,
+                            formula: nil
+                        )
+                    }
+                    accountedRowWidths[rowIndex] = max(
+                        accountedRowWidths[rowIndex],
+                        range.lastColumn + 1
+                    )
+                }
+                expandedCellCount += addedCells
             }
 
             private func fail(_ reason: String, parser: XMLParser) {
@@ -604,6 +685,37 @@ enum XLSXWorkbookParser {
         return foundLetter ? value - 1 : nil
     }
 
+    private static func cellRange(
+        _ reference: String
+    ) throws -> (firstRow: Int, lastRow: Int, firstColumn: Int, lastColumn: Int) {
+        let parts = reference.split(separator: ":", omittingEmptySubsequences: false)
+        guard parts.count == 1 || parts.count == 2,
+              let first = cellCoordinate(parts[0]),
+              let last = cellCoordinate(parts.last!) else {
+            throw ParserError("an XLSX hyperlink cell reference is invalid")
+        }
+        return (
+            min(first.row, last.row),
+            max(first.row, last.row),
+            min(first.column, last.column),
+            max(first.column, last.column)
+        )
+    }
+
+    private static func cellCoordinate(_ reference: Substring) -> (row: Int, column: Int)? {
+        let letters = reference.prefix { $0.isASCII && $0.isLetter }
+        let digits = reference[letters.endIndex...]
+        guard !letters.isEmpty,
+              !digits.isEmpty,
+              digits.allSatisfy({ $0.isASCII && $0.isNumber }),
+              let row = Int(digits),
+              row > 0,
+              let column = columnIndex(String(letters)) else {
+            return nil
+        }
+        return (row - 1, column)
+    }
+
     private static func trimmed(_ row: [SpreadsheetCell]) -> [SpreadsheetCell] {
         var row = row
         while row.last?.isEmpty == true { row.removeLast() }
@@ -623,6 +735,8 @@ enum XLSXWorkbookParser {
             "http://schemas.openxmlformats.org/package/2006/content-types"
         static let relationships =
             "http://schemas.openxmlformats.org/package/2006/relationships"
+        static let officeDocumentRelationships =
+            "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
         static let spreadsheet =
             "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
     }
@@ -634,6 +748,39 @@ enum XLSXWorkbookParser {
     }
 }
 
+private final class NamespacePrefixTracker {
+    private var uris = [String: [String]]()
+
+    func startMapping(prefix: String, uri: String) {
+        uris[prefix, default: []].append(uri)
+    }
+
+    func endMapping(prefix: String) {
+        guard var stack = uris[prefix], !stack.isEmpty else { return }
+        stack.removeLast()
+        uris[prefix] = stack.isEmpty ? nil : stack
+    }
+
+    func attributeValue(
+        localName: String,
+        namespaceURI: String,
+        in attributes: [String: String]
+    ) -> String? {
+        for (name, value) in attributes {
+            guard let separator = name.firstIndex(of: ":"),
+                  name[name.index(after: separator)...] == localName,
+                  uris[String(name[..<separator])]?.last == namespaceURI else {
+                continue
+            }
+            return value
+        }
+        return nil
+    }
+}
+
 private func xlsxAttribute(_ localName: String, in attributes: [String: String]) -> String? {
-    attributes[localName] ?? attributes.first { $0.key.hasSuffix(":" + localName) }?.value
+    // OOXML- und OPC-Attribute sind hier unpräfigiert. Das einzige in diesem
+    // Parser ausgewertete namespaced Attribut (`r:id`) läuft ausdrücklich über
+    // `NamespacePrefixTracker`, damit kein beliebiges fremdes Präfix genügt.
+    attributes[localName]
 }

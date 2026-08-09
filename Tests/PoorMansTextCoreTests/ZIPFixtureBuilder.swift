@@ -52,9 +52,11 @@ enum ZIPFixtureBuilder {
     static func docxPackage(
         documentXML: String,
         relationshipsXML: String? = nil,
-        mainContentType: String = docxMainContentType
+        mainContentType: String = docxMainContentType,
+        contentTypesOverride: String? = nil
     ) throws -> Data {
-        let contentTypes = contentTypesXML(mainContentType: mainContentType)
+        let contentTypes = contentTypesOverride
+            ?? contentTypesXML(mainContentType: mainContentType)
         var entries = [
             Entry(name: "[Content_Types].xml", content: Data(contentTypes.utf8)),
             Entry(name: "word/document.xml", content: Data(documentXML.utf8)),
@@ -122,7 +124,8 @@ enum ZIPFixtureBuilder {
         secondSheetTargetMode: String? = nil,
         extraSheetDeclarations: String = "",
         extraWorkbookRelationships: String = "",
-        extraEntries: [Entry] = []
+        extraEntries: [Entry] = [],
+        workbookOverride: String? = nil
     ) throws -> Data {
         let contentTypes = """
         <?xml version="1.0" encoding="UTF-8"?>
@@ -142,7 +145,7 @@ enum ZIPFixtureBuilder {
           <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
         </Relationships>
         """
-        let workbook = """
+        let workbook = workbookOverride ?? """
         <?xml version="1.0" encoding="UTF-8"?>
         <workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
           xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">

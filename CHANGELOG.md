@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.8.2 - 2026-08-09
+
+- Generate the signed Sparkle appcast from the requested release tag and resolve
+  the pinned package before the private update key enters the signing step.
+- Complete the combined install-and-release transaction at the atomic DMG
+  marker: an interrupt can no longer roll back the matching installation after
+  the release pair became visible, and half-published checksums are removed only
+  while their file identity still matches.
+- Keep nested ODM note text in source order, preserve leading tabs and wide
+  indentation without creating code blocks, and escape GFM strikethrough and
+  entity syntax. Asset renaming now skips code spans, fenced blocks, and escaped
+  literal text.
+- Preserve an XLSX hyperlink's `display` text when its referenced cell is empty,
+  enforce all workbook budgets for that text, and resolve worksheet relationship
+  IDs only through the declared Office Document relationship namespace.
+- Require every BIFF worksheet to end before the next physical sheet, reject an
+  ODS spreadsheet nested below a text body, and ignore foreign OPC `Override`
+  elements when identifying Word packages.
+
 ## 0.8.1 - 2026-08-07
 
 - Keep the Sparkle signing key out of every step but the one that signs, pin all

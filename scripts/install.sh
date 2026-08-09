@@ -78,26 +78,36 @@ fi
 
 temporary_directory="$(mktemp -d "$project_root/.build/poormans-notary.XXXXXX")"
 published_checksum=0
+published_dmg=0
 cleanup() {
     local original_status=$?
     local installation_cleanup_status=0
+    local artifact_cleanup_status=0
     if declare -F cleanup_installation >/dev/null; then
         cleanup_installation || installation_cleanup_status=$?
     fi
-    if [ "${published_checksum:-0}" -eq 1 ] \
-       && [ ! -e "${dmg:-}" ] && [ ! -L "${dmg:-}" ] \
-       && [ -n "${checksum_identity:-}" ] \
-       && [ "$(/usr/bin/stat -f '%d:%i' "$checksum" 2>/dev/null || true)" = "$checksum_identity" ]; then
-        remove_exact_path "$checksum" || true
+    if [ "${published_dmg:-0}" -eq 1 ] || [ "${published_checksum:-0}" -eq 1 ]; then
+        if poormans_text_release_artifacts_are_published; then
+            # Gilt auch für den reinen Release-Weg: Ein Signal direkt nach dem
+            # finalen Move darf ein vollständig identisches Paar nicht halb
+            # entfernen.
+            published_dmg=0
+            published_checksum=0
+        else
+            poormans_text_discard_tracked_release_artifacts || artifact_cleanup_status=$?
+        fi
     fi
     if [ -d "$temporary_directory" ]; then
         /usr/bin/swift -e \
             'import Foundation; try FileManager.default.removeItem(atPath: CommandLine.arguments[1])' \
             "$temporary_directory"
     fi
-    if [ "$installation_cleanup_status" -ne 0 ]; then
+    if [ "$installation_cleanup_status" -ne 0 ] || [ "$artifact_cleanup_status" -ne 0 ]; then
         trap - EXIT
-        exit "$installation_cleanup_status"
+        if [ "$installation_cleanup_status" -ne 0 ]; then
+            exit "$installation_cleanup_status"
+        fi
+        exit "$artifact_cleanup_status"
     fi
     return "$original_status"
 }
@@ -165,23 +175,41 @@ refresh_root_artifacts
 # Release-Paar. FileManager verweigert dabei weiterhin vorhandene Ziele.
 publish_release_artifacts() {
     checksum_identity="$(/usr/bin/stat -f '%d:%i' "$staged_checksum")"
+    dmg_identity="$(/usr/bin/stat -f '%d:%i' "$staged_dmg")"
     published_checksum=1
-    if ! /usr/bin/swift -e \
+    local checksum_move_status=0
+    /usr/bin/swift -e \
         'import Foundation; try FileManager.default.moveItem(atPath: CommandLine.arguments[1], toPath: CommandLine.arguments[2])' \
-        "$staged_checksum" "$checksum"; then
-        published_checksum=0
+        "$staged_checksum" "$checksum" || checksum_move_status=$?
+    if ! poormans_text_path_matches_identity "$checksum" "$checksum_identity"; then
+        local checksum_cleanup_status=0
+        poormans_text_discard_published_checksum || checksum_cleanup_status=$?
         echo "Die Prüfsumme konnte nicht veröffentlicht werden." >&2
+        if [ "$checksum_cleanup_status" -ne 0 ]; then
+            return "$checksum_cleanup_status"
+        fi
         return 74
     fi
-    if ! /usr/bin/swift -e \
+    published_dmg=1
+    local dmg_move_status=0
+    /usr/bin/swift -e \
         'import Foundation; try FileManager.default.moveItem(atPath: CommandLine.arguments[1], toPath: CommandLine.arguments[2])' \
-        "$staged_dmg" "$dmg"; then
-        remove_exact_path "$checksum"
-        published_checksum=0
-        echo "Das fertige DMG konnte nicht veröffentlicht werden." >&2
-        return 74
+        "$staged_dmg" "$dmg" || dmg_move_status=$?
+    local verification_status=0
+    poormans_text_verify_or_discard_release_artifacts || verification_status=$?
+    if [ "$verification_status" -ne 0 ]; then
+        echo "Das veröffentlichte DMG-/Prüfsummenpaar hat die Identitätsprüfung nicht bestanden." >&2
+        return "$verification_status"
     fi
-    published_checksum=0
+    # Ein atomarer Move kann bei einem spät eintreffenden Signal einen von der
+    # Shell abweichenden Rückgabestatus liefern. Die oben geprüften Identitäten
+    # sind für die Transaktion maßgeblich; die Statusvariablen dienen nur dazu,
+    # dieses bewusst behandelte Fenster sichtbar zu halten.
+    : "$checksum_move_status" "$dmg_move_status"
+    if [ "${do_install:-0}" -eq 1 ]; then
+        installation_state="published"
+        created_cli=0
+    fi
 }
 
 if [ "$make_dmg" -eq 1 ]; then
@@ -301,9 +329,14 @@ fi
 
 install_token="$(uuidgen | tr '[:upper:]' '[:lower:]')"
 staged_app="/Applications/.PoorMansText-install-$install_token.app"
+staged_cli="$cli_directory/.poormans-text-install-$install_token"
 installation_state="preparing"
 had_existing_app=0
 created_cli=0
+new_app_identity=""
+old_app_identity=""
+new_cli_identity=""
+cli_state="untouched"
 
 move_install_path() {
     local source="$1"
@@ -366,6 +399,11 @@ if ! copy_staged_app; then
     echo "Die neue App konnte nicht in /Applications gestagt werden." >&2
     exit 74
 fi
+new_app_identity="$(poormans_text_path_identity "$staged_app")"
+if [ -z "$new_app_identity" ]; then
+    echo "Die Identität der gestagten App konnte nicht bestimmt werden." >&2
+    exit 74
+fi
 installation_state="staged"
 if ! "$script_directory/verify_bundle.sh" "$staged_app" --notarized; then
     remove_install_path "$staged_app" || true
@@ -378,16 +416,23 @@ if [ -e "$destination_app" ] || [ -L "$destination_app" ]; then
         remove_install_path "$staged_app" || true
         exit 73
     }
-    if ! swap_install_paths "$staged_app" "$destination_app"; then
-        remove_install_path "$staged_app" || true
-        echo "Die vorhandene und die neue App konnten nicht atomar getauscht werden." >&2
+    old_app_identity="$(poormans_text_path_identity "$destination_app")"
+    if [ -z "$old_app_identity" ]; then
+        echo "Die Identität der vorhandenen App konnte nicht bestimmt werden." >&2
         exit 74
     fi
     had_existing_app=1
+    installation_state="swap-pending"
+    if ! swap_install_paths "$staged_app" "$destination_app"; then
+        rollback_app_installation || true
+        echo "Die vorhandene und die neue App konnten nicht atomar getauscht werden." >&2
+        exit 74
+    fi
     installation_state="swapped"
 else
+    installation_state="install-pending"
     if ! move_install_path "$staged_app" "$destination_app"; then
-        remove_install_path "$staged_app" || true
+        rollback_app_installation || true
         echo "Die neue App konnte nicht atomar installiert werden." >&2
         exit 74
     fi
@@ -395,22 +440,40 @@ else
 fi
 
 if [ ! -L "$destination_cli" ] && [ ! -e "$destination_cli" ]; then
-    if [ "$needs_admin" -eq 1 ]; then
-        if ! sudo ln -s "$installed_cli" "$destination_cli"; then
-            rollback_app_installation
-            exit 74
-        fi
-    elif ! ln -s "$installed_cli" "$destination_cli"; then
+    # Der Link entsteht zuerst unter einem eindeutigen Pfad im selben Verzeichnis.
+    # Erst seine Geräte-/Inode-Identität wird gemerkt, dann folgt der atomare Move
+    # ans öffentliche Ziel. Der Cleanup erkennt dadurch auch einen fremden Link,
+    # der später mit demselben Zieltext an seine Stelle gesetzt wurde.
+    cli_state="stage-pending"
+    cli_link_status=0
+    poormans_text_create_staged_cli_link_with_deferred_signals \
+        || cli_link_status=$?
+    if [ "$cli_link_status" -eq 130 ] || [ "$cli_link_status" -eq 143 ]; then
+        exit "$cli_link_status"
+    fi
+    if [ "$cli_link_status" -ne 0 ]; then
         rollback_app_installation
         exit 74
     fi
     created_cli=1
+    cli_state="move-pending"
+    if ! move_install_path "$staged_cli" "$destination_cli"; then
+        rollback_app_installation
+        exit 74
+    fi
+    cli_state="installed"
 fi
 
 installation_valid=1
+poormans_text_path_matches_identity "$destination_app" "$new_app_identity" \
+    || installation_valid=0
 "$script_directory/verify_bundle.sh" "$destination_app" --notarized || installation_valid=0
 [ -L "$destination_cli" ] || installation_valid=0
 [ "$(readlink "$destination_cli" 2>/dev/null || true)" = "$installed_cli" ] || installation_valid=0
+if [ "$created_cli" -eq 1 ]; then
+    poormans_text_path_matches_identity "$destination_cli" "$new_cli_identity" \
+        || installation_valid=0
+fi
 
 installed_version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$destination_app/Contents/Info.plist" 2>/dev/null || true)"
 if [ "$("$destination_cli" --version 2>/dev/null || true)" != "Poor Man's Text $installed_version" ]; then
@@ -422,34 +485,16 @@ if [ "$(command -v poormans-text 2>/dev/null || true)" != "$destination_cli" ]; 
 fi
 
 if [ "$installation_valid" -ne 1 ]; then
-    if [ "$created_cli" -eq 1 ] && [ -L "$destination_cli" ] \
-       && [ "$(readlink "$destination_cli")" = "$installed_cli" ]; then
-        remove_install_path "$destination_cli" || true
-    fi
     rollback_app_installation
     echo "Die installierte App/CLI-Kombination hat die Endprüfung nicht bestanden." >&2
     exit 65
 fi
 
-if [ "$make_dmg" -eq 1 ]; then
-    # Letzter Schritt der Transaktion: Erst jetzt wird das Release-Paar sichtbar.
-    # Scheitert das, wird die noch nicht endgültig übernommene Installation
-    # zurückgerollt — sonst bliebe ein halber Release stehen.
-    if ! publish_release_artifacts; then
-        if [ "$created_cli" -eq 1 ] && [ -L "$destination_cli" ] \
-           && [ "$(readlink "$destination_cli")" = "$installed_cli" ]; then
-            remove_install_path "$destination_cli" || true
-        fi
-        rollback_app_installation
-        echo "Die Installation wurde zurückgenommen, weil das Release nicht veröffentlicht werden konnte." >&2
-        exit 74
-    fi
-fi
-
-if [ "$had_existing_app" -eq 1 ] && ! app_matches_release_identity "$staged_app"; then
-    # Die neue App und ihr CLI-Link haben die Endprüfung bestanden. Ein
-    # verdächtiges Backup jetzt zurückzutauschen würde den validierten Stand
-    # durch genau das Bundle ersetzen, dem wir nicht mehr vertrauen.
+if [ "$had_existing_app" -eq 1 ] \
+   && ! poormans_text_path_matches_identity "$staged_app" "$old_app_identity"; then
+    # Diese Prüfung muss vor der Veröffentlichung liegen. Danach dürfte ein
+    # Fehler kein sichtbares Release-Paar mehr neben einer bewusst nicht
+    # zurückgerollten Installation hinterlassen.
     installation_state="backup-suspicious"
     created_cli=0
     echo "Die atomar gesicherte alte App hat unerwartet die Identität gewechselt: $staged_app" >&2
@@ -457,10 +502,23 @@ if [ "$had_existing_app" -eq 1 ] && ! app_matches_release_identity "$staged_app"
     echo "Das verdächtige Backup bleibt unangetastet." >&2
     exit 73
 fi
-installation_state="committed"
-created_cli=0
-remove_install_path "$staged_app"
-installation_state="clean"
+
+if [ "$make_dmg" -eq 1 ]; then
+    # Letzter Schritt der Transaktion: Erst jetzt wird das Release-Paar sichtbar.
+    # Scheitert das, wird die noch nicht endgültig übernommene Installation
+    # zurückgerollt — sonst bliebe ein halber Release stehen.
+    if ! publish_release_artifacts; then
+        rollback_app_installation
+        echo "Die Installation wurde zurückgenommen, weil das Release nicht veröffentlicht werden konnte." >&2
+        exit 74
+    fi
+fi
+
+if [ "$make_dmg" -eq 0 ]; then
+    installation_state="committed"
+    created_cli=0
+fi
+cleanup_installation || exit $?
 
 if [ "$make_dmg" -eq 1 ]; then
     echo "INSTALL OK: $destination_app ($installed_version); CLI: $destination_cli; DMG: $dmg"

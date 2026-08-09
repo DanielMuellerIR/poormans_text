@@ -36,8 +36,8 @@ enum ODSWorkbookParser {
         /// `office:document-content/office:body/office:spreadsheet` steht. Nur
         /// dort ist ein `table:table` wirklich ein Arbeitsblatt; in einem
         /// `office:text` wäre es eine Textabelle.
-        private var isInSpreadsheetBody = false
-        private var bodyDepth = 0
+        private var spreadsheetDepth: Int?
+        private var elementStack = [(namespaceURI: String?, name: String)]()
 
         func parser(
             _ parser: XMLParser,
@@ -48,6 +48,9 @@ enum ODSWorkbookParser {
         ) {
             guard failure == nil else { return }
 
+            let parent = elementStack.last
+            elementStack.append((namespaceURI, elementName))
+
             if !sawRoot {
                 sawRoot = true
                 guard namespaceURI == Namespaces.office,
@@ -56,15 +59,15 @@ enum ODSWorkbookParser {
                 }
                 return
             }
-            if namespaceURI == Namespaces.office, elementName == "body" {
-                bodyDepth += 1
+            if namespaceURI == Namespaces.office,
+               elementName == "spreadsheet",
+               parent?.namespaceURI == Namespaces.office,
+               parent?.name == "body",
+               elementStack.count == 3 {
+                spreadsheetDepth = elementStack.count
                 return
             }
-            if namespaceURI == Namespaces.office, elementName == "spreadsheet", bodyDepth == 1 {
-                isInSpreadsheetBody = true
-                return
-            }
-            guard isInSpreadsheetBody else { return }
+            guard spreadsheetDepth != nil else { return }
 
             if namespaceURI == Namespaces.table, elementName == "table" {
                 guard currentSheetName == nil else {
@@ -176,16 +179,20 @@ enum ODSWorkbookParser {
             namespaceURI: String?,
             qualifiedName qName: String?
         ) {
+            defer {
+                if elementStack.last?.namespaceURI == namespaceURI,
+                   elementStack.last?.name == elementName {
+                    elementStack.removeLast()
+                }
+            }
             guard failure == nil else { return }
-            if namespaceURI == Namespaces.office, elementName == "spreadsheet" {
-                isInSpreadsheetBody = false
+            if namespaceURI == Namespaces.office,
+               elementName == "spreadsheet",
+               spreadsheetDepth == elementStack.count {
+                spreadsheetDepth = nil
                 return
             }
-            if namespaceURI == Namespaces.office, elementName == "body" {
-                bodyDepth -= 1
-                return
-            }
-            guard isInSpreadsheetBody else { return }
+            guard spreadsheetDepth != nil else { return }
             if namespaceURI == Namespaces.table, elementName == "table" {
                 if tableDepth > 1 {
                     tableDepth -= 1

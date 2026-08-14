@@ -22,6 +22,12 @@ Roadmap-Punkte beim Release ins Changelog überführen und aus der Roadmap entfe
 - GUI und CLI bleiben dünne Adapter. Konvertierungslogik, Erkennung, Assets und
   Diagnosen gehören in wiederverwendbare Library-Targets ohne SwiftUI-Abhängigkeit.
 - Rückfragen und Bestätigungen sind Aufgabe der aufrufenden App, nie des Kerns.
+- Ein Markdown-Rewriter darf Codezustände nicht an bloßen Backtick-Markern bis zum
+  Dateiende fortschreiben: Inline-Code nur öffnen, wenn eine gleich lange
+  Abschlussfolge existiert, sonst den Run als Literal behandeln; Fences an ihren
+  Listen- oder Blockquote-Container binden, damit spätere echte Links weiter
+  verarbeitet werden (Lern-Inbox 2026-08-09, Anschluss an den Review-Fix vom
+  gleichen Tag).
 - Identifier Englisch, nicht offensichtliche Kommentare Deutsch.
 
 ## Verifikation und Distribution

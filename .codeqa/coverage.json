@@ -6,7 +6,7 @@
     "token_budget": 750000,
     "status": "active",
     "started_at": "2026-08-15T12:54:12+02:00",
-    "tokens_spent": 97438
+    "tokens_spent": 149728
   },
   "campaign_history": [],
   "scope": {
@@ -101,12 +101,19 @@
       "risk": "high",
       "priority": 2,
       "reason": "Drei native Binär-/XML-Parser, Datenintegrität, größter Codeblock",
-      "state": "in_progress",
-      "active_run": {
+      "state": "completed",
+      "last_run": {
         "campaign_id": "20260815T125412077498+0200",
-        "started_at": "2026-08-15T13:04:05+02:00",
-        "required_review": "full",
-        "status_at_start": "pending"
+        "completed_at": "2026-08-15T13:07:39+02:00",
+        "observed_head": "bfddc358e8f93cffb580aef81761d659d49b679c",
+        "content_sha256": "6afb6aa89e4df5c9cb8f8495c8505c952e62bf8a0aff0927b83a5a9c9bc0adc1",
+        "file_count": 11,
+        "review": "full",
+        "outcome": "improved",
+        "summary": "Überlauf-Absturz in XLSX-columnIndex behoben (präparierte Zellbezüge crashten den Prozess); Legacy-XLS-Globals-Parse stoppt am ersten EOF statt den ganzen Stream zu kopieren; ODS-Parser reviewed-clean",
+        "tests": [
+          "swift test: 194 passed, 0 failures"
+        ]
       }
     },
     {
@@ -218,9 +225,10 @@
         "Sources/PoorMansTextCore/XLSXWorkbookParser.swift"
       ],
       "priority": 2,
-      "state": "pending",
+      "state": "in_progress",
       "noted_at": "2026-08-15T13:04:24+02:00",
-      "campaign_id": "20260815T125412077498+0200"
+      "campaign_id": "20260815T125412077498+0200",
+      "started_at": "2026-08-15T13:07:39+02:00"
     }
   ]
 }

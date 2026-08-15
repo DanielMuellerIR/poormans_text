@@ -755,36 +755,6 @@ enum XLSXWorkbookParser {
     }
 }
 
-private final class NamespacePrefixTracker {
-    private var uris = [String: [String]]()
-
-    func startMapping(prefix: String, uri: String) {
-        uris[prefix, default: []].append(uri)
-    }
-
-    func endMapping(prefix: String) {
-        guard var stack = uris[prefix], !stack.isEmpty else { return }
-        stack.removeLast()
-        uris[prefix] = stack.isEmpty ? nil : stack
-    }
-
-    func attributeValue(
-        localName: String,
-        namespaceURI: String,
-        in attributes: [String: String]
-    ) -> String? {
-        for (name, value) in attributes {
-            guard let separator = name.firstIndex(of: ":"),
-                  name[name.index(after: separator)...] == localName,
-                  uris[String(name[..<separator])]?.last == namespaceURI else {
-                continue
-            }
-            return value
-        }
-        return nil
-    }
-}
-
 private func xlsxAttribute(_ localName: String, in attributes: [String: String]) -> String? {
     // OOXML- und OPC-Attribute sind hier unpräfigiert. Das einzige in diesem
     // Parser ausgewertete namespaced Attribut (`r:id`) läuft ausdrücklich über

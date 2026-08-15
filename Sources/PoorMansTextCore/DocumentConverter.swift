@@ -254,8 +254,23 @@ public struct DocumentConverter: Sendable {
             throw ConversionError.outputAlreadyExists(outputURL)
         }
 
-        let resolvedInputPath = inputURL.resolvingSymlinksInPath().path + "/"
-        let resolvedOutputPath = outputURL.resolvingSymlinksInPath().path + "/"
+        var resolvedInputPath = inputURL.resolvingSymlinksInPath().path + "/"
+        var resolvedOutputPath = outputURL.resolvingSymlinksInPath().path + "/"
+        // `hasPrefix` vergleicht Zeichen für Zeichen. Auf einem Dateisystem, das
+        // Groß-/Kleinschreibung im Namen nicht unterscheidet (Standard bei APFS),
+        // zeigt "…/INPUT.RTFD/Converted" auf dasselbe Verzeichnis wie
+        // "…/input.rtfd/Converted" und läge damit im Quelldokument. Deshalb dort
+        // beide Pfade vor dem Vergleich kleinschreiben. Lässt sich die
+        // Volume-Eigenschaft nicht ermitteln, wird ebenfalls kleingeschrieben:
+        // Das ist die sichere Richtung, weil dann höchstens ein ohnehin
+        // verdächtiges Ziel abgelehnt wird.
+        let volumeValues = try? inputURL.resourceValues(
+            forKeys: [.volumeSupportsCaseSensitiveNamesKey]
+        )
+        if volumeValues?.volumeSupportsCaseSensitiveNames != true {
+            resolvedInputPath = resolvedInputPath.lowercased()
+            resolvedOutputPath = resolvedOutputPath.lowercased()
+        }
         guard !resolvedOutputPath.hasPrefix(resolvedInputPath) else {
             throw ConversionError.outputInsideInput(outputURL)
         }

@@ -189,6 +189,33 @@ final class DocumentConverterTests: XCTestCase {
         }
     }
 
+    func testExplicitDestinationRejectsCaseVariantOfSourcePackage() throws {
+        let inputURL = try FixtureFactory.createMinimalRTFD(in: temporaryDirectory)
+        let uppercasedInputURL = inputURL
+            .deletingLastPathComponent()
+            .appendingPathComponent(inputURL.lastPathComponent.uppercased(), isDirectory: true)
+        // Auf einem Dateisystem, das Groß-/Kleinschreibung unterscheidet, ist der
+        // großgeschriebene Pfad ein anderes (nicht vorhandenes) Verzeichnis und
+        // liegt damit korrekterweise außerhalb der Quelle. Der Fall lässt sich
+        // dort nicht herstellen, deshalb der Test nur auf Volumes ohne
+        // Unterscheidung (Standard bei APFS).
+        try XCTSkipUnless(
+            FileManager.default.fileExists(atPath: uppercasedInputURL.path),
+            "Case-sensitive volume: source package is not reachable under a different spelling"
+        )
+
+        let nestedOutput = uppercasedInputURL.appendingPathComponent("Converted", isDirectory: true)
+        XCTAssertThrowsError(
+            try DocumentConverter().convert(
+                ConversionRequest(inputURL: inputURL, destination: .directory(nestedOutput))
+            )
+        ) { error in
+            guard case ConversionError.outputInsideInput = error else {
+                return XCTFail("Unexpected error: \(error)")
+            }
+        }
+    }
+
     func testInspectionDescribesKnownRTFColorLoss() throws {
         let inputURL = try FixtureFactory.createHighlightedRTF(in: temporaryDirectory)
 

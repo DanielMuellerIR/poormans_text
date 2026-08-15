@@ -4,9 +4,11 @@
   "campaign": {
     "id": "20260815T125412077498+0200",
     "token_budget": 750000,
-    "status": "active",
+    "status": "complete",
     "started_at": "2026-08-15T12:54:12+02:00",
-    "tokens_spent": 191650
+    "tokens_spent": 243441,
+    "finished_at": "2026-08-15T13:14:26+02:00",
+    "finish_reason": "all-current"
   },
   "campaign_history": [],
   "scope": {
@@ -17,7 +19,8 @@
       "build.sh",
       "install.sh",
       "release.sh",
-      "Package.swift"
+      "Package.swift",
+      ".github/workflows"
     ],
     "exclusions": []
   },
@@ -73,15 +76,15 @@
       "state": "completed",
       "last_run": {
         "campaign_id": "20260815T125412077498+0200",
-        "completed_at": "2026-08-15T12:59:51+02:00",
-        "observed_head": "98313fa87d1ec29dc48bda1281e6365790c9cf38",
-        "content_sha256": "35f2051b2804ce605d0066d68c7962587261770e77456d35e1711b2cd644b06b",
+        "completed_at": "2026-08-15T13:14:25+02:00",
+        "observed_head": "44667658e86d2f64cc6c7ed1f87cd472ea74b7a8",
+        "content_sha256": "f13fdcba9fcd879c3caf1f3c3af8c750ffd441657f7755969d4c853297022c29",
         "file_count": 3,
         "review": "full",
-        "outcome": "improved",
-        "summary": "CRC-Duplikat in Archive.data(for:) auf verifyChecksum zusammengeführt; Duplikatschutz gegen APFS-Extraktionskollisionen gehärtet (case-insensitiv, Verzeichnis-Slash entfällt); zwei neue Tests",
+        "outcome": "reviewed-clean",
+        "summary": "Delta seit dem Bereichsabschluss ist ausschließlich die verifizierte Entfernung des privaten NamespacePrefixTracker-Duplikats (Querschnitts-Fund); Vollreview der Datei erfolgte heute in derselben Session",
         "tests": [
-          "swift test: 192 passed, 0 failures"
+          "swift test: 194 passed, 0 failures"
         ]
       }
     },
@@ -104,13 +107,13 @@
       "state": "completed",
       "last_run": {
         "campaign_id": "20260815T125412077498+0200",
-        "completed_at": "2026-08-15T13:07:39+02:00",
-        "observed_head": "bfddc358e8f93cffb580aef81761d659d49b679c",
-        "content_sha256": "6afb6aa89e4df5c9cb8f8495c8505c952e62bf8a0aff0927b83a5a9c9bc0adc1",
+        "completed_at": "2026-08-15T13:14:25+02:00",
+        "observed_head": "44667658e86d2f64cc6c7ed1f87cd472ea74b7a8",
+        "content_sha256": "0a1a6015eaa51b9a27daffe510a90a12a4ef9b0b2bda02f77d28b9ead507594f",
         "file_count": 11,
-        "review": "full",
-        "outcome": "improved",
-        "summary": "Überlauf-Absturz in XLSX-columnIndex behoben (präparierte Zellbezüge crashten den Prozess); Legacy-XLS-Globals-Parse stoppt am ersten EOF statt den ganzen Stream zu kopieren; ODS-Parser reviewed-clean",
+        "review": "delta-plus-boundaries",
+        "outcome": "reviewed-clean",
+        "summary": "Delta ist ausschließlich die verifizierte Entfernung des privaten NamespacePrefixTracker-Duplikats in XLSXWorkbookParser.swift (Querschnitts-Fund); Grenzen unverändert",
         "tests": [
           "swift test: 194 passed, 0 failures"
         ]
@@ -142,6 +145,29 @@
       }
     },
     {
+      "id": "xml-shared-infra",
+      "paths": [
+        "Sources/PoorMansTextCore/NamespacePrefixTracker.swift"
+      ],
+      "risk": "medium",
+      "priority": 3,
+      "reason": "Gemeinsame XML-Namensraum-Hilfsklasse, aus der Konsolidierung des Querschnitts-Funds entstanden; von ZIP-Inspector und XLSX-Parser genutzt",
+      "state": "completed",
+      "last_run": {
+        "campaign_id": "20260815T125412077498+0200",
+        "completed_at": "2026-08-15T13:12:53+02:00",
+        "observed_head": "44667658e86d2f64cc6c7ed1f87cd472ea74b7a8",
+        "content_sha256": "c0c98fc789e1de72b673834cd8e5be0fbaf078ef864155c67380b3e651e3696a",
+        "file_count": 1,
+        "review": "full",
+        "outcome": "reviewed-clean",
+        "summary": "Inhalt wurde im Rahmen von zip-gate- und spreadsheet-import-Review vollständig geprüft und per verifiziertem Diff unverändert konsolidiert",
+        "tests": [
+          "swift test: 194 passed, 0 failures"
+        ]
+      }
+    },
+    {
       "id": "wordprocessing",
       "paths": [
         "Sources/PoorMansTextCore/WordProcessingPackageAdapter.swift",
@@ -159,12 +185,19 @@
       "risk": "medium",
       "priority": 4,
       "reason": "DOCX/ODT/DOC/RTF-Adapter samt HTML-Zwischenschicht und Bild-Rewriting",
-      "state": "in_progress",
-      "active_run": {
+      "state": "completed",
+      "last_run": {
         "campaign_id": "20260815T125412077498+0200",
-        "started_at": "2026-08-15T13:09:47+02:00",
-        "required_review": "full",
-        "status_at_start": "pending"
+        "completed_at": "2026-08-15T13:12:29+02:00",
+        "observed_head": "44667658e86d2f64cc6c7ed1f87cd472ea74b7a8",
+        "content_sha256": "181c79edbb9e3d361ce92ea4ad6c1f634eb01908b91c9ea6898fdc6c8544257c",
+        "file_count": 27,
+        "review": "full",
+        "outcome": "improved",
+        "summary": "DOC-Adapter mit Arbeitskopie (TOCTOU, beide textutil-Läufe auf denselben Bytes), -noload auch im TXT-Referenzlauf, --sandbox für RTF- und HTML→GFM-Pandoc-Läufe wie im Paketadapter",
+        "tests": [
+          "swift test: 194 passed, 0 failures"
+        ]
       }
     },
     {
@@ -203,7 +236,20 @@
       "risk": "medium",
       "priority": 6,
       "reason": "Exit-Codes, JSON-Ausgabe, Argumentparser",
-      "state": "pending"
+      "state": "completed",
+      "last_run": {
+        "campaign_id": "20260815T125412077498+0200",
+        "completed_at": "2026-08-15T13:12:29+02:00",
+        "observed_head": "44667658e86d2f64cc6c7ed1f87cd472ea74b7a8",
+        "content_sha256": "7acfcfec8e13767030232035e9534ce6c2020acc05baa27d3b83fe244a8eebba",
+        "file_count": 3,
+        "review": "full",
+        "outcome": "reviewed-clean",
+        "summary": "Argumentparser (--, =-Formen, strikter Katalogmodus), sysexits-Zuordnung und JSON-Ausgabe vollständig geprüft; keine Funde",
+        "tests": [
+          "swift test: 194 passed, 0 failures (CLIIntegrationTests/CLITargetDirectoryTests enthalten)"
+        ]
+      }
     },
     {
       "id": "app-support",
@@ -219,7 +265,20 @@
       "risk": "medium",
       "priority": 7,
       "reason": "GUI-Zustand, Installer und Sparkle-Update-Controller",
-      "state": "pending"
+      "state": "completed",
+      "last_run": {
+        "campaign_id": "20260815T125412077498+0200",
+        "completed_at": "2026-08-15T13:12:29+02:00",
+        "observed_head": "44667658e86d2f64cc6c7ed1f87cd472ea74b7a8",
+        "content_sha256": "0f9b845f33ddf7803fcc32954a07233175d48a32e375d26c8a488db99af39ded",
+        "file_count": 12,
+        "review": "full",
+        "outcome": "reviewed-clean",
+        "summary": "AppModel-Sperrlogik, CLIInstaller (quotierter osascript, Kollisionscheck im Shell-Skript, Nachverifikation), PandocInstaller, UpdateController, CapturedProcess (Pipe-vor-Wait) und SwiftUI-Schicht geprüft; keine Funde",
+        "tests": [
+          "swift test: 194 passed, 0 failures (AppModel-/Installer-/UpdateController-Tests enthalten)"
+        ]
+      }
     },
     {
       "id": "build-scripts",
@@ -236,7 +295,44 @@
       "risk": "low",
       "priority": 8,
       "reason": "Build-/Signatur-/Release-Skripte; stabil und durch Release-Workflow-Tests gedeckt",
-      "state": "pending"
+      "state": "completed",
+      "last_run": {
+        "campaign_id": "20260815T125412077498+0200",
+        "completed_at": "2026-08-15T13:14:10+02:00",
+        "observed_head": "44667658e86d2f64cc6c7ed1f87cd472ea74b7a8",
+        "content_sha256": "67d5a52084cb9a6e0ede4da1030d22fbbb7551d78c1efce468061c37c59e9835",
+        "file_count": 19,
+        "review": "full",
+        "outcome": "reviewed-clean",
+        "summary": "Alle 15 Skripte plus Package.swift vollständig gelesen: transaktionale Installation mit Identitäts-/Signalfenster-Behandlung, atomare DMG-Erzeugung, Notary-Profilverwaltung ohne Credential-Leak, Sparkle exakt gepinnt; durch 26 InstallMode-/Rollback-/ReleaseWorkflow-Tests abgedeckt; keine Funde",
+        "tests": [
+          "swift test: 194 passed, 0 failures (InstallMode-/InstallScriptRollback-/ReleaseWorkflowTests enthalten)"
+        ]
+      }
+    },
+    {
+      "id": "ci-workflows",
+      "paths": [
+        ".github/workflows/ci.yml",
+        ".github/workflows/publish-appcast.yml"
+      ],
+      "risk": "medium",
+      "priority": 9,
+      "reason": "CI-Build/Test und signierte Appcast-Veröffentlichung; Secret-Handling sicherheitsrelevant",
+      "state": "completed",
+      "last_run": {
+        "campaign_id": "20260815T125412077498+0200",
+        "completed_at": "2026-08-15T13:14:11+02:00",
+        "observed_head": "44667658e86d2f64cc6c7ed1f87cd472ea74b7a8",
+        "content_sha256": "e00dbfd9433889eccbce73b182faf981ff11a2a53111fce2cbde974b68a88b32",
+        "file_count": 2,
+        "review": "full",
+        "outcome": "reviewed-clean",
+        "summary": "ci.yml (Build+Test+Bundle-Verify) und publish-appcast.yml geprüft: Actions SHA-gepinnt, Tag-Commit-Verifikation, Latest-Stable-Gate, privater Sparkle-Schlüssel nur in einem Step und nur über stdin; keine Funde",
+        "tests": [
+          "CI-Läufe der Releases 0.8.0–0.8.2 grün (GitHub); lokal nicht ausführbar"
+        ]
+      }
     }
   ],
   "architecture": {

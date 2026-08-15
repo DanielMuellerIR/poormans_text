@@ -52,6 +52,9 @@ enum HTMLDocumentConverter {
             pandocResult = try ProcessRunner.run(
                 executable: pandocExecutable,
                 arguments: [
+                    // Gleiche Isolationsstufe wie im Paketadapter; alle Bildpfade
+                    // sind zu diesem Zeitpunkt lokale, geprüfte Pfade.
+                    "--sandbox",
                     "--from=html",
                     "--to=gfm-raw_html",
                     "--wrap=preserve",

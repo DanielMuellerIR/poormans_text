@@ -6,7 +6,7 @@
     "token_budget": 750000,
     "status": "active",
     "started_at": "2026-08-15T12:54:12+02:00",
-    "tokens_spent": 149728
+    "tokens_spent": 191650
   },
   "campaign_history": [],
   "scope": {
@@ -126,7 +126,20 @@
       "risk": "high",
       "priority": 3,
       "reason": "Pfadauflösung lokaler Teildokumente: Pfadfluchten, Symlinks",
-      "state": "pending"
+      "state": "completed",
+      "last_run": {
+        "campaign_id": "20260815T125412077498+0200",
+        "completed_at": "2026-08-15T13:09:47+02:00",
+        "observed_head": "773e011f36a694a7a71503fe463e5a40de6813c3",
+        "content_sha256": "ba1749c8931f03ad228f37bfb6637bd34df42fe208e73db6c4ee7113f6307717",
+        "file_count": 3,
+        "review": "full",
+        "outcome": "reviewed-clean",
+        "summary": "Pfadauflösung (Schema/Host/Query, Backslash, .., Symlink-Flucht, Existenz) und Markdown-Rewriter vollständig geprüft; AGENTS-Invariante vom 2026-08-09 korrekt umgesetzt, 19 Rewriter-Tests decken die Fälle; kein lohnender Umbau",
+        "tests": [
+          "swift test: 194 passed, 0 failures (OpenDocumentMasterAdapterTests enthalten)"
+        ]
+      }
     },
     {
       "id": "wordprocessing",
@@ -146,7 +159,13 @@
       "risk": "medium",
       "priority": 4,
       "reason": "DOCX/ODT/DOC/RTF-Adapter samt HTML-Zwischenschicht und Bild-Rewriting",
-      "state": "pending"
+      "state": "in_progress",
+      "active_run": {
+        "campaign_id": "20260815T125412077498+0200",
+        "started_at": "2026-08-15T13:09:47+02:00",
+        "required_review": "full",
+        "status_at_start": "pending"
+      }
     },
     {
       "id": "markdown-postprocess",
@@ -159,7 +178,20 @@
       "risk": "medium",
       "priority": 5,
       "reason": "Markdown-Rewriter mit AGENTS-Invariante zu Inline-Code und Fences",
-      "state": "pending"
+      "state": "completed",
+      "last_run": {
+        "campaign_id": "20260815T125412077498+0200",
+        "completed_at": "2026-08-15T13:09:47+02:00",
+        "observed_head": "773e011f36a694a7a71503fe463e5a40de6813c3",
+        "content_sha256": "0effe7abf7276a8815c02d19b5e48704dcd812e48ac7084b55afecac1edc5efd",
+        "file_count": 4,
+        "review": "full",
+        "outcome": "reviewed-clean",
+        "summary": "MarkdownNormalizer (Code-Block-Buchhaltung, Hard-Breaks, Fence-Regeln) und ColoredTextMarker (chromatische Farben, Colortbl-Zuordnung) geprüft; sorgfältig gebaut, keine Funde",
+        "tests": [
+          "swift test: 194 passed, 0 failures (MarkdownNormalizer-/ColoredTextMarkerTests enthalten)"
+        ]
+      }
     },
     {
       "id": "cli",
@@ -225,10 +257,19 @@
         "Sources/PoorMansTextCore/XLSXWorkbookParser.swift"
       ],
       "priority": 2,
-      "state": "in_progress",
+      "state": "completed",
       "noted_at": "2026-08-15T13:04:24+02:00",
       "campaign_id": "20260815T125412077498+0200",
-      "started_at": "2026-08-15T13:07:39+02:00"
+      "started_at": "2026-08-15T13:07:39+02:00",
+      "completed": {
+        "campaign_id": "20260815T125412077498+0200",
+        "completed_at": "2026-08-15T13:09:47+02:00",
+        "observed_head": "773e011f36a694a7a71503fe463e5a40de6813c3",
+        "summary": "NamespacePrefixTracker als eine interne Klasse in eigener Datei konsolidiert; private Duplikate in ZIPArchiveInspector und XLSXWorkbookParser entfernt",
+        "tests": [
+          "swift test: 194 passed, 0 failures"
+        ]
+      }
     }
   ]
 }

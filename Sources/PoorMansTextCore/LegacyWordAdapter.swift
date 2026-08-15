@@ -76,12 +76,41 @@ struct LegacyWordAdapter: DocumentConversionAdapter {
         let htmlURL = context.workDirectory.appendingPathComponent("document.html")
         let referenceTextURL = context.workDirectory.appendingPathComponent("reference.txt")
 
+        // Erst kopieren, dann beide Läufe auf der Kopie: Der Originalpfad könnte
+        // zwischen Prüfung und Lauf ausgetauscht werden, und HTML-Lauf wie
+        // TXT-Referenzlauf müssen zwingend dieselben Bytes sehen — sonst
+        // vergliche die Textprüfung am Ende zwei verschiedene Dokumente.
+        let stagedInputURL = context.workDirectory.appendingPathComponent("verified-source.doc")
+        do {
+            let values = try context.inputURL.resourceValues(
+                forKeys: [.fileSizeKey, .isRegularFileKey]
+            )
+            guard values.isRegularFile == true,
+                  let size = values.fileSize,
+                  size <= 1_073_741_824 else {
+                throw ConversionError.invalidInput(
+                    context.inputURL,
+                    format: .doc,
+                    reason: "the DOC source is not a supported regular file"
+                )
+            }
+            try FileManager.default.copyItem(at: context.inputURL, to: stagedInputURL)
+        } catch let error as ConversionError {
+            throw error
+        } catch {
+            throw ConversionError.invalidInput(
+                context.inputURL,
+                format: .doc,
+                reason: error.localizedDescription
+            )
+        }
+
         try runTextutil(
             arguments: [
                 "-convert", "html",
                 "-noload",
                 "-output", htmlURL.path,
-                "--", context.inputURL.path,
+                "--", stagedInputURL.path,
             ],
             currentDirectory: context.workDirectory
         )
@@ -89,8 +118,10 @@ struct LegacyWordAdapter: DocumentConversionAdapter {
             arguments: [
                 "-convert", "txt",
                 "-encoding", "UTF-8",
+                // Keine Subressourcen nachladen; der reine Referenztext braucht sie nicht.
+                "-noload",
                 "-output", referenceTextURL.path,
-                "--", context.inputURL.path,
+                "--", stagedInputURL.path,
             ],
             currentDirectory: context.workDirectory
         )

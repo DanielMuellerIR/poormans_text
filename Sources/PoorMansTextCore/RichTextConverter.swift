@@ -204,6 +204,9 @@ struct RichTextAdapter: DocumentConversionAdapter {
                 result = try ProcessRunner.run(
                     executable: pandocExecutable,
                     arguments: [
+                        // Gleiche Isolationsstufe wie im Paketadapter; alle Bildpfade
+                        // sind zu diesem Zeitpunkt lokale, geprüfte Pfade.
+                        "--sandbox",
                         "--from=rtf",
                         "--to=html5",
                         "--extract-media=.",

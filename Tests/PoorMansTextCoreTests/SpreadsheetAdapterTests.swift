@@ -195,6 +195,28 @@ final class SpreadsheetAdapterTests: XCTestCase {
         }
     }
 
+    /// Ein Bezug mit sehr vielen Buchstaben ließ die Spaltenberechnung früher
+    /// überlaufen und brach den Prozess ab; erwartet ist ein sauberer Fehler.
+    func testXLSXRejectsACellReferenceWithAnOverflowingColumn() throws {
+        let overflowingSheet = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+          <sheetData>
+            <row r="1"><c r="ZZZZZZZZZZZZZZZZ1"><v>1</v></c></row>
+          </sheetData>
+        </worksheet>
+        """
+        let sourceURL = temporaryDirectory.appendingPathComponent("ColumnOverflow.xlsx")
+        try ZIPFixtureBuilder.xlsxPackage(
+            firstSheetXML: overflowingSheet,
+            secondSheetXML: secondXLSXSheet
+        ).write(to: sourceURL)
+
+        XCTAssertThrowsError(try DocumentConverter().inspect(sourceURL)) { error in
+            XCTAssertTrue(error.localizedDescription.contains("column budget"))
+        }
+    }
+
     func testXLSXExpandedCellBudgetRejectsManySparseRows() throws {
         let rows = (1...31).map {
             #"<row r="\#($0)"><c r="XFD\#($0)"><v>1</v></c></row>"#

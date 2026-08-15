@@ -289,7 +289,12 @@ enum LegacyXLSWorkbookParser {
 
     private enum BIFFParser {
         static func parse(_ data: Data) throws -> SpreadsheetWorkbook {
-            let records = try records(in: data)
+            // Die Workbook-Globals enden am ersten EOF-Record (0x000A). BOF,
+            // FilePass, SST und alle BOUNDSHEET-Records liegen davor, die
+            // Blatt-Substreams dahinter werden je Blatt ohnehin einzeln
+            // gelesen — ohne das frühe Ende würde hier der komplette Stream
+            // kopiert.
+            let records = try records(in: data, stopAfterID: 0x000A)
             guard let first = records.first,
                   first.id == 0x0809,
                   first.payload.legacyUInt16(at: 2) == 0x0005 else {
@@ -355,10 +360,11 @@ enum LegacyXLSWorkbookParser {
         /// Liest BIFF-Records ab `start`.
         ///
         /// `stopAfterID` beendet den Lauf nach dem ersten Record dieser Art.
-        /// Für ein einzelnes Blatt ist das der EOF-Record: Ohne ihn würde für
-        /// jedes Blatt der gesamte restliche Arbeitsmappen-Stream eingelesen und
-        /// jede Nutzlast kopiert — bei bis zu 256 Blättern also immer wieder von
-        /// vorn, obwohl die Auswertung ohnehin am ersten EOF endet.
+        /// Für die Workbook-Globals wie für ein einzelnes Blatt ist das der
+        /// EOF-Record: Ohne ihn würde jeweils der gesamte restliche
+        /// Arbeitsmappen-Stream eingelesen und jede Nutzlast kopiert — bei bis
+        /// zu 256 Blättern also immer wieder von vorn, obwohl die Auswertung
+        /// ohnehin am ersten EOF endet.
         private static func records(
             in data: Data,
             start: Int = 0,

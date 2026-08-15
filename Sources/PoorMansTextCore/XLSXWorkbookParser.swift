@@ -681,6 +681,13 @@ enum XLSXWorkbookParser {
             } else {
                 break
             }
+            // Schutz vor Überlauf durch präparierte Bezüge: Ein Bezug mit sehr
+            // vielen Buchstaben (etwa "ZZZZZZZZZZZZZZZZ1") würde die
+            // Int-Multiplikation sonst überlaufen lassen und den Prozess
+            // abbrechen. `value` zählt hier ab 1, erst am Ende wird 1 abgezogen;
+            // die Prüfung steht vor der nächsten Multiplikation, damit auch
+            // diese sicher im Wertebereich bleibt.
+            guard value <= Limits.maximumColumns + 1 else { return nil }
         }
         return foundLetter ? value - 1 : nil
     }

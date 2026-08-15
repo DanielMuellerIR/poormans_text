@@ -6,7 +6,7 @@
     "token_budget": 750000,
     "status": "active",
     "started_at": "2026-08-15T12:54:12+02:00",
-    "tokens_spent": 55842
+    "tokens_spent": 97438
   },
   "campaign_history": [],
   "scope": {
@@ -45,12 +45,19 @@
       "risk": "high",
       "priority": 1,
       "reason": "Orchestrator: Adapterwahl, atomare Veröffentlichung, Kollisionsschutz — breite Aufrufwirkung",
-      "state": "in_progress",
-      "active_run": {
+      "state": "completed",
+      "last_run": {
         "campaign_id": "20260815T125412077498+0200",
-        "started_at": "2026-08-15T12:59:51+02:00",
-        "required_review": "full",
-        "status_at_start": "pending"
+        "completed_at": "2026-08-15T13:04:05+02:00",
+        "observed_head": "f140b2326d9e600547ba33115066758dc1aa998d",
+        "content_sha256": "914b91443437ddb08d1d4c7ef307c3aa86587ff7bfe16c008f759e9ad6da4d5c",
+        "file_count": 16,
+        "review": "full",
+        "outcome": "improved",
+        "summary": "outputInsideInput-Schutz case-insensitiv auf APFS: validateOutput faltet Pfade volume-abhängig; sonst konnte ein anders geschriebenes explizites Ziel ins Quellpaket schreiben. Übrige Engine-Dateien reviewed-clean",
+        "tests": [
+          "swift test: 193 passed, 0 failures"
+        ]
       }
     },
     {
@@ -94,7 +101,13 @@
       "risk": "high",
       "priority": 2,
       "reason": "Drei native Binär-/XML-Parser, Datenintegrität, größter Codeblock",
-      "state": "pending"
+      "state": "in_progress",
+      "active_run": {
+        "campaign_id": "20260815T125412077498+0200",
+        "started_at": "2026-08-15T13:04:05+02:00",
+        "required_review": "full",
+        "status_at_start": "pending"
+      }
     },
     {
       "id": "odm-master",
@@ -195,5 +208,19 @@
     "paradigm": "Schichtenmodell mit Adapter-Registry (Kern-Orchestrator + Format-Adapter, dünne CLI/GUI-Frontends)",
     "fit": "passt",
     "recommendation": "Kein Paradigmenwechsel nötig; lokale Verstöße bereichsweise prüfen"
-  }
+  },
+  "themes": [
+    {
+      "id": "namespace-prefix-tracker",
+      "summary": "NamespacePrefixTracker (Klasse inkl. Doku) existiert byteähnlich doppelt: privat in ZIPArchiveInspector.swift und privat in XLSXWorkbookParser.swift — als eine interne Hilfsklasse konsolidierbar",
+      "evidence": [
+        "Sources/PoorMansTextCore/ZIPArchiveInspector.swift",
+        "Sources/PoorMansTextCore/XLSXWorkbookParser.swift"
+      ],
+      "priority": 2,
+      "state": "pending",
+      "noted_at": "2026-08-15T13:04:24+02:00",
+      "campaign_id": "20260815T125412077498+0200"
+    }
+  ]
 }

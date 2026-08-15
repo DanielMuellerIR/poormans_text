@@ -260,7 +260,17 @@ enum ZIPArchiveInspector {
                     throw ArchiveError("a ZIP entry name is not readable")
                 }
                 try Self.validateEntryName(name)
-                guard names.insert(name).inserted else {
+                // Beim Entpacken zählt der Name, den das Dateisystem sieht: APFS
+                // ist standardmäßig nicht zwischen Groß- und Kleinschreibung
+                // unterscheidend, deshalb würden `word/media/a.png` und
+                // `word/media/A.png` dieselbe Datei sein und ein Eintrag den
+                // anderen still überschreiben. Der abschließende Slash fällt
+                // dabei weg, damit auch der Verzeichniseintrag `x/` mit der
+                // Datei `x` kollidiert. Unicode-Normalisierung (etwa "ä" als ein
+                // Zeichen gegen "a" plus Trema) fängt der Swift-Vergleich von
+                // Zeichenketten bereits selbst ab.
+                let collisionKey = Self.logicalName(of: name).lowercased()
+                guard names.insert(collisionKey).inserted else {
                     throw ArchiveError("the ZIP package contains a duplicate entry: \(name)")
                 }
 
@@ -331,15 +341,11 @@ enum ZIPArchiveInspector {
             guard result.count == entry.uncompressedSize else {
                 throw ArchiveError("the uncompressed size of \(entry.name) is inconsistent")
             }
-            let checksum = result.withUnsafeBytes { buffer -> UInt32 in
-                guard let baseAddress = buffer.bindMemory(to: Bytef.self).baseAddress else {
-                    return UInt32(zlib.crc32(0, nil, 0))
-                }
-                return UInt32(zlib.crc32(0, baseAddress, uInt(buffer.count)))
-            }
-            guard checksum == entry.crc else {
-                throw ArchiveError("the checksum of \(entry.name) is invalid")
-            }
+            try ZIPArchiveInspector.verifyChecksum(
+                of: result,
+                expected: entry.crc,
+                entryName: entry.name
+            )
             return result
         }
 
@@ -426,8 +432,14 @@ enum ZIPArchiveInspector {
             return nil
         }
 
+        /// Der Name ohne abschließenden Slash: ZIP markiert Verzeichnisse so,
+        /// gemeint ist aber derselbe Pfad wie bei einer gleichnamigen Datei.
+        private static func logicalName(of name: String) -> String {
+            name.hasSuffix("/") ? String(name.dropLast()) : name
+        }
+
         private static func validateEntryName(_ name: String) throws {
-            let logicalName = name.hasSuffix("/") ? String(name.dropLast()) : name
+            let logicalName = Self.logicalName(of: name)
             let components = logicalName.split(
                 separator: "/",
                 omittingEmptySubsequences: false

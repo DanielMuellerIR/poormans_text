@@ -1,0 +1,193 @@
+{
+  "schema_version": 1,
+  "project": "poormans_text",
+  "campaign": {
+    "id": "20260815T125412077498+0200",
+    "token_budget": 750000,
+    "status": "active",
+    "started_at": "2026-08-15T12:54:12+02:00",
+    "tokens_spent": 55842
+  },
+  "campaign_history": [],
+  "scope": {
+    "paths": [
+      "Sources",
+      "Tests",
+      "scripts",
+      "build.sh",
+      "install.sh",
+      "release.sh",
+      "Package.swift"
+    ],
+    "exclusions": []
+  },
+  "areas": [
+    {
+      "id": "converter-engine",
+      "paths": [
+        "Sources/PoorMansTextCore/DocumentConverter.swift",
+        "Sources/PoorMansTextCore/ConversionRequest.swift",
+        "Sources/PoorMansTextCore/ConversionResult.swift",
+        "Sources/PoorMansTextCore/ConversionError.swift",
+        "Sources/PoorMansTextCore/ConversionWarning.swift",
+        "Sources/PoorMansTextCore/InputFormat.swift",
+        "Sources/PoorMansTextCore/SupportedFormat.swift",
+        "Sources/PoorMansTextCore/ProductInfo.swift",
+        "Sources/PoorMansTextCore/PandocTool.swift",
+        "Sources/PoorMansTextCore/ProcessRunner.swift",
+        "Tests/PoorMansTextCoreTests/DocumentConverterTests.swift",
+        "Tests/PoorMansTextCoreTests/FormatCatalogTests.swift",
+        "Tests/PoorMansTextCoreTests/ProductInfoTests.swift",
+        "Tests/PoorMansTextCoreTests/PandocToolTests.swift",
+        "Tests/PoorMansTextCoreTests/ProcessRunnerTests.swift",
+        "Tests/PoorMansTextCoreTests/FixtureFactory.swift"
+      ],
+      "risk": "high",
+      "priority": 1,
+      "reason": "Orchestrator: Adapterwahl, atomare Veröffentlichung, Kollisionsschutz — breite Aufrufwirkung",
+      "state": "pending"
+    },
+    {
+      "id": "zip-gate",
+      "paths": [
+        "Sources/PoorMansTextCore/ZIPArchiveInspector.swift",
+        "Tests/PoorMansTextCoreTests/ZIPArchiveVerificationTests.swift",
+        "Tests/PoorMansTextCoreTests/ZIPFixtureBuilder.swift"
+      ],
+      "risk": "critical",
+      "priority": 1,
+      "reason": "Zentrales Paket-Gate: Traversal, Symlinks, Größenbudgets — sicherheitskritisch für alle ZIP-Formate",
+      "state": "completed",
+      "last_run": {
+        "campaign_id": "20260815T125412077498+0200",
+        "completed_at": "2026-08-15T12:59:51+02:00",
+        "observed_head": "98313fa87d1ec29dc48bda1281e6365790c9cf38",
+        "content_sha256": "35f2051b2804ce605d0066d68c7962587261770e77456d35e1711b2cd644b06b",
+        "file_count": 3,
+        "review": "full",
+        "outcome": "improved",
+        "summary": "CRC-Duplikat in Archive.data(for:) auf verifyChecksum zusammengeführt; Duplikatschutz gegen APFS-Extraktionskollisionen gehärtet (case-insensitiv, Verzeichnis-Slash entfällt); zwei neue Tests",
+        "tests": [
+          "swift test: 192 passed, 0 failures"
+        ]
+      }
+    },
+    {
+      "id": "spreadsheet-import",
+      "paths": [
+        "Sources/PoorMansTextCore/SpreadsheetAdapter.swift",
+        "Sources/PoorMansTextCore/SpreadsheetWorkbook.swift",
+        "Sources/PoorMansTextCore/XLSXWorkbookParser.swift",
+        "Sources/PoorMansTextCore/ODSWorkbookParser.swift",
+        "Sources/PoorMansTextCore/LegacyXLSWorkbookParser.swift",
+        "Tests/PoorMansTextCoreTests/SpreadsheetAdapterTests.swift",
+        "Tests/PoorMansTextCoreTests/SpreadsheetFeasibilityTests.swift",
+        "Tests/PoorMansTextCoreTests/LegacyXLSBoundaryTests.swift",
+        "Tests/PoorMansTextCoreTests/Fixtures/Spreadsheets"
+      ],
+      "risk": "high",
+      "priority": 2,
+      "reason": "Drei native Binär-/XML-Parser, Datenintegrität, größter Codeblock",
+      "state": "pending"
+    },
+    {
+      "id": "odm-master",
+      "paths": [
+        "Sources/PoorMansTextCore/OpenDocumentMasterAdapter.swift",
+        "Sources/PoorMansTextCore/ODMContentParser.swift",
+        "Tests/PoorMansTextCoreTests/OpenDocumentMasterAdapterTests.swift"
+      ],
+      "risk": "high",
+      "priority": 3,
+      "reason": "Pfadauflösung lokaler Teildokumente: Pfadfluchten, Symlinks",
+      "state": "pending"
+    },
+    {
+      "id": "wordprocessing",
+      "paths": [
+        "Sources/PoorMansTextCore/WordProcessingPackageAdapter.swift",
+        "Sources/PoorMansTextCore/LegacyWordAdapter.swift",
+        "Sources/PoorMansTextCore/RichTextConverter.swift",
+        "Sources/PoorMansTextCore/HTMLDocumentConverter.swift",
+        "Sources/PoorMansTextCore/HTMLImageRewriter.swift",
+        "Tests/PoorMansTextCoreTests/WordProcessingAdapterTests.swift",
+        "Tests/PoorMansTextCoreTests/WordProcessingPackageInspectionTests.swift",
+        "Tests/PoorMansTextCoreTests/RichTextConverterTests.swift",
+        "Tests/PoorMansTextCoreTests/HTMLDocumentConverterTests.swift",
+        "Tests/PoorMansTextCoreTests/HTMLImageRewriterTests.swift",
+        "Tests/PoorMansTextCoreTests/Fixtures/WordProcessing"
+      ],
+      "risk": "medium",
+      "priority": 4,
+      "reason": "DOCX/ODT/DOC/RTF-Adapter samt HTML-Zwischenschicht und Bild-Rewriting",
+      "state": "pending"
+    },
+    {
+      "id": "markdown-postprocess",
+      "paths": [
+        "Sources/PoorMansTextCore/MarkdownNormalizer.swift",
+        "Sources/PoorMansTextCore/ColoredTextMarker.swift",
+        "Tests/PoorMansTextCoreTests/MarkdownNormalizerTests.swift",
+        "Tests/PoorMansTextCoreTests/ColoredTextMarkerTests.swift"
+      ],
+      "risk": "medium",
+      "priority": 5,
+      "reason": "Markdown-Rewriter mit AGENTS-Invariante zu Inline-Code und Fences",
+      "state": "pending"
+    },
+    {
+      "id": "cli",
+      "paths": [
+        "Sources/PoorMansTextCLI",
+        "Tests/PoorMansTextCoreTests/CLIIntegrationTests.swift",
+        "Tests/PoorMansTextCoreTests/CLITargetDirectoryTests.swift"
+      ],
+      "risk": "medium",
+      "priority": 6,
+      "reason": "Exit-Codes, JSON-Ausgabe, Argumentparser",
+      "state": "pending"
+    },
+    {
+      "id": "app-support",
+      "paths": [
+        "Sources/PoorMansTextApp",
+        "Sources/PoorMansTextAppSupport",
+        "Tests/PoorMansTextCoreTests/AppModelDropTests.swift",
+        "Tests/PoorMansTextCoreTests/AppModelPandocInstallationTests.swift",
+        "Tests/PoorMansTextCoreTests/CLIInstallerTests.swift",
+        "Tests/PoorMansTextCoreTests/PandocInstallerTests.swift",
+        "Tests/PoorMansTextCoreTests/UpdateControllerTests.swift"
+      ],
+      "risk": "medium",
+      "priority": 7,
+      "reason": "GUI-Zustand, Installer und Sparkle-Update-Controller",
+      "state": "pending"
+    },
+    {
+      "id": "build-scripts",
+      "paths": [
+        "scripts",
+        "build.sh",
+        "install.sh",
+        "release.sh",
+        "Package.swift",
+        "Tests/PoorMansTextCoreTests/InstallModeTests.swift",
+        "Tests/PoorMansTextCoreTests/InstallScriptRollbackTests.swift",
+        "Tests/PoorMansTextCoreTests/ReleaseWorkflowTests.swift"
+      ],
+      "risk": "low",
+      "priority": 8,
+      "reason": "Build-/Signatur-/Release-Skripte; stabil und durch Release-Workflow-Tests gedeckt",
+      "state": "pending"
+    }
+  ],
+  "architecture": {
+    "campaign_id": "20260815T125412077498+0200",
+    "recorded_at": "2026-08-15T12:54:47+02:00",
+    "observed_head": "383fc737fb61a403eaa67fe7afc3557d69fe457e",
+    "summary": "Ist-Zustand deckt sich mit docs/ARCHITECTURE.md: SwiftUI nur im App-Target, Formaterkennung ausschließlich im Kern, AppKit im Kern nur punktuell (ColoredTextMarker) für die RTFD-Farbübernahme",
+    "paradigm": "Schichtenmodell mit Adapter-Registry (Kern-Orchestrator + Format-Adapter, dünne CLI/GUI-Frontends)",
+    "fit": "passt",
+    "recommendation": "Kein Paradigmenwechsel nötig; lokale Verstöße bereichsweise prüfen"
+  }
+}

@@ -117,6 +117,81 @@ final class ZIPArchiveVerificationTests: XCTestCase {
         XCTAssertEqual(try Data(contentsOf: sourceURL), archive)
     }
 
+    func testRejectsAPackageWithTwoIdenticallyNamedEntries() throws {
+        let archive = try ZIPFixtureBuilder.archive(
+            entries: duplicateMediaEntries(secondMediaName: "word/media/image1.bin")
+        )
+        try assertRejectsAsDuplicate(archive, fileName: "Duplicate.docx")
+    }
+
+    func testRejectsAPackageWhoseEntriesDifferOnlyInCase() throws {
+        // Auf dem case-insensitiven APFS landen beide Einträge beim Entpacken auf
+        // derselben Datei, der zweite überschriebe den ersten unbemerkt.
+        let archive = try ZIPFixtureBuilder.archive(
+            entries: duplicateMediaEntries(secondMediaName: "word/media/IMAGE1.bin")
+        )
+        try assertRejectsAsDuplicate(archive, fileName: "CaseDuplicate.docx")
+    }
+
+    /// Ein DOCX-ähnliches Paket, dessen Medieneintrag ein zweites Mal unter
+    /// `secondMediaName` auftaucht.
+    private func duplicateMediaEntries(secondMediaName: String) -> [ZIPFixtureBuilder.Entry] {
+        let contentTypes = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+        <Override PartName="/word/document.xml" ContentType="\(ZIPFixtureBuilder.docxMainContentType)"/>
+        </Types>
+        """
+        let documentXML = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+        <w:body><w:p><w:r><w:t>Fixture text</w:t></w:r></w:p></w:body>
+        </w:document>
+        """
+        return [
+            ZIPFixtureBuilder.Entry(
+                name: "[Content_Types].xml",
+                content: Data(contentTypes.utf8)
+            ),
+            ZIPFixtureBuilder.Entry(name: "word/document.xml", content: Data(documentXML.utf8)),
+            ZIPFixtureBuilder.Entry(
+                name: "word/media/image1.bin",
+                content: Data(repeating: 0x2E, count: 4096)
+            ),
+            ZIPFixtureBuilder.Entry(
+                name: secondMediaName,
+                content: Data(repeating: 0x2F, count: 4096)
+            ),
+        ]
+    }
+
+    private func assertRejectsAsDuplicate(
+        _ archive: Data,
+        fileName: String,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) throws {
+        let sourceURL = temporaryDirectory.appendingPathComponent(fileName)
+        try archive.write(to: sourceURL)
+
+        XCTAssertThrowsError(
+            try ZIPArchiveInspector.stageVerifiedPackage(
+                from: sourceURL,
+                into: workDirectory,
+                named: "verified-source.docx"
+            ),
+            file: file,
+            line: line
+        ) { error in
+            XCTAssertTrue(
+                error.localizedDescription.contains("duplicate entry"),
+                "Unexpected error: \(error.localizedDescription)",
+                file: file,
+                line: line
+            )
+        }
+    }
+
     func testAcceptsTheVersionedRealPackagesOfBothProducers() throws {
         for name in ["pandoc.docx", "libreoffice.docx", "pandoc.odt", "libreoffice.odt"] {
             let stagedURL = try ZIPArchiveInspector.stageVerifiedPackage(

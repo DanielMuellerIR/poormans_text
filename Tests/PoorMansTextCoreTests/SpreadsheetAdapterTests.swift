@@ -414,6 +414,56 @@ final class SpreadsheetAdapterTests: XCTestCase {
         }
     }
 
+    func testXLSXHyperlinkDisplayHonorsTheMaterializedTextBudget() throws {
+        // Wenige XML-Bytes dürfen nicht denselben langen Anzeigetext hunderttausendfach
+        // in den Arbeitsspeicher und später in die Markdown-Ausgabe vervielfachen.
+        let display = String(repeating: "x", count: 1_400)
+        let sheet = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+          <sheetData/>
+          <hyperlinks><hyperlink ref="A1:A100000" display="\(display)"/></hyperlinks>
+        </worksheet>
+        """
+        let sourceURL = temporaryDirectory.appendingPathComponent("HyperlinkTextBudget.xlsx")
+        try ZIPFixtureBuilder.xlsxPackage(
+            firstSheetXML: sheet,
+            secondSheetXML: secondXLSXSheet
+        ).write(to: sourceURL)
+
+        XCTAssertThrowsError(try XLSXWorkbookParser.parse(packageAt: sourceURL)) { error in
+            XCTAssertEqual(
+                error.localizedDescription,
+                "the spreadsheet exceeds the materialized-text budget"
+            )
+        }
+    }
+
+    func testSpreadsheetRendererEnforcesItsOwnOutputBudget() throws {
+        let longText = String(repeating: "x", count: 100)
+        let workbook = SpreadsheetWorkbook(sheets: [
+            SpreadsheetSheet(name: "Budget", rows: [[
+                SpreadsheetCell(value: .string(longText), displayText: longText, formula: nil),
+            ]]),
+        ])
+
+        for style in [SpreadsheetRendering.markdownTable, .tabSeparated] {
+            XCTAssertThrowsError(
+                try SpreadsheetMarkdownRenderer.render(
+                    workbook,
+                    sourceURL: URL(fileURLWithPath: "/tmp/Budget.xlsx"),
+                    style: style,
+                    maximumOutputBytes: 80
+                )
+            ) { error in
+                XCTAssertEqual(
+                    error.localizedDescription,
+                    "the spreadsheet output exceeds the supported size limit"
+                )
+            }
+        }
+    }
+
     func testXLSXAcceptsOnlyRelationshipIDsFromTheDeclaredNamespace() throws {
         let foreignOnlyWorkbook = """
         <?xml version="1.0" encoding="UTF-8"?>

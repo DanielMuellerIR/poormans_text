@@ -477,6 +477,18 @@ enum MarkdownLinkTargetRewriter {
             )
         }
 
+        if relativeIndent <= 3, isThematicBreak(fenceCandidate) {
+            containers.indentedCodeQuoteDepth = nil
+            containers.indentedCodeListIndent = nil
+            return MarkdownLineContext(
+                fenceCandidate: fenceCandidate,
+                isIndentedCode: false,
+                isBlank: false,
+                allowsParagraphContinuation: false,
+                startsNewInlineBlock: true
+            )
+        }
+
         if relativeIndent <= 3,
            let marker = listMarker(in: content, at: indentation.end) {
             let padding = followingWhitespace(
@@ -841,7 +853,25 @@ enum MarkdownLinkTargetRewriter {
         }
         let end = content.firstIndex(where: { $0 != marker }) ?? content.endIndex
         let count = content.distance(from: content.startIndex, to: end)
+        // Bei Backtick-Fences verbietet GFM einen weiteren Backtick im Info-Text.
+        // Sonst ist die Zeile gewöhnlicher Absatzinhalt, kein Codeblock-Anfang.
+        if marker == "`", content[end...].contains("`") {
+            return nil
+        }
         return count >= 3 ? (marker, count) : nil
+    }
+
+    private static func isThematicBreak(_ line: String) -> Bool {
+        let markers = line.filter { character in
+            character != " " && character != "\t"
+        }
+        guard markers.count >= 3,
+              let marker = markers.first,
+              marker == "-" || marker == "*" || marker == "_" else {
+            return false
+        }
+        return markers.allSatisfy { $0 == marker }
+            && line.allSatisfy { $0 == marker || $0 == " " || $0 == "\t" }
     }
 
     private static func isClosingFence(

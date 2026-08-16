@@ -11,6 +11,7 @@ enum ODMContentParser {
         let parser = XMLParser(data: xml)
         parser.delegate = delegate
         parser.shouldProcessNamespaces = true
+        parser.shouldReportNamespacePrefixes = true
         parser.shouldResolveExternalEntities = false
         guard parser.parse() else {
             throw parser.parserError ?? CocoaError(.fileReadCorruptFile)
@@ -30,6 +31,19 @@ enum ODMContentParser {
         /// danach still verschwinden. Deshalb ein Stapel; oben liegt der
         /// gerade offene Absatz.
         private var texts = [TextBuilder]()
+        private let prefixes = NamespacePrefixTracker()
+
+        func parser(
+            _ parser: XMLParser,
+            didStartMappingPrefix prefix: String,
+            toURI namespaceURI: String
+        ) {
+            prefixes.startMapping(prefix: prefix, uri: namespaceURI)
+        }
+
+        func parser(_ parser: XMLParser, didEndMappingPrefix prefix: String) {
+            prefixes.endMapping(prefix: prefix)
+        }
 
         func parser(
             _ parser: XMLParser,
@@ -40,16 +54,28 @@ enum ODMContentParser {
         ) {
             if namespaceURI == Namespaces.text, elementName == "section" {
                 sections.append(
-                    SectionBuilder(name: odmAttribute("name", in: attributeDict))
+                    SectionBuilder(name: prefixes.attributeValue(
+                        localName: "name",
+                        namespaceURI: Namespaces.text,
+                        in: attributeDict
+                    ))
                 )
             } else if namespaceURI == Namespaces.text, elementName == "section-source",
                       !sections.isEmpty,
-                      let reference = odmAttribute("href", in: attributeDict) {
+                      let reference = prefixes.attributeValue(
+                          localName: "href",
+                          namespaceURI: Namespaces.xlink,
+                          in: attributeDict
+                      ) {
                 sections[sections.count - 1].reference = reference
             } else if namespaceURI == Namespaces.text,
                       (elementName == "h" || elementName == "p") {
                 let headingLevel = elementName == "h"
-                    ? min(6, max(1, Int(odmAttribute("outline-level", in: attributeDict) ?? "1") ?? 1))
+                    ? min(6, max(1, Int(prefixes.attributeValue(
+                        localName: "outline-level",
+                        namespaceURI: Namespaces.text,
+                        in: attributeDict
+                    ) ?? "1") ?? 1))
                     : nil
                 texts.append(TextBuilder(headingLevel: headingLevel))
             } else if namespaceURI == Namespaces.text, elementName == "line-break",
@@ -61,7 +87,11 @@ enum ODMContentParser {
             } else if namespaceURI == Namespaces.text, elementName == "tab", !texts.isEmpty {
                 appendToOpenParagraph(ODMText.literalTab)
             } else if namespaceURI == Namespaces.text, elementName == "s", !texts.isEmpty {
-                let count = min(1_000, max(1, Int(odmAttribute("c", in: attributeDict) ?? "1") ?? 1))
+                let count = min(1_000, max(1, Int(prefixes.attributeValue(
+                    localName: "c",
+                    namespaceURI: Namespaces.text,
+                    in: attributeDict
+                ) ?? "1") ?? 1))
                 // Diese Leerzeichen stehen ausdrücklich im Dokument. Sie werden
                 // als Platzhalter gesammelt, damit das Trimmen am Absatzende nur
                 // den Leerraum der XML-Formatierung entfernt.
@@ -77,10 +107,7 @@ enum ODMContentParser {
             guard !texts.isEmpty else { return }
             let index = texts.count - 1
             if texts[index].needsSemanticBoundary {
-                if !string.hasLeadingODMWhitespace,
-                   !texts[index].value.hasTrailingODMWhitespace,
-                   !texts[index].value.isEmpty,
-                   !string.isEmpty {
+                if needsSpace(between: texts[index].value, and: string) {
                     texts[index].value.append(ODMText.literalSpace)
                 }
                 texts[index].needsSemanticBoundary = false
@@ -93,9 +120,7 @@ enum ODMContentParser {
             let value = raw.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !value.isEmpty else { return }
             let index = texts.count - 1
-            if !texts[index].value.isEmpty,
-               !texts[index].value.hasTrailingODMWhitespace,
-               !value.hasLeadingODMWhitespace {
+            if needsSpace(between: texts[index].value, and: value) {
                 // Zwei semantische ODF-Absätze dürfen auch dann nicht zu einem
                 // Wort verschmelzen, wenn die XML-Datei zwischen ihren Tags
                 // keinerlei Formatierungsleerraum enthält.
@@ -103,6 +128,14 @@ enum ODMContentParser {
             }
             texts[index].value.append(value)
             texts[index].needsSemanticBoundary = true
+        }
+
+        private func needsSpace(between left: String, and right: String) -> Bool {
+            guard let leftCharacter = left.last, let rightCharacter = right.first else {
+                return false
+            }
+            return (leftCharacter.isLetter || leftCharacter.isNumber)
+                && (rightCharacter.isLetter || rightCharacter.isNumber)
         }
 
         func parser(
@@ -167,6 +200,7 @@ enum ODMContentParser {
 
     private enum Namespaces {
         static let text = "urn:oasis:names:tc:opendocument:xmlns:text:1.0"
+        static let xlink = "http://www.w3.org/1999/xlink"
     }
 
     /// Macht aus dem gesammelten Absatztext gültiges Markdown.
@@ -251,24 +285,4 @@ enum ODMContentParser {
         init(_ reason: String) { self.reason = reason }
         var errorDescription: String? { reason }
     }
-}
-
-private extension String {
-    var hasLeadingODMWhitespace: Bool {
-        guard let first else { return false }
-        return first.isWhitespace
-            || first == ODMContentParser.ODMText.literalSpace.first
-            || first == ODMContentParser.ODMText.literalTab.first
-    }
-
-    var hasTrailingODMWhitespace: Bool {
-        guard let last else { return false }
-        return last.isWhitespace
-            || last == ODMContentParser.ODMText.literalSpace.first
-            || last == ODMContentParser.ODMText.literalTab.first
-    }
-}
-
-private func odmAttribute(_ localName: String, in attributes: [String: String]) -> String? {
-    attributes[localName] ?? attributes.first { $0.key.hasSuffix(":" + localName) }?.value
 }

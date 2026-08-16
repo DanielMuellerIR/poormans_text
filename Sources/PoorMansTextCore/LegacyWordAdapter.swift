@@ -72,7 +72,6 @@ struct LegacyWordAdapter: DocumentConversionAdapter {
     }
 
     func convert(_ context: AdapterConversionContext) throws -> StagedConversionResult {
-        let pandocExecutable = try PandocTool.resolve(context.options.pandocExecutable)
         let htmlURL = context.workDirectory.appendingPathComponent("document.html")
         let referenceTextURL = context.workDirectory.appendingPathComponent("reference.txt")
 
@@ -81,29 +80,68 @@ struct LegacyWordAdapter: DocumentConversionAdapter {
         // TXT-Referenzlauf müssen zwingend dieselben Bytes sehen — sonst
         // vergliche die Textprüfung am Ende zwei verschiedene Dokumente.
         let stagedInputURL = context.workDirectory.appendingPathComponent("verified-source.doc")
+        let sourceValues: URLResourceValues
         do {
-            let values = try context.inputURL.resourceValues(
+            sourceValues = try context.inputURL.resourceValues(
                 forKeys: [.fileSizeKey, .isRegularFileKey]
             )
-            guard values.isRegularFile == true,
-                  let size = values.fileSize,
-                  size <= 1_073_741_824 else {
-                throw ConversionError.invalidInput(
-                    context.inputURL,
-                    format: .doc,
-                    reason: "the DOC source is not a supported regular file"
-                )
-            }
-            try FileManager.default.copyItem(at: context.inputURL, to: stagedInputURL)
-        } catch let error as ConversionError {
-            throw error
         } catch {
+            throw ConversionError.fileSystemFailure(error.localizedDescription)
+        }
+        guard sourceValues.isRegularFile == true,
+              let sourceSize = sourceValues.fileSize,
+              sourceSize <= 1_073_741_824 else {
             throw ConversionError.invalidInput(
                 context.inputURL,
                 format: .doc,
-                reason: error.localizedDescription
+                reason: "the DOC source is not a supported regular file"
             )
         }
+        do {
+            try FileManager.default.copyItem(at: context.inputURL, to: stagedInputURL)
+        } catch {
+            throw ConversionError.fileSystemFailure(error.localizedDescription)
+        }
+
+        let stagedValues: URLResourceValues
+        do {
+            stagedValues = try stagedInputURL.resourceValues(
+                forKeys: [.fileSizeKey, .isRegularFileKey]
+            )
+        } catch {
+            throw ConversionError.fileSystemFailure(error.localizedDescription)
+        }
+        guard stagedValues.isRegularFile == true,
+              let stagedSize = stagedValues.fileSize,
+              stagedSize <= 1_073_741_824,
+              try hasCompoundDocumentSignature(at: stagedInputURL) else {
+            throw ConversionError.invalidInput(
+                context.inputURL,
+                format: .doc,
+                reason: "the DOC source changed after inspection"
+            )
+        }
+
+        let stagedInfo: ProcessResult
+        do {
+            stagedInfo = try ProcessRunner.run(
+                executable: URL(fileURLWithPath: Self.textutilPath),
+                arguments: ["-info", "--", stagedInputURL.path],
+                currentDirectory: context.workDirectory,
+                captureStandardOutput: true
+            )
+        } catch {
+            throw ConversionError.textutilFailed(status: -1, message: error.localizedDescription)
+        }
+        guard stagedInfo.status == 0, isWordFormat(stagedInfo.standardOutput) else {
+            throw ConversionError.invalidInput(
+                context.inputURL,
+                format: .doc,
+                reason: "the DOC source changed after inspection"
+            )
+        }
+
+        let pandocExecutable = try PandocTool.resolve(context.options.pandocExecutable)
 
         try runTextutil(
             arguments: [

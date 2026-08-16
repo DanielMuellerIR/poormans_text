@@ -45,7 +45,7 @@ poormans_text_cleanup_installation() {
     # tatsächlich zurückgenommen wird, dürfen den eigenen CLI-Link entfernen.
     local rollback_cli=0
     case "${installation_state:-preparing}" in
-        staged|swapped|installed-new)
+        staged|swapped|installed-new|rolled-back)
             case "${cli_state:-}" in
                 stage-pending|staged|move-pending|installed) rollback_cli=1 ;;
                 *) [ "${created_cli:-0}" -eq 1 ] && rollback_cli=1 ;;
@@ -70,6 +70,16 @@ poormans_text_cleanup_installation() {
             fi
             # Nach erfolgreichem Rücktausch enthält der Stage-Pfad nur die neue App.
             installation_state="rolled-back"
+            if ! poormans_text_remove_install_path_with_identity \
+                "$staged_app" "${new_app_identity:-}" "zurückgenommene neue App"; then
+                echo "Die zurückgenommene neue App konnte nicht entfernt werden: $staged_app" >&2
+                cleanup_status=74
+            fi
+            ;;
+        rolled-back)
+            # Der Rücktausch ist abgeschlossen, aber das Entfernen der neuen App
+            # oder ihres CLI-Links kann zuvor fehlgeschlagen sein. Dieser Zustand
+            # bleibt deshalb bis zum tatsächlich sauberen Ende wiederholbar.
             if ! poormans_text_remove_install_path_with_identity \
                 "$staged_app" "${new_app_identity:-}" "zurückgenommene neue App"; then
                 echo "Die zurückgenommene neue App konnte nicht entfernt werden: $staged_app" >&2
@@ -196,14 +206,25 @@ poormans_text_path_matches_identity() {
 }
 
 poormans_text_create_staged_cli_link() {
+    local link_status=0
     if [ "$needs_admin" -eq 1 ]; then
-        sudo ln -s "$installed_cli" "$staged_cli" || return 74
+        sudo ln -s "$installed_cli" "$staged_cli" || link_status=$?
     else
-        ln -s "$installed_cli" "$staged_cli" || return 74
+        ln -s "$installed_cli" "$staged_cli" || link_status=$?
     fi
-    new_cli_identity="$(poormans_text_path_identity "$staged_cli")"
-    [ -n "$new_cli_identity" ] || return 74
-    cli_state="staged"
+    # Ein Prozessgruppensignal kann `ln` nach erfolgreichem symlink(2), aber vor
+    # seinem normalen Exit treffen. Auch bei Fehlerstatus zählt deshalb zuerst
+    # der beobachtbare Endzustand; der aufrufende Wrapper liefert das vorgemerkte
+    # Signal anschließend aus.
+    if [ -L "$staged_cli" ] \
+       && [ "$(readlink "$staged_cli" 2>/dev/null || true)" = "$installed_cli" ]; then
+        new_cli_identity="$(poormans_text_path_identity "$staged_cli")"
+        if [ -n "$new_cli_identity" ]; then
+            cli_state="staged"
+        fi
+    fi
+    [ "${cli_state:-}" = "staged" ] || return 74
+    [ "$link_status" -eq 0 ] || return 74
 }
 
 # INT und TERM dürfen den erzeugten Link nicht zwischen `ln` und seiner

@@ -317,6 +317,51 @@ final class InstallScriptRollbackTests: XCTestCase {
         }
     }
 
+    func testInterruptedLnStillRecordsAndRemovesItsCreatedLink() throws {
+        try withTransactionDirectories { stagedApp, destinationApp in
+            let script = #"""
+            source "$1"
+            set -u
+            staged_app="$2"
+            destination_app="$3"
+            installation_state=installed-new
+            had_existing_app=0
+            new_app_identity="$(/usr/bin/stat -f '%d:%i' "$destination_app")"
+            old_app_identity=""
+            created_cli=0
+            cli_state=stage-pending
+            destination_cli="$2.cli"
+            staged_cli="$2.cli-stage"
+            installed_cli="$3/Contents/Resources/poormans-text"
+            new_cli_identity=""
+            needs_admin=0
+            swap_install_paths() { echo "unexpected swap" >&2; return 99; }
+            remove_install_path() { /bin/rm -rf "$1"; }
+            app_matches_release_identity() { return 0; }
+            ln() {
+                /bin/ln "$@"
+                kill -TERM "$$"
+                return 143
+            }
+            trap 'poormans_text_cleanup_installation' EXIT
+            cli_link_status=0
+            poormans_text_create_staged_cli_link_with_deferred_signals \
+                || cli_link_status=$?
+            exit "$cli_link_status"
+            """#
+
+            let result = try runBash(script, stagedApp: stagedApp, destinationApp: destinationApp)
+
+            XCTAssertEqual(result.status, 143, result.standardError)
+            XCTAssertFalse(FileManager.default.fileExists(atPath: destinationApp.path))
+            XCTAssertThrowsError(
+                try FileManager.default.destinationOfSymbolicLink(
+                    atPath: stagedApp.path + ".cli-stage"
+                )
+            )
+        }
+    }
+
     func testAcceptedInstallationStatesNeverRemoveTheirOwnedCLILink() throws {
         for terminalState in ["published", "backup-suspicious", "committed"] {
             try withTransactionDirectories { stagedApp, destinationApp in
@@ -400,15 +445,31 @@ final class InstallScriptRollbackTests: XCTestCase {
     }
 
     func testStagedCLILinkCreationPropagatesLnFailure() throws {
-        let transactionURL = URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .appendingPathComponent("scripts/install_transaction.sh")
-        let transaction = try String(contentsOf: transactionURL, encoding: .utf8)
+        try withTransactionDirectories { stagedApp, destinationApp in
+            let script = #"""
+            source "$1"
+            set -u
+            needs_admin=0
+            installed_cli="$3/Contents/Resources/poormans-text"
+            staged_cli="$2.cli-stage"
+            cli_state=stage-pending
+            new_cli_identity=""
+            ln() { return 1; }
+            poormans_text_create_staged_cli_link
+            status=$?
+            printf '%s:%s:%s\n' "$status" "$cli_state" "$new_cli_identity"
+            """#
 
-        XCTAssertTrue(transaction.contains("sudo ln -s \"$installed_cli\" \"$staged_cli\" || return 74"))
-        XCTAssertTrue(transaction.contains("ln -s \"$installed_cli\" \"$staged_cli\" || return 74"))
+            let result = try runBash(script, stagedApp: stagedApp, destinationApp: destinationApp)
+
+            XCTAssertEqual(result.status, 0, result.standardError)
+            XCTAssertEqual(result.standardOutput, "74:stage-pending:\n")
+            XCTAssertThrowsError(
+                try FileManager.default.destinationOfSymbolicLink(
+                    atPath: stagedApp.path + ".cli-stage"
+                )
+            )
+        }
     }
 
     func testMismatchedPublishedPairRemovesOnlyOwnedArtifact() throws {
@@ -512,6 +573,52 @@ final class InstallScriptRollbackTests: XCTestCase {
                 atPath: URL(fileURLWithPath: stagedApp.path + ".removed")
                     .appendingPathComponent("new-marker").path
             ))
+        }
+    }
+
+    func testRolledBackCleanupRetriesFailedStageRemoval() throws {
+        try withTransactionDirectories { stagedApp, destinationApp in
+            let script = #"""
+            source "$1"
+            set -u
+            staged_app="$2"
+            destination_app="$3"
+            installation_state=swapped
+            old_app_identity="$(/usr/bin/stat -f '%d:%i' "$staged_app")"
+            new_app_identity="$(/usr/bin/stat -f '%d:%i' "$destination_app")"
+            created_cli=0
+            cli_state=untouched
+            removals=0
+            swap_install_paths() {
+                temporary="$1.swap"
+                /bin/mv "$1" "$temporary"
+                /bin/mv "$2" "$1"
+                /bin/mv "$temporary" "$2"
+            }
+            remove_install_path() {
+                removals=$((removals + 1))
+                if [ "$removals" -eq 1 ]; then
+                    return 99
+                fi
+                /bin/rm -rf "$1"
+            }
+            app_matches_release_identity() { return 0; }
+            poormans_text_cleanup_installation
+            first_status=$?
+            poormans_text_cleanup_installation
+            second_status=$?
+            printf '%s:%s:%s\n' "$first_status" "$second_status" "$installation_state"
+            exit "$second_status"
+            """#
+
+            let result = try runBash(script, stagedApp: stagedApp, destinationApp: destinationApp)
+
+            XCTAssertEqual(result.status, 0, result.standardError)
+            XCTAssertEqual(result.standardOutput, "74:0:clean\n")
+            XCTAssertTrue(FileManager.default.fileExists(
+                atPath: destinationApp.appendingPathComponent("old-marker").path
+            ))
+            XCTAssertFalse(FileManager.default.fileExists(atPath: stagedApp.path))
         }
     }
 

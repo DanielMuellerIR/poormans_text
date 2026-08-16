@@ -132,6 +132,65 @@ final class WordProcessingAdapterTests: XCTestCase {
         XCTAssertEqual(try DocumentConverter().detectFormat(at: falseDOC), .xls)
     }
 
+    func testDOCConversionRevalidatesTheExactStagedBytes() throws {
+        let sourceURL = temporaryDirectory.appendingPathComponent("Changed.doc")
+        try FileManager.default.copyItem(at: fixture("textutil.doc"), to: sourceURL)
+        guard case .match = try LegacyWordAdapter().inspectInput(at: sourceURL) else {
+            return XCTFail("The original DOC fixture was not detected.")
+        }
+        // Simuliert den Austausch des Quellpfads nach der Erkennung.
+        try Data("not the inspected OLE document".utf8).write(to: sourceURL)
+
+        let workDirectory = temporaryDirectory.appendingPathComponent("doc-work")
+        let outputDirectory = temporaryDirectory.appendingPathComponent("doc-output")
+        try FileManager.default.createDirectory(at: workDirectory, withIntermediateDirectories: false)
+        try FileManager.default.createDirectory(at: outputDirectory, withIntermediateDirectories: false)
+
+        XCTAssertThrowsError(
+            try LegacyWordAdapter().convert(
+                AdapterConversionContext(
+                    inputURL: sourceURL,
+                    format: .doc,
+                    workDirectory: workDirectory,
+                    stagedOutputDirectory: outputDirectory,
+                    options: ConversionOptions(
+                        pandocExecutable: URL(fileURLWithPath: "/usr/bin/true")
+                    )
+                )
+            )
+        ) { error in
+            guard case ConversionError.invalidInput(_, .doc, let reason) = error else {
+                return XCTFail("Unexpected error: \(error)")
+            }
+            XCTAssertTrue(reason.contains("changed after inspection"), reason)
+        }
+    }
+
+    func testDOCStagingReportsCopyFailureAsFileSystemFailure() throws {
+        let nonDirectory = temporaryDirectory.appendingPathComponent("not-a-directory")
+        try Data().write(to: nonDirectory)
+        let outputDirectory = temporaryDirectory.appendingPathComponent("doc-copy-output")
+        try FileManager.default.createDirectory(at: outputDirectory, withIntermediateDirectories: false)
+
+        XCTAssertThrowsError(
+            try LegacyWordAdapter().convert(
+                AdapterConversionContext(
+                    inputURL: fixture("textutil.doc"),
+                    format: .doc,
+                    workDirectory: nonDirectory,
+                    stagedOutputDirectory: outputDirectory,
+                    options: ConversionOptions(
+                        pandocExecutable: URL(fileURLWithPath: "/usr/bin/true")
+                    )
+                )
+            )
+        ) { error in
+            guard case ConversionError.fileSystemFailure = error else {
+                return XCTFail("Unexpected error: \(error)")
+            }
+        }
+    }
+
     func testInspectionReportsDOCXAndODTAnnotationsAndTrackedChanges() throws {
         let sourceURL = fixture("annotated.docx")
         let inspection = try DocumentConverter().inspect(sourceURL)

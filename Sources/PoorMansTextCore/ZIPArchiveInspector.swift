@@ -269,7 +269,10 @@ enum ZIPArchiveInspector {
                 // Datei `x` kollidiert. Unicode-Normalisierung (etwa "ä" als ein
                 // Zeichen gegen "a" plus Trema) fängt der Swift-Vergleich von
                 // Zeichenketten bereits selbst ab.
-                let collisionKey = Self.logicalName(of: name).lowercased()
+                let collisionKey = Self.logicalName(of: name).folding(
+                    options: [.caseInsensitive],
+                    locale: nil
+                )
                 guard names.insert(collisionKey).inserted else {
                     throw ArchiveError("the ZIP package contains a duplicate entry: \(name)")
                 }

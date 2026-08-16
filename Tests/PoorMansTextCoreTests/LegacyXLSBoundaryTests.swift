@@ -16,7 +16,7 @@ final class LegacyXLSBoundaryTests: XCTestCase {
         let workbook = try LegacyXLSWorkbookParser.parse(
             Data(contentsOf: sourceURL, options: [.mappedIfSafe])
         )
-        let markdown = SpreadsheetMarkdownRenderer.render(
+        let markdown = try SpreadsheetMarkdownRenderer.render(
             workbook,
             sourceURL: sourceURL,
             style: .markdownTable

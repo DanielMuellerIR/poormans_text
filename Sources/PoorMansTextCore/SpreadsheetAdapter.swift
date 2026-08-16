@@ -185,11 +185,20 @@ struct SpreadsheetAdapter: DocumentConversionAdapter {
 
         let markdownName = context.inputURL.deletingPathExtension().lastPathComponent + ".md"
         let markdownURL = context.stagedOutputDirectory.appendingPathComponent(markdownName)
-        let markdown = SpreadsheetMarkdownRenderer.render(
-            workbook,
-            sourceURL: context.inputURL,
-            style: context.options.spreadsheetRendering
-        )
+        let markdown: String
+        do {
+            markdown = try SpreadsheetMarkdownRenderer.render(
+                workbook,
+                sourceURL: context.inputURL,
+                style: context.options.spreadsheetRendering
+            )
+        } catch {
+            throw ConversionError.invalidInput(
+                context.inputURL,
+                format: context.format,
+                reason: error.localizedDescription
+            )
+        }
         do {
             try Data(markdown.utf8).write(to: markdownURL, options: .atomic)
         } catch {

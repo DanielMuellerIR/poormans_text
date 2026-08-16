@@ -94,6 +94,28 @@ final class OpenDocumentMasterAdapterTests: XCTestCase {
         }
     }
 
+    func testForeignHrefNamespaceDoesNotTurnASectionIntoALinkedDocument() throws {
+        let xml = Data("""
+        <?xml version="1.0" encoding="UTF-8"?>
+        <office:document-content
+          xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
+          xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"
+          xmlns:foo="urn:example:foreign">
+          <office:body><office:text>
+            <text:section text:name="Local">
+              <text:section-source foo:href="secret.odt"/>
+              <text:p>Local section text</text:p>
+            </text:section>
+          </office:text></office:body>
+        </office:document-content>
+        """.utf8)
+
+        XCTAssertEqual(
+            try ODMContentParser.parse(xml),
+            [.markdown("Local section text")]
+        )
+    }
+
     /// Eine ODF-Notiz mitten im Absatz enthält selbst wieder `text:p`. Vorher
     /// ersetzte der innere Absatz den äußeren, und der Text davor und danach
     /// verschwand still aus dem Ergebnis.
@@ -117,6 +139,21 @@ final class OpenDocumentMasterAdapterTests: XCTestCase {
         )
 
         XCTAssertEqual(markdown, "# TwoNotes\n\nBefore First Second After\n")
+    }
+
+    func testAnnotationParagraphAddsSpacesOnlyBetweenWords() throws {
+        let markdown = try convertedMasterMarkdown(
+            body: """
+            <text:p>Vor<office:annotation><text:p>Notiz</text:p></office:annotation>, danach</text:p>
+            <text:p>(<office:annotation><text:p>Klammernotiz</text:p></office:annotation>)</text:p>
+            """,
+            name: "AnnotationPunctuation"
+        )
+
+        XCTAssertEqual(
+            markdown,
+            "# AnnotationPunctuation\n\nVor Notiz, danach\n\n(Klammernotiz)\n"
+        )
     }
 
     /// Der Fließtext des Masters wird unverändert als Markdown eingesetzt.
@@ -223,6 +260,27 @@ final class OpenDocumentMasterAdapterTests: XCTestCase {
             ~~~text
             [tilde](images/image01.png)
             ~~~
+            """#
+        )
+    }
+
+    func testAssetRewriterDoesNotTreatABacktickInFenceInfoAsAValidFence() {
+        let markdown = #"""
+        ``` info`bad
+        [real](images/image01.png)
+        ```
+        """#
+
+        XCTAssertEqual(
+            MarkdownLinkTargetRewriter.replacing(
+                in: markdown,
+                from: "images/image01.png",
+                to: "images/section01-image01.png"
+            ),
+            #"""
+            ``` info`bad
+            [real](images/section01-image01.png)
+            ```
             """#
         )
     }
@@ -458,6 +516,21 @@ final class OpenDocumentMasterAdapterTests: XCTestCase {
             ),
             markdown
         )
+    }
+
+    func testAssetRewriterStartsIndentedCodeAfterThematicBreaks() {
+        for marker in ["---", "***", "___"] {
+            let markdown = "\(marker)\n    [code](images/image01.png)"
+            XCTAssertEqual(
+                MarkdownLinkTargetRewriter.replacing(
+                    in: markdown,
+                    from: "images/image01.png",
+                    to: "images/section01-image01.png"
+                ),
+                markdown,
+                marker
+            )
+        }
     }
 
     /// Ein Masterdokument ohne verlinkte Abschnitte braucht kein Pandoc: Es

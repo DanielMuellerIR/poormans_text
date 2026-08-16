@@ -60,6 +60,7 @@ enum XLSXWorkbookParser {
 
         var result = SpreadsheetWorkbook(sheets: [])
         var expandedCellCount = 0
+        var materializedTextBytes = 0
         var hasHyperlinks = false
         for (definition, path) in zip(worksheetDefinitions, sheetPaths) {
             guard let xml = worksheetPackage.entries[path] else {
@@ -68,9 +69,11 @@ enum XLSXWorkbookParser {
             let parsed = try WorksheetParser.parse(
                 xml,
                 sharedStrings: sharedStrings,
-                maximumCells: Limits.maximumCells - expandedCellCount
+                maximumCells: Limits.maximumCells - expandedCellCount,
+                maximumTextBytes: SpreadsheetLimits.maximumOutputBytes - materializedTextBytes
             )
             expandedCellCount += parsed.expandedCellCount
+            materializedTextBytes += parsed.materializedTextBytes
             result.sheets.append(SpreadsheetSheet(name: definition.name, rows: parsed.rows))
             result.hasFlattenedMerges = result.hasFlattenedMerges || parsed.hasMerges
             result.hasFormulaWithoutResult = result.hasFormulaWithoutResult
@@ -385,15 +388,21 @@ enum XLSXWorkbookParser {
         let hasFormulaWithoutResult: Bool
         let hasHyperlinks: Bool
         let expandedCellCount: Int
+        let materializedTextBytes: Int
     }
 
     private enum WorksheetParser {
         static func parse(
             _ xml: Data,
             sharedStrings: [String],
-            maximumCells: Int
+            maximumCells: Int,
+            maximumTextBytes: Int
         ) throws -> WorksheetInspection {
-            let delegate = Delegate(sharedStrings: sharedStrings, maximumCells: maximumCells)
+            let delegate = Delegate(
+                sharedStrings: sharedStrings,
+                maximumCells: maximumCells,
+                maximumTextBytes: maximumTextBytes
+            )
             let parser = XMLParser(data: xml)
             parser.delegate = delegate
             parser.shouldProcessNamespaces = true
@@ -409,7 +418,8 @@ enum XLSXWorkbookParser {
                 hasMerges: delegate.hasMerges,
                 hasFormulaWithoutResult: delegate.hasFormulaWithoutResult,
                 hasHyperlinks: delegate.hasHyperlinks,
-                expandedCellCount: delegate.expandedCellCount
+                expandedCellCount: delegate.expandedCellCount,
+                materializedTextBytes: delegate.materializedTextBytes
             )
         }
 
@@ -423,19 +433,22 @@ enum XLSXWorkbookParser {
 
             private let sharedStrings: [String]
             private let maximumCells: Int
+            private let maximumTextBytes: Int
             private var currentRow: [SpreadsheetCell]?
             private var currentCell: CellBuilder?
             private var capture: Capture?
             private(set) var expandedCellCount = 0
+            private(set) var materializedTextBytes = 0
             private var sawRoot = false
             /// Breite, die der Zellparser bereits gegen das Gesamtbudget
             /// gerechnet hat. Das bleibt auch für eine später weggetrimmte leere
             /// Zelle wahr, auf die ein Hyperlink seinen Anzeigetext schreibt.
             private var accountedRowWidths = [Int]()
 
-            init(sharedStrings: [String], maximumCells: Int) {
+            init(sharedStrings: [String], maximumCells: Int, maximumTextBytes: Int) {
                 self.sharedStrings = sharedStrings
                 self.maximumCells = maximumCells
+                self.maximumTextBytes = maximumTextBytes
             }
 
             func parser(
@@ -551,6 +564,7 @@ enum XLSXWorkbookParser {
                 }
                 do {
                     let cell = try builder.cell(sharedStrings: sharedStrings)
+                    try accountMaterializedText(cell.displayText)
                     currentRow!.append(cell)
                     expandedCellCount += cellsToAppend
                     if builder.hasFormulaElement, cell.displayText.isEmpty {
@@ -571,6 +585,7 @@ enum XLSXWorkbookParser {
                 }
 
                 var addedCells = 0
+                var cellsToFill = 0
                 for rowIndex in range.firstRow...range.lastRow {
                     let accountedWidth = accountedRowWidths.indices.contains(rowIndex)
                         ? accountedRowWidths[rowIndex]
@@ -579,7 +594,14 @@ enum XLSXWorkbookParser {
                     guard expandedCellCount <= maximumCells - addedCells else {
                         throw ParserError("the XLSX sheet exceeds the expanded-cell budget")
                     }
+                    for columnIndex in range.firstColumn...range.lastColumn
+                    where !rows.indices.contains(rowIndex)
+                        || !rows[rowIndex].indices.contains(columnIndex)
+                        || rows[rowIndex][columnIndex].isEmpty {
+                        cellsToFill += 1
+                    }
                 }
+                try accountMaterializedText(display, repetitions: cellsToFill)
 
                 while rows.count <= range.lastRow {
                     rows.append([])
@@ -606,6 +628,20 @@ enum XLSXWorkbookParser {
                     )
                 }
                 expandedCellCount += addedCells
+            }
+
+            private func accountMaterializedText(
+                _ text: String,
+                repetitions: Int = 1
+            ) throws {
+                let bytes = text.utf8.count
+                guard repetitions >= 0,
+                      materializedTextBytes <= maximumTextBytes,
+                      bytes == 0
+                        || repetitions <= (maximumTextBytes - materializedTextBytes) / bytes else {
+                    throw ParserError("the spreadsheet exceeds the materialized-text budget")
+                }
+                materializedTextBytes += bytes * repetitions
             }
 
             private func fail(_ reason: String, parser: XMLParser) {

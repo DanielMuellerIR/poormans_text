@@ -133,6 +133,22 @@ final class ZIPArchiveVerificationTests: XCTestCase {
         try assertRejectsAsDuplicate(archive, fileName: "CaseDuplicate.docx")
     }
 
+    func testRejectsAPackageWhoseEntriesCollideAfterUnicodeCaseFolding() throws {
+        // Case-insensitives APFS behandelt Sigma und Schluss-Sigma als denselben
+        // Dateinamen, obwohl String.lowercased() zwei verschiedene Werte liefert.
+        let archive = try ZIPFixtureBuilder.archive(
+            entries: duplicateMediaEntries(secondMediaName: "word/media/ς.png")
+                .map { entry in
+                    guard entry.name == "word/media/image1.bin" else { return entry }
+                    return ZIPFixtureBuilder.Entry(
+                        name: "word/media/σ.png",
+                        content: entry.content
+                    )
+                }
+        )
+        try assertRejectsAsDuplicate(archive, fileName: "UnicodeCaseDuplicate.docx")
+    }
+
     /// Ein DOCX-ähnliches Paket, dessen Medieneintrag ein zweites Mal unter
     /// `secondMediaName` auftaucht.
     private func duplicateMediaEntries(secondMediaName: String) -> [ZIPFixtureBuilder.Entry] {

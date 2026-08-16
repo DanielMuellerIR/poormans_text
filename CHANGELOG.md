@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.8.3 - 2026-08-16
+
+- Revalidate the exact staged DOC bytes before conversion, disable remote
+  subresource loading in both `textutil` passes, and run the remaining Pandoc
+  stages in its sandbox.
+- Reject ZIP entries that collide after case folding or removal of a trailing
+  directory slash, and keep an explicitly selected output outside the source
+  package even when its path uses different letter casing.
+- Bound materialized XLSX text and rendered spreadsheet output, reject cell
+  references whose column overflows an integer, and stop the legacy XLS globals
+  parser at its own end-of-file record.
+- Resolve ODM attributes only through their declared XML namespaces, preserve
+  word boundaries around nested note text, and distinguish valid Markdown
+  fences and thematic breaks when rewriting asset links.
+- Keep interrupted CLI-link creation and rolled-back app cleanup recoverable,
+  including a retry when removing the staged replacement initially fails.
+
 ## 0.8.2 - 2026-08-09
 
 - Generate the signed Sparkle appcast from the requested release tag and resolve

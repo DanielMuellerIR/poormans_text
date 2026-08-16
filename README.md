@@ -69,7 +69,7 @@ Download the DMG and its `.sha256` file from the
 directory, verify the download before opening it:
 
 ```sh
-shasum -a 256 -c Poor-Mans-Text-0.8.2.dmg.sha256
+shasum -a 256 -c Poor-Mans-Text-0.8.3.dmg.sha256
 ```
 
 Open the DMG and drag Poor Man's Text to Applications. The app is signed with
@@ -303,7 +303,7 @@ independent Pandoc comparison. ODM tests use local linked ODT files. Tests also
 cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current version is 0.8.2.
+The current version is 0.8.3.
 
 ## License
 

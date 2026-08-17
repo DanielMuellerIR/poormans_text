@@ -80,25 +80,26 @@ struct LegacyWordAdapter: DocumentConversionAdapter {
         // TXT-Referenzlauf müssen zwingend dieselben Bytes sehen — sonst
         // vergliche die Textprüfung am Ende zwei verschiedene Dokumente.
         let stagedInputURL = context.workDirectory.appendingPathComponent("verified-source.doc")
-        let sourceValues: URLResourceValues
+        // Öffnen, prüfen und begrenzt streamen in einem Zug: Die frühere
+        // Reihenfolge prüfte den PFAD und kopierte ihn danach unbegrenzt. Wurde
+        // die Quelle dazwischen ausgetauscht oder wuchs sie während des
+        // Kopierens, war die volle Kopie schon geschrieben, bevor die Prüfung
+        // der Staging-Datei sie ablehnen konnte (Review-Fund 2026-08-17).
         do {
-            sourceValues = try context.inputURL.resourceValues(
-                forKeys: [.fileSizeKey, .isRegularFileKey]
+            try VerifiedFileStaging.stage(
+                from: context.inputURL,
+                to: stagedInputURL,
+                maximumBytes: 1_073_741_824,
+                describedAs: "the DOC source"
             )
-        } catch {
-            throw ConversionError.fileSystemFailure(error.localizedDescription)
-        }
-        guard sourceValues.isRegularFile == true,
-              let sourceSize = sourceValues.fileSize,
-              sourceSize <= 1_073_741_824 else {
+        } catch let error as VerifiedFileStaging.StagingError where error.kind == .source {
             throw ConversionError.invalidInput(
                 context.inputURL,
                 format: .doc,
-                reason: "the DOC source is not a supported regular file"
+                reason: error.reason
             )
-        }
-        do {
-            try FileManager.default.copyItem(at: context.inputURL, to: stagedInputURL)
+        } catch let error as VerifiedFileStaging.StagingError {
+            throw ConversionError.fileSystemFailure(error.reason)
         } catch {
             throw ConversionError.fileSystemFailure(error.localizedDescription)
         }

@@ -14,6 +14,13 @@ enum ZIPFixtureBuilder {
         var declaredChecksum: UInt32?
         /// `true` legt den Eintrag unkomprimiert ab (ZIP-Methode 0).
         var isStored = false
+        /// Rohe Namensbytes statt der UTF-8-Kodierung von `name`. Damit lassen
+        /// sich Archive nachbauen, die ihren Namen NICHT in UTF-8 ablegen —
+        /// etwa CP437, die Standardkodierung ohne General-Purpose-Bit 11.
+        var rawNameBytes: Data?
+        /// Erzwungene General-Purpose-Flags. Ohne Angabe setzt der Builder Bit
+        /// 11 genau dann, wenn der Name nicht rein ASCII ist.
+        var explicitFlags: UInt16?
     }
 
     enum BuilderError: Error {
@@ -212,7 +219,14 @@ enum ZIPFixtureBuilder {
         var centralSection = Data()
 
         for entry in entries {
-            let nameBytes = Data(entry.name.utf8)
+            let nameBytes = entry.rawNameBytes ?? Data(entry.name.utf8)
+            // General-Purpose-Bit 11 setzt jeder regelkonforme Erzeuger, sobald
+            // der Name nicht rein ASCII ist — nur damit liest ein Entpacker die
+            // Bytes als UTF-8 und nicht als CP437. Die Fixtures schrieben vorher
+            // UTF-8-Bytes mit Flags 0 und beschrieben damit ein Archiv, das es so
+            // gar nicht gibt (Review-Fund 2026-08-17).
+            let flags: UInt16 = entry.explicitFlags
+                ?? (entry.name.allSatisfy(\.isASCII) ? 0 : 0x0800)
             let payload = entry.isStored ? entry.content : try deflate(entry.content)
             let method: UInt16 = entry.isStored ? 0 : 8
             let checksum = entry.declaredChecksum ?? crc32(entry.content)
@@ -221,7 +235,7 @@ enum ZIPFixtureBuilder {
 
             localSection.appendUInt32(0x0403_4B50)
             localSection.appendUInt16(20)                       // benötigte Version
-            localSection.appendUInt16(0)                        // Flags
+            localSection.appendUInt16(flags)                    // Flags
             localSection.appendUInt16(method)
             localSection.appendUInt16(0)                        // Uhrzeit
             localSection.appendUInt16(0)                        // Datum
@@ -236,7 +250,7 @@ enum ZIPFixtureBuilder {
             centralSection.appendUInt32(0x0201_4B50)
             centralSection.appendUInt16(20)                     // erzeugende Version, Host 0
             centralSection.appendUInt16(20)                     // benötigte Version
-            centralSection.appendUInt16(0)                      // Flags
+            centralSection.appendUInt16(flags)                  // Flags
             centralSection.appendUInt16(method)
             centralSection.appendUInt16(0)                      // Uhrzeit
             centralSection.appendUInt16(0)                      // Datum

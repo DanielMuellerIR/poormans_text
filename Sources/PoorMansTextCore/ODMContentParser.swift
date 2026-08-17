@@ -130,12 +130,40 @@ enum ODMContentParser {
             texts[index].needsSemanticBoundary = true
         }
 
+        /// Zeichen, vor denen nie ein Leerzeichen steht (schließende
+        /// Interpunktion, Anführungszeichen, Binde- und Schrägstrich).
+        private static let noSpaceBefore = Set<Character>(
+            ",.;:!?…)]}»”“\"'%/-–—"
+        )
+
+        /// Zeichen, nach denen nie ein Leerzeichen steht (öffnende
+        /// Interpunktion, dieselben ambivalenten Anführungszeichen).
+        private static let noSpaceAfter = Set<Character>(
+            "([{«„”“\"'/-–—"
+        )
+
+        /// Braucht die Naht zwischen zwei zusammengeführten Absätzen ein
+        /// Leerzeichen?
+        ///
+        /// Die beiden Richtungen werden getrennt beurteilt. Die frühere Regel
+        /// „beide Seiten müssen Buchstabe oder Ziffer sein" verlangte vom LINKEN
+        /// Rand fälschlich dasselbe wie vom rechten: Ein verschachtelter
+        /// Notizabsatz, der auf einen Punkt endet, wurde deshalb ohne Trennung
+        /// an das folgende Wort geklebt — aus `Before`, `Note.`, `After` wurde
+        /// `Before Note.After` (Review-Fund 2026-08-17).
         private func needsSpace(between left: String, and right: String) -> Bool {
             guard let leftCharacter = left.last, let rightCharacter = right.first else {
                 return false
             }
-            return (leftCharacter.isLetter || leftCharacter.isNumber)
-                && (rightCharacter.isLetter || rightCharacter.isNumber)
+            // Vorhandener Leerraum an der Naht genügt bereits.
+            guard !leftCharacter.isWhitespace, !rightCharacter.isWhitespace else {
+                return false
+            }
+            guard !Self.noSpaceBefore.contains(rightCharacter),
+                  !Self.noSpaceAfter.contains(leftCharacter) else {
+                return false
+            }
+            return true
         }
 
         func parser(

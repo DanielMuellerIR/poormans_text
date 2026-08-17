@@ -144,7 +144,12 @@ poormans_text_cleanup_installation() {
                 cleanup_status=74
             fi
             ;;
-        preparing|rolled-back|clean)
+        # `rolled-back` steht bewusst NICHT hier: Der Zustand wird oben
+        # vollständig behandelt, und `case` führt nur den ersten passenden Arm
+        # aus. Hier aufgeführt beschrieb er eine zweite, widersprüchliche
+        # Behandlung desselben Zustands, die nie erreichbar war
+        # (Review-Fund 2026-08-17).
+        preparing|clean)
             ;;
         *)
             local unknown_state="${installation_state:-}"

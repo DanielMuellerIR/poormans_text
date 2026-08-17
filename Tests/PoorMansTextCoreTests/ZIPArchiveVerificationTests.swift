@@ -229,3 +229,131 @@ final class ZIPArchiveVerificationTests: XCTestCase {
             .appendingPathComponent(name)
     }
 }
+
+/// Review-Fund 2026-08-17: Die Namensdekodierung ignorierte das
+/// General-Purpose-Bit 11 und las jeden Namen erst als UTF-8, ersatzweise als
+/// ISO-8859-1. Ein regelkonformer CP437-Name ohne Bit 11 wurde dadurch falsch
+/// gelesen — und das Kollisions-Gate sah zwei Namen, die ein Entpacker auf
+/// einem case-insensitiven Dateisystem als denselben Pfad behandelt.
+final class ZIPEntryNameEncodingTests: XCTestCase {
+    private var temporaryDirectory: URL!
+    private var workDirectory: URL!
+
+    override func setUpWithError() throws {
+        temporaryDirectory = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "PoorMansTextZIPNameTests-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        workDirectory = temporaryDirectory.appendingPathComponent("work", isDirectory: true)
+        try FileManager.default.createDirectory(
+            at: workDirectory,
+            withIntermediateDirectories: true
+        )
+    }
+
+    override func tearDownWithError() throws {
+        try? FileManager.default.removeItem(at: temporaryDirectory)
+    }
+
+    func testDetectsCP437NamesThatCollideAfterCaseFolding() throws {
+        // Rohbyte 0x80 ist in CP437 `Ç`, 0x87 ist `ç` — auf einem
+        // case-insensitiven Dateisystem derselbe Pfad. Als ISO-8859-1 gelesen
+        // wären es die verschiedenen Steuerzeichen U+0080 und U+0087, und die
+        // Kollision bliebe unbemerkt.
+        let archive = try ZIPFixtureBuilder.archive(entries: [
+            ZIPFixtureBuilder.Entry(
+                name: "[Content_Types].xml",
+                content: Data(Self.contentTypes.utf8)
+            ),
+            ZIPFixtureBuilder.Entry(
+                name: "word/document.xml",
+                content: Data(Self.documentXML.utf8)
+            ),
+            Self.cp437MediaEntry(highByte: 0x80),
+            Self.cp437MediaEntry(highByte: 0x87),
+        ])
+
+        try assertRejected(archive, named: "CP437Duplicate.docx", containing: "duplicate entry")
+    }
+
+    func testRejectsANameThatClaimsUTF8ButIsNot() throws {
+        // Bit 11 gesetzt heißt: der Name IST UTF-8. Ein stiller Rückfall auf
+        // eine andere Kodierung würde einen anderen Pfad ergeben, als ein
+        // regelkonformer Entpacker anlegt.
+        var invalidName = Data("word/media/".utf8)
+        invalidName.append(contentsOf: [0xFF, 0xFE])     // kein gültiges UTF-8
+        let archive = try ZIPFixtureBuilder.archive(entries: [
+            ZIPFixtureBuilder.Entry(
+                name: "[Content_Types].xml",
+                content: Data(Self.contentTypes.utf8)
+            ),
+            ZIPFixtureBuilder.Entry(
+                name: "word/document.xml",
+                content: Data(Self.documentXML.utf8)
+            ),
+            ZIPFixtureBuilder.Entry(
+                name: "word/media/broken",
+                content: Data("x".utf8),
+                rawNameBytes: invalidName,
+                explicitFlags: 0x0800
+            ),
+        ])
+
+        try assertRejected(archive, named: "BrokenUTF8.docx", containing: "UTF-8")
+    }
+
+    /// Ein CP437-Medienname aus `word/media/` plus genau einem hohen Byte.
+    private static func cp437MediaEntry(highByte: UInt8) -> ZIPFixtureBuilder.Entry {
+        var rawName = Data("word/media/".utf8)
+        rawName.append(highByte)
+        rawName.append(contentsOf: Data(".bin".utf8))
+        return ZIPFixtureBuilder.Entry(
+            name: "word/media/cp437-\(highByte).bin",
+            content: Data(repeating: 0x2E, count: 64),
+            rawNameBytes: rawName,
+            explicitFlags: 0                       // kein Bit 11 -> CP437
+        )
+    }
+
+    private func assertRejected(
+        _ archive: Data,
+        named fileName: String,
+        containing needle: String,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) throws {
+        let sourceURL = temporaryDirectory.appendingPathComponent(fileName)
+        try archive.write(to: sourceURL)
+
+        XCTAssertThrowsError(
+            try ZIPArchiveInspector.stageVerifiedPackage(
+                from: sourceURL,
+                into: workDirectory,
+                named: "verified-source.docx"
+            ),
+            file: file,
+            line: line
+        ) { error in
+            XCTAssertTrue(
+                error.localizedDescription.contains(needle),
+                "Unexpected error: \(error.localizedDescription)",
+                file: file,
+                line: line
+            )
+        }
+    }
+
+    private static let contentTypes = """
+    <?xml version="1.0" encoding="UTF-8"?>
+    <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+    <Override PartName="/word/document.xml" ContentType="\(ZIPFixtureBuilder.docxMainContentType)"/>
+    </Types>
+    """
+
+    private static let documentXML = """
+    <?xml version="1.0" encoding="UTF-8"?>
+    <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+    <w:body><w:p><w:r><w:t>Fixture text</w:t></w:r></w:p></w:body>
+    </w:document>
+    """
+}

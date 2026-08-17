@@ -142,20 +142,23 @@ enum ZIPArchiveInspector {
     static func stageVerifiedPackage(
         from inputURL: URL,
         into directory: URL,
-        named name: String,
-        fileManager: FileManager = .default
+        named name: String
     ) throws -> URL {
-        let values = try inputURL.resourceValues(forKeys: [.fileSizeKey, .isRegularFileKey])
-        guard values.isRegularFile == true else {
-            throw ArchiveError("the package is not a regular file")
-        }
-        guard let fileSize = values.fileSize, fileSize <= Limits.maximumArchiveSize else {
-            throw ArchiveError("the package exceeds the supported archive-size limit")
-        }
-
+        // Öffnen, prüfen und begrenzt streamen in einem Zug — den Pfad erst zu
+        // prüfen und danach zu kopieren ließ einen parallelen Austausch der
+        // Quelle die Größengrenze umgehen (Review-Fund 2026-08-17).
         let stagedURL = directory.appendingPathComponent(name)
         do {
-            try fileManager.copyItem(at: inputURL, to: stagedURL)
+            try VerifiedFileStaging.stage(
+                from: inputURL,
+                to: stagedURL,
+                maximumBytes: Limits.maximumArchiveSize,
+                describedAs: "the package"
+            )
+        } catch let error as VerifiedFileStaging.StagingError where error.kind == .source {
+            throw ArchiveError(error.reason)
+        } catch let error as VerifiedFileStaging.StagingError {
+            throw ConversionError.fileSystemFailure(error.reason)
         } catch {
             throw ConversionError.fileSystemFailure(error.localizedDescription)
         }
@@ -254,11 +257,17 @@ enum ZIPArchiveInspector {
                 }
 
                 let rawName = data.subdata(in: (offset + 46)..<(offset + 46 + nameLength))
-                guard !rawName.contains(0),
-                      let name = String(data: rawName, encoding: .utf8)
-                        ?? String(data: rawName, encoding: .isoLatin1) else {
+                let extraField = data.subdata(
+                    in: (offset + 46 + nameLength)..<(offset + 46 + nameLength + extraLength)
+                )
+                guard !rawName.contains(0) else {
                     throw ArchiveError("a ZIP entry name is not readable")
                 }
+                let name = try Self.decodedEntryName(
+                    rawName: rawName,
+                    flags: flags,
+                    extraField: extraField
+                )
                 try Self.validateEntryName(name)
                 // Beim Entpacken zählt der Name, den das Dateisystem sieht: APFS
                 // ist standardmäßig nicht zwischen Groß- und Kleinschreibung
@@ -433,6 +442,113 @@ enum ZIPArchiveInspector {
                 }
             }
             return nil
+        }
+
+        /// Der Eintragsname genau so, wie ein regelkonformer ZIP-Verbraucher ihn liest.
+        ///
+        /// Vorher wurde jeder Name erst als UTF-8 und ersatzweise als
+        /// ISO-8859-1 gelesen — unabhängig vom General-Purpose-Bit 11. Ein
+        /// regelkonformer Name ohne dieses Bit ist aber CP437: Rohbyte `0x80`
+        /// heißt dort `Ç`, `0x87` heißt `ç`. Als ISO-8859-1 gelesen wurden
+        /// daraus die verschiedenen Steuerzeichen U+0080 und U+0087, und das
+        /// Kollisions-Gate unten sah zwei verschiedene Namen, wo ein Entpacker
+        /// auf einem case-insensitiven Dateisystem denselben Pfad sieht — ein
+        /// Eintrag hätte den anderen still überschrieben
+        /// (Review-Fund 2026-08-17).
+        private static func decodedEntryName(
+            rawName: Data,
+            flags: UInt16,
+            extraField: Data
+        ) throws -> String {
+            // Ein Unicode-Path-Extrafeld hat Vorrang, sobald es zum Rohnamen
+            // passt: genau diesen Namen nimmt auch ein regelkonformer Entpacker.
+            if let unicodeName = try Self.unicodePathName(in: extraField, rawName: rawName) {
+                return unicodeName
+            }
+            if flags & 0x0800 != 0 {
+                // Bit 11 gesetzt heißt: der Name IST UTF-8. Ein Rückfall auf
+                // eine andere Kodierung wäre hier eine stille Umdeutung.
+                guard let name = String(data: rawName, encoding: .utf8) else {
+                    throw ArchiveError("a ZIP entry declares a UTF-8 name but is not valid UTF-8")
+                }
+                return name
+            }
+            return Self.cp437Name(of: rawName)
+        }
+
+        /// Der Name aus einem Unicode-Path-Extrafeld (Header-ID `0x7075`), falls
+        /// vorhanden und gültig.
+        ///
+        /// Das Feld trägt eine CRC-32-Prüfsumme über den Rohnamen. Stimmt sie
+        /// nicht, ist das Feld veraltet und der Rohname gilt — so schreibt es
+        /// APPNOTE 4.6.9 vor. Ist das Feld selbst kaputt (unbekannte Version
+        /// oder ungültiges UTF-8), brechen wir ab, statt einen Namen zu
+        /// verwenden, den ein Entpacker anders lesen würde.
+        private static func unicodePathName(in extraField: Data, rawName: Data) throws -> String? {
+            // `subdata(in:)` liefert eine Data mit startIndex 0 — die Offsets
+            // hier sind deshalb wie im übrigen Parser rein 0-basiert.
+            var cursor = 0
+            while cursor + 4 <= extraField.count {
+                let headerID = extraField.uint16(at: cursor)
+                let payloadSize = Int(extraField.uint16(at: cursor + 2))
+                let payloadStart = cursor + 4
+                guard payloadStart + payloadSize <= extraField.count else {
+                    throw ArchiveError("a ZIP entry has a malformed extra field")
+                }
+                if headerID == 0x7075 {
+                    // 1 Byte Version + 4 Byte CRC-32 + UTF-8-Name.
+                    guard payloadSize >= 5 else {
+                        throw ArchiveError("a ZIP entry has a malformed Unicode path field")
+                    }
+                    let payload = extraField.subdata(in: payloadStart..<(payloadStart + payloadSize))
+                    guard payload[0] == 1 else {
+                        throw ArchiveError("a ZIP entry uses an unsupported Unicode path version")
+                    }
+                    guard payload.uint32(at: 1) == Self.crc32(of: rawName) else {
+                        return nil       // veraltetes Feld: der Rohname gilt
+                    }
+                    let nameBytes = payload.subdata(in: 5..<payload.count)
+                    guard !nameBytes.isEmpty,
+                          !nameBytes.contains(0),
+                          let name = String(data: nameBytes, encoding: .utf8) else {
+                        throw ArchiveError("a ZIP entry has an unreadable Unicode path field")
+                    }
+                    return name
+                }
+                cursor = payloadStart + payloadSize
+            }
+            return nil
+        }
+
+        private static func crc32(of data: Data) -> UInt32 {
+            data.withUnsafeBytes { buffer in
+                guard let baseAddress = buffer.baseAddress, !buffer.isEmpty else {
+                    return UInt32(zlib.crc32(0, nil, 0))
+                }
+                return UInt32(zlib.crc32(0, baseAddress.assumingMemoryBound(to: Bytef.self),
+                                         uInt(buffer.count)))
+            }
+        }
+
+        /// CP437 ist die Standard-Kodierung für ZIP-Namen ohne Bit 11. Die
+        /// untere Hälfte ist ASCII, die obere folgt dieser Tabelle.
+        private static let cp437HighHalf: [Character] = [
+            "Ç", "ü", "é", "â", "ä", "à", "å", "ç", "ê", "ë", "è", "ï", "î", "ì", "Ä", "Å",
+            "É", "æ", "Æ", "ô", "ö", "ò", "û", "ù", "ÿ", "Ö", "Ü", "¢", "£", "¥", "₧", "ƒ",
+            "á", "í", "ó", "ú", "ñ", "Ñ", "ª", "º", "¿", "⌐", "¬", "½", "¼", "¡", "«", "»",
+            "░", "▒", "▓", "│", "┤", "╡", "╢", "╖", "╕", "╣", "║", "╗", "╝", "╜", "╛", "┐",
+            "└", "┴", "┬", "├", "─", "┼", "╞", "╟", "╚", "╔", "╩", "╦", "╠", "═", "╬", "╧",
+            "╨", "╤", "╥", "╙", "╘", "╒", "╓", "╫", "╪", "┘", "┌", "█", "▄", "▌", "▐", "▀",
+            "α", "ß", "Γ", "π", "Σ", "σ", "µ", "τ", "Φ", "Θ", "Ω", "δ", "∞", "φ", "ε", "∩",
+            "≡", "±", "≥", "≤", "⌠", "⌡", "÷", "≈", "°", "∙", "·", "√", "ⁿ", "²", "■", "\u{00A0}",
+        ]
+
+        private static func cp437Name(of rawName: Data) -> String {
+            String(rawName.map { byte in
+                byte < 0x80
+                    ? Character(UnicodeScalar(byte))
+                    : Self.cp437HighHalf[Int(byte) - 0x80]
+            })
         }
 
         /// Der Name ohne abschließenden Slash: ZIP markiert Verzeichnisse so,

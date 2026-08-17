@@ -156,6 +156,39 @@ final class OpenDocumentMasterAdapterTests: XCTestCase {
         )
     }
 
+    /// Review-Fund 2026-08-17: `needsSpace` verlangte von BEIDEN Seiten einen
+    /// Buchstaben oder eine Ziffer. Ein Notizabsatz, der auf Satzendinterpunktion
+    /// endet, wurde deshalb ohne Trennung an das folgende Wort geklebt —
+    /// `Before Note.After` statt `Before Note. After`. Die beiden Richtungen
+    /// gehören getrennt beurteilt.
+    func testAnnotationParagraphEndingInPunctuationStillSeparatesTheNextWord() throws {
+        let markdown = try convertedMasterMarkdown(
+            body: """
+            <text:p>Before<office:annotation><text:p>Note.</text:p></office:annotation>After</text:p>
+            <text:p>Frage<office:annotation><text:p>Notiz?</text:p></office:annotation>Antwort</text:p>
+            """,
+            name: "AnnotationSentenceEnd"
+        )
+
+        XCTAssertEqual(
+            markdown,
+            "# AnnotationSentenceEnd\n\nBefore Note. After\n\nFrage Notiz? Antwort\n"
+        )
+    }
+
+    /// Gegenprobe zur Regel oben: Ein Bindestrich an der Naht darf weiterhin
+    /// kein Leerzeichen bekommen — sonst zerfiele ein zusammengesetztes Wort.
+    func testAnnotationParagraphKeepsHyphenatedWordsTogether() throws {
+        let markdown = try convertedMasterMarkdown(
+            body: """
+            <text:p>Vor-<office:annotation><text:p>Notiz</text:p></office:annotation>-Nachsatz</text:p>
+            """,
+            name: "AnnotationHyphen"
+        )
+
+        XCTAssertEqual(markdown, "# AnnotationHyphen\n\nVor-Notiz-Nachsatz\n")
+    }
+
     /// Der Fließtext des Masters wird unverändert als Markdown eingesetzt.
     /// Ohne Maskierung würde aus dem Absatz `# Kein Titel` eine Überschrift,
     /// ein manueller Umbruch bliebe weich und `text:s` fiele dem Trimmen zum

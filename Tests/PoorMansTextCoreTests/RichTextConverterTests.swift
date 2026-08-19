@@ -157,6 +157,31 @@ final class RichTextConverterTests: XCTestCase {
         XCTAssertTrue(markdown.components(separatedBy: "\n").contains("  "))
     }
 
+    /// Review-Fund 2026-08-19: Der RTFD-Weg löste den Eingabe-Symlink zweimal
+    /// auf — einmal implizit beim Lesen für die Farbmarker, einmal ausdrücklich
+    /// für `textutil` —, und die Anhangswarnung las noch ein drittes Mal über den
+    /// Verweis. Jetzt erfasst `convert` den echten Pfad genau einmal. Der Test
+    /// belegt, dass alle drei Stufen dabei dasselbe Paket sehen: Farbmarker im
+    /// Text, Anhangswarnung aus demselben Ordner.
+    func testMarksColorsAndReportsAttachmentsForAnRTFDBehindASymbolicLink() throws {
+        try requirePandoc()
+        let original = try FixtureFactory.createColoredRTFD(in: temporaryDirectory)
+        try Data("beilage".utf8).write(to: original.appendingPathComponent("extra.bin"))
+        let linkURL = temporaryDirectory.appendingPathComponent("Verweis.rtfd")
+        try FileManager.default.createSymbolicLink(at: linkURL, withDestinationURL: original)
+
+        let result = try RTFDConverter().convert(inputURL: linkURL)
+        let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+
+        XCTAssertTrue(markdown.contains("==**Purple one**=="), markdown)
+        XCTAssertEqual(
+            result.warnings,
+            ["Attachment was not represented in the generated Markdown: extra.bin"]
+        )
+        // Der Nutzer hat den Verweis ausgewählt: Die Ausgabe trägt dessen Namen.
+        XCTAssertEqual(result.markdownFile.lastPathComponent, "Verweis.md")
+    }
+
     func testRejectsOutputInsideInputPackage() throws {
         let inputURL = try FixtureFactory.createMinimalRTFD(in: temporaryDirectory)
         let outputURL = inputURL.appendingPathComponent("Converted", isDirectory: true)

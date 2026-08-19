@@ -98,12 +98,25 @@ struct RichTextAdapter: DocumentConversionAdapter {
             context.options.pandocExecutable,
             fileManager: fileManager
         )
+        // Ein RTFD ist ein Ordnerpaket, und `textutil` öffnet einen Symlink
+        // darauf nicht. Der Verweis wird deshalb GENAU EINMAL hier aufgelöst,
+        // und alle folgenden Lesevorgänge — Farbmarker, `textutil` und die
+        // Anhangswarnung — arbeiten auf diesem einen erfassten Pfad. Vorher löste
+        // jede Stufe für sich auf; wurde der Verweis dazwischen umgebogen,
+        // stammten Inhalt und Anhänge eines Ergebnisses aus verschiedenen
+        // Paketen (Review-Fund 2026-08-19).
+        //
+        // `inputURL` bleibt daneben der vom Nutzer gewählte Pfad: Er benennt die
+        // Ausgabedatei und steht in den Fehlermeldungen.
+        let resolvedInputURL = inputKind == .rtfd
+            ? inputURL.resolvingSymlinksInPath()
+            : inputURL
         let htmlURL = workDirectory.appendingPathComponent("document.html")
         let emptyParagraphMarker = inputKind == .rtf
             ? "POORMANSTEXTEMPTY\(UUID().uuidString.replacingOccurrences(of: "-", with: ""))"
             : nil
         try createHTML(
-            from: inputURL,
+            from: resolvedInputURL,
             kind: inputKind,
             at: htmlURL,
             workDirectory: workDirectory,
@@ -139,7 +152,7 @@ struct RichTextAdapter: DocumentConversionAdapter {
         )
 
         let warnings = warnings(
-            inputURL: inputURL,
+            inputURL: resolvedInputURL,
             kind: inputKind,
             referencedResourceNames: converted.referencedResourceNames,
             fileManager: fileManager
@@ -166,12 +179,11 @@ struct RichTextAdapter: DocumentConversionAdapter {
                 from: inputURL,
                 outputURL: markedRTFD
             )
-            // `textutil` öffnet einen Symlink auf ein RTFD-Paket nicht und bricht
-            // mit „couldn't be opened" ab. Ohne Farbmarker reicht
-            // `markedInputURL` den Eingabepfad unverändert durch, weshalb der
-            // Verweis genau hier aufgelöst wird — gelesen wurde das Paket über
-            // NSAttributedString zu diesem Zeitpunkt bereits erfolgreich.
-            let textutilInputPath = textutilInput.resolvingSymlinksInPath().path
+            // Ohne Farbmarker reicht `markedInputURL` den Eingabepfad unverändert
+            // durch. Der ist hier bereits aufgelöst — der Aufrufer hat das genau
+            // einmal vor dem ersten Lesen erledigt —, deshalb bekommt `textutil`
+            // denselben Pfad, den auch der Farbmarker gelesen hat.
+            let textutilInputPath = textutilInput.path
             let result: ProcessResult
             do {
                 result = try ProcessRunner.run(

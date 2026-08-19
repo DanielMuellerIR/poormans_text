@@ -414,6 +414,75 @@ final class SpreadsheetAdapterTests: XCTestCase {
         }
     }
 
+    func testManyHyperlinksOverTheSameAreaAreBoundedByASharedScanBudget() throws {
+        // Jeder Hyperlink läuft seinen Bereich zweimal ab. Ab dem zweiten über
+        // denselben Bereich ist dort nichts mehr zu füllen — die Arbeit fällt
+        // trotzdem an. Ohne gemeinsames Budget brauchte eine 68 KiB große Datei
+        // mit 2000 solchen Hyperlinks rund 40 Sekunden.
+        let rows = (1...100).map { row -> String in
+            let cells = (1...20).map { column in
+                "<c r=\"\(Self.columnName(column))\(row)\" t=\"n\"><v>\(column)</v></c>"
+            }
+            return "<row r=\"\(row)\">\(cells.joined())</row>"
+        }
+        let links = (0..<600).map { "<hyperlink ref=\"A1:T100\" display=\"L\($0)\"/>" }
+        let sheet = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+          <sheetData>\(rows.joined())</sheetData>
+          <hyperlinks>\(links.joined())</hyperlinks>
+        </worksheet>
+        """
+        let sourceURL = temporaryDirectory.appendingPathComponent("ManyHyperlinks.xlsx")
+        try ZIPFixtureBuilder.xlsxPackage(
+            firstSheetXML: sheet,
+            secondSheetXML: secondXLSXSheet
+        ).write(to: sourceURL)
+
+        XCTAssertThrowsError(try XLSXWorkbookParser.parse(packageAt: sourceURL)) { error in
+            XCTAssertEqual(
+                error.localizedDescription,
+                "the XLSX hyperlinks exceed the scan budget"
+            )
+        }
+    }
+
+    func testManyHyperlinksOnSingleCellsStayWithinTheScanBudget() throws {
+        // Gegenprobe: Der Normalfall verlinkt Einzelzellen. Selbst zehntausende
+        // davon kosten je eine Zelle und dürfen nicht am Budget scheitern.
+        let rows = (1...10_000).map { row in
+            "<row r=\"\(row)\"><c r=\"A\(row)\" t=\"n\"><v>\(row)</v></c></row>"
+        }
+        let links = (1...10_000).map { "<hyperlink ref=\"A\($0)\" display=\"L\($0)\"/>" }
+        let sheet = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+          <sheetData>\(rows.joined())</sheetData>
+          <hyperlinks>\(links.joined())</hyperlinks>
+        </worksheet>
+        """
+        let sourceURL = temporaryDirectory.appendingPathComponent("SingleCellLinks.xlsx")
+        try ZIPFixtureBuilder.xlsxPackage(
+            firstSheetXML: sheet,
+            secondSheetXML: secondXLSXSheet
+        ).write(to: sourceURL)
+
+        let workbook = try XLSXWorkbookParser.parse(packageAt: sourceURL)
+        XCTAssertEqual(workbook.sheets.first?.rows.count, 10_000)
+        XCTAssertTrue(workbook.hasUnsupportedObjects)
+    }
+
+    private static func columnName(_ index: Int) -> String {
+        var remaining = index
+        var name = ""
+        while remaining > 0 {
+            let position = (remaining - 1) % 26
+            name = String(UnicodeScalar(UInt8(65 + position))) + name
+            remaining = (remaining - 1) / 26
+        }
+        return name
+    }
+
     func testXLSXHyperlinkDisplayHonorsTheMaterializedTextBudget() throws {
         // Wenige XML-Bytes dürfen nicht denselben langen Anzeigetext hunderttausendfach
         // in den Arbeitsspeicher und später in die Markdown-Ausgabe vervielfachen.

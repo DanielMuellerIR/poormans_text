@@ -439,6 +439,9 @@ enum XLSXWorkbookParser {
             private var capture: Capture?
             private(set) var expandedCellCount = 0
             private(set) var materializedTextBytes = 0
+            /// Zellen, die der Hyperlink-Pfad insgesamt abgelaufen ist — über
+            /// ALLE Hyperlinks dieses Blattes hinweg.
+            private var hyperlinkScannedCells = 0
             private var sawRoot = false
             /// Breite, die der Zellparser bereits gegen das Gesamtbudget
             /// gerechnet hat. Das bleibt auch für eine später weggetrimmte leere
@@ -582,6 +585,34 @@ enum XLSXWorkbookParser {
                 }
                 guard range.lastColumn < Limits.maximumColumns else {
                     throw ParserError("an XLSX hyperlink exceeds the column budget")
+                }
+
+                // Jeder Hyperlink läuft seinen Bereich zweimal ab: einmal zum
+                // Zählen der zu füllenden Zellen, einmal zum Füllen. Für einen
+                // Hyperlink auf eine Einzelzelle — der Normalfall — ist das eine
+                // Zelle. Ein Blatt darf aber beliebig viele Hyperlinks über
+                // denselben großen Bereich deklarieren, und ab dem zweiten ist
+                // dort nichts mehr zu füllen: reine Leerarbeit, die dennoch die
+                // volle Fläche abläuft. Gemessen an einer 68 KiB großen Datei
+                // mit 2000 Hyperlinks über je 20.000 Zellen: 40 Sekunden, und
+                // die Sheet-XML darf bis 16 MiB groß sein.
+                //
+                // Deshalb ein gemeinsames Budget über alle Hyperlinks, in
+                // derselben Größenordnung wie das Zellbudget des Blattes: Wer
+                // Einzelzellen verlinkt, merkt nichts davon.
+                let scannedRows = range.lastRow - range.firstRow + 1
+                let scannedColumns = range.lastColumn - range.firstColumn + 1
+                // Ein einzelner Bereich, der schon für sich das Zellbudget
+                // sprengt, bleibt ein Zellbudget-Fall — die Meldung dazu ändert
+                // sich nicht.
+                guard scannedColumns <= Limits.maximumCells / max(1, scannedRows) else {
+                    throw ParserError("the XLSX sheet exceeds the expanded-cell budget")
+                }
+                // Neu ist allein die SUMME: Nach dieser Schranke passt das
+                // Produkt sicher in den Zähler.
+                hyperlinkScannedCells += scannedRows * scannedColumns
+                guard hyperlinkScannedCells <= Limits.maximumCells else {
+                    throw ParserError("the XLSX hyperlinks exceed the scan budget")
                 }
 
                 var addedCells = 0

@@ -21,6 +21,12 @@ enum ZIPFixtureBuilder {
         /// Erzwungene General-Purpose-Flags. Ohne Angabe setzt der Builder Bit
         /// 11 genau dann, wenn der Name nicht rein ASCII ist.
         var explicitFlags: UInt16?
+        /// Host-System im oberen Byte von „version made by". 0 ist MS-DOS und
+        /// die Vorgabe; 3 ist Unix, 19 ist OS X (Darwin).
+        var hostSystem: UInt8?
+        /// Externe Attribute. Das obere Wort trägt bei Unix-artigen Erzeugern
+        /// den Dateimodus — `0o120000` darin kennzeichnet einen Symlink.
+        var externalAttributes: UInt32?
     }
 
     enum BuilderError: Error {
@@ -33,7 +39,9 @@ enum ZIPFixtureBuilder {
         mediaContent: Data = Data(repeating: 0x2E, count: 4096),
         declaredMediaSize: Int? = nil,
         declaredMediaChecksum: UInt32? = nil,
-        mainContentType: String = docxMainContentType
+        mainContentType: String = docxMainContentType,
+        mediaHostSystem: UInt8? = nil,
+        mediaExternalAttributes: UInt32? = nil
     ) throws -> Data {
         let documentXML = """
         <?xml version="1.0" encoding="UTF-8"?>
@@ -49,7 +57,9 @@ enum ZIPFixtureBuilder {
                 name: "word/media/image1.bin",
                 content: mediaContent,
                 declaredUncompressedSize: declaredMediaSize,
-                declaredChecksum: declaredMediaChecksum
+                declaredChecksum: declaredMediaChecksum,
+                hostSystem: mediaHostSystem,
+                externalAttributes: mediaExternalAttributes
             ),
         ])
     }
@@ -248,7 +258,8 @@ enum ZIPFixtureBuilder {
             localSection.append(payload)
 
             centralSection.appendUInt32(0x0201_4B50)
-            centralSection.appendUInt16(20)                     // erzeugende Version, Host 0
+            // Erzeugende Version: unteres Byte 2.0, oberes Byte das Host-System.
+            centralSection.appendUInt16(UInt16(entry.hostSystem ?? 0) << 8 | 20)
             centralSection.appendUInt16(20)                     // benötigte Version
             centralSection.appendUInt16(flags)                  // Flags
             centralSection.appendUInt16(method)
@@ -262,7 +273,7 @@ enum ZIPFixtureBuilder {
             centralSection.appendUInt16(0)                      // Kommentar
             centralSection.appendUInt16(0)                      // Datenträger
             centralSection.appendUInt16(0)                      // interne Attribute
-            centralSection.appendUInt32(0)                      // externe Attribute
+            centralSection.appendUInt32(entry.externalAttributes ?? 0)
             centralSection.appendUInt32(localHeaderOffset)
             centralSection.append(nameBytes)
         }

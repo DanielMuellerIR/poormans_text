@@ -292,9 +292,16 @@ enum ZIPArchiveInspector {
                     throw ArchiveError("the ZIP package contains a duplicate entry: \(name)")
                 }
 
-                let hostSystem = data[offset + 5]
+                // Das Symlink-Muster im oberen Attributwort zählt unabhängig
+                // davon, welches Host-System der Erzeuger einträgt. Vorher war
+                // die Prüfung an `hostSystem == 3` (Unix) gebunden; derselbe
+                // Eintrag unter „OS X (Darwin)" (19) oder MS-DOS (0) kam damit
+                // durch das Gate. Ein Fehlalarm entsteht dadurch nicht: Word,
+                // LibreOffice, Pandoc und textutil schreiben hostSystem 0 und
+                // lassen das obere Wort leer, wie die Fixtures dieses Repos
+                // zeigen.
                 let unixMode = externalAttributes >> 16
-                if hostSystem == 3, unixMode & 0xF000 == 0xA000 {
+                if unixMode & 0xF000 == 0xA000 {
                     throw ArchiveError("symbolic links are not allowed in document packages")
                 }
 

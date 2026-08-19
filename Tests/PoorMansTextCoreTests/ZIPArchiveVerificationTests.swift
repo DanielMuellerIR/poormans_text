@@ -181,6 +181,57 @@ final class ZIPArchiveVerificationTests: XCTestCase {
         ]
     }
 
+    // MARK: - Symlink-Gate gilt für jedes Host-System
+
+    func testSymbolicLinkEntriesAreRejectedWhicheverHostSystemDeclaresThem() throws {
+        // Die Ablehnung hing früher an `hostSystem == 3` (Unix). Derselbe
+        // Eintrag unter „OS X (Darwin)" (19) oder MS-DOS (0) kam damit durch
+        // das Gate — und gerade 0 schreiben Word, LibreOffice und Pandoc.
+        for hostSystem in [UInt8(0), UInt8(3), UInt8(19)] {
+            let archive = try ZIPFixtureBuilder.wordProcessingPackage(
+                mediaContent: Data("/etc/passwd".utf8),
+                mediaHostSystem: hostSystem,
+                mediaExternalAttributes: UInt32(0o120_777) << 16
+            )
+            let sourceURL = temporaryDirectory.appendingPathComponent(
+                "symlink-host\(hostSystem).docx"
+            )
+            try archive.write(to: sourceURL)
+
+            XCTAssertThrowsError(
+                try ZIPArchiveInspector.stageVerifiedPackage(
+                    from: sourceURL,
+                    into: workDirectory,
+                    named: "verified-host\(hostSystem).docx"
+                )
+            ) { error in
+                XCTAssertTrue(
+                    error.localizedDescription.contains("symbolic links are not allowed"),
+                    "Host \(hostSystem) unerwartet: \(error.localizedDescription)"
+                )
+            }
+        }
+    }
+
+    func testARegularEntryIsStillAcceptedUnderAUnixHostSystem() throws {
+        // Gegenprobe: Die breitere Prüfung darf ein gewöhnliches Paket nicht
+        // ablehnen, nur weil sein Erzeuger ein Unix-artiges Host-System und
+        // einen gewöhnlichen Dateimodus einträgt.
+        let archive = try ZIPFixtureBuilder.wordProcessingPackage(
+            mediaHostSystem: 3,
+            mediaExternalAttributes: UInt32(0o100_644) << 16
+        )
+        let sourceURL = temporaryDirectory.appendingPathComponent("regular-unix.docx")
+        try archive.write(to: sourceURL)
+
+        let stagedURL = try ZIPArchiveInspector.stageVerifiedPackage(
+            from: sourceURL,
+            into: workDirectory,
+            named: "verified-source.docx"
+        )
+        XCTAssertEqual(try Data(contentsOf: stagedURL), archive)
+    }
+
     private func assertRejectsAsDuplicate(
         _ archive: Data,
         fileName: String,

@@ -353,6 +353,156 @@ final class ZIPEntryNameEncodingTests: XCTestCase {
         try assertRejected(archive, named: "BrokenUTF8.docx", containing: "UTF-8")
     }
 
+    // MARK: - Unicode-Path-Extrafeld (Review-Fund 2026-08-19)
+
+    /// Der Kern des Fundes: Der Eintrag trägt echten Inhalt unter dem Rohnamen
+    /// `word/media/image1.bin`, tritt über sein Unicode-Feld aber als Verzeichnis
+    /// `benign/` auf. `verifyEntryContents` überspringt Verzeichnisse — Größe und
+    /// CRC dieses Eintrags wären nie geprüft worden, während ein Verbraucher ohne
+    /// Unterstützung für das Feld die ungeprüfte Nutzlast unter dem Rohnamen
+    /// bekommt.
+    func testRejectsAnEntryThatIsOnlyADirectoryThroughItsUnicodeName() throws {
+        let archive = try ZIPFixtureBuilder.archive(entries: [
+            Self.contentTypesEntry,
+            Self.documentEntry,
+            ZIPFixtureBuilder.Entry(
+                name: "word/media/image1.bin",
+                content: Data(repeating: 0x2E, count: 4096),
+                declaredUncompressedSize: 8,
+                centralUnicodePathName: "benign/"
+            ),
+        ])
+
+        try assertRejected(
+            archive,
+            named: "UnicodeDirectoryAlias.docx",
+            containing: "disagree about being a directory"
+        )
+    }
+
+    /// Die Gegenrichtung: Der Rohname bricht aus dem Paket aus, das Unicode-Feld
+    /// nennt einen harmlosen Pfad. Geprüft wurde bisher nur der bevorzugte Name,
+    /// entpackt hätte ein Verbraucher ohne das Feld aber den Rohnamen.
+    func testRejectsAnUnsafeRawNameBehindAHarmlessUnicodeName() throws {
+        let archive = try ZIPFixtureBuilder.archive(entries: [
+            Self.contentTypesEntry,
+            Self.documentEntry,
+            ZIPFixtureBuilder.Entry(
+                name: "word/media/image1.bin",
+                content: Data(repeating: 0x2E, count: 64),
+                rawNameBytes: Data("../escaped.bin".utf8),
+                centralUnicodePathName: "word/media/image1.bin"
+            ),
+        ])
+
+        try assertRejected(archive, named: "UnicodeMask.docx", containing: "unsafe entry path")
+    }
+
+    /// Das Extrafeld steht zweimal im Archiv. Wer den Namen aus dem lokalen
+    /// Header liest, bekäme sonst einen anderen Pfad als den geprüften.
+    func testRejectsALocalHeaderThatDeclaresADifferentUnicodePath() throws {
+        let archive = try ZIPFixtureBuilder.archive(entries: [
+            Self.contentTypesEntry,
+            Self.documentEntry,
+            ZIPFixtureBuilder.Entry(
+                name: "word/media/image1.bin",
+                content: Data(repeating: 0x2E, count: 64),
+                centralUnicodePathName: "word/media/zentral.bin",
+                localUnicodePathName: "word/media/lokal.bin"
+            ),
+        ])
+
+        try assertRejected(
+            archive,
+            named: "UnicodeSplit.docx",
+            containing: "declares a different Unicode path"
+        )
+    }
+
+    /// Zwei Einträge mit demselben Rohnamen und verschiedenen Unicode-Namen: Für
+    /// einen Verbraucher ohne das Feld ist das ein doppelter Eintrag, bei dem
+    /// einer den anderen still überschreibt.
+    func testRejectsTwoEntriesThatShareTheirRawNameBehindDifferentUnicodeNames() throws {
+        let rawName = Data("word/media/image1.bin".utf8)
+        let archive = try ZIPFixtureBuilder.archive(entries: [
+            Self.contentTypesEntry,
+            Self.documentEntry,
+            ZIPFixtureBuilder.Entry(
+                name: "word/media/first.bin",
+                content: Data(repeating: 0x2E, count: 64),
+                rawNameBytes: rawName,
+                centralUnicodePathName: "word/media/first.bin"
+            ),
+            ZIPFixtureBuilder.Entry(
+                name: "word/media/second.bin",
+                content: Data(repeating: 0x2F, count: 64),
+                rawNameBytes: rawName,
+                centralUnicodePathName: "word/media/second.bin"
+            ),
+        ])
+
+        try assertRejected(archive, named: "UnicodeRawDuplicate.docx", containing: "duplicate entry")
+    }
+
+    /// Ein Verzeichniseintrag mit Nutzlast: `verifyEntryContents` überspringt ihn,
+    /// deshalb darf er gar keine haben.
+    func testRejectsADirectoryEntryThatDeclaresContent() throws {
+        let archive = try ZIPFixtureBuilder.archive(entries: [
+            Self.contentTypesEntry,
+            Self.documentEntry,
+            ZIPFixtureBuilder.Entry(
+                name: "word/media/",
+                content: Data(repeating: 0x2E, count: 4096)
+            ),
+        ])
+
+        try assertRejected(
+            archive,
+            named: "DirectoryWithContent.docx",
+            containing: "directory entry declares content"
+        )
+    }
+
+    /// Gegenprobe: Ein regelkonformes Feld wird weiterhin genommen. Der Rohname
+    /// steht in CP437 (`0x84` ist dort `ä`), das Feld nennt denselben Pfad als
+    /// UTF-8 — Datei bleibt Datei, und das Paket wandelt sich um.
+    func testAcceptsAUnicodePathFieldThatMatchesTheRawName() throws {
+        var rawName = Data("word/media/b".utf8)
+        rawName.append(0x84)
+        rawName.append(contentsOf: Data("ume.bin".utf8))
+        let archive = try ZIPFixtureBuilder.archive(entries: [
+            Self.contentTypesEntry,
+            Self.documentEntry,
+            ZIPFixtureBuilder.Entry(
+                name: "word/media/bäume.bin",
+                content: Data(repeating: 0x2E, count: 64),
+                rawNameBytes: rawName,
+                explicitFlags: 0,                       // kein Bit 11 -> CP437
+                centralUnicodePathName: "word/media/bäume.bin"
+            ),
+        ])
+        let sourceURL = temporaryDirectory.appendingPathComponent("UnicodeMatch.docx")
+        try archive.write(to: sourceURL)
+
+        let stagedURL = try ZIPArchiveInspector.stageVerifiedPackage(
+            from: sourceURL,
+            into: workDirectory,
+            named: "verified-source.docx"
+        )
+
+        XCTAssertEqual(try Data(contentsOf: stagedURL), archive)
+    }
+
+    private static let contentTypesEntry = ZIPFixtureBuilder.Entry(
+        name: "[Content_Types].xml",
+        content: Data(contentTypes.utf8)
+    )
+
+    private static let documentEntry = ZIPFixtureBuilder.Entry(
+        name: "word/document.xml",
+        content: Data(documentXML.utf8)
+    )
+
     /// Ein CP437-Medienname aus `word/media/` plus genau einem hohen Byte.
     private static func cp437MediaEntry(highByte: UInt8) -> ZIPFixtureBuilder.Entry {
         var rawName = Data("word/media/".utf8)

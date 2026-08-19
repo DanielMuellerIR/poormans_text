@@ -216,7 +216,13 @@ enum ZIPArchiveInspector {
 
             var parsedEntries = [Entry]()
             parsedEntries.reserveCapacity(entryCount)
+            // Zwei getrennte Sichten, zwei getrennte Kollisionsprüfungen: Ein
+            // Verbraucher liest entweder den Namen mit Unicode-Extrafeld oder den
+            // aus den Rohbytes. Jede Sicht für sich muss eindeutig sein; ein
+            // Treffer QUER über beide Sichten sagt dagegen nichts, weil kein
+            // Verbraucher beide Namen zugleich sieht.
             var names = Set<String>()
+            var rawNames = Set<String>()
             var totalUncompressedSize = 0
             var offset = centralOffset
 
@@ -259,12 +265,28 @@ enum ZIPArchiveInspector {
                 guard !rawName.contains(0) else {
                     throw ArchiveError("a ZIP entry name is not readable")
                 }
-                let name = try Self.decodedEntryName(
+                let entryNames = try Self.entryNames(
                     rawName: rawName,
                     flags: flags,
                     extraField: extraField
                 )
+                let name = entryNames.effective
+                // BEIDE Namen müssen sicher sein, nicht nur der bevorzugte: Ein
+                // Verbraucher, der das Unicode-Extrafeld nicht liest, entpackt
+                // nach dem Rohnamen, und der wurde vorher nie geprüft.
                 try Self.validateEntryName(name)
+                try Self.validateEntryName(entryNames.rawDecoded)
+                // Und beide müssen dasselbe MEINEN. Der abschließende Slash
+                // entscheidet über „Verzeichnis oder Datei", und ein Eintrag, der
+                // nur über den Unicode-Namen als Verzeichnis auftritt, überspränge
+                // damit die Größen- und CRC-Prüfung in `verifyEntryContents` —
+                // während der Verbraucher die ungeprüfte Nutzlast unter dem
+                // Rohnamen bekommt (Review-Fund 2026-08-19).
+                guard name.hasSuffix("/") == entryNames.rawDecoded.hasSuffix("/") else {
+                    throw ArchiveError(
+                        "a ZIP entry and its Unicode path field disagree about being a directory"
+                    )
+                }
                 // Beim Entpacken zählt der Name, den das Dateisystem sieht: APFS
                 // ist standardmäßig nicht zwischen Groß- und Kleinschreibung
                 // unterscheidend, deshalb würden `word/media/a.png` und
@@ -281,6 +303,15 @@ enum ZIPArchiveInspector {
                 guard names.insert(collisionKey).inserted else {
                     throw ArchiveError("the ZIP package contains a duplicate entry: \(name)")
                 }
+                let rawCollisionKey = Self.logicalName(of: entryNames.rawDecoded).folding(
+                    options: [.caseInsensitive],
+                    locale: nil
+                )
+                guard rawNames.insert(rawCollisionKey).inserted else {
+                    throw ArchiveError(
+                        "the ZIP package contains a duplicate entry: \(entryNames.rawDecoded)"
+                    )
+                }
 
                 // Das Symlink-Muster im oberen Attributwort zählt unabhängig
                 // davon, welches Host-System der Erzeuger einträgt. Vorher war
@@ -293,6 +324,15 @@ enum ZIPArchiveInspector {
                 let unixMode = externalAttributes >> 16
                 if unixMode & 0xF000 == 0xA000 {
                     throw ArchiveError("symbolic links are not allowed in document packages")
+                }
+
+                // `verifyEntryContents` überspringt Verzeichnisse. Damit dieses
+                // Übergehen folgenlos bleibt, darf ein Verzeichniseintrag gar
+                // keine Nutzlast deklarieren — so schreibt es auch jedes echte
+                // Werkzeug: die Verzeichniseinträge der ODT-Fixtures dieses Repos
+                // stehen alle auf 0.
+                if name.hasSuffix("/"), compressedSize != 0 || uncompressedSize != 0 {
+                    throw ArchiveError("a ZIP directory entry declares content: \(name)")
                 }
 
                 totalUncompressedSize += uncompressedSize
@@ -428,6 +468,26 @@ enum ZIPArchiveInspector {
                     == entry.rawName else {
                 throw ArchiveError("the local ZIP entry for \(entry.name) is inconsistent")
             }
+            // Das Extrafeld steht zweimal im Archiv, und manche Verbraucher lesen
+            // den Namen aus dem lokalen Header. Ein eigenes Unicode-Path-Feld dort
+            // ergäbe für sie einen anderen Pfad als den hier geprüften, deshalb
+            // muss der wirksame Name beider Kopien übereinstimmen. Verglichen wird
+            // nur dieses eine Feld: Die übrigen Extrafelder dürfen sich regulär
+            // unterscheiden — Info-ZIP schreibt lokal etwa mehr Zeitstempel als
+            // zentral.
+            let localExtraField = data.subdata(
+                in: (offset + 30 + nameLength)..<(offset + 30 + nameLength + extraLength)
+            )
+            let localNames = try Self.entryNames(
+                rawName: entry.rawName,
+                flags: localFlags,
+                extraField: localExtraField
+            )
+            guard localNames.effective == entry.name else {
+                throw ArchiveError(
+                    "the local ZIP header for \(entry.name) declares a different Unicode path"
+                )
+            }
             return contentStart..<contentEnd
         }
 
@@ -458,16 +518,23 @@ enum ZIPArchiveInspector {
         /// auf einem case-insensitiven Dateisystem denselben Pfad sieht — ein
         /// Eintrag hätte den anderen still überschrieben
         /// (Review-Fund 2026-08-17).
-        private static func decodedEntryName(
+        private static func entryNames(
             rawName: Data,
             flags: UInt16,
             extraField: Data
-        ) throws -> String {
+        ) throws -> EntryNames {
+            let rawDecoded = try Self.rawDecodedName(rawName: rawName, flags: flags)
             // Ein Unicode-Path-Extrafeld hat Vorrang, sobald es zum Rohnamen
             // passt: genau diesen Namen nimmt auch ein regelkonformer Entpacker.
-            if let unicodeName = try Self.unicodePathName(in: extraField, rawName: rawName) {
-                return unicodeName
+            // Der Rohname bleibt trotzdem erhalten — ein Verbraucher, der das Feld
+            // nicht auswertet, arbeitet mit ihm.
+            guard let unicodeName = try Self.unicodePathName(in: extraField, rawName: rawName) else {
+                return EntryNames(effective: rawDecoded, rawDecoded: rawDecoded)
             }
+            return EntryNames(effective: unicodeName, rawDecoded: rawDecoded)
+        }
+
+        private static func rawDecodedName(rawName: Data, flags: UInt16) throws -> String {
             if flags & 0x0800 != 0 {
                 // Bit 11 gesetzt heißt: der Name IST UTF-8. Ein Rückfall auf
                 // eine andere Kodierung wäre hier eine stille Umdeutung.
@@ -576,6 +643,15 @@ enum ZIPArchiveInspector {
                 throw ArchiveError("the ZIP package contains an unsafe entry path")
             }
         }
+    }
+
+    /// Die beiden Lesarten eines Eintragsnamens. Ohne Unicode-Path-Extrafeld
+    /// sind sie gleich; mit Feld liest ein regelkonformer Entpacker `effective`
+    /// und ein Verbraucher ohne Unterstützung dafür `rawDecoded`. Geprüft werden
+    /// muss deshalb beides.
+    private struct EntryNames {
+        let effective: String
+        let rawDecoded: String
     }
 
     private struct Entry {

@@ -27,6 +27,14 @@ enum ZIPFixtureBuilder {
         /// Externe Attribute. Das obere Wort trägt bei Unix-artigen Erzeugern
         /// den Dateimodus — `0o120000` darin kennzeichnet einen Symlink.
         var externalAttributes: UInt32?
+        /// Name in einem Unicode-Path-Extrafeld (Header-ID `0x7075`) des
+        /// ZENTRALEN Verzeichniseintrags. Seine Prüfsumme passt zum Rohnamen, das
+        /// Feld gilt damit als aktuell und geht ihm vor.
+        var centralUnicodePathName: String?
+        /// Dasselbe Feld im LOKALEN Header. Ohne Angabe bleibt der lokale Header
+        /// ohne Extrafeld — so schreiben es Erzeuger, die den Namen nur zentral
+        /// zusätzlich ablegen.
+        var localUnicodePathName: String?
     }
 
     enum BuilderError: Error {
@@ -242,6 +250,12 @@ enum ZIPFixtureBuilder {
             let checksum = entry.declaredChecksum ?? crc32(entry.content)
             let declaredSize = UInt32(entry.declaredUncompressedSize ?? entry.content.count)
             let localHeaderOffset = UInt32(localSection.count)
+            let localExtra = entry.localUnicodePathName.map {
+                unicodePathField(name: $0, rawName: nameBytes)
+            } ?? Data()
+            let centralExtra = entry.centralUnicodePathName.map {
+                unicodePathField(name: $0, rawName: nameBytes)
+            } ?? Data()
 
             localSection.appendUInt32(0x0403_4B50)
             localSection.appendUInt16(20)                       // benötigte Version
@@ -253,8 +267,9 @@ enum ZIPFixtureBuilder {
             localSection.appendUInt32(UInt32(payload.count))
             localSection.appendUInt32(declaredSize)
             localSection.appendUInt16(UInt16(nameBytes.count))
-            localSection.appendUInt16(0)                        // Extrafeld
+            localSection.appendUInt16(UInt16(localExtra.count))
             localSection.append(nameBytes)
+            localSection.append(localExtra)
             localSection.append(payload)
 
             centralSection.appendUInt32(0x0201_4B50)
@@ -269,13 +284,14 @@ enum ZIPFixtureBuilder {
             centralSection.appendUInt32(UInt32(payload.count))
             centralSection.appendUInt32(declaredSize)
             centralSection.appendUInt16(UInt16(nameBytes.count))
-            centralSection.appendUInt16(0)                      // Extrafeld
+            centralSection.appendUInt16(UInt16(centralExtra.count))
             centralSection.appendUInt16(0)                      // Kommentar
             centralSection.appendUInt16(0)                      // Datenträger
             centralSection.appendUInt16(0)                      // interne Attribute
             centralSection.appendUInt32(entry.externalAttributes ?? 0)
             centralSection.appendUInt32(localHeaderOffset)
             centralSection.append(nameBytes)
+            centralSection.append(centralExtra)
         }
 
         var archive = localSection
@@ -290,6 +306,21 @@ enum ZIPFixtureBuilder {
         archive.appendUInt32(centralOffset)
         archive.appendUInt16(0)                                 // Archivkommentar
         return archive
+    }
+
+    /// Ein Unicode-Path-Extrafeld nach APPNOTE 4.6.9: Header-ID, Nutzlastlänge,
+    /// Version 1, CRC-32 über den Rohnamen und der Name als UTF-8. Die Prüfsumme
+    /// passt hier immer, das Feld gilt damit als aktuell.
+    private static func unicodePathField(name: String, rawName: Data) -> Data {
+        var payload = Data()
+        payload.append(UInt8(1))
+        payload.appendUInt32(crc32(rawName))
+        payload.append(Data(name.utf8))
+        var field = Data()
+        field.appendUInt16(0x7075)
+        field.appendUInt16(UInt16(payload.count))
+        field.append(payload)
+        return field
     }
 
     /// Rohes Deflate ohne zlib-Kopf — genau das erwartet ZIP-Methode 8.

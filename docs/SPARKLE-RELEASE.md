@@ -16,9 +16,9 @@ Zwei unabhängige Prüfungen bleiben Pflicht:
 
 Der private Sparkle-Schlüssel gehört weder in Git noch in Logs oder Argumente.
 Nur sein öffentlicher Gegenpart steht als `SUPublicEDKey` in `App/Info.plist`.
-Poor Man's Text benutzt bewusst dasselbe Schlüsselpaar wie Fastra; es liegt im
-lokalen Schlüsselbund unter dem Dienst `https://sparkle-project.org`. Eine
-Rotation beträfe damit beide Apps.
+Poor Man's Text benutzt bewusst dasselbe Schlüsselpaar wie Fastra und (seit
+2026-08-06) MD Clip; es liegt im lokalen Schlüsselbund unter dem Dienst
+`https://sparkle-project.org`. Eine Rotation beträfe damit alle drei Apps.
 
 ## Was im Projekt dazugehört
 
@@ -46,7 +46,7 @@ Rotation beträfe damit beide Apps.
    Datei danach sicher entfernen. Den Schlüssel nie auf stdout ausgeben.
 3. Den Schlüssel zusätzlich verschlüsselt sichern. Geht er verloren, ist eine
    kontrollierte Rotation über ein Developer-ID-signiertes DMG nötig — und zwar
-   für Poor Man's Text und Fastra gemeinsam.
+   für Poor Man's Text, Fastra und MD Clip gemeinsam.
 
 ## Ablauf pro Release
 

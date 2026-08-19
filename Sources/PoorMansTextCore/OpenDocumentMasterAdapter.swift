@@ -208,7 +208,12 @@ struct OpenDocumentMasterAdapter: DocumentConversionAdapter {
             throw MasterError("ODM section reference leaves the document bundle: \(reference)")
         }
 
-        let base = masterURL.deletingLastPathComponent().resolvingSymlinksInPath()
+        // Erst den Verweis auf die ODM-Datei auflösen, dann ihr Verzeichnis
+        // nehmen — nicht umgekehrt. Ein Master verweist relativ auf seine
+        // Teildokumente, und die liegen beim ORIGINAL. Wählt der Nutzer einen
+        // Symlink aus, suchte die alte Reihenfolge sie neben dem Verweis und
+        // meldete sie als fehlend. Ohne Symlink sind beide Reihenfolgen gleich.
+        let base = masterURL.resolvingSymlinksInPath().deletingLastPathComponent()
         let candidate = base.appendingPathComponent(decodedPath).standardizedFileURL
         var isDirectory: ObjCBool = false
         guard FileManager.default.fileExists(atPath: candidate.path, isDirectory: &isDirectory),
@@ -862,6 +867,9 @@ enum MarkdownLinkTargetRewriter {
     }
 
     private static func isThematicBreak(_ line: String) -> Bool {
+        // `markers` ist die Zeile ohne Leerraum. Sind alle diese Zeichen
+        // derselbe Marker, besteht die Zeile zwangsläufig nur aus Marker und
+        // Leerraum — eine zweite Prüfung über die ganze Zeile wäre wirkungslos.
         let markers = line.filter { character in
             character != " " && character != "\t"
         }
@@ -871,7 +879,6 @@ enum MarkdownLinkTargetRewriter {
             return false
         }
         return markers.allSatisfy { $0 == marker }
-            && line.allSatisfy { $0 == marker || $0 == " " || $0 == "\t" }
     }
 
     private static func isClosingFence(

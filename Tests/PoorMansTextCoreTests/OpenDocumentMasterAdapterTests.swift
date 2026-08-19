@@ -68,6 +68,44 @@ final class OpenDocumentMasterAdapterTests: XCTestCase {
         )
     }
 
+    func testResolvesLinkedDocumentsRelativeToTheRealMasterBehindASymbolicLink() throws {
+        try requirePandoc()
+        // Teildokumente liegen neben dem ECHTEN Master. Wählt der Nutzer einen
+        // Verweis darauf aus, darf der Bezugspunkt nicht das Verzeichnis des
+        // Verweises sein — dort steht nichts, und der Abschnitt galt als fehlend.
+        let bundle = temporaryDirectory.appendingPathComponent("buch", isDirectory: true)
+        try FileManager.default.createDirectory(at: bundle, withIntermediateDirectories: true)
+        let masterURL = bundle.appendingPathComponent("Book.odm")
+        try ZIPFixtureBuilder.odmPackage(
+            contentXML: masterContent(sections: [("Chapter One", "chapter-one.odt")])
+        ).write(to: masterURL)
+        try FileManager.default.copyItem(
+            at: wordFixture("pandoc.odt"),
+            to: bundle.appendingPathComponent("chapter-one.odt")
+        )
+
+        let linkURL = temporaryDirectory.appendingPathComponent("Verweis.odm")
+        try FileManager.default.createSymbolicLink(at: linkURL, withDestinationURL: masterURL)
+
+        let result = try DocumentConverter().convert(
+            ConversionRequest(
+                inputURL: linkURL,
+                destination: .directory(temporaryDirectory.appendingPathComponent("link-result"))
+            )
+        )
+        let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+
+        XCTAssertEqual(result.format, .odm)
+        XCTAssertTrue(markdown.contains("## Section: Chapter One"))
+        XCTAssertTrue(markdown.contains("Master introduction."))
+        // Das Ergebnis gehört weiterhin dorthin, wohin der Aufrufer es bestellt
+        // hat, und nicht neben das Original.
+        XCTAssertEqual(
+            result.outputDirectory.standardizedFileURL,
+            temporaryDirectory.appendingPathComponent("link-result").standardizedFileURL
+        )
+    }
+
     func testRejectsRemoteTraversalMissingAndEscapingSymlinkReferences() throws {
         let outsideODT = wordFixture("pandoc.odt")
         let escapingLink = temporaryDirectory.appendingPathComponent("escape.odt")

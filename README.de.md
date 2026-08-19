@@ -74,7 +74,7 @@ DMG und zugehörige `.sha256`-Datei stehen im
 Ordner, lässt sich der Download vor dem Öffnen prüfen:
 
 ```sh
-shasum -a 256 -c Poor-Mans-Text-0.8.3.dmg.sha256
+shasum -a 256 -c Poor-Mans-Text-0.8.4.dmg.sha256
 ```
 
 Danach das DMG öffnen und Poor Man's Text in den Programme-Ordner ziehen. Die
@@ -314,7 +314,7 @@ verwenden lokal verknüpfte ODT-Dateien. Die Tests prüfen außerdem vorhandene
 Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.8.3.
+Die aktuelle Version ist 0.8.4.
 
 ## Lizenz
 

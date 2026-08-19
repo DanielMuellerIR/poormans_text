@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.8.4 - 2026-08-19
+
+- Convert documents selected through a symbolic link again in every format, and
+  resolve the sections of a master document next to the real master.
+- Reject ZIP entries that describe a symbolic link regardless of the host system
+  named in the archive, and check both readings of an entry name so that none
+  can leave the package or skip size and checksum verification through a Unicode
+  path field.
+- Take the checks of a package and its bytes from a single file descriptor, and
+  reject a named pipe or device file as input instead of waiting for it without
+  a time limit.
+- Share one hyperlink scan budget across all sheets of a workbook so that a
+  spreadsheet within every documented limit cannot occupy detection and
+  conversion for a long time.
+- Keep a single space where an explicit space meets a note paragraph in master
+  documents, and select attributes deterministically when a document assigns two
+  prefixes to the same namespace.
+
 ## 0.8.3 - 2026-08-16
 
 - Revalidate the exact staged DOC bytes before conversion, disable remote

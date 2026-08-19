@@ -19,7 +19,7 @@ final class ProductInfoTests: XCTestCase {
         )
 
         XCTAssertEqual(plist["CFBundleShortVersionString"] as? String, ProductInfo.version)
-        XCTAssertEqual(plist["CFBundleVersion"] as? String, "13")
+        XCTAssertEqual(plist["CFBundleVersion"] as? String, "14")
         XCTAssertEqual(plist["CFBundleIconFile"] as? String, "AppIcon")
         XCTAssertEqual(plist["NSHumanReadableCopyright"] as? String, "© 2026 Daniel Müller")
         let documentTypes = try XCTUnwrap(plist["CFBundleDocumentTypes"] as? [[String: Any]])
@@ -41,14 +41,14 @@ final class ProductInfoTests: XCTestCase {
                 contentsOf: projectRoot.appendingPathComponent(filename),
                 encoding: .utf8
             )
-            XCTAssertTrue(contents.contains("0.8.3"), "\(filename) has no current version")
+            XCTAssertTrue(contents.contains("0.8.4"), "\(filename) has no current version")
         }
 
         let changelog = try String(
             contentsOf: projectRoot.appendingPathComponent("CHANGELOG.md"),
             encoding: .utf8
         )
-        XCTAssertTrue(changelog.contains("## 0.8.3 - 2026-08-16"))
+        XCTAssertTrue(changelog.contains("## 0.8.4 - 2026-08-19"))
     }
 
     func testPublicLicenseMetadataUsesWTFPLVersion2() throws {

@@ -2,15 +2,23 @@
   "schema_version": 1,
   "project": "poormans_text",
   "campaign": {
-    "id": "20260815T125412077498+0200",
-    "token_budget": 750000,
-    "status": "complete",
-    "started_at": "2026-08-15T12:54:12+02:00",
-    "tokens_spent": 243441,
-    "finished_at": "2026-08-15T13:14:26+02:00",
-    "finish_reason": "all-current"
+    "id": "20260819T180037868197+0200",
+    "token_budget": 3000000,
+    "status": "active",
+    "started_at": "2026-08-19T18:00:37+02:00",
+    "tokens_spent": 351749
   },
-  "campaign_history": [],
+  "campaign_history": [
+    {
+      "id": "20260815T125412077498+0200",
+      "token_budget": 750000,
+      "status": "complete",
+      "started_at": "2026-08-15T12:54:12+02:00",
+      "tokens_spent": 243441,
+      "finished_at": "2026-08-15T13:14:26+02:00",
+      "finish_reason": "all-current"
+    }
+  ],
   "scope": {
     "paths": [
       "Sources",
@@ -43,23 +51,26 @@
         "Tests/PoorMansTextCoreTests/ProductInfoTests.swift",
         "Tests/PoorMansTextCoreTests/PandocToolTests.swift",
         "Tests/PoorMansTextCoreTests/ProcessRunnerTests.swift",
-        "Tests/PoorMansTextCoreTests/FixtureFactory.swift"
+        "Tests/PoorMansTextCoreTests/FixtureFactory.swift",
+        "Sources/PoorMansTextCore/VerifiedFileStaging.swift",
+        "Tests/PoorMansTextCoreTests/ReviewFixes20260817Tests.swift",
+        "Tests/PoorMansTextCoreTests/SymbolicLinkInputTests.swift"
       ],
       "risk": "high",
       "priority": 1,
       "reason": "Orchestrator: Adapterwahl, atomare Veröffentlichung, Kollisionsschutz — breite Aufrufwirkung",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20260815T125412077498+0200",
-        "completed_at": "2026-08-15T13:04:05+02:00",
-        "observed_head": "f140b2326d9e600547ba33115066758dc1aa998d",
-        "content_sha256": "914b91443437ddb08d1d4c7ef307c3aa86587ff7bfe16c008f759e9ad6da4d5c",
-        "file_count": 16,
+        "campaign_id": "20260819T180037868197+0200",
+        "completed_at": "2026-08-19T18:14:20+02:00",
+        "observed_head": "6864000e41b2595bb52b25c9ba2e694dbae9ad07",
+        "content_sha256": "7edbcce0b62f11427ed375bb3c3c5d3a63bac75f906eee1affc74747ff354988",
+        "file_count": 19,
         "review": "full",
         "outcome": "improved",
-        "summary": "outputInsideInput-Schutz case-insensitiv auf APFS: validateOutput faltet Pfade volume-abhängig; sonst konnte ein anders geschriebenes explizites Ziel ins Quellpaket schreiben. Übrige Engine-Dateien reviewed-clean",
+        "summary": "Nachbuchung des Querschnitts-Funds symlink-input-rejected: Delta gegenüber dem Vollreview von heute ist genau der verifizierte Theme-Diff — O_NOFOLLOW nur noch am Staging-Ziel plus die neue Regressionsdatei SymbolicLinkInputTests",
         "tests": [
-          "swift test: 193 passed, 0 failures"
+          "swift test: 225 passed, 0 failures"
         ]
       }
     },
@@ -75,16 +86,18 @@
       "reason": "Zentrales Paket-Gate: Traversal, Symlinks, Größenbudgets — sicherheitskritisch für alle ZIP-Formate",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20260815T125412077498+0200",
-        "completed_at": "2026-08-15T13:14:25+02:00",
-        "observed_head": "44667658e86d2f64cc6c7ed1f87cd472ea74b7a8",
-        "content_sha256": "f13fdcba9fcd879c3caf1f3c3af8c750ffd441657f7755969d4c853297022c29",
+        "campaign_id": "20260819T180037868197+0200",
+        "completed_at": "2026-08-19T18:20:20+02:00",
+        "observed_head": "6b15e3202ddceb140f099891c9460e1548c9718f",
+        "content_sha256": "8cdf97720a509278ee5d7a76e5295050ef63ce189933488ec14cd992e71cf301",
         "file_count": 3,
-        "review": "full",
-        "outcome": "reviewed-clean",
-        "summary": "Delta seit dem Bereichsabschluss ist ausschließlich die verifizierte Entfernung des privaten NamespacePrefixTracker-Duplikats (Querschnitts-Fund); Vollreview der Datei erfolgte heute in derselben Session",
+        "review": "delta-plus-boundaries",
+        "outcome": "improved",
+        "summary": "Delta (CP437-Dekodierung, Unicode-Path-Extrafeld, folding statt lowercased im Kollisionsschlüssel) geprüft und tragfähig: CP437-Tabelle hat exakt 128 Einträge, alle Offsets sind über die Kette entryEnd<=centralOffset+centralSize<=endOffset<count gesichert, contentRange vergleicht lokalen und zentralen Rohnamen samt Flags und Methode. Ein Fund behoben: die Symlink-Ablehnung war an hostSystem==3 gebunden und ließ denselben S_IFLNK-Eintrag unter Host 19 und 0 durch — ausgerechnet 0 schreiben alle realen Office-Erzeuger",
         "tests": [
-          "swift test: 194 passed, 0 failures"
+          "swift test: 227 passed, 0 failures",
+          "Gegenprobe: neuer Symlink-Test scheitert gegen den Stand davor für Host 0 und 19",
+          "Reproduktion über die CLI mit präpariertem DOCX: vor dem Fix akzeptiert, danach abgelehnt"
         ]
       }
     },
@@ -106,16 +119,18 @@
       "reason": "Drei native Binär-/XML-Parser, Datenintegrität, größter Codeblock",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20260815T125412077498+0200",
-        "completed_at": "2026-08-15T13:14:25+02:00",
-        "observed_head": "44667658e86d2f64cc6c7ed1f87cd472ea74b7a8",
-        "content_sha256": "0a1a6015eaa51b9a27daffe510a90a12a4ef9b0b2bda02f77d28b9ead507594f",
+        "campaign_id": "20260819T180037868197+0200",
+        "completed_at": "2026-08-19T18:30:31+02:00",
+        "observed_head": "8241938e6c45ff111662017ac3fb53c4e874373d",
+        "content_sha256": "3e03913a80031ad6d05966137dd82061764e69840f13a876548e324a1e1002ce",
         "file_count": 11,
         "review": "delta-plus-boundaries",
-        "outcome": "reviewed-clean",
-        "summary": "Delta ist ausschließlich die verifizierte Entfernung des privaten NamespacePrefixTracker-Duplikats in XLSXWorkbookParser.swift (Querschnitts-Fund); Grenzen unverändert",
+        "outcome": "improved",
+        "summary": "Delta geprüft (begrenzte Renderer-Ausgabe mit Untergrenzen-Vorlauf im TSV-Weg, XLSX-Textbudget): Untergrenze ist konservativ, Padding-Verhalten unverändert, Budgetarithmetik überlaufsicher. Ein gemessener Engpass behoben: Hyperlink-Bereiche hatten kein gemeinsames Scanbudget — 2000 Hyperlinks über je 20.000 Zellen kosteten 40 s bei 68 KiB Dateigröße, jetzt 0,7 s Ablehnung bei unverändertem Normalfall (50.000 Einzelzell-Hyperlinks in 1,1 s). Grenzflächen ODS und XLS: eigene Textbudgets fehlen dort, der Renderer fängt beide ab — mit einer 4,4 KiB großen ODS-Wiederholungsbombe über 1 Mio Zellen a 4 MB Text in beiden Rendering-Modi belegt",
         "tests": [
-          "swift test: 194 passed, 0 failures"
+          "swift test: 229 passed, 0 failures",
+          "Gegenprobe: neuer Scanbudget-Test scheitert gegen den Stand davor, Einzelzell-Test bleibt grün",
+          "Messung über die CLI: 40,4 s -> 0,68 s bei der Angriffsdatei; legitime Datei unverändert 1,1 s"
         ]
       }
     },
@@ -131,16 +146,18 @@
       "reason": "Pfadauflösung lokaler Teildokumente: Pfadfluchten, Symlinks",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20260815T125412077498+0200",
-        "completed_at": "2026-08-15T13:09:47+02:00",
-        "observed_head": "773e011f36a694a7a71503fe463e5a40de6813c3",
-        "content_sha256": "ba1749c8931f03ad228f37bfb6637bd34df42fe208e73db6c4ee7113f6307717",
+        "campaign_id": "20260819T180037868197+0200",
+        "completed_at": "2026-08-19T18:34:48+02:00",
+        "observed_head": "202a3c5984604f3b405c56ccc4535dbdea4b8227",
+        "content_sha256": "b7ce40c48bd5f35e9fd09b0a00dcf03e1e4213e30cf20dd6b42853221ce00673",
         "file_count": 3,
-        "review": "full",
-        "outcome": "reviewed-clean",
-        "summary": "Pfadauflösung (Schema/Host/Query, Backslash, .., Symlink-Flucht, Existenz) und Markdown-Rewriter vollständig geprüft; AGENTS-Invariante vom 2026-08-09 korrekt umgesetzt, 19 Rewriter-Tests decken die Fälle; kein lohnender Umbau",
+        "review": "delta-plus-boundaries",
+        "outcome": "improved",
+        "summary": "Delta geprüft (namensraumbasierte Attributauflösung statt Suffix-Vergleich, needsSpace-Heuristik an der Absatznaht, Thematic-Break-Erkennung, GFM-Regel gegen Backticks im Fence-Info). Zwei Funde: die Auflösung lokaler Teildokumente nahm das Verzeichnis des ausgewählten Pfades statt des echten Masters — hinter einem Verweis galten alle Abschnitte als fehlend, sichtbar erst durch den heutigen Symlink-Fix; und in isThematicBreak war eine zweite Bedingung nachweislich wirkungslos. Grenzfläche resolve() im Übrigen gründlich: kein Schema/Host/Query, kein absoluter Pfad, kein Backslash, kein '..', Escape-Prüfung nach Symlink-Auflösung. Bewusste Grenze der needsSpace-Heuristik: ambivalente Anführungszeichen sind im Code als solche benannt",
         "tests": [
-          "swift test: 194 passed, 0 failures (OpenDocumentMasterAdapterTests enthalten)"
+          "swift test: 230 passed, 0 failures",
+          "Gegenprobe: neuer ODM-Verweis-Test scheitert gegen den Stand davor mit 'linked ODM section is missing'",
+          "Äquivalenzbeweis isThematicBreak: 299.593 Zeichenketten geprüft, 0 Abweichungen"
         ]
       }
     },
@@ -152,7 +169,7 @@
       "risk": "medium",
       "priority": 3,
       "reason": "Gemeinsame XML-Namensraum-Hilfsklasse, aus der Konsolidierung des Querschnitts-Funds entstanden; von ZIP-Inspector und XLSX-Parser genutzt",
-      "state": "completed",
+      "state": "in_progress",
       "last_run": {
         "campaign_id": "20260815T125412077498+0200",
         "completed_at": "2026-08-15T13:12:53+02:00",
@@ -165,6 +182,12 @@
         "tests": [
           "swift test: 194 passed, 0 failures"
         ]
+      },
+      "active_run": {
+        "campaign_id": "20260819T180037868197+0200",
+        "started_at": "2026-08-19T18:34:57+02:00",
+        "required_review": "delta-plus-boundaries",
+        "status_at_start": "changed"
       }
     },
     {
@@ -364,6 +387,30 @@
         "summary": "NamespacePrefixTracker als eine interne Klasse in eigener Datei konsolidiert; private Duplikate in ZIPArchiveInspector und XLSXWorkbookParser entfernt",
         "tests": [
           "swift test: 194 passed, 0 failures"
+        ]
+      }
+    },
+    {
+      "id": "symlink-input-rejected",
+      "summary": "Ein Symlink als Eingabedatei wird für alle ZIP-Formate (DOCX/ODT/ODS/XLSX/ODM) mit der sachlich falschen Meldung 'the package is not a regular file' abgelehnt, während RTF über denselben Symlink konvertiert — zwei Stellen: Archive.init prüft isRegularFile ohne den Verweis aufzulösen, VerifiedFileStaging.stage öffnet die Quelle mit O_NOFOLLOW",
+      "evidence": [
+        "Sources/PoorMansTextCore/ZIPArchiveInspector.swift",
+        "Sources/PoorMansTextCore/VerifiedFileStaging.swift"
+      ],
+      "priority": 1,
+      "state": "completed",
+      "noted_at": "2026-08-19T18:04:51+02:00",
+      "campaign_id": "20260819T180037868197+0200",
+      "started_at": "2026-08-19T18:06:18+02:00",
+      "completed": {
+        "campaign_id": "20260819T180037868197+0200",
+        "completed_at": "2026-08-19T18:14:04+02:00",
+        "observed_head": "6864000e41b2595bb52b25c9ba2e694dbae9ad07",
+        "summary": "Vier Stellen benutzten den Eingabepfad ohne den Verweis aufzulösen; alle sieben Nicht-RTF-Formate waren dadurch über einen Symlink unkonvertierbar. Behoben in ZIPArchiveInspector.Archive (aufgelöst prüfen), VerifiedFileStaging (O_NOFOLLOW nur noch am Ziel), SpreadsheetAdapter (beide XLS-Prüfungen) und RichTextConverter (textutil-Argument). Der XLS-Zweig staged dabei jetzt über VerifiedFileStaging statt 'Pfad prüfen, danach copyItem' — dieselbe TOCTOU-Lücke, die der Review 2026-08-17 anderswo schloss. Ausgabeort und gemeldete Pfade unverändert",
+        "tests": [
+          "swift test: 225 passed, 0 failures",
+          "swift build -c release: erfolgreich",
+          "Gegenprobe: 6 der 10 neuen Tests scheitern gegen den Stand vor dem Fix, 4 Härtungstests bleiben in beiden Ständen grün"
         ]
       }
     }

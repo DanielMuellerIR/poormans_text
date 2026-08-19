@@ -23,19 +23,32 @@ final class NamespacePrefixTracker {
     /// Der Wert des Attributs, dessen Präfix wirklich auf den erwarteten
     /// Namensraum zeigt. Ein unpräfigiertes Attribut hat in XML keinen
     /// Namensraum und zählt deshalb nie.
+    ///
+    /// Zwei Attribute mit demselben Namensraum und Namen sind laut „Namespaces
+    /// in XML" verboten, aber `XMLParser` lehnt sie nicht ab: `xlink:href` und
+    /// ein zweites Präfix auf denselben Namensraum kommen beide im Dictionary
+    /// an. Dessen Reihenfolge hängt am Hash-Seed des Prozesses, weshalb sich
+    /// dasselbe Dokument von Lauf zu Lauf anders verhielt — gemessen an einem
+    /// ODM mit zwei `href`-Attributen: 20 Läufe, 4-mal das eine und 16-mal das
+    /// andere Teildokument. Deshalb hier der kleinste passende Attributname:
+    /// welcher gewinnt, ist bei ungültiger Eingabe willkürlich, aber es ist in
+    /// jedem Lauf derselbe.
     func attributeValue(
         localName: String,
         namespaceURI: String,
         in attributes: [String: String]
     ) -> String? {
+        var chosen: (name: String, value: String)?
         for (name, value) in attributes {
             guard let separator = name.firstIndex(of: ":"),
                   name[name.index(after: separator)...] == localName,
                   uris[String(name[..<separator])]?.last == namespaceURI else {
                 continue
             }
-            return value
+            if chosen == nil || name < chosen!.name {
+                chosen = (name, value)
+            }
         }
-        return nil
+        return chosen?.value
     }
 }

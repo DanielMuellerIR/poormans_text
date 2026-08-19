@@ -156,7 +156,7 @@ enum ODMContentParser {
                 return false
             }
             // Vorhandener Leerraum an der Naht genügt bereits.
-            guard !leftCharacter.isWhitespace, !rightCharacter.isWhitespace else {
+            guard !Self.isSpacing(leftCharacter), !Self.isSpacing(rightCharacter) else {
                 return false
             }
             guard !Self.noSpaceBefore.contains(rightCharacter),
@@ -164,6 +164,19 @@ enum ODMContentParser {
                 return false
             }
             return true
+        }
+
+        /// Steht an dieser Stelle bereits ein Leerzeichen?
+        ///
+        /// `text:s` und `text:tab` sammelt der Parser als Platzhalter U+FFFF und
+        /// U+FFFE und macht daraus erst in `ODMText.markdown` wieder Leerzeichen
+        /// und Tabulator. Beide Zeichen sind kein `isWhitespace`, weshalb die
+        /// Naht sie übersah und neben dem vorhandenen Platzhalter ein ZWEITES
+        /// Leerzeichen einfügte (Review-Fund 2026-08-19).
+        private static func isSpacing(_ character: Character) -> Bool {
+            character.isWhitespace
+                || character == ODMText.literalSpaceCharacter
+                || character == ODMText.literalTabCharacter
         }
 
         func parser(
@@ -242,8 +255,10 @@ enum ODMContentParser {
         /// Platzhalter für ein Leerzeichen aus `text:s`. U+FFFF ist in
         /// XML-Inhalten nicht erlaubt und kann deshalb nie aus dem Dokument
         /// selbst stammen.
-        static let literalSpace = "\u{FFFF}"
-        static let literalTab = "\u{FFFE}"
+        static let literalSpaceCharacter: Character = "\u{FFFF}"
+        static let literalTabCharacter: Character = "\u{FFFE}"
+        static let literalSpace = String(literalSpaceCharacter)
+        static let literalTab = String(literalTabCharacter)
 
         static func markdown(from raw: String) -> String {
             let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)

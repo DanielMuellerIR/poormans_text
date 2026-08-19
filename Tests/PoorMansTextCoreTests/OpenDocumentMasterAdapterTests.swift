@@ -227,6 +227,26 @@ final class OpenDocumentMasterAdapterTests: XCTestCase {
         XCTAssertEqual(markdown, "# AnnotationHyphen\n\nVor-Notiz-Nachsatz\n")
     }
 
+    /// Review-Fund 2026-08-19: Ein ausdrückliches Leerzeichen aus `text:s` steht
+    /// zum Zeitpunkt der Naht noch als Platzhalter U+FFFF im Text. `needsSpace`
+    /// kannte nur `isWhitespace` und setzte deshalb ein ZWEITES Leerzeichen
+    /// daneben — vor wie nach dem verschachtelten Notizabsatz.
+    func testAnnotationParagraphKeepsAnExplicitSpaceSingle() throws {
+        let markdown = try convertedMasterMarkdown(
+            body: """
+            <text:p>Before<text:s/><office:annotation><text:p>Note</text:p></office:annotation>After</text:p>
+            <text:p>Vor<office:annotation><text:p>Notiz</text:p></office:annotation><text:s/>Nachsatz</text:p>
+            <text:p>Links<text:tab/><office:annotation><text:p>Notiz</text:p></office:annotation>Rechts</text:p>
+            """,
+            name: "AnnotationExplicitSpace"
+        )
+
+        XCTAssertEqual(
+            markdown,
+            "# AnnotationExplicitSpace\n\nBefore Note After\n\nVor Notiz Nachsatz\n\nLinks\tNotiz Rechts\n"
+        )
+    }
+
     /// Der Fließtext des Masters wird unverändert als Markdown eingesetzt.
     /// Ohne Maskierung würde aus dem Absatz `# Kein Titel` eine Überschrift,
     /// ein manueller Umbruch bliebe weich und `text:s` fiele dem Trimmen zum

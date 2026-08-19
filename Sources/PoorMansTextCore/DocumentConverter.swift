@@ -177,6 +177,20 @@ public struct DocumentConverter: Sendable {
         guard fileManager.fileExists(atPath: inputURL.path) else {
             throw ConversionError.inputDoesNotExist(inputURL)
         }
+        // Als Eingabe kommen nur reguläre Dateien und Ordnerpakete wie RTFD in
+        // Frage. Der Rest — FIFO, Socket, Gerätedatei — wird hier abgewiesen,
+        // BEVOR ein Adapter ihn öffnet: Ein `open` auf eine FIFO ohne Schreiber
+        // kehrt nie zurück, und die Erkennung öffnet die Eingabe als Erstes.
+        // Ein solcher Pfad ließ die Umwandlung ohne Zeitgrenze stehen
+        // (gefunden beim Prüfen des Staging-Fundes vom 2026-08-19).
+        var info = stat()
+        guard stat(inputURL.path, &info) == 0 else {
+            throw ConversionError.inputDoesNotExist(inputURL)
+        }
+        let inputKind = info.st_mode & S_IFMT
+        guard inputKind == S_IFREG || inputKind == S_IFDIR else {
+            throw ConversionError.unsupportedInput(inputURL)
+        }
 
         var matches = [DetectedInput]()
         var invalidInputs = [InvalidDetectedInput]()

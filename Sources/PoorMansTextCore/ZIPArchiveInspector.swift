@@ -184,21 +184,11 @@ enum ZIPArchiveInspector {
         let entries: [Entry]
 
         init(url: URL) throws {
-            // Über den aufgelösten Pfad prüfen: `resourceValues` beschreibt sonst
-            // den Symlink selbst und meldet ihn als „nicht regulär", obwohl er auf
-            // ein gültiges Paket zeigt. Ein Verweis ist ein übliches Ordnungsmittel
-            // des Nutzers und darf die Umwandlung nicht verhindern — dieselbe
-            // Auflösung nimmt `PandocTool` bereits für das Homebrew-Binary vor.
-            let values = try url.resolvingSymlinksInPath()
-                .resourceValues(forKeys: [.fileSizeKey, .isRegularFileKey])
-            guard values.isRegularFile == true else {
-                throw ArchiveError("the package is not a regular file")
-            }
-            guard let fileSize = values.fileSize, fileSize <= Limits.maximumArchiveSize else {
-                throw ArchiveError("the package exceeds the supported archive-size limit")
-            }
-
-            data = try Data(contentsOf: url, options: [.mappedIfSafe])
+            // Prüfung und Bytes gehören zu EINEM Deskriptor — siehe
+            // `ZIPArchiveInspector.verifiedContents(of:)`. Ein Verweis auf ein
+            // gültiges Paket bleibt dabei erlaubt: `open` folgt ihm, und `fstat`
+            // beschreibt danach die Datei dahinter statt den Verweis selbst.
+            data = try ZIPArchiveInspector.verifiedContents(of: url)
             guard let endOffset = Self.endOfCentralDirectory(in: data) else {
                 throw ArchiveError("the ZIP central directory is missing")
             }
@@ -605,6 +595,98 @@ enum ZIPArchiveInspector {
         static let maximumEntryCount = 10_000
         static let maximumUncompressedSize = 1_073_741_824
         static let maximumMetadataEntrySize = 16_777_216
+    }
+
+    /// Der Archivinhalt, geprüft und gelesen über GENAU EINEN Deskriptor.
+    ///
+    /// Vorher prüfte `resourceValues` den aufgelösten PFAD auf reguläre Datei und
+    /// Größe, und `Data(contentsOf:)` öffnete den Pfad danach ein zweites Mal.
+    /// Zeigte ein Eingabe-Symlink dazwischen auf etwas anderes, gehörten Prüfung
+    /// und gelesene Bytes zu verschiedenen Objekten: Die 1-GiB-Grenze und die
+    /// Regularitätsprüfung galten dann für eine Datei, die nie jemand gelesen hat.
+    /// Die Erkennung öffnet Archive vor dem sicheren Staging, dort war das also
+    /// erreichbar (Review-Fund 2026-08-19).
+    private static func verifiedContents(of url: URL) throws -> Data {
+        // `O_NONBLOCK` wie in `VerifiedFileStaging`: Eine FIFO an dieser Stelle
+        // ließe das `open` sonst ohne Zeitgrenze auf einen Schreiber warten.
+        let descriptor = open(url.path, O_RDONLY | O_NONBLOCK)
+        guard descriptor >= 0 else {
+            throw ArchiveError("the package could not be opened")
+        }
+        defer { close(descriptor) }
+
+        var info = stat()
+        guard fstat(descriptor, &info) == 0 else {
+            throw ArchiveError("the package could not be inspected")
+        }
+        guard info.st_mode & S_IFMT == S_IFREG else {
+            throw ArchiveError("the package is not a regular file")
+        }
+        guard info.st_size <= Int64(Limits.maximumArchiveSize) else {
+            throw ArchiveError("the package exceeds the supported archive-size limit")
+        }
+        let length = Int(info.st_size)
+        guard length > 0 else {
+            return Data()
+        }
+
+        if isOnALocalVolume(descriptor), let mapped = mappedContents(descriptor, length: length) {
+            return mapped
+        }
+        return try readContents(descriptor, length: length)
+    }
+
+    /// Abgebildet wird nur von einem lokalen Datenträger. Kürzt jemand eine
+    /// abgebildete Datei, endet jeder Zugriff hinter dem neuen Ende mit SIGBUS —
+    /// auf einem Netzlaufwerk kann das jederzeit ein anderer Rechner tun. Genau
+    /// diese Unterscheidung traf bisher das `ifSafe` in `.mappedIfSafe`.
+    private static func isOnALocalVolume(_ descriptor: Int32) -> Bool {
+        var fileSystem = statfs()
+        guard fstatfs(descriptor, &fileSystem) == 0 else {
+            return false
+        }
+        return fileSystem.f_flags & UInt32(MNT_LOCAL) != 0
+    }
+
+    /// Ein zulässiges Archiv darf 1 GiB groß sein, und der Parser liest daraus nur
+    /// wenige Bereiche. Eine Abbildung kostet deshalb deutlich weniger Speicher
+    /// als eine Vollkopie.
+    private static func mappedContents(_ descriptor: Int32, length: Int) -> Data? {
+        guard let base = mmap(nil, length, PROT_READ, MAP_PRIVATE, descriptor, 0),
+              base != MAP_FAILED else {
+            return nil
+        }
+        return Data(
+            bytesNoCopy: base,
+            count: length,
+            deallocator: .custom { pointer, size in munmap(pointer, size) }
+        )
+    }
+
+    /// Rückfall ohne Abbildung: genau die bei `fstat` gesehenen Bytes lesen.
+    /// Wächst die Datei dabei, bleibt der Rest ungelesen — das Budget kann sie so
+    /// nicht überziehen.
+    private static func readContents(_ descriptor: Int32, length: Int) throws -> Data {
+        var data = Data(count: length)
+        var offset = 0
+        while offset < length {
+            let readBytes = data.withUnsafeMutableBytes { raw -> Int in
+                guard let base = raw.baseAddress else { return -1 }
+                return read(descriptor, base + offset, length - offset)
+            }
+            if readBytes == 0 {
+                break                      // die Datei wurde inzwischen gekürzt
+            }
+            guard readBytes > 0 else {
+                if errno == EINTR { continue }
+                throw ArchiveError("the package could not be read")
+            }
+            offset += readBytes
+        }
+        guard offset == length else {
+            throw ArchiveError("the package could not be read completely")
+        }
+        return data
     }
 
     private static func inflate(

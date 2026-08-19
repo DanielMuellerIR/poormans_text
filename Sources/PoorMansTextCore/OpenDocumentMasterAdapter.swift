@@ -15,20 +15,28 @@ struct OpenDocumentMasterAdapter: DocumentConversionAdapter {
     ]
 
     func inspectInput(at inputURL: URL) throws -> AdapterInputDetection {
+        // Den Verweis genau einmal auflösen und danach nur noch mit diesem einen
+        // Pfad arbeiten. Löste jeder Schritt für sich auf, konnte ein Umbiegen
+        // dazwischen Master und Teildokumente aus verschiedenen Verzeichnissen
+        // zusammensetzen (Review-Fund 2026-08-19).
+        let masterURL = inputURL.resolvingSymlinksInPath()
         var isDirectory: ObjCBool = false
-        guard FileManager.default.fileExists(atPath: inputURL.path, isDirectory: &isDirectory),
+        guard FileManager.default.fileExists(atPath: masterURL.path, isDirectory: &isDirectory),
               !isDirectory.boolValue else {
             return .noMatch
         }
+        // Die Endung stammt weiter vom gewählten Pfad: Der Nutzer sieht diesen
+        // Namen, und an ihm hängt die Entscheidung, ob ein Fehlschlag als
+        // ungültiges ODM oder als „kein Treffer" gemeldet wird.
         let hasODMExtension = inputURL.pathExtension.lowercased() == "odm"
-        guard try ZIPArchiveInspector.looksLikeZIP(at: inputURL) else {
+        guard try ZIPArchiveInspector.looksLikeZIP(at: masterURL) else {
             return hasODMExtension
                 ? .invalid(format: .odm, priority: 109, reason: "the ZIP package signature is missing")
                 : .noMatch
         }
 
         do {
-            let package = try masterPackage(at: inputURL)
+            let package = try masterPackage(at: masterURL)
             guard package.isMaster else {
                 return hasODMExtension
                     ? .invalid(
@@ -39,7 +47,7 @@ struct OpenDocumentMasterAdapter: DocumentConversionAdapter {
                     : .noMatch
             }
             let items = try ODMContentParser.parse(package.content)
-            let warnings = try inspectLinkedDocuments(items, masterURL: inputURL)
+            let warnings = try inspectLinkedDocuments(items, masterURL: masterURL)
             return .match(
                 AdapterInputInspection(
                     format: .odm,
@@ -55,11 +63,19 @@ struct OpenDocumentMasterAdapter: DocumentConversionAdapter {
     }
 
     func convert(_ context: AdapterConversionContext) throws -> StagedConversionResult {
+        // Wie in `inspectInput`: der echte Masterpfad wird EINMAL erfasst. Genau
+        // dieser Pfad wird gestagt, vorgeprüft und als Bezugspunkt für die
+        // Teildokumente benutzt — sonst könnten geparste Abschnitte und die
+        // wirklich geöffneten Dateien aus zwei verschiedenen Verzeichnissen
+        // stammen (Review-Fund 2026-08-19). `context.inputURL` bleibt daneben der
+        // vom Nutzer gewählte Pfad: Er liefert die Überschrift und die
+        // Fehlermeldungen.
+        let masterURL = context.inputURL.resolvingSymlinksInPath()
         let stagedMaster: URL
         let items: [ODMContentItem]
         do {
             stagedMaster = try ZIPArchiveInspector.stageVerifiedPackage(
-                from: context.inputURL,
+                from: masterURL,
                 into: context.workDirectory,
                 named: "verified-source.odm"
             )
@@ -68,7 +84,7 @@ struct OpenDocumentMasterAdapter: DocumentConversionAdapter {
                 throw MasterError("the verified ODM package changed after inspection")
             }
             items = try ODMContentParser.parse(package.content)
-            _ = try inspectLinkedDocuments(items, masterURL: context.inputURL)
+            _ = try inspectLinkedDocuments(items, masterURL: masterURL)
         } catch let error as ConversionError {
             throw error
         } catch {
@@ -92,7 +108,7 @@ struct OpenDocumentMasterAdapter: DocumentConversionAdapter {
                 linkedIndex += 1
                 let linkedURL: URL
                 do {
-                    linkedURL = try resolve(reference, relativeTo: context.inputURL)
+                    linkedURL = try resolve(reference, relativeTo: masterURL)
                 } catch {
                     throw ConversionError.invalidInput(
                         context.inputURL,
@@ -208,12 +224,11 @@ struct OpenDocumentMasterAdapter: DocumentConversionAdapter {
             throw MasterError("ODM section reference leaves the document bundle: \(reference)")
         }
 
-        // Erst den Verweis auf die ODM-Datei auflösen, dann ihr Verzeichnis
-        // nehmen — nicht umgekehrt. Ein Master verweist relativ auf seine
-        // Teildokumente, und die liegen beim ORIGINAL. Wählt der Nutzer einen
-        // Symlink aus, suchte die alte Reihenfolge sie neben dem Verweis und
-        // meldete sie als fehlend. Ohne Symlink sind beide Reihenfolgen gleich.
-        let base = masterURL.resolvingSymlinksInPath().deletingLastPathComponent()
+        // `masterURL` ist der bereits aufgelöste Pfad des Masterdokuments — die
+        // Aufrufer erfassen ihn genau einmal. Ein Master verweist relativ auf
+        // seine Teildokumente, und die liegen beim ORIGINAL, nicht neben einem
+        // Verweis darauf.
+        let base = masterURL.deletingLastPathComponent()
         let candidate = base.appendingPathComponent(decodedPath).standardizedFileURL
         var isDirectory: ObjCBool = false
         guard FileManager.default.fileExists(atPath: candidate.path, isDirectory: &isDirectory),

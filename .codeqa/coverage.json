@@ -4,9 +4,11 @@
   "campaign": {
     "id": "20260819T180037868197+0200",
     "token_budget": 3000000,
-    "status": "active",
+    "status": "complete",
     "started_at": "2026-08-19T18:00:37+02:00",
-    "tokens_spent": 351749
+    "tokens_spent": 502792,
+    "finished_at": "2026-08-19T18:47:44+02:00",
+    "finish_reason": "all-current"
   },
   "campaign_history": [
     {
@@ -164,30 +166,26 @@
     {
       "id": "xml-shared-infra",
       "paths": [
-        "Sources/PoorMansTextCore/NamespacePrefixTracker.swift"
+        "Sources/PoorMansTextCore/NamespacePrefixTracker.swift",
+        "Tests/PoorMansTextCoreTests/NamespacePrefixTrackerTests.swift"
       ],
       "risk": "medium",
       "priority": 3,
       "reason": "Gemeinsame XML-Namensraum-Hilfsklasse, aus der Konsolidierung des Querschnitts-Funds entstanden; von ZIP-Inspector und XLSX-Parser genutzt",
-      "state": "in_progress",
+      "state": "completed",
       "last_run": {
-        "campaign_id": "20260815T125412077498+0200",
-        "completed_at": "2026-08-15T13:12:53+02:00",
-        "observed_head": "44667658e86d2f64cc6c7ed1f87cd472ea74b7a8",
-        "content_sha256": "c0c98fc789e1de72b673834cd8e5be0fbaf078ef864155c67380b3e651e3696a",
-        "file_count": 1,
-        "review": "full",
-        "outcome": "reviewed-clean",
-        "summary": "Inhalt wurde im Rahmen von zip-gate- und spreadsheet-import-Review vollständig geprüft und per verifiziertem Diff unverändert konsolidiert",
-        "tests": [
-          "swift test: 194 passed, 0 failures"
-        ]
-      },
-      "active_run": {
         "campaign_id": "20260819T180037868197+0200",
-        "started_at": "2026-08-19T18:34:57+02:00",
-        "required_review": "delta-plus-boundaries",
-        "status_at_start": "changed"
+        "completed_at": "2026-08-19T18:38:15+02:00",
+        "observed_head": "05549094c359d484ab33c60cf4c8a8f2f0fdf39d",
+        "content_sha256": "422799b8f32d91faf71343c8b64b732e03c68c3a958a99a9e0721e89233ccddd",
+        "file_count": 2,
+        "review": "full",
+        "outcome": "improved",
+        "summary": "Vollreview der Klasse samt aller drei Aufrufer: Präfix-Stapel korrekt, vollständiger statt Suffix-Vergleich des lokalen Namens, unpräfigierte Attribute zählen richtigerweise nie. Ein Fund: Bei zwei Präfixen auf denselben Namensraum entschied die Dictionary-Reihenfolge und damit der Hash-Seed des Prozesses — dasselbe ODM konvertierte über 20 Läufe viermal und scheiterte sechzehnmal. Jetzt gewinnt stabil der kleinste Attributname. Der Bereich hatte keine eigenen Tests; fünf sind dazugekommen",
+        "tests": [
+          "swift test: 235 passed, 0 failures",
+          "Messung über die CLI: vor dem Fix 4/16 wechselnd über 20 Läufe, danach 20/20 stabil"
+        ]
       }
     },
     {
@@ -210,16 +208,17 @@
       "reason": "DOCX/ODT/DOC/RTF-Adapter samt HTML-Zwischenschicht und Bild-Rewriting",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20260815T125412077498+0200",
-        "completed_at": "2026-08-15T13:12:29+02:00",
-        "observed_head": "44667658e86d2f64cc6c7ed1f87cd472ea74b7a8",
-        "content_sha256": "181c79edbb9e3d361ce92ea4ad6c1f634eb01908b91c9ea6898fdc6c8544257c",
+        "campaign_id": "20260819T180037868197+0200",
+        "completed_at": "2026-08-19T18:40:54+02:00",
+        "observed_head": "05549094c359d484ab33c60cf4c8a8f2f0fdf39d",
+        "content_sha256": "1905f149b2d2de1bb8941e446128d883f80ea49fde4156015154c824b9afc3c9",
         "file_count": 27,
-        "review": "full",
-        "outcome": "improved",
-        "summary": "DOC-Adapter mit Arbeitskopie (TOCTOU, beide textutil-Läufe auf denselben Bytes), -noload auch im TXT-Referenzlauf, --sandbox für RTF- und HTML→GFM-Pandoc-Läufe wie im Paketadapter",
+        "review": "delta-plus-boundaries",
+        "outcome": "reviewed-clean",
+        "summary": "Delta geprüft (DOC läuft über VerifiedFileStaging, die Staging-Kopie wird danach eigenständig auf OLE-Signatur und textutil-Format nachgeprüft — TOCTOU-sicher). Grenzflächen ohne Fund: HTMLImageRewriter löst Symlinks auf und prüft danach die Zugehörigkeit zum Ressourcenverzeichnis, HTMLDocumentConverter entfernt seine Zwischendatei ausdrücklich und meldet ein Scheitern dabei, preservingEmptyRTFParagraphs behandelt Control-Symbole und \\bin-Binärdaten überlaufsicher. Ein Verdacht ausgeräumt: Der Bild-Regex bricht bei einem '>' im img-Tag, aber textutil escaped es — mit einem RTFD samt Bilddatei 'a>b.png' belegt, Bild und Verweis bleiben korrekt. Die RTFD-Symlink-Behebung in RichTextConverter kam aus dem Querschnitts-Fund symlink-input-rejected",
         "tests": [
-          "swift test: 194 passed, 0 failures"
+          "swift test: 235 passed, 0 failures",
+          "End-to-End über die CLI: RTFD mit '>' im Bilddateinamen konvertiert verlustfrei"
         ]
       }
     },
@@ -236,16 +235,16 @@
       "reason": "Markdown-Rewriter mit AGENTS-Invariante zu Inline-Code und Fences",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20260815T125412077498+0200",
-        "completed_at": "2026-08-15T13:09:47+02:00",
-        "observed_head": "773e011f36a694a7a71503fe463e5a40de6813c3",
-        "content_sha256": "0effe7abf7276a8815c02d19b5e48704dcd812e48ac7084b55afecac1edc5efd",
+        "campaign_id": "20260819T180037868197+0200",
+        "completed_at": "2026-08-19T18:42:43+02:00",
+        "observed_head": "05549094c359d484ab33c60cf4c8a8f2f0fdf39d",
+        "content_sha256": "59b28f292e4603320936923bacf007f66c6be6ec7a3498a3485f95cf351c0b58",
         "file_count": 4,
-        "review": "full",
+        "review": "delta-plus-boundaries",
         "outcome": "reviewed-clean",
-        "summary": "MarkdownNormalizer (Code-Block-Buchhaltung, Hard-Breaks, Fence-Regeln) und ColoredTextMarker (chromatische Farben, Colortbl-Zuordnung) geprüft; sorgfältig gebaut, keine Funde",
+        "summary": "Inhaltlich bitgleich zum Vollreview vom 2026-08-15 (git diff gegen dessen observed_head 773e011 ist leer; der Fingerprint-Unterschied stammt aus dem Werkzeug, nicht aus dem Code). Gezielt nachgeprüft: openingFence setzt die GFM-Regel um, dass ein Backtick-Fence keinen weiteren Backtick im Info-Text tragen darf — dieselbe Regel, die der ODM-Rewriter am 2026-08-17 nachgezogen bekam, hier also konsistent; isClosingFence verlangt korrekt mindestens dieselbe Länge und danach nur Leerraum. Die AGENTS.md-Invariante zu unabgeschlossenen Backtick-Runs betrifft Inline-Spans und liegt im ODM-Rewriter, wo sie geprüft und getestet ist. 11 Tests decken die Fence-Randfälle ab",
         "tests": [
-          "swift test: 194 passed, 0 failures (MarkdownNormalizer-/ColoredTextMarkerTests enthalten)"
+          "swift test: 235 passed, 0 failures"
         ]
       }
     },
@@ -261,16 +260,17 @@
       "reason": "Exit-Codes, JSON-Ausgabe, Argumentparser",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20260815T125412077498+0200",
-        "completed_at": "2026-08-15T13:12:29+02:00",
-        "observed_head": "44667658e86d2f64cc6c7ed1f87cd472ea74b7a8",
-        "content_sha256": "7acfcfec8e13767030232035e9534ce6c2020acc05baa27d3b83fe244a8eebba",
+        "campaign_id": "20260819T180037868197+0200",
+        "completed_at": "2026-08-19T18:43:34+02:00",
+        "observed_head": "05549094c359d484ab33c60cf4c8a8f2f0fdf39d",
+        "content_sha256": "b5f791ab86f4ba7f9be263b56c6b8d04b6e984a51bdf5abb3f203fc34cb5c2b0",
         "file_count": 3,
-        "review": "full",
+        "review": "delta-plus-boundaries",
         "outcome": "reviewed-clean",
-        "summary": "Argumentparser (--, =-Formen, strikter Katalogmodus), sysexits-Zuordnung und JSON-Ausgabe vollständig geprüft; keine Funde",
+        "summary": "Dateien unverändert seit dem letzten Stand; geprüft wurde deshalb die Grenzfläche gegen die heutigen Kernänderungen. Alle Exit-Codes stimmen mit der dokumentierten sysexits-Zuordnung überein: Symlink-Eingabe 0, fehlende Datei 66, neues XLSX-Scanbudget und Symlink-Eintrag im ZIP je 65, vorhandenes Ziel 73; Argumentrandfälle (doppelte Eingabe, Option ohne Wert, unbekannte Option, --formats mit Eingabe) je 64, ein Dateiname in Optionsform wird korrekt als Pfad behandelt. Die JSON-Ausgabe bleibt konsistent: 'input' symlink-aufgelöst wie im Changelog festgelegt, Ergebnisname folgt der Nutzereingabe",
         "tests": [
-          "swift test: 194 passed, 0 failures (CLIIntegrationTests/CLITargetDirectoryTests enthalten)"
+          "swift test: 235 passed, 0 failures",
+          "CLI-Grenzflächenprüfung: 6 Exit-Code-Fälle und 5 Argumentrandfälle, alle wie dokumentiert"
         ]
       }
     },
@@ -290,16 +290,16 @@
       "reason": "GUI-Zustand, Installer und Sparkle-Update-Controller",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20260815T125412077498+0200",
-        "completed_at": "2026-08-15T13:12:29+02:00",
-        "observed_head": "44667658e86d2f64cc6c7ed1f87cd472ea74b7a8",
-        "content_sha256": "0f9b845f33ddf7803fcc32954a07233175d48a32e375d26c8a488db99af39ded",
+        "campaign_id": "20260819T180037868197+0200",
+        "completed_at": "2026-08-19T18:44:36+02:00",
+        "observed_head": "05549094c359d484ab33c60cf4c8a8f2f0fdf39d",
+        "content_sha256": "dcdad14b313aa677c23fa98aa3c4f2aca3decb24f76adeecd8dbbc5f03632b14",
         "file_count": 12,
-        "review": "full",
+        "review": "delta-plus-boundaries",
         "outcome": "reviewed-clean",
-        "summary": "AppModel-Sperrlogik, CLIInstaller (quotierter osascript, Kollisionscheck im Shell-Skript, Nachverifikation), PandocInstaller, UpdateController, CapturedProcess (Pipe-vor-Wait) und SwiftUI-Schicht geprüft; keine Funde",
+        "summary": "Dateien unverändert; Grenzflächen gegen die heutigen Kernänderungen geprüft. AppModel reicht die URL unverändert an DocumentConverter weiter, die Symlink-Behebung wirkt damit auch für Drop und Öffnen-Dialog. CLIInstaller ist sorgfältig abgesichert: Pfade gehen über argv statt in den Skripttext, zusätzlich 'quoted form', das Ziel wird im Skript erneut geprüft, 'ln -s' ohne -f kann kein bestehendes Ziel überschreiben, und der Erfolg wird nachverifiziert. CapturedProcess leert die Fehler-Pipe vor waitUntilExit und vermeidet damit den Deadlock. PandocInstaller lädt nichts selbst, sondern ruft nur ein vorhandenes brew und prüft danach nach. UpdateController hält die Signaturprüfung bei Sparkle, feedURL kommt aus der Info.plist statt aus einer zweiten Quelltextkonstante",
         "tests": [
-          "swift test: 194 passed, 0 failures (AppModel-/Installer-/UpdateController-Tests enthalten)"
+          "swift test: 235 passed, 0 failures"
         ]
       }
     },
@@ -320,16 +320,17 @@
       "reason": "Build-/Signatur-/Release-Skripte; stabil und durch Release-Workflow-Tests gedeckt",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20260815T125412077498+0200",
-        "completed_at": "2026-08-15T13:14:10+02:00",
-        "observed_head": "44667658e86d2f64cc6c7ed1f87cd472ea74b7a8",
-        "content_sha256": "67d5a52084cb9a6e0ede4da1030d22fbbb7551d78c1efce468061c37c59e9835",
+        "campaign_id": "20260819T180037868197+0200",
+        "completed_at": "2026-08-19T18:45:34+02:00",
+        "observed_head": "05549094c359d484ab33c60cf4c8a8f2f0fdf39d",
+        "content_sha256": "213901705d9dc1b1acea66934fe00b425d99f643cd9011452dfcb07d4bd5a0c6",
         "file_count": 19,
-        "review": "full",
+        "review": "delta-plus-boundaries",
         "outcome": "reviewed-clean",
-        "summary": "Alle 15 Skripte plus Package.swift vollständig gelesen: transaktionale Installation mit Identitäts-/Signalfenster-Behandlung, atomare DMG-Erzeugung, Notary-Profilverwaltung ohne Credential-Leak, Sparkle exakt gepinnt; durch 26 InstallMode-/Rollback-/ReleaseWorkflow-Tests abgedeckt; keine Funde",
+        "summary": "Delta in install_transaction.sh geprüft: Der 'rolled-back'-Arm ist jetzt genau einmal vorhanden (vorher stand er zusätzlich in einem nie erreichbaren zweiten case-Arm), und das Link-Staging bewertet zuerst den beobachtbaren Endzustand, meldet einen ln-Fehlerstatus aber weiterhin — damit kennt das Cleanup einen Link, den ein Signal zwischen symlink(2) und Exit hinterlassen hat. Alle 15 Skripte sind syntaktisch fehlerfrei (bash -n). Die zentrale Invariante aus AGENTS.md gilt nachweislich: bei --no-notarize endet der Lauf nach Build und Signatur mit exit 0, bevor /Applications berührt wird, und vor der Installation laufen stapler validate und spctl --assess über verify_bundle.sh --notarized. 21 Rollback-Tests decken die Signalfenster ab, einschließlich des Falls 'Link erstellt, Identität noch nicht zugewiesen'",
         "tests": [
-          "swift test: 194 passed, 0 failures (InstallMode-/InstallScriptRollback-/ReleaseWorkflowTests enthalten)"
+          "swift test: 235 passed, 0 failures (darin 21 InstallScriptRollbackTests)",
+          "bash -n über alle 15 Skripte: fehlerfrei"
         ]
       }
     },
@@ -344,16 +345,16 @@
       "reason": "CI-Build/Test und signierte Appcast-Veröffentlichung; Secret-Handling sicherheitsrelevant",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20260815T125412077498+0200",
-        "completed_at": "2026-08-15T13:14:11+02:00",
-        "observed_head": "44667658e86d2f64cc6c7ed1f87cd472ea74b7a8",
-        "content_sha256": "e00dbfd9433889eccbce73b182faf981ff11a2a53111fce2cbde974b68a88b32",
+        "campaign_id": "20260819T180037868197+0200",
+        "completed_at": "2026-08-19T18:46:24+02:00",
+        "observed_head": "05549094c359d484ab33c60cf4c8a8f2f0fdf39d",
+        "content_sha256": "d69c4934f804e83d49f3837974055a736b5c085525bcefbdb1ff9edbdaf412ad",
         "file_count": 2,
-        "review": "full",
+        "review": "delta-plus-boundaries",
         "outcome": "reviewed-clean",
-        "summary": "ci.yml (Build+Test+Bundle-Verify) und publish-appcast.yml geprüft: Actions SHA-gepinnt, Tag-Commit-Verifikation, Latest-Stable-Gate, privater Sparkle-Schlüssel nur in einem Step und nur über stdin; keine Funde",
+        "summary": "Beide Workflows unverändert und tragfähig. publish-appcast setzt die Secret-Regeln konsequent um: Actions an Commit-SHAs gepinnt, der private Sparkle-Schlüssel steht nur im einen erzeugenden Schritt statt im Job-env, geht über stdin statt argv oder Datei, wird nach dem Kopieren aus der Umgebung entfernt, und der Feed wird per xmllint geprüft. Entwurf und Prerelease sind doppelt ausgeschlossen, der Checkout wird gegen den Tag-Commit verifiziert, und 'neuestes stabiles Release' läuft über die API statt über ein gh-Feld, das der Runner nicht kennt. Das schwächere Pinning in ci.yml ist eine vertretbare Abstufung: dieser Workflow hat keine Secrets und nur contents:read",
         "tests": [
-          "CI-Läufe der Releases 0.8.0–0.8.2 grün (GitHub); lokal nicht ausführbar"
+          "CI-Kette entspricht dem lokal ausgeführten Stand: swift test 235 passed, build.sh release und verify_bundle.sh sind dieselben Schritte"
         ]
       }
     }

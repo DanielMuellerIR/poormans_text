@@ -472,6 +472,61 @@ final class SpreadsheetAdapterTests: XCTestCase {
         XCTAssertTrue(workbook.hasUnsupportedObjects)
     }
 
+    /// Review-Fund 2026-08-19: Das Scanbudget zählte je Blatt. Eine Arbeitsmappe
+    /// darf 256 Blätter haben, also erlaubte das Blattbudget in Summe rund 256
+    /// Millionen Zellprüfungen, ohne eine einzige Grenze zu verletzen. Hier
+    /// bleibt jedes der beiden Blätter für sich unter dem Budget; zusammen
+    /// überschreiten sie es.
+    func testTheHyperlinkScanBudgetIsSharedAcrossAllSheets() throws {
+        let sheet = Self.sheetWithRepeatedHyperlinkArea(linkCount: 300)
+        let sourceURL = temporaryDirectory.appendingPathComponent("SheetSpanningLinks.xlsx")
+        try ZIPFixtureBuilder.xlsxPackage(
+            firstSheetXML: sheet,
+            secondSheetXML: sheet
+        ).write(to: sourceURL)
+
+        XCTAssertThrowsError(try XLSXWorkbookParser.parse(packageAt: sourceURL)) { error in
+            XCTAssertEqual(
+                error.localizedDescription,
+                "the XLSX hyperlinks exceed the scan budget"
+            )
+        }
+    }
+
+    /// Gegenprobe dazu: Dieselbe Arbeitsmappe mit halb so vielen Hyperlinks je
+    /// Blatt bleibt auch in der Summe im Budget und wird vollständig gelesen.
+    func testTwoSheetsTogetherStayWithinTheHyperlinkScanBudget() throws {
+        let sheet = Self.sheetWithRepeatedHyperlinkArea(linkCount: 150)
+        let sourceURL = temporaryDirectory.appendingPathComponent("SheetSpanningLinksOK.xlsx")
+        try ZIPFixtureBuilder.xlsxPackage(
+            firstSheetXML: sheet,
+            secondSheetXML: sheet
+        ).write(to: sourceURL)
+
+        let workbook = try XLSXWorkbookParser.parse(packageAt: sourceURL)
+        XCTAssertEqual(workbook.sheets.count, 2)
+        XCTAssertEqual(workbook.sheets.first?.rows.count, 100)
+    }
+
+    /// Ein Blatt mit 100x20 belegten Zellen und `linkCount` Hyperlinks über
+    /// genau diesen Bereich: 2.000 abgelaufene Zellen je Hyperlink.
+    private static func sheetWithRepeatedHyperlinkArea(linkCount: Int) -> String {
+        let rows = (1...100).map { row -> String in
+            let cells = (1...20).map { column in
+                "<c r=\"\(Self.columnName(column))\(row)\" t=\"n\"><v>\(column)</v></c>"
+            }
+            return "<row r=\"\(row)\">\(cells.joined())</row>"
+        }
+        let links = (0..<linkCount).map { "<hyperlink ref=\"A1:T100\" display=\"L\($0)\"/>" }
+        return """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+          <sheetData>\(rows.joined())</sheetData>
+          <hyperlinks>\(links.joined())</hyperlinks>
+        </worksheet>
+        """
+    }
+
     private static func columnName(_ index: Int) -> String {
         var remaining = index
         var name = ""

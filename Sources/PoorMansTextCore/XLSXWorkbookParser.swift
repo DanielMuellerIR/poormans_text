@@ -61,6 +61,7 @@ enum XLSXWorkbookParser {
         var result = SpreadsheetWorkbook(sheets: [])
         var expandedCellCount = 0
         var materializedTextBytes = 0
+        var hyperlinkScannedCells = 0
         var hasHyperlinks = false
         for (definition, path) in zip(worksheetDefinitions, sheetPaths) {
             guard let xml = worksheetPackage.entries[path] else {
@@ -70,10 +71,12 @@ enum XLSXWorkbookParser {
                 xml,
                 sharedStrings: sharedStrings,
                 maximumCells: Limits.maximumCells - expandedCellCount,
-                maximumTextBytes: SpreadsheetLimits.maximumOutputBytes - materializedTextBytes
+                maximumTextBytes: SpreadsheetLimits.maximumOutputBytes - materializedTextBytes,
+                maximumHyperlinkScans: Limits.maximumCells - hyperlinkScannedCells
             )
             expandedCellCount += parsed.expandedCellCount
             materializedTextBytes += parsed.materializedTextBytes
+            hyperlinkScannedCells += parsed.hyperlinkScannedCells
             result.sheets.append(SpreadsheetSheet(name: definition.name, rows: parsed.rows))
             result.hasFlattenedMerges = result.hasFlattenedMerges || parsed.hasMerges
             result.hasFormulaWithoutResult = result.hasFormulaWithoutResult
@@ -389,6 +392,7 @@ enum XLSXWorkbookParser {
         let hasHyperlinks: Bool
         let expandedCellCount: Int
         let materializedTextBytes: Int
+        let hyperlinkScannedCells: Int
     }
 
     private enum WorksheetParser {
@@ -396,12 +400,14 @@ enum XLSXWorkbookParser {
             _ xml: Data,
             sharedStrings: [String],
             maximumCells: Int,
-            maximumTextBytes: Int
+            maximumTextBytes: Int,
+            maximumHyperlinkScans: Int
         ) throws -> WorksheetInspection {
             let delegate = Delegate(
                 sharedStrings: sharedStrings,
                 maximumCells: maximumCells,
-                maximumTextBytes: maximumTextBytes
+                maximumTextBytes: maximumTextBytes,
+                maximumHyperlinkScans: maximumHyperlinkScans
             )
             let parser = XMLParser(data: xml)
             parser.delegate = delegate
@@ -419,7 +425,8 @@ enum XLSXWorkbookParser {
                 hasFormulaWithoutResult: delegate.hasFormulaWithoutResult,
                 hasHyperlinks: delegate.hasHyperlinks,
                 expandedCellCount: delegate.expandedCellCount,
-                materializedTextBytes: delegate.materializedTextBytes
+                materializedTextBytes: delegate.materializedTextBytes,
+                hyperlinkScannedCells: delegate.hyperlinkScannedCells
             )
         }
 
@@ -434,24 +441,33 @@ enum XLSXWorkbookParser {
             private let sharedStrings: [String]
             private let maximumCells: Int
             private let maximumTextBytes: Int
+            private let maximumHyperlinkScans: Int
             private var currentRow: [SpreadsheetCell]?
             private var currentCell: CellBuilder?
             private var capture: Capture?
             private(set) var expandedCellCount = 0
             private(set) var materializedTextBytes = 0
             /// Zellen, die der Hyperlink-Pfad insgesamt abgelaufen ist — über
-            /// ALLE Hyperlinks dieses Blattes hinweg.
-            private var hyperlinkScannedCells = 0
+            /// ALLE Hyperlinks dieses Blattes hinweg. `parse(packageAt:)` summiert
+            /// den Wert über die Blätter und gibt jedem folgenden Blatt nur noch
+            /// den Rest als `maximumHyperlinkScans` mit.
+            private(set) var hyperlinkScannedCells = 0
             private var sawRoot = false
             /// Breite, die der Zellparser bereits gegen das Gesamtbudget
             /// gerechnet hat. Das bleibt auch für eine später weggetrimmte leere
             /// Zelle wahr, auf die ein Hyperlink seinen Anzeigetext schreibt.
             private var accountedRowWidths = [Int]()
 
-            init(sharedStrings: [String], maximumCells: Int, maximumTextBytes: Int) {
+            init(
+                sharedStrings: [String],
+                maximumCells: Int,
+                maximumTextBytes: Int,
+                maximumHyperlinkScans: Int
+            ) {
                 self.sharedStrings = sharedStrings
                 self.maximumCells = maximumCells
                 self.maximumTextBytes = maximumTextBytes
+                self.maximumHyperlinkScans = maximumHyperlinkScans
             }
 
             func parser(
@@ -598,8 +614,14 @@ enum XLSXWorkbookParser {
                 // die Sheet-XML darf bis 16 MiB groß sein.
                 //
                 // Deshalb ein gemeinsames Budget über alle Hyperlinks, in
-                // derselben Größenordnung wie das Zellbudget des Blattes: Wer
-                // Einzelzellen verlinkt, merkt nichts davon.
+                // derselben Größenordnung wie das Zellbudget: Wer Einzelzellen
+                // verlinkt, merkt nichts davon.
+                //
+                // Das Budget gilt für die GANZE Arbeitsmappe, nicht je Blatt.
+                // Ein Blattbudget hätte eine Arbeitsmappe mit den erlaubten 256
+                // Blättern auf rund 256 Millionen Zellprüfungen gebracht, ohne
+                // dabei eine einzige Grenze zu verletzen (Review-Fund
+                // 2026-08-19).
                 let scannedRows = range.lastRow - range.firstRow + 1
                 let scannedColumns = range.lastColumn - range.firstColumn + 1
                 // Ein einzelner Bereich, der schon für sich das Zellbudget
@@ -611,7 +633,7 @@ enum XLSXWorkbookParser {
                 // Neu ist allein die SUMME: Nach dieser Schranke passt das
                 // Produkt sicher in den Zähler.
                 hyperlinkScannedCells += scannedRows * scannedColumns
-                guard hyperlinkScannedCells <= Limits.maximumCells else {
+                guard hyperlinkScannedCells <= maximumHyperlinkScans else {
                     throw ParserError("the XLSX hyperlinks exceed the scan budget")
                 }
 

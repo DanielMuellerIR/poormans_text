@@ -40,7 +40,11 @@ struct SpreadsheetAdapter: DocumentConversionAdapter {
         }
         guard try ZIPArchiveInspector.looksLikeZIP(at: inputURL) else {
             do {
-                let values = try inputURL.resourceValues(
+                // Aufgelöst prüfen: Ein Symlink auf eine gültige XLS-Datei
+                // beschreibt sich selbst als „nicht regulär" und fiele sonst aus
+                // der Erkennung — mit der irreführenden Meldung, die
+                // ZIP-Signatur fehle.
+                let values = try inputURL.resolvingSymlinksInPath().resourceValues(
                     forKeys: [.fileSizeKey, .isRegularFileKey]
                 )
                 if values.isRegularFile == true,
@@ -134,15 +138,26 @@ struct SpreadsheetAdapter: DocumentConversionAdapter {
         do {
             if context.format == .xls {
                 stagedInput = context.workDirectory.appendingPathComponent("verified-source.xls")
-                let values = try context.inputURL.resourceValues(
-                    forKeys: [.fileSizeKey, .isRegularFileKey]
-                )
-                guard values.isRegularFile == true,
-                      let size = values.fileSize,
-                      size <= 1_073_741_824 else {
-                    throw SpreadsheetError("the XLS source is not a supported regular file")
+                // Dieselbe Staging-Schicht wie bei DOC und den ZIP-Paketen:
+                // öffnen, prüfen und begrenzt streamen in einem Zug. Vorher stand
+                // hier die Reihenfolge „Pfad prüfen, danach `copyItem`", die der
+                // Review vom 2026-08-17 an den beiden anderen Stellen bereits als
+                // angreifbar ersetzt hat — wird die Quelle dazwischen gegen eine
+                // größere Datei getauscht, ist die unbegrenzte Kopie schon
+                // geschrieben, bevor die Größenprüfung sie ablehnen kann.
+                do {
+                    try VerifiedFileStaging.stage(
+                        from: context.inputURL,
+                        to: stagedInput,
+                        maximumBytes: 1_073_741_824,
+                        describedAs: "the XLS source"
+                    )
+                } catch let error as VerifiedFileStaging.StagingError
+                    where error.kind == .source {
+                    throw SpreadsheetError(error.reason)
+                } catch let error as VerifiedFileStaging.StagingError {
+                    throw ConversionError.fileSystemFailure(error.reason)
                 }
-                try FileManager.default.copyItem(at: context.inputURL, to: stagedInput)
                 workbook = try LegacyXLSWorkbookParser.parse(
                     Data(contentsOf: stagedInput, options: [.mappedIfSafe])
                 )

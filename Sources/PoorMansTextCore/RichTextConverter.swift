@@ -166,11 +166,17 @@ struct RichTextAdapter: DocumentConversionAdapter {
                 from: inputURL,
                 outputURL: markedRTFD
             )
+            // `textutil` öffnet einen Symlink auf ein RTFD-Paket nicht und bricht
+            // mit „couldn't be opened" ab. Ohne Farbmarker reicht
+            // `markedInputURL` den Eingabepfad unverändert durch, weshalb der
+            // Verweis genau hier aufgelöst wird — gelesen wurde das Paket über
+            // NSAttributedString zu diesem Zeitpunkt bereits erfolgreich.
+            let textutilInputPath = textutilInput.resolvingSymlinksInPath().path
             let result: ProcessResult
             do {
                 result = try ProcessRunner.run(
                     executable: URL(fileURLWithPath: "/usr/bin/textutil"),
-                    arguments: ["-convert", "html", "-output", htmlURL.path, textutilInput.path],
+                    arguments: ["-convert", "html", "-output", htmlURL.path, textutilInputPath],
                     currentDirectory: workDirectory
                 )
             } catch {

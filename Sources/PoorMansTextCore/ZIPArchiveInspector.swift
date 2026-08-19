@@ -184,7 +184,13 @@ enum ZIPArchiveInspector {
         let entries: [Entry]
 
         init(url: URL) throws {
-            let values = try url.resourceValues(forKeys: [.fileSizeKey, .isRegularFileKey])
+            // Über den aufgelösten Pfad prüfen: `resourceValues` beschreibt sonst
+            // den Symlink selbst und meldet ihn als „nicht regulär", obwohl er auf
+            // ein gültiges Paket zeigt. Ein Verweis ist ein übliches Ordnungsmittel
+            // des Nutzers und darf die Umwandlung nicht verhindern — dieselbe
+            // Auflösung nimmt `PandocTool` bereits für das Homebrew-Binary vor.
+            let values = try url.resolvingSymlinksInPath()
+                .resourceValues(forKeys: [.fileSizeKey, .isRegularFileKey])
             guard values.isRegularFile == true else {
                 throw ArchiveError("the package is not a regular file")
             }

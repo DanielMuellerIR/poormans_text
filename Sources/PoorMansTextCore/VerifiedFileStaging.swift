@@ -16,6 +16,12 @@ import Foundation
 /// erzeugte Zieldatei streamen. Ein `O_EXCL`-Ziel schließt außerdem aus, dass
 /// eine bereits vorhandene Datei oder ein untergeschobener Symlink beschrieben
 /// wird.
+///
+/// Nur das ZIEL wird mit `O_NOFOLLOW` geöffnet. Für die QUELLE wäre dasselbe
+/// Flag verfehlt: Es schützt nichts, weil der Deskriptor nach dem Öffnen
+/// ohnehin fest an das geöffnete Objekt gebunden ist, lehnte aber einen
+/// Symlink auf ein völlig gültiges Dokument ab — ein Weg, auf dem Nutzer ihre
+/// Dateien üblicherweise ordnen.
 enum VerifiedFileStaging {
     struct StagingError: LocalizedError {
         /// Woran es lag. Der Aufrufer meldet einen Mangel der QUELLE als
@@ -55,7 +61,7 @@ enum VerifiedFileStaging {
         maximumBytes: Int,
         describedAs subject: String
     ) throws -> Int {
-        let sourceDescriptor = open(sourceURL.path, O_RDONLY | O_NOFOLLOW)
+        let sourceDescriptor = open(sourceURL.path, O_RDONLY)
         guard sourceDescriptor >= 0 else {
             throw StagingError(.source, "\(subject) could not be opened: \(String(cString: strerror(errno)))")
         }

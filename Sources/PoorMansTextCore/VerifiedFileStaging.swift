@@ -61,7 +61,14 @@ enum VerifiedFileStaging {
         maximumBytes: Int,
         describedAs subject: String
     ) throws -> Int {
-        let sourceDescriptor = open(sourceURL.path, O_RDONLY)
+        // `O_NONBLOCK` ist hier keine Optimierung, sondern der Schutz vor dem
+        // Aufhängen: Ein `open` auf eine FIFO ohne Schreiber kehrt sonst NIE
+        // zurück, und dann steht die ganze Umwandlung ohne Zeitgrenze. Mit dem
+        // Flag kommt der Deskriptor sofort, `fstat` unten sieht `S_IFIFO` und
+        // lehnt die Quelle ab (Review-Fund 2026-08-19). Für die reguläre Datei,
+        // die als Einzige übrig bleibt, hat das Flag keine Wirkung: Ihre Lese-
+        // aufrufe liefern unverändert vollständige Blöcke.
+        let sourceDescriptor = open(sourceURL.path, O_RDONLY | O_NONBLOCK)
         guard sourceDescriptor >= 0 else {
             throw StagingError(.source, "\(subject) could not be opened: \(String(cString: strerror(errno)))")
         }

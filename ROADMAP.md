@@ -85,6 +85,14 @@ Offen bleibt auf der Seite des Hosts:
 - Die vom Nutzer korrigierte Markdown-Datei für die noch ausstehende
   RTFD-Ausgabeanalyse liegt noch nicht vor.
 
+## Offener Regressionstest
+
+- Seit dem 2026-08-20 bildet `ZIPArchiveInspector` nur noch die eigene, gerade
+  geschriebene Arbeitskopie in den Speicher ab; fremde Originale werden gelesen.
+  Ein Test dafür fehlt noch, weil ein gekürztes abgebildetes Archiv den
+  Testprozess per SIGBUS beendet — dafür braucht es einen eigenen Kindprozess,
+  dessen Absturz der Test als erwartetes Ergebnis auswertet.
+
 ## Technische Referenzen
 
 - [Apple Vision](https://developer.apple.com/documentation/vision) — lokale

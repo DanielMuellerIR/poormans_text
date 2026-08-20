@@ -25,6 +25,18 @@ public struct RichTextConverter: Sendable {
     }
 }
 
+enum RichTextLimits {
+    /// Obergrenze für eine RTF-Quelldatei: 256 MiB.
+    ///
+    /// RTF liegt beim Umwandeln mehrfach im Speicher — als gelesene Quelle, als
+    /// Bytefeld und als Ergebnis des Absatz-Rewriters —, dazu liest die
+    /// Farberkennung dieselbe Datei noch einmal. Eine Textdatei dieser Größe ist
+    /// weit jenseits dessen, was ein Textprogramm erzeugt; ohne Grenze konnte
+    /// eine präparierte Datei den Prozess allein über den Speicher beenden
+    /// (Review-Fund 2026-08-20).
+    static let maximumSourceSize = 268_435_456
+}
+
 /// RTF und RTFD behalten getrennte Importwege, liefern aber dasselbe gestagte Ergebnis.
 struct RichTextAdapter: DocumentConversionAdapter {
     let supportedFormatDescriptors: [SupportedFormat] = [
@@ -58,7 +70,7 @@ struct RichTextAdapter: DocumentConversionAdapter {
             var rtfIsDirectory: ObjCBool = false
             let hasRTFFile = fileManager.fileExists(atPath: rtfURL.path, isDirectory: &rtfIsDirectory)
                 && !rtfIsDirectory.boolValue
-            if hasRTFFile, try hasRTFHeader(at: rtfURL) {
+            if hasRTFFile, try rtfProbe(at: rtfURL)?.hasHeader == true {
                 return .match(
                     AdapterInputInspection(format: .rtfd, priority: 100, expectedWarnings: [])
                 )
@@ -70,7 +82,17 @@ struct RichTextAdapter: DocumentConversionAdapter {
             return .noMatch
         }
 
-        if try hasRTFHeader(at: inputURL) {
+        if let probe = try rtfProbe(at: inputURL), probe.hasHeader {
+            // Schon die Farberkennung liest die ganze Datei in den Speicher.
+            // Ohne diese Grenze konnte eine beliebig große Datei mit gültigem
+            // RTF-Kopf den Prozess beenden (Review-Fund 2026-08-20).
+            guard probe.byteCount <= RichTextLimits.maximumSourceSize else {
+                return .invalid(
+                    format: .rtf,
+                    priority: 100,
+                    reason: "the RTF file exceeds the supported size limit"
+                )
+            }
             let warnings: [ConversionWarning] = ColoredTextMarker.containsChromaticText(
                 inRTF: inputURL
             ) ? [.richTextColorNotPreserved] : []
@@ -99,9 +121,10 @@ struct RichTextAdapter: DocumentConversionAdapter {
             fileManager: fileManager
         )
         // Ein RTFD ist ein Ordnerpaket, und `textutil` öffnet einen Symlink
-        // darauf nicht. Der Verweis wird deshalb GENAU EINMAL hier aufgelöst,
-        // und alle folgenden Lesevorgänge — Farbmarker, `textutil` und die
-        // Anhangswarnung — arbeiten auf diesem einen erfassten Pfad. Vorher löste
+        // darauf nicht. Der Verweis wird deshalb GENAU EINMAL aufgelöst — seit
+        // dem Review vom 2026-08-20 zentral vor der Ausgabeprüfung, damit
+        // Prüfung und Adapter über dasselbe Paket reden —, und alle folgenden
+        // Lesevorgänge arbeiten auf diesem einen erfassten Pfad. Vorher löste
         // jede Stufe für sich auf; wurde der Verweis dazwischen umgebogen,
         // stammten Inhalt und Anhänge eines Ergebnisses aus verschiedenen
         // Paketen (Review-Fund 2026-08-19).
@@ -109,14 +132,41 @@ struct RichTextAdapter: DocumentConversionAdapter {
         // `inputURL` bleibt daneben der vom Nutzer gewählte Pfad: Er benennt die
         // Ausgabedatei und steht in den Fehlermeldungen.
         let resolvedInputURL = inputKind == .rtfd
-            ? inputURL.resolvingSymlinksInPath()
+            ? context.resolvedInputURL
             : inputURL
+
+        // Eine einzelne RTF-Datei wird EINMAL begrenzt in den Arbeitsordner
+        // gestagt. Danach lesen HTML-Erzeugung, Absatz-Rewriter und Farbwarnung
+        // dieselbe unveränderliche Kopie. Vorher las jede Stufe die Quelle neu:
+        // Wurde die Datei während des Pandoc-Laufs ausgetauscht, beschrieb die
+        // Warnung ein anderes Dokument als das umgewandelte — und eine Grenze
+        // für die Dateigröße gab es auf diesem Weg überhaupt nicht
+        // (Review-Fund 2026-08-20).
+        let sourceURL: URL
+        if inputKind == .rtf {
+            let stagedSource = workDirectory.appendingPathComponent("verified-source.rtf")
+            do {
+                try VerifiedFileStaging.stage(
+                    from: resolvedInputURL,
+                    to: stagedSource,
+                    maximumBytes: RichTextLimits.maximumSourceSize,
+                    describedAs: "the RTF source"
+                )
+            } catch let error as VerifiedFileStaging.StagingError where error.kind == .source {
+                throw ConversionError.invalidRichText(inputURL, reason: error.reason)
+            } catch let error as VerifiedFileStaging.StagingError {
+                throw ConversionError.fileSystemFailure(error.reason)
+            }
+            sourceURL = stagedSource
+        } else {
+            sourceURL = resolvedInputURL
+        }
         let htmlURL = workDirectory.appendingPathComponent("document.html")
         let emptyParagraphMarker = inputKind == .rtf
             ? "POORMANSTEXTEMPTY\(UUID().uuidString.replacingOccurrences(of: "-", with: ""))"
             : nil
         try createHTML(
-            from: resolvedInputURL,
+            from: sourceURL,
             kind: inputKind,
             at: htmlURL,
             workDirectory: workDirectory,
@@ -152,7 +202,7 @@ struct RichTextAdapter: DocumentConversionAdapter {
         )
 
         let warnings = warnings(
-            inputURL: resolvedInputURL,
+            inputURL: sourceURL,
             kind: inputKind,
             referencedResourceNames: converted.referencedResourceNames,
             fileManager: fileManager
@@ -248,22 +298,71 @@ struct RichTextAdapter: DocumentConversionAdapter {
         }
     }
 
-    private func hasRTFHeader(at url: URL) throws -> Bool {
-        do {
-            let handle = try FileHandle(forReadingFrom: url)
-            defer { try? handle.close() }
-            let bytes = [UInt8](try handle.read(upToCount: 32) ?? Data())
-            let signature = [UInt8](#"{\rtf"#.utf8)
-            guard bytes.starts(with: signature) else {
-                return false
-            }
+    /// Was der Blick in die ersten Bytes einer möglichen RTF-Datei ergeben hat.
+    struct RTFProbe {
+        let hasHeader: Bool
+        let byteCount: Int
+    }
 
-            // `\rtf` ist ein Steuerwort mit verpflichtender Versionszahl.
-            let versionStart = signature.count
-            return versionStart < bytes.count && bytes[versionStart].isASCIIDigit
-        } catch {
-            throw ConversionError.fileSystemFailure(error.localizedDescription)
+    /// Öffnet die Datei GENAU EINMAL, prüft mit `fstat` am selben Deskriptor,
+    /// dass wirklich eine reguläre Datei dahintersteht, und liest daraus die
+    /// ersten 32 Byte. Ergebnis `nil` heißt: keine reguläre Datei.
+    ///
+    /// `O_NONBLOCK` ist der Schutz vor dem Aufhängen. In einem RTFD-Ordner darf
+    /// `TXT.rtf` alles Mögliche sein, auch eine FIFO; ein `open` darauf ohne
+    /// Schreiber kehrt sonst NIE zurück, und die Umwandlung steht ohne
+    /// Zeitgrenze. Die Prüfung des äußeren Ordners sieht das nicht
+    /// (Review-Fund 2026-08-20).
+    func rtfProbe(at url: URL) throws -> RTFProbe? {
+        let descriptor = open(url.path, O_RDONLY | O_NONBLOCK)
+        guard descriptor >= 0 else {
+            throw ConversionError.fileSystemFailure(
+                "\(url.lastPathComponent) could not be opened: \(String(cString: strerror(errno)))"
+            )
         }
+        defer { close(descriptor) }
+
+        var info = stat()
+        guard fstat(descriptor, &info) == 0 else {
+            throw ConversionError.fileSystemFailure(
+                "\(url.lastPathComponent) could not be inspected"
+            )
+        }
+        guard info.st_mode & S_IFMT == S_IFREG else {
+            return nil
+        }
+
+        let headerLength = 32
+        var bytes = [UInt8](repeating: 0, count: headerLength)
+        var readTotal = 0
+        while readTotal < headerLength {
+            let readBytes = bytes.withUnsafeMutableBytes { raw -> Int in
+                guard let base = raw.baseAddress else { return -1 }
+                return read(descriptor, base + readTotal, headerLength - readTotal)
+            }
+            if readBytes == 0 {
+                break                      // die Datei ist kürzer als 32 Byte
+            }
+            guard readBytes > 0 else {
+                if errno == EINTR { continue }
+                throw ConversionError.fileSystemFailure(
+                    "\(url.lastPathComponent) could not be read"
+                )
+            }
+            readTotal += readBytes
+        }
+
+        let header = Array(bytes[0..<readTotal])
+        let signature = [UInt8](#"{\rtf"#.utf8)
+        guard header.starts(with: signature) else {
+            return RTFProbe(hasHeader: false, byteCount: Int(info.st_size))
+        }
+        // `\rtf` ist ein Steuerwort mit verpflichtender Versionszahl.
+        let versionStart = signature.count
+        return RTFProbe(
+            hasHeader: versionStart < header.count && header[versionStart].isASCIIDigit,
+            byteCount: Int(info.st_size)
+        )
     }
 
     /// Schützt direkt aufeinanderfolgende `\\par`-Steuerwörter vor Pandocs

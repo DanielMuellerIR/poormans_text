@@ -92,11 +92,23 @@ public struct DocumentConverter: Sendable {
         let inputURL = request.inputURL.standardizedFileURL
         let detected = try detectInput(at: inputURL)
         let format = detected.inspection.format
+        // Die echte Quelle wird GENAU EINMAL aufgelöst. Vorher löste jede Stufe
+        // für sich auf: die Ausgabeprüfung vor dem Umwandeln, der Adapter beim
+        // Lesen und die Ausgabeprüfung vor dem Veröffentlichen. Zeigte ein
+        // Eingabe-Symlink bei beiden Prüfungen auf Paket A, während der Adapter
+        // dazwischen Paket B erfasste, kam ein Ziel INNERHALB von B durch beide
+        // Prüfungen — und die Umwandlung schrieb in das Quelldokument, das sie
+        // gerade las (Review-Fund 2026-08-20).
+        let resolvedInputURL = inputURL.resolvingSymlinksInPath()
 
         progress?(ConversionProgress(phase: .preparingOutput, format: format))
         let destination = resolveDestination(for: request, inputURL: inputURL)
         let fileManager = FileManager.default
-        try validateOutput(destination.url, inputURL: inputURL, fileManager: fileManager)
+        try validateOutput(
+            destination.url,
+            resolvedInputURL: resolvedInputURL,
+            fileManager: fileManager
+        )
 
         let outputParent = destination.url.deletingLastPathComponent()
         let temporaryRoot = outputParent.appendingPathComponent(
@@ -121,6 +133,7 @@ public struct DocumentConverter: Sendable {
         let stagedResult = try detected.adapter.convert(
             AdapterConversionContext(
                 inputURL: inputURL,
+                resolvedInputURL: resolvedInputURL,
                 format: format,
                 workDirectory: workDirectory,
                 stagedOutputDirectory: stagedOutput,
@@ -145,7 +158,7 @@ public struct DocumentConverter: Sendable {
         try publish(
             stagedOutput,
             to: destination.url,
-            inputURL: inputURL,
+            resolvedInputURL: resolvedInputURL,
             fileManager: fileManager
         )
 
@@ -259,16 +272,19 @@ public struct DocumentConverter: Sendable {
         }
     }
 
+    /// - Parameter resolvedInputURL: die einmal aufgelöste echte Quelle. Sie
+    ///   kommt von außen, damit beide Prüfungen und der Adapter über DASSELBE
+    ///   Dokument reden.
     private func validateOutput(
         _ outputURL: URL,
-        inputURL: URL,
+        resolvedInputURL: URL,
         fileManager: FileManager
     ) throws {
         guard !fileManager.fileExists(atPath: outputURL.path) else {
             throw ConversionError.outputAlreadyExists(outputURL)
         }
 
-        var resolvedInputPath = inputURL.resolvingSymlinksInPath().path + "/"
+        var resolvedInputPath = resolvedInputURL.path + "/"
         var resolvedOutputPath = outputURL.resolvingSymlinksInPath().path + "/"
         // `hasPrefix` vergleicht Zeichen für Zeichen. Auf einem Dateisystem, das
         // Groß-/Kleinschreibung im Namen nicht unterscheidet (Standard bei APFS),
@@ -278,7 +294,7 @@ public struct DocumentConverter: Sendable {
         // Volume-Eigenschaft nicht ermitteln, wird ebenfalls kleingeschrieben:
         // Das ist die sichere Richtung, weil dann höchstens ein ohnehin
         // verdächtiges Ziel abgelehnt wird.
-        let volumeValues = try? inputURL.resourceValues(
+        let volumeValues = try? resolvedInputURL.resourceValues(
             forKeys: [.volumeSupportsCaseSensitiveNamesKey]
         )
         if volumeValues?.volumeSupportsCaseSensitiveNames != true {
@@ -300,12 +316,17 @@ public struct DocumentConverter: Sendable {
     private func publish(
         _ stagedOutput: URL,
         to outputURL: URL,
-        inputURL: URL,
+        resolvedInputURL: URL,
         fileManager: FileManager
     ) throws {
         // Die zweite Prüfung schließt das Zeitfenster zwischen Vorbereitung und
         // Veröffentlichung, ohne ein inzwischen angelegtes Ziel zu überschreiben.
-        try validateOutput(outputURL, inputURL: inputURL, fileManager: fileManager)
+        // Sie bekommt dieselbe aufgelöste Quelle wie die erste Prüfung.
+        try validateOutput(
+            outputURL,
+            resolvedInputURL: resolvedInputURL,
+            fileManager: fileManager
+        )
         do {
             try fileManager.moveItem(at: stagedOutput, to: outputURL)
         } catch {
@@ -380,11 +401,33 @@ struct AdapterInputInspection: Sendable {
 }
 
 struct AdapterConversionContext: Sendable {
+    /// Der vom Nutzer gewählte Pfad. Er benennt die Ausgabe und steht in den
+    /// Fehlermeldungen.
     let inputURL: URL
+    /// Dieselbe Quelle, aber EINMAL zentral aufgelöst. Adapter, die einem
+    /// Verweis folgen müssen, nehmen diesen Pfad, statt selbst aufzulösen —
+    /// sonst können Ausgabeprüfung und gelesenes Dokument auseinanderlaufen.
+    let resolvedInputURL: URL
     let format: InputFormat
     let workDirectory: URL
     let stagedOutputDirectory: URL
     let options: ConversionOptions
+
+    init(
+        inputURL: URL,
+        resolvedInputURL: URL? = nil,
+        format: InputFormat,
+        workDirectory: URL,
+        stagedOutputDirectory: URL,
+        options: ConversionOptions
+    ) {
+        self.inputURL = inputURL
+        self.resolvedInputURL = resolvedInputURL ?? inputURL.resolvingSymlinksInPath()
+        self.format = format
+        self.workDirectory = workDirectory
+        self.stagedOutputDirectory = stagedOutputDirectory
+        self.options = options
+    }
 }
 
 struct StagedConversionResult: Sendable {

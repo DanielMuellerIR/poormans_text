@@ -70,7 +70,11 @@ struct OpenDocumentMasterAdapter: DocumentConversionAdapter {
         // stammen (Review-Fund 2026-08-19). `context.inputURL` bleibt daneben der
         // vom Nutzer gewählte Pfad: Er liefert die Überschrift und die
         // Fehlermeldungen.
-        let masterURL = context.inputURL.resolvingSymlinksInPath()
+        //
+        // Aufgelöst wird nicht mehr hier, sondern zentral vor der Ausgabeprüfung:
+        // Nur so reden Prüfung und Adapter über dasselbe Dokument
+        // (Review-Fund 2026-08-20).
+        let masterURL = context.resolvedInputURL
         let stagedMaster: URL
         let items: [ODMContentItem]
         do {
@@ -95,7 +99,9 @@ struct OpenDocumentMasterAdapter: DocumentConversionAdapter {
             )
         }
 
-        var sections = ["# \(context.inputURL.deletingPathExtension().lastPathComponent)"]
+        var sections = [
+            "# \(headingText(context.inputURL.deletingPathExtension().lastPathComponent))",
+        ]
         var warnings = [ConversionWarning.openDocumentMasterFlattened]
         var assetRelativePaths = [String]()
         var linkedIndex = 0
@@ -117,9 +123,9 @@ struct OpenDocumentMasterAdapter: DocumentConversionAdapter {
                     )
                 }
                 let heading = name?.trimmingCharacters(in: .whitespacesAndNewlines)
-                sections.append(
-                    "## Section: \((heading?.isEmpty == false ? heading : nil) ?? linkedURL.deletingPathExtension().lastPathComponent)"
-                )
+                let sectionTitle = (heading?.isEmpty == false ? heading : nil)
+                    ?? linkedURL.deletingPathExtension().lastPathComponent
+                sections.append("## Section: \(headingText(sectionTitle))")
                 let child = try convertLinkedDocument(
                     linkedURL,
                     index: linkedIndex,
@@ -170,6 +176,25 @@ struct OpenDocumentMasterAdapter: DocumentConversionAdapter {
             assetRelativePaths: assetRelativePaths,
             warnings: warnings
         )
+    }
+
+    /// Macht einen Metadatenwert — Dateiname oder Abschnittsname — als
+    /// Überschriftentext ungefährlich.
+    ///
+    /// Anders als Absatztext läuft dieser Wert nicht durch den Inhaltsparser: Ein
+    /// Zeilenumbruch im XML-Attribut hätte mitten in der Überschrift einen neuen
+    /// Markdown-Block begonnen, und Zeichen wie `*` oder `[` wurden als
+    /// Auszeichnung gelesen statt als Text (Review-Fund 2026-08-20). Deshalb hier
+    /// zuerst alles auf EINE Zeile bringen und danach die Zeichen mit einem
+    /// Backslash entschärfen, mit denen Markdown auszeichnet.
+    func headingText(_ value: String) -> String {
+        let singleLine = value
+            .split(whereSeparator: { $0.isNewline || $0.isWhitespace })
+            .joined(separator: " ")
+        let escaped = "\\`*_[]<>&#"
+        return String(singleLine.flatMap { character -> [Character] in
+            escaped.contains(character) ? ["\\", character] : [character]
+        })
     }
 
     private func masterPackage(at url: URL) throws -> (isMaster: Bool, content: Data) {

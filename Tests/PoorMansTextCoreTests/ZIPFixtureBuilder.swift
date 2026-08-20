@@ -35,6 +35,10 @@ enum ZIPFixtureBuilder {
         /// ohne Extrafeld — so schreiben es Erzeuger, die den Namen nur zentral
         /// zusätzlich ablegen.
         var localUnicodePathName: String?
+        /// Rohe Extrafeld-Bytes für den ZENTRALEN Eintrag; sie gehen
+        /// `centralUnicodePathName` vor. Nur so lässt sich ein Header mit MEHR
+        /// als einem Unicode-Path-Feld nachbauen.
+        var centralExtraFieldBytes: Data?
     }
 
     enum BuilderError: Error {
@@ -253,9 +257,11 @@ enum ZIPFixtureBuilder {
             let localExtra = entry.localUnicodePathName.map {
                 unicodePathField(name: $0, rawName: nameBytes)
             } ?? Data()
-            let centralExtra = entry.centralUnicodePathName.map {
-                unicodePathField(name: $0, rawName: nameBytes)
-            } ?? Data()
+            let centralExtra = entry.centralExtraFieldBytes
+                ?? entry.centralUnicodePathName.map {
+                    unicodePathField(name: $0, rawName: nameBytes)
+                }
+                ?? Data()
 
             localSection.appendUInt32(0x0403_4B50)
             localSection.appendUInt16(20)                       // benötigte Version
@@ -311,7 +317,7 @@ enum ZIPFixtureBuilder {
     /// Ein Unicode-Path-Extrafeld nach APPNOTE 4.6.9: Header-ID, Nutzlastlänge,
     /// Version 1, CRC-32 über den Rohnamen und der Name als UTF-8. Die Prüfsumme
     /// passt hier immer, das Feld gilt damit als aktuell.
-    private static func unicodePathField(name: String, rawName: Data) -> Data {
+    static func unicodePathField(name: String, rawName: Data) -> Data {
         var payload = Data()
         payload.append(UInt8(1))
         payload.appendUInt32(crc32(rawName))

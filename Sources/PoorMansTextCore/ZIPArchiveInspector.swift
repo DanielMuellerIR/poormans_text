@@ -65,7 +65,12 @@ enum ZIPArchiveInspector {
         let archive = try Archive(url: inputURL)
         let names = Set(archive.entries.map(\.name))
         var entries = [String: Data]()
-        for name in requestedNames where names.contains(name) {
+        // `entries[name] == nil` überspringt bereits entpackte Namen. Steht ein
+        // Name mehrfach in `requestedNames`, wurde derselbe Eintrag sonst
+        // mehrfach entpackt — bei 256 Blattverweisen auf dieselbe Datei war das
+        // ein billiger Weg, die Erkennung lange zu beschäftigen
+        // (Review-Fund 2026-08-20).
+        for name in requestedNames where names.contains(name) && entries[name] == nil {
             entries[name] = try archive.data(named: name)
         }
         return ZIPPackageContents(entryNames: names, entries: entries)
@@ -163,17 +168,56 @@ enum ZIPArchiveInspector {
             throw ConversionError.fileSystemFailure(error.localizedDescription)
         }
 
-        let archive = try Archive(url: stagedURL)
+        // Nur HIER darf abgebildet werden: Die Kopie ist gerade selbst in den
+        // privaten Arbeitsordner geschrieben worden und wird von niemandem sonst
+        // gekürzt. Genau an dieser Stelle spart die Abbildung am meisten, weil
+        // `verifyEntryContents` jeden Eintrag durchläuft.
+        let archive = try Archive(url: stagedURL, mapsPrivateCopy: true)
         try archive.verifyEntryContents()
         return stagedURL
     }
 
+    /// Blickt in die ersten vier Bytes und sagt, ob dort eine ZIP-Signatur steht.
+    ///
+    /// `O_NONBLOCK` ist hier kein Tempo-Trick, sondern der Schutz vor dem
+    /// Aufhängen: Ein `open` auf eine FIFO ohne Schreiber kehrt sonst NIE zurück.
+    /// Erreichbar war das über ein Masterdokument, dessen Abschnittsverweis auf
+    /// eine FIFO zeigt — die Prüfung dort sieht nur „vorhanden und kein
+    /// Verzeichnis" (Review-Fund 2026-08-20). `fstat` auf DEMSELBEN Deskriptor
+    /// entscheidet danach, ob wirklich eine reguläre Datei dahintersteht; alles
+    /// andere ist kein ZIP-Paket.
     static func looksLikeZIP(at inputURL: URL) throws -> Bool {
-        let handle = try FileHandle(forReadingFrom: inputURL)
-        defer {
-            try? handle.close()
+        let descriptor = open(inputURL.path, O_RDONLY | O_NONBLOCK)
+        guard descriptor >= 0 else {
+            throw ArchiveError("the package could not be opened")
         }
-        let signature = [UInt8](try handle.read(upToCount: 4) ?? Data())
+        defer { close(descriptor) }
+
+        var info = stat()
+        guard fstat(descriptor, &info) == 0 else {
+            throw ArchiveError("the package could not be inspected")
+        }
+        guard info.st_mode & S_IFMT == S_IFREG else {
+            return false
+        }
+
+        let signatureLength = 4
+        var signature = [UInt8](repeating: 0, count: signatureLength)
+        var readTotal = 0
+        while readTotal < signatureLength {
+            let readBytes = signature.withUnsafeMutableBytes { raw -> Int in
+                guard let base = raw.baseAddress else { return -1 }
+                return read(descriptor, base + readTotal, signatureLength - readTotal)
+            }
+            if readBytes == 0 {
+                return false               // die Datei ist kürzer als vier Bytes
+            }
+            guard readBytes > 0 else {
+                if errno == EINTR { continue }
+                throw ArchiveError("the package could not be read")
+            }
+            readTotal += readBytes
+        }
         return signature == [0x50, 0x4B, 0x03, 0x04]
             || signature == [0x50, 0x4B, 0x05, 0x06]
             || signature == [0x50, 0x4B, 0x07, 0x08]
@@ -183,12 +227,19 @@ enum ZIPArchiveInspector {
         let data: Data
         let entries: [Entry]
 
-        init(url: URL) throws {
+        /// - Parameter mapsPrivateCopy: nur `true` für eine Datei, die dieser
+        ///   Prozess gerade selbst in seinen Arbeitsordner geschrieben hat.
+        ///   Fremde Originale werden gelesen statt abgebildet.
+        init(url: URL, mapsPrivateCopy: Bool = false) throws {
             // Prüfung und Bytes gehören zu EINEM Deskriptor — siehe
-            // `ZIPArchiveInspector.verifiedContents(of:)`. Ein Verweis auf ein
-            // gültiges Paket bleibt dabei erlaubt: `open` folgt ihm, und `fstat`
-            // beschreibt danach die Datei dahinter statt den Verweis selbst.
-            data = try ZIPArchiveInspector.verifiedContents(of: url)
+            // `ZIPArchiveInspector.verifiedContents(of:mapsPrivateCopy:)`. Ein
+            // Verweis auf ein gültiges Paket bleibt dabei erlaubt: `open` folgt
+            // ihm, und `fstat` beschreibt danach die Datei dahinter statt den
+            // Verweis selbst.
+            data = try ZIPArchiveInspector.verifiedContents(
+                of: url,
+                mapsPrivateCopy: mapsPrivateCopy
+            )
             guard let endOffset = Self.endOfCentralDirectory(in: data) else {
                 throw ArchiveError("the ZIP central directory is missing")
             }
@@ -558,6 +609,13 @@ enum ZIPArchiveInspector {
             // `subdata(in:)` liefert eine Data mit startIndex 0 — die Offsets
             // hier sind deshalb wie im übrigen Parser rein 0-basiert.
             var cursor = 0
+            // Das GANZE Extrafeld wird durchlaufen. Vorher endete die Suche beim
+            // ersten `0x7075`-Feld: Ein veraltetes erstes Feld verdeckte damit
+            // ein zweites, gültiges — und dessen Name wurde nie gegen Traversal
+            // geprüft, obwohl ein anderer Entpacker genau ihn nehmen kann
+            // (Review-Fund 2026-08-20).
+            var sawUnicodeField = false
+            var unicodeName: String?
             while cursor + 4 <= extraField.count {
                 let headerID = extraField.uint16(at: cursor)
                 let payloadSize = Int(extraField.uint16(at: cursor + 2))
@@ -566,6 +624,10 @@ enum ZIPArchiveInspector {
                     throw ArchiveError("a ZIP entry has a malformed extra field")
                 }
                 if headerID == 0x7075 {
+                    guard !sawUnicodeField else {
+                        throw ArchiveError("a ZIP entry has more than one Unicode path field")
+                    }
+                    sawUnicodeField = true
                     // 1 Byte Version + 4 Byte CRC-32 + UTF-8-Name.
                     guard payloadSize >= 5 else {
                         throw ArchiveError("a ZIP entry has a malformed Unicode path field")
@@ -574,20 +636,28 @@ enum ZIPArchiveInspector {
                     guard payload[0] == 1 else {
                         throw ArchiveError("a ZIP entry uses an unsupported Unicode path version")
                     }
-                    guard payload.uint32(at: 1) == Self.crc32(of: rawName) else {
-                        return nil       // veraltetes Feld: der Rohname gilt
+                    if payload.uint32(at: 1) == Self.crc32(of: rawName) {
+                        let nameBytes = payload.subdata(in: 5..<payload.count)
+                        guard !nameBytes.isEmpty,
+                              !nameBytes.contains(0),
+                              let name = String(data: nameBytes, encoding: .utf8) else {
+                            throw ArchiveError("a ZIP entry has an unreadable Unicode path field")
+                        }
+                        unicodeName = name
                     }
-                    let nameBytes = payload.subdata(in: 5..<payload.count)
-                    guard !nameBytes.isEmpty,
-                          !nameBytes.contains(0),
-                          let name = String(data: nameBytes, encoding: .utf8) else {
-                        throw ArchiveError("a ZIP entry has an unreadable Unicode path field")
-                    }
-                    return name
+                    // Passt die Prüfsumme nicht, ist das Feld veraltet und der
+                    // Rohname gilt. Weitergelesen wird trotzdem, damit ein
+                    // zweites solches Feld auffällt.
                 }
                 cursor = payloadStart + payloadSize
             }
-            return nil
+            // Ein Extrafeld ist eine lückenlose Folge aus Kennung, Länge und
+            // Nutzlast. Bleiben ein bis drei Bytes übrig, passt die Folge nicht
+            // auf, und ein anderer Entpacker liest sie womöglich anders.
+            guard cursor == extraField.count else {
+                throw ArchiveError("a ZIP entry has a malformed extra field")
+            }
+            return unicodeName
         }
 
         private static func crc32(of data: Data) -> UInt32 {
@@ -682,7 +752,7 @@ enum ZIPArchiveInspector {
     /// Regularitätsprüfung galten dann für eine Datei, die nie jemand gelesen hat.
     /// Die Erkennung öffnet Archive vor dem sicheren Staging, dort war das also
     /// erreichbar (Review-Fund 2026-08-19).
-    private static func verifiedContents(of url: URL) throws -> Data {
+    private static func verifiedContents(of url: URL, mapsPrivateCopy: Bool) throws -> Data {
         // `O_NONBLOCK` wie in `VerifiedFileStaging`: Eine FIFO an dieser Stelle
         // ließe das `open` sonst ohne Zeitgrenze auf einen Schreiber warten.
         let descriptor = open(url.path, O_RDONLY | O_NONBLOCK)
@@ -706,7 +776,9 @@ enum ZIPArchiveInspector {
             return Data()
         }
 
-        if isOnALocalVolume(descriptor), let mapped = mappedContents(descriptor, length: length) {
+        if mapsPrivateCopy,
+           isOnALocalVolume(descriptor),
+           let mapped = mappedContents(descriptor, length: length) {
             return mapped
         }
         return try readContents(descriptor, length: length)
@@ -716,6 +788,15 @@ enum ZIPArchiveInspector {
     /// abgebildete Datei, endet jeder Zugriff hinter dem neuen Ende mit SIGBUS —
     /// auf einem Netzlaufwerk kann das jederzeit ein anderer Rechner tun. Genau
     /// diese Unterscheidung traf bisher das `ifSafe` in `.mappedIfSafe`.
+    ///
+    /// „Lokal" allein reicht allerdings nicht: `MAP_PRIVATE` schützt die
+    /// Abbildung nur vor fremden SCHREIBVORGÄNGEN, nicht vor dem KÜRZEN
+    /// desselben Inodes. Kürzt ein Programm auf demselben Rechner — etwa ein
+    /// Cloud-Abgleich, der die Datei gerade ersetzt — das ausgewählte Dokument
+    /// während der Erkennung, beendet SIGBUS den ganzen Prozess, und kein
+    /// Swift-`catch` fängt das ab. Deshalb wird nur noch die eigene, gerade
+    /// selbst geschriebene Arbeitskopie abgebildet; fremde Originale werden
+    /// gelesen (Review-Fund 2026-08-20).
     private static func isOnALocalVolume(_ descriptor: Int32) -> Bool {
         var fileSystem = statfs()
         guard fstatfs(descriptor, &fileSystem) == 0 else {

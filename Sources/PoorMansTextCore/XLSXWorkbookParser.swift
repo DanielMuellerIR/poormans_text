@@ -32,11 +32,23 @@ enum XLSXWorkbookParser {
         // Arbeitsmappe scheitern zu lassen.
         var worksheetDefinitions = [SheetDefinition]()
         var sheetPaths = [String]()
+        // Jedes Arbeitsblatt hat in einer regelkonformen Mappe seine EIGENE
+        // Blattdatei. Zeigten mehrere Blätter auf dieselbe, wurde dieselbe XML
+        // mehrfach entpackt und mehrfach geparst — bei 256 erlaubten Blättern
+        // ein billiger Weg, Erkennung und Umwandlung lange zu beschäftigen,
+        // ohne ein einziges Budget zu überschreiten (Review-Fund 2026-08-20).
+        var seenSheetPaths = Set<String>()
         var hasSkippedSheets = false
         for definition in sheetDefinitions {
             if let target = relationships.worksheets[definition.relationshipID] {
+                let path = try normalizedWorksheetPath(target)
+                guard seenSheetPaths.insert(path).inserted else {
+                    throw ParserError(
+                        "two workbook sheets point to the same worksheet part: \(path)"
+                    )
+                }
                 worksheetDefinitions.append(definition)
-                sheetPaths.append(try normalizedWorksheetPath(target))
+                sheetPaths.append(path)
             } else if relationships.otherSheetIDs.contains(definition.relationshipID) {
                 hasSkippedSheets = true
             } else {

@@ -74,7 +74,7 @@ DMG und zugehörige `.sha256`-Datei stehen im
 Ordner, lässt sich der Download vor dem Öffnen prüfen:
 
 ```sh
-shasum -a 256 -c Poor-Mans-Text-0.8.4.dmg.sha256
+shasum -a 256 -c Poor-Mans-Text-0.8.5.dmg.sha256
 ```
 
 Danach das DMG öffnen und Poor Man's Text in den Programme-Ordner ziehen. Die
@@ -178,10 +178,10 @@ CLI zusätzlich im Repo-Root ab. Beide Kopien sind nur für lokale Tests
 ad-hoc-signiert: Sie sind kein notarisierter Distributions-Build und gehören
 nicht nach `/Applications`.
 
-Jedes unterstützte Dokument, jede unterstützte Tabelle und jedes unterstützte
-PDF kann in das Fenster oder auf die App gezogen oder über den Dateidialog
-ausgewählt werden. Die App zeigt das Ergebnis und kann die erzeugte
-Markdown-Datei im Finder anzeigen.
+Jedes unterstützte Dokument, jede unterstützte Tabelle, jedes unterstützte PDF
+und jedes unterstützte Bild kann in das Fenster oder auf die App gezogen oder
+über den Dateidialog ausgewählt werden. Die App zeigt das Ergebnis und kann die
+erzeugte Markdown-Datei im Finder anzeigen.
 
 ## Signierte Installation
 
@@ -346,7 +346,7 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.8.4.
+Die aktuelle Version ist 0.8.5.
 
 ## Lizenz
 

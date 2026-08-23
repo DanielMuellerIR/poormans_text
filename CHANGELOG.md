@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 0.8.5 - 2026-08-23
+
 - Preserve one hyperlink target per spreadsheet cell from ODS XLink attributes,
   XLSX worksheet relationships, and BIFF8 HLINK records. Markdown tables render
   the link safely; escaped TSV blocks retain its Markdown source. Additional

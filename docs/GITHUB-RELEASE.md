@@ -7,12 +7,12 @@ notarization credentials are intentionally not stored in GitHub Actions.
 
 Suggested description:
 
-> Convert word-processing documents and spreadsheets to Markdown on macOS.
+> Convert documents, spreadsheets, PDFs, and images to Markdown on macOS.
 
 Suggested topics:
 
 `macos`, `swift`, `markdown`, `rtf`, `rtfd`, `docx`, `odt`, `ods`, `xlsx`,
-`xls`, `pandoc`, `document-conversion`
+`xls`, `pdf`, `ocr`, `pandoc`, `document-conversion`
 
 ## Release checklist
 

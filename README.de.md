@@ -269,7 +269,8 @@ In der Regel erhalten:
 - einfache nummerierte Listen und Aufzählungen
 - semantische Überschriften, Fußnoten und einfache Tabellen aus DOCX und ODT
 - Reihenfolge und relative Verweise der Bilder
-- gespeicherte Tabellenwerte, Blattnamen, Blattreihenfolge, leere Zellen und interne Umbrüche
+- gespeicherte Tabellenwerte, Blattnamen, Blattreihenfolge, leere Zellen, interne Umbrüche
+  und je Zelle ein Linkziel
 - Reihenfolge lokaler ODM-Abschnitte
 
 Erwartbare Verluste oder Annäherungen:
@@ -285,8 +286,8 @@ Erwartbare Verluste oder Annäherungen:
 - DOCM-/DOTM-Makros und das Vorlagenverhalten von DOTX/DOTM
 - Tabellenformeln ohne gespeichertes Ergebnis, Zellverbünde, Diagramme,
   Zeichnungen, Kommentare, Makros und genaue Formatierung
-- Linkziele in Tabellenzellen; der sichtbare Zelltext bleibt, der Verlust wird
-  als Warnung gemeldet
+- mehrere unterschiedliche Linkziele in einer Tabellenzelle; das erste Ziel und
+  der gesamte sichtbare Text bleiben, das weitere Ziel wird als Warnung gemeldet
 - ODM-Abschnittsgrenzen und Masterdokumentverhalten nach dem Zusammenführen
 
 ## Entwicklung
@@ -309,7 +310,7 @@ eingebetteten Bildern. Versionierte DOCX-, ODT- und binäre DOC-Fixtures aus
 unabhängigen Erzeugern decken Überschriften, Fußnoten, Tabellen, Listen, Links,
 Kommentare, Änderungen, Unicode und Medien-Hashes ab. Native Tabellentests
 decken echte ODS- und XLS-Dateien, erzeugte XLSX-Pakete, Blattreihenfolge,
-Zellbudgets, Warnungen und einen unabhängigen Pandoc-Vergleich ab. ODM-Tests
+Zellbudgets, Linkziele, Warnungen und einen unabhängigen Pandoc-Vergleich ab. ODM-Tests
 verwenden lokal verknüpfte ODT-Dateien. Die Tests prüfen außerdem vorhandene
 Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.

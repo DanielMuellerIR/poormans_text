@@ -65,14 +65,44 @@ final class LegacyXLSBoundaryTests: XCTestCase {
             )
         }
     }
+
+    func testGeneratedBIFFWorkbookPreservesAURLHyperlink() throws {
+        let document = SyntheticXLSFixture.workbook(
+            missingFirstSheetEOF: false,
+            firstHyperlinkTarget: "https://example.com/a_(b)"
+        )
+
+        let workbook = try LegacyXLSWorkbookParser.parse(document)
+        let markdown = try SpreadsheetMarkdownRenderer.render(
+            workbook,
+            sourceURL: URL(fileURLWithPath: "/tmp/Linked.xls"),
+            style: .markdownTable
+        )
+
+        XCTAssertEqual(
+            workbook.sheets.first?.rows.first?.first?.linkTarget,
+            "https://example.com/a_(b)"
+        )
+        XCTAssertFalse(workbook.hasUnsupportedObjects)
+        XCTAssertTrue(markdown.contains("[1](https://example.com/a_%28b%29)"), markdown)
+    }
 }
 
 /// Erzeugt eine vollständige OLE-Compound-Datei mit einem kleinen BIFF8-Stream.
 /// Das Fixture stammt damit nicht aus dem getesteten Parser und kann gezielt ein
 /// fehlendes Blatt-EOF abbilden, ohne eine versionierte Binärdatei umzuschreiben.
 private enum SyntheticXLSFixture {
-    static func workbook(missingFirstSheetEOF: Bool, interveningChart: Bool = false) -> Data {
-        let firstSheet = sheet(column: 0, value: 1, includeEOF: !missingFirstSheetEOF)
+    static func workbook(
+        missingFirstSheetEOF: Bool,
+        interveningChart: Bool = false,
+        firstHyperlinkTarget: String? = nil
+    ) -> Data {
+        let firstSheet = sheet(
+            column: 0,
+            value: 1,
+            includeEOF: !missingFirstSheetEOF,
+            hyperlinkTarget: firstHyperlinkTarget
+        )
         let chartSheet = interveningChart ? nonWorksheetSheet(type: 0x0020) : Data()
         let secondSheet = sheet(column: 1, value: 2, includeEOF: true)
 
@@ -157,7 +187,12 @@ private enum SyntheticXLSFixture {
         return result
     }
 
-    private static func sheet(column: UInt16, value: Double, includeEOF: Bool) -> Data {
+    private static func sheet(
+        column: UInt16,
+        value: Double,
+        includeEOF: Bool,
+        hyperlinkTarget: String? = nil
+    ) -> Data {
         var result = record(0x0809, payload: bof(type: 0x0010))
         var number = Data()
         number.appendUInt16(0)       // Zeile
@@ -165,8 +200,40 @@ private enum SyntheticXLSFixture {
         number.appendUInt16(0)       // XF-Index
         number.appendUInt64(value.bitPattern)
         result.append(record(0x0203, payload: number))
+        if let hyperlinkTarget {
+            result.append(record(
+                0x01B8,
+                payload: hyperlink(row: 0, column: column, target: hyperlinkTarget)
+            ))
+        }
         if includeEOF { result.append(record(0x000A, payload: Data())) }
         return result
+    }
+
+    private static func hyperlink(row: UInt16, column: UInt16, target: String) -> Data {
+        var payload = Data()
+        payload.appendUInt16(row)
+        payload.appendUInt16(row)
+        payload.appendUInt16(column)
+        payload.appendUInt16(column)
+        // CLSID des Hyperlink-Objekts, danach Streamversion 2 und die Markierung
+        // für einen OLE-Moniker.
+        payload.append(contentsOf: [
+            0xD0, 0xC9, 0xEA, 0x79, 0xF9, 0xBA, 0xCE, 0x11,
+            0x8C, 0x82, 0x00, 0xAA, 0x00, 0x4B, 0xA9, 0x0B,
+        ])
+        payload.appendUInt32(2)
+        payload.appendUInt32(0x0000_0001)
+        payload.append(contentsOf: [
+            0xE0, 0xC9, 0xEA, 0x79, 0xF9, 0xBA, 0xCE, 0x11,
+            0x8C, 0x82, 0x00, 0xAA, 0x00, 0x4B, 0xA9, 0x0B,
+        ])
+        var url = Data()
+        for unit in target.utf16 { url.appendUInt16(unit) }
+        url.appendUInt16(0)
+        payload.appendUInt32(UInt32(url.count))
+        payload.append(url)
+        return payload
     }
 
     private static func nonWorksheetSheet(type: UInt16) -> Data {

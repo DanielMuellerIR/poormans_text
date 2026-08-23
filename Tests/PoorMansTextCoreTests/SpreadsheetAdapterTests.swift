@@ -67,6 +67,27 @@ final class SpreadsheetAdapterTests: XCTestCase {
         XCTAssertTrue(markdown.contains("Contains a | pipe"))
     }
 
+    func testTabSeparatedRenderingKeepsHyperlinkSource() throws {
+        let workbook = SpreadsheetWorkbook(sheets: [
+            SpreadsheetSheet(name: "Links", rows: [[
+                SpreadsheetCell(
+                    value: .string("Site"),
+                    displayText: "Site",
+                    formula: nil,
+                    linkTarget: "https://example.com/a_(b)"
+                ),
+            ]]),
+        ])
+
+        let markdown = try SpreadsheetMarkdownRenderer.render(
+            workbook,
+            sourceURL: URL(fileURLWithPath: "/tmp/Links.ods"),
+            style: .tabSeparated
+        )
+
+        XCTAssertTrue(markdown.contains("[Site](https://example.com/a_%28b%29)"), markdown)
+    }
+
     func testGeneratedODSReportsFlattenedMergeAndMissingFormulaResult() throws {
         let sourceURL = temporaryDirectory.appendingPathComponent("Generated.ods")
         try ZIPFixtureBuilder.odsPackage(contentXML: generatedODSContent).write(to: sourceURL)
@@ -388,6 +409,53 @@ final class SpreadsheetAdapterTests: XCTestCase {
         XCTAssertEqual(result.diagnostics.map(\.code), ["spreadsheet.unsupportedObjects"])
     }
 
+    func testXLSXPreservesAWorksheetHyperlinkRelationshipInMarkdown() throws {
+        let linkedSheet = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+          xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+          <sheetData><row r="1"><c r="A1" t="inlineStr"><is><t>Link [eins] | zwei</t></is></c></row></sheetData>
+          <hyperlinks><hyperlink ref="A1" r:id="rId1"/></hyperlinks>
+        </worksheet>
+        """
+        let relationships = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+          <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://example.com/a_(b)" TargetMode="External"/>
+        </Relationships>
+        """
+        let sourceURL = temporaryDirectory.appendingPathComponent("Linked.xlsx")
+        try ZIPFixtureBuilder.xlsxPackage(
+            firstSheetXML: linkedSheet,
+            secondSheetXML: secondXLSXSheet,
+            extraEntries: [
+                .init(
+                    name: "xl/worksheets/_rels/sheet1.xml.rels",
+                    content: Data(relationships.utf8)
+                ),
+            ]
+        ).write(to: sourceURL)
+
+        let inspection = try DocumentConverter().inspect(sourceURL)
+        XCTAssertFalse(
+            inspection.expectedWarnings.map(\.code).contains("spreadsheet.unsupportedObjects"),
+            "\(inspection.expectedWarnings.map(\.code))"
+        )
+        let result = try DocumentConverter().convert(
+            ConversionRequest(
+                inputURL: sourceURL,
+                destination: .directory(temporaryDirectory.appendingPathComponent("linked-xlsx-result"))
+            )
+        )
+        let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+
+        XCTAssertTrue(
+            markdown.contains("[Link \\[eins\\] \\| zwei](https://example.com/a_%28b%29)"),
+            markdown
+        )
+        XCTAssertFalse(result.diagnostics.map(\.code).contains("spreadsheet.unsupportedObjects"))
+    }
+
     func testXLSXHyperlinkDisplayHonorsRowColumnAndCellBudgets() throws {
         let cases = [
             ("Row", "A100001", "an XLSX hyperlink exceeds the row budget"),
@@ -692,7 +760,7 @@ final class SpreadsheetAdapterTests: XCTestCase {
         }
     }
 
-    func testODSReportsAHyperlinkTargetAsAnUnsupportedObject() throws {
+    func testODSPreservesAHyperlinkTargetInMarkdown() throws {
         let linked = generatedODSContent.replacingOccurrences(
             of: "<text:p>Merged</text:p>",
             with: #"<text:p><text:a xlink:href="https://example.com">Merged</text:a></text:p>"#
@@ -707,11 +775,46 @@ final class SpreadsheetAdapterTests: XCTestCase {
         try ZIPFixtureBuilder.odsPackage(contentXML: linked).write(to: sourceURL)
 
         let inspection = try DocumentConverter().inspect(sourceURL)
-
-        XCTAssertTrue(
+        XCTAssertFalse(
             inspection.expectedWarnings.map(\.code).contains("spreadsheet.unsupportedObjects"),
             "\(inspection.expectedWarnings.map(\.code))"
         )
+        let result = try DocumentConverter().convert(
+            ConversionRequest(
+                inputURL: sourceURL,
+                destination: .directory(temporaryDirectory.appendingPathComponent("linked-ods-result"))
+            )
+        )
+        let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+
+        XCTAssertTrue(markdown.contains("[Merged](https://example.com)"), markdown)
+        XCTAssertFalse(result.diagnostics.map(\.code).contains("spreadsheet.unsupportedObjects"))
+    }
+
+    func testODSIgnoresAHyperlinkAttributeOutsideTheXLinkNamespace() throws {
+        let linked = generatedODSContent.replacingOccurrences(
+            of: "<text:p>Merged</text:p>",
+            with: #"<text:p><text:a foreign:href="https://example.com">Merged</text:a></text:p>"#
+        ).replacingOccurrences(
+            of: #"xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0""#,
+            with: #"""
+            xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"
+              xmlns:foreign="urn:example:foreign"
+            """#
+        )
+        let sourceURL = temporaryDirectory.appendingPathComponent("ForeignLink.ods")
+        try ZIPFixtureBuilder.odsPackage(contentXML: linked).write(to: sourceURL)
+
+        let result = try DocumentConverter().convert(
+            ConversionRequest(
+                inputURL: sourceURL,
+                destination: .directory(temporaryDirectory.appendingPathComponent("foreign-link-result"))
+            )
+        )
+        let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+
+        XCTAssertFalse(markdown.contains("[Merged]("), markdown)
+        XCTAssertTrue(markdown.contains("| Merged |"), markdown)
     }
 
     func testRealXLSMatchesTheIndependentODSWorkbookAndKeepsSourceBytes() throws {

@@ -12,8 +12,29 @@ struct SpreadsheetCell: Equatable, Sendable {
     let value: SpreadsheetCellValue
     let displayText: String
     let formula: String?
+    /// Linkziel der Zelle. Der sichtbare Text bleibt getrennt, damit der
+    /// Renderer ihn für die jeweilige Markdown-Darstellung sicher maskieren
+    /// kann.
+    let linkTarget: String?
 
-    static let empty = SpreadsheetCell(value: .empty, displayText: "", formula: nil)
+    init(
+        value: SpreadsheetCellValue,
+        displayText: String,
+        formula: String?,
+        linkTarget: String? = nil
+    ) {
+        self.value = value
+        self.displayText = displayText
+        self.formula = formula
+        self.linkTarget = linkTarget
+    }
+
+    static let empty = SpreadsheetCell(
+        value: .empty,
+        displayText: "",
+        formula: nil,
+        linkTarget: nil
+    )
 
     var isEmpty: Bool {
         displayText.isEmpty && formula == nil
@@ -95,18 +116,51 @@ enum SpreadsheetMarkdownRenderer {
                 try output.append(" | ")
             }
             if row.indices.contains(column) {
-                try output.append(markdownCell(row[column].displayText))
+                try output.append(markdownCell(row[column]))
             }
         }
         try output.append(" |")
     }
 
-    private static func markdownCell(_ text: String) -> String {
+    private static func markdownCell(_ cell: SpreadsheetCell) -> String {
+        guard let target = cell.linkTarget, !target.isEmpty else {
+            return escapedMarkdownText(cell.displayText)
+        }
+        return "[\(escapedMarkdownLinkText(cell.displayText))](\(escapedMarkdownLinkTarget(target)))"
+    }
+
+    private static func escapedMarkdownText(_ text: String) -> String {
         text.replacingOccurrences(of: "\\", with: "\\\\")
             .replacingOccurrences(of: "|", with: "\\|")
             .replacingOccurrences(of: "\r\n", with: "<br>")
             .replacingOccurrences(of: "\r", with: "<br>")
             .replacingOccurrences(of: "\n", with: "<br>")
+    }
+
+    /// Ein Linktext braucht zusätzlich maskierte Klammern. Ohne sie könnte
+    /// Text aus der Quelldatei den erzeugten Link schließen oder eine neue
+    /// Tabellenspalte beginnen.
+    private static func escapedMarkdownLinkText(_ text: String) -> String {
+        escapedMarkdownText(text)
+            .replacingOccurrences(of: "[", with: "\\[")
+            .replacingOccurrences(of: "]", with: "\\]")
+    }
+
+    /// Markdown akzeptiert in einer Linkadresse weder Leer- noch Steuerzeichen
+    /// oder unmaskierte Klammern zuverlässig. Die Ersetzung bewahrt den Wert
+    /// als URL und verhindert zugleich, dass ein Quellwert die Linksyntax
+    /// verlassen kann.
+    private static func escapedMarkdownLinkTarget(_ target: String) -> String {
+        var escaped = ""
+        for scalar in target.unicodeScalars {
+            switch scalar.value {
+            case 0x00...0x20, 0x7F, 0x28, 0x29, 0x3C, 0x3E, 0x5B, 0x5C, 0x5D, 0x7C:
+                escaped += scalar.utf8.map { String(format: "%%%02X", $0) }.joined()
+            default:
+                escaped.unicodeScalars.append(scalar)
+            }
+        }
+        return escaped
     }
 
     private static func appendTabSeparatedBlock(
@@ -130,14 +184,28 @@ enum SpreadsheetMarkdownRenderer {
                     try output.append("\t")
                 }
                 if row.indices.contains(column) {
-                    try output.append(escapedTSVCell(row[column].displayText))
+                    try output.append(tsvCell(row[column]))
                 }
             }
         }
         try output.append("\n\(fence)")
     }
 
-    private static func escapedTSVCell(_ text: String) -> String {
+    private static func tsvCell(_ cell: SpreadsheetCell) -> String {
+        let text: String
+        if let target = cell.linkTarget, !target.isEmpty {
+            // Ein TSV-Codeblock kann keinen anklickbaren Markdown-Link
+            // enthalten. Seine reversible Zellrepräsentation bewahrt aber
+            // Linktext und -ziel als Markdown-Quelltext statt das Ziel still
+            // zu verwerfen.
+            text = "[\(escapedMarkdownLinkText(cell.displayText))](\(escapedMarkdownLinkTarget(target)))"
+        } else {
+            text = cell.displayText
+        }
+        return escapedTSVText(text)
+    }
+
+    private static func escapedTSVText(_ text: String) -> String {
         text.replacingOccurrences(of: "\\", with: "\\\\")
             .replacingOccurrences(of: "\r\n", with: "\\n")
             .replacingOccurrences(of: "\r", with: "\\n")

@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+- Preserve one hyperlink target per spreadsheet cell from ODS XLink attributes,
+  XLSX worksheet relationships, and BIFF8 HLINK records. Markdown tables render
+  the link safely; escaped TSV blocks retain its Markdown source. Additional
+  divergent link targets in a cell still produce a visible loss warning.
+- Exercise the mapped-ZIP truncation regression in a child test process, so the
+  expected `SIGBUS` cannot terminate the test runner.
+
 ## 0.8.4 - 2026-08-19
 
 - Convert documents selected through a symbolic link again in every format, and

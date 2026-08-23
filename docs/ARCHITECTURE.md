@@ -81,7 +81,7 @@ Arbeitsordner. Externe Bildbeziehungen werden nie geladen.
 
 Der Tabellenimport liest ODS, XLSX und binäres XLS in ein eigenes
 Arbeitsmappenmodell und rendert erst danach Markdown. Die drei Leser verwenden
-dieselbe Blatt-, Zell-, Budget- und Diagnosegrenze; XLSX- und ODS-ZIP-Pakete
+dieselbe Blatt-, Zell-, Linkziel-, Budget- und Diagnosegrenze; XLSX- und ODS-ZIP-Pakete
 durchlaufen zusätzlich das zentrale Paket-Gate. Darstellung und Mehrblatt-Regel
 stehen in [SPREADSHEET-IMPORT.md](SPREADSHEET-IMPORT.md).
 
@@ -135,7 +135,7 @@ openMarkdown(result.markdownFile)
   zusätzlich gegen Pandoc direkt.
 - Pakettests prüfen Traversal, externe Bilder, Kommentare, angenommene Änderungen
   und die inhaltsbasierte Unterscheidung eines echten XLS vom alten DOC. Eigene
-  Tabellen- und ODM-Tests prüfen Blattreihenfolge, Zellbudgets,
+  Tabellen- und ODM-Tests prüfen Blattreihenfolge, Zell- und Linkzielbudgets,
   Merge-/Formelwarnungen, lokale ODT-Verweise, Pfadfluchten und eindeutige Assets.
 - Engine-Tests prüfen Adapter-Inspections, Priorität und Mehrdeutigkeit sowie
   Kollisionsschutz und atomare Veröffentlichung einschließlich einer erst während

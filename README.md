@@ -259,7 +259,8 @@ Typically preserved:
 - simple ordered and unordered lists
 - semantic headings, footnotes, and simple tables in DOCX and ODT
 - image order and relative image references
-- stored spreadsheet values, sheet names, sheet order, empty cells, and internal line breaks
+- stored spreadsheet values, sheet names, sheet order, empty cells, internal line breaks,
+  and one hyperlink target per cell
 - local ODM section order
 
 Expected losses or approximations:
@@ -275,8 +276,8 @@ Expected losses or approximations:
 - DOCM/DOTM macros and DOTX/DOTM template behavior
 - spreadsheet formulas without stored results, merged-cell structure, charts,
   drawings, comments, macros, and exact formatting
-- spreadsheet hyperlink targets; the visible cell text stays and the loss is
-  reported as a warning
+- multiple different hyperlink targets in one spreadsheet cell; the first target
+  and all visible text stay, while the additional target is reported as a warning
 - ODM section boundaries and master-document behavior after flattening
 
 ## Development
@@ -298,8 +299,8 @@ files with formatting, colors, empty lines, links, lists, Unicode filenames,
 and embedded images. Versioned DOCX, ODT, and binary DOC fixtures from independent
 producers cover headings, footnotes, tables, lists, links, comments, tracked
 changes, Unicode, and media hashes. Native spreadsheet tests cover real ODS and
-XLS files, generated XLSX packages, sheet order, cell budgets, warnings, and an
-independent Pandoc comparison. ODM tests use local linked ODT files. Tests also
+XLS files, generated XLSX packages, sheet order, cell budgets, hyperlink targets,
+warnings, and an independent Pandoc comparison. ODM tests use local linked ODT files. Tests also
 cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 

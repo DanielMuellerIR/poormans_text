@@ -6,6 +6,7 @@ enum ODSWorkbookParser {
         let parser = XMLParser(data: xml)
         parser.delegate = delegate
         parser.shouldProcessNamespaces = true
+        parser.shouldReportNamespacePrefixes = true
         parser.shouldResolveExternalEntities = false
         guard parser.parse(), delegate.failure == nil else {
             throw delegate.failure ?? parser.parserError ?? CocoaError(.fileReadCorruptFile)
@@ -38,6 +39,19 @@ enum ODSWorkbookParser {
         /// `office:text` wäre es eine Textabelle.
         private var spreadsheetDepth: Int?
         private var elementStack = [(namespaceURI: String?, name: String)]()
+        private let namespacePrefixes = NamespacePrefixTracker()
+
+        func parser(
+            _ parser: XMLParser,
+            didStartMappingPrefix prefix: String,
+            toURI namespaceURI: String
+        ) {
+            namespacePrefixes.startMapping(prefix: prefix, uri: namespaceURI)
+        }
+
+        func parser(_ parser: XMLParser, didEndMappingPrefix prefix: String) {
+            namespacePrefixes.endMapping(prefix: prefix)
+        }
 
         func parser(
             _ parser: XMLParser,
@@ -144,10 +158,22 @@ enum ODSWorkbookParser {
                 return
             }
             if namespaceURI == Namespaces.text, elementName == "a", capturesCellText {
-                // Der sichtbare Linktext bleibt erhalten, das Linkziel hat im
-                // Arbeitsmappenmodell keinen Platz. Das ist ein gemeldeter
-                // Verlust, kein stiller.
-                workbook.hasUnsupportedObjects = true
+                guard let target = namespacePrefixes.attributeValue(
+                    localName: "href",
+                    namespaceURI: Namespaces.xlink,
+                    in: attributeDict
+                ), !target.isEmpty else {
+                    return
+                }
+                // Ein Tabellenfeld kann im gemeinsamen Modell genau ein Ziel
+                // tragen. Mehrere verschiedene Inline-Links behalten ihren
+                // Text, aber der zusätzliche Zielwechsel bleibt sichtbar als
+                // Verlustwarnung.
+                if let existing = currentCell?.linkTarget, existing != target {
+                    workbook.hasUnsupportedObjects = true
+                } else {
+                    currentCell?.linkTarget = target
+                }
             }
             if namespaceURI == Namespaces.text, elementName == "line-break", capturesCellText {
                 currentCell?.text.append("\n")
@@ -332,6 +358,7 @@ enum ODSWorkbookParser {
         let rawValue: String?
         let formula: String?
         var text = ""
+        var linkTarget: String?
 
         var cell: SpreadsheetCell {
             let display = text.isEmpty ? (rawValue ?? "") : text
@@ -342,7 +369,12 @@ enum ODSWorkbookParser {
             case "string": .string(display)
             default: display.isEmpty ? .empty : .string(display)
             }
-            return SpreadsheetCell(value: value, displayText: display, formula: formula)
+            return SpreadsheetCell(
+                value: value,
+                displayText: display,
+                formula: formula,
+                linkTarget: linkTarget
+            )
         }
     }
 
@@ -359,6 +391,7 @@ enum ODSWorkbookParser {
         static let office = "urn:oasis:names:tc:opendocument:xmlns:office:1.0"
         static let drawing = "urn:oasis:names:tc:opendocument:xmlns:drawing:1.0"
         static let chart = "urn:oasis:names:tc:opendocument:xmlns:chart:1.0"
+        static let xlink = "http://www.w3.org/1999/xlink"
     }
 
     private struct ParserError: LocalizedError {

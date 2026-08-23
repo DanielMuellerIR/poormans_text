@@ -59,9 +59,14 @@ enum XLSXWorkbookParser {
             throw ParserError("the workbook contains no readable worksheets")
         }
 
+        let worksheetRelationshipPaths = Dictionary(
+            uniqueKeysWithValues: sheetPaths.map { path in
+                (path, worksheetRelationshipPath(for: path))
+            }
+        )
         let worksheetPackage = try ZIPArchiveInspector.packageContents(
             at: url,
-            entryNames: sheetPaths
+            entryNames: sheetPaths + Array(worksheetRelationshipPaths.values)
         )
         let sharedStrings: [String]
         if let xml = metadata.entries["xl/sharedStrings.xml"] {
@@ -79,12 +84,20 @@ enum XLSXWorkbookParser {
             guard let xml = worksheetPackage.entries[path] else {
                 throw ParserError("the worksheet part is missing: \(path)")
             }
+            let hyperlinkTargets: [String: String]
+            if let relationshipsPath = worksheetRelationshipPaths[path],
+               let relationshipsXML = worksheetPackage.entries[relationshipsPath] {
+                hyperlinkTargets = try WorksheetHyperlinkRelationshipParser.parse(relationshipsXML)
+            } else {
+                hyperlinkTargets = [:]
+            }
             let parsed = try WorksheetParser.parse(
                 xml,
                 sharedStrings: sharedStrings,
                 maximumCells: Limits.maximumCells - expandedCellCount,
                 maximumTextBytes: SpreadsheetLimits.maximumOutputBytes - materializedTextBytes,
-                maximumHyperlinkScans: Limits.maximumCells - hyperlinkScannedCells
+                maximumHyperlinkScans: Limits.maximumCells - hyperlinkScannedCells,
+                hyperlinkTargets: hyperlinkTargets
             )
             expandedCellCount += parsed.expandedCellCount
             materializedTextBytes += parsed.materializedTextBytes
@@ -93,7 +106,7 @@ enum XLSXWorkbookParser {
             result.hasFlattenedMerges = result.hasFlattenedMerges || parsed.hasMerges
             result.hasFormulaWithoutResult = result.hasFormulaWithoutResult
                 || parsed.hasFormulaWithoutResult
-            hasHyperlinks = hasHyperlinks || parsed.hasHyperlinks
+            hasHyperlinks = hasHyperlinks || parsed.hasUnsupportedHyperlinks
         }
         // `xl/threadedComments/…` ist der Ablageort moderner Excel-Kommentare;
         // ohne ihn blieben genau die still verworfen.
@@ -152,6 +165,12 @@ enum XLSXWorkbookParser {
             throw ParserError("an XLSX worksheet relationship leaves the package: \(target)")
         }
         return path
+    }
+
+    private static func worksheetRelationshipPath(for worksheetPath: String) -> String {
+        let directory = (worksheetPath as NSString).deletingLastPathComponent
+        let name = (worksheetPath as NSString).lastPathComponent
+        return "\(directory)/_rels/\(name).rels"
     }
 
     private static func parse(_ xml: Data, delegate: XMLParserDelegate) throws {
@@ -331,12 +350,68 @@ enum XLSXWorkbookParser {
         }
     }
 
+    /// Liest ausschließlich die Linkziele des einzelnen Arbeitsblatts. Die
+    /// Beziehung wird nie geöffnet; ihr Wert wird später nur als Markdown-Ziel
+    /// geschrieben. Damit bleibt ein bösartiger externer Verweis reine Daten.
+    private enum WorksheetHyperlinkRelationshipParser {
+        static func parse(_ xml: Data) throws -> [String: String] {
+            let delegate = Delegate()
+            try XLSXWorkbookParser.parse(xml, delegate: delegate)
+            guard delegate.hasValidRoot, delegate.failure == nil else {
+                throw ParserError(
+                    delegate.failure
+                        ?? "an XLSX worksheet relationships part has no valid Relationships root"
+                )
+            }
+            return delegate.targets
+        }
+
+        private final class Delegate: NSObject, XMLParserDelegate {
+            var targets = [String: String]()
+            var hasValidRoot = false
+            var failure: String?
+            private var sawRoot = false
+
+            func parser(
+                _ parser: XMLParser,
+                didStartElement elementName: String,
+                namespaceURI: String?,
+                qualifiedName qName: String?,
+                attributes attributeDict: [String: String] = [:]
+            ) {
+                if !sawRoot {
+                    sawRoot = true
+                    hasValidRoot = elementName == "Relationships"
+                        && namespaceURI == Namespaces.relationships
+                }
+                guard namespaceURI == Namespaces.relationships,
+                      elementName == "Relationship",
+                      let type = xlsxAttribute("Type", in: attributeDict)?.lowercased(),
+                      type.hasSuffix("/hyperlink") else {
+                    return
+                }
+                guard let id = xlsxAttribute("Id", in: attributeDict), !id.isEmpty,
+                      let target = xlsxAttribute("Target", in: attributeDict), !target.isEmpty,
+                      xlsxAttribute("TargetMode", in: attributeDict)?.lowercased() == "external" else {
+                    failure = "an XLSX hyperlink relationship is invalid"
+                    return
+                }
+                guard targets[id] == nil else {
+                    failure = "an XLSX hyperlink relationship ID is duplicated"
+                    return
+                }
+                targets[id] = target
+            }
+        }
+    }
+
     private enum SharedStringsParser {
         static func parse(_ xml: Data) throws -> [String] {
             let delegate = Delegate()
             let parser = XMLParser(data: xml)
             parser.delegate = delegate
             parser.shouldProcessNamespaces = true
+            parser.shouldReportNamespacePrefixes = true
             parser.shouldResolveExternalEntities = false
             guard parser.parse(), delegate.failure == nil else {
                 throw delegate.failure ?? parser.parserError ?? CocoaError(.fileReadCorruptFile)
@@ -401,7 +476,7 @@ enum XLSXWorkbookParser {
         let rows: [[SpreadsheetCell]]
         let hasMerges: Bool
         let hasFormulaWithoutResult: Bool
-        let hasHyperlinks: Bool
+        let hasUnsupportedHyperlinks: Bool
         let expandedCellCount: Int
         let materializedTextBytes: Int
         let hyperlinkScannedCells: Int
@@ -413,17 +488,20 @@ enum XLSXWorkbookParser {
             sharedStrings: [String],
             maximumCells: Int,
             maximumTextBytes: Int,
-            maximumHyperlinkScans: Int
+            maximumHyperlinkScans: Int,
+            hyperlinkTargets: [String: String]
         ) throws -> WorksheetInspection {
             let delegate = Delegate(
                 sharedStrings: sharedStrings,
                 maximumCells: maximumCells,
                 maximumTextBytes: maximumTextBytes,
-                maximumHyperlinkScans: maximumHyperlinkScans
+                maximumHyperlinkScans: maximumHyperlinkScans,
+                hyperlinkTargets: hyperlinkTargets
             )
             let parser = XMLParser(data: xml)
             parser.delegate = delegate
             parser.shouldProcessNamespaces = true
+            parser.shouldReportNamespacePrefixes = true
             parser.shouldResolveExternalEntities = false
             guard parser.parse(), delegate.failure == nil else {
                 throw delegate.failure ?? parser.parserError ?? CocoaError(.fileReadCorruptFile)
@@ -435,7 +513,7 @@ enum XLSXWorkbookParser {
                 rows: delegate.rows,
                 hasMerges: delegate.hasMerges,
                 hasFormulaWithoutResult: delegate.hasFormulaWithoutResult,
-                hasHyperlinks: delegate.hasHyperlinks,
+                hasUnsupportedHyperlinks: delegate.hasUnsupportedHyperlinks,
                 expandedCellCount: delegate.expandedCellCount,
                 materializedTextBytes: delegate.materializedTextBytes,
                 hyperlinkScannedCells: delegate.hyperlinkScannedCells
@@ -446,7 +524,7 @@ enum XLSXWorkbookParser {
             var rows = [[SpreadsheetCell]]()
             var hasMerges = false
             var hasFormulaWithoutResult = false
-            var hasHyperlinks = false
+            var hasUnsupportedHyperlinks = false
             var failure: Error?
             var hasValidRoot = false
 
@@ -454,6 +532,7 @@ enum XLSXWorkbookParser {
             private let maximumCells: Int
             private let maximumTextBytes: Int
             private let maximumHyperlinkScans: Int
+            private let hyperlinkTargets: [String: String]
             private var currentRow: [SpreadsheetCell]?
             private var currentCell: CellBuilder?
             private var capture: Capture?
@@ -465,6 +544,7 @@ enum XLSXWorkbookParser {
             /// den Rest als `maximumHyperlinkScans` mit.
             private(set) var hyperlinkScannedCells = 0
             private var sawRoot = false
+            private let prefixes = NamespacePrefixTracker()
             /// Breite, die der Zellparser bereits gegen das Gesamtbudget
             /// gerechnet hat. Das bleibt auch für eine später weggetrimmte leere
             /// Zelle wahr, auf die ein Hyperlink seinen Anzeigetext schreibt.
@@ -474,12 +554,26 @@ enum XLSXWorkbookParser {
                 sharedStrings: [String],
                 maximumCells: Int,
                 maximumTextBytes: Int,
-                maximumHyperlinkScans: Int
+                maximumHyperlinkScans: Int,
+                hyperlinkTargets: [String: String]
             ) {
                 self.sharedStrings = sharedStrings
                 self.maximumCells = maximumCells
                 self.maximumTextBytes = maximumTextBytes
                 self.maximumHyperlinkScans = maximumHyperlinkScans
+                self.hyperlinkTargets = hyperlinkTargets
+            }
+
+            func parser(
+                _ parser: XMLParser,
+                didStartMappingPrefix prefix: String,
+                toURI namespaceURI: String
+            ) {
+                prefixes.startMapping(prefix: prefix, uri: namespaceURI)
+            }
+
+            func parser(_ parser: XMLParser, didEndMappingPrefix prefix: String) {
+                prefixes.endMapping(prefix: prefix)
             }
 
             func parser(
@@ -537,14 +631,31 @@ enum XLSXWorkbookParser {
                 } else if elementName == "mergeCell" {
                     hasMerges = true
                 } else if elementName == "hyperlink" {
-                    hasHyperlinks = true
-                    guard let reference = xlsxAttribute("ref", in: attributeDict),
-                          let display = xlsxAttribute("display", in: attributeDict),
-                          !display.isEmpty else {
+                    guard let reference = xlsxAttribute("ref", in: attributeDict) else {
+                        hasUnsupportedHyperlinks = true
                         return
                     }
+                    let display = xlsxAttribute("display", in: attributeDict)
+                    let relationshipID = prefixes.attributeValue(
+                        localName: "id",
+                        namespaceURI: Namespaces.officeDocumentRelationships,
+                        in: attributeDict
+                    )
+                    let location = xlsxAttribute("location", in: attributeDict)
+                    let target: String?
+                    if let relationshipID {
+                        guard let externalTarget = hyperlinkTargets[relationshipID] else {
+                            return fail("an XLSX hyperlink relationship is missing", parser: parser)
+                        }
+                        target = hyperlinkTarget(externalTarget, location: location)
+                    } else if let location, !location.isEmpty {
+                        target = "#\(location)"
+                    } else {
+                        hasUnsupportedHyperlinks = true
+                        target = nil
+                    }
                     do {
-                        try applyHyperlinkDisplay(display, to: reference)
+                        try applyHyperlink(target: target, display: display, to: reference)
                     } catch {
                         fail(error.localizedDescription, parser: parser)
                     }
@@ -606,7 +717,11 @@ enum XLSXWorkbookParser {
                 }
             }
 
-            private func applyHyperlinkDisplay(_ display: String, to reference: String) throws {
+            private func applyHyperlink(
+                target: String?,
+                display: String?,
+                to reference: String
+            ) throws {
                 let range = try cellRange(reference)
                 guard range.lastRow < Limits.maximumRows else {
                     throw ParserError("an XLSX hyperlink exceeds the row budget")
@@ -649,50 +764,100 @@ enum XLSXWorkbookParser {
                     throw ParserError("the XLSX hyperlinks exceed the scan budget")
                 }
 
-                var addedCells = 0
-                var cellsToFill = 0
-                for rowIndex in range.firstRow...range.lastRow {
-                    let accountedWidth = accountedRowWidths.indices.contains(rowIndex)
-                        ? accountedRowWidths[rowIndex]
-                        : 0
-                    addedCells += max(0, range.lastColumn + 1 - accountedWidth)
-                    guard expandedCellCount <= maximumCells - addedCells else {
-                        throw ParserError("the XLSX sheet exceeds the expanded-cell budget")
+                if let display, !display.isEmpty {
+                    var addedCells = 0
+                    var cellsToFill = 0
+                    for rowIndex in range.firstRow...range.lastRow {
+                        let accountedWidth = accountedRowWidths.indices.contains(rowIndex)
+                            ? accountedRowWidths[rowIndex]
+                            : 0
+                        addedCells += max(0, range.lastColumn + 1 - accountedWidth)
+                        guard expandedCellCount <= maximumCells - addedCells else {
+                            throw ParserError("the XLSX sheet exceeds the expanded-cell budget")
+                        }
+                        for columnIndex in range.firstColumn...range.lastColumn
+                        where !rows.indices.contains(rowIndex)
+                            || !rows[rowIndex].indices.contains(columnIndex)
+                            || rows[rowIndex][columnIndex].isEmpty {
+                            cellsToFill += 1
+                        }
                     }
-                    for columnIndex in range.firstColumn...range.lastColumn
-                    where !rows.indices.contains(rowIndex)
-                        || !rows[rowIndex].indices.contains(columnIndex)
-                        || rows[rowIndex][columnIndex].isEmpty {
-                        cellsToFill += 1
-                    }
-                }
-                try accountMaterializedText(display, repetitions: cellsToFill)
+                    try accountMaterializedText(display, repetitions: cellsToFill)
 
-                while rows.count <= range.lastRow {
-                    rows.append([])
-                    accountedRowWidths.append(0)
-                }
-                for rowIndex in range.firstRow...range.lastRow {
-                    if rows[rowIndex].count <= range.lastColumn {
-                        rows[rowIndex].append(contentsOf: repeatElement(
-                            .empty,
-                            count: range.lastColumn + 1 - rows[rowIndex].count
-                        ))
+                    while rows.count <= range.lastRow {
+                        rows.append([])
+                        accountedRowWidths.append(0)
                     }
-                    for columnIndex in range.firstColumn...range.lastColumn
-                    where rows[rowIndex][columnIndex].isEmpty {
-                        rows[rowIndex][columnIndex] = SpreadsheetCell(
-                            value: .string(display),
-                            displayText: display,
-                            formula: nil
+                    for rowIndex in range.firstRow...range.lastRow {
+                        if rows[rowIndex].count <= range.lastColumn {
+                            rows[rowIndex].append(contentsOf: repeatElement(
+                                .empty,
+                                count: range.lastColumn + 1 - rows[rowIndex].count
+                            ))
+                        }
+                        for columnIndex in range.firstColumn...range.lastColumn {
+                            applyHyperlinkTarget(
+                                target,
+                                display: display,
+                                atRow: rowIndex,
+                                column: columnIndex
+                            )
+                        }
+                        accountedRowWidths[rowIndex] = max(
+                            accountedRowWidths[rowIndex],
+                            range.lastColumn + 1
                         )
                     }
-                    accountedRowWidths[rowIndex] = max(
-                        accountedRowWidths[rowIndex],
-                        range.lastColumn + 1
+                    expandedCellCount += addedCells
+                    return
+                }
+
+                for rowIndex in range.firstRow...range.lastRow
+                where rows.indices.contains(rowIndex) {
+                    for columnIndex in range.firstColumn...range.lastColumn
+                    where rows[rowIndex].indices.contains(columnIndex) {
+                        applyHyperlinkTarget(target, display: nil, atRow: rowIndex, column: columnIndex)
+                    }
+                }
+            }
+
+            private func applyHyperlinkTarget(
+                _ target: String?,
+                display: String?,
+                atRow row: Int,
+                column: Int
+            ) {
+                let existing = rows[row][column]
+                if let existingTarget = existing.linkTarget,
+                   let target,
+                   existingTarget != target {
+                    // Mehrere abweichende `<hyperlink>`-Elemente für dieselbe
+                    // Zelle sind nicht regelkonform. Das gemeinsame Modell
+                    // behält dennoch deterministisch das erste Linkziel und
+                    // meldet den zusätzlichen Verlust.
+                    hasUnsupportedHyperlinks = true
+                    return
+                }
+                if existing.isEmpty, let display, !display.isEmpty {
+                    rows[row][column] = SpreadsheetCell(
+                        value: .string(display),
+                        displayText: display,
+                        formula: nil,
+                        linkTarget: target
+                    )
+                } else if !existing.isEmpty, existing.linkTarget != target {
+                    rows[row][column] = SpreadsheetCell(
+                        value: existing.value,
+                        displayText: existing.displayText,
+                        formula: existing.formula,
+                        linkTarget: target
                     )
                 }
-                expandedCellCount += addedCells
+            }
+
+            private func hyperlinkTarget(_ externalTarget: String, location: String?) -> String {
+                guard let location, !location.isEmpty else { return externalTarget }
+                return externalTarget + (externalTarget.contains("#") ? "" : "#") + location
             }
 
             private func accountMaterializedText(

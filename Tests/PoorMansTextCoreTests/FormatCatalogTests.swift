@@ -37,9 +37,9 @@ final class FormatCatalogTests: XCTestCase {
         XCTAssertEqual(allExtensions.count, Set(allExtensions).count)
     }
 
-    func testNativeSpreadsheetAndPDFFormatsRequireNoExternalTool() {
+    func testNativeSpreadsheetImageAndPDFFormatsRequireNoExternalTool() {
         let descriptors = DocumentConverter().supportedFormatDescriptors
-        for format in [InputFormat.ods, .xlsx, .xls, .pdf] {
+        for format in [InputFormat.ods, .xlsx, .xls, .image, .pdf] {
             XCTAssertEqual(
                 descriptors.first { $0.format == format }?.requiredTools,
                 []

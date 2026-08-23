@@ -6,16 +6,9 @@ Erledigte Punkte werden beim Release aus dieser Datei entfernt und in
 
 Die formatneutrale Engine, sichere Inhaltserkennung und wählbare dauerhafte oder
 temporäre Veröffentlichung sind vorhanden. RTF, RTFD, DOCX/DOCM/DOTX/DOTM,
-ODT, DOC, ODS, XLSX, XLS, ODM und PDF sind implementiert. Ihre Importwege stehen
-in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
-
-## Formatplan
-
-| Format | Geplanter Importweg | Aufwand | Erwartbare Qualität | Priorität |
-|---|---|---:|---|---:|
-| Bilder | Original als Asset plus lokales Vision-OCR in Leserichtung | mittel | Text gut bei sauberen Scans, Layout nur angenähert | 4 |
-
-Vision ist ein macOS-Systemframework und benötigt keinen zusätzlichen OCR-Dienst.
+ODT, DOC, ODS, XLSX, XLS, ODM, PDF sowie PNG, JPEG, HEIC und TIFF sind
+implementiert. Ihre Importwege stehen in
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ### iWork-Formate (Pages und Numbers) — bewusste Grenze
 
@@ -26,18 +19,6 @@ oder Numbers voraussetzt und per AppleScript nach DOCX beziehungsweise XLSX
 exportiert, lohnt den Aufwand nicht. Wer eine Pages-/Numbers-Datei umwandeln
 will, exportiert sie in der jeweiligen Apple-App als DOCX beziehungsweise XLSX
 und nutzt den normalen Import.
-
-## Etappe 5 — Bilder und OCR
-
-- Zunächst PNG, JPEG, HEIC und TIFF über ImageIO/NSImage akzeptieren.
-- Originalbild immer unverändert in `images/` übernehmen und im Markdown
-  verlinken; OCR-Text zusätzlich ausgeben, nicht anstelle des Bildes.
-- Vision auf genaue Erkennung, automatische Sprache und Bounding-Box-Sortierung
-  konfigurieren; Drehung und mehrseitiges TIFF berücksichtigen.
-- Unsichere Erkennung kenntlich machen statt Text zu erfinden.
-
-Vor Implementierung ist eine Produktentscheidung nötig: Standardmäßig nur Bild,
-Bild plus OCR oder eine CLI-Option für beide Varianten.
 
 ## Fastra-Integration
 
@@ -54,11 +35,6 @@ Offen bleibt auf der Seite des Hosts:
 - Eine direkte Library-Anbindung statt des CLI-Aufrufs wäre erst nötig, wenn
   Fortschrittsanzeige oder Abbruch während einer Umwandlung gefordert werden.
   Der Prozessweg bleibt bis dahin die einfachere und besser isolierte Grenze.
-
-## Externe Verifikation
-
-- Die vom Nutzer korrigierte Markdown-Datei für die noch ausstehende
-  RTFD-Ausgabeanalyse liegt noch nicht vor.
 
 ## Technische Referenzen
 

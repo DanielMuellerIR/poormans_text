@@ -212,7 +212,7 @@ final class CLIIntegrationTests: XCTestCase {
         XCTAssertFalse(formats.isEmpty)
         for entry in formats {
             let format = entry["format"] as? String
-            if ["ods", "xlsx", "xls", "pdf"].contains(format) {
+            if ["ods", "xlsx", "xls", "image", "pdf"].contains(format) {
                 XCTAssertEqual(entry["available"] as? Bool, true)
                 XCTAssertTrue(entry["unavailableReason"] is NSNull)
             } else {
@@ -251,6 +251,37 @@ final class CLIIntegrationTests: XCTestCase {
         )
     }
 
+    func testImageOCROffPreservesOnlyTheAsset() throws {
+        let temporaryDirectory = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "PoorMansTextCLIImageTests-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        try FileManager.default.createDirectory(at: temporaryDirectory, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: temporaryDirectory) }
+        let inputURL = Bundle.module.resourceURL!
+            .appendingPathComponent("Fixtures/WordProcessing/fixture.png")
+        let outputURL = temporaryDirectory.appendingPathComponent("result")
+
+        let result = try runCLI([
+            "--json", "--image-ocr", "off", "--output", outputURL.path, inputURL.path,
+        ])
+
+        XCTAssertEqual(result.status, 0, result.standardError)
+        let json = try decodeJSON(result.standardOutput)
+        XCTAssertEqual(json["warnings"] as? [String], [])
+        let markdown = try String(contentsOf: outputURL.appendingPathComponent("fixture.md"), encoding: .utf8)
+        XCTAssertFalse(markdown.contains("## OCR text"), markdown)
+        XCTAssertEqual(
+            try Data(contentsOf: outputURL.appendingPathComponent("images/image01.png")),
+            try Data(contentsOf: inputURL)
+        )
+
+        assertTextFailure(
+            try runCLI(["--image-ocr", "unknown", inputURL.path]),
+            expectedStatus: 64
+        )
+    }
+
     func testFormatsRejectsAConversionArgumentInsteadOfGuessing() throws {
         assertTextFailure(try runCLI(["--formats", "Document.rtf"]), expectedStatus: 64)
         assertTextFailure(try runCLI(["--formats", "-o", "out"]), expectedStatus: 64)
@@ -262,6 +293,14 @@ final class CLIIntegrationTests: XCTestCase {
         )
         assertTextFailure(
             try runCLI(["--formats", "--spreadsheet-format=tsv"]),
+            expectedStatus: 64
+        )
+        assertTextFailure(
+            try runCLI(["--formats", "--image-ocr", "off"]),
+            expectedStatus: 64
+        )
+        assertTextFailure(
+            try runCLI(["--formats", "--image-ocr=off"]),
             expectedStatus: 64
         )
     }

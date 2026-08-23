@@ -1,7 +1,6 @@
 import CoreGraphics
 import Foundation
 import PDFKit
-import Vision
 
 /// Liest PDFs ausschließlich über die macOS-Systemframeworks. Textseiten bleiben
 /// bei PDFKit; nur Seiten ohne ausreichend eingebetteten Text werden lokal
@@ -274,43 +273,21 @@ struct PDFAdapter: DocumentConversionAdapter {
             throw PDFAdapterError("the rendered PDF page has no image")
         }
 
-        let request = VNRecognizeTextRequest()
-        request.recognitionLevel = .accurate
-        request.usesLanguageCorrection = true
-        request.automaticallyDetectsLanguage = true
-        request.minimumTextHeight = PDFImportLimits.minimumOCRTextHeight
-        let handler = VNImageRequestHandler(cgImage: image)
-        try handler.perform([request])
-        let lines = (request.results ?? []).compactMap { observation -> OCRLine? in
-            guard let candidate = observation.topCandidates(1).first,
-                  !candidate.string.isEmpty else {
-                return nil
-            }
-            let text = candidate.confidence < PDFImportLimits.minimumOCRConfidence
-                ? "[OCR uncertain: \(candidate.string)]"
-                : candidate.string
-            return OCRLine(text: text, bounds: observation.boundingBox)
-        }.sorted { lhs, rhs in
-            if abs(lhs.bounds.midY - rhs.bounds.midY) > PDFImportLimits.lineGroupingTolerance {
-                return lhs.bounds.midY > rhs.bounds.midY
-            }
-            return lhs.bounds.minX < rhs.bounds.minX
-        }
-        return normalizedText(lines.map(\.text).joined(separator: "\n"))
+        return try VisionTextRecognizer.recognize(in: image).text
     }
 
     private func renderedMarkdown(from pages: [String], sourceURL: URL) throws -> String {
         var markdown = ""
         var markdownBytes = 0
         try appendMarkdown(
-            "# \(headingText(sourceURL.deletingPathExtension().lastPathComponent))",
+            "# \(MarkdownEscaping.heading(sourceURL.deletingPathExtension().lastPathComponent))",
             to: &markdown,
             byteCount: &markdownBytes
         )
         for (index, text) in pages.enumerated() {
             let content = text.isEmpty
                 ? "_No text could be extracted from this page._"
-                : literalMarkdownText(text)
+                : MarkdownEscaping.literalBlock(text)
             try appendMarkdown(
                 "\n\n## Page \(index + 1)\n\n\(content)",
                 to: &markdown,
@@ -344,51 +321,6 @@ struct PDFAdapter: DocumentConversionAdapter {
             .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    /// PDFKit liefert reinen Seitentext, aber keine Markdown-Struktur. Der Text
-    /// bleibt deshalb literal: führende Markdown-Syntax und Inline-Markup dürfen
-    /// nicht aus dem PDF heraus neue Überschriften, Links oder Tabellen bilden.
-    private func literalMarkdownText(_ text: String) -> String {
-        text.split(separator: "\n", omittingEmptySubsequences: false).map { line in
-            let escaped = String(line)
-                .replacingOccurrences(of: "\\", with: "\\\\")
-                .replacingOccurrences(of: "`", with: "\\`")
-                .replacingOccurrences(of: "*", with: "\\*")
-                .replacingOccurrences(of: "_", with: "\\_")
-                .replacingOccurrences(of: "[", with: "\\[")
-                .replacingOccurrences(of: "]", with: "\\]")
-                .replacingOccurrences(of: "<", with: "\\<")
-                .replacingOccurrences(of: ">", with: "\\>")
-                .replacingOccurrences(of: "|", with: "\\|")
-            return escapingMarkdownBlockMarker(in: escaped)
-        }.joined(separator: "\n")
-    }
-
-    private func escapingMarkdownBlockMarker(in line: String) -> String {
-        let indentation = line.prefix(while: { $0 == " " || $0 == "\t" })
-        let body = line.dropFirst(indentation.count)
-        guard let first = body.first else { return line }
-        if "#+-".contains(first) || first == ">" {
-            return indentation + "\\" + body
-        }
-        if first.isNumber,
-           let period = body.firstIndex(of: "."),
-           body[..<period].allSatisfy(\.isNumber),
-           body.index(after: period) < body.endIndex,
-           body[body.index(after: period)].isWhitespace {
-            return indentation + body[..<period] + "\\" + body[period...]
-        }
-        return line
-    }
-
-    private func headingText(_ text: String) -> String {
-        let singleLine = text.split(whereSeparator: { $0.isWhitespace || $0.isNewline })
-            .joined(separator: " ")
-        let escaped = "\\`*_[]<>&#"
-        return String(singleLine.flatMap { character -> [Character] in
-            escaped.contains(character) ? ["\\", character] : [character]
-        })
-    }
-
     private struct PDFExtraction {
         let pages: [String]
         let usedOCR: Bool
@@ -411,10 +343,6 @@ struct PDFAdapter: DocumentConversionAdapter {
         var pixelCount: Int { width * height }
     }
 
-    private struct OCRLine {
-        let text: String
-        let bounds: CGRect
-    }
 }
 
 private enum PDFImportLimits {
@@ -431,9 +359,6 @@ private enum PDFImportLimits {
     /// Ausgabebudget, das auch die Tabellenkonvertierung schützt.
     static let maximumExtractedTextBytes = 64 * 1_024 * 1_024
     static let maximumMarkdownBytes = 128 * 1_024 * 1_024
-    static let minimumOCRTextHeight: Float = 0.008
-    static let minimumOCRConfidence: Float = 0.55
-    static let lineGroupingTolerance: CGFloat = 0.015
 }
 
 private struct PDFAdapterError: LocalizedError {

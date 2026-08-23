@@ -30,7 +30,7 @@ final class ProductInfoTests: XCTestCase {
             Set(extensions),
             [
                 "rtf", "rtfd", "docx", "docm", "dotx", "dotm", "odt", "doc",
-                "ods", "xlsx", "xls", "odm",
+                "ods", "xlsx", "xls", "odm", "pdf", "png", "jpg", "jpeg", "heic", "tif", "tiff",
             ]
         )
     }

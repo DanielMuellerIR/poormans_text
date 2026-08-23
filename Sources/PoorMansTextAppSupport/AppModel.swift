@@ -14,6 +14,8 @@ public final class AppModel: ObservableObject {
 
     @Published public private(set) var state: State = .idle
     @Published public var isDropTargeted = false
+    /// Gilt nur für Bildimporte; andere Formate ignorieren diese Option.
+    @Published public var imageTextRecognition: ImageTextRecognition = .enabled
     /// Wahr, solange die App Pandoc über Homebrew nachinstalliert.
     @Published public private(set) var isInstallingPandoc = false
 
@@ -38,7 +40,10 @@ public final class AppModel: ObservableObject {
         }
 
         state = .converting(inputURL)
-        let request = ConversionRequest(inputURL: inputURL)
+        let request = ConversionRequest(
+            inputURL: inputURL,
+            options: ConversionOptions(imageTextRecognition: imageTextRecognition)
+        )
 
         // Die Dateikonvertierung läuft außerhalb des Main Actors, damit das Fenster
         // während textutil und Pandoc weiterhin reagiert.
@@ -98,7 +103,7 @@ public final class AppModel: ObservableObject {
     /// Der echte Öffnen-Dialog von macOS.
     private static func presentOpenPanel() -> URL? {
         let panel = NSOpenPanel()
-        panel.title = "Choose a Document, Spreadsheet, or PDF"
+        panel.title = "Choose a Document, Spreadsheet, PDF, or Image"
         panel.prompt = "Convert"
         let extensions = DocumentConverter().supportedFormatDescriptors
             .flatMap(\.fileExtensions)

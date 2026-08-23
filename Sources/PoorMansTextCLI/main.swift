@@ -21,9 +21,12 @@ private struct ParsedArguments {
     var showVersion = false
     var listFormats = false
     var spreadsheetRendering: SpreadsheetRendering = .markdownTable
+    var imageTextRecognition: ImageTextRecognition = .enabled
     /// Wurde `--spreadsheet-format` wirklich angegeben? Der Standardwert allein
     /// verrät das nicht, im Katalogmodus ist aber genau die Angabe der Fehler.
     var setsSpreadsheetRendering = false
+    /// Wie bei Tabellen ist die explizite Angabe im Katalogmodus ein Fehler.
+    var setsImageTextRecognition = false
 }
 
 private struct JSONResponse: Encodable {
@@ -111,7 +114,7 @@ private let usage = """
 Usage: poormans-text [options] INPUT
        poormans-text --formats [--json] [--pandoc PATH]
 
-Convert a supported word-processing document or spreadsheet into a new folder containing Markdown.
+Convert a supported document, spreadsheet, PDF, or image into a new folder containing Markdown.
 
 Options:
   -o, --output DIRECTORY  Set the new output directory.
@@ -119,6 +122,7 @@ Options:
       --formats           List the supported input formats instead of converting.
       --spreadsheet-format table|tsv
                           Render spreadsheets as a GFM table (default) or escaped TSV.
+      --image-ocr on|off  Add local OCR text for images (default) or preserve only the image asset.
       --json              Write a machine-readable result to stdout.
   -h, --help              Show this help text.
   -V, --version           Show the product version.
@@ -133,7 +137,8 @@ it is a single file or a folder package, which external tools it needs, and
 whether those tools are installed right now. It never inspects a document, and
 a valid call always exits 0 — even when no format is currently available.
 Combining --formats with an input document, an output directory, or a
-conversion option such as --spreadsheet-format is a usage error and exits 64.
+conversion option such as --spreadsheet-format or --image-ocr is a usage error
+and exits 64.
 """
 
 private func parseArguments(
@@ -172,6 +177,18 @@ private func parseArguments(
                 String(argument.dropFirst("--spreadsheet-format=".count))
             )
             parsed.setsSpreadsheetRendering = true
+        } else if !optionsEnded && argument == "--image-ocr" {
+            index += 1
+            guard index < rawArguments.count else {
+                throw CLIArgumentError.missingValue(argument)
+            }
+            parsed.imageTextRecognition = try imageTextRecognition(rawArguments[index])
+            parsed.setsImageTextRecognition = true
+        } else if !optionsEnded && argument.hasPrefix("--image-ocr=") {
+            parsed.imageTextRecognition = try imageTextRecognition(
+                String(argument.dropFirst("--image-ocr=".count))
+            )
+            parsed.setsImageTextRecognition = true
         } else if !optionsEnded && (argument == "-o" || argument == "--output") {
             index += 1
             guard index < rawArguments.count else {
@@ -218,12 +235,21 @@ private func spreadsheetRendering(_ value: String) throws -> SpreadsheetRenderin
     }
 }
 
+private func imageTextRecognition(_ value: String) throws -> ImageTextRecognition {
+    switch value {
+    case "on": .enabled
+    case "off": .disabled
+    default: throw CLIArgumentError.invalidImageOCROption(value)
+    }
+}
+
 private enum CLIArgumentError: LocalizedError {
     case missingValue(String)
     case unknownOption(String)
     case tooManyInputs
     case formatsTakesNoInput
     case invalidSpreadsheetFormat(String)
+    case invalidImageOCROption(String)
 
     var errorDescription: String? {
         switch self {
@@ -244,6 +270,8 @@ private enum CLIArgumentError: LocalizedError {
             """
         case .invalidSpreadsheetFormat(let value):
             "Unknown spreadsheet format: \(value). Use table or tsv."
+        case .invalidImageOCROption(let value):
+            "Unknown image OCR option: \(value). Use on or off."
         }
     }
 }
@@ -362,7 +390,7 @@ do {
 
     if arguments.listFormats {
         guard arguments.inputURL == nil, arguments.outputURL == nil,
-              !arguments.setsSpreadsheetRendering else {
+              !arguments.setsSpreadsheetRendering, !arguments.setsImageTextRecognition else {
             throw CLIArgumentError.formatsTakesNoInput
         }
         writeFormats(formatCatalog(pandocURL: arguments.pandocURL), json: arguments.json)
@@ -381,7 +409,8 @@ do {
             destination: destination,
             options: ConversionOptions(
                 pandocExecutable: arguments.pandocURL,
-                spreadsheetRendering: arguments.spreadsheetRendering
+                spreadsheetRendering: arguments.spreadsheetRendering,
+                imageTextRecognition: arguments.imageTextRecognition
             )
         )
     )

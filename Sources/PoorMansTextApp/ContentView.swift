@@ -136,7 +136,7 @@ struct ContentView: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text(ProductInfo.name)
                     .font(.title.bold())
-                Text("Documents, spreadsheets, and PDFs to Markdown")
+                Text("Documents, spreadsheets, PDFs, and images to Markdown")
                     .foregroundStyle(.secondary)
             }
 
@@ -190,12 +190,19 @@ struct ContentView: View {
                     .font(.system(size: 45, weight: .medium))
                     .foregroundStyle(.tint)
                     .accessibilityHidden(true)
-                Text("Drop a supported document, spreadsheet, or PDF here")
+                Text("Drop a supported document, spreadsheet, PDF, or image here")
                     .font(.title3.bold())
                 Text("A new folder with Markdown and any extracted assets will be created next to it.")
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: 390)
+                Picker("Images", selection: $model.imageTextRecognition) {
+                    Text("Add local OCR text").tag(ImageTextRecognition.enabled)
+                    Text("Keep only the image").tag(ImageTextRecognition.disabled)
+                }
+                .pickerStyle(.segmented)
+                .frame(maxWidth: 320)
+                .accessibilityLabel("Image import mode")
                 Button("Choose Document…") {
                     model.chooseDocument()
                 }

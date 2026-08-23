@@ -60,6 +60,39 @@ final class AppModelDropTests: XCTestCase {
     }
 
     @MainActor
+    func testImageModeCanDisableOCRForARealAppConversion() async throws {
+        try await withTemporaryDirectory { temporaryDirectory in
+            let inputURL = temporaryDirectory.appendingPathComponent("Photo.png")
+            try FileManager.default.copyItem(
+                at: wordProcessingFixture("fixture.png"),
+                to: inputURL
+            )
+            let model = AppModel()
+            model.imageTextRecognition = .disabled
+
+            model.convert(inputURL)
+
+            let deadline = Date().addingTimeInterval(5)
+            while Date() < deadline {
+                switch model.state {
+                case .succeeded(let result):
+                    XCTAssertEqual(result.format.rawValue, "image")
+                    XCTAssertTrue(result.diagnostics.isEmpty)
+                    let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+                    XCTAssertFalse(markdown.contains("## OCR text"), markdown)
+                    return
+                case .failed(_, let message):
+                    return XCTFail("Image conversion failed: \(message)")
+                case .idle, .converting:
+                    try await Task.sleep(for: .milliseconds(50))
+                }
+            }
+
+            XCTFail("Image conversion did not finish within five seconds.")
+        }
+    }
+
+    @MainActor
     private func assertDropConverts(_ inputURL: URL, expectedAssetCount: Int) async throws {
         let pandocCandidates = ["/opt/homebrew/bin/pandoc", "/usr/local/bin/pandoc"]
         try XCTSkipUnless(

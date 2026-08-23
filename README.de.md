@@ -7,18 +7,18 @@
 **🌐 Sprache / Language:** [English](README.md) · [Deutsch](README.de.md)
 
 <p align="center">
-  <strong>Textdokumente, Tabellen und PDFs in Markdown umwandeln.</strong>
+  <strong>Dokumente, Tabellen, PDFs und Bilder in Markdown umwandeln.</strong>
 </p>
 
 Poor Man's Text wandelt RTF, RTFD, DOCX (einschließlich DOCM und DOTX/DOTM), ODT,
 alte Word-Dateien (`.doc`), ODS, XLSX, XLS, OpenDocument-Masterdokumente
-(`.odm`) und PDFs in Ordner mit Markdown und gegebenenfalls separat gespeicherten
-Bildern um.
+(`.odm`), PDFs sowie PNG-, JPEG-, HEIC- und TIFF-Bilder in Ordner mit Markdown
+und gegebenenfalls separat gespeicherten Bildern um.
 
 Das Projekt stellt zwei Oberflächen für denselben Konvertierungskern bereit:
 
 - `poormans-text`, ein automatisierbares Kommandozeilenwerkzeug
-- eine native macOS-App zum Öffnen oder Ablegen unterstützter Dokumente, Tabellen und PDFs
+- eine native macOS-App zum Öffnen oder Ablegen unterstützter Dokumente, Tabellen, PDFs und Bilder
 
 Die Konvertierung ist bewusst verlustbehaftet. Markdown kann Dokumentstruktur,
 Links, einfache Hervorhebungen, Listen und Bilder bewahren, aber nicht jede
@@ -57,7 +57,7 @@ und der Konverter meldet den Verlust als Warnung.
 - [Pandoc](https://pandoc.org/installing.html) für Textdokumente und ODM
 - Swift 6.2 oder neuer für den Bau aus dem Quellcode
 
-ODS, XLSX, XLS und PDF werden nativ gelesen und brauchen kein externes
+ODS, XLSX, XLS, PDF und Bilder werden nativ gelesen und brauchen kein externes
 Konvertierungswerkzeug. Für die übrigen Formate sucht der Konverter Pandoc in
 den üblichen Homebrew-Verzeichnissen und danach über `PATH`. Dem CLI kann mit
 `--pandoc PFAD` auch ein bestimmtes Programm übergeben werden.
@@ -109,6 +109,8 @@ poormans-text Arbeitsmappe.xlsx
 poormans-text Arbeitsmappe.xls
 poormans-text Buch.odm
 poormans-text Dokument.pdf
+poormans-text Scan.heic
+poormans-text --image-ocr off Foto.jpg
 poormans-text --spreadsheet-format tsv Arbeitsmappe.ods
 poormans-text --output Konvertiert Dokument.rtfd
 poormans-text --json Dokument.rtfd
@@ -149,11 +151,12 @@ xlsx  .xlsx                    file                      available
 xls   .xls                     file                      available
 odm   .odm                     file     pandoc           available
 pdf   .pdf                     file                      available
+image .png .jpg .jpeg .heic .tif .tiff  file                      available
 ```
 
 Fehlt Pandoc, steht bei Textdokumenten und ODM
-`unavailable (missing required tool: pandoc)`; ODS, XLSX, XLS und PDF bleiben
-verfügbar. Das für DOC und RTFD zusätzlich nötige `textutil` gehört zu macOS.
+`unavailable (missing required tool: pandoc)`; ODS, XLSX, XLS, PDF und Bilder
+bleiben verfügbar. Das für DOC und RTFD zusätzlich nötige `textutil` gehört zu macOS.
 
 So entscheidet eine andere App, ob sie eine Umwandlung anbietet. Weil die Liste
 aus dem Konverter selbst stammt, übernimmt ein Aufrufer später hinzukommende
@@ -256,6 +259,15 @@ behält sichtbare Seitenabschnitte. Passwortgeschützte PDFs, mehr als 1.000 Sei
 und OCR-Arbeit über dem 64-Millionen-Pixel-Budget werden vor der Veröffentlichung
 abgelehnt. Weder PDFKit noch Vision öffnen entfernte Inhalte.
 
+Der Bildimport übernimmt PNG, JPEG, HEIC und TIFF unverändert als Asset unter
+`images/` und verlinkt es relativ aus dem Markdown. Standardmäßig ergänzt Vision
+darunter lokal erkannten Text. `--image-ocr off` behält nur das Bild; das eignet
+sich etwa für Handschrift, Diagramme oder Text, der nicht als Markdown suchbar
+werden soll. Die macOS-App bietet dieselbe Auswahl vor der Umwandlung. Ein mehrseitiges TIFF bleibt ein Asset und erhält einen OCR-Abschnitt
+pro Frame. Für Bilder gelten dieselben OCR-Grenzen wie beim PDF-Fallback:
+höchstens 16 Millionen Pixel pro Frame und 64 Millionen insgesamt. Der Konverter
+markiert unsichere OCR-Stellen im Markdown, damit sie am Original geprüft werden.
+
 Die formatneutrale Engine prüft den Quellinhalt, statt nur der Dateiendung zu
 glauben, und wählt danach den passenden Weg. Bei Textdokumenten werden
 Bildverweise geprüft und ersetzt, bevor Pandoc GitHub-Flavored Markdown erstellt;
@@ -282,6 +294,7 @@ In der Regel erhalten:
   und je Zelle ein Linkziel
 - Reihenfolge lokaler ODM-Abschnitte
 - eingebetteter PDF-Text in Seitenreihenfolge mit Seitenabschnitten
+- bytegleiche PNG-, JPEG-, HEIC- und TIFF-Assets mit optional lokal erkanntem Text
 
 Erwartbare Verluste oder Annäherungen:
 
@@ -301,6 +314,8 @@ Erwartbare Verluste oder Annäherungen:
 - ODM-Abschnittsgrenzen und Masterdokumentverhalten nach dem Zusammenführen
 - PDF-Seitenlayout, Spalten, Tabellen, Kopf- und Fußzeilen sowie genaue
   Textpositionen; lokale OCR kann Erkennungsfehler enthalten und braucht Prüfung
+- OCR-Lesereihenfolge und genaues Layout von Bildern; das erhaltene Originalbild
+  bleibt die maßgebliche Quelle zur Prüfung
 
 ## Entwicklung
 
@@ -311,8 +326,8 @@ swift test
 ```
 
 Build-, Signatur- und Installationsdetails stehen in
-[docs/BUILD-AND-TEST.md](docs/BUILD-AND-TEST.md). Bilder/OCR stehen in
-[ROADMAP.md](ROADMAP.md); den PDF-Import beschreibt
+[docs/BUILD-AND-TEST.md](docs/BUILD-AND-TEST.md). Den Bildimport beschreibt
+[docs/IMAGE-IMPORT.md](docs/IMAGE-IMPORT.md); den PDF-Import beschreibt
 [docs/PDF-IMPORT.md](docs/PDF-IMPORT.md). Das implementierte Arbeitsmappenmodell, beide
 Tabellendarstellungen und das Mehrblattverhalten beschreibt
 [docs/SPREADSHEET-IMPORT.md](docs/SPREADSHEET-IMPORT.md).
@@ -326,8 +341,9 @@ decken echte ODS- und XLS-Dateien, erzeugte XLSX-Pakete, Blattreihenfolge,
 Zellbudgets, Linkziele, Warnungen und einen unabhängigen Pandoc-Vergleich ab. ODM-Tests
 verwenden lokal verknüpfte ODT-Dateien. Die Tests erzeugen außerdem echte
 temporäre PDFs mit eingebettetem Text, leeren OCR-Seiten, Verschlüsselung sowie
-Seiten- und Pixelbudgets. Sie prüfen außerdem vorhandene Ziele, defekte oder
-unsichere Pakete, fehlende Abhängigkeiten, den
+Seiten- und Pixelbudgets. Bildtests erzeugen PNG- und mehrseitige TIFF-Fixtures,
+vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
+außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
 Die aktuelle Version ist 0.8.4.

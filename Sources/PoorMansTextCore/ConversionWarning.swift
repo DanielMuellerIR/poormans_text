@@ -98,4 +98,19 @@ extension ConversionWarning {
         code: "pdf.ocrFailed",
         message: "Local OCR failed for at least one PDF page; that page is represented without text."
     )
+
+    static let imageOCRApplied = ConversionWarning(
+        code: "image.ocrApplied",
+        message: "Local OCR text was added next to the preserved original image."
+    )
+
+    static let imageOCRFailed = ConversionWarning(
+        code: "image.ocrFailed",
+        message: "Local OCR failed for at least one image frame; the original image was preserved."
+    )
+
+    static let imageTextUnavailable = ConversionWarning(
+        code: "image.textUnavailable",
+        message: "No text could be extracted from at least one image frame."
+    )
 }

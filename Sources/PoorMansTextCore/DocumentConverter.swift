@@ -11,6 +11,7 @@ public struct DocumentConverter: Sendable {
             LegacyWordAdapter(),
             SpreadsheetAdapter(),
             OpenDocumentMasterAdapter(),
+            ImageAdapter(),
             PDFAdapter(),
         ])
     }

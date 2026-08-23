@@ -21,7 +21,8 @@ ODS, XLSX und XLS werden nativ in ein gemeinsames Arbeitsmappenmodell gelesen;
 ODM löst ausschließlich lokale ODT-Teildokumente auf. Alle Wege liegen hinter
 derselben Foundation-basierten Anfrage und bestimmen deren API nicht.
 PDFKit liest eingebetteten PDF-Text, und Vision verarbeitet ausschließlich lokal
-gerenderte textarme Seiten.
+gerenderte textarme Seiten. ImageIO übernimmt Bilddaten unverändert als Asset;
+Vision ergänzt dort optional lokalen Text.
 
 ## Formatneutrale Konvertierung
 
@@ -38,7 +39,7 @@ DocumentConverter ─ Inspections priorisieren, Adapter wählen, atomar veröffe
         ├── LegacyWordAdapter    DOC über textutil, danach HTML/Pandoc
         ├── SpreadsheetAdapter   ODS, XLSX und XLS über native Leser
         ├── OpenDocumentMaster…  ODM plus geprüfte lokale ODT-Teildokumente
-        ├── ImageOCRAdapter      ImageIO + Vision (geplant)
+        ├── ImageAdapter         ImageIO-Asset + optionales Vision-OCR
         └── PDFAdapter           PDFKit-Text + lokaler Vision-OCR-Fallback
 ```
 
@@ -101,6 +102,16 @@ Pixel-Budgets und übergibt das Bild lokal an Vision. Das Ergebnis bleibt
 seitenweise und erhält immer eine Layoutverlustwarnung. Details stehen in
 [PDF-IMPORT.md](PDF-IMPORT.md).
 
+Der Bildadapter lässt ImageIO den tatsächlichen Bildtyp bestimmen und akzeptiert
+PNG, JPEG, HEIC und TIFF. Er stagt die reguläre Quelle einmal, kopiert genau diese
+Bytes als `images/image01.<endung>` ins Ergebnis und schreibt einen relativen
+Markdown-Verweis. `ConversionOptions.imageTextRecognition` steuert, ob Vision
+unter dem Bild lokalen OCR-Text ergänzt; die CLI bietet dafür `--image-ocr on|off`.
+Die OCR-Prüfung liest Dimensionen vor dem Dekodieren, begrenzt jeden Frame auf
+16 Millionen Pixel und alle TIFF-Frames zusammen auf 64 Millionen Pixel. Vision
+respektiert die Bildorientierung und markiert unsichere Textzeilen. Details stehen
+in [IMAGE-IMPORT.md](IMAGE-IMPORT.md).
+
 ## Vertrag für aufrufende Apps
 
 Der Kern:
@@ -141,7 +152,8 @@ openMarkdown(result.markdownFile)
 
 - Adaptertests verwenden echte temporär erzeugte RTF- und RTFD-Dokumente sowie
   versionierte DOCX-, ODT-, DOC-, ODS- und XLS-Dateien aus unabhängigen
-  Erzeugern sowie temporäre PDFs mit eingebettetem Text und OCR-Fallback.
+  Erzeugern sowie temporäre PDFs mit eingebettetem Text und OCR-Fallback sowie
+  PNG- und mehrseitige TIFF-Bilder.
   Bilddaten werden per Bytevergleich geprüft; DOCX/ODT und XLSX zusätzlich gegen
   Pandoc direkt.
 - Pakettests prüfen Traversal, externe Bilder, Kommentare, angenommene Änderungen

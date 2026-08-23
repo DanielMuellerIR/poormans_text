@@ -13,6 +13,10 @@ All notable changes to this project will be documented in this file.
 - Add native PDF import through PDFKit with page markers and a local Vision OCR
   fallback. Reject encrypted, damaged, oversized, and over-budget documents
   before publication; warn explicitly about layout and OCR limits.
+- Add native PNG, JPEG, HEIC, and TIFF import. Every image is retained byte for
+  byte as an asset; local Vision OCR is enabled by default and can be disabled
+  with `--image-ocr off`. Multi-frame TIFF uses one asset and one OCR section per
+  frame.
 
 ## 0.8.4 - 2026-08-19
 

@@ -16,16 +16,25 @@ public enum SpreadsheetRendering: String, Codable, Equatable, Sendable {
     case tabSeparated
 }
 
+/// Legt fest, ob Bildimporte zusätzlich lokal erkannten Text ausgeben.
+public enum ImageTextRecognition: String, Codable, Equatable, Sendable {
+    case enabled
+    case disabled
+}
+
 public struct ConversionOptions: Equatable, Sendable {
     public var pandocExecutable: URL?
     public var spreadsheetRendering: SpreadsheetRendering
+    public var imageTextRecognition: ImageTextRecognition
 
     public init(
         pandocExecutable: URL? = nil,
-        spreadsheetRendering: SpreadsheetRendering = .markdownTable
+        spreadsheetRendering: SpreadsheetRendering = .markdownTable,
+        imageTextRecognition: ImageTextRecognition = .enabled
     ) {
         self.pandocExecutable = pandocExecutable
         self.spreadsheetRendering = spreadsheetRendering
+        self.imageTextRecognition = imageTextRecognition
     }
 }
 

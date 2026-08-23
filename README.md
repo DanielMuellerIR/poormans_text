@@ -7,17 +7,18 @@
 **🌐 Sprache / Language:** [English](README.md) · [Deutsch](README.de.md)
 
 <p align="center">
-  <strong>Convert word-processing documents, spreadsheets, and PDFs to Markdown.</strong>
+  <strong>Convert documents, spreadsheets, PDFs, and images to Markdown.</strong>
 </p>
 
 Poor Man's Text converts RTF, RTFD, DOCX (including DOCM and DOTX/DOTM), ODT,
-legacy Word (`.doc`), ODS, XLSX, XLS, OpenDocument master (`.odm`), and PDF
-files into folders containing Markdown and any separately stored image assets.
+legacy Word (`.doc`), ODS, XLSX, XLS, OpenDocument master (`.odm`), PDF, and
+PNG, JPEG, HEIC, or TIFF images into folders containing Markdown and any
+separately stored image assets.
 
 The project provides two interfaces over the same conversion core:
 
 - `poormans-text`, an automation-friendly command-line tool
-- a native macOS app for opening or dropping supported documents, spreadsheets, and PDFs
+- a native macOS app for opening or dropping supported documents, spreadsheets, PDFs, and images
 
 Conversion is deliberately lossy. Markdown can preserve document structure,
 links, simple emphasis, lists, and images, but not every font, layout, or
@@ -53,7 +54,7 @@ path; the converter keeps the text and returns a warning instead.
 - [Pandoc](https://pandoc.org/installing.html) for word-processing and ODM files
 - Swift 6.2 or newer when building from source
 
-ODS, XLSX, XLS, and PDF are read natively and need no external conversion tool.
+ODS, XLSX, XLS, PDF, and images are read natively and need no external conversion tool.
 For the remaining formats, the converter searches for Pandoc in the common Homebrew
 locations and then on `PATH`. The CLI also accepts an explicit executable
 through `--pandoc PATH`.
@@ -103,6 +104,8 @@ poormans-text Workbook.xlsx
 poormans-text Workbook.xls
 poormans-text Book.odm
 poormans-text Document.pdf
+poormans-text Scan.heic
+poormans-text --image-ocr off Photo.jpg
 poormans-text --spreadsheet-format tsv Workbook.ods
 poormans-text --output Converted Document.rtfd
 poormans-text --json Document.rtfd
@@ -142,11 +145,12 @@ xlsx  .xlsx                    file                      available
 xls   .xls                     file                      available
 odm   .odm                     file     pandoc           available
 pdf   .pdf                     file                      available
+image .png .jpg .jpeg .heic .tif .tiff  file                      available
 ```
 
 Without Pandoc, the word-processing and ODM lines read
-`unavailable (missing required tool: pandoc)`; ODS, XLSX, XLS, and PDF remain
-available. The `textutil` that DOC and RTFD additionally require is part of
+`unavailable (missing required tool: pandoc)`; ODS, XLSX, XLS, PDF, and images
+remain available. The `textutil` that DOC and RTFD additionally require is part of
 macOS.
 
 This is the intended way for another application to decide whether to offer a
@@ -246,6 +250,16 @@ sections. Password-protected PDFs, more than 1,000 pages, and OCR work above the
 64-million-pixel budget are rejected before publication. Neither PDFKit nor Vision
 opens remote content.
 
+Image import stores PNG, JPEG, HEIC, and TIFF bytes unchanged as an `images/`
+asset and writes a relative Markdown image reference. By default Vision adds local
+OCR text below it. `--image-ocr off` retains only the image, which is useful when
+the source contains handwriting, a diagram, or text that should not become
+searchable Markdown. The macOS app exposes the same choice before conversion.
+TIFF uses one retained asset and a separate OCR section for
+each frame. Image dimensions and all frames share the same 16-million-per-frame
+and 64-million-pixel OCR budgets as PDF fallback; exceeding them rejects OCR mode
+before publication. Low-confidence OCR is marked in the Markdown for review.
+
 The format-neutral engine verifies source contents instead of trusting only the
 filename extension, then selects the matching path. Word-processing paths
 validate and rewrite image references before Pandoc creates GitHub-Flavored
@@ -271,6 +285,7 @@ Typically preserved:
   and one hyperlink target per cell
 - local ODM section order
 - embedded PDF text in page order, with page sections
+- byte-identical PNG, JPEG, HEIC, and TIFF assets, with optional local OCR text
 
 Expected losses or approximations:
 
@@ -290,6 +305,8 @@ Expected losses or approximations:
 - ODM section boundaries and master-document behavior after flattening
 - PDF page layout, columns, tables, headers, footers, and exact text placement;
   local OCR can contain recognition errors and needs review
+- image OCR reading order and exact layout; the retained original image remains
+  the authoritative source for review
 
 ## Development
 
@@ -300,8 +317,9 @@ swift test
 ```
 
 See [docs/BUILD-AND-TEST.md](docs/BUILD-AND-TEST.md) for build, signing, and
-installation details. Image/OCR is tracked in [ROADMAP.md](ROADMAP.md); PDF import is
-described in [docs/PDF-IMPORT.md](docs/PDF-IMPORT.md). The implemented workbook model, two table representations,
+installation details. Image import is described in
+[docs/IMAGE-IMPORT.md](docs/IMAGE-IMPORT.md); PDF import is described in
+[docs/PDF-IMPORT.md](docs/PDF-IMPORT.md). The implemented workbook model, two table representations,
 and multi-sheet behavior are described in
 [docs/SPREADSHEET-IMPORT.md](docs/SPREADSHEET-IMPORT.md).
 
@@ -313,7 +331,8 @@ changes, Unicode, and media hashes. Native spreadsheet tests cover real ODS and
 XLS files, generated XLSX packages, sheet order, cell budgets, hyperlink targets,
 warnings, and an independent Pandoc comparison. ODM tests use local linked ODT files. Tests also
 cover real temporary PDFs with embedded text, empty OCR pages, encryption, page
-and pixel budgets, output collisions, malformed or unsafe packages, missing dependencies,
+and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compare
+their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
 The current version is 0.8.4.

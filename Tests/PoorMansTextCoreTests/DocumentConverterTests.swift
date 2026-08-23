@@ -37,7 +37,7 @@ final class DocumentConverterTests: XCTestCase {
 
         XCTAssertEqual(
             converter.supportedFormats,
-            [.rtf, .rtfd, .docx, .odt, .doc, .ods, .xlsx, .xls, .odm, .pdf]
+            [.rtf, .rtfd, .docx, .odt, .doc, .ods, .xlsx, .xls, .odm, .image, .pdf]
         )
         XCTAssertEqual(try converter.detectFormat(at: rtfURL), .rtf)
         XCTAssertEqual(try converter.detectFormat(at: rtfdURL), .rtfd)

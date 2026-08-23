@@ -158,6 +158,43 @@
             <key>LSHandlerRank</key>
             <string>Alternate</string>
         </dict>
+        <dict>
+            <key>CFBundleTypeExtensions</key>
+            <array>
+                <string>pdf</string>
+            </array>
+            <key>CFBundleTypeName</key>
+            <string>Portable Document Format</string>
+            <key>CFBundleTypeRole</key>
+            <string>Viewer</string>
+            <key>LSHandlerRank</key>
+            <string>Alternate</string>
+            <key>LSItemContentTypes</key>
+            <array>
+                <string>com.adobe.pdf</string>
+            </array>
+        </dict>
+        <dict>
+            <key>CFBundleTypeExtensions</key>
+            <array>
+                <string>png</string>
+                <string>jpg</string>
+                <string>jpeg</string>
+                <string>heic</string>
+                <string>tif</string>
+                <string>tiff</string>
+            </array>
+            <key>CFBundleTypeName</key>
+            <string>Image</string>
+            <key>CFBundleTypeRole</key>
+            <string>Viewer</string>
+            <key>LSHandlerRank</key>
+            <string>Alternate</string>
+            <key>LSItemContentTypes</key>
+            <array>
+                <string>public.image</string>
+            </array>
+        </dict>
     </array>
     <key>CFBundleExecutable</key>
     <string>PoorMansTextApp</string>

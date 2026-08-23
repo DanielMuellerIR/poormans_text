@@ -7,17 +7,17 @@
 **🌐 Sprache / Language:** [English](README.md) · [Deutsch](README.de.md)
 
 <p align="center">
-  <strong>Convert word-processing documents and spreadsheets to Markdown.</strong>
+  <strong>Convert word-processing documents, spreadsheets, and PDFs to Markdown.</strong>
 </p>
 
 Poor Man's Text converts RTF, RTFD, DOCX (including DOCM and DOTX/DOTM), ODT,
-legacy Word (`.doc`), ODS, XLSX, XLS, and OpenDocument master (`.odm`) files into
-folders containing Markdown and any separately stored image assets.
+legacy Word (`.doc`), ODS, XLSX, XLS, OpenDocument master (`.odm`), and PDF
+files into folders containing Markdown and any separately stored image assets.
 
 The project provides two interfaces over the same conversion core:
 
 - `poormans-text`, an automation-friendly command-line tool
-- a native macOS app for opening or dropping supported documents and spreadsheets
+- a native macOS app for opening or dropping supported documents, spreadsheets, and PDFs
 
 Conversion is deliberately lossy. Markdown can preserve document structure,
 links, simple emphasis, lists, and images, but not every font, layout, or
@@ -53,8 +53,8 @@ path; the converter keeps the text and returns a warning instead.
 - [Pandoc](https://pandoc.org/installing.html) for word-processing and ODM files
 - Swift 6.2 or newer when building from source
 
-ODS, XLSX, and XLS are read natively and need no external conversion tool. For
-the remaining formats, the converter searches for Pandoc in the common Homebrew
+ODS, XLSX, XLS, and PDF are read natively and need no external conversion tool.
+For the remaining formats, the converter searches for Pandoc in the common Homebrew
 locations and then on `PATH`. The CLI also accepts an explicit executable
 through `--pandoc PATH`.
 
@@ -102,6 +102,7 @@ poormans-text Workbook.ods
 poormans-text Workbook.xlsx
 poormans-text Workbook.xls
 poormans-text Book.odm
+poormans-text Document.pdf
 poormans-text --spreadsheet-format tsv Workbook.ods
 poormans-text --output Converted Document.rtfd
 poormans-text --json Document.rtfd
@@ -140,10 +141,11 @@ ods   .ods                     file                      available
 xlsx  .xlsx                    file                      available
 xls   .xls                     file                      available
 odm   .odm                     file     pandoc           available
+pdf   .pdf                     file                      available
 ```
 
 Without Pandoc, the word-processing and ODM lines read
-`unavailable (missing required tool: pandoc)`; ODS, XLSX, and XLS remain
+`unavailable (missing required tool: pandoc)`; ODS, XLSX, XLS, and PDF remain
 available. The `textutil` that DOC and RTFD additionally require is part of
 macOS.
 
@@ -167,7 +169,7 @@ the CLI, into the repository root. Both copies are ad-hoc signed for local
 testing only: they are not a notarized distribution build and must not be copied
 to `/Applications`.
 
-Drop any supported document or spreadsheet into the window or onto the app, or
+Drop any supported document, spreadsheet, or PDF into the window or onto the app, or
 choose one from the open panel. The app shows the conversion result and can
 reveal the generated Markdown in Finder.
 
@@ -238,6 +240,12 @@ table or as an escaped TSV code block. Formulas are not calculated; stored
 cell results are used. ODM master documents keep their own text and safely
 resolve only existing local ODT sections before flattening them in source order.
 
+PDF uses PDFKit for embedded text. Pages with fewer than 20 extracted characters
+are rendered locally and read with Vision OCR; the Markdown keeps explicit page
+sections. Password-protected PDFs, more than 1,000 pages, and OCR work above the
+64-million-pixel budget are rejected before publication. Neither PDFKit nor Vision
+opens remote content.
+
 The format-neutral engine verifies source contents instead of trusting only the
 filename extension, then selects the matching path. Word-processing paths
 validate and rewrite image references before Pandoc creates GitHub-Flavored
@@ -262,6 +270,7 @@ Typically preserved:
 - stored spreadsheet values, sheet names, sheet order, empty cells, internal line breaks,
   and one hyperlink target per cell
 - local ODM section order
+- embedded PDF text in page order, with page sections
 
 Expected losses or approximations:
 
@@ -279,6 +288,8 @@ Expected losses or approximations:
 - multiple different hyperlink targets in one spreadsheet cell; the first target
   and all visible text stay, while the additional target is reported as a warning
 - ODM section boundaries and master-document behavior after flattening
+- PDF page layout, columns, tables, headers, footers, and exact text placement;
+  local OCR can contain recognition errors and needs review
 
 ## Development
 
@@ -289,8 +300,8 @@ swift test
 ```
 
 See [docs/BUILD-AND-TEST.md](docs/BUILD-AND-TEST.md) for build, signing, and
-installation details. Image/OCR and PDF import are tracked in
-[ROADMAP.md](ROADMAP.md). The implemented workbook model, two table representations,
+installation details. Image/OCR is tracked in [ROADMAP.md](ROADMAP.md); PDF import is
+described in [docs/PDF-IMPORT.md](docs/PDF-IMPORT.md). The implemented workbook model, two table representations,
 and multi-sheet behavior are described in
 [docs/SPREADSHEET-IMPORT.md](docs/SPREADSHEET-IMPORT.md).
 
@@ -301,7 +312,8 @@ producers cover headings, footnotes, tables, lists, links, comments, tracked
 changes, Unicode, and media hashes. Native spreadsheet tests cover real ODS and
 XLS files, generated XLSX packages, sheet order, cell budgets, hyperlink targets,
 warnings, and an independent Pandoc comparison. ODM tests use local linked ODT files. Tests also
-cover output collisions, malformed or unsafe packages, missing dependencies,
+cover real temporary PDFs with embedded text, empty OCR pages, encryption, page
+and pixel budgets, output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
 The current version is 0.8.4.

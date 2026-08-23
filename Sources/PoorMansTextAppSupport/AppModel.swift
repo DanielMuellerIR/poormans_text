@@ -98,7 +98,7 @@ public final class AppModel: ObservableObject {
     /// Der echte Öffnen-Dialog von macOS.
     private static func presentOpenPanel() -> URL? {
         let panel = NSOpenPanel()
-        panel.title = "Choose a Document or Spreadsheet"
+        panel.title = "Choose a Document, Spreadsheet, or PDF"
         panel.prompt = "Convert"
         let extensions = DocumentConverter().supportedFormatDescriptors
             .flatMap(\.fileExtensions)

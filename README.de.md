@@ -7,18 +7,18 @@
 **🌐 Sprache / Language:** [English](README.md) · [Deutsch](README.de.md)
 
 <p align="center">
-  <strong>Textdokumente und Tabellen in Markdown umwandeln.</strong>
+  <strong>Textdokumente, Tabellen und PDFs in Markdown umwandeln.</strong>
 </p>
 
 Poor Man's Text wandelt RTF, RTFD, DOCX (einschließlich DOCM und DOTX/DOTM), ODT,
-alte Word-Dateien (`.doc`), ODS, XLSX, XLS und OpenDocument-Masterdokumente
-(`.odm`) in Ordner mit Markdown und gegebenenfalls separat gespeicherten Bildern
-um.
+alte Word-Dateien (`.doc`), ODS, XLSX, XLS, OpenDocument-Masterdokumente
+(`.odm`) und PDFs in Ordner mit Markdown und gegebenenfalls separat gespeicherten
+Bildern um.
 
 Das Projekt stellt zwei Oberflächen für denselben Konvertierungskern bereit:
 
 - `poormans-text`, ein automatisierbares Kommandozeilenwerkzeug
-- eine native macOS-App zum Öffnen oder Ablegen unterstützter Dokumente und Tabellen
+- eine native macOS-App zum Öffnen oder Ablegen unterstützter Dokumente, Tabellen und PDFs
 
 Die Konvertierung ist bewusst verlustbehaftet. Markdown kann Dokumentstruktur,
 Links, einfache Hervorhebungen, Listen und Bilder bewahren, aber nicht jede
@@ -57,7 +57,7 @@ und der Konverter meldet den Verlust als Warnung.
 - [Pandoc](https://pandoc.org/installing.html) für Textdokumente und ODM
 - Swift 6.2 oder neuer für den Bau aus dem Quellcode
 
-ODS, XLSX und XLS werden nativ gelesen und brauchen kein externes
+ODS, XLSX, XLS und PDF werden nativ gelesen und brauchen kein externes
 Konvertierungswerkzeug. Für die übrigen Formate sucht der Konverter Pandoc in
 den üblichen Homebrew-Verzeichnissen und danach über `PATH`. Dem CLI kann mit
 `--pandoc PFAD` auch ein bestimmtes Programm übergeben werden.
@@ -108,6 +108,7 @@ poormans-text Arbeitsmappe.ods
 poormans-text Arbeitsmappe.xlsx
 poormans-text Arbeitsmappe.xls
 poormans-text Buch.odm
+poormans-text Dokument.pdf
 poormans-text --spreadsheet-format tsv Arbeitsmappe.ods
 poormans-text --output Konvertiert Dokument.rtfd
 poormans-text --json Dokument.rtfd
@@ -147,10 +148,11 @@ ods   .ods                     file                      available
 xlsx  .xlsx                    file                      available
 xls   .xls                     file                      available
 odm   .odm                     file     pandoc           available
+pdf   .pdf                     file                      available
 ```
 
 Fehlt Pandoc, steht bei Textdokumenten und ODM
-`unavailable (missing required tool: pandoc)`; ODS, XLSX und XLS bleiben
+`unavailable (missing required tool: pandoc)`; ODS, XLSX, XLS und PDF bleiben
 verfügbar. Das für DOC und RTFD zusätzlich nötige `textutil` gehört zu macOS.
 
 So entscheidet eine andere App, ob sie eine Umwandlung anbietet. Weil die Liste
@@ -173,9 +175,10 @@ CLI zusätzlich im Repo-Root ab. Beide Kopien sind nur für lokale Tests
 ad-hoc-signiert: Sie sind kein notarisierter Distributions-Build und gehören
 nicht nach `/Applications`.
 
-Jedes unterstützte Dokument und jede unterstützte Tabelle kann in das Fenster
-oder auf die App gezogen oder über den Dateidialog ausgewählt werden. Die App
-zeigt das Ergebnis und kann die erzeugte Markdown-Datei im Finder anzeigen.
+Jedes unterstützte Dokument, jede unterstützte Tabelle und jedes unterstützte
+PDF kann in das Fenster oder auf die App gezogen oder über den Dateidialog
+ausgewählt werden. Die App zeigt das Ergebnis und kann die erzeugte
+Markdown-Datei im Finder anzeigen.
 
 ## Signierte Installation
 
@@ -247,6 +250,12 @@ ODM-Masterdokumente behalten ihren eigenen Text und lösen nur
 vorhandene lokale ODT-Abschnitte sicher auf, bevor sie diese in Quellreihenfolge
 zusammenführen.
 
+PDFKit liest eingebetteten PDF-Text. Seiten mit weniger als 20 extrahierten
+Zeichen rendert der Konverter lokal und liest sie mit Vision-OCR; das Markdown
+behält sichtbare Seitenabschnitte. Passwortgeschützte PDFs, mehr als 1.000 Seiten
+und OCR-Arbeit über dem 64-Millionen-Pixel-Budget werden vor der Veröffentlichung
+abgelehnt. Weder PDFKit noch Vision öffnen entfernte Inhalte.
+
 Die formatneutrale Engine prüft den Quellinhalt, statt nur der Dateiendung zu
 glauben, und wählt danach den passenden Weg. Bei Textdokumenten werden
 Bildverweise geprüft und ersetzt, bevor Pandoc GitHub-Flavored Markdown erstellt;
@@ -272,6 +281,7 @@ In der Regel erhalten:
 - gespeicherte Tabellenwerte, Blattnamen, Blattreihenfolge, leere Zellen, interne Umbrüche
   und je Zelle ein Linkziel
 - Reihenfolge lokaler ODM-Abschnitte
+- eingebetteter PDF-Text in Seitenreihenfolge mit Seitenabschnitten
 
 Erwartbare Verluste oder Annäherungen:
 
@@ -289,6 +299,8 @@ Erwartbare Verluste oder Annäherungen:
 - mehrere unterschiedliche Linkziele in einer Tabellenzelle; das erste Ziel und
   der gesamte sichtbare Text bleiben, das weitere Ziel wird als Warnung gemeldet
 - ODM-Abschnittsgrenzen und Masterdokumentverhalten nach dem Zusammenführen
+- PDF-Seitenlayout, Spalten, Tabellen, Kopf- und Fußzeilen sowie genaue
+  Textpositionen; lokale OCR kann Erkennungsfehler enthalten und braucht Prüfung
 
 ## Entwicklung
 
@@ -299,8 +311,9 @@ swift test
 ```
 
 Build-, Signatur- und Installationsdetails stehen in
-[docs/BUILD-AND-TEST.md](docs/BUILD-AND-TEST.md). Bilder/OCR und PDF stehen in
-[ROADMAP.md](ROADMAP.md). Das implementierte Arbeitsmappenmodell, beide
+[docs/BUILD-AND-TEST.md](docs/BUILD-AND-TEST.md). Bilder/OCR stehen in
+[ROADMAP.md](ROADMAP.md); den PDF-Import beschreibt
+[docs/PDF-IMPORT.md](docs/PDF-IMPORT.md). Das implementierte Arbeitsmappenmodell, beide
 Tabellendarstellungen und das Mehrblattverhalten beschreibt
 [docs/SPREADSHEET-IMPORT.md](docs/SPREADSHEET-IMPORT.md).
 
@@ -311,8 +324,10 @@ unabhängigen Erzeugern decken Überschriften, Fußnoten, Tabellen, Listen, Link
 Kommentare, Änderungen, Unicode und Medien-Hashes ab. Native Tabellentests
 decken echte ODS- und XLS-Dateien, erzeugte XLSX-Pakete, Blattreihenfolge,
 Zellbudgets, Linkziele, Warnungen und einen unabhängigen Pandoc-Vergleich ab. ODM-Tests
-verwenden lokal verknüpfte ODT-Dateien. Die Tests prüfen außerdem vorhandene
-Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
+verwenden lokal verknüpfte ODT-Dateien. Die Tests erzeugen außerdem echte
+temporäre PDFs mit eingebettetem Text, leeren OCR-Seiten, Verschlüsselung sowie
+Seiten- und Pixelbudgets. Sie prüfen außerdem vorhandene Ziele, defekte oder
+unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
 Die aktuelle Version ist 0.8.4.

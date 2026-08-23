@@ -20,6 +20,8 @@ DOCX einschließlich DOCM/DOTX/DOTM und ODT teilen einen Pandoc-Paketadapter.
 ODS, XLSX und XLS werden nativ in ein gemeinsames Arbeitsmappenmodell gelesen;
 ODM löst ausschließlich lokale ODT-Teildokumente auf. Alle Wege liegen hinter
 derselben Foundation-basierten Anfrage und bestimmen deren API nicht.
+PDFKit liest eingebetteten PDF-Text, und Vision verarbeitet ausschließlich lokal
+gerenderte textarme Seiten.
 
 ## Formatneutrale Konvertierung
 
@@ -37,7 +39,7 @@ DocumentConverter ─ Inspections priorisieren, Adapter wählen, atomar veröffe
         ├── SpreadsheetAdapter   ODS, XLSX und XLS über native Leser
         ├── OpenDocumentMaster…  ODM plus geprüfte lokale ODT-Teildokumente
         ├── ImageOCRAdapter      ImageIO + Vision (geplant)
-        └── PDFAdapter           PDFKit + optional Vision (geplant)
+        └── PDFAdapter           PDFKit-Text + lokaler Vision-OCR-Fallback
 ```
 
 `InputFormat`, `InputInspection`, `ConversionRequest`, `ConversionOptions`,
@@ -91,6 +93,14 @@ Pfadfluchten, fehlende Dateien und ausbrechende symbolische Links werden
 abgelehnt. Jeder Teil läuft anschließend durch denselben geprüften ODT-Adapter,
 und seine Bilder erhalten abschnittsweise eindeutige Namen.
 
+Der PDF-Adapter erkennt die PDF-Signatur und öffnet nur reguläre Dateien bis
+1 GiB. Passwortgeschützte und beschädigte Dateien sowie Dokumente mit mehr als
+1.000 Seiten lehnt er ab. PDFKit liefert pro Seite zuerst den Text; unter 20
+Zeichen rendert der Adapter die Seite innerhalb eines gemeinsamen 64-Millionen-
+Pixel-Budgets und übergibt das Bild lokal an Vision. Das Ergebnis bleibt
+seitenweise und erhält immer eine Layoutverlustwarnung. Details stehen in
+[PDF-IMPORT.md](PDF-IMPORT.md).
+
 ## Vertrag für aufrufende Apps
 
 Der Kern:
@@ -131,8 +141,9 @@ openMarkdown(result.markdownFile)
 
 - Adaptertests verwenden echte temporär erzeugte RTF- und RTFD-Dokumente sowie
   versionierte DOCX-, ODT-, DOC-, ODS- und XLS-Dateien aus unabhängigen
-  Erzeugern. Bilddaten werden per Bytevergleich geprüft; DOCX/ODT und XLSX
-  zusätzlich gegen Pandoc direkt.
+  Erzeugern sowie temporäre PDFs mit eingebettetem Text und OCR-Fallback.
+  Bilddaten werden per Bytevergleich geprüft; DOCX/ODT und XLSX zusätzlich gegen
+  Pandoc direkt.
 - Pakettests prüfen Traversal, externe Bilder, Kommentare, angenommene Änderungen
   und die inhaltsbasierte Unterscheidung eines echten XLS vom alten DOC. Eigene
   Tabellen- und ODM-Tests prüfen Blattreihenfolge, Zell- und Linkzielbudgets,

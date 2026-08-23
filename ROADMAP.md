@@ -6,18 +6,16 @@ Erledigte Punkte werden beim Release aus dieser Datei entfernt und in
 
 Die formatneutrale Engine, sichere Inhaltserkennung und wählbare dauerhafte oder
 temporäre Veröffentlichung sind vorhanden. RTF, RTFD, DOCX/DOCM/DOTX/DOTM,
-ODT, DOC, ODS, XLSX, XLS und ODM sind implementiert. Ihre Importwege stehen in
-[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+ODT, DOC, ODS, XLSX, XLS, ODM und PDF sind implementiert. Ihre Importwege stehen
+in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Formatplan
 
 | Format | Geplanter Importweg | Aufwand | Erwartbare Qualität | Priorität |
 |---|---|---:|---|---:|
 | Bilder | Original als Asset plus lokales Vision-OCR in Leserichtung | mittel | Text gut bei sauberen Scans, Layout nur angenähert | 4 |
-| PDF | PDFKit-Text zuerst, seitenweises Vision-OCR als Fallback | groß | Inhalt brauchbar, Layout/Spalten/Tabellen deutlich verlustbehaftet | 5 |
 
-Vision und PDFKit sind macOS-Systemframeworks und benötigen keinen zusätzlichen
-OCR-Dienst. PDF ist kein Pandoc-Eingabeformat.
+Vision ist ein macOS-Systemframework und benötigt keinen zusätzlichen OCR-Dienst.
 
 ### iWork-Formate (Pages und Numbers) — bewusste Grenze
 
@@ -40,19 +38,6 @@ und nutzt den normalen Import.
 
 Vor Implementierung ist eine Produktentscheidung nötig: Standardmäßig nur Bild,
 Bild plus OCR oder eine CLI-Option für beide Varianten.
-
-## Etappe 6 — PDF
-
-- Pro Seite zuerst eingebetteten Text mit PDFKit extrahieren.
-- Seiten ohne ausreichenden Text lokal rendern und mit Vision OCR lesen.
-- Seitenreihenfolge und Seitenmarken erhalten; Bilder nur dann separat
-  extrahieren, wenn Position und Zuordnung zuverlässig bestimmbar sind.
-- Passwortgeschützte, beschädigte und extrem große PDFs früh und verständlich
-  ablehnen; Seiten- und Pixelbudgets einführen.
-
-PDF bleibt ausdrücklich eine Inhaltsübernahme, keine Layoutreproduktion.
-Mehrspalten, Tabellen, Kopf-/Fußzeilen und Lesereihenfolge brauchen reale
-Regressionstests und können trotz OCR manuelle Korrektur erfordern.
 
 ## Fastra-Integration
 

@@ -78,4 +78,24 @@ extension ConversionWarning {
         code: "openDocumentMaster.flattened",
         message: "Master-document sections were flattened; master styles, indexes, and cross-document page layout are not represented."
     )
+
+    static let pdfLayoutNotPreserved = ConversionWarning(
+        code: "pdf.layoutNotPreserved",
+        message: "PDF page layout, columns, tables, headers, and footers are not represented in the generated Markdown."
+    )
+
+    static let pdfOCRApplied = ConversionWarning(
+        code: "pdf.ocrApplied",
+        message: "Pages without enough embedded text were rendered and read with local OCR. Review OCR text before relying on it."
+    )
+
+    static let pdfPageTextUnavailable = ConversionWarning(
+        code: "pdf.pageTextUnavailable",
+        message: "At least one PDF page contains no extractable text, including local OCR output."
+    )
+
+    static let pdfOCRFailed = ConversionWarning(
+        code: "pdf.ocrFailed",
+        message: "Local OCR failed for at least one PDF page; that page is represented without text."
+    )
 }

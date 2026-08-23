@@ -10,6 +10,9 @@ All notable changes to this project will be documented in this file.
   divergent link targets in a cell still produce a visible loss warning.
 - Exercise the mapped-ZIP truncation regression in a child test process, so the
   expected `SIGBUS` cannot terminate the test runner.
+- Add native PDF import through PDFKit with page markers and a local Vision OCR
+  fallback. Reject encrypted, damaged, oversized, and over-budget documents
+  before publication; warn explicitly about layout and OCR limits.
 
 ## 0.8.4 - 2026-08-19
 

@@ -136,7 +136,7 @@ struct ContentView: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text(ProductInfo.name)
                     .font(.title.bold())
-                Text("Documents and spreadsheets to Markdown")
+                Text("Documents, spreadsheets, and PDFs to Markdown")
                     .foregroundStyle(.secondary)
             }
 
@@ -190,7 +190,7 @@ struct ContentView: View {
                     .font(.system(size: 45, weight: .medium))
                     .foregroundStyle(.tint)
                     .accessibilityHidden(true)
-                Text("Drop a supported document or spreadsheet here")
+                Text("Drop a supported document, spreadsheet, or PDF here")
                     .font(.title3.bold())
                 Text("A new folder with Markdown and any extracted assets will be created next to it.")
                     .multilineTextAlignment(.center)

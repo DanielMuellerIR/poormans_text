@@ -21,6 +21,7 @@ public struct InputFormat: RawRepresentable, Codable, Hashable, Sendable {
     public static let xlsx = InputFormat(rawValue: "xlsx")
     public static let xls = InputFormat(rawValue: "xls")
     public static let odm = InputFormat(rawValue: "odm")
+    public static let pdf = InputFormat(rawValue: "pdf")
 
     public init(from decoder: any Decoder) throws {
         let container = try decoder.singleValueContainer()

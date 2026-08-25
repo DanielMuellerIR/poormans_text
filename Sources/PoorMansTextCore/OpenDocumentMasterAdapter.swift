@@ -100,7 +100,7 @@ struct OpenDocumentMasterAdapter: DocumentConversionAdapter {
         }
 
         var sections = [
-            "# \(headingText(context.inputURL.deletingPathExtension().lastPathComponent))",
+            "# \(MarkdownEscaping.heading(context.inputURL.deletingPathExtension().lastPathComponent))",
         ]
         var warnings = [ConversionWarning.openDocumentMasterFlattened]
         var assetRelativePaths = [String]()
@@ -125,7 +125,7 @@ struct OpenDocumentMasterAdapter: DocumentConversionAdapter {
                 let heading = name?.trimmingCharacters(in: .whitespacesAndNewlines)
                 let sectionTitle = (heading?.isEmpty == false ? heading : nil)
                     ?? linkedURL.deletingPathExtension().lastPathComponent
-                sections.append("## Section: \(headingText(sectionTitle))")
+                sections.append("## Section: \(MarkdownEscaping.heading(sectionTitle))")
                 let child = try convertLinkedDocument(
                     linkedURL,
                     index: linkedIndex,
@@ -179,24 +179,6 @@ struct OpenDocumentMasterAdapter: DocumentConversionAdapter {
     }
 
     /// Macht einen Metadatenwert — Dateiname oder Abschnittsname — als
-    /// Überschriftentext ungefährlich.
-    ///
-    /// Anders als Absatztext läuft dieser Wert nicht durch den Inhaltsparser: Ein
-    /// Zeilenumbruch im XML-Attribut hätte mitten in der Überschrift einen neuen
-    /// Markdown-Block begonnen, und Zeichen wie `*` oder `[` wurden als
-    /// Auszeichnung gelesen statt als Text (Review-Fund 2026-08-20). Deshalb hier
-    /// zuerst alles auf EINE Zeile bringen und danach die Zeichen mit einem
-    /// Backslash entschärfen, mit denen Markdown auszeichnet.
-    func headingText(_ value: String) -> String {
-        let singleLine = value
-            .split(whereSeparator: { $0.isNewline || $0.isWhitespace })
-            .joined(separator: " ")
-        let escaped = "\\`*_[]<>&#"
-        return String(singleLine.flatMap { character -> [Character] in
-            escaped.contains(character) ? ["\\", character] : [character]
-        })
-    }
-
     private func masterPackage(at url: URL) throws -> (isMaster: Bool, content: Data) {
         let package = try ZIPArchiveInspector.packageContents(
             at: url,

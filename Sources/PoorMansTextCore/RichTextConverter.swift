@@ -131,9 +131,13 @@ struct RichTextAdapter: DocumentConversionAdapter {
         //
         // `inputURL` bleibt daneben der vom Nutzer gewählte Pfad: Er benennt die
         // Ausgabedatei und steht in den Fehlermeldungen.
-        let resolvedInputURL = inputKind == .rtfd
-            ? context.resolvedInputURL
-            : inputURL
+        // Auch die einzelne RTF-Datei wird ueber den EINMAL zentral
+        // aufgeloesten Pfad gestagt. Vorher stand hier der symbolische
+        // `inputURL`: Wurde der Eingabe-Symlink nach der Erkennung, aber vor dem
+        // Staging umgehaengt, las und veroeffentlichte der Adapter ein anderes
+        // Dokument als das, dessen Format und Warnungen geprueft worden waren
+        // (Review-Fund 2026-08-25).
+        let resolvedInputURL = context.resolvedInputURL
 
         // Eine einzelne RTF-Datei wird EINMAL begrenzt in den Arbeitsordner
         // gestagt. Danach lesen HTML-Erzeugung, Absatz-Rewriter und Farbwarnung

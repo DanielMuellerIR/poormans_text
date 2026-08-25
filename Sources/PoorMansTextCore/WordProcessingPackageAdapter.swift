@@ -80,8 +80,13 @@ struct WordProcessingPackageAdapter: DocumentConversionAdapter {
         let stagedInputURL: URL
         let inspection: WordProcessingPackageInspection
         do {
+            // Gestagt wird ueber `resolvedInputURL`, den EINMAL zentral
+            // aufgeloesten Pfad. Mit dem symbolischen `inputURL` konnte ein
+            // Verweis nach der Erkennung, aber vor dem Staging umgehaengt
+            // werden — der Adapter las dann ein anderes Dokument als das
+            // gepruefte (Review-Fund 2026-08-25).
             stagedInputURL = try ZIPArchiveInspector.stageVerifiedPackage(
-                from: context.inputURL,
+                from: context.resolvedInputURL,
                 into: context.workDirectory,
                 named: "verified-source.\(context.format.rawValue)"
             )

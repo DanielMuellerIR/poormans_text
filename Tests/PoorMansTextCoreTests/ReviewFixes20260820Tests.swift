@@ -295,13 +295,16 @@ final class ReviewFixes20260820Tests: XCTestCase {
 
     // MARK: - Überschriften aus Metadaten bleiben Text
 
+    /// Der Masteradapter hatte bis 2026-08-25 einen eigenen `headingText`, der
+    /// Zeichen fuer Zeichen dasselbe tat wie `MarkdownEscaping.heading`. Zwei
+    /// Fassungen desselben Sicherheitsverhaltens koennen bei einer spaeteren
+    /// Korrektur auseinanderlaufen; der Test prueft jetzt den gemeinsamen
+    /// Helfer, den der Adapter benutzt.
     func testMasterHeadingValueStaysOnOneLineAndKeepsMarkupLiteral() {
-        let adapter = OpenDocumentMasterAdapter()
-
-        XCTAssertEqual(adapter.headingText("Kapitel\n# Untergeschoben"), "Kapitel \\# Untergeschoben")
-        XCTAssertEqual(adapter.headingText("*fett*"), "\\*fett\\*")
-        XCTAssertEqual(adapter.headingText("a\tb   c"), "a b c")
-        XCTAssertEqual(adapter.headingText("Bericht 2026"), "Bericht 2026")
+        XCTAssertEqual(MarkdownEscaping.heading("Kapitel\n# Untergeschoben"), "Kapitel \\# Untergeschoben")
+        XCTAssertEqual(MarkdownEscaping.heading("*fett*"), "\\*fett\\*")
+        XCTAssertEqual(MarkdownEscaping.heading("a\tb   c"), "a b c")
+        XCTAssertEqual(MarkdownEscaping.heading("Bericht 2026"), "Bericht 2026")
     }
 
     // MARK: - Die Release-Anleitung nennt keine feste Version mehr

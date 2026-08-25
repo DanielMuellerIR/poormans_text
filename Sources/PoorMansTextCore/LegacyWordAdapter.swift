@@ -86,8 +86,13 @@ struct LegacyWordAdapter: DocumentConversionAdapter {
         // Kopierens, war die volle Kopie schon geschrieben, bevor die Prüfung
         // der Staging-Datei sie ablehnen konnte (Review-Fund 2026-08-17).
         do {
+            // Gestagt wird ueber `resolvedInputURL`, den EINMAL zentral
+            // aufgeloesten Pfad. Mit dem symbolischen `inputURL` konnte ein
+            // Verweis nach der Erkennung, aber vor dem Staging umgehaengt
+            // werden — der Adapter las dann ein anderes Dokument als das
+            // gepruefte (Review-Fund 2026-08-25).
             try VerifiedFileStaging.stage(
-                from: context.inputURL,
+                from: context.resolvedInputURL,
                 to: stagedInputURL,
                 maximumBytes: 1_073_741_824,
                 describedAs: "the DOC source"

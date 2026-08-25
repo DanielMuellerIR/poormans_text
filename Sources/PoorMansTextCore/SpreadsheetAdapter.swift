@@ -40,27 +40,30 @@ struct SpreadsheetAdapter: DocumentConversionAdapter {
         }
         guard try ZIPArchiveInspector.looksLikeZIP(at: inputURL) else {
             do {
-                // Aufgelöst prüfen: Ein Symlink auf eine gültige XLS-Datei
-                // beschreibt sich selbst als „nicht regulär" und fiele sonst aus
-                // der Erkennung — mit der irreführenden Meldung, die
-                // ZIP-Signatur fehle.
-                let values = try inputURL.resolvingSymlinksInPath().resourceValues(
-                    forKeys: [.fileSizeKey, .isRegularFileKey]
+                // GELESEN, nicht abgebildet — und Prüfung wie Bytes hängen an
+                // demselben Deskriptor. Vorher prüfte `resourceValues` den
+                // aufgelösten PFAD und `Data(contentsOf:options:
+                // [.mappedIfSafe])` bildete die fremde Quelle danach ab: Kürzt
+                // ein Abgleichdienst sie während der Erkennung, beendet SIGBUS
+                // den ganzen Prozess, und kein `catch` fängt das ab. Der
+                // ZIP-Leser trennt fremdes Original und eigene Arbeitskopie
+                // längst so (Review-Fund 2026-08-25). Ein Symlink auf eine
+                // gültige XLS-Datei bleibt erlaubt: `open` folgt ihm, und
+                // `fstat` beschreibt danach die Datei dahinter.
+                let data = try VerifiedFileStaging.contents(
+                    of: inputURL,
+                    maximumBytes: 1_073_741_824,
+                    describedAs: "the XLS source"
                 )
-                if values.isRegularFile == true,
-                   let size = values.fileSize,
-                   size <= 1_073_741_824 {
-                    let data = try Data(contentsOf: inputURL, options: [.mappedIfSafe])
-                    if LegacyXLSWorkbookParser.looksLikeXLS(data) {
-                        let workbook = try LegacyXLSWorkbookParser.parse(data)
-                        return .match(
-                            AdapterInputInspection(
-                                format: .xls,
-                                priority: 108,
-                                expectedWarnings: warnings(for: workbook, format: .xls)
-                            )
+                if LegacyXLSWorkbookParser.looksLikeXLS(data) {
+                    let workbook = try LegacyXLSWorkbookParser.parse(data)
+                    return .match(
+                        AdapterInputInspection(
+                            format: .xls,
+                            priority: 108,
+                            expectedWarnings: warnings(for: workbook, format: .xls)
                         )
-                    }
+                    )
                 }
             } catch {
                 if extensionFormat == .xls {
@@ -147,7 +150,7 @@ struct SpreadsheetAdapter: DocumentConversionAdapter {
                 // geschrieben, bevor die Größenprüfung sie ablehnen kann.
                 do {
                     try VerifiedFileStaging.stage(
-                        from: context.inputURL,
+                        from: context.resolvedInputURL,
                         to: stagedInput,
                         maximumBytes: 1_073_741_824,
                         describedAs: "the XLS source"
@@ -163,7 +166,7 @@ struct SpreadsheetAdapter: DocumentConversionAdapter {
                 )
             } else {
                 stagedInput = try ZIPArchiveInspector.stageVerifiedPackage(
-                    from: context.inputURL,
+                    from: context.resolvedInputURL,
                     into: context.workDirectory,
                     named: "verified-source.\(context.format.rawValue)"
                 )

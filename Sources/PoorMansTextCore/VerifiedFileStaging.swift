@@ -139,4 +139,64 @@ enum VerifiedFileStaging {
         succeeded = true
         return copiedBytes
     }
+
+    /// Liest hoechstens `maximumBytes` aus `sourceURL` in den Speicher — ohne
+    /// die Datei abzubilden.
+    ///
+    /// Fuer FREMDE Quellen ist das der einzige sichere Weg. `Data(contentsOf:
+    /// options: [.mappedIfSafe])` bildet die Datei ab, und `MAP_PRIVATE` schuetzt
+    /// nur vor fremden SCHREIBVORGAENGEN, nicht vor dem KUERZEN desselben
+    /// Inodes: Ersetzt ein Abgleichdienst die Datei waehrend der Erkennung,
+    /// endet jeder Zugriff hinter dem neuen Dateiende mit SIGBUS, und kein
+    /// Swift-`catch` faengt das ab. Der ZIP-Leser trennt genau deshalb schon
+    /// zwischen fremdem Original und eigener Arbeitskopie; die XLS-Erkennung
+    /// bildete dagegen bis 2026-08-25 fremde Dateien bis 1 GiB ab
+    /// (Review-Fund 2026-08-25).
+    ///
+    /// Wie `stage(from:to:maximumBytes:describedAs:)` gehoeren Pruefung und
+    /// Bytes zu GENAU EINEM Deskriptor.
+    static func contents(
+        of sourceURL: URL,
+        maximumBytes: Int,
+        describedAs subject: String
+    ) throws -> Data {
+        let descriptor = open(sourceURL.path, O_RDONLY | O_NONBLOCK)
+        guard descriptor >= 0 else {
+            throw StagingError(.source, "\(subject) could not be opened: \(String(cString: strerror(errno)))")
+        }
+        defer { close(descriptor) }
+
+        var info = stat()
+        guard fstat(descriptor, &info) == 0 else {
+            throw StagingError(.source, "\(subject) could not be inspected")
+        }
+        guard info.st_mode & S_IFMT == S_IFREG else {
+            throw StagingError(.source, "\(subject) is not a regular file")
+        }
+        guard info.st_size <= Int64(maximumBytes) else {
+            throw StagingError(.source, "\(subject) exceeds the supported size limit")
+        }
+
+        var contents = Data()
+        contents.reserveCapacity(Int(info.st_size))
+        var buffer = [UInt8](repeating: 0, count: chunkSize)
+        while true {
+            let readBytes = buffer.withUnsafeMutableBytes { raw -> Int in
+                guard let base = raw.baseAddress else { return -1 }
+                return read(descriptor, base, chunkSize)
+            }
+            if readBytes == 0 { break }
+            guard readBytes > 0 else {
+                if errno == EINTR { continue }
+                throw StagingError(.source, "\(subject) could not be read")
+            }
+            // Wie beim Staging VOR dem Uebernehmen pruefen: Eine Quelle, die
+            // waehrend des Lesens waechst, darf das Budget nicht ueberziehen.
+            guard contents.count + readBytes <= maximumBytes else {
+                throw StagingError(.source, "\(subject) exceeds the supported size limit")
+            }
+            contents.append(contentsOf: buffer[0..<readBytes])
+        }
+        return contents
+    }
 }

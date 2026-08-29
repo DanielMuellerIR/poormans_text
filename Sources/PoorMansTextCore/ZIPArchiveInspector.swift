@@ -179,48 +179,25 @@ enum ZIPArchiveInspector {
 
     /// Blickt in die ersten vier Bytes und sagt, ob dort eine ZIP-Signatur steht.
     ///
-    /// `O_NONBLOCK` ist hier kein Tempo-Trick, sondern der Schutz vor dem
-    /// Aufhängen: Ein `open` auf eine FIFO ohne Schreiber kehrt sonst NIE zurück.
-    /// Erreichbar war das über ein Masterdokument, dessen Abschnittsverweis auf
-    /// eine FIFO zeigt — die Prüfung dort sieht nur „vorhanden und kein
-    /// Verzeichnis" (Review-Fund 2026-08-20). `fstat` auf DEMSELBEN Deskriptor
-    /// entscheidet danach, ob wirklich eine reguläre Datei dahintersteht; alles
-    /// andere ist kein ZIP-Paket.
+    /// Geöffnet und geprüft wird über `withOpenFile`; alles außer einer
+    /// regulären Datei ist hier schlicht kein ZIP-Paket und keine Störung.
     static func looksLikeZIP(at inputURL: URL) throws -> Bool {
-        let descriptor = open(inputURL.path, O_RDONLY | O_NONBLOCK)
-        guard descriptor >= 0 else {
-            throw ArchiveError("the package could not be opened")
-        }
-        defer { close(descriptor) }
-
-        var info = stat()
-        guard fstat(descriptor, &info) == 0 else {
-            throw ArchiveError("the package could not be inspected")
-        }
-        guard info.st_mode & S_IFMT == S_IFREG else {
-            return false
-        }
-
-        let signatureLength = 4
-        var signature = [UInt8](repeating: 0, count: signatureLength)
-        var readTotal = 0
-        while readTotal < signatureLength {
-            let readBytes = signature.withUnsafeMutableBytes { raw -> Int in
-                guard let base = raw.baseAddress else { return -1 }
-                return read(descriptor, base + readTotal, signatureLength - readTotal)
+        try withOpenFile(at: inputURL) { descriptor, info in
+            guard info.st_mode & S_IFMT == S_IFREG else {
+                return false
             }
-            if readBytes == 0 {
+
+            var signature = [UInt8](repeating: 0, count: 4)
+            let readBytes = try signature.withUnsafeMutableBytes { raw in
+                try readFully(descriptor, into: raw)
+            }
+            guard readBytes == signature.count else {
                 return false               // die Datei ist kürzer als vier Bytes
             }
-            guard readBytes > 0 else {
-                if errno == EINTR { continue }
-                throw ArchiveError("the package could not be read")
-            }
-            readTotal += readBytes
+            return signature == [0x50, 0x4B, 0x03, 0x04]
+                || signature == [0x50, 0x4B, 0x05, 0x06]
+                || signature == [0x50, 0x4B, 0x07, 0x08]
         }
-        return signature == [0x50, 0x4B, 0x03, 0x04]
-            || signature == [0x50, 0x4B, 0x05, 0x06]
-            || signature == [0x50, 0x4B, 0x07, 0x08]
     }
 
     private struct Archive {
@@ -753,8 +730,42 @@ enum ZIPArchiveInspector {
     /// Die Erkennung öffnet Archive vor dem sicheren Staging, dort war das also
     /// erreichbar (Review-Fund 2026-08-19).
     private static func verifiedContents(of url: URL, mapsPrivateCopy: Bool) throws -> Data {
-        // `O_NONBLOCK` wie in `VerifiedFileStaging`: Eine FIFO an dieser Stelle
-        // ließe das `open` sonst ohne Zeitgrenze auf einen Schreiber warten.
+        try withOpenFile(at: url) { descriptor, info in
+            guard info.st_mode & S_IFMT == S_IFREG else {
+                throw ArchiveError("the package is not a regular file")
+            }
+            guard info.st_size <= Int64(Limits.maximumArchiveSize) else {
+                throw ArchiveError("the package exceeds the supported archive-size limit")
+            }
+            let length = Int(info.st_size)
+            guard length > 0 else {
+                return Data()
+            }
+
+            if mapsPrivateCopy,
+               isOnALocalVolume(descriptor),
+               let mapped = mappedContents(descriptor, length: length) {
+                return mapped
+            }
+            return try readContents(descriptor, length: length)
+        }
+    }
+
+    /// Öffnet `url` und übergibt Deskriptor und `fstat`-Auskunft an `body`.
+    /// Beide beschreiben DASSELBE geöffnete Objekt — anders als eine Abfrage
+    /// über den Pfad, der inzwischen auf etwas anderes zeigen kann. Was ein
+    /// unerwarteter Objekttyp bedeutet, entscheidet der Aufrufer: Die
+    /// Signaturprüfung meldet dann „kein ZIP", das Lesen einen Fehler.
+    ///
+    /// `O_NONBLOCK` wie in `VerifiedFileStaging`: Ein `open` auf eine FIFO ohne
+    /// Schreiber kehrt sonst NIE zurück und ließe die Umwandlung ohne
+    /// Zeitgrenze stehen. Erreichbar war das über ein Masterdokument, dessen
+    /// Abschnittsverweis auf eine FIFO zeigt — die Prüfung dort sieht nur
+    /// „vorhanden und kein Verzeichnis" (Review-Fund 2026-08-20).
+    private static func withOpenFile<T>(
+        at url: URL,
+        body: (_ descriptor: Int32, _ info: stat) throws -> T
+    ) throws -> T {
         let descriptor = open(url.path, O_RDONLY | O_NONBLOCK)
         guard descriptor >= 0 else {
             throw ArchiveError("the package could not be opened")
@@ -765,23 +776,30 @@ enum ZIPArchiveInspector {
         guard fstat(descriptor, &info) == 0 else {
             throw ArchiveError("the package could not be inspected")
         }
-        guard info.st_mode & S_IFMT == S_IFREG else {
-            throw ArchiveError("the package is not a regular file")
-        }
-        guard info.st_size <= Int64(Limits.maximumArchiveSize) else {
-            throw ArchiveError("the package exceeds the supported archive-size limit")
-        }
-        let length = Int(info.st_size)
-        guard length > 0 else {
-            return Data()
-        }
+        return try body(descriptor, info)
+    }
 
-        if mapsPrivateCopy,
-           isOnALocalVolume(descriptor),
-           let mapped = mappedContents(descriptor, length: length) {
-            return mapped
+    /// Füllt `buffer` und gibt zurück, wie viele Bytes wirklich kamen. Weniger
+    /// heißt: Die Datei war kürzer oder wurde inzwischen gekürzt — was das
+    /// bedeutet, entscheidet der Aufrufer.
+    private static func readFully(
+        _ descriptor: Int32,
+        into buffer: UnsafeMutableRawBufferPointer
+    ) throws -> Int {
+        guard let base = buffer.baseAddress else { return 0 }
+        var offset = 0
+        while offset < buffer.count {
+            let readBytes = read(descriptor, base + offset, buffer.count - offset)
+            if readBytes == 0 {
+                break
+            }
+            guard readBytes > 0 else {
+                if errno == EINTR { continue }
+                throw ArchiveError("the package could not be read")
+            }
+            offset += readBytes
         }
-        return try readContents(descriptor, length: length)
+        return offset
     }
 
     /// Abgebildet wird nur von einem lokalen Datenträger. Kürzt jemand eine
@@ -825,22 +843,12 @@ enum ZIPArchiveInspector {
     /// nicht überziehen.
     private static func readContents(_ descriptor: Int32, length: Int) throws -> Data {
         var data = Data(count: length)
-        var offset = 0
-        while offset < length {
-            let readBytes = data.withUnsafeMutableBytes { raw -> Int in
-                guard let base = raw.baseAddress else { return -1 }
-                return read(descriptor, base + offset, length - offset)
-            }
-            if readBytes == 0 {
-                break                      // die Datei wurde inzwischen gekürzt
-            }
-            guard readBytes > 0 else {
-                if errno == EINTR { continue }
-                throw ArchiveError("the package could not be read")
-            }
-            offset += readBytes
+        let readBytes = try data.withUnsafeMutableBytes { raw in
+            try readFully(descriptor, into: raw)
         }
-        guard offset == length else {
+        // Kürzt jemand die Datei während des Lesens, bleibt der Rest aus. Ein
+        // halb gelesenes Archiv wird nicht geparst.
+        guard readBytes == length else {
             throw ArchiveError("the package could not be read completely")
         }
         return data

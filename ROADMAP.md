@@ -20,6 +20,27 @@ exportiert, lohnt den Aufwand nicht. Wer eine Pages-/Numbers-Datei umwandeln
 will, exportiert sie in der jeweiligen Apple-App als DOCX beziehungsweise XLSX
 und nutzt den normalen Import.
 
+## Offene Entscheidungen aus der CodeQA vom 2026-08-29
+
+Beide Punkte sind heutiges, absichtlich so gebautes Verhalten. Sie zu ändern
+ist eine Produktentscheidung, keine Fehlerbehebung.
+
+- **Bilder über 16 Megapixel lassen sich nur ohne Texterkennung importieren.**
+  Ein Frame über der OCR-Pixelgrenze lässt die ganze Umwandlung scheitern,
+  obwohl das Bild selbst nur kopiert würde. Betroffen sind gewöhnliche
+  Kamerafotos ab etwa 24 Megapixeln; iPhone-Fotos mit 12 Megapixeln bleiben
+  darunter. Die Meldung nennt seit dem 2026-08-29 den Ausweg. Die Alternative
+  wäre, die OCR für einen zu großen Frame zu überspringen und das Bild mit
+  einer Warnung trotzdem auszugeben — passend zum Grundsatz, dass das Original
+  maßgeblich und OCR nur ein Zusatz ist.
+- **Linkziele aus Tabellen werden ohne Schemaprüfung übernommen.** XLSX-,
+  ODS- und XLS-Hyperlinks landen unverändert als Markdown-Linkziel im Ergebnis,
+  also auch `javascript:`. Geladen wird nichts, und die meisten Markdown-Viewer
+  entschärfen solche Ziele selbst; ein Klick in einem Viewer ohne diese Prüfung
+  bliebe aber offen. Eine Erlaubnisliste (`http`, `https`, `mailto`, `file`,
+  interne `#`-Ziele) würde das schließen, kann aber legitime Sonderschemata
+  aussperren.
+
 ## Fastra-Integration
 
 Die Seite von Poor Man's Text ist erledigt: `poormans-text --formats [--json]`

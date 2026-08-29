@@ -1,14 +1,12 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "project": "poormans_text",
   "campaign": {
-    "id": "20260819T180037868197+0200",
+    "id": "20260829T180733149979+0200",
     "token_budget": 3000000,
-    "status": "complete",
-    "started_at": "2026-08-19T18:00:37+02:00",
-    "tokens_spent": 502792,
-    "finished_at": "2026-08-19T18:47:44+02:00",
-    "finish_reason": "all-current"
+    "status": "active",
+    "started_at": "2026-08-29T18:07:33+02:00",
+    "tokens_spent": 414170
   },
   "campaign_history": [
     {
@@ -18,6 +16,15 @@
       "started_at": "2026-08-15T12:54:12+02:00",
       "tokens_spent": 243441,
       "finished_at": "2026-08-15T13:14:26+02:00",
+      "finish_reason": "all-current"
+    },
+    {
+      "id": "20260819T180037868197+0200",
+      "token_budget": 3000000,
+      "status": "complete",
+      "started_at": "2026-08-19T18:00:37+02:00",
+      "tokens_spent": 502792,
+      "finished_at": "2026-08-19T18:47:44+02:00",
       "finish_reason": "all-current"
     }
   ],
@@ -56,23 +63,28 @@
         "Tests/PoorMansTextCoreTests/FixtureFactory.swift",
         "Sources/PoorMansTextCore/VerifiedFileStaging.swift",
         "Tests/PoorMansTextCoreTests/ReviewFixes20260817Tests.swift",
-        "Tests/PoorMansTextCoreTests/SymbolicLinkInputTests.swift"
+        "Tests/PoorMansTextCoreTests/SymbolicLinkInputTests.swift",
+        "Tests/PoorMansTextCoreTests/ReviewFixes20260819Tests.swift",
+        "Tests/PoorMansTextCoreTests/ReviewFixes20260820Tests.swift",
+        "Tests/PoorMansTextCoreTests/ReviewFixes20260825Tests.swift",
+        "Tests/PoorMansTextCoreTests/ReviewFixes20260829Tests.swift",
+        "Sources/PoorMansTextCore/VerifiedFile.swift"
       ],
       "risk": "high",
       "priority": 1,
       "reason": "Orchestrator: Adapterwahl, atomare Veröffentlichung, Kollisionsschutz — breite Aufrufwirkung",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20260819T180037868197+0200",
-        "completed_at": "2026-08-19T18:14:20+02:00",
-        "observed_head": "6864000e41b2595bb52b25c9ba2e694dbae9ad07",
-        "content_sha256": "7edbcce0b62f11427ed375bb3c3c5d3a63bac75f906eee1affc74747ff354988",
-        "file_count": 19,
-        "review": "full",
+        "campaign_id": "20260829T180733149979+0200",
+        "completed_at": "2026-08-29T18:46:13+02:00",
+        "observed_head": "0fde650034ec7fccaa06eada96c7e0a546e81fc0",
+        "content_sha256": "1cfc204baa94ac81f638363f64e50248ba5b82b5530cbe540b938ae5941f8666",
+        "file_count": 24,
+        "review": "delta-plus-boundaries",
         "outcome": "improved",
-        "summary": "Nachbuchung des Querschnitts-Funds symlink-input-rejected: Delta gegenüber dem Vollreview von heute ist genau der verifizierte Theme-Diff — O_NOFOLLOW nur noch am Staging-Ziel plus die neue Regressionsdatei SymbolicLinkInputTests",
+        "summary": "Nachbuchung des Querschnitts-Funds: VerifiedFile ist die neue gemeinsame Fassung von open/fstat/Leseschleife, VerifiedFileStaging nutzt sie samt eigener Fehlerabbildung. Beides in diesem Zug geschrieben, gelesen und mit der vollen Suite verifiziert",
         "tests": [
-          "swift test: 225 passed, 0 failures"
+          "swift test: 302 passed, 0 failures"
         ]
       }
     },
@@ -88,18 +100,43 @@
       "reason": "Zentrales Paket-Gate: Traversal, Symlinks, Größenbudgets — sicherheitskritisch für alle ZIP-Formate",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20260819T180037868197+0200",
-        "completed_at": "2026-08-19T18:20:20+02:00",
-        "observed_head": "6b15e3202ddceb140f099891c9460e1548c9718f",
-        "content_sha256": "8cdf97720a509278ee5d7a76e5295050ef63ce189933488ec14cd992e71cf301",
+        "campaign_id": "20260829T180733149979+0200",
+        "completed_at": "2026-08-29T18:46:12+02:00",
+        "observed_head": "0fde650034ec7fccaa06eada96c7e0a546e81fc0",
+        "content_sha256": "20d00d11c18df3a9bf47c9bd644fbd4b36b19b06c21b67b8241b3dfc2cdffde0",
         "file_count": 3,
         "review": "delta-plus-boundaries",
         "outcome": "improved",
-        "summary": "Delta (CP437-Dekodierung, Unicode-Path-Extrafeld, folding statt lowercased im Kollisionsschlüssel) geprüft und tragfähig: CP437-Tabelle hat exakt 128 Einträge, alle Offsets sind über die Kette entryEnd<=centralOffset+centralSize<=endOffset<count gesichert, contentRange vergleicht lokalen und zentralen Rohnamen samt Flags und Methode. Ein Fund behoben: die Symlink-Ablehnung war an hostSystem==3 gebunden und ließ denselben S_IFLNK-Eintrag unter Host 19 und 0 durch — ausgerechnet 0 schreiben alle realen Office-Erzeuger",
+        "summary": "Nachbuchung des Querschnitts-Funds verified-descriptor-reads: Delta ist genau der in diesem Zug geschriebene und verifizierte Theme-Diff (Umstellung auf VerifiedFile beziehungsweise die dabei entstandene Testdatei)",
         "tests": [
-          "swift test: 227 passed, 0 failures",
-          "Gegenprobe: neuer Symlink-Test scheitert gegen den Stand davor für Host 0 und 19",
-          "Reproduktion über die CLI mit präpariertem DOCX: vor dem Fix akzeptiert, danach abgelehnt"
+          "swift test: 302 passed, 0 failures"
+        ]
+      }
+    },
+    {
+      "id": "media-import",
+      "paths": [
+        "Sources/PoorMansTextCore/PDFAdapter.swift",
+        "Sources/PoorMansTextCore/ImageAdapter.swift",
+        "Sources/PoorMansTextCore/VisionTextRecognizer.swift",
+        "Tests/PoorMansTextCoreTests/PDFAdapterTests.swift",
+        "Tests/PoorMansTextCoreTests/ImageAdapterTests.swift"
+      ],
+      "risk": "high",
+      "priority": 2,
+      "reason": "Neu zugewachsener PDF-/Bild-Import mit lokaler Vision-OCR; nie CodeQA-geprüft, arbeitet mit Speicherbudgets und Fremddateien",
+      "state": "completed",
+      "last_run": {
+        "campaign_id": "20260829T180733149979+0200",
+        "completed_at": "2026-08-29T18:46:13+02:00",
+        "observed_head": "0fde650034ec7fccaa06eada96c7e0a546e81fc0",
+        "content_sha256": "df965d80bb721e4b990177e881a3ee8dd83e9f0566d2bc466e984ea4730244d9",
+        "file_count": 5,
+        "review": "delta-plus-boundaries",
+        "outcome": "improved",
+        "summary": "Nachbuchung des Querschnitts-Funds verified-descriptor-reads: Delta ist genau der in diesem Zug geschriebene und verifizierte Theme-Diff (Umstellung auf VerifiedFile beziehungsweise die dabei entstandene Testdatei)",
+        "tests": [
+          "swift test: 302 passed, 0 failures"
         ]
       }
     },
@@ -121,18 +158,17 @@
       "reason": "Drei native Binär-/XML-Parser, Datenintegrität, größter Codeblock",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20260819T180037868197+0200",
-        "completed_at": "2026-08-19T18:30:31+02:00",
-        "observed_head": "8241938e6c45ff111662017ac3fb53c4e874373d",
-        "content_sha256": "3e03913a80031ad6d05966137dd82061764e69840f13a876548e324a1e1002ce",
+        "campaign_id": "20260829T180733149979+0200",
+        "completed_at": "2026-08-29T18:31:47+02:00",
+        "observed_head": "8bbe2a52193799baccad4386e1cd5081ee8dc01c",
+        "content_sha256": "c3acf458779dc4487959337dce6e4810005f48882bec6dda81100889897aed28",
         "file_count": 11,
         "review": "delta-plus-boundaries",
         "outcome": "improved",
-        "summary": "Delta geprüft (begrenzte Renderer-Ausgabe mit Untergrenzen-Vorlauf im TSV-Weg, XLSX-Textbudget): Untergrenze ist konservativ, Padding-Verhalten unverändert, Budgetarithmetik überlaufsicher. Ein gemessener Engpass behoben: Hyperlink-Bereiche hatten kein gemeinsames Scanbudget — 2000 Hyperlinks über je 20.000 Zellen kosteten 40 s bei 68 KiB Dateigröße, jetzt 0,7 s Ablehnung bei unverändertem Normalfall (50.000 Einzelzell-Hyperlinks in 1,1 s). Grenzflächen ODS und XLS: eigene Textbudgets fehlen dort, der Renderer fängt beide ab — mit einer 4,4 KiB großen ODS-Wiederholungsbombe über 1 Mio Zellen a 4 MB Text in beiden Rendering-Modi belegt",
+        "summary": "Delta seit 2026-08-19 geprüft: Hyperlink-Übernahme in allen drei Lesern, Renderer-Maskierung für Linktext und -ziel, Scan-Budgets, HLINK-Cursor mit allen Bereichsprüfungen. Zwei Funde behoben: Die XLS-Erkennung las jede Nicht-ZIP-Datei vollständig in den Speicher (549 MB auf eine 512-MB-Datei, jetzt 13 MB über eine Kopfprüfung), und ein zweites XLSX-Hyperlink-Element ohne eigenes Ziel löschte das Ziel des ersten",
         "tests": [
-          "swift test: 229 passed, 0 failures",
-          "Gegenprobe: neuer Scanbudget-Test scheitert gegen den Stand davor, Einzelzell-Test bleibt grün",
-          "Messung über die CLI: 40,4 s -> 0,68 s bei der Angriffsdatei; legitime Datei unverändert 1,1 s"
+          "swift test: 297 passed, 0 failures",
+          "Messung: /usr/bin/time -l auf 512-MB-Nicht-Tabellendatei, 549617664 -> 12976128 Byte Spitzenspeicher"
         ]
       }
     },
@@ -141,25 +177,24 @@
       "paths": [
         "Sources/PoorMansTextCore/OpenDocumentMasterAdapter.swift",
         "Sources/PoorMansTextCore/ODMContentParser.swift",
-        "Tests/PoorMansTextCoreTests/OpenDocumentMasterAdapterTests.swift"
+        "Tests/PoorMansTextCoreTests/OpenDocumentMasterAdapterTests.swift",
+        "Sources/PoorMansTextCore/MarkdownLinkTargetRewriter.swift"
       ],
       "risk": "high",
       "priority": 3,
       "reason": "Pfadauflösung lokaler Teildokumente: Pfadfluchten, Symlinks",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20260819T180037868197+0200",
-        "completed_at": "2026-08-19T18:34:48+02:00",
-        "observed_head": "202a3c5984604f3b405c56ccc4535dbdea4b8227",
-        "content_sha256": "b7ce40c48bd5f35e9fd09b0a00dcf03e1e4213e30cf20dd6b42853221ce00673",
-        "file_count": 3,
+        "campaign_id": "20260829T180733149979+0200",
+        "completed_at": "2026-08-29T18:47:18+02:00",
+        "observed_head": "0fde650034ec7fccaa06eada96c7e0a546e81fc0",
+        "content_sha256": "7ce512324c9cb007bc2150f4475bc52ffa0cd9a97713d017da7a73ed2e790bc8",
+        "file_count": 4,
         "review": "delta-plus-boundaries",
         "outcome": "improved",
-        "summary": "Delta geprüft (namensraumbasierte Attributauflösung statt Suffix-Vergleich, needsSpace-Heuristik an der Absatznaht, Thematic-Break-Erkennung, GFM-Regel gegen Backticks im Fence-Info). Zwei Funde: die Auflösung lokaler Teildokumente nahm das Verzeichnis des ausgewählten Pfades statt des echten Masters — hinter einem Verweis galten alle Abschnitte als fehlend, sichtbar erst durch den heutigen Symlink-Fix; und in isThematicBreak war eine zweite Bedingung nachweislich wirkungslos. Grenzfläche resolve() im Übrigen gründlich: kein Schema/Host/Query, kein absoluter Pfad, kein Backslash, kein '..', Escape-Prüfung nach Symlink-Auflösung. Bewusste Grenze der needsSpace-Heuristik: ambivalente Anführungszeichen sind im Code als solche benannt",
+        "summary": "Die in diesem Zug herausgelöste Datei MarkdownLinkTargetRewriter.swift inhaltlich nachgeprüft: Zeilenkontext mit Blockquote-, Listen- und Einzugscode-Zuständen, Inline-Scanner für Backtick-Runs und Klammertiefe, Zielersetzung mit spitzen Klammern und Titel, Fence-Behandlung. Der Präfixvergleich zählt Grapheme-Cluster, deshalb kann der Offset nicht danebenliegen. Keine Korrektheitslücke gefunden; 13 vorhandene Tests decken den Mechanismus",
         "tests": [
-          "swift test: 230 passed, 0 failures",
-          "Gegenprobe: neuer ODM-Verweis-Test scheitert gegen den Stand davor mit 'linked ODM section is missing'",
-          "Äquivalenzbeweis isThematicBreak: 299.593 Zeichenketten geprüft, 0 Abweichungen"
+          "swift test: 302 passed, 0 failures"
         ]
       }
     },
@@ -208,17 +243,16 @@
       "reason": "DOCX/ODT/DOC/RTF-Adapter samt HTML-Zwischenschicht und Bild-Rewriting",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20260819T180037868197+0200",
-        "completed_at": "2026-08-19T18:40:54+02:00",
-        "observed_head": "05549094c359d484ab33c60cf4c8a8f2f0fdf39d",
-        "content_sha256": "1905f149b2d2de1bb8941e446128d883f80ea49fde4156015154c824b9afc3c9",
+        "campaign_id": "20260829T180733149979+0200",
+        "completed_at": "2026-08-29T18:46:13+02:00",
+        "observed_head": "0fde650034ec7fccaa06eada96c7e0a546e81fc0",
+        "content_sha256": "aa8ed1b516743f6d0987d5243c4cf89d9295df71edff08d9513f665dae552f00",
         "file_count": 27,
         "review": "delta-plus-boundaries",
-        "outcome": "reviewed-clean",
-        "summary": "Delta geprüft (DOC läuft über VerifiedFileStaging, die Staging-Kopie wird danach eigenständig auf OLE-Signatur und textutil-Format nachgeprüft — TOCTOU-sicher). Grenzflächen ohne Fund: HTMLImageRewriter löst Symlinks auf und prüft danach die Zugehörigkeit zum Ressourcenverzeichnis, HTMLDocumentConverter entfernt seine Zwischendatei ausdrücklich und meldet ein Scheitern dabei, preservingEmptyRTFParagraphs behandelt Control-Symbole und \\bin-Binärdaten überlaufsicher. Ein Verdacht ausgeräumt: Der Bild-Regex bricht bei einem '>' im img-Tag, aber textutil escaped es — mit einem RTFD samt Bilddatei 'a>b.png' belegt, Bild und Verweis bleiben korrekt. Die RTFD-Symlink-Behebung in RichTextConverter kam aus dem Querschnitts-Fund symlink-input-rejected",
+        "outcome": "improved",
+        "summary": "Nachbuchung des Querschnitts-Funds verified-descriptor-reads: Delta ist genau der in diesem Zug geschriebene und verifizierte Theme-Diff (Umstellung auf VerifiedFile beziehungsweise die dabei entstandene Testdatei)",
         "tests": [
-          "swift test: 235 passed, 0 failures",
-          "End-to-End über die CLI: RTFD mit '>' im Bilddateinamen konvertiert verlustfrei"
+          "swift test: 302 passed, 0 failures"
         ]
       }
     },
@@ -228,23 +262,25 @@
         "Sources/PoorMansTextCore/MarkdownNormalizer.swift",
         "Sources/PoorMansTextCore/ColoredTextMarker.swift",
         "Tests/PoorMansTextCoreTests/MarkdownNormalizerTests.swift",
-        "Tests/PoorMansTextCoreTests/ColoredTextMarkerTests.swift"
+        "Tests/PoorMansTextCoreTests/ColoredTextMarkerTests.swift",
+        "Sources/PoorMansTextCore/MarkdownEscaping.swift",
+        "Tests/PoorMansTextCoreTests/MarkdownEscapingTests.swift"
       ],
       "risk": "medium",
       "priority": 5,
       "reason": "Markdown-Rewriter mit AGENTS-Invariante zu Inline-Code und Fences",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20260819T180037868197+0200",
-        "completed_at": "2026-08-19T18:42:43+02:00",
-        "observed_head": "05549094c359d484ab33c60cf4c8a8f2f0fdf39d",
-        "content_sha256": "59b28f292e4603320936923bacf007f66c6be6ec7a3498a3485f95cf351c0b58",
-        "file_count": 4,
+        "campaign_id": "20260829T180733149979+0200",
+        "completed_at": "2026-08-29T18:46:13+02:00",
+        "observed_head": "0fde650034ec7fccaa06eada96c7e0a546e81fc0",
+        "content_sha256": "ac00a07f753adee379ea8c8bd33102bd5972b1dfdf7ac365e32bfc736a9de89a",
+        "file_count": 6,
         "review": "delta-plus-boundaries",
-        "outcome": "reviewed-clean",
-        "summary": "Inhaltlich bitgleich zum Vollreview vom 2026-08-15 (git diff gegen dessen observed_head 773e011 ist leer; der Fingerprint-Unterschied stammt aus dem Werkzeug, nicht aus dem Code). Gezielt nachgeprüft: openingFence setzt die GFM-Regel um, dass ein Backtick-Fence keinen weiteren Backtick im Info-Text tragen darf — dieselbe Regel, die der ODM-Rewriter am 2026-08-17 nachgezogen bekam, hier also konsistent; isClosingFence verlangt korrekt mindestens dieselbe Länge und danach nur Leerraum. Die AGENTS.md-Invariante zu unabgeschlossenen Backtick-Runs betrifft Inline-Spans und liegt im ODM-Rewriter, wo sie geprüft und getestet ist. 11 Tests decken die Fence-Randfälle ab",
+        "outcome": "improved",
+        "summary": "Nachbuchung des Querschnitts-Funds verified-descriptor-reads: Delta ist genau der in diesem Zug geschriebene und verifizierte Theme-Diff (Umstellung auf VerifiedFile beziehungsweise die dabei entstandene Testdatei)",
         "tests": [
-          "swift test: 235 passed, 0 failures"
+          "swift test: 302 passed, 0 failures"
         ]
       }
     },
@@ -260,17 +296,16 @@
       "reason": "Exit-Codes, JSON-Ausgabe, Argumentparser",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20260819T180037868197+0200",
-        "completed_at": "2026-08-19T18:43:34+02:00",
-        "observed_head": "05549094c359d484ab33c60cf4c8a8f2f0fdf39d",
-        "content_sha256": "b5f791ab86f4ba7f9be263b56c6b8d04b6e984a51bdf5abb3f203fc34cb5c2b0",
+        "campaign_id": "20260829T180733149979+0200",
+        "completed_at": "2026-08-29T18:39:43+02:00",
+        "observed_head": "ed67b0b2bc4a7947b554603411c27691090593ac",
+        "content_sha256": "ef9a66465166f3414384d0cf35010cb1e9d11ddaed07a6b0cff09ca500161e29",
         "file_count": 3,
         "review": "delta-plus-boundaries",
         "outcome": "reviewed-clean",
-        "summary": "Dateien unverändert seit dem letzten Stand; geprüft wurde deshalb die Grenzfläche gegen die heutigen Kernänderungen. Alle Exit-Codes stimmen mit der dokumentierten sysexits-Zuordnung überein: Symlink-Eingabe 0, fehlende Datei 66, neues XLSX-Scanbudget und Symlink-Eintrag im ZIP je 65, vorhandenes Ziel 73; Argumentrandfälle (doppelte Eingabe, Option ohne Wert, unbekannte Option, --formats mit Eingabe) je 64, ein Dateiname in Optionsform wird korrekt als Pfad behandelt. Die JSON-Ausgabe bleibt konsistent: 'input' symlink-aufgelöst wie im Changelog festgelegt, Ergebnisname folgt der Nutzereingabe",
+        "summary": "Delta seit 2026-08-19 geprüft: --image-ocr folgt genau dem Muster von --spreadsheet-format, samt = -Form, Fehlermeldung, Katalogmodus-Sperre und drei Integrationstests. Exit-Code-Abbildung, JSON- und Textausgabe als Grenzen mitgelesen — nichts zu vereinfachen, das den Parser nicht unübersichtlicher machen würde",
         "tests": [
-          "swift test: 235 passed, 0 failures",
-          "CLI-Grenzflächenprüfung: 6 Exit-Code-Fälle und 5 Argumentrandfälle, alle wie dokumentiert"
+          "swift test: 302 passed, 0 failures"
         ]
       }
     },
@@ -290,16 +325,16 @@
       "reason": "GUI-Zustand, Installer und Sparkle-Update-Controller",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20260819T180037868197+0200",
-        "completed_at": "2026-08-19T18:44:36+02:00",
-        "observed_head": "05549094c359d484ab33c60cf4c8a8f2f0fdf39d",
-        "content_sha256": "dcdad14b313aa677c23fa98aa3c4f2aca3decb24f76adeecd8dbbc5f03632b14",
+        "campaign_id": "20260829T180733149979+0200",
+        "completed_at": "2026-08-29T18:40:25+02:00",
+        "observed_head": "ed67b0b2bc4a7947b554603411c27691090593ac",
+        "content_sha256": "30051b70b2a940c43df98e71fc3187f35e51d215a13da90dd179b1520d680766",
         "file_count": 12,
         "review": "delta-plus-boundaries",
         "outcome": "reviewed-clean",
-        "summary": "Dateien unverändert; Grenzflächen gegen die heutigen Kernänderungen geprüft. AppModel reicht die URL unverändert an DocumentConverter weiter, die Symlink-Behebung wirkt damit auch für Drop und Öffnen-Dialog. CLIInstaller ist sorgfältig abgesichert: Pfade gehen über argv statt in den Skripttext, zusätzlich 'quoted form', das Ziel wird im Skript erneut geprüft, 'ln -s' ohne -f kann kein bestehendes Ziel überschreiben, und der Erfolg wird nachverifiziert. CapturedProcess leert die Fehler-Pipe vor waitUntilExit und vermeidet damit den Deadlock. PandocInstaller lädt nichts selbst, sondern ruft nur ein vorhandenes brew und prüft danach nach. UpdateController hält die Signaturprüfung bei Sparkle, feedURL kommt aus der Info.plist statt aus einer zweiten Quelltextkonstante",
+        "summary": "Delta seit 2026-08-19 geprüft: Bild-OCR-Schalter im Modell und in der Drop-Zone, angepasste Texte und Dialogtitel. Grenzen mitgelesen: Sperre gegen parallele Aufträge, Pandoc-Angebot samt dauerhafter Ablehnung über AppStorage, CLI-Installationsangebot mit Konflikt- und /Applications-Prüfung, Sparkle-Verdrahtung. Nichts zu vereinfachen, ohne Verhalten zu ändern",
         "tests": [
-          "swift test: 235 passed, 0 failures"
+          "swift test: 302 passed, 0 failures"
         ]
       }
     },
@@ -412,6 +447,31 @@
           "swift test: 225 passed, 0 failures",
           "swift build -c release: erfolgreich",
           "Gegenprobe: 6 der 10 neuen Tests scheitern gegen den Stand vor dem Fix, 4 Härtungstests bleiben in beiden Ständen grün"
+        ]
+      }
+    },
+    {
+      "id": "verified-descriptor-reads",
+      "summary": "Das Muster 'geprüfter Deskriptor' (open mit O_RDONLY|O_NONBLOCK, fstat am selben Deskriptor, S_IFREG-Prüfung, EINTR-feste Leseschleife) steht in drei eigenständigen Fassungen: VerifiedFileStaging (withVerifiedSource/readVerified), ZIPArchiveInspector (withOpenFile/readFully) und RichTextConverter.rtfProbe. PDFAdapter.hasPDFSignature öffnet die fremde Quelle dagegen noch mit FileHandle ohne O_NONBLOCK und prüft Regularität und Größe getrennt über resourceValues — es fehlt dort ganz. Eine gemeinsame Hilfe würde beides erledigen; die Fehlerabbildung bleibt beim Aufrufer",
+      "evidence": [
+        "Sources/PoorMansTextCore/VerifiedFileStaging.swift",
+        "Sources/PoorMansTextCore/RichTextConverter.swift",
+        "Sources/PoorMansTextCore/ZIPArchiveInspector.swift",
+        "Sources/PoorMansTextCore/PDFAdapter.swift"
+      ],
+      "priority": 3,
+      "state": "completed",
+      "noted_at": "2026-08-29T18:12:33+02:00",
+      "campaign_id": "20260829T180733149979+0200",
+      "started_at": "2026-08-29T18:41:15+02:00",
+      "completed": {
+        "campaign_id": "20260829T180733149979+0200",
+        "completed_at": "2026-08-29T18:45:56+02:00",
+        "observed_head": "0fde650034ec7fccaa06eada96c7e0a546e81fc0",
+        "summary": "VerifiedFile fasst open(O_RDONLY|O_NONBLOCK), fstat am selben Deskriptor und die EINTR-feste Leseschleife zusammen. Staging, ZIP-Leser und RTF-Probe nutzen sie; der PDF-Adapter bekommt das Muster überhaupt erst — er prüfte Regularität und Größe über resourceValues am Pfad und öffnete danach mit FileHandle ohne O_NONBLOCK, was auf einer FIFO nachweislich nie zurückkehrt",
+        "tests": [
+          "swift test: 302 passed, 0 failures",
+          "perl-alarm-Messung: FileHandle(forReadingFrom:) auf eine FIFO steht nach 30 s noch im open (Exit 142)"
         ]
       }
     }

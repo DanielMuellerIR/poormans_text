@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 0.9.0 - 2026-08-30
 
 - Scale an oversized image frame down for local OCR instead of refusing the
   whole import. A 24-megapixel photo now converts normally and reports
@@ -27,6 +27,17 @@ All notable changes to this project will be documented in this file.
 - Escape Setext underlines and tilde fences in literal source text, so a line of
   `=` characters from a PDF or OCR page can no longer turn the line above it
   into a heading, and `~~~` can no longer open a code block.
+- Read a foreign XLS source through a single descriptor instead of mapping it.
+  A sync service replacing the file during detection can no longer end the
+  process with `SIGBUS`.
+- Order recognized text lines in two transitive steps — strictly top to bottom,
+  then left to right within a band. The previous single comparison was not a
+  strict weak ordering, so three lines could produce three different orders.
+- Stage RTF, DOCX/ODT, DOC, and ODS/XLSX/XLS from the resolved source path. A
+  symbolic link changed between detection and staging can no longer swap the
+  converted document.
+- Use the shared heading escaping in the master-document adapter instead of a
+  second, character-identical copy of it.
 
 ## 0.8.5 - 2026-08-23
 

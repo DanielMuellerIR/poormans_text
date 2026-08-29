@@ -86,6 +86,28 @@ final class LegacyXLSBoundaryTests: XCTestCase {
         XCTAssertFalse(workbook.hasUnsupportedObjects)
         XCTAssertTrue(markdown.contains("[1](https://example.com/a_%28b%29)"), markdown)
     }
+
+    /// Ein HLINK-Record kann jedes Ziel tragen. Ein ausführbares Schema wird
+    /// nicht übernommen: Der Zellwert bleibt, das Ziel fällt weg, und der
+    /// Verlust ist als Warnung sichtbar.
+    func testGeneratedBIFFWorkbookDropsAScriptHyperlink() throws {
+        let document = SyntheticXLSFixture.workbook(
+            missingFirstSheetEOF: false,
+            firstHyperlinkTarget: "javascript:alert(1)"
+        )
+
+        let workbook = try LegacyXLSWorkbookParser.parse(document)
+        let markdown = try SpreadsheetMarkdownRenderer.render(
+            workbook,
+            sourceURL: URL(fileURLWithPath: "/tmp/Linked.xls"),
+            style: .markdownTable
+        )
+
+        XCTAssertNil(workbook.sheets.first?.rows.first?.first?.linkTarget)
+        XCTAssertTrue(workbook.hasUnsupportedObjects)
+        XCTAssertFalse(markdown.contains("javascript"), markdown)
+        XCTAssertTrue(markdown.contains("| 1 |"), markdown)
+    }
 }
 
 /// Erzeugt eine vollständige OLE-Compound-Datei mit einem kleinen BIFF8-Stream.

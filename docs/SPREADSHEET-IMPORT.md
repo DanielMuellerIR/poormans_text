@@ -55,6 +55,14 @@ Backslashes werden maskiert, interne Zeilenumbrüche als `<br>` geschrieben.
 Verlinkte Zellen werden als Markdown-Link gerendert; Linktext und Ziel werden
 dabei so maskiert, dass sie keine weitere Tabellenspalte oder Linksyntax bilden.
 
+Als Linkziel kommen nur `http`, `https`, `mailto` und `file` sowie Ziele ganz
+ohne Schema durch — also relative Pfade neben der Arbeitsmappe und blattinterne
+`#`-Ziele. Ein ausführbares Schema wie `javascript:` oder ein eingebettetes
+`data:` wird verworfen: Poor Man's Text öffnet ein Ziel zwar nie selbst, aber im
+Markdown-Viewer des Nutzers stünde sonst ein klickbarer Link aus einer fremden
+Tabelle. Der sichtbare Zelltext bleibt in diesem Fall erhalten, und der Verlust
+des Ziels wird als `spreadsheet.unsupportedObjects` gemeldet.
+
 Mit `--spreadsheet-format tsv` wählt das CLI `tabSeparated`: Jedes Blatt wird zu
 einem `tsv`-Codeblock. Zellinterne Backslashes, Tabulatoren und Zeilenumbrüche
 werden als `\\`, `\t` und `\n` geschrieben, sodass Zeilen- und Spaltengrenzen

@@ -696,8 +696,13 @@ enum LegacyXLSWorkbookParser {
             } else {
                 return .unsupported
             }
-            guard let resolvedTarget else { return .unsupported }
-            return .supported(BIFFHyperlink(range: range, target: resolvedTarget))
+            // Auch hier gilt die Schemaprüfung; ein verworfenes Ziel wird zum
+            // gemeldeten Verlust wie ein nicht darstellbares Objekt.
+            guard let resolvedTarget,
+                  let acceptedTarget = SpreadsheetLinkTarget.accepted(resolvedTarget) else {
+                return .unsupported
+            }
+            return .supported(BIFFHyperlink(range: range, target: acceptedTarget))
         }
 
         private static func applyHyperlink(

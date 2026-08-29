@@ -20,16 +20,6 @@ exportiert, lohnt den Aufwand nicht. Wer eine Pages-/Numbers-Datei umwandeln
 will, exportiert sie in der jeweiligen Apple-App als DOCX beziehungsweise XLSX
 und nutzt den normalen Import.
 
-## Offene Entscheidung aus der CodeQA vom 2026-08-29
-
-- **Linkziele aus Tabellen werden ohne Schemaprüfung übernommen.** XLSX-,
-  ODS- und XLS-Hyperlinks landen unverändert als Markdown-Linkziel im Ergebnis,
-  also auch `javascript:`. Geladen wird nichts, und die meisten Markdown-Viewer
-  entschärfen solche Ziele selbst; ein Klick in einem Viewer ohne diese Prüfung
-  bliebe aber offen. Eine Erlaubnisliste (`http`, `https`, `mailto`, `file`,
-  interne `#`-Ziele) würde das schließen, kann aber legitime Sonderschemata
-  aussperren.
-
 ## Fastra-Integration
 
 Die Seite von Poor Man's Text ist erledigt: `poormans-text --formats [--json]`

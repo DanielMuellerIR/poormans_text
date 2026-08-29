@@ -839,6 +839,78 @@ final class SpreadsheetAdapterTests: XCTestCase {
         XCTAssertFalse(result.diagnostics.map(\.code).contains("spreadsheet.unsupportedObjects"))
     }
 
+    /// Ein `javascript:`-Ziel aus einer fremden Arbeitsmappe darf nicht als
+    /// klickbarer Link im Ergebnis landen. Der sichtbare Text bleibt, das Ziel
+    /// wird als Verlust gemeldet.
+    func testODSDropsAScriptHyperlinkTarget() throws {
+        let linked = generatedODSContent.replacingOccurrences(
+            of: "<text:p>Merged</text:p>",
+            with: #"<text:p><text:a xlink:href="javascript:alert(1)">Merged</text:a></text:p>"#
+        ).replacingOccurrences(
+            of: #"xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0""#,
+            with: #"""
+            xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"
+              xmlns:xlink="http://www.w3.org/1999/xlink"
+            """#
+        )
+        let sourceURL = temporaryDirectory.appendingPathComponent("Script.ods")
+        try ZIPFixtureBuilder.odsPackage(contentXML: linked).write(to: sourceURL)
+
+        let result = try DocumentConverter().convert(
+            ConversionRequest(
+                inputURL: sourceURL,
+                destination: .directory(temporaryDirectory.appendingPathComponent("script-ods-result"))
+            )
+        )
+        let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+
+        XCTAssertFalse(markdown.contains("javascript"), markdown)
+        XCTAssertTrue(markdown.contains("Merged"), markdown)
+        XCTAssertTrue(result.diagnostics.map(\.code).contains("spreadsheet.unsupportedObjects"))
+    }
+
+    func testXLSXDropsAScriptHyperlinkRelationship() throws {
+        let linkedSheet = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+          xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+          <sheetData><row r="1"><c r="A1" t="inlineStr"><is><t>Angebot</t></is></c></row></sheetData>
+          <hyperlinks><hyperlink ref="A1" r:id="rId1"/></hyperlinks>
+        </worksheet>
+        """
+        let relationships = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+          <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="javascript:alert(1)" TargetMode="External"/>
+        </Relationships>
+        """
+        let sourceURL = temporaryDirectory.appendingPathComponent("Script.xlsx")
+        try ZIPFixtureBuilder.xlsxPackage(
+            firstSheetXML: linkedSheet,
+            secondSheetXML: secondXLSXSheet,
+            extraEntries: [
+                .init(
+                    name: "xl/worksheets/_rels/sheet1.xml.rels",
+                    content: Data(relationships.utf8)
+                ),
+            ]
+        ).write(to: sourceURL)
+
+        let result = try DocumentConverter().convert(
+            ConversionRequest(
+                inputURL: sourceURL,
+                destination: .directory(
+                    temporaryDirectory.appendingPathComponent("script-xlsx-result")
+                )
+            )
+        )
+        let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+
+        XCTAssertFalse(markdown.contains("javascript"), markdown)
+        XCTAssertTrue(markdown.contains("Angebot"), markdown)
+        XCTAssertTrue(result.diagnostics.map(\.code).contains("spreadsheet.unsupportedObjects"))
+    }
+
     func testODSIgnoresAHyperlinkAttributeOutsideTheXLinkNamespace() throws {
         let linked = generatedODSContent.replacingOccurrences(
             of: "<text:p>Merged</text:p>",

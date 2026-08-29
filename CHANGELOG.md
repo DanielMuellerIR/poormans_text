@@ -8,6 +8,9 @@ All notable changes to this project will be documented in this file.
   whole import. A 24-megapixel photo now converts normally and reports
   `image.ocrDownscaled`; the stored asset stays the untouched original. With
   several frames the shared 64-megapixel budget is divided evenly.
+- Accept only `http`, `https`, `mailto`, `file`, and scheme-less targets as
+  spreadsheet hyperlink targets. A `javascript:` or `data:` target from ODS,
+  XLSX, or XLS is dropped with a visible loss warning; the cell text remains.
 - Keep the embedded text of a sparse PDF page when local OCR returns nothing or
   fails, instead of publishing an empty page section.
 - Decide from its eight-byte OLE header whether a file can be a legacy XLS at

@@ -654,8 +654,15 @@ enum XLSXWorkbookParser {
                         hasUnsupportedHyperlinks = true
                         target = nil
                     }
+                    // Erst hier entscheidet sich, ob das Ziel übernehmbar ist.
+                    // Ein verworfenes Ziel lässt den Anzeigetext stehen und
+                    // meldet den Verlust.
+                    let acceptedTarget = target.flatMap(SpreadsheetLinkTarget.accepted)
+                    if target != nil, acceptedTarget == nil {
+                        hasUnsupportedHyperlinks = true
+                    }
                     do {
-                        try applyHyperlink(target: target, display: display, to: reference)
+                        try applyHyperlink(target: acceptedTarget, display: display, to: reference)
                     } catch {
                         fail(error.localizedDescription, parser: parser)
                     }

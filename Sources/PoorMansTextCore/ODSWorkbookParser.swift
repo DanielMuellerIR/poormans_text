@@ -158,11 +158,17 @@ enum ODSWorkbookParser {
                 return
             }
             if namespaceURI == Namespaces.text, elementName == "a", capturesCellText {
-                guard let target = namespacePrefixes.attributeValue(
+                guard let rawTarget = namespacePrefixes.attributeValue(
                     localName: "href",
                     namespaceURI: Namespaces.xlink,
                     in: attributeDict
-                ), !target.isEmpty else {
+                ), !rawTarget.isEmpty else {
+                    return
+                }
+                guard let target = SpreadsheetLinkTarget.accepted(rawTarget) else {
+                    // Ein nicht übernehmbares Schema ist ein sichtbarer
+                    // Verlust: Der Linktext bleibt, das Ziel fällt weg.
+                    workbook.hasUnsupportedObjects = true
                     return
                 }
                 // Ein Tabellenfeld kann im gemeinsamen Modell genau ein Ziel

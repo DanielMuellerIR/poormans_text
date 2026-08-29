@@ -59,6 +59,59 @@ enum SpreadsheetLimits {
     static let maximumOutputBytes = 128 * 1_024 * 1_024
 }
 
+/// Entscheidet, ob ein Linkziel aus einer Quelldatei ins Ergebnis darf.
+///
+/// Poor Man's Text lädt selbst nichts nach, und ein Linkziel wird nie
+/// geöffnet. Es steht danach aber als Markdown-Link im Ergebnis, und ein Klick
+/// im Viewer des Nutzers führt aus, was in der Quelldatei stand — bei
+/// `javascript:` und `data:` wäre das Code aus einer fremden Tabelle. Deshalb
+/// kommt nur eine kurze Liste von Schemata durch.
+enum SpreadsheetLinkTarget {
+    private static let allowedSchemes: Set<String> = ["http", "https", "mailto", "file"]
+
+    /// Das übernehmbare Ziel — `nil`, wenn es verworfen wird. Der Aufrufer
+    /// meldet ein verworfenes Ziel als sichtbaren Verlust.
+    ///
+    /// Ohne Schema bleibt ein Ziel erlaubt: Ein relativer Pfad neben der
+    /// Arbeitsmappe und ein blattinternes `#`-Ziel tragen keines.
+    static func accepted(_ target: String) -> String? {
+        let trimmed = target.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        // Steuerzeichen dienen in einem Linkziel keinem gültigen Zweck und
+        // können ein Schema vor dieser Prüfung verstecken („java\nscript:").
+        guard !trimmed.unicodeScalars.contains(where: { $0.value < 0x20 || $0.value == 0x7F }) else {
+            return nil
+        }
+        guard let scheme = scheme(of: trimmed) else {
+            return trimmed
+        }
+        return allowedSchemes.contains(scheme) ? trimmed : nil
+    }
+
+    /// Das Schema nach RFC 3986: ein Buchstabe, danach Buchstaben, Ziffern,
+    /// `+`, `-` oder `.`, abgeschlossen mit `:`. Alles andere vor dem ersten
+    /// Doppelpunkt heißt: Dieses Ziel trägt gar kein Schema.
+    private static func scheme(of target: String) -> String? {
+        var scheme = ""
+        for character in target {
+            if character == ":" {
+                return scheme.isEmpty ? nil : scheme.lowercased()
+            }
+            guard character.isASCII else { return nil }
+            if scheme.isEmpty {
+                guard character.isLetter else { return nil }
+            } else {
+                guard character.isLetter || character.isNumber
+                        || character == "+" || character == "-" || character == "." else {
+                    return nil
+                }
+            }
+            scheme.append(character)
+        }
+        return nil
+    }
+}
+
 enum SpreadsheetMarkdownRenderer {
     static func render(
         _ workbook: SpreadsheetWorkbook,

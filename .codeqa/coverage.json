@@ -2,12 +2,12 @@
   "schema_version": 2,
   "project": "poormans_text",
   "campaign": {
-    "id": "20260829T180733149979+0200",
-    "token_budget": 3000000,
+    "id": "20260829T194626345032+0200",
+    "token_budget": 2564411,
     "status": "complete",
-    "started_at": "2026-08-29T18:07:33+02:00",
-    "tokens_spent": 414170,
-    "finished_at": "2026-08-29T18:49:21+02:00",
+    "started_at": "2026-08-29T19:46:26+02:00",
+    "tokens_spent": 60000,
+    "finished_at": "2026-08-29T19:52:04+02:00",
     "finish_reason": "all-current"
   },
   "campaign_history": [
@@ -27,6 +27,15 @@
       "started_at": "2026-08-19T18:00:37+02:00",
       "tokens_spent": 502792,
       "finished_at": "2026-08-19T18:47:44+02:00",
+      "finish_reason": "all-current"
+    },
+    {
+      "id": "20260829T180733149979+0200",
+      "token_budget": 3000000,
+      "status": "complete",
+      "started_at": "2026-08-29T18:07:33+02:00",
+      "tokens_spent": 414170,
+      "finished_at": "2026-08-29T18:49:21+02:00",
       "finish_reason": "all-current"
     }
   ],
@@ -77,16 +86,16 @@
       "reason": "Orchestrator: Adapterwahl, atomare Veröffentlichung, Kollisionsschutz — breite Aufrufwirkung",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20260829T180733149979+0200",
-        "completed_at": "2026-08-29T18:46:13+02:00",
-        "observed_head": "0fde650034ec7fccaa06eada96c7e0a546e81fc0",
-        "content_sha256": "1cfc204baa94ac81f638363f64e50248ba5b82b5530cbe540b938ae5941f8666",
+        "campaign_id": "20260829T194626345032+0200",
+        "completed_at": "2026-08-29T19:46:54+02:00",
+        "observed_head": "30ebad2588cbb874c646888b2792db3552040fef",
+        "content_sha256": "ba000204131b0ce9acd2b3e6bdf349b4bc740c6091dc006e0210935a36da27b7",
         "file_count": 24,
         "review": "delta-plus-boundaries",
-        "outcome": "improved",
-        "summary": "Nachbuchung des Querschnitts-Funds: VerifiedFile ist die neue gemeinsame Fassung von open/fstat/Leseschleife, VerifiedFileStaging nutzt sie samt eigener Fehlerabbildung. Beides in diesem Zug geschrieben, gelesen und mit der vollen Suite verifiziert",
+        "outcome": "reviewed-clean",
+        "summary": "Delta ist eine einzige additive Warnkonstante image.ocrDownscaled. Code eindeutig, Meldung nennt Wirkung und Grenze, in docs/IMAGE-IMPORT.md aufgeführt und durch zwei Tests belegt. Nichts zu verbessern",
         "tests": [
-          "swift test: 302 passed, 0 failures"
+          "swift test: 313 passed, 0 failures"
         ]
       }
     },
@@ -129,16 +138,16 @@
       "reason": "Neu zugewachsener PDF-/Bild-Import mit lokaler Vision-OCR; nie CodeQA-geprüft, arbeitet mit Speicherbudgets und Fremddateien",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20260829T180733149979+0200",
-        "completed_at": "2026-08-29T18:46:13+02:00",
-        "observed_head": "0fde650034ec7fccaa06eada96c7e0a546e81fc0",
-        "content_sha256": "df965d80bb721e4b990177e881a3ee8dd83e9f0566d2bc466e984ea4730244d9",
+        "campaign_id": "20260829T194626345032+0200",
+        "completed_at": "2026-08-29T19:49:19+02:00",
+        "observed_head": "58be13c803b7ea6dfa8d52719c60c2ef004eec4b",
+        "content_sha256": "de78a94ecbbd522eb32d6488aaa93103c76468c7cb4088488307dd38485d32fb",
         "file_count": 5,
         "review": "delta-plus-boundaries",
         "outcome": "improved",
-        "summary": "Nachbuchung des Querschnitts-Funds verified-descriptor-reads: Delta ist genau der in diesem Zug geschriebene und verifizierte Theme-Diff (Umstellung auf VerifiedFile beziehungsweise die dabei entstandene Testdatei)",
+        "summary": "Delta der Herunterrechnung geprüft: Budgetaufteilung hält die 64-Megapixel-Summe ein (frameCount x min(16M, 64M/frameCount) <= 64M), der Downscale-Zweig wird nur bei tatsächlich zu großer Fläche betreten, weshalb der Skalierungsfaktor immer unter 1 bleibt, und das Thumbnail lässt die EXIF-Orientierung bewusst unangewandt. Ein Fund behoben: Die Maßprüfung ließ Double(Int.max) durch und wäre bei der Umwandlung in Int abgestürzt",
         "tests": [
-          "swift test: 302 passed, 0 failures"
+          "swift test: 313 passed, 0 failures"
         ]
       }
     },
@@ -153,24 +162,24 @@
         "Tests/PoorMansTextCoreTests/SpreadsheetAdapterTests.swift",
         "Tests/PoorMansTextCoreTests/SpreadsheetFeasibilityTests.swift",
         "Tests/PoorMansTextCoreTests/LegacyXLSBoundaryTests.swift",
-        "Tests/PoorMansTextCoreTests/Fixtures/Spreadsheets"
+        "Tests/PoorMansTextCoreTests/Fixtures/Spreadsheets",
+        "Tests/PoorMansTextCoreTests/SpreadsheetLinkTargetTests.swift"
       ],
       "risk": "high",
       "priority": 2,
       "reason": "Drei native Binär-/XML-Parser, Datenintegrität, größter Codeblock",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20260829T180733149979+0200",
-        "completed_at": "2026-08-29T18:31:47+02:00",
-        "observed_head": "8bbe2a52193799baccad4386e1cd5081ee8dc01c",
-        "content_sha256": "c3acf458779dc4487959337dce6e4810005f48882bec6dda81100889897aed28",
-        "file_count": 11,
+        "campaign_id": "20260829T194626345032+0200",
+        "completed_at": "2026-08-29T19:52:03+02:00",
+        "observed_head": "338dbdb00946aecdf84f3bb03c8001bd0d077ade",
+        "content_sha256": "884dabd7eb1924934db43b69b6ebfa2b4a2aac433e49c8716bbee24ea96d2637",
+        "file_count": 12,
         "review": "delta-plus-boundaries",
         "outcome": "improved",
-        "summary": "Delta seit 2026-08-19 geprüft: Hyperlink-Übernahme in allen drei Lesern, Renderer-Maskierung für Linktext und -ziel, Scan-Budgets, HLINK-Cursor mit allen Bereichsprüfungen. Zwei Funde behoben: Die XLS-Erkennung las jede Nicht-ZIP-Datei vollständig in den Speicher (549 MB auf eine 512-MB-Datei, jetzt 13 MB über eine Kopfprüfung), und ein zweites XLSX-Hyperlink-Element ohne eigenes Ziel löschte das Ziel des ersten",
+        "summary": "Nachtrag: Die Testdatei SpreadsheetLinkTargetTests gehört zum Bereich. Sie deckt die Prüfregel selbst ab — erlaubte Schemata, schemalose Ziele, Laufwerksbuchstaben, ausführbare Schemata, Steuerzeichen und Leerraum",
         "tests": [
-          "swift test: 297 passed, 0 failures",
-          "Messung: /usr/bin/time -l auf 512-MB-Nicht-Tabellendatei, 549617664 -> 12976128 Byte Spitzenspeicher"
+          "swift test: 314 passed, 0 failures"
         ]
       }
     },

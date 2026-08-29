@@ -93,9 +93,23 @@ enum SpreadsheetLinkTarget {
     /// Doppelpunkt heißt: Dieses Ziel trägt gar kein Schema.
     private static func scheme(of target: String) -> String? {
         var scheme = ""
-        for character in target {
+        var index = target.startIndex
+        while index < target.endIndex {
+            let character = target[index]
             if character == ":" {
-                return scheme.isEmpty ? nil : scheme.lowercased()
+                guard !scheme.isEmpty else { return nil }
+                // Ein einzelner Buchstabe mit folgendem Trennzeichen ist kein
+                // Schema, sondern ein Windows-Laufwerksbuchstabe:
+                // `C:\Berichte\a.xlsx`. Genau so stehen Dateiziele in
+                // XLS-Monikern, und sie sollen als Ziel erhalten bleiben. Ein
+                // Risiko entsteht dadurch nicht — ein Schema aus einem
+                // Buchstaben gibt es nicht.
+                let next = target.index(after: index)
+                if scheme.count == 1, next < target.endIndex,
+                   target[next] == "\\" || target[next] == "/" {
+                    return nil
+                }
+                return scheme.lowercased()
             }
             guard character.isASCII else { return nil }
             if scheme.isEmpty {
@@ -107,6 +121,7 @@ enum SpreadsheetLinkTarget {
                 }
             }
             scheme.append(character)
+            index = target.index(after: index)
         }
         return nil
     }

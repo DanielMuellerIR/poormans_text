@@ -25,6 +25,16 @@ final class SpreadsheetLinkTargetTests: XCTestCase {
         XCTAssertEqual(SpreadsheetLinkTarget.accepted("ordner/a:b.txt"), "ordner/a:b.txt")
     }
 
+    /// Ein Laufwerksbuchstabe ist kein Schema. Solche Ziele stehen in den
+    /// Dateimonikern alter XLS-Dateien und sollen erhalten bleiben.
+    func testKeepsWindowsDrivePaths() {
+        XCTAssertEqual(
+            SpreadsheetLinkTarget.accepted(#"C:\Berichte\2026.xlsx"#),
+            #"C:\Berichte\2026.xlsx"#
+        )
+        XCTAssertEqual(SpreadsheetLinkTarget.accepted("D:/Daten/a.pdf"), "D:/Daten/a.pdf")
+    }
+
     func testRejectsExecutableAndEmbeddedSchemes() {
         for target in [
             "javascript:alert(1)",

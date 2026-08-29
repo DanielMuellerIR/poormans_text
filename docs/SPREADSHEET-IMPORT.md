@@ -63,6 +63,10 @@ Markdown-Viewer des Nutzers stünde sonst ein klickbarer Link aus einer fremden
 Tabelle. Der sichtbare Zelltext bleibt in diesem Fall erhalten, und der Verlust
 des Ziels wird als `spreadsheet.unsupportedObjects` gemeldet.
 
+Ein einzelner Buchstabe vor dem Doppelpunkt gilt dabei als
+Windows-Laufwerksbuchstabe und nicht als Schema: `C:\Berichte\2026.xlsx` aus
+einem XLS-Dateimoniker bleibt als Ziel erhalten.
+
 Mit `--spreadsheet-format tsv` wählt das CLI `tabSeparated`: Jedes Blatt wird zu
 einem `tsv`-Codeblock. Zellinterne Backslashes, Tabulatoren und Zeilenumbrüche
 werden als `\\`, `\t` und `\n` geschrieben, sodass Zeilen- und Spaltengrenzen

@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Keep the embedded text of a sparse PDF page when local OCR returns nothing or
+  fails, instead of publishing an empty page section.
+- Name the way out in the image OCR pixel-budget diagnostics: converting without
+  text recognition still imports the image.
+
 ## 0.8.5 - 2026-08-23
 
 - Preserve one hyperlink target per spreadsheet cell from ODS XLink attributes,

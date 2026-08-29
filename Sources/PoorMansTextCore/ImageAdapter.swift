@@ -158,7 +158,10 @@ struct ImageAdapter: DocumentConversionAdapter {
             let properties = try frameProperties(source, at: frameIndex)
             let pixels = try pixelCount(from: properties, frameIndex: frameIndex)
             guard pixels <= ImageImportLimits.maximumOCRPixels - totalPixels else {
-                throw ImageAdapterError("the image frames selected for OCR exceed the pixel budget")
+                throw ImageAdapterError(
+                    "the image frames selected for OCR exceed the pixel budget; "
+                    + "converting without text recognition keeps the image"
+                )
             }
             totalPixels += pixels
 
@@ -200,8 +203,15 @@ struct ImageAdapter: DocumentConversionAdapter {
         }
         let integerWidth = Int(width)
         let integerHeight = Int(height)
+        // Die Grenze gilt der Texterkennung, nicht dem Bild: Ein Foto oberhalb
+        // von 16 Megapixeln lässt sich weiterhin importieren, sobald der
+        // Aufrufer die Texterkennung abschaltet. Genau das gehört in die
+        // Meldung, sonst wirkt sie wie eine Sackgasse.
         guard integerWidth <= ImageImportLimits.maximumPixelsPerFrame / integerHeight else {
-            throw ImageAdapterError("the image frame \(frameIndex + 1) exceeds the OCR pixel budget")
+            throw ImageAdapterError(
+                "the image frame \(frameIndex + 1) exceeds the OCR pixel budget; "
+                + "converting without text recognition keeps the image"
+            )
         }
         return integerWidth * integerHeight
     }

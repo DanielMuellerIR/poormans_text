@@ -35,9 +35,13 @@ Ergebnisse mit geringer Erkennungswahrscheinlichkeit erscheinen als
 64 MiB; durch das Maskieren bleibt das erzeugte Markdown damit innerhalb des
 128-MiB-Ausgabebudgets.
 
-`pdf.ocrApplied` weist auf verwendete lokale OCR hin. Liefert sie keinen Text,
-steht im Seitenabschnitt eine sichtbare Leermeldung und der Adapter meldet
-`pdf.pageTextUnavailable`; bei einem Vision-Fehler kommt zusätzlich
+Der bereits gelesene eingebettete Text bleibt dabei der Rückfall: Findet Vision
+auf der gerenderten Seite nichts oder scheitert sie, steht weiterhin das im
+Ergebnis, was PDFKit gelesen hat.
+
+`pdf.ocrApplied` weist auf verwendete lokale OCR hin. Bleibt eine Seite ganz
+ohne Text, steht im Seitenabschnitt eine sichtbare Leermeldung und der Adapter
+meldet `pdf.pageTextUnavailable`; bei einem Vision-Fehler kommt zusätzlich
 `pdf.ocrFailed`. Jede PDF-Konvertierung meldet außerdem
 `pdf.layoutNotPreserved`.
 

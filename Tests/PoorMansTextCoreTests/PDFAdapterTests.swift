@@ -151,7 +151,38 @@ final class PDFAdapterTests: XCTestCase {
         XCTAssertTrue(markdown.contains("_No text could be extracted from this page._"), markdown)
     }
 
-    private func createPDF(pages: [String], at url: URL) throws {
+    func testKeepsShortEmbeddedTextWhenLocalOCRFindsNothing() throws {
+        // Weisse Schrift auf dem weissen Rendergrund: PDFKit liefert den
+        // Seitentext, Vision sieht auf dem gerenderten Bild nichts. Weil der
+        // Text unter 20 Zeichen bleibt, plant der Adapter fuer diese Seite OCR
+        // — und darf den bereits gelesenen Text dabei nicht verlieren.
+        let sourceURL = temporaryDirectory.appendingPathComponent("FaintText.pdf")
+        try createPDF(pages: ["Chapter 1"], at: sourceURL, foregroundColor: .white)
+
+        let result = try DocumentConverter().convert(
+            ConversionRequest(
+                inputURL: sourceURL,
+                destination: .directory(temporaryDirectory.appendingPathComponent("faint-result"))
+            )
+        )
+        let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+
+        XCTAssertTrue(markdown.contains("Chapter 1"), markdown)
+        XCTAssertFalse(
+            markdown.contains("_No text could be extracted from this page._"),
+            markdown
+        )
+        XCTAssertEqual(
+            result.diagnostics.map(\.code),
+            ["pdf.layoutNotPreserved", "pdf.ocrApplied"]
+        )
+    }
+
+    private func createPDF(
+        pages: [String],
+        at url: URL,
+        foregroundColor: NSColor = .black
+    ) throws {
         guard let consumer = CGDataConsumer(url: url as CFURL) else {
             throw FixtureError("could not create the PDF output")
         }
@@ -168,7 +199,7 @@ final class PDFAdapterTests: XCTestCase {
                     string: text,
                     attributes: [
                         .font: NSFont.systemFont(ofSize: 14),
-                        .foregroundColor: NSColor.black,
+                        .foregroundColor: foregroundColor,
                     ]
                 ).draw(at: CGPoint(x: 72, y: 720))
                 NSGraphicsContext.restoreGraphicsState()

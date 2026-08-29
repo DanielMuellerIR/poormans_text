@@ -178,7 +178,12 @@ struct PDFAdapter: DocumentConversionAdapter {
             } else {
                 let dimensions = try rasterDimensions(for: page)
                 ocrPlans.append(OCRPlan(index: pageIndex, page: page, dimensions: dimensions))
-                pages.append("")
+                // Der wenige eingebettete Text bleibt als Rückfall stehen.
+                // Liefert die OCR nichts oder scheitert sie, ist er weiterhin
+                // das, was im Dokument steht — ihn zu verwerfen wäre
+                // Inhaltsverlust.
+                try accountText(extractedText, totalBytes: &extractedTextBytes)
+                pages.append(extractedText)
             }
         }
 
@@ -198,6 +203,12 @@ struct PDFAdapter: DocumentConversionAdapter {
                 hadOCRFailure = true
                 continue
             }
+            // Hat die OCR nichts gefunden, bleibt der eingebettete Rückfall
+            // stehen statt einer leeren Seite.
+            guard !recognizedText.isEmpty else { continue }
+            // Der Rückfall wird ersetzt, also gibt er seinen Anteil am Budget
+            // wieder frei.
+            extractedTextBytes -= pages[plan.index].lengthOfBytes(using: .utf8)
             try accountText(recognizedText, totalBytes: &extractedTextBytes)
             pages[plan.index] = recognizedText
         }

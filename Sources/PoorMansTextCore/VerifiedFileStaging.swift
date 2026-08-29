@@ -87,7 +87,7 @@ enum VerifiedFileStaging {
                 maximumBytes: maximumBytes,
                 describedAs: subject
             ) { chunk in
-                guard var position = chunk.baseAddress else { return }
+                guard var position = chunk.baseAddress else { return true }
                 var remaining = chunk.count
                 while remaining > 0 {
                     let written = write(destinationDescriptor, position, remaining)
@@ -98,6 +98,7 @@ enum VerifiedFileStaging {
                     position += written
                     remaining -= written
                 }
+                return true
             }
 
             succeeded = true
@@ -135,6 +136,39 @@ enum VerifiedFileStaging {
                 describedAs: subject
             ) { chunk in
                 contents.append(contentsOf: chunk)
+                return true
+            }
+            return contents
+        }
+    }
+
+    /// Liest höchstens `prefixBytes` vom Anfang einer geprüften Quelle.
+    ///
+    /// Für eine Signaturprüfung ist das der billige Weg: Ohne diese Grenze
+    /// müsste die Erkennung eine bis zu `maximumBytes` große fremde Datei
+    /// vollständig in den Speicher lesen, nur um an ihren ersten acht Bytes zu
+    /// erkennen, dass sie gar nicht zum Format gehört.
+    static func prefix(
+        of sourceURL: URL,
+        maximumBytes: Int,
+        prefixBytes: Int,
+        describedAs subject: String
+    ) throws -> Data {
+        try withVerifiedSource(
+            at: sourceURL,
+            maximumBytes: maximumBytes,
+            describedAs: subject
+        ) { descriptor, _ in
+            var contents = Data()
+            contents.reserveCapacity(prefixBytes)
+            _ = try readVerified(
+                from: descriptor,
+                maximumBytes: maximumBytes,
+                describedAs: subject
+            ) { chunk in
+                let missing = prefixBytes - contents.count
+                contents.append(contentsOf: chunk.prefix(missing))
+                return contents.count < prefixBytes
             }
             return contents
         }
@@ -183,7 +217,9 @@ enum VerifiedFileStaging {
     }
 
     /// Liest den Deskriptor blockweise und reicht jeden gelesenen Block an
-    /// `consume` weiter. Rückgabe ist die Gesamtzahl gelesener Bytes.
+    /// `consume` weiter. Rückgabe ist die Gesamtzahl gelesener Bytes. Gibt
+    /// `consume` `false` zurück, ist der Aufrufer fertig und der Rest der Datei
+    /// bleibt ungelesen.
     ///
     /// Die Budgetprüfung steht VOR dem Übernehmen: Eine Quelle, die während des
     /// Lesens wächst, darf das Budget weder auf der Platte noch im Speicher
@@ -193,7 +229,7 @@ enum VerifiedFileStaging {
         from descriptor: Int32,
         maximumBytes: Int,
         describedAs subject: String,
-        consume: (UnsafeRawBufferPointer) throws -> Void
+        consume: (UnsafeRawBufferPointer) throws -> Bool
     ) throws -> Int {
         var readTotal = 0
         var buffer = [UInt8](repeating: 0, count: chunkSize)
@@ -211,9 +247,10 @@ enum VerifiedFileStaging {
             guard readTotal <= maximumBytes else {
                 throw StagingError(.source, "\(subject) exceeds the supported size limit")
             }
-            try buffer.withUnsafeBytes { raw in
+            let wantsMore = try buffer.withUnsafeBytes { raw in
                 try consume(UnsafeRawBufferPointer(rebasing: raw[0..<readBytes]))
             }
+            guard wantsMore else { break }
         }
         return readTotal
     }

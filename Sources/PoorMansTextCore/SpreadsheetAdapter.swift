@@ -40,6 +40,26 @@ struct SpreadsheetAdapter: DocumentConversionAdapter {
         }
         guard try ZIPArchiveInspector.looksLikeZIP(at: inputURL) else {
             do {
+                // Zuerst nur der Dateikopf: Ohne OLE-Signatur ist die Datei
+                // kein Compound-Dokument und damit kein XLS. Die Erkennung
+                // läuft für JEDE Nicht-ZIP-Datei durch diesen Zweig — ein
+                // großes PDF oder Video würde sonst vollständig in den Speicher
+                // gelesen, nur um an acht Bytes zu scheitern.
+                let header = try VerifiedFileStaging.prefix(
+                    of: inputURL,
+                    maximumBytes: 1_073_741_824,
+                    prefixBytes: LegacyXLSWorkbookParser.compoundDocumentSignature.count,
+                    describedAs: "the XLS source"
+                )
+                guard LegacyXLSWorkbookParser.hasCompoundDocumentSignature(header) else {
+                    return extensionFormat == .xls
+                        ? .invalid(
+                            format: .xls,
+                            priority: 108,
+                            reason: "the OLE compound-document header is invalid"
+                        )
+                        : .noMatch
+                }
                 // GELESEN, nicht abgebildet — und Prüfung wie Bytes hängen an
                 // demselben Deskriptor. Vorher prüfte `resourceValues` den
                 // aufgelösten PFAD und `Data(contentsOf:options:

@@ -8,6 +8,13 @@ All notable changes to this project will be documented in this file.
   fails, instead of publishing an empty page section.
 - Name the way out in the image OCR pixel-budget diagnostics: converting without
   text recognition still imports the image.
+- Decide from its eight-byte OLE header whether a file can be a legacy XLS at
+  all. Detection no longer reads an unrelated large file into memory in full:
+  peak memory for a 512 MB non-spreadsheet input drops from 549 MB to 13 MB, and
+  a `.xls` file without that header now names the missing OLE header instead of
+  a missing ZIP signature.
+- Keep the first hyperlink target of an XLSX cell when a second hyperlink
+  element for the same cell carries no target of its own.
 
 ## 0.8.5 - 2026-08-23
 

@@ -845,7 +845,12 @@ enum XLSXWorkbookParser {
                         formula: nil,
                         linkTarget: target
                     )
-                } else if !existing.isEmpty, existing.linkTarget != target {
+                } else if !existing.isEmpty, let target, existing.linkTarget != target {
+                    // `let target` ist die Bedingung, nicht nur Bequemlichkeit:
+                    // Ein zweites Element ohne Beziehung und ohne `location`
+                    // trägt gar kein Ziel und hat oben schon den Verlust
+                    // gemeldet. Es darf das Ziel des ersten Links nicht
+                    // löschen.
                     rows[row][column] = SpreadsheetCell(
                         value: existing.value,
                         displayText: existing.displayText,

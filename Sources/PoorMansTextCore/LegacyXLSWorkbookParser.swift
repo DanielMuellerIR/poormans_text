@@ -17,6 +17,15 @@ enum LegacyXLSWorkbookParser {
         return workbook
     }
 
+    /// Die OLE-Signatur am Dateianfang. Acht Bytes entscheiden, ob eine Datei
+    /// überhaupt ein Compound-Dokument sein kann — die Erkennung muss dafür
+    /// nicht die ganze Datei lesen.
+    static let compoundDocumentSignature: [UInt8] = [0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1]
+
+    static func hasCompoundDocumentSignature(_ header: Data) -> Bool {
+        Array(header.prefix(compoundDocumentSignature.count)) == compoundDocumentSignature
+    }
+
     static func looksLikeXLS(_ data: Data) -> Bool {
         guard let compound = try? CompoundDocument(data: data) else {
             return false
@@ -47,7 +56,7 @@ enum LegacyXLSWorkbookParser {
 
         init(data: Data) throws {
             guard data.count >= 512,
-                  Array(data.prefix(8)) == [0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1],
+                  LegacyXLSWorkbookParser.hasCompoundDocumentSignature(data),
                   data.legacyUInt16(at: 28) == 0xFFFE else {
                 throw ParserError("the OLE compound-document header is invalid")
             }

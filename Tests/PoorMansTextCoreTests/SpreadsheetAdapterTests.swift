@@ -456,6 +456,54 @@ final class SpreadsheetAdapterTests: XCTestCase {
         XCTAssertFalse(result.diagnostics.map(\.code).contains("spreadsheet.unsupportedObjects"))
     }
 
+    /// Ein zweites `<hyperlink>`-Element für dieselbe Zelle ohne Beziehung und
+    /// ohne `location` hat gar kein Ziel. Es meldet den Verlust — löschte aber
+    /// zugleich das Ziel des ersten Links, obwohl das Modell ausdrücklich das
+    /// erste behalten soll.
+    func testASecondHyperlinkWithoutATargetKeepsTheFirstTarget() throws {
+        let linkedSheet = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+          xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+          <sheetData><row r="1"><c r="A1" t="inlineStr"><is><t>Linked</t></is></c></row></sheetData>
+          <hyperlinks>
+            <hyperlink ref="A1" r:id="rId1"/>
+            <hyperlink ref="A1"/>
+          </hyperlinks>
+        </worksheet>
+        """
+        let relationships = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+          <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://example.com/first" TargetMode="External"/>
+        </Relationships>
+        """
+        let sourceURL = temporaryDirectory.appendingPathComponent("TwoLinks.xlsx")
+        try ZIPFixtureBuilder.xlsxPackage(
+            firstSheetXML: linkedSheet,
+            secondSheetXML: secondXLSXSheet,
+            extraEntries: [
+                .init(
+                    name: "xl/worksheets/_rels/sheet1.xml.rels",
+                    content: Data(relationships.utf8)
+                ),
+            ]
+        ).write(to: sourceURL)
+
+        let result = try DocumentConverter().convert(
+            ConversionRequest(
+                inputURL: sourceURL,
+                destination: .directory(
+                    temporaryDirectory.appendingPathComponent("two-links-result")
+                )
+            )
+        )
+        let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+
+        XCTAssertTrue(markdown.contains("[Linked](https://example.com/first)"), markdown)
+        XCTAssertTrue(result.diagnostics.map(\.code).contains("spreadsheet.unsupportedObjects"))
+    }
+
     func testXLSXHyperlinkDisplayHonorsRowColumnAndCellBudgets() throws {
         let cases = [
             ("Row", "A100001", "an XLSX hyperlink exceeds the row budget"),

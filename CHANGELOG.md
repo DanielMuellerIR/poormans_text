@@ -15,6 +15,8 @@ All notable changes to this project will be documented in this file.
   a missing ZIP signature.
 - Keep the first hyperlink target of an XLSX cell when a second hyperlink
   element for the same cell carries no target of its own.
+- Apply the 256 MiB rich-text size limit to the `TXT.rtf` inside an RTFD package
+  as well, not only to a standalone RTF file.
 
 ## 0.8.5 - 2026-08-23
 

@@ -207,6 +207,28 @@ final class RichTextConverterTests: XCTestCase {
         }
     }
 
+    /// Die Größengrenze aus dem Fund vom 2026-08-20 galt nur für die einzelne
+    /// RTF-Datei. Über ein RTFD-Paket war derselbe Weg offen: Eine beliebig
+    /// große `TXT.rtf` wird von `NSAttributedString` und `textutil` vollständig
+    /// geladen.
+    func testRejectsAnRTFDWhoseTXTRTFExceedsTheSizeLimit() throws {
+        let packageURL = temporaryDirectory.appendingPathComponent("Riesig.rtfd", isDirectory: true)
+        try FileManager.default.createDirectory(at: packageURL, withIntermediateDirectories: false)
+        let textURL = packageURL.appendingPathComponent("TXT.rtf")
+        try Data(#"{\rtf1\ansi Hallo}"#.utf8).write(to: textURL)
+        let handle = try FileHandle(forWritingTo: textURL)
+        try handle.truncate(atOffset: UInt64(RichTextLimits.maximumSourceSize) + 1)
+        try handle.close()
+
+        XCTAssertThrowsError(try DocumentConverter().detectFormat(at: packageURL)) { error in
+            guard case ConversionError.invalidInput(_, let format, let reason) = error else {
+                return XCTFail("Unexpected error: \(error)")
+            }
+            XCTAssertEqual(format, .rtfd)
+            XCTAssertTrue(reason.contains("size limit"), reason)
+        }
+    }
+
     func testRejectsRTFWithoutRTFHeader() throws {
         let inputURL = temporaryDirectory.appendingPathComponent("Broken.rtf")
         try Data("plain text".utf8).write(to: inputURL)

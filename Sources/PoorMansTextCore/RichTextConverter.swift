@@ -70,7 +70,19 @@ struct RichTextAdapter: DocumentConversionAdapter {
             var rtfIsDirectory: ObjCBool = false
             let hasRTFFile = fileManager.fileExists(atPath: rtfURL.path, isDirectory: &rtfIsDirectory)
                 && !rtfIsDirectory.boolValue
-            if hasRTFFile, try rtfProbe(at: rtfURL)?.hasHeader == true {
+            if hasRTFFile, let probe = try rtfProbe(at: rtfURL), probe.hasHeader {
+                // Dieselbe Grenze wie für die einzelne RTF-Datei, nur eine Ebene
+                // tiefer: `textutil` und die Farberkennung laden auch die
+                // `TXT.rtf` eines Pakets vollständig. Ohne die Prüfung stand der
+                // Weg über ein Paket weiter offen (Review-Fund 2026-08-20 galt
+                // nur für die freie Datei).
+                guard probe.byteCount <= RichTextLimits.maximumSourceSize else {
+                    return .invalid(
+                        format: .rtfd,
+                        priority: 100,
+                        reason: "TXT.rtf exceeds the supported size limit"
+                    )
+                }
                 return .match(
                     AdapterInputInspection(format: .rtfd, priority: 100, expectedWarnings: [])
                 )
@@ -120,23 +132,22 @@ struct RichTextAdapter: DocumentConversionAdapter {
             context.options.pandocExecutable,
             fileManager: fileManager
         )
-        // Ein RTFD ist ein Ordnerpaket, und `textutil` öffnet einen Symlink
-        // darauf nicht. Der Verweis wird deshalb GENAU EINMAL aufgelöst — seit
-        // dem Review vom 2026-08-20 zentral vor der Ausgabeprüfung, damit
-        // Prüfung und Adapter über dasselbe Paket reden —, und alle folgenden
-        // Lesevorgänge arbeiten auf diesem einen erfassten Pfad. Vorher löste
-        // jede Stufe für sich auf; wurde der Verweis dazwischen umgebogen,
-        // stammten Inhalt und Anhänge eines Ergebnisses aus verschiedenen
-        // Paketen (Review-Fund 2026-08-19).
+        // Der Verweis auf die Eingabe ist GENAU EINMAL aufgelöst — seit dem
+        // Review vom 2026-08-20 zentral vor der Ausgabeprüfung, damit Prüfung
+        // und Adapter über dasselbe Dokument reden. Alle Lesevorgänge hier
+        // arbeiten auf diesem einen Pfad, für beide Wege:
+        //
+        // - RTFD ist ein Ordnerpaket, und `textutil` öffnet einen Symlink darauf
+        //   gar nicht. Löste jede Stufe für sich auf und wurde der Verweis
+        //   dazwischen umgebogen, stammten Inhalt und Anhänge eines Ergebnisses
+        //   aus verschiedenen Paketen (Review-Fund 2026-08-19).
+        // - Die einzelne RTF-Datei wird über denselben Pfad gestagt. Vorher
+        //   stand hier der symbolische `inputURL`: Wurde er nach der Erkennung,
+        //   aber vor dem Staging umgehängt, veröffentlichte der Adapter ein
+        //   anderes Dokument als das geprüfte (Review-Fund 2026-08-25).
         //
         // `inputURL` bleibt daneben der vom Nutzer gewählte Pfad: Er benennt die
         // Ausgabedatei und steht in den Fehlermeldungen.
-        // Auch die einzelne RTF-Datei wird ueber den EINMAL zentral
-        // aufgeloesten Pfad gestagt. Vorher stand hier der symbolische
-        // `inputURL`: Wurde der Eingabe-Symlink nach der Erkennung, aber vor dem
-        // Staging umgehaengt, las und veroeffentlichte der Adapter ein anderes
-        // Dokument als das, dessen Format und Warnungen geprueft worden waren
-        // (Review-Fund 2026-08-25).
         let resolvedInputURL = context.resolvedInputURL
 
         // Eine einzelne RTF-Datei wird EINMAL begrenzt in den Arbeitsordner

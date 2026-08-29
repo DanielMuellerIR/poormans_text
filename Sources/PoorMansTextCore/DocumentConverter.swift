@@ -188,11 +188,9 @@ public struct DocumentConverter: Sendable {
     }
 
     private func detectInput(at inputURL: URL) throws -> DetectedInput {
-        let fileManager = FileManager.default
-        guard fileManager.fileExists(atPath: inputURL.path) else {
-            throw ConversionError.inputDoesNotExist(inputURL)
-        }
-        // Als Eingabe kommen nur reguläre Dateien und Ordnerpakete wie RTFD in
+        // Ein einziger `stat` beantwortet beide Fragen: ob die Eingabe
+        // überhaupt erreichbar ist und was für ein Objekt dort liegt. Als
+        // Eingabe kommen nur reguläre Dateien und Ordnerpakete wie RTFD in
         // Frage. Der Rest — FIFO, Socket, Gerätedatei — wird hier abgewiesen,
         // BEVOR ein Adapter ihn öffnet: Ein `open` auf eine FIFO ohne Schreiber
         // kehrt nie zurück, und die Erkennung öffnet die Eingabe als Erstes.

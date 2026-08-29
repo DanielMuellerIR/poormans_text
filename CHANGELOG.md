@@ -17,6 +17,9 @@ All notable changes to this project will be documented in this file.
   element for the same cell carries no target of its own.
 - Apply the 256 MiB rich-text size limit to the `TXT.rtf` inside an RTFD package
   as well, not only to a standalone RTF file.
+- Escape Setext underlines and tilde fences in literal source text, so a line of
+  `=` characters from a PDF or OCR page can no longer turn the line above it
+  into a heading, and `~~~` can no longer open a code block.
 
 ## 0.8.5 - 2026-08-23
 

@@ -33,7 +33,13 @@ enum MarkdownEscaping {
         let indentation = line.prefix(while: { $0 == " " || $0 == "\t" })
         let body = line.dropFirst(indentation.count)
         guard let first = body.first else { return line }
-        if "#+-".contains(first) || first == ">" {
+        // `=` und `~` gehören dazu, auch wenn sie keinen Block ERÖFFNEN: Eine
+        // Zeile aus Gleichheitszeichen macht die Zeile DAVOR zur Überschrift
+        // (Setext), und `~~~` öffnet wie ein Backtick-Fence einen Codeblock,
+        // der den folgenden Text verschluckt. Beides kommt in Fremdtext
+        // natürlich vor — als unterstrichene Überschrift eines abgetippten
+        // Dokuments oder als Trennlinie.
+        if "#+-=~".contains(first) || first == ">" {
             return indentation + "\\" + body
         }
         if first.isNumber,

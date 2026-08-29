@@ -59,6 +59,27 @@ final class ReviewFixes20260829Tests: XCTestCase {
         XCTAssertFalse(LegacyXLSWorkbookParser.hasCompoundDocumentSignature(header))
     }
 
+    // MARK: - Auch die PDF-Erkennung öffnet über einen geprüften Deskriptor
+
+    /// Die PDF-Signaturprüfung war die letzte Stelle, die eine fremde Quelle mit
+    /// `FileHandle` ohne `O_NONBLOCK` öffnete. Auf eine FIFO ohne Schreiber
+    /// kehrt ein solches `open` NIE zurück. Der zentrale Vorfilter in
+    /// `DocumentConverter` fängt eine FIFO zwar ab, doch der Adapter darf sich
+    /// darauf nicht verlassen — er wird auch direkt aufgerufen. Ohne den Fix
+    /// läuft dieser Test nicht durch, sondern gar nicht mehr zu Ende.
+    func testPDFDetectionRejectsAFIFOInsteadOfWaitingForAWriter() throws {
+        let source = temporaryDirectory.appendingPathComponent("rohr.pdf")
+        guard mkfifo(source.path, 0o600) == 0 else {
+            throw XCTSkip("FIFO konnte nicht angelegt werden: \(String(cString: strerror(errno)))")
+        }
+
+        let detection = try PDFAdapter().inspectInput(at: source)
+        guard case .invalid(_, _, let reason) = detection else {
+            return XCTFail("Unerwartetes Ergebnis: \(detection)")
+        }
+        XCTAssertTrue(reason.contains("regular file"), reason)
+    }
+
     // MARK: - Die Diagnose nennt das fehlende OLE-Kopfstück
 
     /// Eine `.xls`-Datei ohne OLE-Kopf wurde mit „the ZIP package signature is

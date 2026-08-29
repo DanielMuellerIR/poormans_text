@@ -118,21 +118,23 @@ struct PDFAdapter: DocumentConversionAdapter {
     }
 
     private func validatedDocument(at url: URL) throws -> PDFDocument {
-        let values: URLResourceValues
-        do {
-            values = try url.resourceValues(forKeys: [.fileSizeKey, .isRegularFileKey])
-        } catch {
-            throw PDFAdapterError(error.localizedDescription)
+        // Regularität, Größe und Signatur hängen an EINEM Deskriptor. Vorher
+        // beschrieb `resourceValues` den Pfad und `FileHandle` öffnete ihn
+        // danach ein zweites Mal — ohne `O_NONBLOCK`, sodass eine
+        // untergeschobene FIFO das Öffnen ohne Zeitgrenze anhalten konnte.
+        try VerifiedFile.open(at: url, failure: Self.sourceFailure) { source in
+            guard source.isRegularFile else {
+                throw PDFAdapterError("the PDF source is not a regular file")
+            }
+            guard source.info.st_size <= Int64(PDFImportLimits.maximumSourceBytes) else {
+                throw PDFAdapterError("the PDF source exceeds the supported size limit")
+            }
+            guard try hasPDFSignature(source) else {
+                throw PDFAdapterError("the PDF signature is missing")
+            }
         }
-        guard values.isRegularFile == true else {
-            throw PDFAdapterError("the PDF source is not a regular file")
-        }
-        guard let size = values.fileSize, size <= PDFImportLimits.maximumSourceBytes else {
-            throw PDFAdapterError("the PDF source exceeds the supported size limit")
-        }
-        guard try hasPDFSignature(at: url) else {
-            throw PDFAdapterError("the PDF signature is missing")
-        }
+        // PDFKit öffnet den Pfad selbst; das lässt sich nicht an den geprüften
+        // Deskriptor binden.
         guard let document = PDFDocument(url: url) else {
             throw PDFAdapterError("the PDF document is damaged or unreadable")
         }
@@ -151,14 +153,24 @@ struct PDFAdapter: DocumentConversionAdapter {
         return document
     }
 
-    private func hasPDFSignature(at url: URL) throws -> Bool {
-        do {
-            let handle = try FileHandle(forReadingFrom: url)
-            defer { try? handle.close() }
-            let header = try handle.read(upToCount: PDFImportLimits.signatureBytes) ?? Data()
-            return header.range(of: Data("%PDF-".utf8)) != nil
-        } catch {
-            throw PDFAdapterError(error.localizedDescription)
+    /// Ein PDF darf einen Vorspann haben; `%PDF-` muss deshalb nur innerhalb
+    /// der ersten Bytes stehen, nicht ganz am Anfang.
+    private func hasPDFSignature(_ source: VerifiedFile) throws -> Bool {
+        var bytes = [UInt8](repeating: 0, count: PDFImportLimits.signatureBytes)
+        let readTotal = try bytes.withUnsafeMutableBytes { raw in
+            try source.readFully(into: raw)
+        }
+        return Data(bytes[0..<readTotal]).range(of: Data("%PDF-".utf8)) != nil
+    }
+
+    private static func sourceFailure(_ reason: VerifiedFile.Failure) -> Error {
+        switch reason {
+        case .couldNotOpen(let detail):
+            PDFAdapterError("the PDF source could not be opened: \(detail)")
+        case .couldNotInspect:
+            PDFAdapterError("the PDF source could not be inspected")
+        case .couldNotRead:
+            PDFAdapterError("the PDF source could not be read")
         }
     }
 

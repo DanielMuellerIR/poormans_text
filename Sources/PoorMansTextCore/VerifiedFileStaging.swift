@@ -65,7 +65,7 @@ enum VerifiedFileStaging {
             at: sourceURL,
             maximumBytes: maximumBytes,
             describedAs: subject
-        ) { sourceDescriptor, _ in
+        ) { source, _ in
             let destinationDescriptor = open(
                 destinationURL.path,
                 O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW,
@@ -82,10 +82,12 @@ enum VerifiedFileStaging {
                 }
             }
 
-            let copiedBytes = try readVerified(
-                from: sourceDescriptor,
+            let copiedBytes = try source.readChunks(
                 maximumBytes: maximumBytes,
-                describedAs: subject
+                chunkSize: chunkSize,
+                budgetExceeded: {
+                    StagingError(.source, "\(subject) exceeds the supported size limit")
+                }
             ) { chunk in
                 guard var position = chunk.baseAddress else { return true }
                 var remaining = chunk.count
@@ -127,13 +129,15 @@ enum VerifiedFileStaging {
             at: sourceURL,
             maximumBytes: maximumBytes,
             describedAs: subject
-        ) { descriptor, size in
+        ) { source, size in
             var contents = Data()
             contents.reserveCapacity(Int(size))
-            _ = try readVerified(
-                from: descriptor,
+            _ = try source.readChunks(
                 maximumBytes: maximumBytes,
-                describedAs: subject
+                chunkSize: chunkSize,
+                budgetExceeded: {
+                    StagingError(.source, "\(subject) exceeds the supported size limit")
+                }
             ) { chunk in
                 contents.append(contentsOf: chunk)
                 return true
@@ -158,13 +162,15 @@ enum VerifiedFileStaging {
             at: sourceURL,
             maximumBytes: maximumBytes,
             describedAs: subject
-        ) { descriptor, _ in
+        ) { source, _ in
             var contents = Data()
             contents.reserveCapacity(prefixBytes)
-            _ = try readVerified(
-                from: descriptor,
+            _ = try source.readChunks(
                 maximumBytes: maximumBytes,
-                describedAs: subject
+                chunkSize: chunkSize,
+                budgetExceeded: {
+                    StagingError(.source, "\(subject) exceeds the supported size limit")
+                }
             ) { chunk in
                 let missing = prefixBytes - contents.count
                 contents.append(contentsOf: chunk.prefix(missing))
@@ -174,84 +180,36 @@ enum VerifiedFileStaging {
         }
     }
 
-    /// Öffnet die Quelle GENAU EINMAL, prüft am selben Deskriptor und übergibt
-    /// ihn samt gemeldeter Größe an `body`. Beide öffentlichen Wege — Kopie in
-    /// den Arbeitsordner und Lesen in den Speicher — teilen sich diese Prüfung,
-    /// damit es für „reguläre Datei" und „Budget" nur eine Fassung gibt.
-    ///
-    /// `fstat` fragt DENSELBEN Deskriptor: Diese Auskunft gehört garantiert zu
-    /// den Bytes, die gleich gelesen werden — anders als eine Abfrage über den
-    /// Pfad, der inzwischen auf etwas anderes zeigen kann.
-    ///
-    /// `O_NONBLOCK` ist keine Optimierung, sondern der Schutz vor dem
-    /// Aufhängen: Ein `open` auf eine FIFO ohne Schreiber kehrt sonst NIE
-    /// zurück, und dann steht die ganze Umwandlung ohne Zeitgrenze. Mit dem
-    /// Flag kommt der Deskriptor sofort, `fstat` sieht `S_IFIFO` und lehnt die
-    /// Quelle ab (Review-Fund 2026-08-19). Für die reguläre Datei, die als
-    /// Einzige übrig bleibt, hat das Flag keine Wirkung: Ihre Leseaufrufe
-    /// liefern unverändert vollständige Blöcke.
+    /// Öffnet die Quelle über `VerifiedFile` und prüft zusätzlich, was für ALLE
+    /// Wege dieses Typs gilt: reguläre Datei und Größenbudget. Erst danach
+    /// bekommt `body` den geprüften Deskriptor.
     private static func withVerifiedSource<T>(
         at sourceURL: URL,
         maximumBytes: Int,
         describedAs subject: String,
-        body: (_ descriptor: Int32, _ size: Int64) throws -> T
+        body: (_ file: VerifiedFile, _ size: Int64) throws -> T
     ) throws -> T {
-        let descriptor = open(sourceURL.path, O_RDONLY | O_NONBLOCK)
-        guard descriptor >= 0 else {
-            throw StagingError(.source, "\(subject) could not be opened: \(String(cString: strerror(errno)))")
-        }
-        defer { close(descriptor) }
-
-        var info = stat()
-        guard fstat(descriptor, &info) == 0 else {
-            throw StagingError(.source, "\(subject) could not be inspected")
-        }
-        guard info.st_mode & S_IFMT == S_IFREG else {
-            throw StagingError(.source, "\(subject) is not a regular file")
-        }
-        guard info.st_size <= Int64(maximumBytes) else {
-            throw StagingError(.source, "\(subject) exceeds the supported size limit")
-        }
-
-        return try body(descriptor, info.st_size)
-    }
-
-    /// Liest den Deskriptor blockweise und reicht jeden gelesenen Block an
-    /// `consume` weiter. Rückgabe ist die Gesamtzahl gelesener Bytes. Gibt
-    /// `consume` `false` zurück, ist der Aufrufer fertig und der Rest der Datei
-    /// bleibt ungelesen.
-    ///
-    /// Die Budgetprüfung steht VOR dem Übernehmen: Eine Quelle, die während des
-    /// Lesens wächst, darf das Budget weder auf der Platte noch im Speicher
-    /// überziehen — deshalb entscheidet nicht die anfangs gemeldete Größe,
-    /// sondern die tatsächlich gelesene Menge.
-    private static func readVerified(
-        from descriptor: Int32,
-        maximumBytes: Int,
-        describedAs subject: String,
-        consume: (UnsafeRawBufferPointer) throws -> Bool
-    ) throws -> Int {
-        var readTotal = 0
-        var buffer = [UInt8](repeating: 0, count: chunkSize)
-        while true {
-            let readBytes = buffer.withUnsafeMutableBytes { raw -> Int in
-                guard let base = raw.baseAddress else { return -1 }
-                return read(descriptor, base, chunkSize)
+        try VerifiedFile.open(at: sourceURL, failure: { failure(subject, $0) }) { file in
+            guard file.isRegularFile else {
+                throw StagingError(.source, "\(subject) is not a regular file")
             }
-            if readBytes == 0 { break }
-            guard readBytes > 0 else {
-                if errno == EINTR { continue }
-                throw StagingError(.source, "\(subject) could not be read")
-            }
-            readTotal += readBytes
-            guard readTotal <= maximumBytes else {
+            guard file.info.st_size <= Int64(maximumBytes) else {
                 throw StagingError(.source, "\(subject) exceeds the supported size limit")
             }
-            let wantsMore = try buffer.withUnsafeBytes { raw in
-                try consume(UnsafeRawBufferPointer(rebasing: raw[0..<readBytes]))
-            }
-            guard wantsMore else { break }
+            return try body(file, file.info.st_size)
         }
-        return readTotal
+    }
+
+    /// Die Fehlertexte dieses Typs. `VerifiedFile` kennt nur den Anlass; der
+    /// Betreff („the package", „the XLS source") gehört dem Aufrufer.
+    private static func failure(_ subject: String, _ reason: VerifiedFile.Failure) -> Error {
+        switch reason {
+        case .couldNotOpen(let detail):
+            StagingError(.source, "\(subject) could not be opened: \(detail)")
+        case .couldNotInspect:
+            StagingError(.source, "\(subject) could not be inspected")
+        case .couldNotRead:
+            StagingError(.source, "\(subject) could not be read")
+        }
     }
 }

@@ -182,14 +182,14 @@ enum ZIPArchiveInspector {
     /// Geöffnet und geprüft wird über `withOpenFile`; alles außer einer
     /// regulären Datei ist hier schlicht kein ZIP-Paket und keine Störung.
     static func looksLikeZIP(at inputURL: URL) throws -> Bool {
-        try withOpenFile(at: inputURL) { descriptor, info in
-            guard info.st_mode & S_IFMT == S_IFREG else {
+        try VerifiedFile.open(at: inputURL, failure: packageFailure) { package in
+            guard package.isRegularFile else {
                 return false
             }
 
             var signature = [UInt8](repeating: 0, count: 4)
             let readBytes = try signature.withUnsafeMutableBytes { raw in
-                try readFully(descriptor, into: raw)
+                try package.readFully(into: raw)
             }
             guard readBytes == signature.count else {
                 return false               // die Datei ist kürzer als vier Bytes
@@ -730,76 +730,37 @@ enum ZIPArchiveInspector {
     /// Die Erkennung öffnet Archive vor dem sicheren Staging, dort war das also
     /// erreichbar (Review-Fund 2026-08-19).
     private static func verifiedContents(of url: URL, mapsPrivateCopy: Bool) throws -> Data {
-        try withOpenFile(at: url) { descriptor, info in
-            guard info.st_mode & S_IFMT == S_IFREG else {
+        try VerifiedFile.open(at: url, failure: packageFailure) { package in
+            guard package.isRegularFile else {
                 throw ArchiveError("the package is not a regular file")
             }
-            guard info.st_size <= Int64(Limits.maximumArchiveSize) else {
+            guard package.info.st_size <= Int64(Limits.maximumArchiveSize) else {
                 throw ArchiveError("the package exceeds the supported archive-size limit")
             }
-            let length = Int(info.st_size)
+            let length = Int(package.info.st_size)
             guard length > 0 else {
                 return Data()
             }
 
             if mapsPrivateCopy,
-               isOnALocalVolume(descriptor),
-               let mapped = mappedContents(descriptor, length: length) {
+               isOnALocalVolume(package.descriptor),
+               let mapped = mappedContents(package.descriptor, length: length) {
                 return mapped
             }
-            return try readContents(descriptor, length: length)
+            return try readContents(package, length: length)
         }
     }
 
-    /// Öffnet `url` und übergibt Deskriptor und `fstat`-Auskunft an `body`.
-    /// Beide beschreiben DASSELBE geöffnete Objekt — anders als eine Abfrage
-    /// über den Pfad, der inzwischen auf etwas anderes zeigen kann. Was ein
-    /// unerwarteter Objekttyp bedeutet, entscheidet der Aufrufer: Die
-    /// Signaturprüfung meldet dann „kein ZIP", das Lesen einen Fehler.
-    ///
-    /// `O_NONBLOCK` wie in `VerifiedFileStaging`: Ein `open` auf eine FIFO ohne
-    /// Schreiber kehrt sonst NIE zurück und ließe die Umwandlung ohne
-    /// Zeitgrenze stehen. Erreichbar war das über ein Masterdokument, dessen
-    /// Abschnittsverweis auf eine FIFO zeigt — die Prüfung dort sieht nur
-    /// „vorhanden und kein Verzeichnis" (Review-Fund 2026-08-20).
-    private static func withOpenFile<T>(
-        at url: URL,
-        body: (_ descriptor: Int32, _ info: stat) throws -> T
-    ) throws -> T {
-        let descriptor = open(url.path, O_RDONLY | O_NONBLOCK)
-        guard descriptor >= 0 else {
-            throw ArchiveError("the package could not be opened")
+    /// Die Fehlertexte dieses Lesers. `VerifiedFile` kennt nur den Anlass.
+    private static func packageFailure(_ reason: VerifiedFile.Failure) -> Error {
+        switch reason {
+        case .couldNotOpen:
+            ArchiveError("the package could not be opened")
+        case .couldNotInspect:
+            ArchiveError("the package could not be inspected")
+        case .couldNotRead:
+            ArchiveError("the package could not be read")
         }
-        defer { close(descriptor) }
-
-        var info = stat()
-        guard fstat(descriptor, &info) == 0 else {
-            throw ArchiveError("the package could not be inspected")
-        }
-        return try body(descriptor, info)
-    }
-
-    /// Füllt `buffer` und gibt zurück, wie viele Bytes wirklich kamen. Weniger
-    /// heißt: Die Datei war kürzer oder wurde inzwischen gekürzt — was das
-    /// bedeutet, entscheidet der Aufrufer.
-    private static func readFully(
-        _ descriptor: Int32,
-        into buffer: UnsafeMutableRawBufferPointer
-    ) throws -> Int {
-        guard let base = buffer.baseAddress else { return 0 }
-        var offset = 0
-        while offset < buffer.count {
-            let readBytes = read(descriptor, base + offset, buffer.count - offset)
-            if readBytes == 0 {
-                break
-            }
-            guard readBytes > 0 else {
-                if errno == EINTR { continue }
-                throw ArchiveError("the package could not be read")
-            }
-            offset += readBytes
-        }
-        return offset
     }
 
     /// Abgebildet wird nur von einem lokalen Datenträger. Kürzt jemand eine
@@ -841,10 +802,10 @@ enum ZIPArchiveInspector {
     /// Rückfall ohne Abbildung: genau die bei `fstat` gesehenen Bytes lesen.
     /// Wächst die Datei dabei, bleibt der Rest ungelesen — das Budget kann sie so
     /// nicht überziehen.
-    private static func readContents(_ descriptor: Int32, length: Int) throws -> Data {
+    private static func readContents(_ package: VerifiedFile, length: Int) throws -> Data {
         var data = Data(count: length)
         let readBytes = try data.withUnsafeMutableBytes { raw in
-            try readFully(descriptor, into: raw)
+            try package.readFully(into: raw)
         }
         // Kürzt jemand die Datei während des Lesens, bleibt der Rest aus. Ein
         // halb gelesenes Archiv wird nicht geparst.

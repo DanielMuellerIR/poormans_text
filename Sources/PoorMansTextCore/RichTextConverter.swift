@@ -319,65 +319,51 @@ struct RichTextAdapter: DocumentConversionAdapter {
         let byteCount: Int
     }
 
-    /// Öffnet die Datei GENAU EINMAL, prüft mit `fstat` am selben Deskriptor,
-    /// dass wirklich eine reguläre Datei dahintersteht, und liest daraus die
-    /// ersten 32 Byte. Ergebnis `nil` heißt: keine reguläre Datei.
+    /// Liest über einen geprüften Deskriptor die ersten 32 Byte einer möglichen
+    /// RTF-Datei. Ergebnis `nil` heißt: keine reguläre Datei.
     ///
-    /// `O_NONBLOCK` ist der Schutz vor dem Aufhängen. In einem RTFD-Ordner darf
-    /// `TXT.rtf` alles Mögliche sein, auch eine FIFO; ein `open` darauf ohne
-    /// Schreiber kehrt sonst NIE zurück, und die Umwandlung steht ohne
-    /// Zeitgrenze. Die Prüfung des äußeren Ordners sieht das nicht
-    /// (Review-Fund 2026-08-20).
+    /// Der Schutz vor dem Aufhängen kommt von `VerifiedFile`: In einem
+    /// RTFD-Ordner darf `TXT.rtf` alles Mögliche sein, auch eine FIFO — die
+    /// Prüfung des äußeren Ordners sieht das nicht (Review-Fund 2026-08-20).
     func rtfProbe(at url: URL) throws -> RTFProbe? {
-        let descriptor = open(url.path, O_RDONLY | O_NONBLOCK)
-        guard descriptor >= 0 else {
-            throw ConversionError.fileSystemFailure(
-                "\(url.lastPathComponent) could not be opened: \(String(cString: strerror(errno)))"
+        try VerifiedFile.open(
+            at: url,
+            failure: { Self.probeFailure(url, $0) }
+        ) { source -> RTFProbe? in
+            guard source.isRegularFile else {
+                return nil
+            }
+
+            var bytes = [UInt8](repeating: 0, count: 32)
+            let readTotal = try bytes.withUnsafeMutableBytes { raw in
+                try source.readFully(into: raw)
+            }
+
+            let header = Array(bytes[0..<readTotal])
+            let signature = [UInt8](#"{\rtf"#.utf8)
+            guard header.starts(with: signature) else {
+                return RTFProbe(hasHeader: false, byteCount: Int(source.info.st_size))
+            }
+            // `\rtf` ist ein Steuerwort mit verpflichtender Versionszahl.
+            let versionStart = signature.count
+            return RTFProbe(
+                hasHeader: versionStart < header.count && header[versionStart].isASCIIDigit,
+                byteCount: Int(source.info.st_size)
             )
         }
-        defer { close(descriptor) }
+    }
 
-        var info = stat()
-        guard fstat(descriptor, &info) == 0 else {
-            throw ConversionError.fileSystemFailure(
-                "\(url.lastPathComponent) could not be inspected"
+    private static func probeFailure(_ url: URL, _ reason: VerifiedFile.Failure) -> Error {
+        switch reason {
+        case .couldNotOpen(let detail):
+            ConversionError.fileSystemFailure(
+                "\(url.lastPathComponent) could not be opened: \(detail)"
             )
+        case .couldNotInspect:
+            ConversionError.fileSystemFailure("\(url.lastPathComponent) could not be inspected")
+        case .couldNotRead:
+            ConversionError.fileSystemFailure("\(url.lastPathComponent) could not be read")
         }
-        guard info.st_mode & S_IFMT == S_IFREG else {
-            return nil
-        }
-
-        let headerLength = 32
-        var bytes = [UInt8](repeating: 0, count: headerLength)
-        var readTotal = 0
-        while readTotal < headerLength {
-            let readBytes = bytes.withUnsafeMutableBytes { raw -> Int in
-                guard let base = raw.baseAddress else { return -1 }
-                return read(descriptor, base + readTotal, headerLength - readTotal)
-            }
-            if readBytes == 0 {
-                break                      // die Datei ist kürzer als 32 Byte
-            }
-            guard readBytes > 0 else {
-                if errno == EINTR { continue }
-                throw ConversionError.fileSystemFailure(
-                    "\(url.lastPathComponent) could not be read"
-                )
-            }
-            readTotal += readBytes
-        }
-
-        let header = Array(bytes[0..<readTotal])
-        let signature = [UInt8](#"{\rtf"#.utf8)
-        guard header.starts(with: signature) else {
-            return RTFProbe(hasHeader: false, byteCount: Int(info.st_size))
-        }
-        // `\rtf` ist ein Steuerwort mit verpflichtender Versionszahl.
-        let versionStart = signature.count
-        return RTFProbe(
-            hasHeader: versionStart < header.count && header[versionStart].isASCIIDigit,
-            byteCount: Int(info.st_size)
-        )
     }
 
     /// Schützt direkt aufeinanderfolgende `\\par`-Steuerwörter vor Pandocs

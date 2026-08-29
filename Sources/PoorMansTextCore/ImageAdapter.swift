@@ -251,14 +251,21 @@ struct ImageAdapter: DocumentConversionAdapter {
         from properties: [CFString: Any],
         frameIndex: Int
     ) throws -> FrameDimensions {
+        // `Int(exactly:)` statt eines Vergleichs mit `Double(Int.max)`: Dieser
+        // Wert ist 2^63 und damit selbst KEIN gültiges Int — ein `<=`-Vergleich
+        // ließ ihn durch, und die Umwandlung danach hätte den Prozess beendet.
+        // Über echte Bilddateien ist das nicht erreichbar, weil PNG, JPEG, TIFF
+        // und HEIC ihre Maße in 32 Bit ablegen; ein Absturzpfad soll in einem
+        // Leser fremder Dateien trotzdem nicht stehen bleiben.
         guard let width = (properties[kCGImagePropertyPixelWidth] as? NSNumber)?.doubleValue,
               let height = (properties[kCGImagePropertyPixelHeight] as? NSNumber)?.doubleValue,
               width.isFinite, height.isFinite,
               width >= 1, height >= 1,
-              width <= Double(Int.max), height <= Double(Int.max) else {
+              let integerWidth = Int(exactly: width.rounded(.down)),
+              let integerHeight = Int(exactly: height.rounded(.down)) else {
             throw ImageAdapterError("the image frame \(frameIndex + 1) has invalid dimensions")
         }
-        return FrameDimensions(width: Int(width), height: Int(height))
+        return FrameDimensions(width: integerWidth, height: integerHeight)
     }
 
     private func imageOrientation(from properties: [CFString: Any]) -> CGImagePropertyOrientation {

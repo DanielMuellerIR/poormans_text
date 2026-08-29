@@ -104,6 +104,11 @@ extension ConversionWarning {
         message: "Local OCR text was added next to the preserved original image."
     )
 
+    static let imageOCRDownscaled = ConversionWarning(
+        code: "image.ocrDownscaled",
+        message: "At least one image frame was scaled down for local OCR; very small text may be missing. The preserved image itself is unchanged."
+    )
+
     static let imageOCRFailed = ConversionWarning(
         code: "image.ocrFailed",
         message: "Local OCR failed for at least one image frame; the original image was preserved."

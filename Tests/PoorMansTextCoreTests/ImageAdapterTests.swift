@@ -111,19 +111,45 @@ final class ImageAdapterTests: XCTestCase {
         )
     }
 
-    func testRejectsAnImageThatExceedsTheOCRPixelBudgetBeforePublishing() throws {
+    /// Ein Frame über der Pixelgrenze ließ früher die ganze Umwandlung
+    /// scheitern — auch für ein gewöhnliches Kamerafoto. Jetzt wird er für die
+    /// Erkennung verkleinert; das Bild selbst bleibt unverändert erhalten.
+    func testScalesAnOversizedFrameDownInsteadOfRefusingTheImage() throws {
         let sourceURL = temporaryDirectory.appendingPathComponent("Oversized.tiff")
         try createOversizedTIFF(at: sourceURL)
+        let sourceBefore = try Data(contentsOf: sourceURL)
         let outputURL = temporaryDirectory.appendingPathComponent("oversized-result")
 
-        XCTAssertThrowsError(
-            try DocumentConverter().convert(
-                ConversionRequest(inputURL: sourceURL, destination: .directory(outputURL))
+        let result = try DocumentConverter().convert(
+            ConversionRequest(inputURL: sourceURL, destination: .directory(outputURL))
+        )
+
+        XCTAssertEqual(
+            result.diagnostics.map(\.code),
+            ["image.ocrApplied", "image.ocrDownscaled", "image.textUnavailable"]
+        )
+        XCTAssertEqual(result.assets.map(\.lastPathComponent), ["image01.tiff"])
+        XCTAssertEqual(try Data(contentsOf: try XCTUnwrap(result.assets.first)), sourceBefore)
+        XCTAssertEqual(try Data(contentsOf: sourceURL), sourceBefore)
+    }
+
+    /// Und die Erkennung muss auf dem verkleinerten Bild noch etwas finden —
+    /// sonst wäre das Kleinrechnen nur eine höflichere Art zu scheitern.
+    func testStillReadsTextFromADownscaledFrame() throws {
+        let sourceURL = temporaryDirectory.appendingPathComponent("Large photo.png")
+        try createLargePNG(text: "Grosse Aufnahme", at: sourceURL)
+
+        let result = try DocumentConverter().convert(
+            ConversionRequest(
+                inputURL: sourceURL,
+                destination: .directory(temporaryDirectory.appendingPathComponent("large-result"))
             )
-        ) { error in
-            XCTAssertTrue(error.localizedDescription.contains("OCR pixel budget"), error.localizedDescription)
-        }
-        XCTAssertFalse(FileManager.default.fileExists(atPath: outputURL.path))
+        )
+        let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+
+        XCTAssertTrue(result.diagnostics.map(\.code).contains("image.ocrDownscaled"))
+        XCTAssertFalse(result.diagnostics.map(\.code).contains("image.textUnavailable"))
+        XCTAssertTrue(markdown.contains("Grosse Aufnahme"), markdown)
     }
 
     private func createPNG(text: String, at url: URL) throws {
@@ -171,6 +197,43 @@ final class ImageAdapterTests: XCTestCase {
             bitsPerPixel: 0
         ), let data = bitmap.representation(using: .tiff, properties: [:]) else {
             throw FixtureError("could not encode the oversized TIFF fixture")
+        }
+        try data.write(to: url, options: .atomic)
+    }
+
+    /// 5.000 x 4.000 Pixel: 20 Megapixel, also über der Frame-Grenze von 16
+    /// Millionen. Die Schrift ist bewusst groß genug, dass sie auch nach dem
+    /// Verkleinern lesbar bleibt.
+    private func createLargePNG(text: String, at url: URL) throws {
+        let width = 5_000
+        let height = 4_000
+        let bitmap = NSBitmapImageRep(
+            bitmapDataPlanes: nil,
+            pixelsWide: width,
+            pixelsHigh: height,
+            bitsPerSample: 8,
+            samplesPerPixel: 4,
+            hasAlpha: true,
+            isPlanar: false,
+            colorSpaceName: .deviceRGB,
+            bitmapFormat: [],
+            bytesPerRow: 0,
+            bitsPerPixel: 0
+        )!
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: bitmap)
+        NSColor.white.setFill()
+        NSBezierPath(rect: NSRect(x: 0, y: 0, width: width, height: height)).fill()
+        NSAttributedString(
+            string: text,
+            attributes: [
+                .font: NSFont.systemFont(ofSize: 400),
+                .foregroundColor: NSColor.black,
+            ]
+        ).draw(at: NSPoint(x: 200, y: 1_800))
+        NSGraphicsContext.restoreGraphicsState()
+        guard let data = bitmap.representation(using: .png, properties: [:]) else {
+            throw FixtureError("could not encode the large PNG fixture")
         }
         try data.write(to: url, options: .atomic)
     }

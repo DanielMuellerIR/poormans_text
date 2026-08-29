@@ -4,10 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Scale an oversized image frame down for local OCR instead of refusing the
+  whole import. A 24-megapixel photo now converts normally and reports
+  `image.ocrDownscaled`; the stored asset stays the untouched original. With
+  several frames the shared 64-megapixel budget is divided evenly.
 - Keep the embedded text of a sparse PDF page when local OCR returns nothing or
   fails, instead of publishing an empty page section.
-- Name the way out in the image OCR pixel-budget diagnostics: converting without
-  text recognition still imports the image.
 - Decide from its eight-byte OLE header whether a file can be a legacy XLS at
   all. Detection no longer reads an unrelated large file into memory in full:
   peak memory for a 512 MB non-spreadsheet input drops from 549 MB to 13 MB, and

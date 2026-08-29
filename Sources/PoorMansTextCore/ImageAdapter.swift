@@ -104,6 +104,9 @@ struct ImageAdapter: DocumentConversionAdapter {
         var warnings = [ConversionWarning]()
         if let extraction {
             warnings.append(.imageOCRApplied)
+            if extraction.wasDownscaled {
+                warnings.append(.imageOCRDownscaled)
+            }
             if extraction.hadOCRFailure {
                 warnings.append(.imageOCRFailed)
             }
@@ -151,21 +154,29 @@ struct ImageAdapter: DocumentConversionAdapter {
             throw ImageAdapterError("the verified image source is unreadable")
         }
 
-        var totalPixels = 0
+        // Jeder Frame bekommt seinen Anteil am gemeinsamen Budget, höchstens
+        // aber die Frame-Grenze. Ein zu großes Bild wird für die Erkennung
+        // kleingerechnet statt abgelehnt: Das Original bleibt die maßgebliche
+        // Darstellung, OCR ist der Zusatz — ein gewöhnliches 24-Megapixel-Foto
+        // darf daran nicht scheitern. Selbst die erlaubten 1.000 TIFF-Frames
+        // bekommen so noch 64.000 Pixel je Frame.
+        let frameBudget = min(
+            ImageImportLimits.maximumPixelsPerFrame,
+            ImageImportLimits.maximumOCRPixels / frameCount
+        )
+
         var pages = [String]()
         var hadOCRFailure = false
+        var wasDownscaled = false
         for frameIndex in 0..<frameCount {
             let properties = try frameProperties(source, at: frameIndex)
-            let pixels = try pixelCount(from: properties, frameIndex: frameIndex)
-            guard pixels <= ImageImportLimits.maximumOCRPixels - totalPixels else {
-                throw ImageAdapterError(
-                    "the image frames selected for OCR exceed the pixel budget; "
-                    + "converting without text recognition keeps the image"
-                )
+            let dimensions = try frameDimensions(from: properties, frameIndex: frameIndex)
+            let maximumEdge = downscaledEdge(for: dimensions, budget: frameBudget)
+            if maximumEdge != nil {
+                wasDownscaled = true
             }
-            totalPixels += pixels
 
-            guard let image = CGImageSourceCreateImageAtIndex(source, frameIndex, imageOptions()) else {
+            guard let image = decodedImage(source, at: frameIndex, maximumEdge: maximumEdge) else {
                 hadOCRFailure = true
                 pages.append("")
                 continue
@@ -181,7 +192,48 @@ struct ImageAdapter: DocumentConversionAdapter {
         return ImageExtraction(
             frames: pages,
             hadOCRFailure: hadOCRFailure,
+            wasDownscaled: wasDownscaled,
             hasFrameWithoutText: pages.contains { $0.isEmpty }
+        )
+    }
+
+    /// Die längste Kante, auf die dieser Frame für die Erkennung
+    /// herunterzurechnen ist — `nil`, wenn er ohnehin ins Budget passt und
+    /// unverändert dekodiert werden darf.
+    private func downscaledEdge(for dimensions: FrameDimensions, budget: Int) -> Int? {
+        guard dimensions.width > budget / dimensions.height else {
+            return nil
+        }
+        // In Double gerechnet: Das Produkt zweier Metadatenwerte kann den
+        // Int-Bereich sprengen, und genau deshalb steht die Prüfung oben als
+        // Division statt als Multiplikation.
+        let area = Double(dimensions.width) * Double(dimensions.height)
+        let scale = (Double(budget) / area).squareRoot()
+        let longestEdge = Double(max(dimensions.width, dimensions.height)) * scale
+        return max(1, Int(longestEdge.rounded(.down)))
+    }
+
+    /// Dekodiert den Frame — bei Bedarf gleich verkleinert. Die volle
+    /// Pixelmenge entsteht dann gar nicht erst, weil ImageIO die Verkleinerung
+    /// beim Dekodieren erledigt. Die EXIF-Orientierung bleibt dabei bewusst
+    /// unangewandt: Sie geht getrennt an Vision, und ein doppeltes Drehen
+    /// würde die Leserichtung verderben.
+    private func decodedImage(
+        _ source: CGImageSource,
+        at index: Int,
+        maximumEdge: Int?
+    ) -> CGImage? {
+        guard let maximumEdge else {
+            return CGImageSourceCreateImageAtIndex(source, index, imageOptions())
+        }
+        return CGImageSourceCreateThumbnailAtIndex(
+            source,
+            index,
+            [
+                kCGImageSourceCreateThumbnailFromImageAlways: true,
+                kCGImageSourceThumbnailMaxPixelSize: maximumEdge,
+                kCGImageSourceShouldCache: false,
+            ] as CFDictionary
         )
     }
 
@@ -193,7 +245,12 @@ struct ImageAdapter: DocumentConversionAdapter {
         return properties
     }
 
-    private func pixelCount(from properties: [CFString: Any], frameIndex: Int) throws -> Int {
+    /// Die Pixelmaße eines Frames aus seinen Metadaten — gelesen, bevor
+    /// irgendein Pixel dekodiert wird.
+    private func frameDimensions(
+        from properties: [CFString: Any],
+        frameIndex: Int
+    ) throws -> FrameDimensions {
         guard let width = (properties[kCGImagePropertyPixelWidth] as? NSNumber)?.doubleValue,
               let height = (properties[kCGImagePropertyPixelHeight] as? NSNumber)?.doubleValue,
               width.isFinite, height.isFinite,
@@ -201,19 +258,7 @@ struct ImageAdapter: DocumentConversionAdapter {
               width <= Double(Int.max), height <= Double(Int.max) else {
             throw ImageAdapterError("the image frame \(frameIndex + 1) has invalid dimensions")
         }
-        let integerWidth = Int(width)
-        let integerHeight = Int(height)
-        // Die Grenze gilt der Texterkennung, nicht dem Bild: Ein Foto oberhalb
-        // von 16 Megapixeln lässt sich weiterhin importieren, sobald der
-        // Aufrufer die Texterkennung abschaltet. Genau das gehört in die
-        // Meldung, sonst wirkt sie wie eine Sackgasse.
-        guard integerWidth <= ImageImportLimits.maximumPixelsPerFrame / integerHeight else {
-            throw ImageAdapterError(
-                "the image frame \(frameIndex + 1) exceeds the OCR pixel budget; "
-                + "converting without text recognition keeps the image"
-            )
-        }
-        return integerWidth * integerHeight
+        return FrameDimensions(width: Int(width), height: Int(height))
     }
 
     private func imageOrientation(from properties: [CFString: Any]) -> CGImagePropertyOrientation {
@@ -300,9 +345,16 @@ struct ImageAdapter: DocumentConversionAdapter {
         let frameCount: Int
     }
 
+    private struct FrameDimensions {
+        let width: Int
+        let height: Int
+    }
+
     private struct ImageExtraction {
         let frames: [String]
         let hadOCRFailure: Bool
+        /// Wahr, sobald ein Frame für die Erkennung verkleinert wurde.
+        let wasDownscaled: Bool
         let hasFrameWithoutText: Bool
     }
 }

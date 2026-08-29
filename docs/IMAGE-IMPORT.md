@@ -35,8 +35,16 @@ Option eignet sich für Handschrift, Diagramme und andere Inhalte, für die kein
 zusätzlicher durchsuchbarer Text erwünscht ist. Die macOS-App verwendet den
 Standard mit OCR und bietet vor der Umwandlung dieselbe Auswahl.
 
-Pro Frame sind höchstens 16 Millionen Pixel und über alle OCR-Frames zusammen
-64 Millionen Pixel zulässig. Die Prüfung erfolgt vor dem Dekodieren der Pixel.
+Für die Erkennung stehen pro Frame höchstens 16 Millionen Pixel bereit, über
+alle Frames zusammen 64 Millionen; bei mehreren Frames teilt sich dieses Budget
+gleichmäßig auf. Ein größerer Frame wird nicht abgelehnt, sondern beim
+Dekodieren auf sein Budget verkleinert — ein 24-Megapixel-Foto wird also ganz
+normal importiert und gemeldet als `image.ocrDownscaled`. Die Maße kommen aus
+den Metadaten, bevor irgendein Pixel dekodiert wird, und die Verkleinerung
+erledigt ImageIO, sodass die volle Pixelmenge nie entsteht. Das gespeicherte
+Bild bleibt davon unberührt: Als Asset landet immer die unveränderte Quelle im
+Ergebnis.
+
 Eine unlesbare Frame-Pixelquelle erzeugt eine Warnung, lässt das Originalasset
 aber bestehen. Leere Erkennung und niedrige Sicherheit werden sichtbar markiert;
 aus dem OCR-Text kann keine neue Markdown-Struktur entstehen.
@@ -44,6 +52,8 @@ aus dem OCR-Text kann keine neue Markdown-Struktur entstehen.
 ## Diagnosen
 
 - `image.ocrApplied`: lokaler OCR-Text wurde hinzugefügt.
+- `image.ocrDownscaled`: mindestens ein Frame wurde für die Erkennung
+  verkleinert; sehr kleine Schrift kann dabei fehlen.
 - `image.ocrFailed`: Vision konnte mindestens einen Frame nicht lesen.
 - `image.textUnavailable`: mindestens ein Frame lieferte keinen Text.
 

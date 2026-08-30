@@ -59,12 +59,14 @@ enum VerifiedFileStaging {
         from sourceURL: URL,
         to destinationURL: URL,
         maximumBytes: Int,
-        describedAs subject: String
+        describedAs subject: String,
+        followSourceSymlink: Bool = true
     ) throws -> Int {
         try withVerifiedSource(
             at: sourceURL,
             maximumBytes: maximumBytes,
-            describedAs: subject
+            describedAs: subject,
+            followSourceSymlink: followSourceSymlink
         ) { source, _ in
             let destinationDescriptor = open(
                 destinationURL.path,
@@ -106,6 +108,43 @@ enum VerifiedFileStaging {
             succeeded = true
             return copiedBytes
         }
+    }
+
+    /// Legt eine private, begrenzte Arbeitskopie an und entfernt sie nach dem
+    /// Aufruf wieder. Erkennungsadapter verwenden diesen Weg, wenn ein
+    /// Fremdframework wie PDFKit oder `textutil` nur einen Pfad akzeptiert:
+    /// Das Framework sieht dann ausschließlich die bereits geprüften Bytes.
+    static func withTemporaryCopy<T>(
+        of sourceURL: URL,
+        maximumBytes: Int,
+        describedAs subject: String,
+        fileExtension: String,
+        body: (URL) throws -> T
+    ) throws -> T {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(
+            ".poormans-text-inspection-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        do {
+            try FileManager.default.createDirectory(
+                at: root,
+                withIntermediateDirectories: false,
+                attributes: [.posixPermissions: 0o700]
+            )
+        } catch {
+            throw StagingError(.destination, "the private inspection directory could not be created")
+        }
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let filename = fileExtension.isEmpty ? "source" : "source.\(fileExtension)"
+        let copy = root.appendingPathComponent(filename)
+        try stage(
+            from: sourceURL,
+            to: copy,
+            maximumBytes: maximumBytes,
+            describedAs: subject
+        )
+        return try body(copy)
     }
 
     /// Liest höchstens `maximumBytes` aus `sourceURL` in den Speicher — ohne
@@ -187,9 +226,10 @@ enum VerifiedFileStaging {
         at sourceURL: URL,
         maximumBytes: Int,
         describedAs subject: String,
+        followSourceSymlink: Bool = true,
         body: (_ file: VerifiedFile, _ size: Int64) throws -> T
     ) throws -> T {
-        try VerifiedFile.open(at: sourceURL, failure: { failure(subject, $0) }) { file in
+        let openBody: (VerifiedFile) throws -> T = { file in
             guard file.isRegularFile else {
                 throw StagingError(.source, "\(subject) is not a regular file")
             }
@@ -198,6 +238,18 @@ enum VerifiedFileStaging {
             }
             return try body(file, file.info.st_size)
         }
+        if followSourceSymlink {
+            return try VerifiedFile.open(
+                at: sourceURL,
+                failure: { failure(subject, $0) },
+                body: openBody
+            )
+        }
+        return try VerifiedFile.openWithoutFollowing(
+            at: sourceURL,
+            failure: { failure(subject, $0) },
+            body: openBody
+        )
     }
 
     /// Die Fehlertexte dieses Typs. `VerifiedFile` kennt nur den Anlass; der

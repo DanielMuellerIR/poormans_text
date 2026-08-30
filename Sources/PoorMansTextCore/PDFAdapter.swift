@@ -20,7 +20,23 @@ struct PDFAdapter: DocumentConversionAdapter {
         let resolvedURL = inputURL.resolvingSymlinksInPath()
 
         do {
-            _ = try validatedDocument(at: resolvedURL)
+            let prefix = try VerifiedFileStaging.prefix(
+                of: resolvedURL,
+                maximumBytes: PDFImportLimits.maximumSourceBytes,
+                prefixBytes: PDFImportLimits.signatureBytes,
+                describedAs: "the PDF source"
+            )
+            guard prefix.range(of: Data("%PDF-".utf8)) != nil else {
+                throw PDFAdapterError("the PDF signature is missing")
+            }
+            _ = try VerifiedFileStaging.withTemporaryCopy(
+                of: resolvedURL,
+                maximumBytes: PDFImportLimits.maximumSourceBytes,
+                describedAs: "the PDF source",
+                fileExtension: "pdf"
+            ) { snapshot in
+                try validatedDocument(at: snapshot)
+            }
             return .match(
                 AdapterInputInspection(
                     format: .pdf,
@@ -133,8 +149,8 @@ struct PDFAdapter: DocumentConversionAdapter {
                 throw PDFAdapterError("the PDF signature is missing")
             }
         }
-        // PDFKit öffnet den Pfad selbst; das lässt sich nicht an den geprüften
-        // Deskriptor binden.
+        // PDFKit öffnet den Pfad selbst; der Aufrufer übergibt ihm deshalb nur
+        // eine private Kopie, die aus dem geprüften Deskriptor entstanden ist.
         guard let document = PDFDocument(url: url) else {
             throw PDFAdapterError("the PDF document is damaged or unreadable")
         }

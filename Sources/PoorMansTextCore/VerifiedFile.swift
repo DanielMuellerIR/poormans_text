@@ -43,7 +43,33 @@ struct VerifiedFile {
         failure: @escaping (Failure) -> Error,
         body: (VerifiedFile) throws -> T
     ) throws -> T {
-        let descriptor = Darwin.open(url.path, O_RDONLY | O_NONBLOCK)
+        try open(at: url, flags: O_RDONLY | O_NONBLOCK, failure: failure, body: body)
+    }
+
+    /// Öffnet ein Paketmitglied, ohne einen symbolischen Verweis am letzten
+    /// Pfadbestandteil zu verfolgen. Der äußere, vom Nutzer gewählte Verweis
+    /// wird vorher bewusst einmal aufgelöst; innerhalb eines Dokumentpakets
+    /// darf ein Verweis dagegen niemals aus dessen Baum herausführen.
+    static func openWithoutFollowing<T>(
+        at url: URL,
+        failure: @escaping (Failure) -> Error,
+        body: (VerifiedFile) throws -> T
+    ) throws -> T {
+        try open(
+            at: url,
+            flags: O_RDONLY | O_NONBLOCK | O_NOFOLLOW,
+            failure: failure,
+            body: body
+        )
+    }
+
+    private static func open<T>(
+        at url: URL,
+        flags: Int32,
+        failure: @escaping (Failure) -> Error,
+        body: (VerifiedFile) throws -> T
+    ) throws -> T {
+        let descriptor = Darwin.open(url.path, flags)
         guard descriptor >= 0 else {
             throw failure(.couldNotOpen(String(cString: strerror(errno))))
         }

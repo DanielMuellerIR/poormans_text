@@ -70,7 +70,7 @@ Download the DMG and its `.sha256` file from the
 directory, verify the download before opening it:
 
 ```sh
-shasum -a 256 -c Poor-Mans-Text-0.9.0.dmg.sha256
+shasum -a 256 -c Poor-Mans-Text-0.9.1.dmg.sha256
 ```
 
 Open the DMG and drag Poor Man's Text to Applications. The app is signed with
@@ -335,7 +335,7 @@ and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compa
 their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current version is 0.9.0.
+The current version is 0.9.1.
 
 ## License
 

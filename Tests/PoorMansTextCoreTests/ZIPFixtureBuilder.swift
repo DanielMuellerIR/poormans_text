@@ -10,6 +10,9 @@ enum ZIPFixtureBuilder {
         let content: Data
         /// Weicht sie von der echten Größe ab, lügt das Archiv über den Eintrag.
         var declaredUncompressedSize: Int?
+        /// Weicht sie von der echten komprimierten Größe ab, lügt das Archiv
+        /// schon über den Eingabebereich eines Metadateneintrags.
+        var declaredCompressedSize: Int?
         /// Weicht sie von der echten CRC-32 ab, ist der Inhalt manipuliert.
         var declaredChecksum: UInt32?
         /// `true` legt den Eintrag unkomprimiert ab (ZIP-Methode 0).
@@ -253,6 +256,7 @@ enum ZIPFixtureBuilder {
             let method: UInt16 = entry.isStored ? 0 : 8
             let checksum = entry.declaredChecksum ?? crc32(entry.content)
             let declaredSize = UInt32(entry.declaredUncompressedSize ?? entry.content.count)
+            let declaredCompressedSize = UInt32(entry.declaredCompressedSize ?? payload.count)
             let localHeaderOffset = UInt32(localSection.count)
             let localExtra = entry.localUnicodePathName.map {
                 unicodePathField(name: $0, rawName: nameBytes)
@@ -270,7 +274,7 @@ enum ZIPFixtureBuilder {
             localSection.appendUInt16(0)                        // Uhrzeit
             localSection.appendUInt16(0)                        // Datum
             localSection.appendUInt32(checksum)
-            localSection.appendUInt32(UInt32(payload.count))
+            localSection.appendUInt32(declaredCompressedSize)
             localSection.appendUInt32(declaredSize)
             localSection.appendUInt16(UInt16(nameBytes.count))
             localSection.appendUInt16(UInt16(localExtra.count))
@@ -287,7 +291,7 @@ enum ZIPFixtureBuilder {
             centralSection.appendUInt16(0)                      // Uhrzeit
             centralSection.appendUInt16(0)                      // Datum
             centralSection.appendUInt32(checksum)
-            centralSection.appendUInt32(UInt32(payload.count))
+            centralSection.appendUInt32(declaredCompressedSize)
             centralSection.appendUInt32(declaredSize)
             centralSection.appendUInt16(UInt16(nameBytes.count))
             centralSection.appendUInt16(UInt16(centralExtra.count))

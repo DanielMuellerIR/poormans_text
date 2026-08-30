@@ -98,17 +98,6 @@ enum SpreadsheetLinkTarget {
             let character = target[index]
             if character == ":" {
                 guard !scheme.isEmpty else { return nil }
-                // Ein einzelner Buchstabe mit folgendem Trennzeichen ist kein
-                // Schema, sondern ein Windows-Laufwerksbuchstabe:
-                // `C:\Berichte\a.xlsx`. Genau so stehen Dateiziele in
-                // XLS-Monikern, und sie sollen als Ziel erhalten bleiben. Ein
-                // Risiko entsteht dadurch nicht — ein Schema aus einem
-                // Buchstaben gibt es nicht.
-                let next = target.index(after: index)
-                if scheme.count == 1, next < target.endIndex,
-                   target[next] == "\\" || target[next] == "/" {
-                    return nil
-                }
                 return scheme.lowercased()
             }
             guard character.isASCII else { return nil }
@@ -135,9 +124,11 @@ enum SpreadsheetMarkdownRenderer {
         maximumOutputBytes: Int = SpreadsheetLimits.maximumOutputBytes
     ) throws -> String {
         var output = BoundedSpreadsheetOutput(maximumBytes: maximumOutputBytes)
-        try output.append("# \(sourceURL.deletingPathExtension().lastPathComponent)")
+        try output.append(
+            "# \(MarkdownEscaping.heading(sourceURL.deletingPathExtension().lastPathComponent))"
+        )
         for sheet in workbook.sheets {
-            try output.append("\n\n## Sheet: \(headingText(sheet.name))\n\n")
+            try output.append("\n\n## Sheet: \(MarkdownEscaping.heading(sheet.name))\n\n")
             guard !sheet.rows.isEmpty else {
                 try output.append("_Empty sheet._")
                 continue
@@ -198,11 +189,11 @@ enum SpreadsheetMarkdownRenderer {
     }
 
     private static func escapedMarkdownText(_ text: String) -> String {
-        text.replacingOccurrences(of: "\\", with: "\\\\")
-            .replacingOccurrences(of: "|", with: "\\|")
-            .replacingOccurrences(of: "\r\n", with: "<br>")
-            .replacingOccurrences(of: "\r", with: "<br>")
-            .replacingOccurrences(of: "\n", with: "<br>")
+        text.replacingOccurrences(of: "\r\n", with: "\n")
+            .replacingOccurrences(of: "\r", with: "\n")
+            .components(separatedBy: "\n")
+            .map(MarkdownEscaping.inlineLiteral)
+            .joined(separator: "<br>")
     }
 
     /// Ein Linktext braucht zusätzlich maskierte Klammern. Ohne sie könnte
@@ -210,8 +201,6 @@ enum SpreadsheetMarkdownRenderer {
     /// Tabellenspalte beginnen.
     private static func escapedMarkdownLinkText(_ text: String) -> String {
         escapedMarkdownText(text)
-            .replacingOccurrences(of: "[", with: "\\[")
-            .replacingOccurrences(of: "]", with: "\\]")
     }
 
     /// Markdown akzeptiert in einer Linkadresse weder Leer- noch Steuerzeichen
@@ -279,12 +268,6 @@ enum SpreadsheetMarkdownRenderer {
             .replacingOccurrences(of: "\r", with: "\\n")
             .replacingOccurrences(of: "\n", with: "\\n")
             .replacingOccurrences(of: "\t", with: "\\t")
-    }
-
-    private static func headingText(_ text: String) -> String {
-        text.replacingOccurrences(of: "\r\n", with: " ")
-            .replacingOccurrences(of: "\r", with: " ")
-            .replacingOccurrences(of: "\n", with: " ")
     }
 
     /// Längste Backtick-Folge aller Zellen — aber nur, solange die spätere

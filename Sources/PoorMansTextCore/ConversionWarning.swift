@@ -96,7 +96,7 @@ extension ConversionWarning {
 
     static let pdfOCRFailed = ConversionWarning(
         code: "pdf.ocrFailed",
-        message: "Local OCR failed for at least one PDF page; that page is represented without text."
+        message: "Local OCR failed for at least one PDF page; any embedded fallback text on that page was preserved."
     )
 
     static let imageOCRApplied = ConversionWarning(

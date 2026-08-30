@@ -37,7 +37,7 @@ final class SpreadsheetAdapterTests: XCTestCase {
         XCTAssertEqual(result.diagnostics, [])
         XCTAssertLessThan(
             try XCTUnwrap(markdown.range(of: "## Sheet: Summary")).lowerBound,
-            try XCTUnwrap(markdown.range(of: "## Sheet: Details & Notes")).lowerBound
+            try XCTUnwrap(markdown.range(of: #"## Sheet: Details \& Notes"#)).lowerBound
         )
         XCTAssertTrue(markdown.contains("| Äpfel | 12 | 1,50 |"))
         XCTAssertTrue(markdown.contains("| Total | 39 | 41,75 |"))
@@ -147,7 +147,7 @@ final class SpreadsheetAdapterTests: XCTestCase {
         XCTAssertEqual(result.diagnostics, [])
         XCTAssertLessThan(
             try XCTUnwrap(markdown.range(of: "## Sheet: Summary")).lowerBound,
-            try XCTUnwrap(markdown.range(of: "## Sheet: Details & Notes")).lowerBound
+            try XCTUnwrap(markdown.range(of: #"## Sheet: Details \& Notes"#)).lowerBound
         )
         for value in expectedValues {
             XCTAssertTrue(markdown.contains(value), "Native XLSX output lacks \(value)")
@@ -285,7 +285,7 @@ final class SpreadsheetAdapterTests: XCTestCase {
 
         XCTAssertEqual(inspection.expectedWarnings.map(\.code), ["spreadsheet.unsupportedObjects"])
         XCTAssertTrue(markdown.contains("## Sheet: Summary"))
-        XCTAssertTrue(markdown.contains("## Sheet: Details & Notes"))
+        XCTAssertTrue(markdown.contains(#"## Sheet: Details \& Notes"#))
         XCTAssertFalse(markdown.contains("## Sheet: Chart"))
     }
 
@@ -401,7 +401,7 @@ final class SpreadsheetAdapterTests: XCTestCase {
             | Sichtbarer Text |
             | --- |
 
-            ## Sheet: Details & Notes
+            ## Sheet: Details \\& Notes
 
             _Empty sheet._
             """ + "\n"

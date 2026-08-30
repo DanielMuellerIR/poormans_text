@@ -182,21 +182,27 @@ enum ZIPArchiveInspector {
     /// Geöffnet und geprüft wird über `withOpenFile`; alles außer einer
     /// regulären Datei ist hier schlicht kein ZIP-Paket und keine Störung.
     static func looksLikeZIP(at inputURL: URL) throws -> Bool {
-        try VerifiedFile.open(at: inputURL, failure: packageFailure) { package in
-            guard package.isRegularFile else {
-                return false
-            }
+        do {
+            return try VerifiedFile.open(at: inputURL, failure: packageFailure) { package in
+                guard package.isRegularFile else {
+                    return false
+                }
 
-            var signature = [UInt8](repeating: 0, count: 4)
-            let readBytes = try signature.withUnsafeMutableBytes { raw in
-                try package.readFully(into: raw)
+                var signature = [UInt8](repeating: 0, count: 4)
+                let readBytes = try signature.withUnsafeMutableBytes { raw in
+                    try package.readFully(into: raw)
+                }
+                guard readBytes == signature.count else {
+                    return false               // die Datei ist kürzer als vier Bytes
+                }
+                return signature == [0x50, 0x4B, 0x03, 0x04]
+                    || signature == [0x50, 0x4B, 0x05, 0x06]
+                    || signature == [0x50, 0x4B, 0x07, 0x08]
             }
-            guard readBytes == signature.count else {
-                return false               // die Datei ist kürzer als vier Bytes
-            }
-            return signature == [0x50, 0x4B, 0x03, 0x04]
-                || signature == [0x50, 0x4B, 0x05, 0x06]
-                || signature == [0x50, 0x4B, 0x07, 0x08]
+        } catch {
+            // Ein unlesbares Original ist kein kaputtes Dokumentformat. Die
+            // CLI muss den Zugriff als Ein-/Ausgabefehler (Exit 74) melden.
+            throw ConversionError.fileSystemFailure(error.localizedDescription)
         }
     }
 
@@ -405,15 +411,26 @@ enum ZIPArchiveInspector {
             guard entry.uncompressedSize <= Limits.maximumMetadataEntrySize else {
                 throw ArchiveError("the package metadata entry \(entry.name) is too large")
             }
+            guard entry.compressedSize <= Limits.maximumMetadataEntrySize else {
+                throw ArchiveError("the compressed package metadata entry \(entry.name) is too large")
+            }
+            if entry.method == 0, entry.compressedSize != entry.uncompressedSize {
+                // Vor dem Slice prüfen: Ein gespeicherter Eintrag mit wenigen
+                // deklarierten Ausgabebytes durfte sonst zuerst fast das ganze
+                // Archiv als `subdata` kopieren.
+                throw ArchiveError(
+                    "the stored size of \(entry.name) does not match its declared size"
+                )
+            }
             let contentRange = try contentRange(for: entry)
 
             let result: Data
             switch entry.method {
             case 0:
-                result = data.subdata(in: contentRange)
+                result = Data(data[contentRange])
             case 8:
                 result = try inflate(
-                    data.subdata(in: contentRange),
+                    data[contentRange],
                     expectedSize: entry.uncompressedSize,
                     entryName: entry.name
                 )

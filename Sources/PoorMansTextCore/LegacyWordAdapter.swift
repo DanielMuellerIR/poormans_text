@@ -17,58 +17,84 @@ struct LegacyWordAdapter: DocumentConversionAdapter {
     ]
 
     func inspectInput(at inputURL: URL) throws -> AdapterInputDetection {
-        var isDirectory: ObjCBool = false
-        guard FileManager.default.fileExists(atPath: inputURL.path, isDirectory: &isDirectory),
-              !isDirectory.boolValue else {
-            return .noMatch
-        }
-
         let hasDOCExtension = inputURL.pathExtension.lowercased() == "doc"
-        guard try hasCompoundDocumentSignature(at: inputURL) else {
-            return hasDOCExtension
-                ? .invalid(
-                    format: .doc,
-                    priority: 105,
-                    reason: "the OLE compound-document signature is missing"
-                )
-                : .noMatch
-        }
-
-        let info: ProcessResult
         do {
-            info = try ProcessRunner.run(
-                executable: URL(fileURLWithPath: Self.textutilPath),
-                arguments: ["-info", "--", inputURL.path],
-                currentDirectory: FileManager.default.temporaryDirectory,
-                captureStandardOutput: true
+            let prefix = try VerifiedFileStaging.prefix(
+                of: inputURL.resolvingSymlinksInPath(),
+                maximumBytes: 1_073_741_824,
+                prefixBytes: 8,
+                describedAs: "the DOC source"
             )
-        } catch {
+            guard Self.hasCompoundDocumentSignature(prefix) else {
+                return hasDOCExtension
+                    ? .invalid(
+                        format: .doc,
+                        priority: 105,
+                        reason: "the OLE compound-document signature is missing"
+                    )
+                    : .noMatch
+            }
+            return try VerifiedFileStaging.withTemporaryCopy(
+                of: inputURL.resolvingSymlinksInPath(),
+                maximumBytes: 1_073_741_824,
+                describedAs: "the DOC source",
+                fileExtension: "doc"
+            ) { snapshot in
+                guard try hasCompoundDocumentSignature(at: snapshot) else {
+                    return hasDOCExtension
+                        ? .invalid(
+                            format: .doc,
+                            priority: 105,
+                            reason: "the OLE compound-document signature is missing"
+                        )
+                        : .noMatch
+                }
+
+                let info: ProcessResult
+                do {
+                    info = try ProcessRunner.run(
+                        executable: URL(fileURLWithPath: Self.textutilPath),
+                        arguments: ["-info", "--", snapshot.path],
+                        currentDirectory: snapshot.deletingLastPathComponent(),
+                        captureStandardOutput: true
+                    )
+                } catch {
+                    return hasDOCExtension
+                        ? .invalid(
+                            format: .doc,
+                            priority: 105,
+                            reason: "textutil could not inspect the compound document"
+                        )
+                        : .noMatch
+                }
+
+                guard info.status == 0, isWordFormat(info.standardOutput) else {
+                    return hasDOCExtension
+                        ? .invalid(
+                            format: .doc,
+                            priority: 105,
+                            reason: "the compound document is not a Word DOC file"
+                        )
+                        : .noMatch
+                }
+
+                return .match(
+                    AdapterInputInspection(
+                        format: .doc,
+                        priority: 105,
+                        expectedWarnings: [.legacyWordPotentialLoss]
+                    )
+                )
+            }
+        } catch let error as VerifiedFileStaging.StagingError {
             return hasDOCExtension
                 ? .invalid(
                     format: .doc,
                     priority: 105,
-                    reason: "textutil could not inspect the compound document"
+                    reason: error.reason
                 )
                 : .noMatch
         }
-
-        guard info.status == 0, isWordFormat(info.standardOutput) else {
-            return hasDOCExtension
-                ? .invalid(
-                    format: .doc,
-                    priority: 105,
-                    reason: "the compound document is not a Word DOC file"
-                )
-                : .noMatch
-        }
-
-        return .match(
-            AdapterInputInspection(
-                format: .doc,
-                priority: 105,
-                expectedWarnings: [.legacyWordPotentialLoss]
-            )
-        )
     }
 
     func convert(_ context: AdapterConversionContext) throws -> StagedConversionResult {
@@ -250,6 +276,10 @@ struct LegacyWordAdapter: DocumentConversionAdapter {
         } catch {
             throw ConversionError.fileSystemFailure(error.localizedDescription)
         }
+    }
+
+    private static func hasCompoundDocumentSignature(_ data: Data) -> Bool {
+        [UInt8](data) == [0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1]
     }
 
     private func isWordFormat(_ textutilInfo: String) -> Bool {

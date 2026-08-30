@@ -25,14 +25,13 @@ final class SpreadsheetLinkTargetTests: XCTestCase {
         XCTAssertEqual(SpreadsheetLinkTarget.accepted("ordner/a:b.txt"), "ordner/a:b.txt")
     }
 
-    /// Ein Laufwerksbuchstabe ist kein Schema. Solche Ziele stehen in den
-    /// Dateimonikern alter XLS-Dateien und sollen erhalten bleiben.
-    func testKeepsWindowsDrivePaths() {
-        XCTAssertEqual(
-            SpreadsheetLinkTarget.accepted(#"C:\Berichte\2026.xlsx"#),
-            #"C:\Berichte\2026.xlsx"#
-        )
-        XCTAssertEqual(SpreadsheetLinkTarget.accepted("D:/Daten/a.pdf"), "D:/Daten/a.pdf")
+    /// Einbuchstabige Schemata sind nach RFC 3986 gültig. Ein fremdes Ziel kann
+    /// deshalb nicht allein aufgrund seiner Form als Windows-Pfad durch die
+    /// Allowlist gelangen; unbekannte Handler werden geschlossen abgelehnt.
+    func testRejectsOneLetterSchemesAndWindowsDriveTargets() {
+        XCTAssertNil(SpreadsheetLinkTarget.accepted(#"C:\Berichte\2026.xlsx"#))
+        XCTAssertNil(SpreadsheetLinkTarget.accepted("D:/Daten/a.pdf"))
+        XCTAssertNil(SpreadsheetLinkTarget.accepted("x:/payload"))
     }
 
     func testRejectsExecutableAndEmbeddedSchemes() {

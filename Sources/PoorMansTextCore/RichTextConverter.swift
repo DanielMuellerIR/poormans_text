@@ -35,6 +35,11 @@ enum RichTextLimits {
     /// eine präparierte Datei den Prozess allein über den Speicher beenden
     /// (Review-Fund 2026-08-20).
     static let maximumSourceSize = 268_435_456
+    /// Anhänge eines RTFD dürfen zusammen größer als `TXT.rtf` sein, bleiben
+    /// aber als Paket begrenzt. Auch die Anzahl schützt die rekursive Kopie vor
+    /// künstlich tiefen oder breiten Verzeichnisbäumen.
+    static let maximumPackageSize = 1_073_741_824
+    static let maximumPackageEntries = 4_096
 }
 
 /// RTF und RTFD behalten getrennte Importwege, liefern aber dasselbe gestagte Ergebnis.
@@ -60,66 +65,107 @@ struct RichTextAdapter: DocumentConversionAdapter {
 
     func inspectInput(at inputURL: URL) throws -> AdapterInputDetection {
         let fileManager = FileManager.default
+        let resolvedInputURL = inputURL.resolvingSymlinksInPath()
         var isDirectory: ObjCBool = false
-        guard fileManager.fileExists(atPath: inputURL.path, isDirectory: &isDirectory) else {
+        guard fileManager.fileExists(atPath: resolvedInputURL.path, isDirectory: &isDirectory) else {
             return .noMatch
         }
 
         if isDirectory.boolValue {
-            let rtfURL = inputURL.appendingPathComponent("TXT.rtf")
-            var rtfIsDirectory: ObjCBool = false
-            let hasRTFFile = fileManager.fileExists(atPath: rtfURL.path, isDirectory: &rtfIsDirectory)
-                && !rtfIsDirectory.boolValue
-            if hasRTFFile, let probe = try rtfProbe(at: rtfURL), probe.hasHeader {
-                // Dieselbe Grenze wie für die einzelne RTF-Datei, nur eine Ebene
-                // tiefer: `textutil` und die Farberkennung laden auch die
-                // `TXT.rtf` eines Pakets vollständig. Ohne die Prüfung stand der
-                // Weg über ein Paket weiter offen (Review-Fund 2026-08-20 galt
-                // nur für die freie Datei).
-                guard probe.byteCount <= RichTextLimits.maximumSourceSize else {
-                    return .invalid(
-                        format: .rtfd,
-                        priority: 100,
-                        reason: "TXT.rtf exceeds the supported size limit"
+            do {
+                return try VerifiedDirectoryStaging.withTemporarySnapshot(
+                    of: resolvedInputURL,
+                    maximumFileBytes: RichTextLimits.maximumSourceSize,
+                    maximumTotalBytes: RichTextLimits.maximumPackageSize,
+                    maximumEntries: RichTextLimits.maximumPackageEntries,
+                    describedAs: "the RTFD package"
+                ) { snapshot in
+                    let rtfURL = snapshot.appendingPathComponent("TXT.rtf")
+                    var rtfIsDirectory: ObjCBool = false
+                    guard fileManager.fileExists(
+                        atPath: rtfURL.path,
+                        isDirectory: &rtfIsDirectory
+                    ), !rtfIsDirectory.boolValue else {
+                        return inputURL.pathExtension.lowercased() == "rtfd"
+                            ? .invalid(
+                                format: .rtfd,
+                                priority: 100,
+                                reason: "TXT.rtf is missing or is not a regular file"
+                            )
+                            : .noMatch
+                    }
+                    guard let probe = try rtfProbe(at: rtfURL) else {
+                        return inputURL.pathExtension.lowercased() == "rtfd"
+                            ? .invalid(
+                                format: .rtfd,
+                                priority: 100,
+                                reason: "TXT.rtf is missing or is not a regular file"
+                            )
+                            : .noMatch
+                    }
+                    guard probe.hasHeader else {
+                        return inputURL.pathExtension.lowercased() == "rtfd"
+                            ? .invalid(
+                                format: .rtfd,
+                                priority: 100,
+                                reason: "TXT.rtf has no RTF header"
+                            )
+                            : .noMatch
+                    }
+                    return .match(
+                        AdapterInputInspection(format: .rtfd, priority: 100, expectedWarnings: [])
                     )
                 }
-                return .match(
-                    AdapterInputInspection(format: .rtfd, priority: 100, expectedWarnings: [])
-                )
+            } catch let error as VerifiedDirectoryStaging.StagingError {
+                return inputURL.pathExtension.lowercased() == "rtfd"
+                    ? .invalid(format: .rtfd, priority: 100, reason: error.reason)
+                    : .noMatch
             }
-            if inputURL.pathExtension.lowercased() == "rtfd" {
-                let reason = hasRTFFile ? "TXT.rtf has no RTF header" : "TXT.rtf is missing"
-                return .invalid(format: .rtfd, priority: 100, reason: reason)
-            }
-            return .noMatch
         }
 
-        if let probe = try rtfProbe(at: inputURL), probe.hasHeader {
-            // Schon die Farberkennung liest die ganze Datei in den Speicher.
-            // Ohne diese Grenze konnte eine beliebig große Datei mit gültigem
-            // RTF-Kopf den Prozess beenden (Review-Fund 2026-08-20).
-            guard probe.byteCount <= RichTextLimits.maximumSourceSize else {
-                return .invalid(
-                    format: .rtf,
-                    priority: 100,
-                    reason: "the RTF file exceeds the supported size limit"
+        do {
+            let prefix = try VerifiedFileStaging.prefix(
+                of: resolvedInputURL,
+                maximumBytes: RichTextLimits.maximumSourceSize,
+                prefixBytes: 32,
+                describedAs: "the RTF source"
+            )
+            guard hasRTFHeader(prefix) else {
+                return inputURL.pathExtension.lowercased() == "rtf"
+                    ? .invalid(
+                        format: .rtf,
+                        priority: 100,
+                        reason: "the RTF header is missing"
+                    )
+                    : .noMatch
+            }
+            return try VerifiedFileStaging.withTemporaryCopy(
+                of: resolvedInputURL,
+                maximumBytes: RichTextLimits.maximumSourceSize,
+                describedAs: "the RTF source",
+                fileExtension: "rtf"
+            ) { snapshot in
+                guard let probe = try rtfProbe(at: snapshot), probe.hasHeader else {
+                    return inputURL.pathExtension.lowercased() == "rtf"
+                        ? .invalid(
+                            format: .rtf,
+                            priority: 100,
+                            reason: "the RTF header is missing"
+                        )
+                        : .noMatch
+                }
+                let warnings: [ConversionWarning] = ColoredTextMarker.containsChromaticText(
+                    inRTF: snapshot
+                ) ? [.richTextColorNotPreserved] : []
+                return .match(
+                    AdapterInputInspection(format: .rtf, priority: 100, expectedWarnings: warnings)
                 )
             }
-            let warnings: [ConversionWarning] = ColoredTextMarker.containsChromaticText(
-                inRTF: inputURL
-            ) ? [.richTextColorNotPreserved] : []
-            return .match(
-                AdapterInputInspection(format: .rtf, priority: 100, expectedWarnings: warnings)
-            )
+        } catch let error as VerifiedFileStaging.StagingError {
+            return inputURL.pathExtension.lowercased() == "rtf"
+                ? .invalid(format: .rtf, priority: 100, reason: error.reason)
+                : .noMatch
         }
-        if inputURL.pathExtension.lowercased() == "rtf" {
-            return .invalid(
-                format: .rtf,
-                priority: 100,
-                reason: "the RTF header is missing"
-            )
-        }
-        return .noMatch
     }
 
     func convert(_ context: AdapterConversionContext) throws -> StagedConversionResult {
@@ -174,7 +220,23 @@ struct RichTextAdapter: DocumentConversionAdapter {
             }
             sourceURL = stagedSource
         } else {
-            sourceURL = resolvedInputURL
+            let stagedSource = workDirectory.appendingPathComponent(
+                "verified-source.rtfd",
+                isDirectory: true
+            )
+            do {
+                try VerifiedDirectoryStaging.stage(
+                    from: resolvedInputURL,
+                    to: stagedSource,
+                    maximumFileBytes: RichTextLimits.maximumSourceSize,
+                    maximumTotalBytes: RichTextLimits.maximumPackageSize,
+                    maximumEntries: RichTextLimits.maximumPackageEntries,
+                    describedAs: "the RTFD package"
+                )
+            } catch let error as VerifiedDirectoryStaging.StagingError {
+                throw ConversionError.invalidRichText(inputURL, reason: error.reason)
+            }
+            sourceURL = stagedSource
         }
         let htmlURL = workDirectory.appendingPathComponent("document.html")
         let emptyParagraphMarker = inputKind == .rtf
@@ -351,6 +413,15 @@ struct RichTextAdapter: DocumentConversionAdapter {
                 byteCount: Int(source.info.st_size)
             )
         }
+    }
+
+    private func hasRTFHeader(_ data: Data) -> Bool {
+        let header = [UInt8](data)
+        let signature = [UInt8](#"{\rtf"#.utf8)
+        let versionStart = signature.count
+        return header.starts(with: signature)
+            && versionStart < header.count
+            && header[versionStart].isASCIIDigit
     }
 
     private static func probeFailure(_ url: URL, _ reason: VerifiedFile.Failure) -> Error {

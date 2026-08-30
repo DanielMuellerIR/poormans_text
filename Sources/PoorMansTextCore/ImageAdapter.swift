@@ -172,14 +172,25 @@ struct ImageAdapter: DocumentConversionAdapter {
             let properties = try frameProperties(source, at: frameIndex)
             let dimensions = try frameDimensions(from: properties, frameIndex: frameIndex)
             let maximumEdge = downscaledEdge(for: dimensions, budget: frameBudget)
-            if maximumEdge != nil {
-                wasDownscaled = true
-            }
 
             guard let image = decodedImage(source, at: frameIndex, maximumEdge: maximumEdge) else {
                 hadOCRFailure = true
                 pages.append("")
                 continue
+            }
+            // ImageIO rundet die kurze Kante mindestens auf einen Pixel. Die
+            // ganzzahlige Planung ist konservativ, diese Kontrolle bindet aber
+            // auch einen Decoder mit abweichender Rundung an dasselbe Budget.
+            guard image.height > 0, image.width <= frameBudget / image.height else {
+                hadOCRFailure = true
+                pages.append("")
+                continue
+            }
+            if maximumEdge != nil {
+                // Erst ein tatsächlich erzeugtes, budgetkonformes Thumbnail
+                // zählt als Verkleinerung. Ein Decoderfehler darf keine
+                // erfolgreiche Verkleinerung behaupten.
+                wasDownscaled = true
             }
             let orientation = imageOrientation(from: properties)
             do {
@@ -201,16 +212,11 @@ struct ImageAdapter: DocumentConversionAdapter {
     /// herunterzurechnen ist — `nil`, wenn er ohnehin ins Budget passt und
     /// unverändert dekodiert werden darf.
     private func downscaledEdge(for dimensions: FrameDimensions, budget: Int) -> Int? {
-        guard dimensions.width > budget / dimensions.height else {
-            return nil
-        }
-        // In Double gerechnet: Das Produkt zweier Metadatenwerte kann den
-        // Int-Bereich sprengen, und genau deshalb steht die Prüfung oben als
-        // Division statt als Multiplikation.
-        let area = Double(dimensions.width) * Double(dimensions.height)
-        let scale = (Double(budget) / area).squareRoot()
-        let longestEdge = Double(max(dimensions.width, dimensions.height)) * scale
-        return max(1, Int(longestEdge.rounded(.down)))
+        ImageOCRBudget.maximumEdge(
+            width: dimensions.width,
+            height: dimensions.height,
+            budget: budget
+        )
     }
 
     /// Dekodiert den Frame — bei Bedarf gleich verkleinert. Die volle
@@ -363,6 +369,42 @@ struct ImageAdapter: DocumentConversionAdapter {
         /// Wahr, sobald ein Frame für die Erkennung verkleinert wurde.
         let wasDownscaled: Bool
         let hasFrameWithoutText: Bool
+    }
+}
+
+enum ImageOCRBudget {
+    static func maximumEdge(width: Int, height: Int, budget: Int) -> Int? {
+        guard width > budget / height else { return nil }
+        let longest = max(width, height)
+        // Gesucht wird die größte Kante, deren BEIDE auf ganze Pixel
+        // aufgerundeten Zielmaße noch ins Budget passen. Die bisherige
+        // kontinuierliche Wurzelformel unterschätzte bei 100.000×1 die
+        // Mindesthöhe von einem Pixel und erlaubte so 80.000 statt 64.000
+        // Pixel.
+        var lower = 1
+        var upper = longest
+        while lower < upper {
+            let candidate = lower + (upper - lower + 1) / 2
+            if pixelCount(width: width, height: height, longestEdge: candidate) <= budget {
+                lower = candidate
+            } else {
+                upper = candidate - 1
+            }
+        }
+        return lower
+    }
+
+    private static func pixelCount(width: Int, height: Int, longestEdge: Int) -> Int {
+        let longest = max(width, height)
+        let scaledWidth = max(
+            1,
+            Int((Double(width) * Double(longestEdge) / Double(longest)).rounded(.up))
+        )
+        let scaledHeight = max(
+            1,
+            Int((Double(height) * Double(longestEdge) / Double(longest)).rounded(.up))
+        )
+        return scaledWidth > Int.max / scaledHeight ? Int.max : scaledWidth * scaledHeight
     }
 }
 

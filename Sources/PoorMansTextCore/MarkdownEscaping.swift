@@ -4,6 +4,17 @@ import Foundation
 /// Markdown-Struktur zu bilden. Adapter geben nur bewusst erzeugte Struktur
 /// (Überschriften, Bilder und Abschnitte) als Markdown aus.
 enum MarkdownEscaping {
+    /// Maskiert Text innerhalb einer bereits vom Renderer erzeugten
+    /// Markdown-Struktur. So können Zellwerte weder Links/Bilder noch rohes
+    /// HTML oder Hervorhebung bilden; bewusst erzeugte Trenner wie `<br>` fügt
+    /// der jeweilige Renderer erst danach ein.
+    static func inlineLiteral(_ text: String) -> String {
+        let escaped = "\\`*_[]()<>|&!~"
+        return String(text.flatMap { character -> [Character] in
+            escaped.contains(character) ? ["\\", character] : [character]
+        })
+    }
+
     static func literalBlock(_ text: String) -> String {
         text.split(separator: "\n", omittingEmptySubsequences: false).map { line in
             let escaped = String(line)

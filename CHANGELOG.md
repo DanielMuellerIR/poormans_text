@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.9.1 - 2026-08-30
+
+- Inspect PDF, DOC, and standalone RTF only through bounded private copies before
+  handing a path to PDFKit, AppKit, or `textutil`. RTFD detection and conversion
+  now copy a descriptor-bound package snapshot with per-file, total-byte, and
+  entry-count limits and reject embedded symbolic links and special files.
+- Budget image thumbnails with their integer pixel dimensions, including the
+  one-pixel minimum edge, and verify the decoded frame before Vision sees it.
+  A failed thumbnail no longer reports a successful downscale.
+- Treat spreadsheet filenames, sheet names, and literal cell text as Markdown
+  literals. One-letter schemes and drive-like targets no longer bypass the link
+  allowlist.
+- Reject oversized compressed ZIP metadata before taking its archive slice and
+  validate stored-entry size equality before copying its bytes.
+- Rewrite renamed Markdown assets with one indexed backtick scan per document.
+  Optional link titles, ordered-list paragraph continuation, nested list fences,
+  and all GFM HTML block classes now keep their literal contents unchanged.
+- Describe a failed PDF OCR pass accurately when embedded fallback text remains
+  on the affected page.
+
 ## 0.9.0 - 2026-08-30
 
 - Scale an oversized image frame down for local OCR instead of refusing the

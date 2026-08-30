@@ -2,12 +2,11 @@
   "schema_version": 2,
   "project": "poormans_text",
   "campaign": {
-    "id": "20260829T194626345032+0200",
-    "token_budget": 2564411,
+    "id": "20260830T110351547281+0200",
+    "token_budget": 3000000,
     "status": "complete",
-    "started_at": "2026-08-29T19:46:26+02:00",
-    "tokens_spent": 60000,
-    "finished_at": "2026-08-29T19:52:04+02:00",
+    "started_at": "2026-08-30T11:03:51+02:00",
+    "finished_at": "2026-08-30T11:09:08+02:00",
     "finish_reason": "all-current"
   },
   "campaign_history": [
@@ -36,6 +35,15 @@
       "started_at": "2026-08-29T18:07:33+02:00",
       "tokens_spent": 414170,
       "finished_at": "2026-08-29T18:49:21+02:00",
+      "finish_reason": "all-current"
+    },
+    {
+      "id": "20260829T194626345032+0200",
+      "token_budget": 2564411,
+      "status": "complete",
+      "started_at": "2026-08-29T19:46:26+02:00",
+      "tokens_spent": 60000,
+      "finished_at": "2026-08-29T19:52:04+02:00",
       "finish_reason": "all-current"
     }
   ],
@@ -79,23 +87,25 @@
         "Tests/PoorMansTextCoreTests/ReviewFixes20260820Tests.swift",
         "Tests/PoorMansTextCoreTests/ReviewFixes20260825Tests.swift",
         "Tests/PoorMansTextCoreTests/ReviewFixes20260829Tests.swift",
-        "Sources/PoorMansTextCore/VerifiedFile.swift"
+        "Sources/PoorMansTextCore/VerifiedFile.swift",
+        "Sources/PoorMansTextCore/VerifiedDirectoryStaging.swift",
+        "Tests/PoorMansTextCoreTests/ReviewFixes20260830Tests.swift"
       ],
       "risk": "high",
       "priority": 1,
       "reason": "Orchestrator: Adapterwahl, atomare Veröffentlichung, Kollisionsschutz — breite Aufrufwirkung",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20260829T194626345032+0200",
-        "completed_at": "2026-08-29T19:46:54+02:00",
-        "observed_head": "30ebad2588cbb874c646888b2792db3552040fef",
-        "content_sha256": "ba000204131b0ce9acd2b3e6bdf349b4bc740c6091dc006e0210935a36da27b7",
-        "file_count": 24,
+        "campaign_id": "20260830T110351547281+0200",
+        "completed_at": "2026-08-30T11:06:15+02:00",
+        "observed_head": "c68c961d97fc1cb7e161151a62e21c052c9a856e",
+        "content_sha256": "42b95e6e386b872ae13a121f39001618ab68b0e59572b6dd1c401995fb0c69ab",
+        "file_count": 26,
         "review": "delta-plus-boundaries",
         "outcome": "reviewed-clean",
-        "summary": "Delta ist eine einzige additive Warnkonstante image.ocrDownscaled. Code eindeutig, Meldung nennt Wirkung und Grenze, in docs/IMAGE-IMPORT.md aufgeführt und durch zwei Tests belegt. Nichts zu verbessern",
+        "summary": "Delta und direkte Adaptergrenzen geprüft: deskriptorgebundene Datei-/RTFD-Snapshots erzwingen Regulärdatei, Symlink-, Größen-, Eintrags- und Schreibgrenzen; die zentrale Warnungs- und Versionsänderung ist konsistent. Keine zusätzliche Verbesserung erforderlich.",
         "tests": [
-          "swift test: 313 passed, 0 failures"
+          "swift test --filter 'ReviewFixes20260830Tests|DocumentConverterTests|ProductInfoTests|SymbolicLinkInputTests': 54 Tests, 0 Fehler"
         ]
       }
     },
@@ -111,16 +121,16 @@
       "reason": "Zentrales Paket-Gate: Traversal, Symlinks, Größenbudgets — sicherheitskritisch für alle ZIP-Formate",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20260829T180733149979+0200",
-        "completed_at": "2026-08-29T18:46:12+02:00",
-        "observed_head": "0fde650034ec7fccaa06eada96c7e0a546e81fc0",
-        "content_sha256": "20d00d11c18df3a9bf47c9bd644fbd4b36b19b06c21b67b8241b3dfc2cdffde0",
+        "campaign_id": "20260830T110351547281+0200",
+        "completed_at": "2026-08-30T11:06:34+02:00",
+        "observed_head": "c68c961d97fc1cb7e161151a62e21c052c9a856e",
+        "content_sha256": "2291e6791fd3ee423d5d9a550c44c4cdad04f4bd383ff7c7de4463a3ffa2641a",
         "file_count": 3,
         "review": "delta-plus-boundaries",
-        "outcome": "improved",
-        "summary": "Nachbuchung des Querschnitts-Funds verified-descriptor-reads: Delta ist genau der in diesem Zug geschriebene und verifizierte Theme-Diff (Umstellung auf VerifiedFile beziehungsweise die dabei entstandene Testdatei)",
+        "outcome": "reviewed-clean",
+        "summary": "Delta und Datenpfad bis zu Metadatenverbrauchern geprüft: komprimierte Metadatengröße und Stored-Konsistenz werden vor dem Slice begrenzt; Deskriptorfehler bleiben Ein-/Ausgabefehler. Keine zusätzliche Verbesserung erforderlich.",
         "tests": [
-          "swift test: 302 passed, 0 failures"
+          "swift test --filter 'ZIPArchiveVerificationTests|ReviewFixes20260830Tests.testCompressedZIPMetadataIsBoundedBeforeItsInputSlice': 11 Tests, 0 Fehler"
         ]
       }
     },
@@ -138,16 +148,16 @@
       "reason": "Neu zugewachsener PDF-/Bild-Import mit lokaler Vision-OCR; nie CodeQA-geprüft, arbeitet mit Speicherbudgets und Fremddateien",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20260829T194626345032+0200",
-        "completed_at": "2026-08-29T19:49:19+02:00",
-        "observed_head": "58be13c803b7ea6dfa8d52719c60c2ef004eec4b",
-        "content_sha256": "de78a94ecbbd522eb32d6488aaa93103c76468c7cb4088488307dd38485d32fb",
+        "campaign_id": "20260830T110351547281+0200",
+        "completed_at": "2026-08-30T11:07:11+02:00",
+        "observed_head": "c68c961d97fc1cb7e161151a62e21c052c9a856e",
+        "content_sha256": "6e8fe45de286e697eaac8627e8d6b1cc3bfb1ecdb1654cf85df2200ea4fbadb0",
         "file_count": 5,
         "review": "delta-plus-boundaries",
-        "outcome": "improved",
-        "summary": "Delta der Herunterrechnung geprüft: Budgetaufteilung hält die 64-Megapixel-Summe ein (frameCount x min(16M, 64M/frameCount) <= 64M), der Downscale-Zweig wird nur bei tatsächlich zu großer Fläche betreten, weshalb der Skalierungsfaktor immer unter 1 bleibt, und das Thumbnail lässt die EXIF-Orientierung bewusst unangewandt. Ein Fund behoben: Die Maßprüfung ließ Double(Int.max) durch und wäre bei der Umwandlung in Int abgestürzt",
+        "outcome": "reviewed-clean",
+        "summary": "PDF- und Bild-Delta samt Staging-, Decoder-, OCR- und Warnungsgrenzen geprüft: PDFKit erhält nur private Snapshots; Bildflächenbudget berücksichtigt Mindestkanten und validiert Decoderergebnis; OCR-Rückfalltext bleibt erhalten. Keine zusätzliche Verbesserung erforderlich.",
         "tests": [
-          "swift test: 313 passed, 0 failures"
+          "swift test --filter 'PDFAdapterTests|ImageAdapterTests|ReviewFixes20260830Tests.testNarrowImageBudgetAccountsForTheOnePixelMinimumEdge|ReviewFixes20260830Tests.testPDFFailureWarningAllowsForPreservedFallbackText': 18 Tests, 0 Fehler"
         ]
       }
     },
@@ -170,16 +180,16 @@
       "reason": "Drei native Binär-/XML-Parser, Datenintegrität, größter Codeblock",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20260829T194626345032+0200",
-        "completed_at": "2026-08-29T19:52:03+02:00",
-        "observed_head": "338dbdb00946aecdf84f3bb03c8001bd0d077ade",
-        "content_sha256": "884dabd7eb1924934db43b69b6ebfa2b4a2aac433e49c8716bbee24ea96d2637",
+        "campaign_id": "20260830T110351547281+0200",
+        "completed_at": "2026-08-30T11:07:38+02:00",
+        "observed_head": "c68c961d97fc1cb7e161151a62e21c052c9a856e",
+        "content_sha256": "8a4822cf8036eb4b655e0d4de44c01901c2e745be1b9d296350dc16af5fa8c29",
         "file_count": 12,
         "review": "delta-plus-boundaries",
-        "outcome": "improved",
-        "summary": "Nachtrag: Die Testdatei SpreadsheetLinkTargetTests gehört zum Bereich. Sie deckt die Prüfregel selbst ab — erlaubte Schemata, schemalose Ziele, Laufwerksbuchstaben, ausführbare Schemata, Steuerzeichen und Leerraum",
+        "outcome": "reviewed-clean",
+        "summary": "Renderer-Delta und XLS/XLSX/ODS-Linkgrenzen geprüft: Dateiname, Blattname und Literalzellen können keine Markdown-Ressourcen erzeugen; Linkschemata bleiben allowlist-gebunden und Ziele syntaktisch gekapselt. Keine zusätzliche Verbesserung erforderlich.",
         "tests": [
-          "swift test: 314 passed, 0 failures"
+          "swift test --filter 'SpreadsheetAdapterTests|SpreadsheetFeasibilityTests|LegacyXLSBoundaryTests|SpreadsheetLinkTargetTests|ReviewFixes20260830Tests.testSpreadsheetNamesAndLiteralCellsCannotCreateMarkdownResources': 48 Tests, 0 Fehler"
         ]
       }
     },
@@ -196,16 +206,16 @@
       "reason": "Pfadauflösung lokaler Teildokumente: Pfadfluchten, Symlinks",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20260829T180733149979+0200",
-        "completed_at": "2026-08-29T18:47:18+02:00",
-        "observed_head": "0fde650034ec7fccaa06eada96c7e0a546e81fc0",
-        "content_sha256": "7ce512324c9cb007bc2150f4475bc52ffa0cd9a97713d017da7a73ed2e790bc8",
+        "campaign_id": "20260830T110351547281+0200",
+        "completed_at": "2026-08-30T11:07:53+02:00",
+        "observed_head": "c68c961d97fc1cb7e161151a62e21c052c9a856e",
+        "content_sha256": "eeaa7808c9c57c4e9852410aa5b90d48e5f4c9c20496d38be1759dea98555632",
         "file_count": 4,
         "review": "delta-plus-boundaries",
-        "outcome": "improved",
-        "summary": "Die in diesem Zug herausgelöste Datei MarkdownLinkTargetRewriter.swift inhaltlich nachgeprüft: Zeilenkontext mit Blockquote-, Listen- und Einzugscode-Zuständen, Inline-Scanner für Backtick-Runs und Klammertiefe, Zielersetzung mit spitzen Klammern und Titel, Fence-Behandlung. Der Präfixvergleich zählt Grapheme-Cluster, deshalb kann der Offset nicht danebenliegen. Keine Korrektheitslücke gefunden; 13 vorhandene Tests decken den Mechanismus",
+        "outcome": "reviewed-clean",
+        "summary": "Markdown-Link-Rewriter vollständig gegen GFM-Container, Code-Spans/Fences, Linktitel und HTML-Blocktypen sowie den ODM-Aufrufer geprüft. Der einmalige Backtick-Index beseitigt den quadratischen Lookahead; Containergrenzen bleiben erhalten. Keine zusätzliche Verbesserung erforderlich.",
         "tests": [
-          "swift test: 302 passed, 0 failures"
+          "swift test --filter 'OpenDocumentMasterAdapterTests|ReviewFixes20260830Tests': 54 Tests, 0 Fehler"
         ]
       }
     },
@@ -254,16 +264,16 @@
       "reason": "DOCX/ODT/DOC/RTF-Adapter samt HTML-Zwischenschicht und Bild-Rewriting",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20260829T180733149979+0200",
-        "completed_at": "2026-08-29T18:46:13+02:00",
-        "observed_head": "0fde650034ec7fccaa06eada96c7e0a546e81fc0",
-        "content_sha256": "aa8ed1b516743f6d0987d5243c4cf89d9295df71edff08d9513f665dae552f00",
+        "campaign_id": "20260830T110351547281+0200",
+        "completed_at": "2026-08-30T11:08:16+02:00",
+        "observed_head": "c68c961d97fc1cb7e161151a62e21c052c9a856e",
+        "content_sha256": "e44ad47306e132c9ac8baa6b55ea711a8c80f0320db1fed58002b51aaecd23b2",
         "file_count": 27,
         "review": "delta-plus-boundaries",
-        "outcome": "improved",
-        "summary": "Nachbuchung des Querschnitts-Funds verified-descriptor-reads: Delta ist genau der in diesem Zug geschriebene und verifizierte Theme-Diff (Umstellung auf VerifiedFile beziehungsweise die dabei entstandene Testdatei)",
+        "outcome": "reviewed-clean",
+        "summary": "DOC-, RTF- und RTFD-Delta samt textutil/Pandoc-Grenzen geprüft: Fremdwerkzeuge arbeiten nur auf geprüften privaten Snapshots; Paketkopie begrenzt Einzeldateien, Summe, Einträge und Symlinks; Signatur und Warnungen beziehen sich auf dieselben Bytes. Keine zusätzliche Verbesserung erforderlich.",
         "tests": [
-          "swift test: 302 passed, 0 failures"
+          "swift test --filter 'WordProcessingAdapterTests|WordProcessingPackageInspectionTests|RichTextConverterTests|HTMLDocumentConverterTests|HTMLImageRewriterTests|ReviewFixes20260830Tests.testLegacyWordDetectionRejectsOversizedInputBeforeTextutil|ReviewFixes20260830Tests.testRTFD': 58 Tests, 0 Fehler"
         ]
       }
     },
@@ -282,16 +292,16 @@
       "reason": "Markdown-Rewriter mit AGENTS-Invariante zu Inline-Code und Fences",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20260829T180733149979+0200",
-        "completed_at": "2026-08-29T18:46:13+02:00",
-        "observed_head": "0fde650034ec7fccaa06eada96c7e0a546e81fc0",
-        "content_sha256": "ac00a07f753adee379ea8c8bd33102bd5972b1dfdf7ac365e32bfc736a9de89a",
+        "campaign_id": "20260830T110351547281+0200",
+        "completed_at": "2026-08-30T11:08:36+02:00",
+        "observed_head": "c68c961d97fc1cb7e161151a62e21c052c9a856e",
+        "content_sha256": "8a3022c0a7687f3aecbf4aca97bac19b646277ae85cb06961b6be98dc29ef3b2",
         "file_count": 6,
         "review": "delta-plus-boundaries",
-        "outcome": "improved",
-        "summary": "Nachbuchung des Querschnitts-Funds verified-descriptor-reads: Delta ist genau der in diesem Zug geschriebene und verifizierte Theme-Diff (Umstellung auf VerifiedFile beziehungsweise die dabei entstandene Testdatei)",
+        "outcome": "reviewed-clean",
+        "summary": "Neue Inline-Literal-Maskierung und ihre Spreadsheet-Verwendung gegen Links, Bilder, HTML, Hervorhebung, Tabellen- und Zeilengrenzen geprüft; bestehende Block-/Fence-Normalisierung bleibt unverändert. Keine zusätzliche Verbesserung erforderlich.",
         "tests": [
-          "swift test: 302 passed, 0 failures"
+          "swift test --filter 'MarkdownNormalizerTests|ColoredTextMarkerTests|MarkdownEscapingTests|ReviewFixes20260830Tests.testSpreadsheetNamesAndLiteralCellsCannotCreateMarkdownResources': 16 Tests, 0 Fehler"
         ]
       }
     },
@@ -406,13 +416,13 @@
     }
   ],
   "architecture": {
-    "campaign_id": "20260815T125412077498+0200",
-    "recorded_at": "2026-08-15T12:54:47+02:00",
-    "observed_head": "383fc737fb61a403eaa67fe7afc3557d69fe457e",
-    "summary": "Ist-Zustand deckt sich mit docs/ARCHITECTURE.md: SwiftUI nur im App-Target, Formaterkennung ausschließlich im Kern, AppKit im Kern nur punktuell (ColoredTextMarker) für die RTFD-Farbübernahme",
+    "campaign_id": "20260830T110351547281+0200",
+    "recorded_at": "2026-08-30T11:04:49+02:00",
+    "observed_head": "c68c961d97fc1cb7e161151a62e21c052c9a856e",
+    "summary": "Ist-Zustand bestätigt: SwiftUI bleibt im App-Target; DocumentConverter orchestriert formatneutrale Anfragen und atomare Veröffentlichung; Formatlogik und macOS-spezifische Frameworks bleiben hinter Kern-Adaptern.",
     "paradigm": "Schichtenmodell mit Adapter-Registry (Kern-Orchestrator + Format-Adapter, dünne CLI/GUI-Frontends)",
     "fit": "passt",
-    "recommendation": "Kein Paradigmenwechsel nötig; lokale Verstöße bereichsweise prüfen"
+    "recommendation": "Kein Paradigmenwechsel nötig; lokale Verstöße weiterhin bereichsweise korrigieren."
   },
   "themes": [
     {

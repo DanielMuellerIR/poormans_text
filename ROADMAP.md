@@ -10,6 +10,101 @@ ODT, DOC, ODS, XLSX, XLS, ODM, PDF sowie PNG, JPEG, HEIC und TIFF sind
 implementiert. Ihre Importwege stehen in
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
+## Etappenplan (Stand 2026-09-02)
+
+Die Etappen sind nach Nutzen je Aufwand sortiert und bauen aufeinander auf.
+Jede Etappe ist für sich releasefähig. Ein neuer Adapter meldet sich weiterhin
+nur über `supportedFormatDescriptors`; der Orchestrator bleibt unverändert.
+Was [docs/MARKITDOWN-COMPARISON.md](docs/MARKITDOWN-COMPARISON.md) vorschlägt,
+ist hier eingeordnet.
+
+### Etappe 1 — Mehrere Eingaben auf einmal
+
+- CLI nimmt mehrere Pfade entgegen und wandelt sie nacheinander um. Mit `--json`
+  wird das Ergebnis eine Liste; der Exit-Code ist der schwerste Einzelfehler.
+  Ein Ordner als Eingabe wird rekursiv nach unterstützten Formaten durchsucht;
+  Pakete wie `.rtfd` zählen als eine Eingabe und werden nicht betreten.
+  `--output` gilt bei mehreren Eingaben als Elternordner, in dem je Eingabe ein
+  eigener `<Name>-markdown`-Ordner entsteht.
+- Die App nimmt beim Drop alle Einträge an, nicht nur den ersten, und zeigt eine
+  Ergebnisliste mit Status je Datei. Ordner-Drop nutzt dieselbe Aufzählung wie
+  die CLI. Der Öffnen-Dialog erlaubt Mehrfachauswahl.
+- Kern: eine `InputEnumerator`-Funktion ohne SwiftUI, die beide Adapter nutzen.
+
+### Etappe 2 — Systemintegration ohne Terminal
+
+- Finder-Schnellaktion „In Markdown umwandeln“ als Dienst der App
+  (`NSServices` in `App/Info.plist`, Handler in `PoorMansTextAppSupport`).
+- Dienst für markierten Rich Text in beliebigen Apps: RTF/RTFD von der
+  Zwischenablage durch den Rich-Text-Adapter, Markdown zurück auf die
+  Zwischenablage. Nutzt den vorhandenen temporären Veröffentlichungsweg.
+- Kurzbefehle-Aktion „Dokument in Markdown umwandeln“ über App Intents
+  (macOS 13+), mit denselben Optionen wie die CLI.
+
+### Etappe 3 — CLI-Ausgabewege
+
+- `--stdout`: Markdown auf die Standardausgabe, Diagnosen auf stderr. Enthaltene
+  Bilder werden nicht materialisiert und als Warnung gemeldet.
+- `--frontmatter`: YAML-Kopf mit Titel, Autor und Datum aus `docProps/core.xml`
+  (OOXML), `meta.xml` (OpenDocument) und dem RTF-Info-Block. Der Kern liefert
+  dafür `ConversionResult.metadata`; ohne Schalter bleibt die Ausgabe unverändert.
+- `--textbundle`: Ergebnis als `.textbundle` (Markdown plus `assets/` und
+  `info.json`), damit Bear, iA Writer und Ulysses es direkt öffnen.
+
+### Etappe 4 — Kleine Formatgewinne mit vorhandenen Bausteinen
+
+- XLSM, XLTX und XLTM über das DOCM/DOTX-Muster im Tabellen-Adapter; Makros und
+  Vorlagenverhalten als erwarteter Verlust.
+- CSV und TSV als Ein-Blatt-Arbeitsmappe. Trennzeichen aus den ersten Zeilen
+  bestimmen, Encoding aus BOM oder als UTF-8 mit Latin-1-Rückfall.
+- GIF, BMP und WebP im Bildadapter; ImageIO liest sie bereits.
+- HTML/XHTML und `.webarchive` über den vorhandenen HTML-Rewriter. Lokale
+  Bilder werden Assets, entfernte Verweise bleiben Links und werden als Verlust
+  gemeldet; nichts wird geladen.
+- Pandoc-Leser für Einzeldateien: LaTeX, DocBook, Org, MediaWiki, Textile, FB2.
+  EPUB zusätzlich durch das Paket-Gate.
+
+### Etappe 5 — Präsentationen und Notebooks
+
+- PPTX/PPTM/POTX nativ: ZIP-Inspector und XML-Streaming wie beim
+  Tabellenimport. Eine Überschrift je Folie, Text-Shapes als Absätze und Listen,
+  Tabellen als GFM-Tabellen, Notizen als Blockzitat, Bilder aus `ppt/media`
+  über die Asset-Pipeline. Pandoc liest keine Präsentationen.
+- ODP über dasselbe Folienmodell mit dem OpenDocument-Parser.
+- IPYNB: Markdown-Zellen durchreichen, Code-Zellen als Fenced Blocks mit
+  Sprache aus den Metadaten, Textausgaben als Ausgabe-Fences, Base64-Bilder aus
+  Ausgaben nach `images/`.
+
+### Etappe 6 — E-Mail
+
+- EML und `.emlx` (Apple Mail): Kopfzeilen als Tabelle oder Frontmatter, der
+  HTML- oder Textkörper durch den Rewriter, Anhänge nach `attachments/`.
+- MSG (Outlook) über den OLE-Leser des XLS-Parsers.
+
+### Etappe 7 — Qualität des PDF-Imports
+
+- Überschriften aus Schriftgrößen ableiten; Silbentrennung am Zeilenende
+  zusammenführen; zweispaltige Seiten anhand der Textpositionen erkennen;
+  einfache Tabellen aus Zeilen- und Spaltenlagen rekonstruieren.
+- OCR-Sprachen wählbar (`--ocr-language de,en`, App-Einstellung); Vision läuft
+  heute ohne Sprachliste.
+
+### Etappe 8 — App-Bedienung
+
+- Markdown-Vorschau im Fenster, Warnungen als Liste, Knopf „in Fastra öffnen“.
+- Zielordner wählbar; Tabellenformat, OCR und Frontmatter als gemerkte
+  Einstellungen; Fortschritt und Abbruch für lange Umwandlungen über das
+  vorhandene `ConversionProgress`.
+- Deutsche Lokalisierung der Oberfläche.
+- Homebrew-Cask neben dem DMG.
+
+### Nicht geplant
+
+- Gegenrichtung Markdown nach DOCX/PDF/ODT: Pandoc könnte es, aber es verändert
+  die Positionierung als Import-Werkzeug und verwischt die Fastra-Grenze. Erst
+  nach den Etappen 1 bis 5 neu bewerten.
+- XLSB (undokumentiertes Binärformat, selten) und MHTML (auf dem Mac selten).
+
 ### iWork-Formate (Pages und Numbers) — bewusste Grenze
 
 Entscheidung vom 2026-07-29: kein iWork-Import. Weder Pandoc noch `textutil`
@@ -18,7 +113,7 @@ Reverse-Engineering des undokumentierten IWA-Formats. Ein Importweg, der Pages
 oder Numbers voraussetzt und per AppleScript nach DOCX beziehungsweise XLSX
 exportiert, lohnt den Aufwand nicht. Wer eine Pages-/Numbers-Datei umwandeln
 will, exportiert sie in der jeweiligen Apple-App als DOCX beziehungsweise XLSX
-und nutzt den normalen Import.
+und nutzt den normalen Import. Keynote fällt unter dieselbe Grenze.
 
 ## Fastra-Integration
 

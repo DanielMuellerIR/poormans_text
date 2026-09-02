@@ -35,6 +35,13 @@ All notable changes to this project will be documented in this file.
   `.xltm`) through the XLSX reader after checking their OOXML main content
   type. Macros and template behavior are reported as expected losses, exactly
   like DOCM and DOTX.
+- Accept CSV and TSV files as a one-sheet workbook rendered like ODS or XLSX.
+  The extension selects the format, because plain text cannot be recognized
+  as a table by content. `.tsv` splits on tabs; `.csv` picks the separator
+  (`,`, `;`, tab, or `|`) that is most consistent across the first lines.
+  Quotes, doubled quotes, and line breaks inside fields follow RFC 4180. A
+  byte-order mark selects UTF-8 or UTF-16; text that is not valid UTF-8 is
+  read as Windows-1252 with a warning, and binary content is rejected.
 - Accept GIF, BMP, and WebP images. They are stored byte for byte as assets and
   get the same optional local OCR as PNG, JPEG, HEIC, and TIFF.
 

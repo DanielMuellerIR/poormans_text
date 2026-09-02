@@ -84,6 +84,11 @@ extension ConversionWarning {
         message: "The Excel template function cannot be represented in Markdown and was not preserved."
     )
 
+    static let delimitedTextEncodingAssumed = ConversionWarning(
+        code: "delimitedText.encodingAssumed",
+        message: "The text is not valid UTF-8 and was read as Windows-1252; check umlauts and special characters."
+    )
+
     static let legacySpreadsheetPotentialLoss = ConversionWarning(
         code: "legacySpreadsheet.potentialLoss",
         message: "Legacy XLS import preserves stored cell values but can omit formatting and unsupported workbook features."

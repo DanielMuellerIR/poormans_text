@@ -212,7 +212,7 @@ final class CLIIntegrationTests: XCTestCase {
         XCTAssertFalse(formats.isEmpty)
         for entry in formats {
             let format = entry["format"] as? String
-            if ["ods", "xlsx", "xls", "image", "pdf"].contains(format) {
+            if ["ods", "xlsx", "xls", "image", "pdf", "csv"].contains(format) {
                 XCTAssertEqual(entry["available"] as? Bool, true)
                 XCTAssertTrue(entry["unavailableReason"] is NSNull)
             } else {

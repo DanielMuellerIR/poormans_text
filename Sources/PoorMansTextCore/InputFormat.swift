@@ -23,6 +23,8 @@ public struct InputFormat: RawRepresentable, Codable, Hashable, Sendable {
     public static let odm = InputFormat(rawValue: "odm")
     public static let pdf = InputFormat(rawValue: "pdf")
     public static let image = InputFormat(rawValue: "image")
+    /// CSV und TSV; ein Format, weil beide dieselbe Ein-Blatt-Mappe ergeben.
+    public static let csv = InputFormat(rawValue: "csv")
 
     public init(from decoder: any Decoder) throws {
         let container = try decoder.singleValueContainer()

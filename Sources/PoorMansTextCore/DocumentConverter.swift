@@ -13,6 +13,7 @@ public struct DocumentConverter: Sendable {
             OpenDocumentMasterAdapter(),
             ImageAdapter(),
             PDFAdapter(),
+            DelimitedTextAdapter(),
         ])
     }
 

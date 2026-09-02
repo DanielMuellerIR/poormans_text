@@ -52,7 +52,10 @@ DocumentConverter ─ Inspections priorisieren, Adapter wählen, atomar veröffe
         ├── SpreadsheetAdapter   ODS, XLSX und XLS über native Leser
         ├── OpenDocumentMaster…  ODM plus geprüfte lokale ODT-Teildokumente
         ├── ImageAdapter         ImageIO-Asset + optionales Vision-OCR
-        └── PDFAdapter           PDFKit-Text + lokaler Vision-OCR-Fallback
+        ├── PDFAdapter           PDFKit-Text + lokaler Vision-OCR-Fallback
+        ├── DelimitedTextAdapter CSV/TSV nativ ins Arbeitsmappenmodell
+        └── PandocTextAdapter    HTML, Webarchive, EPUB, LaTeX, DocBook, Org,
+                                 MediaWiki, Textile, RST, FB2 über Pandoc
 ```
 
 `InputFormat`, `InputInspection`, `ConversionRequest`, `ConversionOptions`,
@@ -77,6 +80,18 @@ Rechner. Der Katalog kostet nur Dateisystemprüfungen und startet keinen Prozess
 ein Host darf ihn beim Öffnen jeder Datei abfragen. Ein Werkzeug ohne bekannten
 Prüfweg gilt bewusst als nicht verfügbar; lieber ein Format zu wenig anbieten als
 eine Umwandlung, die verlässlich scheitert.
+
+`DelimitedTextAdapter` ist der einzige Adapter, der die Dateiendung verlangt:
+Reiner Text lässt sich am Inhalt nicht als Tabelle erkennen. Danach gelten die
+Regeln des Tabellenimports. `PandocTextAdapter` fasst alle Formate zusammen, die
+Pandoc liest und die keinen nativen Leser brauchen; HTML wird am Inhalt erkannt,
+EPUB über das Paket-Gate und den `mimetype`-Eintrag, die Textauszeichnungen
+über Endung plus Signatur. Vor der gemeinsamen HTML-Schlussstrecke bereinigt
+`HTMLImageSourceResolver` die Bildverweise: lokale Bilder unterhalb des
+Quellordners werden kopiert, `data:`-Bilder ausgepackt, entfernte Bilder zu
+Links, fehlende Bilder zu ihrem Alt-Text; Webarchive liefern ihre Bilder als
+Nebenressourcen (`WebArchiveReader`). Pandoc läuft mit `--sandbox`, sodass etwa
+`\input` in LaTeX keine fremden Dateien liest.
 
 Jeder Adapter liefert neben Markdown und Assets ein `DocumentMetadata`, soweit
 sein Format Titel, Autor oder Daten kennt (`docProps/core.xml`, `meta.xml`,

@@ -65,9 +65,9 @@ struct ContentView: View {
             }
         } message: {
             if case .homebrewInstall = pandocOffer {
-                Text("Pandoc is required for word-processing documents and ODM master documents. ODS, XLSX, and XLS spreadsheets work without it. Install Pandoc now with Homebrew? This can take a few minutes.")
+                Text("Pandoc is required for word-processing documents, HTML, e-books, text markups, and ODM master documents. Spreadsheets, CSV, PDF, and images work without it. Install Pandoc now with Homebrew? This can take a few minutes.")
             } else {
-                Text("Pandoc is required for word-processing documents and ODM master documents. ODS, XLSX, and XLS spreadsheets work without it. The Pandoc website offers an official installer.")
+                Text("Pandoc is required for word-processing documents, HTML, e-books, text markups, and ODM master documents. Spreadsheets, CSV, PDF, and images work without it. The Pandoc website offers an official installer.")
             }
         }
         .alert("Pandoc Installed", isPresented: $showsPandocInstallSuccess) {
@@ -358,7 +358,7 @@ struct ContentView: View {
                     .controlSize(.small)
                 Text("Installing Pandoc…")
             } else {
-                Text("Pandoc for word-processing and ODM formats")
+                Text("Pandoc for word-processing, HTML, e-book, and text-markup formats")
             }
         }
         .font(.caption)

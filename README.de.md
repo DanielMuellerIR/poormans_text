@@ -11,9 +11,12 @@
 </p>
 
 Poor Man's Text wandelt RTF, RTFD, DOCX (einschließlich DOCM und DOTX/DOTM), ODT,
-alte Word-Dateien (`.doc`), ODS, XLSX, XLS, OpenDocument-Masterdokumente
-(`.odm`), PDFs sowie PNG-, JPEG-, HEIC- und TIFF-Bilder in Ordner mit Markdown
-und gegebenenfalls separat gespeicherten Bildern um.
+alte Word-Dateien (`.doc`), ODS, XLSX (einschließlich XLSM und XLTX/XLTM), XLS,
+CSV und TSV, OpenDocument-Masterdokumente (`.odm`), PDFs, HTML und
+Safari-Webarchive, EPUB, LaTeX, DocBook, Org, MediaWiki, Textile,
+reStructuredText, FictionBook sowie PNG-, JPEG-, HEIC-, TIFF-, GIF-, BMP- und
+WebP-Bilder in Ordner mit Markdown und gegebenenfalls separat gespeicherten
+Bildern um.
 
 Das Projekt stellt zwei Oberflächen für denselben Konvertierungskern bereit:
 
@@ -57,8 +60,8 @@ und der Konverter meldet den Verlust als Warnung.
 - [Pandoc](https://pandoc.org/installing.html) für Textdokumente und ODM
 - Swift 6.2 oder neuer für den Bau aus dem Quellcode
 
-ODS, XLSX, XLS, PDF und Bilder werden nativ gelesen und brauchen kein externes
-Konvertierungswerkzeug. Für die übrigen Formate sucht der Konverter Pandoc in
+ODS, XLSX, XLS, CSV, TSV, PDF und Bilder werden nativ gelesen und brauchen kein
+externes Konvertierungswerkzeug. Für die übrigen Formate sucht der Konverter Pandoc in
 den üblichen Homebrew-Verzeichnissen und danach über `PATH`. Dem CLI kann mit
 `--pandoc PFAD` auch ein bestimmtes Programm übergeben werden.
 
@@ -183,22 +186,33 @@ eine einzelne Datei oder ein Ordner-Paket wie `.rtfd` ist, welche externen
 Werkzeuge nötig sind und ob diese gerade installiert sind:
 
 ```text
-rtf   .rtf                     file     pandoc           available
-rtfd  .rtfd                    package  pandoc+textutil  available
-docx  .docx .docm .dotx .dotm  file     pandoc           available
-odt   .odt                     file     pandoc           available
-doc   .doc                     file     textutil+pandoc  available
-ods   .ods                     file                      available
-xlsx  .xlsx                    file                      available
-xls   .xls                     file                      available
-odm   .odm                     file     pandoc           available
-pdf   .pdf                     file                      available
-image .png .jpg .jpeg .heic .tif .tiff  file                      available
+rtf         .rtf                                              file     pandoc           available
+rtfd        .rtfd                                             package  pandoc+textutil  available
+docx        .docx .docm .dotx .dotm                           file     pandoc           available
+odt         .odt                                              file     pandoc           available
+doc         .doc                                              file     textutil+pandoc  available
+ods         .ods                                              file                      available
+xlsx        .xlsx .xlsm .xltx .xltm                           file                      available
+xls         .xls                                              file                      available
+odm         .odm                                              file     pandoc           available
+image       .png .jpg .jpeg .heic .tif .tiff .gif .bmp .webp  file                      available
+pdf         .pdf                                              file                      available
+csv         .csv .tsv                                         file                      available
+html        .html .htm .xhtml                                 file     pandoc           available
+webarchive  .webarchive                                       file     pandoc           available
+epub        .epub                                             file     pandoc           available
+latex       .tex .latex                                       file     pandoc           available
+docbook     .dbk .docbook                                     file     pandoc           available
+org         .org                                              file     pandoc           available
+mediawiki   .wiki .mediawiki                                  file     pandoc           available
+textile     .textile                                          file     pandoc           available
+rst         .rst                                              file     pandoc           available
+fb2         .fb2                                              file     pandoc           available
 ```
 
-Fehlt Pandoc, steht bei Textdokumenten und ODM
-`unavailable (missing required tool: pandoc)`; ODS, XLSX, XLS, PDF und Bilder
-bleiben verfügbar. Das für DOC und RTFD zusätzlich nötige `textutil` gehört zu macOS.
+Fehlt Pandoc, steht bei Textdokumenten, ODM, HTML, E-Books und den
+Textauszeichnungen `unavailable (missing required tool: pandoc)`; ODS, XLSX,
+XLS, CSV, TSV, PDF und Bilder bleiben verfügbar. Das für DOC und RTFD zusätzlich nötige `textutil` gehört zu macOS.
 
 So entscheidet eine andere App, ob sie eine Umwandlung anbietet. Weil die Liste
 aus dem Konverter selbst stammt, übernimmt ein Aufrufer später hinzukommende
@@ -318,7 +332,26 @@ behält sichtbare Seitenabschnitte. Passwortgeschützte PDFs, mehr als 1.000 Sei
 und OCR-Arbeit über dem 64-Millionen-Pixel-Budget werden vor der Veröffentlichung
 abgelehnt. Weder PDFKit noch Vision öffnen entfernte Inhalte.
 
-Der Bildimport übernimmt PNG, JPEG, HEIC und TIFF unverändert als Asset unter
+CSV und TSV werden zu einer Ein-Blatt-Mappe, die wie ODS oder XLSX gerendert
+wird. Die Endung entscheidet über das Format, weil reiner Text am Inhalt nicht
+als Tabelle erkennbar ist; `.tsv` trennt an Tabulatoren, `.csv` wählt das
+Trennzeichen, das in den ersten Zeilen am gleichmäßigsten vorkommt. Eine
+Byte-Order-Mark wählt UTF-8 oder UTF-16, Text ohne gültiges UTF-8 wird als
+Windows-1252 mit Warnung gelesen, Binärinhalt wird abgelehnt.
+
+HTML, Safari-Webarchive, EPUB, LaTeX, DocBook, Org, MediaWiki, Textile,
+reStructuredText und FictionBook laufen durch Pandoc im Sandbox-Modus, der
+auch `\input` in LaTeX daran hindert, fremde Dateien zu lesen. HTML wird am
+Inhalt erkannt; die Textauszeichnungen brauchen ihre Endung, und eine
+`.xml`-Datei gilt nur mit DocBook-Namensraum als DocBook. Bilder neben der
+Quelle werden übernommen, wenn sie unterhalb des Quellordners liegen;
+eingebettete `data:`-Bilder werden ausgepackt; entfernte Bilder werden nie
+geladen und bleiben als Link; fehlende Bilder fallen weg und hinterlassen ihren
+Alt-Text. Webarchive nutzen ihre eigenen gespeicherten Bilder. Skripte, Styles,
+Formulare und Seitenlayout werden nicht abgebildet, ein EPUB wird zu einer
+Markdown-Datei zusammengeführt.
+
+Der Bildimport übernimmt PNG, JPEG, HEIC, TIFF, GIF, BMP und WebP unverändert als Asset unter
 `images/` und verlinkt es relativ aus dem Markdown. Standardmäßig ergänzt Vision
 darunter lokal erkannten Text. `--image-ocr off` behält nur das Bild; das eignet
 sich etwa für Handschrift, Diagramme oder Text, der nicht als Markdown suchbar

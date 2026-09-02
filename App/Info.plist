@@ -183,6 +183,9 @@
                 <string>heic</string>
                 <string>tif</string>
                 <string>tiff</string>
+                <string>gif</string>
+                <string>bmp</string>
+                <string>webp</string>
             </array>
             <key>CFBundleTypeName</key>
             <string>Image</string>
@@ -194,6 +197,115 @@
             <array>
                 <string>public.image</string>
             </array>
+        </dict>
+        <dict>
+            <key>CFBundleTypeExtensions</key>
+            <array>
+                <string>xlsm</string>
+                <string>xltx</string>
+                <string>xltm</string>
+            </array>
+            <key>CFBundleTypeName</key>
+            <string>Excel Macro-Enabled Workbook or Template</string>
+            <key>CFBundleTypeRole</key>
+            <string>Viewer</string>
+            <key>LSHandlerRank</key>
+            <string>Alternate</string>
+            <key>LSItemContentTypes</key>
+            <array>
+                <string>com.microsoft.excel.sheet.macroenabled</string>
+                <string>com.microsoft.excel.template</string>
+            </array>
+        </dict>
+        <dict>
+            <key>CFBundleTypeExtensions</key>
+            <array>
+                <string>csv</string>
+                <string>tsv</string>
+            </array>
+            <key>CFBundleTypeName</key>
+            <string>Delimited Text</string>
+            <key>CFBundleTypeRole</key>
+            <string>Viewer</string>
+            <key>LSHandlerRank</key>
+            <string>Alternate</string>
+            <key>LSItemContentTypes</key>
+            <array>
+                <string>public.comma-separated-values-text</string>
+                <string>public.tab-separated-values-text</string>
+            </array>
+        </dict>
+        <dict>
+            <key>CFBundleTypeExtensions</key>
+            <array>
+                <string>html</string>
+                <string>htm</string>
+                <string>xhtml</string>
+            </array>
+            <key>CFBundleTypeName</key>
+            <string>HTML Document</string>
+            <key>CFBundleTypeRole</key>
+            <string>Viewer</string>
+            <key>LSHandlerRank</key>
+            <string>Alternate</string>
+            <key>LSItemContentTypes</key>
+            <array>
+                <string>public.html</string>
+                <string>public.xhtml</string>
+            </array>
+        </dict>
+        <dict>
+            <key>CFBundleTypeExtensions</key>
+            <array>
+                <string>webarchive</string>
+            </array>
+            <key>CFBundleTypeName</key>
+            <string>Web Archive</string>
+            <key>CFBundleTypeRole</key>
+            <string>Viewer</string>
+            <key>LSHandlerRank</key>
+            <string>Alternate</string>
+            <key>LSItemContentTypes</key>
+            <array>
+                <string>com.apple.webarchive</string>
+            </array>
+        </dict>
+        <dict>
+            <key>CFBundleTypeExtensions</key>
+            <array>
+                <string>epub</string>
+            </array>
+            <key>CFBundleTypeName</key>
+            <string>EPUB Book</string>
+            <key>CFBundleTypeRole</key>
+            <string>Viewer</string>
+            <key>LSHandlerRank</key>
+            <string>Alternate</string>
+            <key>LSItemContentTypes</key>
+            <array>
+                <string>org.idpf.epub-container</string>
+            </array>
+        </dict>
+        <dict>
+            <key>CFBundleTypeExtensions</key>
+            <array>
+                <string>tex</string>
+                <string>latex</string>
+                <string>dbk</string>
+                <string>docbook</string>
+                <string>org</string>
+                <string>wiki</string>
+                <string>mediawiki</string>
+                <string>textile</string>
+                <string>rst</string>
+                <string>fb2</string>
+            </array>
+            <key>CFBundleTypeName</key>
+            <string>Text Document for Pandoc</string>
+            <key>CFBundleTypeRole</key>
+            <string>Viewer</string>
+            <key>LSHandlerRank</key>
+            <string>Alternate</string>
         </dict>
     </array>
     <key>CFBundleExecutable</key>
@@ -240,6 +352,11 @@
                 <string>org.openxmlformats.wordprocessingml.document</string>
                 <string>public.image</string>
                 <string>public.rtf</string>
+                <string>public.comma-separated-values-text</string>
+                <string>public.tab-separated-values-text</string>
+                <string>public.html</string>
+                <string>com.apple.webarchive</string>
+                <string>org.idpf.epub-container</string>
                 <string>public.folder</string>
             </array>
         </dict>

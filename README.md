@@ -11,9 +11,11 @@
 </p>
 
 Poor Man's Text converts RTF, RTFD, DOCX (including DOCM and DOTX/DOTM), ODT,
-legacy Word (`.doc`), ODS, XLSX, XLS, OpenDocument master (`.odm`), PDF, and
-PNG, JPEG, HEIC, or TIFF images into folders containing Markdown and any
-separately stored image assets.
+legacy Word (`.doc`), ODS, XLSX (including XLSM and XLTX/XLTM), XLS, CSV and
+TSV, OpenDocument master (`.odm`), PDF, HTML and Safari web archives, EPUB,
+LaTeX, DocBook, Org, MediaWiki, Textile, reStructuredText, FictionBook, and
+PNG, JPEG, HEIC, TIFF, GIF, BMP, or WebP images into folders containing
+Markdown and any separately stored image assets.
 
 The project provides two interfaces over the same conversion core:
 
@@ -54,7 +56,8 @@ path; the converter keeps the text and returns a warning instead.
 - [Pandoc](https://pandoc.org/installing.html) for word-processing and ODM files
 - Swift 6.2 or newer when building from source
 
-ODS, XLSX, XLS, PDF, and images are read natively and need no external conversion tool.
+ODS, XLSX, XLS, CSV, TSV, PDF, and images are read natively and need no external
+conversion tool.
 For the remaining formats, the converter searches for Pandoc in the common Homebrew
 locations and then on `PATH`. The CLI also accepts an explicit executable
 through `--pandoc PATH`.
@@ -174,22 +177,33 @@ file or a folder package such as `.rtfd`, the external tools it needs, and
 whether those tools are installed right now:
 
 ```text
-rtf   .rtf                     file     pandoc           available
-rtfd  .rtfd                    package  pandoc+textutil  available
-docx  .docx .docm .dotx .dotm  file     pandoc           available
-odt   .odt                     file     pandoc           available
-doc   .doc                     file     textutil+pandoc  available
-ods   .ods                     file                      available
-xlsx  .xlsx                    file                      available
-xls   .xls                     file                      available
-odm   .odm                     file     pandoc           available
-pdf   .pdf                     file                      available
-image .png .jpg .jpeg .heic .tif .tiff  file                      available
+rtf         .rtf                                              file     pandoc           available
+rtfd        .rtfd                                             package  pandoc+textutil  available
+docx        .docx .docm .dotx .dotm                           file     pandoc           available
+odt         .odt                                              file     pandoc           available
+doc         .doc                                              file     textutil+pandoc  available
+ods         .ods                                              file                      available
+xlsx        .xlsx .xlsm .xltx .xltm                           file                      available
+xls         .xls                                              file                      available
+odm         .odm                                              file     pandoc           available
+image       .png .jpg .jpeg .heic .tif .tiff .gif .bmp .webp  file                      available
+pdf         .pdf                                              file                      available
+csv         .csv .tsv                                         file                      available
+html        .html .htm .xhtml                                 file     pandoc           available
+webarchive  .webarchive                                       file     pandoc           available
+epub        .epub                                             file     pandoc           available
+latex       .tex .latex                                       file     pandoc           available
+docbook     .dbk .docbook                                     file     pandoc           available
+org         .org                                              file     pandoc           available
+mediawiki   .wiki .mediawiki                                  file     pandoc           available
+textile     .textile                                          file     pandoc           available
+rst         .rst                                              file     pandoc           available
+fb2         .fb2                                              file     pandoc           available
 ```
 
-Without Pandoc, the word-processing and ODM lines read
-`unavailable (missing required tool: pandoc)`; ODS, XLSX, XLS, PDF, and images
-remain available. The `textutil` that DOC and RTFD additionally require is part of
+Without Pandoc, the word-processing, ODM, HTML, e-book, and text-markup lines
+read `unavailable (missing required tool: pandoc)`; ODS, XLSX, XLS, CSV, TSV,
+PDF, and images remain available. The `textutil` that DOC and RTFD additionally require is part of
 macOS.
 
 This is the intended way for another application to decide whether to offer a
@@ -305,7 +319,25 @@ sections. Password-protected PDFs, more than 1,000 pages, and OCR work above the
 64-million-pixel budget are rejected before publication. Neither PDFKit nor Vision
 opens remote content.
 
-Image import stores PNG, JPEG, HEIC, and TIFF bytes unchanged as an `images/`
+CSV and TSV become a one-sheet workbook rendered like ODS or XLSX. The
+extension selects the format, because plain text cannot be recognized as a
+table by content; `.tsv` splits on tabs and `.csv` picks the separator that is
+most consistent across the first lines. A byte-order mark selects UTF-8 or
+UTF-16, text that is not valid UTF-8 is read as Windows-1252 with a warning,
+and binary content is rejected.
+
+HTML, Safari web archives, EPUB, LaTeX, DocBook, Org, MediaWiki, Textile,
+reStructuredText, and FictionBook go through Pandoc in sandbox mode, which
+also stops LaTeX `\input` from reading other files. HTML is recognized by
+content; the text markups need their extension, and a `.xml` file counts as
+DocBook only with the DocBook namespace. Images next to the source are copied
+when they live below the source's folder; embedded `data:` images are
+extracted; remote images are never fetched and become plain links; missing
+images are dropped and leave their alt text. Web archives use their own stored
+images. Scripts, styles, forms, and page layout are not represented, and an
+EPUB is flattened into one Markdown file.
+
+Image import stores PNG, JPEG, HEIC, TIFF, GIF, BMP, and WebP bytes unchanged as an `images/`
 asset and writes a relative Markdown image reference. By default Vision adds local
 OCR text below it. `--image-ocr off` retains only the image, which is useful when
 the source contains handwriting, a diagram, or text that should not become

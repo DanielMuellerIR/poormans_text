@@ -6,8 +6,9 @@ Erledigte Punkte werden beim Release aus dieser Datei entfernt und in
 
 Die formatneutrale Engine, sichere Inhaltserkennung und wählbare dauerhafte oder
 temporäre Veröffentlichung sind vorhanden. RTF, RTFD, DOCX/DOCM/DOTX/DOTM,
-ODT, DOC, ODS, XLSX, XLS, ODM, PDF sowie PNG, JPEG, HEIC und TIFF sind
-implementiert. Ihre Importwege stehen in
+ODT, DOC, ODS, XLSX/XLSM/XLTX/XLTM, XLS, CSV/TSV, ODM, PDF, HTML, Webarchive,
+EPUB, LaTeX, DocBook, Org, MediaWiki, Textile, reStructuredText, FictionBook
+sowie PNG, JPEG, HEIC, TIFF, GIF, BMP und WebP sind implementiert. Ihre Importwege stehen in
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Etappenplan (Stand 2026-09-02)
@@ -17,8 +18,8 @@ Jede Etappe ist für sich releasefähig. Ein neuer Adapter meldet sich weiterhin
 nur über `supportedFormatDescriptors`; der Orchestrator bleibt unverändert.
 Was [docs/MARKITDOWN-COMPARISON.md](docs/MARKITDOWN-COMPARISON.md) vorschlägt,
 ist hier eingeordnet. Die Etappen 1 (mehrere Eingaben und Ordner), 2 (Dienste,
-bis auf App Intents) und 3 (`--stdout`, `--frontmatter`, `--textbundle`) sind
-umgesetzt und stehen bis zum nächsten Release im Changelog unter „Unreleased“.
+bis auf App Intents), 3 (`--stdout`, `--frontmatter`, `--textbundle`) und 4
+(kleine Formatgewinne) sind umgesetzt und stehen bis zum nächsten Release im Changelog unter „Unreleased“.
 
 ### Etappe 2 — Systemintegration ohne Terminal
 
@@ -34,19 +35,6 @@ in die Zwischenablage) sind umgesetzt; offen bleibt:
   Protokollliste je Übersetzungseinheit und ein eigener Prozessor-Aufruf pro
   Architektur. Erst angehen, wenn der Aufwand den Nutzen gegenüber „Shell-Skript
   ausführen“ mit `poormans-text --json` in Kurzbefehle rechtfertigt.
-
-### Etappe 4 — Kleine Formatgewinne mit vorhandenen Bausteinen
-
-- XLSM, XLTX und XLTM über das DOCM/DOTX-Muster im Tabellen-Adapter; Makros und
-  Vorlagenverhalten als erwarteter Verlust.
-- CSV und TSV als Ein-Blatt-Arbeitsmappe. Trennzeichen aus den ersten Zeilen
-  bestimmen, Encoding aus BOM oder als UTF-8 mit Latin-1-Rückfall.
-- GIF, BMP und WebP im Bildadapter; ImageIO liest sie bereits.
-- HTML/XHTML und `.webarchive` über den vorhandenen HTML-Rewriter. Lokale
-  Bilder werden Assets, entfernte Verweise bleiben Links und werden als Verlust
-  gemeldet; nichts wird geladen.
-- Pandoc-Leser für Einzeldateien: LaTeX, DocBook, Org, MediaWiki, Textile, FB2.
-  EPUB zusätzlich durch das Paket-Gate.
 
 ### Etappe 5 — Präsentationen und Notebooks
 

@@ -89,6 +89,44 @@ extension ConversionWarning {
         message: "The text is not valid UTF-8 and was read as Windows-1252; check umlauts and special characters."
     )
 
+    static let htmlStructureSimplified = ConversionWarning(
+        code: "html.structureSimplified",
+        message: "Scripts, styles, forms, and the page layout are not represented in the Markdown."
+    )
+
+    static let epubFlattened = ConversionWarning(
+        code: "epub.flattened",
+        message: "The book was flattened into one Markdown file; chapter files, styles, and navigation are not preserved."
+    )
+
+    static let latexSimplified = ConversionWarning(
+        code: "latex.simplified",
+        message: "Custom LaTeX macros, packages, and layout are not represented; math is kept as LaTeX source."
+    )
+
+    static let textEncodingAssumed = ConversionWarning(
+        code: "text.encodingAssumed",
+        message: "The text is not valid UTF-8 and was read as Windows-1252; check umlauts and special characters."
+    )
+
+    static func remoteImagesKeptAsLinks(_ count: Int) -> ConversionWarning {
+        ConversionWarning(
+            code: "html.remoteImagesKeptAsLinks",
+            message: count == 1
+                ? "1 remote image was not fetched and is kept as a link."
+                : "\(count) remote images were not fetched and are kept as links."
+        )
+    }
+
+    static func missingImagesDropped(_ count: Int) -> ConversionWarning {
+        ConversionWarning(
+            code: "html.missingImagesDropped",
+            message: count == 1
+                ? "1 image could not be found next to the source and was dropped; its alt text remains."
+                : "\(count) images could not be found next to the source and were dropped; their alt text remains."
+        )
+    }
+
     static let legacySpreadsheetPotentialLoss = ConversionWarning(
         code: "legacySpreadsheet.potentialLoss",
         message: "Legacy XLS import preserves stored cell values but can omit formatting and unsupported workbook features."

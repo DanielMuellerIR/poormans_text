@@ -25,6 +25,16 @@ public struct InputFormat: RawRepresentable, Codable, Hashable, Sendable {
     public static let image = InputFormat(rawValue: "image")
     /// CSV und TSV; ein Format, weil beide dieselbe Ein-Blatt-Mappe ergeben.
     public static let csv = InputFormat(rawValue: "csv")
+    public static let html = InputFormat(rawValue: "html")
+    public static let webarchive = InputFormat(rawValue: "webarchive")
+    public static let epub = InputFormat(rawValue: "epub")
+    public static let latex = InputFormat(rawValue: "latex")
+    public static let docbook = InputFormat(rawValue: "docbook")
+    public static let org = InputFormat(rawValue: "org")
+    public static let mediawiki = InputFormat(rawValue: "mediawiki")
+    public static let textile = InputFormat(rawValue: "textile")
+    public static let rst = InputFormat(rawValue: "rst")
+    public static let fb2 = InputFormat(rawValue: "fb2")
 
     public init(from decoder: any Decoder) throws {
         let container = try decoder.singleValueContainer()

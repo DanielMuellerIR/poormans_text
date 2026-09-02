@@ -42,6 +42,14 @@ All notable changes to this project will be documented in this file.
   Quotes, doubled quotes, and line breaks inside fields follow RFC 4180. A
   byte-order mark selects UTF-8 or UTF-16; text that is not valid UTF-8 is
   read as Windows-1252 with a warning, and binary content is rejected.
+- Accept HTML and XHTML files (recognized by content), Safari web archives,
+  EPUB books, and the text markups LaTeX, DocBook, Org, MediaWiki, Textile,
+  reStructuredText, and FictionBook through Pandoc in sandbox mode. Images
+  below the source's folder are copied, embedded `data:` images are extracted,
+  remote images are never fetched and become links, missing images are dropped
+  with their alt text kept, and web archives use their own stored images. HTML
+  `<title>` and author metadata feed the frontmatter. All of these need Pandoc
+  and are listed accordingly by `--formats`.
 - Accept GIF, BMP, and WebP images. They are stored byte for byte as assets and
   get the same optional local OCR as PNG, JPEG, HEIC, and TIFF.
 

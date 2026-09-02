@@ -14,6 +14,7 @@ public struct DocumentConverter: Sendable {
             ImageAdapter(),
             PDFAdapter(),
             DelimitedTextAdapter(),
+            PandocTextAdapter(),
         ])
     }
 

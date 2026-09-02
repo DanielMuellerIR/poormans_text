@@ -114,11 +114,26 @@ poormans-text --image-ocr off Foto.jpg
 poormans-text --spreadsheet-format tsv Arbeitsmappe.ods
 poormans-text --output Konvertiert Dokument.rtfd
 poormans-text --json Dokument.rtfd
+poormans-text Bericht.docx Budget.xlsx Scan.pdf
+poormans-text --output Konvertiert Dokumente/
 ```
 
 Standardmäßig entsteht `Dokument-markdown` neben der Quelle. Alle Optionen zeigt
 `poormans-text --help`. Ohne Installation funktionieren dieselben Aufrufe im
 Quellcode-Verzeichnis als `swift run poormans-text …`.
+
+Mehrere Eingaben oder ein Ordner werden nacheinander umgewandelt; ein Fehler
+hält die übrigen Dokumente nicht auf. Ein Ordner wird rekursiv nach bekannten
+Dateiendungen durchsucht. Pakete wie `.rtfd` zählen als ein Dokument;
+versteckte Einträge, symbolische Links und frühere `*-markdown`-Ergebnisse
+werden übergangen. Mit `--output` wird das Verzeichnis zum Elternordner, der je
+Dokument einen Ordner `Name-markdown` erhält und die Ordnerstruktur spiegelt.
+`--json` liefert dann `{"ok", "version", "results": [...]}` mit einem Eintrag je
+Eingabe, und der Exit-Code ist der der ersten fehlgeschlagenen Eingabe. Eine
+einzelne Datei behält die bisherige Einzelantwort unverändert. Zwei Dokumente,
+die sich nur in der Endung unterscheiden, etwa `Bericht.docx` und
+`Bericht.odt`, teilen sich den Namen `Bericht-markdown`; das zweite wird als
+Kollision am Ausgabeziel gemeldet, und nichts wird überschrieben.
 
 Die Exit-Codes folgen den üblichen `sysexits`-Werten: `64` für Aufruffehler,
 `65` für ungültige Eingabedaten, `66` für eine fehlende Eingabe, `69` für ein
@@ -178,10 +193,12 @@ CLI zusätzlich im Repo-Root ab. Beide Kopien sind nur für lokale Tests
 ad-hoc-signiert: Sie sind kein notarisierter Distributions-Build und gehören
 nicht nach `/Applications`.
 
-Jedes unterstützte Dokument, jede unterstützte Tabelle, jedes unterstützte PDF
-und jedes unterstützte Bild kann in das Fenster oder auf die App gezogen oder
-über den Dateidialog ausgewählt werden. Die App zeigt das Ergebnis und kann die
-erzeugte Markdown-Datei im Finder anzeigen.
+Beliebig viele unterstützte Dokumente, Tabellen, PDFs, Bilder oder Ordner
+können in das Fenster oder auf die App gezogen oder über den Dateidialog
+ausgewählt werden. Ein Ordner wird nach denselben Regeln wie auf der
+Kommandozeile durchsucht, und jedes Ergebnis entsteht neben seiner Quelle. Die
+App zeigt den Ausgang je Dokument und kann die erzeugten Markdown-Dateien im
+Finder anzeigen.
 
 ## Signierte Installation
 

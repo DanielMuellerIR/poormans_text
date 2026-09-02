@@ -8,8 +8,17 @@ derselbe Kern von CLI, eigener App und später Fastra benutzt werden kann.
 - `PoorMansTextCore`: formatneutrale Anfrage, adaptereigene Formaterkennung, Adapterwahl,
   temporäre Arbeitsbereiche, atomare Veröffentlichung, Assets, Warnungen und
   Ergebnisobjekte.
-- `PoorMansTextAppSupport`: App-Zustand, Dateiauswahl und Drop-Übergabe.
+- `PoorMansTextAppSupport`: App-Zustand, Dateiauswahl, Drop-Übergabe und die
+  Weitergabe gemeinsam geöffneter Dateien (`OpenedDocumentsRelay`).
 - `PoorMansTextCLI`: Argumente, Exit-Codes und JSON-/Textausgabe.
+
+Mehrere Eingaben löst `InputEnumerator` im Kern auf: Dateien und Pakete
+unverändert, Ordner rekursiv nach den Endungen des Formatkatalogs, ohne
+versteckte Einträge, symbolische Links und frühere `*-markdown`-Ergebnisse.
+CLI und App rufen dieselbe Funktion, damit ein Ordner an beiden Stellen
+dieselben Dokumente in derselben Reihenfolge ergibt. Der Kern wandelt weiterhin
+ein Dokument je Aufruf um; die Schleife liegt beim Aufrufer, der auch
+entscheidet, ob ein Fehler den Lauf beendet.
 - `PoorMansTextApp`: ausschließlich SwiftUI-Darstellung.
 
 Der Kern ist GUI-frei, aber das aktuelle Target bleibt macOS-spezifisch: Der

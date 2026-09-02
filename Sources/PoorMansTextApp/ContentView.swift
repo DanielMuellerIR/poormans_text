@@ -31,9 +31,6 @@ struct ContentView: View {
                 endPoint: .bottomTrailing
             )
         )
-        .onOpenURL { url in
-            model.convert(url)
-        }
         .task {
             preparePandocOffer()
             // Höchstens ein Start-Dialog pro Start: Solange Pandoc fehlt, hat
@@ -190,9 +187,9 @@ struct ContentView: View {
                     .font(.system(size: 45, weight: .medium))
                     .foregroundStyle(.tint)
                     .accessibilityHidden(true)
-                Text("Drop a supported document, spreadsheet, PDF, or image here")
+                Text("Drop documents, spreadsheets, PDFs, images, or a folder here")
                     .font(.title3.bold())
-                Text("A new folder with Markdown and any extracted assets will be created next to it.")
+                Text("A new folder with Markdown and any extracted assets is created next to each document. A dropped folder is searched for supported documents.")
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: 390)
@@ -259,6 +256,42 @@ struct ContentView: View {
             }
             .controlSize(.large)
 
+        case .convertingBatch(let progress):
+            ProgressView(
+                value: Double(progress.finished.count),
+                total: Double(max(progress.total, 1))
+            )
+            .frame(maxWidth: 320)
+            Text("Converting \(progress.finished.count + 1) of \(progress.total): \(progress.current.lastPathComponent)…")
+                .font(.title3.bold())
+                .lineLimit(2)
+            Text("The source documents are left unchanged.")
+                .foregroundStyle(.secondary)
+            if !progress.finished.isEmpty {
+                batchList(progress.finished)
+            }
+
+        case .batchFinished(let items):
+            let succeeded = items.filter { $0.result != nil }.count
+            Image(systemName: succeeded == items.count ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                .font(.system(size: 48))
+                .foregroundStyle(succeeded == items.count ? .green : .orange)
+                .accessibilityHidden(true)
+            Text(batchSummary(succeeded: succeeded, total: items.count))
+                .font(.title3.bold())
+            batchList(items)
+            HStack {
+                Button("Show in Finder") {
+                    model.revealResult()
+                }
+                .keyboardShortcut(.defaultAction)
+                .disabled(succeeded == 0)
+                Button("Convert More") {
+                    model.reset()
+                }
+            }
+            .controlSize(.large)
+
         case .failed(_, let message):
             Image(systemName: "xmark.octagon.fill")
                 .font(.system(size: 46))
@@ -300,6 +333,62 @@ struct ContentView: View {
         }
         .font(.caption)
         .foregroundStyle(.tertiary)
+    }
+
+    /// Eine Zeile je Eingabe: Häkchen mit Ergebnisordner oder Kreuz mit
+    /// Fehlertext. Die Liste bleibt scrollbar, damit ein großer Ordner das
+    /// Fenster nicht sprengt.
+    private func batchList(_ items: [BatchItem]) -> some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 6) {
+                ForEach(items) { item in
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        switch item.outcome {
+                        case .succeeded(let result):
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundStyle(.green)
+                                .accessibilityLabel("Converted")
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(item.input.lastPathComponent)
+                                    .lineLimit(1)
+                                Text(result.outputDirectory.lastPathComponent + " · " + assetSummary(result))
+                                    .font(.callout.monospaced())
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(1)
+                                ForEach(Array(result.warnings.enumerated()), id: \.offset) { _, warning in
+                                    Label(warning, systemImage: "exclamationmark.triangle.fill")
+                                        .font(.callout)
+                                        .foregroundStyle(.orange)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+                            }
+                        case .failed(let message):
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundStyle(.red)
+                                .accessibilityLabel("Failed")
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(item.input.lastPathComponent)
+                                    .lineLimit(1)
+                                Text(message)
+                                    .font(.callout)
+                                    .foregroundStyle(.secondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+                    }
+                    .textSelection(.enabled)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .frame(maxHeight: 170)
+    }
+
+    private func batchSummary(succeeded: Int, total: Int) -> String {
+        if succeeded == total {
+            return total == 1 ? "Markdown created" : "\(total) documents converted"
+        }
+        return "\(succeeded) of \(total) documents converted"
     }
 
     private func assetSummary(_ result: ConversionResult) -> String {

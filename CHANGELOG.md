@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+- Convert several inputs in one run. The CLI accepts any number of paths, and a
+  folder is searched recursively for supported file extensions: packages such
+  as `.rtfd` count as one document; hidden entries, symbolic links, and earlier
+  `*-markdown` results are skipped. A failure no longer stops the remaining
+  documents. With `--output`, the directory becomes the parent that receives
+  one `Name-markdown` folder per document and mirrors the folder structure.
+  `--json` then reports a `results` list, and the exit code is that of the
+  first failed input. A single file keeps the previous answer unchanged.
+- Accept every dropped item in the app instead of only the first, allow
+  multiple selection and folders in the open panel, and receive files opened
+  together from Finder or `open -a` as one run. The window shows progress and
+  an outcome per document and reveals all generated Markdown files in Finder.
+
 ## 0.9.1 - 2026-08-30
 
 - Inspect PDF, DOC, and standalone RTF only through bounded private copies before

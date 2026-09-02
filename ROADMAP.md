@@ -16,20 +16,8 @@ Die Etappen sind nach Nutzen je Aufwand sortiert und bauen aufeinander auf.
 Jede Etappe ist für sich releasefähig. Ein neuer Adapter meldet sich weiterhin
 nur über `supportedFormatDescriptors`; der Orchestrator bleibt unverändert.
 Was [docs/MARKITDOWN-COMPARISON.md](docs/MARKITDOWN-COMPARISON.md) vorschlägt,
-ist hier eingeordnet.
-
-### Etappe 1 — Mehrere Eingaben auf einmal
-
-- CLI nimmt mehrere Pfade entgegen und wandelt sie nacheinander um. Mit `--json`
-  wird das Ergebnis eine Liste; der Exit-Code ist der schwerste Einzelfehler.
-  Ein Ordner als Eingabe wird rekursiv nach unterstützten Formaten durchsucht;
-  Pakete wie `.rtfd` zählen als eine Eingabe und werden nicht betreten.
-  `--output` gilt bei mehreren Eingaben als Elternordner, in dem je Eingabe ein
-  eigener `<Name>-markdown`-Ordner entsteht.
-- Die App nimmt beim Drop alle Einträge an, nicht nur den ersten, und zeigt eine
-  Ergebnisliste mit Status je Datei. Ordner-Drop nutzt dieselbe Aufzählung wie
-  die CLI. Der Öffnen-Dialog erlaubt Mehrfachauswahl.
-- Kern: eine `InputEnumerator`-Funktion ohne SwiftUI, die beide Adapter nutzen.
+ist hier eingeordnet. Etappe 1 (mehrere Eingaben und Ordner in CLI und App) ist
+umgesetzt und steht bis zum nächsten Release im Changelog unter „Unreleased“.
 
 ### Etappe 2 — Systemintegration ohne Terminal
 

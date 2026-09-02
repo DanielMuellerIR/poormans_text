@@ -3,6 +3,46 @@ import Foundation
 import PoorMansTextCore
 import UniformTypeIdentifiers
 
+/// Ergebnis einer einzelnen Eingabe innerhalb eines Mehrfachlaufs.
+public struct BatchItem: Sendable, Identifiable {
+    public enum Outcome: Sendable {
+        case succeeded(ConversionResult)
+        case failed(String)
+    }
+
+    public let input: URL
+    public let outcome: Outcome
+
+    public var id: String { input.path }
+
+    public var result: ConversionResult? {
+        if case .succeeded(let result) = outcome {
+            return result
+        }
+        return nil
+    }
+
+    public init(input: URL, outcome: Outcome) {
+        self.input = input
+        self.outcome = outcome
+    }
+}
+
+/// Zwischenstand eines Mehrfachlaufs: was fertig ist, was gerade läuft und
+/// wie viele Eingaben es insgesamt sind. `total` ist erst nach dem Durchsuchen
+/// der Ordner bekannt; solange steht dort die Zahl der abgelegten Pfade.
+public struct BatchProgress: Sendable {
+    public let finished: [BatchItem]
+    public let current: URL
+    public let total: Int
+
+    public init(finished: [BatchItem], current: URL, total: Int) {
+        self.finished = finished
+        self.current = current
+        self.total = total
+    }
+}
+
 @MainActor
 public final class AppModel: ObservableObject {
     public enum State {
@@ -10,6 +50,8 @@ public final class AppModel: ObservableObject {
         case converting(URL)
         case succeeded(ConversionResult)
         case failed(input: URL?, message: String)
+        case convertingBatch(BatchProgress)
+        case batchFinished([BatchItem])
     }
 
     @Published public private(set) var state: State = .idle
@@ -20,10 +62,12 @@ public final class AppModel: ObservableObject {
     @Published public private(set) var isInstallingPandoc = false
 
     public var isConverting: Bool {
-        if case .converting = state {
+        switch state {
+        case .converting, .convertingBatch:
             return true
+        case .idle, .succeeded, .failed, .batchFinished:
+            return false
         }
-        return false
     }
 
     /// Nimmt die App gerade eine neue Datei an? Während einer laufenden
@@ -34,8 +78,14 @@ public final class AppModel: ObservableObject {
 
     public init() {}
 
+    /// Wandelt eine einzelne Datei oder ein Paket um. Ein durchsuchbarer Ordner
+    /// läuft über den Mehrfachweg, damit beide Einstiege gleich reagieren.
     public func convert(_ inputURL: URL) {
         guard acceptsNewDocuments else {
+            return
+        }
+        if InputEnumerator().isSearchableDirectory(inputURL) {
+            convert([inputURL])
             return
         }
 
@@ -59,65 +109,129 @@ public final class AppModel: ObservableObject {
         }
     }
 
+    /// Wandelt mehrere Pfade nacheinander um; Ordner werden dabei nach denselben
+    /// Regeln wie in der CLI durchsucht. Genau eine Datei nimmt weiterhin den
+    /// Einzelweg mit seiner gewohnten Ergebnisansicht.
+    public func convert(_ inputURLs: [URL]) {
+        guard acceptsNewDocuments, let first = inputURLs.first else {
+            return
+        }
+        let enumerator = InputEnumerator()
+        if inputURLs.count == 1, !enumerator.isSearchableDirectory(first) {
+            convert(first)
+            return
+        }
+
+        state = .convertingBatch(BatchProgress(finished: [], current: first, total: inputURLs.count))
+        let options = ConversionOptions(imageTextRecognition: imageTextRecognition)
+
+        Task {
+            let inputs: [EnumeratedInput]
+            do {
+                inputs = try await Task.detached(priority: .userInitiated) {
+                    try enumerator.enumerate(inputURLs)
+                }.value
+            } catch {
+                state = .failed(input: first, message: error.localizedDescription)
+                return
+            }
+
+            var finished = [BatchItem]()
+            for input in inputs {
+                state = .convertingBatch(
+                    BatchProgress(finished: finished, current: input.url, total: inputs.count)
+                )
+                // Jedes Ergebnis landet neben seiner Quelle; ein gemeinsamer
+                // Zielordner ist Sache der CLI.
+                let request = ConversionRequest(inputURL: input.url, options: options)
+                let outcome: BatchItem.Outcome
+                do {
+                    let result = try await Task.detached(priority: .userInitiated) {
+                        try DocumentConverter().convert(request)
+                    }.value
+                    outcome = .succeeded(result)
+                } catch {
+                    outcome = .failed(error.localizedDescription)
+                }
+                finished.append(BatchItem(input: input.url, outcome: outcome))
+            }
+            state = .batchFinished(finished)
+        }
+    }
+
     public func acceptDrop(_ providers: [NSItemProvider]) -> Bool {
         guard acceptsNewDocuments else {
             return false
         }
-        guard let provider = providers.first(where: {
+        let fileProviders = providers.filter {
             $0.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier)
-        }) else {
+        }
+        guard !fileProviders.isEmpty else {
             return false
         }
 
-        // Finder liefert Pakete als explizite Datei-URL. Diese Darstellung ist
-        // auf macOS verlässlicher als die allgemeine SwiftUI-URL-Übertragung.
-        provider.loadObject(ofClass: NSURL.self) { [weak self] object, _ in
-            guard let nsURL = object as? NSURL else {
-                return
+        // Alle abgelegten Einträge einsammeln, erst dann einmal umwandeln. Die
+        // Reihenfolge bleibt die des Drops, weil jeder Eintrag nacheinander
+        // abgewartet wird.
+        Task { @MainActor in
+            var urls = [URL]()
+            for provider in fileProviders {
+                if let url = await Self.loadFileURL(from: provider) {
+                    urls.append(url)
+                }
             }
-            let url = nsURL as URL
-            Task { @MainActor in
-                self?.convert(url)
-            }
+            convert(urls)
         }
         return true
     }
 
+    /// Finder liefert Pakete als explizite Datei-URL. Diese Darstellung ist
+    /// auf macOS verlässlicher als die allgemeine SwiftUI-URL-Übertragung.
+    private static func loadFileURL(from provider: NSItemProvider) async -> URL? {
+        await withCheckedContinuation { continuation in
+            provider.loadObject(ofClass: NSURL.self) { object, _ in
+                continuation.resume(returning: (object as? NSURL).map { $0 as URL })
+            }
+        }
+    }
+
     /// Der Einstieg der App: Öffnen-Dialog anzeigen und die Auswahl umwandeln.
     public func chooseDocument() {
-        chooseDocument(selectDocument: { AppModel.presentOpenPanel() })
+        chooseDocument(selectDocuments: { AppModel.presentOpenPanel() })
     }
 
     /// Dieselbe Auswahl mit austauschbarem Dialog, damit Tests die Sperre prüfen
     /// können, ohne ein echtes Fenster zu öffnen.
-    public func chooseDocument(selectDocument: () -> URL?) {
+    public func chooseDocument(selectDocuments: () -> [URL]) {
         guard acceptsNewDocuments else {
             return
         }
-        guard let url = selectDocument() else {
+        let urls = selectDocuments()
+        guard !urls.isEmpty else {
             return
         }
-        convert(url)
+        convert(urls)
     }
 
-    /// Der echte Öffnen-Dialog von macOS.
-    private static func presentOpenPanel() -> URL? {
+    /// Der echte Öffnen-Dialog von macOS. Mehrfachauswahl und Ordner sind
+    /// erlaubt; ein Ordner wird wie beim Drop rekursiv durchsucht.
+    private static func presentOpenPanel() -> [URL] {
         let panel = NSOpenPanel()
-        panel.title = "Choose a Document, Spreadsheet, PDF, or Image"
+        panel.title = "Choose Documents, Spreadsheets, PDFs, Images, or a Folder"
         panel.prompt = "Convert"
         let extensions = DocumentConverter().supportedFormatDescriptors
             .flatMap(\.fileExtensions)
         panel.allowedContentTypes = Array(Set(extensions)).sorted().compactMap {
             UTType(filenameExtension: $0)
-        }
-        panel.allowsMultipleSelection = false
-        panel.canChooseDirectories = false
+        } + [.folder]
+        panel.allowsMultipleSelection = true
+        panel.canChooseDirectories = true
         panel.canChooseFiles = true
 
         guard panel.runModal() == .OK else {
-            return nil
+            return []
         }
-        return panel.url
+        return panel.urls
     }
 
     /// Installiert Pandoc über Homebrew und sperrt für die Dauer des Laufs alle
@@ -152,11 +266,21 @@ public final class AppModel: ObservableObject {
         return true
     }
 
+    /// Zeigt das Ergebnis im Finder: die Markdown-Datei eines Einzellaufs oder
+    /// alle gelungenen Markdown-Dateien eines Mehrfachlaufs.
     public func revealResult() {
-        guard case .succeeded(let result) = state else {
+        switch state {
+        case .succeeded(let result):
+            NSWorkspace.shared.activateFileViewerSelecting([result.markdownFile])
+        case .batchFinished(let items):
+            let files = items.compactMap { $0.result?.markdownFile }
+            guard !files.isEmpty else {
+                return
+            }
+            NSWorkspace.shared.activateFileViewerSelecting(files)
+        case .idle, .converting, .failed, .convertingBatch:
             return
         }
-        NSWorkspace.shared.activateFileViewerSelecting([result.markdownFile])
     }
 
     public func reset() {

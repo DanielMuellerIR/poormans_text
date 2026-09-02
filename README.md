@@ -109,11 +109,26 @@ poormans-text --image-ocr off Photo.jpg
 poormans-text --spreadsheet-format tsv Workbook.ods
 poormans-text --output Converted Document.rtfd
 poormans-text --json Document.rtfd
+poormans-text Report.docx Budget.xlsx Scan.pdf
+poormans-text --output Converted Documents/
 ```
 
 The default output directory is `Document-markdown` next to the source. Run
 `poormans-text --help` for all options. Without an installation, the same
 commands work in a source checkout as `swift run poormans-text …`.
+
+Several inputs, or a folder, are converted one after another; a failure does
+not stop the remaining documents. A folder is searched recursively for
+supported file extensions. Packages such as `.rtfd` count as one document,
+and hidden entries, symbolic links, and earlier `*-markdown` results are
+skipped. With `--output`, the directory becomes the parent that receives one
+`Name-markdown` folder per document, mirroring the folder structure. In this
+mode `--json` reports `{"ok", "version", "results": [...]}` with one entry per
+input, and the exit code is that of the first failed input. A single file keeps
+the previous single-document answer unchanged. Two documents that differ only
+in their extension, such as `Report.docx` and `Report.odt`, share the name
+`Report-markdown`; the second one is reported as an output collision and
+nothing is overwritten.
 
 Exit codes follow conventional `sysexits` values: `64` for usage errors, `65`
 for invalid input data, `66` for a missing input, `69` when Pandoc is not
@@ -173,9 +188,11 @@ the CLI, into the repository root. Both copies are ad-hoc signed for local
 testing only: they are not a notarized distribution build and must not be copied
 to `/Applications`.
 
-Drop any supported document, spreadsheet, PDF, or image into the window or onto
-the app, or choose one from the open panel. The app shows the conversion result
-and can reveal the generated Markdown in Finder.
+Drop any number of supported documents, spreadsheets, PDFs, images, or folders
+into the window or onto the app, or choose them from the open panel. A folder is
+searched with the same rules as on the command line, and every result is
+created next to its source. The app lists the outcome per document and can
+reveal the generated Markdown in Finder.
 
 ## Signed installation
 

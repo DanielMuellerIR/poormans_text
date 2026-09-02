@@ -13,7 +13,7 @@ private enum CLIExitCode: Int32 {
 }
 
 private struct ParsedArguments {
-    var inputURL: URL?
+    var inputURLs = [URL]()
     var outputURL: URL?
     var pandocURL: URL?
     var json = false
@@ -74,6 +74,51 @@ private struct JSONResponse: Encodable {
     }
 }
 
+/// Ein Eintrag der Listenantwort bei mehreren Eingaben. Erfolg und Fehler
+/// tragen beide den Eingabepfad, damit ein Skript die Zeilen zuordnen kann;
+/// die Version steht nur einmal im Kopf der Liste.
+private struct JSONBatchEntry: Encodable {
+    let ok: Bool
+    let input: String
+    let outputDirectory: String?
+    let markdownFile: String?
+    let assets: [String]?
+    let warnings: [String]?
+    let error: String?
+
+    static func success(_ result: ConversionResult) -> JSONBatchEntry {
+        JSONBatchEntry(
+            ok: true,
+            input: canonicalPath(result.inputURL),
+            outputDirectory: canonicalPath(result.outputDirectory),
+            markdownFile: canonicalPath(result.markdownFile),
+            assets: result.assets.map(canonicalPath),
+            warnings: result.warnings,
+            error: nil
+        )
+    }
+
+    static func failure(_ inputURL: URL, _ error: String) -> JSONBatchEntry {
+        JSONBatchEntry(
+            ok: false,
+            input: canonicalPath(inputURL),
+            outputDirectory: nil,
+            markdownFile: nil,
+            assets: nil,
+            warnings: nil,
+            error: error
+        )
+    }
+}
+
+/// Listenantwort für mehrere Eingaben oder einen Ordner. `ok` ist nur wahr,
+/// wenn jede Eingabe gelungen ist.
+private struct JSONBatchResponse: Encodable {
+    let ok: Bool
+    let version: String
+    let results: [JSONBatchEntry]
+}
+
 /// Maschinenlesbarer Formatkatalog. Bewusst eine eigene Antwortform: Ein
 /// aufrufendes Programm soll den Katalog nicht aus einer Konvertierungsantwort
 /// heraussuchen müssen.
@@ -111,10 +156,10 @@ private struct FormatsJSONResponse: Encodable {
 }
 
 private let usage = """
-Usage: poormans-text [options] INPUT
+Usage: poormans-text [options] INPUT [INPUT ...]
        poormans-text --formats [--json] [--pandoc PATH]
 
-Convert a supported document, spreadsheet, PDF, or image into a new folder containing Markdown.
+Convert supported documents, spreadsheets, PDFs, or images into new folders containing Markdown.
 
 Options:
   -o, --output DIRECTORY  Set the new output directory.
@@ -131,6 +176,14 @@ The default output directory is INPUT-markdown next to the source. Existing
 output directories are never overwritten. Exit codes follow sysexits values:
 64 usage, 65 invalid data, 66 missing input, 69 missing dependency,
 70 conversion failure, 73 output collision, and 74 file-system failure.
+
+With several inputs, or with a folder as input, every document is converted in
+turn and a failure does not stop the others. A folder is searched recursively
+for supported file extensions; packages such as .rtfd count as one document,
+and hidden entries, symbolic links, and earlier *-markdown results are skipped.
+--output then names a parent directory that receives one INPUT-markdown folder
+per document, mirroring the folder structure. --json reports a list under
+"results", and the exit code is that of the first failed input.
 
 --formats reports every format this build can read, its file extensions, whether
 it is a single file or a folder package, which external tools it needs, and
@@ -207,10 +260,8 @@ private func parseArguments(
             parsed.pandocURL = fileURL(String(argument.dropFirst("--pandoc=".count)))
         } else if !optionsEnded && argument.hasPrefix("-") {
             throw CLIArgumentError.unknownOption(argument)
-        } else if parsed.inputURL == nil {
-            parsed.inputURL = fileURL(argument)
         } else {
-            throw CLIArgumentError.tooManyInputs
+            parsed.inputURLs.append(fileURL(argument))
         }
 
         index += 1
@@ -246,7 +297,6 @@ private func imageTextRecognition(_ value: String) throws -> ImageTextRecognitio
 private enum CLIArgumentError: LocalizedError {
     case missingValue(String)
     case unknownOption(String)
-    case tooManyInputs
     case formatsTakesNoInput
     case invalidSpreadsheetFormat(String)
     case invalidImageOCROption(String)
@@ -257,8 +307,6 @@ private enum CLIArgumentError: LocalizedError {
             "Missing value for \(option)."
         case .unknownOption(let option):
             "Unknown option: \(option)"
-        case .tooManyInputs:
-            "Only one input document can be converted at a time."
         case .formatsTakesNoInput:
             // Streng statt tolerant: Sonst bliebe unklar, ob der Aufruf gelistet
             // oder konvertiert hat — und ein Skript würde das erst am Ergebnis merken.
@@ -338,6 +386,14 @@ private func writeFormats(_ catalog: [FormatAvailability], json: Bool) {
 }
 
 private func exitCode(for error: Error) -> CLIExitCode {
+    if let enumerationError = error as? InputEnumerationError {
+        switch enumerationError {
+        case .inputDoesNotExist, .noSupportedDocuments:
+            return .noInput
+        case .fileSystemFailure:
+            return .inputOutput
+        }
+    }
     guard let conversionError = error as? ConversionError else {
         return error is CLIArgumentError ? .usage : .software
     }
@@ -359,7 +415,7 @@ private func exitCode(for error: Error) -> CLIExitCode {
     }
 }
 
-private func writeJSON(_ response: JSONResponse) {
+private func writeJSON(_ response: some Encodable) {
     let encoder = JSONEncoder()
     encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
     if let data = try? encoder.encode(response) {
@@ -370,6 +426,123 @@ private func writeJSON(_ response: JSONResponse) {
 
 private func writeError(_ message: String) {
     FileHandle.standardError.write(Data("Error: \(message)\n".utf8))
+}
+
+/// Legt den gemeinsamen Elternordner einer Mehrfachumwandlung an. Dieselben
+/// Regeln wie beim Einzelziel: Der Elternordner des Ziels muss existieren, und
+/// eine vorhandene Datei gleichen Namens wird nie überschrieben. Ein bereits
+/// vorhandener Ordner ist erlaubt — die Kollisionsprüfung je Dokument macht
+/// anschließend der Kern.
+private func prepareBatchOutputRoot(_ url: URL) throws {
+    let fileManager = FileManager.default
+    var isDirectory: ObjCBool = false
+    if fileManager.fileExists(atPath: url.path, isDirectory: &isDirectory) {
+        guard isDirectory.boolValue else {
+            throw ConversionError.outputAlreadyExists(url)
+        }
+        return
+    }
+    let parent = url.deletingLastPathComponent()
+    guard fileManager.fileExists(atPath: parent.path, isDirectory: &isDirectory),
+          isDirectory.boolValue else {
+        throw ConversionError.outputParentDoesNotExist(url)
+    }
+    do {
+        try fileManager.createDirectory(at: url, withIntermediateDirectories: false)
+    } catch {
+        throw ConversionError.fileSystemFailure(error.localizedDescription)
+    }
+}
+
+/// Ziel eines einzelnen Dokuments innerhalb einer Mehrfachumwandlung. Ohne
+/// `--output` neben der Quelle; sonst unter dem Elternordner, gespiegelt um den
+/// Unterordner, aus dem das Dokument beim Durchsuchen stammt.
+private func batchDestination(
+    for input: EnumeratedInput,
+    outputRoot: URL?
+) throws -> ConversionDestination {
+    guard let outputRoot else {
+        return .adjacentToInput
+    }
+    var parent = outputRoot
+    for component in input.relativeDirectory {
+        parent.appendPathComponent(component, isDirectory: true)
+    }
+    if !input.relativeDirectory.isEmpty {
+        do {
+            try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: true)
+        } catch {
+            throw ConversionError.fileSystemFailure(error.localizedDescription)
+        }
+    }
+    return .directory(
+        parent.appendingPathComponent(
+            DocumentConverter.outputDirectoryName(for: input.url),
+            isDirectory: true
+        )
+    )
+}
+
+/// Wandelt mehrere Eingaben nacheinander um. Ein Fehler beendet den Lauf
+/// nicht; er wird je Eingabe berichtet, und der Exit-Code ist der des ersten
+/// Fehlers.
+private func convertBatch(
+    _ inputs: [EnumeratedInput],
+    arguments: ParsedArguments,
+    options: ConversionOptions
+) -> CLIExitCode {
+    if let outputRoot = arguments.outputURL {
+        do {
+            try prepareBatchOutputRoot(outputRoot)
+        } catch {
+            if arguments.json {
+                writeJSON(JSONResponse.failure(error.localizedDescription))
+            } else {
+                writeError(error.localizedDescription)
+            }
+            return exitCode(for: error)
+        }
+    }
+
+    var entries = [JSONBatchEntry]()
+    var firstFailure: CLIExitCode?
+    var failureCount = 0
+    let converter = DocumentConverter()
+    for input in inputs {
+        do {
+            let destination = try batchDestination(for: input, outputRoot: arguments.outputURL)
+            let result = try converter.convert(
+                ConversionRequest(inputURL: input.url, destination: destination, options: options)
+            )
+            if arguments.json {
+                entries.append(.success(result))
+            } else {
+                print(result.outputDirectory.path)
+                for warning in result.warnings {
+                    FileHandle.standardError.write(
+                        Data("Warning: \(input.url.lastPathComponent): \(warning)\n".utf8)
+                    )
+                }
+            }
+        } catch {
+            failureCount += 1
+            if firstFailure == nil {
+                firstFailure = exitCode(for: error)
+            }
+            if arguments.json {
+                entries.append(.failure(input.url, error.localizedDescription))
+            } else {
+                writeError("\(input.url.path): \(error.localizedDescription)")
+            }
+        }
+    }
+
+    if arguments.json {
+        writeJSON(JSONBatchResponse(ok: failureCount == 0, version: ProductInfo.version, results: entries))
+    } else if failureCount > 0 {
+        writeError("\(failureCount) of \(inputs.count) inputs failed.")
+    }
+    return firstFailure ?? .success
 }
 
 private var parsedArguments = ParsedArguments()
@@ -389,7 +562,7 @@ do {
     }
 
     if arguments.listFormats {
-        guard arguments.inputURL == nil, arguments.outputURL == nil,
+        guard arguments.inputURLs.isEmpty, arguments.outputURL == nil,
               !arguments.setsSpreadsheetRendering, !arguments.setsImageTextRecognition else {
             throw CLIArgumentError.formatsTakesNoInput
         }
@@ -397,26 +570,37 @@ do {
         exit(CLIExitCode.success.rawValue)
     }
 
-    guard let inputURL = arguments.inputURL else {
+    guard let firstInputURL = arguments.inputURLs.first else {
         throw CLIArgumentError.missingValue("INPUT")
+    }
+
+    let options = ConversionOptions(
+        pandocExecutable: arguments.pandocURL,
+        spreadsheetRendering: arguments.spreadsheetRendering,
+        imageTextRecognition: arguments.imageTextRecognition
+    )
+
+    // Genau eine Eingabe, die kein durchsuchbarer Ordner ist, bleibt der
+    // bisherige Einzelweg mit unveränderter Antwort — darauf verlässt sich
+    // Fastra. Alles andere ist ein Mehrfachlauf mit Listenantwort.
+    let enumerator = InputEnumerator()
+    if arguments.inputURLs.count > 1 || enumerator.isSearchableDirectory(firstInputURL) {
+        let inputs = try enumerator.enumerate(arguments.inputURLs)
+        exit(convertBatch(inputs, arguments: arguments, options: options).rawValue)
     }
 
     let destination = arguments.outputURL.map(ConversionDestination.directory)
         ?? .adjacentToInput
     let result = try DocumentConverter().convert(
         ConversionRequest(
-            inputURL: inputURL,
+            inputURL: firstInputURL,
             destination: destination,
-            options: ConversionOptions(
-                pandocExecutable: arguments.pandocURL,
-                spreadsheetRendering: arguments.spreadsheetRendering,
-                imageTextRecognition: arguments.imageTextRecognition
-            )
+            options: options
         )
     )
 
     if arguments.json {
-        writeJSON(.success(result))
+        writeJSON(JSONResponse.success(result))
     } else {
         print(result.outputDirectory.path)
         for warning in result.warnings {
@@ -429,7 +613,7 @@ do {
     let message = error.localizedDescription
 
     if parsedArguments.json {
-        writeJSON(.failure(message))
+        writeJSON(JSONResponse.failure(message))
     } else {
         writeError(message)
         if error is CLIArgumentError {

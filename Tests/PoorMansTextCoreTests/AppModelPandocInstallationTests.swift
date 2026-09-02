@@ -37,7 +37,7 @@ final class AppModelPandocInstallationTests: XCTestCase {
         var panelWasPresented = false
         model.chooseDocument {
             panelWasPresented = true
-            return document
+            return [document]
         }
         XCTAssertFalse(panelWasPresented, "Der Öffnen-Dialog erschien trotz laufender Installation.")
         XCTAssertFalse(model.isConverting)
@@ -100,7 +100,7 @@ final class AppModelPandocInstallationTests: XCTestCase {
         var panelWasPresented = false
         model.chooseDocument {
             panelWasPresented = true
-            return nil
+            return []
         }
         XCTAssertTrue(panelWasPresented, "Die Dokumentauswahl blieb nach dem Fehlschlag gesperrt.")
     }

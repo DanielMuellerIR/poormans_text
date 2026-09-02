@@ -181,10 +181,14 @@ public struct DocumentConverter: Sendable {
         let inputURL = inputURL.standardizedFileURL
         return inputURL
             .deletingLastPathComponent()
-            .appendingPathComponent(
-                inputURL.deletingPathExtension().lastPathComponent + "-markdown",
-                isDirectory: true
-            )
+            .appendingPathComponent(outputDirectoryName(for: inputURL), isDirectory: true)
+    }
+
+    /// Nur der Ordnername (`Eingabe-markdown`), damit ein Mehrfachlauf denselben
+    /// Namen unter einem gemeinsamen Elternordner verwenden kann.
+    public static func outputDirectoryName(for inputURL: URL) -> String {
+        inputURL.standardizedFileURL.deletingPathExtension().lastPathComponent
+            + InputEnumerator.outputDirectorySuffix
     }
 
     private func detectInput(at inputURL: URL) throws -> DetectedInput {

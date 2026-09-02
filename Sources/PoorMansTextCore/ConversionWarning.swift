@@ -12,6 +12,11 @@ public struct ConversionWarning: Codable, Hashable, Sendable {
 }
 
 extension ConversionWarning {
+    static let metadataUnavailable = ConversionWarning(
+        code: "metadata.unavailable",
+        message: "The source carries no title, author, or dates, so no frontmatter was written."
+    )
+
     static let richTextColorNotPreserved = ConversionWarning(
         code: "richText.colorNotPreserved",
         message: "Chromatic text colors in RTF cannot be represented and were not preserved."

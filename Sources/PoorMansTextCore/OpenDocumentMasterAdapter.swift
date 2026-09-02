@@ -174,7 +174,8 @@ struct OpenDocumentMasterAdapter: DocumentConversionAdapter {
         return StagedConversionResult(
             markdownRelativePath: markdownName,
             assetRelativePaths: assetRelativePaths,
-            warnings: warnings
+            warnings: warnings,
+            metadata: PackageMetadataParser.read(fromPackageAt: stagedMaster, entryName: "meta.xml")
         )
     }
 

@@ -10,6 +10,7 @@ public enum ConversionError: LocalizedError, Sendable {
     case outputAlreadyExists(URL)
     case outputParentDoesNotExist(URL)
     case outputInsideInput(URL)
+    case invalidOutputName(URL, reason: String)
     case pandocNotFound
     case unsafeImageReference(String)
     case textutilFailed(status: Int32, message: String)
@@ -35,6 +36,8 @@ public enum ConversionError: LocalizedError, Sendable {
             return "The output parent directory does not exist: \(url.path)"
         case .outputInsideInput(let url):
             return "The output directory must not be inside the source document: \(url.path)"
+        case .invalidOutputName(let url, let reason):
+            return "Invalid output name \(url.path): \(reason)"
         case .pandocNotFound:
             return "Pandoc was not found. Install Pandoc or pass --pandoc PATH."
         case .unsafeImageReference(let reference):

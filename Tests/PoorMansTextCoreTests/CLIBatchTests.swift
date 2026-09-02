@@ -43,7 +43,7 @@ final class CLIBatchTests: XCTestCase {
         XCTAssertEqual(results.map { $0["ok"] as? Bool }, [true, false, true])
         XCTAssertEqual(
             Set(results[0].keys),
-            ["assets", "input", "markdownFile", "ok", "outputDirectory", "warnings"]
+            ["assets", "input", "markdownFile", "metadata", "ok", "outputDirectory", "warnings"]
         )
         XCTAssertEqual(Set(results[1].keys), ["error", "input", "ok"])
         XCTAssertEqual(results[1]["input"] as? String, broken.resolvingSymlinksInPath().path)

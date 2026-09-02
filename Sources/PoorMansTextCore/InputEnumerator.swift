@@ -47,7 +47,7 @@ public enum InputEnumerationError: LocalizedError, Equatable, Sendable {
 ///   nach der Dateiendung zu einem bekannten Format gehört. Pakete werden
 ///   aufgenommen, aber nicht betreten.
 /// - Versteckte Einträge, symbolische Links und frühere Ergebnisordner
-///   (`Name-markdown`) werden beim Durchsuchen übergangen. Ohne die letzte Regel
+///   (`Name-markdown`, `Name.textbundle`) werden beim Durchsuchen übergangen. Ohne die letzte Regel
 ///   würde ein zweiter Lauf die Bilder unter `images/` des ersten Laufs erneut
 ///   umwandeln.
 /// - Die Reihenfolge ist die Reihenfolge der Argumente; innerhalb eines Ordners
@@ -56,6 +56,8 @@ public struct InputEnumerator: Sendable {
     /// Namensendung der Ergebnisordner, die `DocumentConverter.defaultOutputDirectory`
     /// erzeugt. Die Aufzählung übergeht solche Ordner.
     public static let outputDirectorySuffix = "-markdown"
+    /// Endung der Textbundle-Ergebnisse; ebenfalls übergangen.
+    public static let textbundleExtension = "textbundle"
 
     private let fileExtensions: Set<String>
     private let packageExtensions: Set<String>
@@ -160,7 +162,8 @@ public struct InputEnumerator: Sendable {
                 if isPackage(entry) {
                     enumerator.skipDescendants()
                     found.append(makeInput(entry, rootComponents: rootComponents))
-                } else if entry.lastPathComponent.hasSuffix(Self.outputDirectorySuffix) {
+                } else if entry.lastPathComponent.hasSuffix(Self.outputDirectorySuffix)
+                    || entry.pathExtension.lowercased() == Self.textbundleExtension {
                     enumerator.skipDescendants()
                 }
                 continue

@@ -23,7 +23,7 @@ final class CLIIntegrationTests: XCTestCase {
         let successJSON = try decodeJSON(success.standardOutput)
         XCTAssertEqual(
             Set(successJSON.keys),
-            ["assets", "input", "markdownFile", "ok", "outputDirectory", "version", "warnings"]
+            ["assets", "input", "markdownFile", "metadata", "ok", "outputDirectory", "version", "warnings"]
         )
         XCTAssertEqual(successJSON["ok"] as? Bool, true)
         XCTAssertEqual(successJSON["version"] as? String, ProductInfo.version)

@@ -16,8 +16,9 @@ Die Etappen sind nach Nutzen je Aufwand sortiert und bauen aufeinander auf.
 Jede Etappe ist für sich releasefähig. Ein neuer Adapter meldet sich weiterhin
 nur über `supportedFormatDescriptors`; der Orchestrator bleibt unverändert.
 Was [docs/MARKITDOWN-COMPARISON.md](docs/MARKITDOWN-COMPARISON.md) vorschlägt,
-ist hier eingeordnet. Etappe 1 (mehrere Eingaben und Ordner in CLI und App) ist
-umgesetzt und steht bis zum nächsten Release im Changelog unter „Unreleased“.
+ist hier eingeordnet. Die Etappen 1 (mehrere Eingaben und Ordner), 2 (Dienste,
+bis auf App Intents) und 3 (`--stdout`, `--frontmatter`, `--textbundle`) sind
+umgesetzt und stehen bis zum nächsten Release im Changelog unter „Unreleased“.
 
 ### Etappe 2 — Systemintegration ohne Terminal
 
@@ -33,16 +34,6 @@ in die Zwischenablage) sind umgesetzt; offen bleibt:
   Protokollliste je Übersetzungseinheit und ein eigener Prozessor-Aufruf pro
   Architektur. Erst angehen, wenn der Aufwand den Nutzen gegenüber „Shell-Skript
   ausführen“ mit `poormans-text --json` in Kurzbefehle rechtfertigt.
-
-### Etappe 3 — CLI-Ausgabewege
-
-- `--stdout`: Markdown auf die Standardausgabe, Diagnosen auf stderr. Enthaltene
-  Bilder werden nicht materialisiert und als Warnung gemeldet.
-- `--frontmatter`: YAML-Kopf mit Titel, Autor und Datum aus `docProps/core.xml`
-  (OOXML), `meta.xml` (OpenDocument) und dem RTF-Info-Block. Der Kern liefert
-  dafür `ConversionResult.metadata`; ohne Schalter bleibt die Ausgabe unverändert.
-- `--textbundle`: Ergebnis als `.textbundle` (Markdown plus `assets/` und
-  `info.json`), damit Bear, iA Writer und Ulysses es direkt öffnen.
 
 ### Etappe 4 — Kleine Formatgewinne mit vorhandenen Bausteinen
 
@@ -85,8 +76,8 @@ in die Zwischenablage) sind umgesetzt; offen bleibt:
 ### Etappe 8 — App-Bedienung
 
 - Markdown-Vorschau im Fenster, Warnungen als Liste, Knopf „in Fastra öffnen“.
-- Zielordner wählbar; Tabellenformat, OCR und Frontmatter als gemerkte
-  Einstellungen; Fortschritt und Abbruch für lange Umwandlungen über das
+- Zielordner wählbar; Tabellenformat, OCR, Frontmatter und Textbundle als
+  gemerkte Einstellungen (der Kern kennt beide Optionen bereits); Fortschritt und Abbruch für lange Umwandlungen über das
   vorhandene `ConversionProgress`.
 - Deutsche Lokalisierung der Oberfläche.
 - Homebrew-Cask neben dem DMG.

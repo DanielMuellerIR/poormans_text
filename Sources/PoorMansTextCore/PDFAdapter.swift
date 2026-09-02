@@ -129,7 +129,28 @@ struct PDFAdapter: DocumentConversionAdapter {
         return StagedConversionResult(
             markdownRelativePath: markdownName,
             assetRelativePaths: [],
-            warnings: warnings
+            warnings: warnings,
+            metadata: Self.metadata(of: document)
+        )
+    }
+
+    /// Das Info-Wörterbuch des PDFs; PDFKit liefert Daten schon als `Date`.
+    private static func metadata(of document: PDFDocument) -> DocumentMetadata {
+        let attributes = document.documentAttributes ?? [:]
+        func string(_ key: PDFDocumentAttribute) -> String? {
+            attributes[key] as? String
+        }
+        func date(_ key: PDFDocumentAttribute) -> Date? {
+            attributes[key] as? Date
+        }
+        return DocumentMetadata(
+            title: string(.titleAttribute),
+            author: string(.authorAttribute),
+            subject: string(.subjectAttribute),
+            keywords: (attributes[PDFDocumentAttribute.keywordsAttribute] as? [String])
+                ?? string(.keywordsAttribute).map(DocumentMetadata.splitKeywords) ?? [],
+            created: date(.creationDateAttribute),
+            modified: date(.modificationDateAttribute)
         )
     }
 

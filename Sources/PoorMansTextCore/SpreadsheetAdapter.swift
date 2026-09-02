@@ -242,10 +242,21 @@ struct SpreadsheetAdapter: DocumentConversionAdapter {
         } catch {
             throw ConversionError.fileSystemFailure(error.localizedDescription)
         }
+        let metadata: DocumentMetadata
+        switch context.format {
+        case .ods:
+            metadata = PackageMetadataParser.read(fromPackageAt: stagedInput, entryName: "meta.xml")
+        case .xlsx:
+            metadata = PackageMetadataParser.read(fromPackageAt: stagedInput, entryName: "docProps/core.xml")
+        default:
+            // Das BIFF-SummaryInformation-Stream von XLS wird nicht gelesen.
+            metadata = DocumentMetadata()
+        }
         return StagedConversionResult(
             markdownRelativePath: markdownName,
             assetRelativePaths: [],
-            warnings: warnings(for: workbook, format: context.format)
+            warnings: warnings(for: workbook, format: context.format),
+            metadata: metadata
         )
     }
 

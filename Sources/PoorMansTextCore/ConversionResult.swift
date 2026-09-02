@@ -15,6 +15,8 @@ public struct ConversionResult: Sendable {
     public let assets: [URL]
     public let outputLifetime: ConversionOutputLifetime
     public let diagnostics: [ConversionWarning]
+    /// Angaben aus dem Quelldokument, soweit das Format sie kennt.
+    public let metadata: DocumentMetadata
 
     /// Quellkompatible Textsicht für CLI, App und bisherige Library-Aufrufer.
     public var warnings: [String] {
@@ -28,7 +30,8 @@ public struct ConversionResult: Sendable {
         markdownFile: URL,
         assets: [URL],
         outputLifetime: ConversionOutputLifetime,
-        diagnostics: [ConversionWarning]
+        diagnostics: [ConversionWarning],
+        metadata: DocumentMetadata = DocumentMetadata()
     ) {
         self.inputURL = inputURL
         self.format = format
@@ -37,6 +40,7 @@ public struct ConversionResult: Sendable {
         self.assets = assets
         self.outputLifetime = outputLifetime
         self.diagnostics = diagnostics
+        self.metadata = metadata
     }
 
 }

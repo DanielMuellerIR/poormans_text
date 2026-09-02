@@ -116,6 +116,9 @@ poormans-text --output Konvertiert Dokument.rtfd
 poormans-text --json Dokument.rtfd
 poormans-text Bericht.docx Budget.xlsx Scan.pdf
 poormans-text --output Konvertiert Dokumente/
+poormans-text --frontmatter Bericht.docx
+poormans-text --textbundle Bericht.docx
+poormans-text --stdout Bericht.docx | pbcopy
 ```
 
 Standardmäßig entsteht `Dokument-markdown` neben der Quelle. Alle Optionen zeigt
@@ -134,6 +137,30 @@ einzelne Datei behält die bisherige Einzelantwort unverändert. Zwei Dokumente,
 die sich nur in der Endung unterscheiden, etwa `Bericht.docx` und
 `Bericht.odt`, teilen sich den Namen `Bericht-markdown`; das zweite wird als
 Kollision am Ausgabeziel gemeldet, und nichts wird überschrieben.
+
+### Frontmatter, Textbundle und Standardausgabe
+
+`--frontmatter` stellt dem Markdown einen YAML-Kopf aus der Quelle voran:
+Titel, Autor, Thema, Beschreibung, Schlüsselwörter sowie Erstell- und
+Änderungsdatum, gelesen aus den OOXML-Kerneigenschaften (DOCX, XLSX), der
+OpenDocument-Datei `meta.xml` (ODT, ODS, ODM), der RTF-Gruppe `\info` (RTF,
+RTFD) oder dem PDF-Informationswörterbuch. Jeder Wert steht in
+Anführungszeichen, Daten sind ISO 8601 in UTC. Eine Quelle ohne solche Angaben
+bekommt eine Warnung statt eines leeren Kopfs. Dieselben Felder stehen als
+`metadata` in jeder `--json`-Antwort, auch ohne den Schalter.
+
+`--textbundle` schreibt `Bericht.textbundle` statt `Bericht-markdown`: Das
+Markdown heißt `text.md`, Bilder liegen unter `assets/`, und `info.json`
+kennzeichnet das Paket, sodass Bear, iA Writer und Ulysses es direkt öffnen.
+Mit `--output` muss der Name auf `.textbundle` enden. Die Ordnersuche übergeht
+vorhandene Bundles.
+
+`--stdout` wandelt genau ein Dokument an einem temporären Ort um, gibt das
+Markdown auf der Standardausgabe aus und entfernt das temporäre Ergebnis.
+Diagnosen gehen an die Standardfehlerausgabe. Bilder werden nicht behalten und
+gemeldet; ihre Verweise bleiben im Text. Der Schalter lässt sich nicht mit
+`--json`, `--output`, `--textbundle`, mehreren Eingaben oder einem Ordner
+kombinieren.
 
 Die Exit-Codes folgen den üblichen `sysexits`-Werten: `64` für Aufruffehler,
 `65` für ungültige Eingabedaten, `66` für eine fehlende Eingabe, `69` für ein

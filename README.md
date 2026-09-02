@@ -111,6 +111,9 @@ poormans-text --output Converted Document.rtfd
 poormans-text --json Document.rtfd
 poormans-text Report.docx Budget.xlsx Scan.pdf
 poormans-text --output Converted Documents/
+poormans-text --frontmatter Report.docx
+poormans-text --textbundle Report.docx
+poormans-text --stdout Report.docx | pbcopy
 ```
 
 The default output directory is `Document-markdown` next to the source. Run
@@ -129,6 +132,27 @@ the previous single-document answer unchanged. Two documents that differ only
 in their extension, such as `Report.docx` and `Report.odt`, share the name
 `Report-markdown`; the second one is reported as an output collision and
 nothing is overwritten.
+
+### Frontmatter, Textbundle, and standard output
+
+`--frontmatter` starts the Markdown with a YAML header built from the source:
+title, author, subject, description, keywords, and creation and modification
+dates, read from OOXML core properties (DOCX, XLSX), OpenDocument `meta.xml`
+(ODT, ODS, ODM), the RTF `\info` group (RTF, RTFD), or the PDF information
+dictionary. Every value is quoted, dates are ISO 8601 in UTC. A source without
+any of these gets a warning instead of an empty header. The same fields appear
+as `metadata` in every `--json` answer, whether or not the header was written.
+
+`--textbundle` writes `Report.textbundle` instead of `Report-markdown`: the
+Markdown is `text.md`, images live in `assets/`, and `info.json` identifies the
+bundle, so Bear, iA Writer, and Ulysses open it directly. With `--output`, the
+name has to end in `.textbundle`. Folder searches skip existing bundles.
+
+`--stdout` converts exactly one document in a temporary place, prints the
+Markdown to standard output, and removes the temporary result. Diagnostics go
+to standard error. Image assets are not kept and are reported; their links stay
+in the text. It cannot be combined with `--json`, `--output`, `--textbundle`,
+several inputs, or a folder.
 
 Exit codes follow conventional `sysexits` values: `64` for usage errors, `65`
 for invalid input data, `66` for a missing input, `69` when Pandoc is not

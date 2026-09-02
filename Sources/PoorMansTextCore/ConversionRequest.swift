@@ -22,19 +22,35 @@ public enum ImageTextRecognition: String, Codable, Equatable, Sendable {
     case disabled
 }
 
+/// Wie das Ergebnis auf der Platte liegt.
+public enum OutputLayout: String, Codable, Equatable, Sendable {
+    /// `Name-markdown/Name.md` plus `images/`, das bisherige Format.
+    case markdownFolder
+    /// `Name.textbundle/text.md` plus `assets/` und `info.json`, wie Bear,
+    /// iA Writer und Ulysses es öffnen.
+    case textbundle
+}
+
 public struct ConversionOptions: Equatable, Sendable {
     public var pandocExecutable: URL?
     public var spreadsheetRendering: SpreadsheetRendering
     public var imageTextRecognition: ImageTextRecognition
+    /// YAML-Kopf mit Titel, Autor und Daten aus dem Quelldokument voranstellen.
+    public var frontmatter: Bool
+    public var outputLayout: OutputLayout
 
     public init(
         pandocExecutable: URL? = nil,
         spreadsheetRendering: SpreadsheetRendering = .markdownTable,
-        imageTextRecognition: ImageTextRecognition = .enabled
+        imageTextRecognition: ImageTextRecognition = .enabled,
+        frontmatter: Bool = false,
+        outputLayout: OutputLayout = .markdownFolder
     ) {
         self.pandocExecutable = pandocExecutable
         self.spreadsheetRendering = spreadsheetRendering
         self.imageTextRecognition = imageTextRecognition
+        self.frontmatter = frontmatter
+        self.outputLayout = outputLayout
     }
 }
 

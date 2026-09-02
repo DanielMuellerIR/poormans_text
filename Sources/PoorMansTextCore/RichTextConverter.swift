@@ -285,10 +285,14 @@ struct RichTextAdapter: DocumentConversionAdapter {
             fileManager: fileManager
         )
 
+        // Die `\info`-Gruppe steht im Kopf der geprüften Kopie; bei RTFD in
+        // deren `TXT.rtf`.
+        let rtfURL = inputKind == .rtf ? sourceURL : sourceURL.appendingPathComponent("TXT.rtf")
         return StagedConversionResult(
             markdownRelativePath: converted.markdownRelativePath,
             assetRelativePaths: converted.assetRelativePaths,
-            warnings: warnings
+            warnings: warnings,
+            metadata: RTFInfoParser.read(from: rtfURL)
         )
     }
 

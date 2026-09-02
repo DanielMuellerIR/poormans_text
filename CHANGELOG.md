@@ -22,6 +22,15 @@ All notable changes to this project will be documented in this file.
   Poor Man's Text" takes selected rich text from any app, converts it through
   the RTFD or RTF path, and places the Markdown on the clipboard without
   replacing anything; images are left out and reported.
+- Read document metadata: title, author, subject, description, keywords, and
+  dates from OOXML core properties, OpenDocument `meta.xml`, the RTF `\info`
+  group, and the PDF information dictionary. `--frontmatter` writes them as a
+  quoted YAML header, and every `--json` answer carries them as `metadata`.
+- Add `--textbundle`, which writes `Name.textbundle` with `text.md`, `assets/`,
+  and `info.json` instead of `Name-markdown`; asset links are rewritten and a
+  custom `--output` has to end in `.textbundle`. Folder searches skip bundles.
+- Add `--stdout`, which prints one document's Markdown to standard output from
+  a temporary conversion and reports omitted image assets on standard error.
 
 ## 0.9.1 - 2026-08-30
 

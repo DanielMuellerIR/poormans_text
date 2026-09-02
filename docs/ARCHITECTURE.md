@@ -78,6 +78,15 @@ ein Host darf ihn beim Öffnen jeder Datei abfragen. Ein Werkzeug ohne bekannten
 Prüfweg gilt bewusst als nicht verfügbar; lieber ein Format zu wenig anbieten als
 eine Umwandlung, die verlässlich scheitert.
 
+Jeder Adapter liefert neben Markdown und Assets ein `DocumentMetadata`, soweit
+sein Format Titel, Autor oder Daten kennt (`docProps/core.xml`, `meta.xml`,
+RTF-`\info`, PDF-Info-Wörterbuch; DOC, XLS und Bilder liefern nichts). Die
+Nachbearbeitung liegt im Orchestrator und findet noch im Staging-Bereich statt:
+`ConversionOptions.frontmatter` stellt den YAML-Kopf voran,
+`ConversionOptions.outputLayout == .textbundle` baut das Ergebnis in
+`text.md`, `assets/` und `info.json` um und schreibt die Asset-Links über den
+Markdown-Rewriter neu. Erst danach wird veröffentlicht.
+
 Adapter erzeugen ausschließlich ein vollständiges Ergebnis im Staging-Bereich.
 Nur `DocumentConverter` bestimmt das dauerhafte oder temporäre Ziel und verschiebt
 das Ergebnis nach einer zweiten Kollisionsprüfung atomar dorthin. Die

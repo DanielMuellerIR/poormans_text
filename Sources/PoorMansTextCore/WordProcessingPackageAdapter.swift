@@ -170,7 +170,11 @@ struct WordProcessingPackageAdapter: DocumentConversionAdapter {
         return StagedConversionResult(
             markdownRelativePath: converted.markdownRelativePath,
             assetRelativePaths: converted.assetRelativePaths,
-            warnings: inspection.warnings
+            warnings: inspection.warnings,
+            metadata: PackageMetadataParser.read(
+                fromPackageAt: stagedInputURL,
+                entryName: context.format == .odt ? "meta.xml" : "docProps/core.xml"
+            )
         )
     }
 }

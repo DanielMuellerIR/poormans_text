@@ -22,11 +22,36 @@ private struct ParsedArguments {
     var listFormats = false
     var spreadsheetRendering: SpreadsheetRendering = .markdownTable
     var imageTextRecognition: ImageTextRecognition = .enabled
+    var writeToStandardOutput = false
+    var frontmatter = false
+    var outputLayout: OutputLayout = .markdownFolder
     /// Wurde `--spreadsheet-format` wirklich angegeben? Der Standardwert allein
     /// verrät das nicht, im Katalogmodus ist aber genau die Angabe der Fehler.
     var setsSpreadsheetRendering = false
     /// Wie bei Tabellen ist die explizite Angabe im Katalogmodus ein Fehler.
     var setsImageTextRecognition = false
+}
+
+/// Dokumentangaben in der JSON-Antwort; nur vorhandene Felder werden
+/// geschrieben, Daten als ISO 8601 in UTC.
+private struct JSONMetadata: Encodable {
+    let title: String?
+    let author: String?
+    let subject: String?
+    let description: String?
+    let keywords: [String]?
+    let created: String?
+    let modified: String?
+
+    init(_ metadata: DocumentMetadata) {
+        title = metadata.title
+        author = metadata.author
+        subject = metadata.subject
+        description = metadata.description
+        keywords = metadata.keywords.isEmpty ? nil : metadata.keywords
+        created = metadata.created.map(DocumentMetadata.iso8601)
+        modified = metadata.modified.map(DocumentMetadata.iso8601)
+    }
 }
 
 private struct JSONResponse: Encodable {
@@ -37,6 +62,7 @@ private struct JSONResponse: Encodable {
     let markdownFile: String?
     let assets: [String]?
     let warnings: [String]?
+    let metadata: JSONMetadata?
     let error: String?
 
     init(
@@ -46,6 +72,7 @@ private struct JSONResponse: Encodable {
         markdownFile: String? = nil,
         assets: [String]? = nil,
         warnings: [String]? = nil,
+        metadata: JSONMetadata? = nil,
         error: String? = nil
     ) {
         self.ok = ok
@@ -55,6 +82,7 @@ private struct JSONResponse: Encodable {
         self.markdownFile = markdownFile
         self.assets = assets
         self.warnings = warnings
+        self.metadata = metadata
         self.error = error
     }
 
@@ -65,7 +93,8 @@ private struct JSONResponse: Encodable {
             outputDirectory: canonicalPath(result.outputDirectory),
             markdownFile: canonicalPath(result.markdownFile),
             assets: result.assets.map(canonicalPath),
-            warnings: result.warnings
+            warnings: result.warnings,
+            metadata: JSONMetadata(result.metadata)
         )
     }
 
@@ -84,6 +113,7 @@ private struct JSONBatchEntry: Encodable {
     let markdownFile: String?
     let assets: [String]?
     let warnings: [String]?
+    let metadata: JSONMetadata?
     let error: String?
 
     static func success(_ result: ConversionResult) -> JSONBatchEntry {
@@ -94,6 +124,7 @@ private struct JSONBatchEntry: Encodable {
             markdownFile: canonicalPath(result.markdownFile),
             assets: result.assets.map(canonicalPath),
             warnings: result.warnings,
+            metadata: JSONMetadata(result.metadata),
             error: nil
         )
     }
@@ -106,6 +137,7 @@ private struct JSONBatchEntry: Encodable {
             markdownFile: nil,
             assets: nil,
             warnings: nil,
+            metadata: nil,
             error: error
         )
     }
@@ -168,6 +200,9 @@ Options:
       --spreadsheet-format table|tsv
                           Render spreadsheets as a GFM table (default) or escaped TSV.
       --image-ocr on|off  Add local OCR text for images (default) or preserve only the image asset.
+      --frontmatter       Start the Markdown with a YAML header (title, author, dates) from the source.
+      --textbundle        Write INPUT.textbundle (text.md, assets/, info.json) instead of INPUT-markdown.
+      --stdout            Print the Markdown to standard output instead of writing a folder.
       --json              Write a machine-readable result to stdout.
   -h, --help              Show this help text.
   -V, --version           Show the product version.
@@ -184,6 +219,14 @@ and hidden entries, symbolic links, and earlier *-markdown results are skipped.
 --output then names a parent directory that receives one INPUT-markdown folder
 per document, mirroring the folder structure. --json reports a list under
 "results", and the exit code is that of the first failed input.
+
+--frontmatter reads title, author, subject, keywords, and dates from OOXML
+core properties, OpenDocument meta.xml, the RTF info group, or the PDF
+information dictionary; a source without any of them gets a warning instead of
+an empty header. --stdout converts exactly one document into a temporary place,
+prints its Markdown, and removes that place again; image assets are not kept and
+are reported on standard error. It cannot be combined with --json, --output,
+--textbundle, several inputs, or a folder.
 
 --formats reports every format this build can read, its file extensions, whether
 it is a single file or a folder package, which external tools it needs, and
@@ -218,6 +261,12 @@ private func parseArguments(
             parsed.json = true
         } else if !optionsEnded && argument == "--formats" {
             parsed.listFormats = true
+        } else if !optionsEnded && argument == "--stdout" {
+            parsed.writeToStandardOutput = true
+        } else if !optionsEnded && argument == "--frontmatter" {
+            parsed.frontmatter = true
+        } else if !optionsEnded && argument == "--textbundle" {
+            parsed.outputLayout = .textbundle
         } else if !optionsEnded && argument == "--spreadsheet-format" {
             index += 1
             guard index < rawArguments.count else {
@@ -298,6 +347,7 @@ private enum CLIArgumentError: LocalizedError {
     case missingValue(String)
     case unknownOption(String)
     case formatsTakesNoInput
+    case standardOutputConflict(String)
     case invalidSpreadsheetFormat(String)
     case invalidImageOCROption(String)
 
@@ -316,6 +366,8 @@ private enum CLIArgumentError: LocalizedError {
             --formats lists formats only; it takes no input document, output \
             directory, or conversion option.
             """
+        case .standardOutputConflict(let reason):
+            "--stdout \(reason)."
         case .invalidSpreadsheetFormat(let value):
             "Unknown spreadsheet format: \(value). Use table or tsv."
         case .invalidImageOCROption(let value):
@@ -408,6 +460,8 @@ private func exitCode(for error: Error) -> CLIExitCode {
         return .unavailable
     case .outputAlreadyExists, .outputParentDoesNotExist, .outputInsideInput:
         return .cannotCreate
+    case .invalidOutputName:
+        return .usage
     case .textutilFailed, .pandocFailed:
         return .software
     case .fileSystemFailure:
@@ -426,6 +480,31 @@ private func writeJSON(_ response: some Encodable) {
 
 private func writeError(_ message: String) {
     FileHandle.standardError.write(Data("Error: \(message)\n".utf8))
+}
+
+/// `--stdout`: in ein temporäres Ziel umwandeln, den Text ausgeben, aufräumen.
+/// Bilder haben auf der Standardausgabe keinen Platz; ihre Verweise bleiben im
+/// Text stehen, und die Zahl der ausgelassenen Dateien geht an stderr.
+private func convertToStandardOutput(_ inputURL: URL, options: ConversionOptions) throws {
+    let result = try DocumentConverter().convert(
+        ConversionRequest(inputURL: inputURL, destination: .temporary, options: options)
+    )
+    defer { try? FileManager.default.removeItem(at: result.outputDirectory) }
+    let markdown: Data
+    do {
+        markdown = try Data(contentsOf: result.markdownFile)
+    } catch {
+        throw ConversionError.fileSystemFailure(error.localizedDescription)
+    }
+    FileHandle.standardOutput.write(markdown)
+    for warning in result.warnings {
+        FileHandle.standardError.write(Data("Warning: \(warning)\n".utf8))
+    }
+    if !result.assets.isEmpty {
+        FileHandle.standardError.write(
+            Data("Warning: \(result.assets.count) image asset(s) were not written; --stdout emits text only.\n".utf8)
+        )
+    }
 }
 
 /// Legt den gemeinsamen Elternordner einer Mehrfachumwandlung an. Dieselben
@@ -459,7 +538,8 @@ private func prepareBatchOutputRoot(_ url: URL) throws {
 /// Unterordner, aus dem das Dokument beim Durchsuchen stammt.
 private func batchDestination(
     for input: EnumeratedInput,
-    outputRoot: URL?
+    outputRoot: URL?,
+    options: ConversionOptions
 ) throws -> ConversionDestination {
     guard let outputRoot else {
         return .adjacentToInput
@@ -477,7 +557,7 @@ private func batchDestination(
     }
     return .directory(
         parent.appendingPathComponent(
-            DocumentConverter.outputDirectoryName(for: input.url),
+            DocumentConverter.outputDirectoryName(for: input.url, layout: options.outputLayout),
             isDirectory: true
         )
     )
@@ -510,7 +590,11 @@ private func convertBatch(
     let converter = DocumentConverter()
     for input in inputs {
         do {
-            let destination = try batchDestination(for: input, outputRoot: arguments.outputURL)
+            let destination = try batchDestination(
+                for: input,
+                outputRoot: arguments.outputURL,
+                options: options
+            )
             let result = try converter.convert(
                 ConversionRequest(inputURL: input.url, destination: destination, options: options)
             )
@@ -563,7 +647,9 @@ do {
 
     if arguments.listFormats {
         guard arguments.inputURLs.isEmpty, arguments.outputURL == nil,
-              !arguments.setsSpreadsheetRendering, !arguments.setsImageTextRecognition else {
+              !arguments.setsSpreadsheetRendering, !arguments.setsImageTextRecognition,
+              !arguments.writeToStandardOutput, !arguments.frontmatter,
+              arguments.outputLayout == .markdownFolder else {
             throw CLIArgumentError.formatsTakesNoInput
         }
         writeFormats(formatCatalog(pandocURL: arguments.pandocURL), json: arguments.json)
@@ -577,13 +663,32 @@ do {
     let options = ConversionOptions(
         pandocExecutable: arguments.pandocURL,
         spreadsheetRendering: arguments.spreadsheetRendering,
-        imageTextRecognition: arguments.imageTextRecognition
+        imageTextRecognition: arguments.imageTextRecognition,
+        frontmatter: arguments.frontmatter,
+        outputLayout: arguments.outputLayout
     )
+    let enumerator = InputEnumerator()
+
+    if arguments.writeToStandardOutput {
+        if arguments.json {
+            throw CLIArgumentError.standardOutputConflict("cannot be combined with --json")
+        }
+        if arguments.outputURL != nil {
+            throw CLIArgumentError.standardOutputConflict("cannot be combined with --output")
+        }
+        if arguments.outputLayout == .textbundle {
+            throw CLIArgumentError.standardOutputConflict("cannot be combined with --textbundle")
+        }
+        if arguments.inputURLs.count > 1 || enumerator.isSearchableDirectory(firstInputURL) {
+            throw CLIArgumentError.standardOutputConflict("takes exactly one document, not several or a folder")
+        }
+        try convertToStandardOutput(firstInputURL, options: options)
+        exit(CLIExitCode.success.rawValue)
+    }
 
     // Genau eine Eingabe, die kein durchsuchbarer Ordner ist, bleibt der
     // bisherige Einzelweg mit unveränderter Antwort — darauf verlässt sich
     // Fastra. Alles andere ist ein Mehrfachlauf mit Listenantwort.
-    let enumerator = InputEnumerator()
     if arguments.inputURLs.count > 1 || enumerator.isSearchableDirectory(firstInputURL) {
         let inputs = try enumerator.enumerate(arguments.inputURLs)
         exit(convertBatch(inputs, arguments: arguments, options: options).rawValue)

@@ -104,7 +104,7 @@ public struct DocumentConverter: Sendable {
         let resolvedInputURL = inputURL.resolvingSymlinksInPath()
 
         progress?(ConversionProgress(phase: .preparingOutput, format: format))
-        let destination = resolveDestination(for: request, inputURL: inputURL)
+        let destination = try resolveDestination(for: request, inputURL: inputURL)
         let fileManager = FileManager.default
         try validateOutput(
             destination.url,
@@ -143,8 +143,9 @@ public struct DocumentConverter: Sendable {
             )
         )
 
-        let markdownRelativePath = try validateRelativePath(stagedResult.markdownRelativePath)
-        let assetRelativePaths = try stagedResult.assetRelativePaths.map(validateRelativePath)
+        var markdownRelativePath = try validateRelativePath(stagedResult.markdownRelativePath)
+        var assetRelativePaths = try stagedResult.assetRelativePaths.map(validateRelativePath)
+        var warnings = stagedResult.warnings
         let stagedMarkdown = stagedOutput.appendingPathComponent(markdownRelativePath)
         guard isRegularFile(stagedMarkdown, fileManager: fileManager) else {
             throw ConversionError.fileSystemFailure("adapter produced no Markdown file")
@@ -154,6 +155,25 @@ public struct DocumentConverter: Sendable {
             guard isRegularFile(stagedAsset, fileManager: fileManager) else {
                 throw ConversionError.fileSystemFailure("adapter reported a missing asset")
             }
+        }
+
+        // Nachbearbeitung noch im Staging-Bereich: Erst wenn Frontmatter und
+        // Ablageform fertig sind, wird veröffentlicht — halbfertige Ergebnisse
+        // erreichen das Ziel nie.
+        if request.options.frontmatter {
+            if let frontmatter = stagedResult.metadata.frontmatter {
+                try prepend(frontmatter, to: stagedMarkdown)
+            } else {
+                warnings.append(.metadataUnavailable)
+            }
+        }
+        if request.options.outputLayout == .textbundle {
+            (markdownRelativePath, assetRelativePaths) = try applyTextbundleLayout(
+                in: stagedOutput,
+                markdownRelativePath: markdownRelativePath,
+                assetRelativePaths: assetRelativePaths,
+                fileManager: fileManager
+            )
         }
 
         progress?(ConversionProgress(phase: .publishing, format: format))
@@ -171,24 +191,112 @@ public struct DocumentConverter: Sendable {
             markdownFile: destination.url.appendingPathComponent(markdownRelativePath),
             assets: assetRelativePaths.map { destination.url.appendingPathComponent($0) },
             outputLifetime: destination.lifetime,
-            diagnostics: stagedResult.warnings
+            diagnostics: warnings,
+            metadata: stagedResult.metadata
         )
         progress?(ConversionProgress(phase: .finished, format: format))
         return result
     }
 
-    public static func defaultOutputDirectory(for inputURL: URL) -> URL {
+    public static func defaultOutputDirectory(
+        for inputURL: URL,
+        layout: OutputLayout = .markdownFolder
+    ) -> URL {
         let inputURL = inputURL.standardizedFileURL
         return inputURL
             .deletingLastPathComponent()
-            .appendingPathComponent(outputDirectoryName(for: inputURL), isDirectory: true)
+            .appendingPathComponent(outputDirectoryName(for: inputURL, layout: layout), isDirectory: true)
     }
 
-    /// Nur der Ordnername (`Eingabe-markdown`), damit ein Mehrfachlauf denselben
-    /// Namen unter einem gemeinsamen Elternordner verwenden kann.
-    public static func outputDirectoryName(for inputURL: URL) -> String {
-        inputURL.standardizedFileURL.deletingPathExtension().lastPathComponent
-            + InputEnumerator.outputDirectorySuffix
+    /// Nur der Ordnername (`Eingabe-markdown` oder `Eingabe.textbundle`), damit
+    /// ein Mehrfachlauf denselben Namen unter einem gemeinsamen Elternordner
+    /// verwenden kann.
+    public static func outputDirectoryName(
+        for inputURL: URL,
+        layout: OutputLayout = .markdownFolder
+    ) -> String {
+        let stem = inputURL.standardizedFileURL.deletingPathExtension().lastPathComponent
+        switch layout {
+        case .markdownFolder:
+            return stem + InputEnumerator.outputDirectorySuffix
+        case .textbundle:
+            return stem + "." + InputEnumerator.textbundleExtension
+        }
+    }
+
+    /// Schreibt den YAML-Kopf vor den vorhandenen Markdown-Text.
+    private func prepend(_ frontmatter: String, to markdownURL: URL) throws {
+        do {
+            let markdown = try String(contentsOf: markdownURL, encoding: .utf8)
+            try Data((frontmatter + markdown).utf8).write(to: markdownURL, options: .atomic)
+        } catch {
+            throw ConversionError.fileSystemFailure(error.localizedDescription)
+        }
+    }
+
+    /// Baut das Staging-Ergebnis in ein Textbundle um: `text.md`, Assets unter
+    /// `assets/` mit umgeschriebenen Links, dazu `info.json`.
+    private func applyTextbundleLayout(
+        in stagedOutput: URL,
+        markdownRelativePath: String,
+        assetRelativePaths: [String],
+        fileManager: FileManager
+    ) throws -> (markdown: String, assets: [String]) {
+        let oldMarkdownURL = stagedOutput.appendingPathComponent(markdownRelativePath)
+        var markdown: String
+        do {
+            markdown = try String(contentsOf: oldMarkdownURL, encoding: .utf8)
+        } catch {
+            throw ConversionError.fileSystemFailure(error.localizedDescription)
+        }
+
+        var newAssets = [String]()
+        let assetsDirectory = stagedOutput.appendingPathComponent("assets", isDirectory: true)
+        do {
+            if !assetRelativePaths.isEmpty {
+                try fileManager.createDirectory(at: assetsDirectory, withIntermediateDirectories: true)
+            }
+            for asset in assetRelativePaths {
+                // Die Adapter benennen Assets bereits eindeutig (`image01.png`,
+                // `section02-image01.png`), deshalb genügt der Dateiname.
+                let name = (asset as NSString).lastPathComponent
+                let newPath = "assets/" + name
+                try fileManager.moveItem(
+                    at: stagedOutput.appendingPathComponent(asset),
+                    to: assetsDirectory.appendingPathComponent(name)
+                )
+                markdown = MarkdownLinkTargetRewriter.replacing(in: markdown, from: asset, to: newPath)
+                newAssets.append(newPath)
+            }
+            // Den leeren `images/`-Ordner nicht im Bundle lassen.
+            let imagesDirectory = stagedOutput.appendingPathComponent("images", isDirectory: true)
+            if let remaining = try? fileManager.contentsOfDirectory(atPath: imagesDirectory.path),
+               remaining.isEmpty {
+                try fileManager.removeItem(at: imagesDirectory)
+            }
+
+            try fileManager.removeItem(at: oldMarkdownURL)
+            try Data(markdown.utf8).write(
+                to: stagedOutput.appendingPathComponent("text.md"),
+                options: .atomic
+            )
+            let info: [String: Any] = [
+                "version": 2,
+                "type": "net.daringfireball.markdown",
+                "transient": false,
+                "creatorIdentifier": "org.poormanstext.PoorMansText",
+            ]
+            let infoData = try JSONSerialization.data(
+                withJSONObject: info,
+                options: [.prettyPrinted, .sortedKeys]
+            )
+            try infoData.write(to: stagedOutput.appendingPathComponent("info.json"), options: .atomic)
+        } catch let error as ConversionError {
+            throw error
+        } catch {
+            throw ConversionError.fileSystemFailure(error.localizedDescription)
+        }
+        return ("text.md", newAssets)
     }
 
     private func detectInput(at inputURL: URL) throws -> DetectedInput {
@@ -258,18 +366,29 @@ public struct DocumentConverter: Sendable {
     private func resolveDestination(
         for request: ConversionRequest,
         inputURL: URL
-    ) -> ResolvedDestination {
+    ) throws -> ResolvedDestination {
+        let layout = request.options.outputLayout
         switch request.destination {
         case .adjacentToInput:
             return ResolvedDestination(
-                url: Self.defaultOutputDirectory(for: inputURL),
+                url: Self.defaultOutputDirectory(for: inputURL, layout: layout),
                 lifetime: .persistent
             )
         case .directory(let url):
+            // Ein Textbundle ist für den Finder nur mit seiner Endung ein Paket.
+            // Ein stilles Anhängen würde ein anderes Ziel erzeugen als genannt.
+            if layout == .textbundle,
+               url.pathExtension.lowercased() != InputEnumerator.textbundleExtension {
+                throw ConversionError.invalidOutputName(
+                    url,
+                    reason: "a Textbundle output must end in .textbundle"
+                )
+            }
             return ResolvedDestination(url: url.standardizedFileURL, lifetime: .persistent)
         case .temporary:
             let url = FileManager.default.temporaryDirectory.appendingPathComponent(
-                "PoorMansTextImport-\(UUID().uuidString)",
+                "PoorMansTextImport-\(UUID().uuidString)"
+                    + (layout == .textbundle ? "." + InputEnumerator.textbundleExtension : ""),
                 isDirectory: true
             )
             return ResolvedDestination(url: url, lifetime: .temporary)
@@ -438,4 +557,17 @@ struct StagedConversionResult: Sendable {
     let markdownRelativePath: String
     let assetRelativePaths: [String]
     let warnings: [ConversionWarning]
+    let metadata: DocumentMetadata
+
+    init(
+        markdownRelativePath: String,
+        assetRelativePaths: [String],
+        warnings: [ConversionWarning],
+        metadata: DocumentMetadata = DocumentMetadata()
+    ) {
+        self.markdownRelativePath = markdownRelativePath
+        self.assetRelativePaths = assetRelativePaths
+        self.warnings = warnings
+        self.metadata = metadata
+    }
 }

@@ -216,6 +216,51 @@
     <string>public.app-category.utilities</string>
     <key>LSMinimumSystemVersion</key>
     <string>13.0</string>
+    <key>NSServices</key>
+    <array>
+        <!-- Finder-Kontextmenü: markierte Dokumente und Ordner an die App
+             übergeben. Die Liste der Typen entspricht CFBundleDocumentTypes
+             plus Ordner, damit der Eintrag nur bei passender Auswahl erscheint. -->
+        <dict>
+            <key>NSMenuItem</key>
+            <dict>
+                <key>default</key>
+                <string>Convert to Markdown with Poor Man's Text</string>
+            </dict>
+            <key>NSMessage</key>
+            <string>convertFilesToMarkdown</string>
+            <key>NSSendFileTypes</key>
+            <array>
+                <string>com.adobe.pdf</string>
+                <string>com.apple.rtfd</string>
+                <string>com.microsoft.excel.xls</string>
+                <string>com.microsoft.word.doc</string>
+                <string>org.oasis-open.opendocument.spreadsheet</string>
+                <string>org.oasis-open.opendocument.text</string>
+                <string>org.openxmlformats.wordprocessingml.document</string>
+                <string>public.image</string>
+                <string>public.rtf</string>
+                <string>public.folder</string>
+            </array>
+        </dict>
+        <!-- Markierter Rich Text in beliebigen Apps: Das Markdown landet in der
+             Zwischenablage; kein Rückgabetyp, damit der Dienst auch bei nicht
+             editierbarem Text erscheint und nichts ersetzt. -->
+        <dict>
+            <key>NSMenuItem</key>
+            <dict>
+                <key>default</key>
+                <string>Convert Text to Markdown with Poor Man's Text</string>
+            </dict>
+            <key>NSMessage</key>
+            <string>convertRichTextToMarkdown</string>
+            <key>NSSendTypes</key>
+            <array>
+                <string>com.apple.flat-rtfd</string>
+                <string>public.rtf</string>
+            </array>
+        </dict>
+    </array>
     <key>NSHighResolutionCapable</key>
     <true/>
     <key>NSHumanReadableCopyright</key>

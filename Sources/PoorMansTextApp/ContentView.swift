@@ -292,6 +292,36 @@ struct ContentView: View {
             }
             .controlSize(.large)
 
+        case .copiedToClipboard(let outcome):
+            Image(systemName: "doc.on.clipboard.fill")
+                .font(.system(size: 48))
+                .foregroundStyle(.green)
+                .accessibilityHidden(true)
+            Text("Markdown copied to the clipboard")
+                .font(.title3.bold())
+            Text(clipboardSummary(outcome))
+                .foregroundStyle(.secondary)
+            if !outcome.warnings.isEmpty {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 8) {
+                        ForEach(Array(outcome.warnings.enumerated()), id: \.offset) { _, warning in
+                            Label(warning, systemImage: "exclamationmark.triangle.fill")
+                                .font(.callout)
+                                .foregroundStyle(.orange)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .textSelection(.enabled)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .frame(maxHeight: 110)
+            }
+            Button("Done") {
+                model.reset()
+            }
+            .controlSize(.large)
+            .keyboardShortcut(.defaultAction)
+
         case .failed(_, let message):
             Image(systemName: "xmark.octagon.fill")
                 .font(.system(size: 46))
@@ -382,6 +412,11 @@ struct ContentView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(maxHeight: 170)
+    }
+
+    private func clipboardSummary(_ outcome: ClipboardOutcome) -> String {
+        let lines = outcome.markdown.split(omittingEmptySubsequences: false, whereSeparator: \.isNewline).count
+        return lines == 1 ? "1 line, ready to paste" : "\(lines) lines, ready to paste"
     }
 
     private func batchSummary(succeeded: Int, total: Int) -> String {

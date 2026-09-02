@@ -200,6 +200,21 @@ Kommandozeile durchsucht, und jedes Ergebnis entsteht neben seiner Quelle. Die
 App zeigt den Ausgang je Dokument und kann die erzeugten Markdown-Dateien im
 Finder anzeigen.
 
+Die App meldet außerdem zwei Systemdienste an, die nach dem ersten Start zur
+Verfügung stehen (macOS führt sie unter Systemeinstellungen › Tastatur ›
+Tastaturkurzbefehle › Dienste):
+
+- **Convert to Markdown with Poor Man's Text** erscheint im Kontextmenü des
+  Finders für unterstützte Dokumente und Ordner. Der Dienst übergibt die Auswahl
+  an die App, die alles neben seiner Quelle umwandelt, genau wie beim Ablegen.
+- **Convert Text to Markdown with Poor Man's Text** erscheint im Untermenü
+  „Dienste" jeder App, die markierten Rich Text anbietet, etwa Mail, Pages,
+  TextEdit oder Safari. Das Markdown landet in der Zwischenablage und kann
+  eingefügt werden; in der Quell-App wird nichts ersetzt. Bilder in der Auswahl
+  bleiben außen vor und werden gemeldet, weil die Zwischenablage nur Text
+  trägt. Eine Auswahl, die nur RTF anbietet, braucht Pandoc wie eine
+  `.rtf`-Datei.
+
 ## Signierte Installation
 
 Der Installer baut App und CLI als Universal Binaries, signiert beide mit

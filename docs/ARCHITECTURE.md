@@ -8,8 +8,11 @@ derselbe Kern von CLI, eigener App und später Fastra benutzt werden kann.
 - `PoorMansTextCore`: formatneutrale Anfrage, adaptereigene Formaterkennung, Adapterwahl,
   temporäre Arbeitsbereiche, atomare Veröffentlichung, Assets, Warnungen und
   Ergebnisobjekte.
-- `PoorMansTextAppSupport`: App-Zustand, Dateiauswahl, Drop-Übergabe und die
-  Weitergabe gemeinsam geöffneter Dateien (`OpenedDocumentsRelay`).
+- `PoorMansTextAppSupport`: App-Zustand, Dateiauswahl, Drop-Übergabe, die
+  Weitergabe gemeinsam geöffneter Dateien (`OpenedDocumentsRelay`) und die
+  Systemdienste (`ServicesProvider`, `RichTextClipboard`). Der Rich-Text-Dienst
+  schreibt die Auswahl als temporäre `.rtfd`- oder `.rtf`-Datei und nutzt den
+  normalen Adapterweg mit temporärem Ziel; der Kern kennt keine Zwischenablage.
 - `PoorMansTextCLI`: Argumente, Exit-Codes und JSON-/Textausgabe.
 
 Mehrere Eingaben löst `InputEnumerator` im Kern auf: Dateien und Pakete

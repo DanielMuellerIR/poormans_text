@@ -6,6 +6,9 @@ struct PoorMansTextDesktopApp: App {
     @NSApplicationDelegateAdaptor(OpenedDocumentsRelay.self) private var openedDocuments
     @StateObject private var model = AppModel()
     @StateObject private var updates = UpdateController()
+    /// Muss die App überleben: `NSApp.servicesProvider` hält nur eine schwache
+    /// Referenz.
+    @State private var services: ServicesProvider?
 
     var body: some Scene {
         WindowGroup {
@@ -15,6 +18,11 @@ struct PoorMansTextDesktopApp: App {
                     let model = model
                     openedDocuments.handler = { urls in
                         model.convert(urls)
+                    }
+                    if services == nil {
+                        let provider = ServicesProvider(model: model)
+                        services = provider
+                        NSApp.servicesProvider = provider
                     }
                 }
         }

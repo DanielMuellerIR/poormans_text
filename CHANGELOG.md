@@ -16,6 +16,12 @@ All notable changes to this project will be documented in this file.
   multiple selection and folders in the open panel, and receive files opened
   together from Finder or `open -a` as one run. The window shows progress and
   an outcome per document and reveals all generated Markdown files in Finder.
+- Register two system services. "Convert to Markdown with Poor Man's Text"
+  appears in the Finder context menu for supported documents and folders and
+  converts the selection next to its source. "Convert Text to Markdown with
+  Poor Man's Text" takes selected rich text from any app, converts it through
+  the RTFD or RTF path, and places the Markdown on the clipboard without
+  replacing anything; images are left out and reported.
 
 ## 0.9.1 - 2026-08-30
 

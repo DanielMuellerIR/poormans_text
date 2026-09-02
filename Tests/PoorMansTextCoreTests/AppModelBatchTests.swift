@@ -129,7 +129,7 @@ final class AppModelBatchTests: XCTestCase {
                 return XCTFail("A single file must not use the list view.")
             case .failed(_, let message):
                 return XCTFail(message)
-            case .idle, .converting, .convertingBatch:
+            case .idle, .converting, .convertingBatch, .copiedToClipboard:
                 try await Task.sleep(for: .milliseconds(20))
             }
         }
@@ -148,7 +148,7 @@ final class AppModelBatchTests: XCTestCase {
             case .succeeded:
                 XCTFail("A batch finished as a single result.")
                 return []
-            case .idle, .converting, .convertingBatch:
+            case .idle, .converting, .convertingBatch, .copiedToClipboard:
                 try await Task.sleep(for: .milliseconds(20))
             }
         }

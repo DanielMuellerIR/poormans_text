@@ -50,7 +50,7 @@ final class AppModelDropTests: XCTestCase {
                     return
                 case .succeeded:
                     return XCTFail("Unsupported input was converted.")
-                case .idle, .converting, .convertingBatch, .batchFinished:
+                case .idle, .converting, .convertingBatch, .batchFinished, .copiedToClipboard:
                     try await Task.sleep(for: .milliseconds(20))
                 }
             }
@@ -83,7 +83,7 @@ final class AppModelDropTests: XCTestCase {
                     return
                 case .failed(_, let message):
                     return XCTFail("Image conversion failed: \(message)")
-                case .idle, .converting, .convertingBatch, .batchFinished:
+                case .idle, .converting, .convertingBatch, .batchFinished, .copiedToClipboard:
                     try await Task.sleep(for: .milliseconds(50))
                 }
             }
@@ -113,7 +113,7 @@ final class AppModelDropTests: XCTestCase {
                 return
             case .failed(_, let message):
                 return XCTFail("Drop conversion failed: \(message)")
-            case .idle, .converting, .convertingBatch, .batchFinished:
+            case .idle, .converting, .convertingBatch, .batchFinished, .copiedToClipboard:
                 try await Task.sleep(for: .milliseconds(50))
             }
         }

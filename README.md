@@ -194,6 +194,20 @@ searched with the same rules as on the command line, and every result is
 created next to its source. The app lists the outcome per document and can
 reveal the generated Markdown in Finder.
 
+The app also registers two system services, available once it has been
+launched at least once (macOS lists them under System Settings › Keyboard ›
+Keyboard Shortcuts › Services):
+
+- **Convert to Markdown with Poor Man's Text** appears in the Finder context
+  menu for supported documents and folders. It hands the selection to the app,
+  which converts everything next to its source, exactly like a drop.
+- **Convert Text to Markdown with Poor Man's Text** appears in the Services
+  submenu of any app that offers selected rich text, such as Mail, Pages,
+  TextEdit, or Safari. The Markdown is placed on the clipboard, ready to paste;
+  nothing in the source app is replaced. Images in the selection are left out
+  and reported, because the clipboard carries text only. Selections that only
+  offer RTF need Pandoc, like `.rtf` files.
+
 ## Signed installation
 
 The installer builds universal app and CLI binaries, signs both with Developer

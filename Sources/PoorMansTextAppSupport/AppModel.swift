@@ -52,6 +52,9 @@ public final class AppModel: ObservableObject {
         case failed(input: URL?, message: String)
         case convertingBatch(BatchProgress)
         case batchFinished([BatchItem])
+        /// Rich Text aus dem Dienst wurde umgewandelt und liegt als Markdown in
+        /// der Zwischenablage.
+        case copiedToClipboard(ClipboardOutcome)
     }
 
     @Published public private(set) var state: State = .idle
@@ -65,7 +68,7 @@ public final class AppModel: ObservableObject {
         switch state {
         case .converting, .convertingBatch:
             return true
-        case .idle, .succeeded, .failed, .batchFinished:
+        case .idle, .succeeded, .failed, .batchFinished, .copiedToClipboard:
             return false
         }
     }
@@ -278,8 +281,32 @@ public final class AppModel: ObservableObject {
                 return
             }
             NSWorkspace.shared.activateFileViewerSelecting(files)
-        case .idle, .converting, .failed, .convertingBatch:
+        case .idle, .converting, .failed, .convertingBatch, .copiedToClipboard:
             return
+        }
+    }
+
+    /// Wandelt markierten Rich Text um (Dienst „Convert Text to Markdown“) und
+    /// legt das Markdown als Text auf `outputPasteboard`. Die Zwischenablage
+    /// wird erst nach gelungener Umwandlung angefasst.
+    public func convertRichText(_ source: RichTextClipboard.Source, to outputPasteboard: NSPasteboard) {
+        guard acceptsNewDocuments else {
+            return
+        }
+        state = .converting(URL(fileURLWithPath: source.fileName))
+        let options = ConversionOptions(imageTextRecognition: imageTextRecognition)
+
+        Task {
+            do {
+                let outcome = try await Task.detached(priority: .userInitiated) {
+                    try RichTextClipboard.convert(source, options: options)
+                }.value
+                outputPasteboard.clearContents()
+                outputPasteboard.setString(outcome.markdown, forType: .string)
+                state = .copiedToClipboard(outcome)
+            } catch {
+                state = .failed(input: nil, message: error.localizedDescription)
+            }
         }
     }
 

@@ -21,13 +21,18 @@ umgesetzt und steht bis zum nächsten Release im Changelog unter „Unreleased�
 
 ### Etappe 2 — Systemintegration ohne Terminal
 
-- Finder-Schnellaktion „In Markdown umwandeln“ als Dienst der App
-  (`NSServices` in `App/Info.plist`, Handler in `PoorMansTextAppSupport`).
-- Dienst für markierten Rich Text in beliebigen Apps: RTF/RTFD von der
-  Zwischenablage durch den Rich-Text-Adapter, Markdown zurück auf die
-  Zwischenablage. Nutzt den vorhandenen temporären Veröffentlichungsweg.
+Die beiden Systemdienste (Finder-Kontextmenü für Dateien, markierter Rich Text
+in die Zwischenablage) sind umgesetzt; offen bleibt:
+
 - Kurzbefehle-Aktion „Dokument in Markdown umwandeln“ über App Intents
-  (macOS 13+), mit denselben Optionen wie die CLI.
+  (macOS 13+), mit denselben Optionen wie die CLI. **Blocker (2026-09-02):**
+  Kurzbefehle findet eine Aktion nur über das Bundle `Metadata.appintents`,
+  das Xcodes `appintentsmetadataprocessor` aus `.swiftconstvalues`-Dateien des
+  Compilers erzeugt. Der SwiftPM-Build in `scripts/build_app.sh` erzeugt beides
+  nicht; nötig wären `-emit-const-values-path` samt Apples
+  Protokollliste je Übersetzungseinheit und ein eigener Prozessor-Aufruf pro
+  Architektur. Erst angehen, wenn der Aufwand den Nutzen gegenüber „Shell-Skript
+  ausführen“ mit `poormans-text --json` in Kurzbefehle rechtfertigt.
 
 ### Etappe 3 — CLI-Ausgabewege
 

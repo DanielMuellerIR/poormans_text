@@ -31,6 +31,12 @@ All notable changes to this project will be documented in this file.
   custom `--output` has to end in `.textbundle`. Folder searches skip bundles.
 - Add `--stdout`, which prints one document's Markdown to standard output from
   a temporary conversion and reports omitted image assets on standard error.
+- Accept macro-enabled Excel workbooks and templates (`.xlsm`, `.xltx`,
+  `.xltm`) through the XLSX reader after checking their OOXML main content
+  type. Macros and template behavior are reported as expected losses, exactly
+  like DOCM and DOTX.
+- Accept GIF, BMP, and WebP images. They are stored byte for byte as assets and
+  get the same optional local OCR as PNG, JPEG, HEIC, and TIFF.
 
 ## 0.9.1 - 2026-08-30
 

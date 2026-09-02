@@ -10,7 +10,7 @@ struct ImageAdapter: DocumentConversionAdapter {
     let supportedFormatDescriptors: [SupportedFormat] = [
         SupportedFormat(
             format: .image,
-            fileExtensions: ["png", "jpg", "jpeg", "heic", "tif", "tiff"],
+            fileExtensions: ["png", "jpg", "jpeg", "heic", "tif", "tiff", "gif", "bmp", "webp"],
             containerKind: .file,
             requiredTools: []
         )
@@ -350,7 +350,9 @@ struct ImageAdapter: DocumentConversionAdapter {
         [kCGImageSourceShouldCache: false] as CFDictionary
     }
 
-    private static let imageExtensions: Set<String> = ["png", "jpg", "jpeg", "heic", "tif", "tiff"]
+    private static let imageExtensions: Set<String> = [
+        "png", "jpg", "jpeg", "heic", "tif", "tiff", "gif", "bmp", "webp",
+    ]
     private let detectionPriority = 106
 
     private struct ImageProbe {
@@ -413,6 +415,9 @@ private enum ImageFileFormat {
     case jpeg
     case heic
     case tiff
+    case gif
+    case bmp
+    case webp
 
     init?(typeIdentifier: String) {
         switch typeIdentifier {
@@ -424,6 +429,12 @@ private enum ImageFileFormat {
             self = .heic
         case UTType.tiff.identifier:
             self = .tiff
+        case UTType.gif.identifier:
+            self = .gif
+        case UTType.bmp.identifier:
+            self = .bmp
+        case UTType.webP.identifier:
+            self = .webp
         default:
             return nil
         }
@@ -435,6 +446,9 @@ private enum ImageFileFormat {
         case .jpeg: "jpg"
         case .heic: "heic"
         case .tiff: "tiff"
+        case .gif: "gif"
+        case .bmp: "bmp"
+        case .webp: "webp"
         }
     }
 }

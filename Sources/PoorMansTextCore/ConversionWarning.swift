@@ -74,6 +74,16 @@ extension ConversionWarning {
         message: "Charts, images, comments, macros, hyperlink targets, or other spreadsheet objects are not represented in the Markdown."
     )
 
+    static let spreadsheetMacrosNotPreserved = ConversionWarning(
+        code: "spreadsheet.macrosNotPreserved",
+        message: "Excel macros cannot be represented in Markdown and were not preserved."
+    )
+
+    static let spreadsheetTemplateSemanticsNotPreserved = ConversionWarning(
+        code: "spreadsheet.templateSemanticsNotPreserved",
+        message: "The Excel template function cannot be represented in Markdown and was not preserved."
+    )
+
     static let legacySpreadsheetPotentialLoss = ConversionWarning(
         code: "legacySpreadsheet.potentialLoss",
         message: "Legacy XLS import preserves stored cell values but can omit formatting and unsupported workbook features."

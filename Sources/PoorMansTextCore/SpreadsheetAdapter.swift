@@ -13,7 +13,7 @@ struct SpreadsheetAdapter: DocumentConversionAdapter {
         ),
         SupportedFormat(
             format: .xlsx,
-            fileExtensions: ["xlsx"],
+            fileExtensions: ["xlsx", "xlsm", "xltx", "xltm"],
             containerKind: .file,
             requiredTools: []
         ),
@@ -34,7 +34,7 @@ struct SpreadsheetAdapter: DocumentConversionAdapter {
 
         let extensionFormat: InputFormat? = switch inputURL.pathExtension.lowercased() {
         case "ods": .ods
-        case "xlsx": .xlsx
+        case "xlsx", "xlsm", "xltx", "xltm": .xlsx
         case "xls": .xls
         default: nil
         }
@@ -124,13 +124,13 @@ struct SpreadsheetAdapter: DocumentConversionAdapter {
                     )
                 )
             }
-            if try XLSXWorkbookParser.looksLikeXLSX(packageAt: inputURL) {
+            if let kind = try XLSXWorkbookParser.spreadsheetKind(packageAt: inputURL) {
                 let workbook = try XLSXWorkbookParser.parse(packageAt: inputURL)
                 return .match(
                     AdapterInputInspection(
                         format: .xlsx,
                         priority: 108,
-                        expectedWarnings: warnings(for: workbook, format: .xlsx)
+                        expectedWarnings: warnings(for: workbook, format: .xlsx, kind: kind)
                     )
                 )
             }
@@ -158,6 +158,7 @@ struct SpreadsheetAdapter: DocumentConversionAdapter {
         }
         let stagedInput: URL
         let workbook: SpreadsheetWorkbook
+        var xlsxKind: OOXMLSpreadsheetKind?
         do {
             if context.format == .xls {
                 stagedInput = context.workDirectory.appendingPathComponent("verified-source.xls")
@@ -205,9 +206,10 @@ struct SpreadsheetAdapter: DocumentConversionAdapter {
                     }
                     workbook = try ODSWorkbookParser.parse(content)
                 } else {
-                    guard try XLSXWorkbookParser.looksLikeXLSX(packageAt: stagedInput) else {
+                    guard let kind = try XLSXWorkbookParser.spreadsheetKind(packageAt: stagedInput) else {
                         throw SpreadsheetError("the verified XLSX package changed after inspection")
                     }
+                    xlsxKind = kind
                     workbook = try XLSXWorkbookParser.parse(packageAt: stagedInput)
                 }
             }
@@ -255,16 +257,23 @@ struct SpreadsheetAdapter: DocumentConversionAdapter {
         return StagedConversionResult(
             markdownRelativePath: markdownName,
             assetRelativePaths: [],
-            warnings: warnings(for: workbook, format: context.format),
+            warnings: warnings(for: workbook, format: context.format, kind: xlsxKind),
             metadata: metadata
         )
     }
 
     private func warnings(
         for workbook: SpreadsheetWorkbook,
-        format: InputFormat
+        format: InputFormat,
+        kind: OOXMLSpreadsheetKind? = nil
     ) -> [ConversionWarning] {
         var result = [ConversionWarning]()
+        if kind?.hasMacros == true {
+            result.append(.spreadsheetMacrosNotPreserved)
+        }
+        if kind?.isTemplate == true {
+            result.append(.spreadsheetTemplateSemanticsNotPreserved)
+        }
         if workbook.hasFlattenedMerges {
             result.append(.spreadsheetMergesFlattened)
         }

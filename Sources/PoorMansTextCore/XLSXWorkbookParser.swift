@@ -1,5 +1,37 @@
 import Foundation
 
+/// Die vier OOXML-Tabellenarten, unterschieden allein über den Inhaltstyp von
+/// `xl/workbook.xml`.
+enum OOXMLSpreadsheetKind: Equatable, Sendable {
+    case workbook
+    case macroEnabledWorkbook
+    case template
+    case macroEnabledTemplate
+
+    init?(mainContentType: String) {
+        switch mainContentType.lowercased() {
+        case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml":
+            self = .workbook
+        case "application/vnd.ms-excel.sheet.macroenabled.main+xml":
+            self = .macroEnabledWorkbook
+        case "application/vnd.openxmlformats-officedocument.spreadsheetml.template.main+xml":
+            self = .template
+        case "application/vnd.ms-excel.template.macroenabledtemplate.main+xml":
+            self = .macroEnabledTemplate
+        default:
+            return nil
+        }
+    }
+
+    var hasMacros: Bool {
+        self == .macroEnabledWorkbook || self == .macroEnabledTemplate
+    }
+
+    var isTemplate: Bool {
+        self == .template || self == .macroEnabledTemplate
+    }
+}
+
 enum XLSXWorkbookParser {
     static func parse(packageAt url: URL) throws -> SpreadsheetWorkbook {
         let metadata = try ZIPArchiveInspector.packageContents(
@@ -16,7 +48,15 @@ enum XLSXWorkbookParser {
               let relationshipsXML = metadata.entries["xl/_rels/workbook.xml.rels"] else {
             throw ParserError("the XLSX package is missing workbook metadata")
         }
-        try validateMainContentType(contentTypes)
+        // Derselbe Inhaltstyp-Test wie in `spreadsheetKind`, hier nur als
+        // Wächter: Das Paket wurde bereits erkannt.
+        let kindDelegate = ContentTypesDelegate()
+        try parse(contentTypes, delegate: kindDelegate)
+        guard kindDelegate.hasValidRoot, kindDelegate.mainContentTypes.count == 1,
+              let mainType = kindDelegate.mainContentTypes.first,
+              OOXMLSpreadsheetKind(mainContentType: mainType) != nil else {
+            throw ParserError("xl/workbook.xml has no supported XLSX main content type")
+        }
 
         let sheetDefinitions = try WorkbookParser.parse(workbookXML)
         guard !sheetDefinitions.isEmpty else {
@@ -123,6 +163,14 @@ enum XLSXWorkbookParser {
     }
 
     static func looksLikeXLSX(packageAt url: URL) throws -> Bool {
+        try spreadsheetKind(packageAt: url) != nil
+    }
+
+    /// Welche OOXML-Tabellenart das Paket laut `[Content_Types].xml` ist;
+    /// `nil`, wenn es keine ist. Makrofähige Mappen und Vorlagen teilen den
+    /// Aufbau von XLSX, nur ihr Hauptinhaltstyp unterscheidet sie — wie bei
+    /// DOCM und DOTX im Word-Adapter.
+    static func spreadsheetKind(packageAt url: URL) throws -> OOXMLSpreadsheetKind? {
         let metadata = try ZIPArchiveInspector.packageContents(
             at: url,
             entryNames: ["[Content_Types].xml", "xl/workbook.xml", "xl/_rels/workbook.xml.rels"]
@@ -130,25 +178,19 @@ enum XLSXWorkbookParser {
         guard let contentTypes = metadata.entries["[Content_Types].xml"],
               metadata.entryNames.contains("xl/workbook.xml"),
               metadata.entryNames.contains("xl/_rels/workbook.xml.rels") else {
-            return false
+            return nil
         }
-        do {
-            try validateMainContentType(contentTypes)
-            return true
-        } catch {
-            return false
-        }
-    }
-
-    private static func validateMainContentType(_ xml: Data) throws {
         let delegate = ContentTypesDelegate()
-        try parse(xml, delegate: delegate)
-        guard delegate.hasValidRoot,
-              delegate.mainContentTypes == Set([
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"
-              ]) else {
-            throw ParserError("xl/workbook.xml has no supported XLSX main content type")
+        do {
+            try parse(contentTypes, delegate: delegate)
+        } catch {
+            return nil
         }
+        guard delegate.hasValidRoot, delegate.mainContentTypes.count == 1,
+              let type = delegate.mainContentTypes.first else {
+            return nil
+        }
+        return OOXMLSpreadsheetKind(mainContentType: type)
     }
 
     private static func normalizedWorksheetPath(_ target: String) throws -> String {
@@ -185,6 +227,7 @@ enum XLSXWorkbookParser {
     }
 
     private final class ContentTypesDelegate: NSObject, XMLParserDelegate {
+        // Die Prüfung des Inhaltstyps liegt in `spreadsheetKind`.
         var hasValidRoot = false
         var mainContentTypes = Set<String>()
         private var sawRoot = false

@@ -124,7 +124,9 @@ The default output directory is `Document-markdown` next to the source. Run
 commands work in a source checkout as `swift run poormans-text …`.
 
 Several inputs, or a folder, are converted one after another; a failure does
-not stop the remaining documents. A folder is searched recursively for
+not stop the remaining documents. A path that does not exist or a folder
+without supported documents is an argument error, though: the run stops
+before anything is converted. A folder is searched recursively for
 supported file extensions. Packages such as `.rtfd` count as one document,
 and hidden entries, symbolic links, and earlier `*-markdown` results are
 skipped. With `--output`, the directory becomes the parent that receives one

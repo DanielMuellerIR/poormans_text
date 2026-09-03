@@ -359,10 +359,19 @@ enum RTFInfoParser {
     }
 
     /// Text einer Gruppe: Steuerwörter überspringen, Escapes auflösen.
+    ///
+    /// `\uN` liefert UTF-16-Codeeinheiten, keine Unicode-Skalare: Ein Zeichen
+    /// außerhalb der BMP (etwa ein Emoji) kommt als zwei `\uN` mit negativen
+    /// Zahlen. Die Einheiten werden gesammelt und erst als Paar dekodiert.
+    /// `\ucN` legt fest, wie viele Ersatzzeichen nach jedem `\uN` zu
+    /// überspringen sind (Standard 1, `\uc0` keins); vorher galt immer 1 und
+    /// Surrogate gingen verloren (Review-Funde 2026-09-03).
     static func decodeText(_ body: [UInt8]) -> String {
         var scalars = [UInt8]()
+        var utf16Units = [UInt16]()
         var result = ""
         var index = 0
+        var fallbackCount = 1
         var skipAfterUnicode = 0
         func flushBytes() {
             guard !scalars.isEmpty else {
@@ -371,30 +380,48 @@ enum RTFInfoParser {
             result += String(decoding: scalars, as: UTF8.self)
             scalars.removeAll()
         }
+        func flushUTF16() {
+            guard !utf16Units.isEmpty else {
+                return
+            }
+            result += decodeUTF16(utf16Units)
+            utf16Units.removeAll()
+        }
+        /// Verbraucht ein Ersatzzeichen nach `\uN`; `true`, wenn es wegfällt.
+        func consumeFallback() -> Bool {
+            guard skipAfterUnicode > 0 else {
+                return false
+            }
+            skipAfterUnicode -= 1
+            return true
+        }
         while index < body.count {
             let byte = body[index]
             if byte == UInt8(ascii: "\\"), index + 1 < body.count {
                 let next = body[index + 1]
                 if next == UInt8(ascii: "'"), index + 3 < body.count,
                    let value = UInt8(String(decoding: body[(index + 2)...(index + 3)], as: UTF8.self), radix: 16) {
-                    if skipAfterUnicode > 0 {
-                        skipAfterUnicode -= 1
-                    } else {
+                    if !consumeFallback() {
                         flushBytes()
+                        flushUTF16()
                         result += windows1252Character(value)
                     }
                     index += 4
                     continue
                 }
                 if next == UInt8(ascii: "{") || next == UInt8(ascii: "}") || next == UInt8(ascii: "\\") {
-                    scalars.append(next)
+                    if !consumeFallback() {
+                        flushUTF16()
+                        scalars.append(next)
+                    }
                     index += 2
                     continue
                 }
-                if next == UInt8(ascii: "u") {
+                if next == UInt8(ascii: "u"), index + 2 < body.count,
+                   body[index + 2] == UInt8(ascii: "-") || isDigit(body[index + 2]) {
                     var end = index + 2
                     var negative = false
-                    if end < body.count, body[end] == UInt8(ascii: "-") {
+                    if body[end] == UInt8(ascii: "-") {
                         negative = true
                         end += 1
                     }
@@ -404,12 +431,15 @@ enum RTFInfoParser {
                     }
                     if end > digitsStart, let number = Int(String(decoding: body[digitsStart..<end], as: UTF8.self)) {
                         flushBytes()
-                        let codePoint = negative ? number + 65_536 : number
-                        if let scalar = Unicode.Scalar(codePoint) {
-                            result.unicodeScalars.append(scalar)
+                        // RTF schreibt Einheiten ab 32768 als negative Zahl:
+                        // `\u-10180` ist 65536 − 10180 = 0xD83C. Vorher wurde
+                        // addiert, was für jedes negative `\uN` ein falsches
+                        // Zeichen ergab.
+                        let unit = negative ? 65_536 - number : number
+                        if (0...0xFFFF).contains(unit) {
+                            utf16Units.append(UInt16(unit))
                         }
-                        // Das Ersatzzeichen nach `\uN` überspringen (`\uc1`-Standard).
-                        skipAfterUnicode = 1
+                        skipAfterUnicode = fallbackCount
                         if end < body.count, body[end] == UInt8(ascii: " ") {
                             end += 1
                         }
@@ -418,16 +448,22 @@ enum RTFInfoParser {
                     }
                 }
                 if isAlpha(next) {
-                    // Sonstiges Steuerwort samt Zahl und einem Leerzeichen.
-                    var end = index + 2
+                    // Sonstiges Steuerwort samt Zahl und einem Leerzeichen;
+                    // nur `\ucN` verändert den Zustand des Dekoders.
+                    var end = index + 1
                     while end < body.count, isAlpha(body[end]) {
                         end += 1
                     }
+                    let word = String(decoding: body[(index + 1)..<end], as: UTF8.self)
+                    let numberStart = end
                     if end < body.count, body[end] == UInt8(ascii: "-") {
                         end += 1
                     }
                     while end < body.count, isDigit(body[end]) {
                         end += 1
+                    }
+                    if word == "uc", let count = Int(String(decoding: body[numberStart..<end], as: UTF8.self)), count >= 0 {
+                        fallbackCount = count
                     }
                     if end < body.count, body[end] == UInt8(ascii: " ") {
                         end += 1
@@ -446,16 +482,39 @@ enum RTFInfoParser {
                 index += 1
                 continue
             }
-            if skipAfterUnicode > 0 {
-                skipAfterUnicode -= 1
+            if consumeFallback() {
                 index += 1
                 continue
             }
+            flushUTF16()
             scalars.append(byte)
             index += 1
         }
         flushBytes()
+        flushUTF16()
         return result
+    }
+
+    /// UTF-16-Einheiten zu Text; ein Surrogat ohne Partner fällt weg.
+    private static func decodeUTF16(_ units: [UInt16]) -> String {
+        var scalars = String.UnicodeScalarView()
+        var index = 0
+        while index < units.count {
+            let unit = units[index]
+            if UTF16.isLeadSurrogate(unit), index + 1 < units.count, UTF16.isTrailSurrogate(units[index + 1]) {
+                let value = 0x10000 + ((UInt32(unit) - 0xD800) << 10) + (UInt32(units[index + 1]) - 0xDC00)
+                if let scalar = Unicode.Scalar(value) {
+                    scalars.append(scalar)
+                }
+                index += 2
+                continue
+            }
+            if let scalar = Unicode.Scalar(unit) {
+                scalars.append(scalar)
+            }
+            index += 1
+        }
+        return String(scalars)
     }
 
     private static func windows1252Character(_ value: UInt8) -> String {

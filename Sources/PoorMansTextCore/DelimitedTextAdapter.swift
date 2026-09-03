@@ -147,10 +147,10 @@ enum DelimitedTextDecoder {
             return try decodeUTF8(data.dropFirst(3), truncated: truncated, strict: true)
         }
         if data.starts(with: [0xFF, 0xFE]) {
-            return try decodeUTF16(data.dropFirst(2), encoding: .utf16LittleEndian)
+            return try decodeUTF16(data.dropFirst(2), encoding: .utf16LittleEndian, truncated: truncated)
         }
         if data.starts(with: [0xFE, 0xFF]) {
-            return try decodeUTF16(data.dropFirst(2), encoding: .utf16BigEndian)
+            return try decodeUTF16(data.dropFirst(2), encoding: .utf16BigEndian, truncated: truncated)
         }
         guard !data.contains(0) else {
             throw DelimitedTextError("the file contains binary data, not delimited text")
@@ -180,7 +180,13 @@ enum DelimitedTextDecoder {
         return Decoded(text: text, assumedEncoding: true)
     }
 
-    private static func decodeUTF16(_ bytes: Data.SubSequence, encoding: String.Encoding) throws -> Decoded {
+    private static func decodeUTF16(_ bytes: Data.SubSequence, encoding: String.Encoding, truncated: Bool) throws -> Decoded {
+        // Ein halbes Codeunit am Ende ist nur im abgeschnittenen Prüffenster
+        // harmlos. In der vollständigen Datei ist es ein Defekt, der sonst
+        // still ein Zeichen verlieren würde (Review-Fund 2026-09-03).
+        guard bytes.count % 2 == 0 || truncated else {
+            throw DelimitedTextError("the file has a UTF-16 byte-order mark but ends in half a character")
+        }
         let even = bytes.count % 2 == 0 ? Data(bytes) : Data(bytes.dropLast())
         guard let text = String(data: even, encoding: encoding) else {
             throw DelimitedTextError("the file has a UTF-16 byte-order mark but invalid UTF-16 text")
@@ -273,6 +279,11 @@ enum DelimitedTextParser {
             default:
                 field.append(character)
             }
+        }
+        // Ein am Dateiende noch offenes Anführungsfeld ist ein Syntaxfehler;
+        // stillschweigend abzuschließen würde Trennzeichen und Zeilen verfälschen.
+        guard !inQuotes else {
+            throw DelimitedTextError("the file ends inside a quoted field")
         }
         // Die letzte Zeile ohne Zeilenende zählt; eine leere Datei ergibt keine Zeile.
         if !field.isEmpty || !row.isEmpty {

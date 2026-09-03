@@ -346,6 +346,8 @@
                 <string>com.adobe.pdf</string>
                 <string>com.apple.rtfd</string>
                 <string>com.microsoft.excel.xls</string>
+                <string>com.microsoft.excel.sheet.macroenabled</string>
+                <string>com.microsoft.excel.template</string>
                 <string>com.microsoft.word.doc</string>
                 <string>org.oasis-open.opendocument.spreadsheet</string>
                 <string>org.oasis-open.opendocument.text</string>
@@ -355,6 +357,7 @@
                 <string>public.comma-separated-values-text</string>
                 <string>public.tab-separated-values-text</string>
                 <string>public.html</string>
+                <string>public.xhtml</string>
                 <string>com.apple.webarchive</string>
                 <string>org.idpf.epub-container</string>
                 <string>public.folder</string>

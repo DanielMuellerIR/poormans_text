@@ -99,6 +99,13 @@ public struct InputEnumerator: Sendable {
             result.append(input)
         }
 
+        // Ein fehlender Pfad oder ein leerer Ordner bricht die
+        // ganze Aufzählung ab, bevor ein Dokument umgewandelt wird — das ist
+        // ein Argumentfehler des Aufrufers, kein Dokumentfehler. Die
+        // Fortsetzung „ein Fehler hält die übrigen nicht auf" gilt für die
+        // Umwandlung der gefundenen Dokumente; CLI (Exit 66) und App zeigen
+        // den Argumentfehler sofort (Tests in CLIBatchTests und
+        // AppModelBatchTests, README-Absatz zum Mehrfachlauf).
         for root in roots.map(\.standardizedFileURL) {
             var isDirectory: ObjCBool = false
             guard FileManager.default.fileExists(atPath: root.path, isDirectory: &isDirectory) else {

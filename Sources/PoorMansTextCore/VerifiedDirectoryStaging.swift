@@ -112,7 +112,18 @@ enum VerifiedDirectoryStaging {
         }
         defer { closedir(directory) }
 
-        while let entry = readdir(directory) {
+        while true {
+            // `readdir` liefert `nil` sowohl am Ende der Liste als auch bei einem
+            // Lesefehler; nur `errno` unterscheidet beides. Ohne die Prüfung galt
+            // ein halb gelesenes Paket als vollständiger Snapshot
+            // (Review-Fund 2026-09-03).
+            errno = 0
+            guard let entry = readdir(directory) else {
+                guard errno == 0 else {
+                    throw StagingError(reason: "\(subject) could not be enumerated completely")
+                }
+                break
+            }
             let name = withUnsafePointer(to: &entry.pointee.d_name) { pointer in
                 pointer.withMemoryRebound(to: CChar.self, capacity: Int(NAME_MAX) + 1) {
                     String(cString: $0)

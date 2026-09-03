@@ -53,6 +53,20 @@ All notable changes to this project will be documented in this file.
 - Accept GIF, BMP, and WebP images. They are stored byte for byte as assets and
   get the same optional local OCR as PNG, JPEG, HEIC, and TIFF.
 
+- Review fixes (2026-09-03): image references in HTML, webarchives, and
+  Pandoc-generated HTML only stay as links for `http`, `https`, `ftp`, and
+  `ftps`, even when a web base URL would resolve `javascript:` or other
+  schemes; local images are copied through the verified, size-bounded staging
+  path and special files such as FIFOs are dropped as missing; unquoted
+  `src`/`alt` attributes are read; webarchives saved from `file:` pages find
+  their subresources. RTF metadata honours `\ucN` and decodes surrogate pairs.
+  CSV/TSV rejects UTF-16 files that end in half a character and quoted fields
+  left open at the end. Package snapshots fail on a directory read error
+  instead of passing as complete. The app stays busy from the moment a drop
+  is accepted, reports a clipboard write that failed, and the Finder service
+  lists the macro-enabled and template Excel types and XHTML. A symbolic link
+  that changes while its format is being detected is rejected.
+
 ## 0.9.1 - 2026-08-30
 
 - Inspect PDF, DOC, and standalone RTF only through bounded private copies before

@@ -94,8 +94,6 @@ public struct DocumentConverter: Sendable {
     ) throws -> ConversionResult {
         progress?(ConversionProgress(phase: .detectingInput))
         let inputURL = request.inputURL.standardizedFileURL
-        let detected = try detectInput(at: inputURL)
-        let format = detected.inspection.format
         // Die echte Quelle wird GENAU EINMAL aufgelöst. Vorher löste jede Stufe
         // für sich auf: die Ausgabeprüfung vor dem Umwandeln, der Adapter beim
         // Lesen und die Ausgabeprüfung vor dem Veröffentlichen. Zeigte ein
@@ -103,7 +101,23 @@ public struct DocumentConverter: Sendable {
         // dazwischen Paket B erfasste, kam ein Ziel INNERHALB von B durch beide
         // Prüfungen — und die Umwandlung schrieb in das Quelldokument, das sie
         // gerade las (Review-Fund 2026-08-20).
+        //
+        // Die Erkennung läuft bewusst auf `inputURL`, weil Endungs-Adapter
+        // (CSV, Pandoc-Textformate) den Namen des Links brauchen. Damit
+        // Formatentscheidung und konvertierte Quelle dasselbe Objekt sind, wird
+        // vor und nach der Erkennung aufgelöst; weichen beide Ergebnisse ab,
+        // wurde der Link währenddessen umgehängt (Review-Fund 2026-09-03).
+        let resolvedBeforeDetection = inputURL.resolvingSymlinksInPath()
+        let detected = try detectInput(at: inputURL)
+        let format = detected.inspection.format
         let resolvedInputURL = inputURL.resolvingSymlinksInPath()
+        guard resolvedInputURL == resolvedBeforeDetection else {
+            throw ConversionError.invalidInput(
+                inputURL,
+                format: format,
+                reason: "the input changed while it was being inspected"
+            )
+        }
 
         progress?(ConversionProgress(phase: .preparingOutput, format: format))
         let destination = try resolveDestination(for: request, inputURL: inputURL)

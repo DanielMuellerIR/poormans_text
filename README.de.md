@@ -129,7 +129,9 @@ Standardmäßig entsteht `Dokument-markdown` neben der Quelle. Alle Optionen zei
 Quellcode-Verzeichnis als `swift run poormans-text …`.
 
 Mehrere Eingaben oder ein Ordner werden nacheinander umgewandelt; ein Fehler
-hält die übrigen Dokumente nicht auf. Ein Ordner wird rekursiv nach bekannten
+hält die übrigen Dokumente nicht auf. Ein nicht vorhandener Pfad oder ein
+Ordner ohne bekannte Dokumente ist dagegen ein Argumentfehler: Der Lauf
+endet, bevor etwas umgewandelt wird. Ein Ordner wird rekursiv nach bekannten
 Dateiendungen durchsucht. Pakete wie `.rtfd` zählen als ein Dokument;
 versteckte Einträge, symbolische Links und frühere `*-markdown`-Ergebnisse
 werden übergangen. Mit `--output` wird das Verzeichnis zum Elternordner, der je

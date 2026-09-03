@@ -76,8 +76,15 @@ public final class AppModel: ObservableObject {
     /// Nimmt die App gerade eine neue Datei an? Während einer laufenden
     /// Umwandlung oder Pandoc-Installation bleibt nur ein Auftrag aktiv.
     public var acceptsNewDocuments: Bool {
-        !isConverting && !isInstallingPandoc
+        !isConverting && !isInstallingPandoc && pendingDrops == 0
     }
+
+    /// Angenommene Drops, deren Datei-URLs noch geladen werden. Solange einer
+    /// aussteht, ist die App belegt: Vorher konnte ein zweiter Drop, ein
+    /// Finder-Dienst oder ein Öffnen in diesem Fenster ebenfalls angenommen
+    /// werden, und `convert(_:)` verwarf den späteren Auftrag stumm
+    /// (Review-Fund 2026-09-03).
+    private var pendingDrops = 0
 
     public init() {}
 
@@ -175,7 +182,9 @@ public final class AppModel: ObservableObject {
 
         // Alle abgelegten Einträge einsammeln, erst dann einmal umwandeln. Die
         // Reihenfolge bleibt die des Drops, weil jeder Eintrag nacheinander
-        // abgewartet wird.
+        // abgewartet wird. Die Reservierung gilt ab jetzt, noch vor dem ersten
+        // `await`, und endet unmittelbar vor `convert`.
+        pendingDrops += 1
         Task { @MainActor in
             var urls = [URL]()
             for provider in fileProviders {
@@ -183,6 +192,7 @@ public final class AppModel: ObservableObject {
                     urls.append(url)
                 }
             }
+            pendingDrops -= 1
             convert(urls)
         }
         return true
@@ -301,8 +311,14 @@ public final class AppModel: ObservableObject {
                 let outcome = try await Task.detached(priority: .userInitiated) {
                     try RichTextClipboard.convert(source, options: options)
                 }.value
+                // `setString` meldet `false`, wenn inzwischen ein anderer
+                // Prozess die Zwischenablage übernommen hat; dann wäre
+                // „copied" eine Falschmeldung.
                 outputPasteboard.clearContents()
-                outputPasteboard.setString(outcome.markdown, forType: .string)
+                guard outputPasteboard.setString(outcome.markdown, forType: .string) else {
+                    state = .failed(input: nil, message: "The Markdown could not be placed on the clipboard.")
+                    return
+                }
                 state = .copiedToClipboard(outcome)
             } catch {
                 state = .failed(input: nil, message: error.localizedDescription)

@@ -8,6 +8,9 @@ enum AppErrorMessage {
         func format(_ key: String, _ values: CVarArg...) -> String {
             String(format: bundle.localizedString(forKey: key, value: nil, table: nil), arguments: values)
         }
+        if let error = error as? OCRLanguageSelection.SelectionError {
+            return format("Invalid OCR language selection: %@", error.reason)
+        }
         if let error = error as? ConversionError {
             switch error {
             case .cancelled: return format("Conversion cancelled.")

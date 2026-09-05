@@ -88,6 +88,53 @@ final class SpreadsheetAdapterTests: XCTestCase {
         XCTAssertTrue(markdown.contains("[Site](https://example.com/a_%28b%29)"), markdown)
     }
 
+    func testODSLocationsIncludeDeferredEmptyRowsAndCells() throws {
+        for (emptyRows, emptyColumns, expected) in [(0, 1, "B1"), (1, 0, "A2"), (3, 2, "C4")] {
+            let precedingRows = emptyRows == 0 ? "" : "<table:table-row table:number-rows-repeated=\"\(emptyRows)\"><table:table-cell/></table:table-row>"
+            let precedingCells = emptyColumns == 0 ? "" : "<table:table-cell table:number-columns-repeated=\"\(emptyColumns)\"/>"
+            let xml = """
+            <office:document-content xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
+              xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0"
+              xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"
+              xmlns:xlink="http://www.w3.org/1999/xlink">
+              <office:body><office:spreadsheet><table:table table:name="Positions">
+                \(precedingRows)
+                <table:table-row table:number-rows-repeated="2">
+                  \(precedingCells)
+                  <table:table-cell table:number-columns-repeated="2" table:number-columns-spanned="2" office:value-type="string">
+                    <text:p><text:a xlink:href="javascript:alert(1)">Kept link text</text:a></text:p>
+                  </table:table-cell>
+                </table:table-row>
+              </table:table></office:spreadsheet></office:body>
+            </office:document-content>
+            """
+            let source = temporaryDirectory.appendingPathComponent("locations-\(expected).ods")
+            try ZIPFixtureBuilder.odsPackage(contentXML: xml).write(to: source)
+            let before = try Data(contentsOf: source)
+            let result = try DocumentConverter().convert(ConversionRequest(inputURL: source))
+            let details = result.diagnostics.filter { $0.location != nil }
+            XCTAssertEqual(details.map(\.code), ["spreadsheet.mergesFlattened", "spreadsheet.hyperlinkNotPreserved"])
+            XCTAssertEqual(details.compactMap { $0.location?.cell }, [expected, expected])
+            XCTAssertTrue(details.allSatisfy { $0.location?.sheet == "Positions" })
+            let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+            XCTAssertEqual(markdown.components(separatedBy: "Kept link text").count - 1, 4)
+            XCTAssertEqual(try Data(contentsOf: source), before)
+        }
+    }
+
+    func testMissingFormulaLocationsAreBoundedAndCountOmissions() throws {
+        let cells = (1...300).map { "<row r=\"\($0)\"><c r=\"A\($0)\"><f>1+1</f></c></row>" }.joined()
+        let xml = "<worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><sheetData>\(cells)</sheetData></worksheet>"
+        let source = temporaryDirectory.appendingPathComponent("many-formulas.xlsx")
+        try ZIPFixtureBuilder.xlsxPackage(firstSheetXML: xml, secondSheetXML: secondXLSXSheet).write(to: source)
+        let result = try DocumentConverter().convert(ConversionRequest(inputURL: source))
+        let details = result.diagnostics.filter { $0.code == "spreadsheet.formulaResultMissing" && $0.location != nil }
+        XCTAssertEqual(details.count, 256)
+        XCTAssertEqual(details.first?.location?.cell, "A1")
+        XCTAssertEqual(details.last?.location?.cell, "A256")
+        XCTAssertTrue(result.diagnostics.contains { $0.code == "diagnostics.locationsLimited" && $0.message.contains("44 further") })
+    }
+
     func testGeneratedODSReportsFlattenedMergeAndMissingFormulaResult() throws {
         let sourceURL = temporaryDirectory.appendingPathComponent("Generated.ods")
         try ZIPFixtureBuilder.odsPackage(contentXML: generatedODSContent).write(to: sourceURL)
@@ -104,7 +151,10 @@ final class SpreadsheetAdapterTests: XCTestCase {
                 destination: .directory(temporaryDirectory.appendingPathComponent("generated-result"))
             )
         )
-        XCTAssertEqual(result.diagnostics.map(\.code), inspection.expectedWarnings.map(\.code))
+        XCTAssertEqual(result.diagnostics.filter { $0.location == nil }.map(\.code), inspection.expectedWarnings.map(\.code))
+        let locations = result.diagnostics.compactMap(\.location)
+        XCTAssertEqual(locations.count, 2)
+        XCTAssertTrue(locations.allSatisfy { $0.sheet != nil && $0.cell != nil })
         XCTAssertTrue(
             try String(contentsOf: result.markdownFile, encoding: .utf8)
                 .contains("| Merged |  |")
@@ -406,7 +456,9 @@ final class SpreadsheetAdapterTests: XCTestCase {
             _Empty sheet._
             """ + "\n"
         )
-        XCTAssertEqual(result.diagnostics.map(\.code), ["spreadsheet.unsupportedObjects"])
+        XCTAssertEqual(result.diagnostics.map(\.code), ["spreadsheet.unsupportedObjects", "spreadsheet.hyperlinkNotPreserved"])
+        XCTAssertNotNil(result.diagnostics.last?.location?.sheet)
+        XCTAssertNotNil(result.diagnostics.last?.location?.cell)
     }
 
     func testXLSXPreservesAWorksheetHyperlinkRelationshipInMarkdown() throws {

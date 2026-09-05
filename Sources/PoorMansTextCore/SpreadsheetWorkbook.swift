@@ -48,6 +48,7 @@ struct SpreadsheetSheet: Equatable, Sendable {
 
 struct SpreadsheetWorkbook: Equatable, Sendable {
     var sheets: [SpreadsheetSheet]
+    var locatedDiagnostics: [ConversionWarning] = []
     var hasFlattenedMerges = false
     var hasFormulaWithoutResult = false
     var hasUnsupportedObjects = false

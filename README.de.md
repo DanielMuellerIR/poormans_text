@@ -348,9 +348,9 @@ ODM-Masterdokumente behalten ihren eigenen Text und lösen nur
 vorhandene lokale ODT-Abschnitte sicher auf, bevor sie diese in Quellreihenfolge
 zusammenführen.
 
-PDFKit liest eingebetteten PDF-Text. Seiten mit weniger als 20 extrahierten
-Zeichen rendert der Konverter lokal und liest sie mit Vision-OCR; das Markdown
-behält sichtbare Seitenabschnitte. Passwortgeschützte PDFs, mehr als 1.000 Seiten
+PDFKit liest eingebetteten PDF-Text. Die Automatik rendert Seiten mit größeren
+Bildressourcen oder weniger als 20 extrahierten Zeichen und liest sie lokal
+mit Vision-OCR. Das Markdown behält sichtbare Seitenabschnitte. Passwortgeschützte PDFs, mehr als 1.000 Seiten
 und OCR-Arbeit über dem 64-Millionen-Pixel-Budget werden vor der Veröffentlichung
 abgelehnt. Weder PDFKit noch Vision öffnen entfernte Inhalte.
 
@@ -426,7 +426,7 @@ Erwartbare Verluste oder Annäherungen:
 - mehrere unterschiedliche Linkziele in einer Tabellenzelle; das erste Ziel und
   der gesamte sichtbare Text bleiben, das weitere Ziel wird als Warnung gemeldet
 - ODM-Abschnittsgrenzen und Masterdokumentverhalten nach dem Zusammenführen
-- PDF-Seitenlayout, Spalten, Tabellen, Kopf- und Fußzeilen sowie genaue
+- Komplexes PDF-Seitenlayout, Tabellen sowie genaue
   Textpositionen; lokale OCR kann Erkennungsfehler enthalten und braucht Prüfung
 - OCR-Lesereihenfolge und genaues Layout von Bildern; das erhaltene Originalbild
   bleibt die maßgebliche Quelle zur Prüfung
@@ -478,3 +478,14 @@ der App liegt.
 Poor Man's Text verarbeitet Dokumente lokal und enthält keine Telemetrie. Der
 einzige Netzwerkzugriff ist die Update-Suche. Einzelheiten stehen in
 [PRIVACY.md](PRIVACY.md), Hinweise zum Support in [SUPPORT.md](SUPPORT.md).
+
+### PDF-Text und OCR-Optionen
+
+`--pdf-ocr auto|always|off` steuert lokale OCR; die Automatik erkennt auch
+Scanbilder unter digitalen Kopfzeilen. `--ocr-language de,en` wählt lokal von
+Vision unterstützte Sprachen für PDF- und Bildimporte. `--pdf-layout auto|legacy`
+wählt zweispaltige Textordnung oder die bisherige Extraktion zum Vergleich.
+`--pdf-remove-headers-footers` entfernt wiederkehrenden Text am Seitenrand;
+`--pdf-dehyphenate` verbindet auf Wunsch vorsichtig kleingeschriebene Wortteile.
+Die App merkt sich diese Einstellungen. Digitaler Quelltext bleibt erhalten,
+wenn OCR Text ergänzt. Heuristiken und Grenzen: [PDF-Import](docs/PDF-IMPORT.md).

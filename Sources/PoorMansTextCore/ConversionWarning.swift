@@ -4,10 +4,12 @@ import Foundation
 public struct ConversionWarning: Codable, Hashable, Sendable {
     public let code: String
     public let message: String
+    public let location: ConversionLocation?
 
-    public init(code: String, message: String) {
+    public init(code: String, message: String, location: ConversionLocation? = nil) {
         self.code = code
         self.message = message
+        self.location = location
     }
 }
 
@@ -176,4 +178,22 @@ extension ConversionWarning {
         code: "image.textUnavailable",
         message: "No text could be extracted from at least one image frame."
     )
+}
+
+/// Optionale, einsbasierte Fundstelle; alte Warnungs-JSONs ohne location bleiben lesbar.
+public struct ConversionLocation: Codable, Hashable, Sendable {
+    public let page: Int?
+    public let sheet: String?
+    public let cell: String?
+    public init(page: Int? = nil, sheet: String? = nil, cell: String? = nil) {
+        self.page = page
+        self.sheet = sheet
+        self.cell = cell
+    }
+}
+
+extension ConversionWarning {
+    func at(_ location: ConversionLocation) -> ConversionWarning {
+        ConversionWarning(code: code, message: message, location: location)
+    }
 }

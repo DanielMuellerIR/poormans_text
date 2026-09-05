@@ -1,9 +1,8 @@
 # Nativer PDF-Import
 
 Poor Man's Text liest PDF-Dateien ohne Pandoc oder Netzverbindung. Der Adapter
-arbeitet erst mit PDFKit und setzt Vision nur für Seiten ein, auf denen PDFKit
-nicht genug eingebetteten Text liefert. Das Ergebnis ist eine Inhaltsübernahme,
-keine Nachbildung des Seitenlayouts.
+liest eingebetteten Text mit PDFKit und ergänzt bei Bedarf lokale Vision-OCR.
+Zweispaltigen Text ordnet er nach Positionen; er bildet keine PDF-Seiten nach.
 
 ## Erkennung und Grenzen
 
@@ -22,9 +21,15 @@ Schritte nur diese Kopie.
 
 Jede Ausgabe beginnt mit dem Quelldateinamen und enthält für jede PDF-Seite einen
 eigenen `## Page N`-Abschnitt. PDFKit liefert den eingebetteten Seitentext zuerst.
-Bleiben nach Bereinigung weniger als 20 Zeichen, rendert der Adapter die Seite
-mit maximal doppelter PDF-Auflösung und liest das Bild lokal mit Vision in der
-genauen Erkennungsstufe.
+`--pdf-ocr auto` (Standard) plant OCR bei weniger als 20 Textzeichen oder
+bei einer größeren Bildressource (mindestens 256 × 128 Pixel), auch innerhalb
+von Form-XObjects. So verdeckt ein digitaler Kopf keinen gescannten Hauptteil.
+Das kann bei Fotos oder ungenutzten Bildressourcen zusätzliche OCR auslösen.
+`--pdf-ocr always` liest jede Seite mit Vision; `--pdf-ocr off` rendert keine
+OCR-Seiten. `--ocr-language de,en` beschränkt PDF- und Bild-OCR auf lokal
+unterstützte Sprachen; ohne Liste entscheidet Vision automatisch. Unbekannte
+oder leere Sprachcodes sind Eingabefehler. Alle Optionen sind auch in den
+gemerkten App-Einstellungen verfügbar.
 
 Die Rasterung ist begrenzt: eine Seite darf höchstens 16 Millionen Pixel haben;
 alle OCR-Seiten zusammen höchstens 64 Millionen Pixel. Der Adapter berechnet
@@ -35,9 +40,33 @@ Ergebnisse mit geringer Erkennungswahrscheinlichkeit erscheinen als
 64 MiB; durch das Maskieren bleibt das erzeugte Markdown damit innerhalb des
 128-MiB-Ausgabebudgets.
 
-Der bereits gelesene eingebettete Text bleibt dabei der Rückfall: Findet Vision
-auf der gerenderten Seite nichts oder scheitert sie, steht weiterhin das im
-Ergebnis, was PDFKit gelesen hat.
+Eingebetteter Text bleibt vollständig erhalten. Der Adapter ergänzt OCR-Zeilen
+und entfernt nur räumlich überlappende, exakt textgleiche Dubletten. Abweichende
+OCR-Lesarten können deshalb zusätzlich zum digitalen Original erscheinen.
+
+Die automatische Textordnung liest Zeichen über `PDFSelection`, prüft den
+nichtleeren Zeichenbestand und trennt große horizontale Lücken. Mindestens zwei
+Zeilen auf jeder Seite der Seitenmitte erlauben zwei Spalten: links vollständig,
+dann rechts, mit breiten Zwischenüberschriften als Abschnittsgrenzen. Rotation,
+RTL-Schrift, mehr als 100.000 UTF-16-Zeichen auf einer Seite, ungültige Positionen
+oder abweichende Zeichen fallen auf den gesamten
+PDFKit-Originaltext zurück und melden `pdf.layoutFallback`. Unsymmetrische oder
+mehr als zwei Spalten bleiben eine Grenze dieser Heuristik.
+
+`--pdf-remove-headers-footers` entfernt optional identischen Text in den oberen
+oder unteren zehn Prozent, wenn er auf mindestens zwei und 60 Prozent aller
+Seiten in derselben Randzone vorkommt. Gleichlautender Haupttext bleibt erhalten;
+wechselnde Seitennummern werden nicht normalisiert. Die Diagnose nennt die Seite.
+Soft-Hyphens werden bereinigt. `--pdf-dehyphenate` verbindet zusätzlich nur lange
+kleingeschriebene Wortteile an benachbarten Zeilen derselben Spalte (mindestens
+vier Zeichen vor und drei nach dem Trennstrich). Das bleibt eine opt-in Heuristik,
+keine Wörterbuchprüfung; echte Bindestrichwörter können betroffen sein.
+
+`--pdf-layout legacy` erhält die bisherige PDFKit-/OCR-Extraktion als Vergleich.
+Ohne weitere Optionen bleibt ihre Ausgabe bytegleich zur früheren CLI, inklusive
+ihrer damaligen Rasterorientierung. Spalten- und Randbereinigung wirken nur im
+automatischen Layout. Neue automatische OCR rendert in PDF-Koordinaten; ein
+zusätzlicher Y-Flip hatte Rastertext aufrecht erzeugter PDFs bisher gespiegelt.
 
 `pdf.ocrApplied` weist auf verwendete lokale OCR hin. Bleibt eine Seite ganz
 ohne Text, steht im Seitenabschnitt eine sichtbare Leermeldung und der Adapter
@@ -47,7 +76,7 @@ meldet `pdf.pageTextUnavailable`; bei einem Vision-Fehler kommt zusätzlich
 
 ## Bewusste Grenzen
 
-PDF-Spalten, Tabellen, Kopf- und Fußzeilen, exakte Textpositionen, Bilder und
+Komplexe PDF-Spalten, Tabellen, exakte Textpositionen, Bilder und
 Vektorzeichnungen bleiben nicht erhalten. Der Adapter extrahiert PDF-Bilder nicht
 als Assets: Ohne eine verlässliche Position im Text würde ihre Reihenfolge ein
 falsches Ergebnis suggerieren. Markdown-Metazeichen aus PDFKit und Vision werden
@@ -57,3 +86,15 @@ einen Link in der Ausgabe erzeugt.
 Die Tests erzeugen echte mehrseitige PDFs, prüfen den Text und die unveränderte
 Quelle und decken OCR-Fallback, falsche Signaturen, Verschlüsselung sowie Seiten-
 und Pixelbudgets ab.
+
+## Nachweis
+
+`PDFQualityTests` erzeugt ohne Fenster drei echte CoreText/CoreGraphics-PDFs:
+eine gemischte Seite mit digitalem Kopf und sechs gerasterten Sätzen, zwei
+Spalten mit je acht eindeutigen Zeilen und drei Seiten mit wiederkehrenden
+Rändern sowie einem identischen Kopftext im Hauptteil. Tests prüfen jeden Satz,
+jede Zeile genau einmal, Spaltenreihenfolge, OCR aus/immer, Randbereinigung und
+unveränderte Quellenbytes. Ein unabhängiger Lauf dieser Dokumente gegen die
+vorherige CLI bestätigte bytegleiche Legacy-Ausgaben und den zuvor fehlenden
+Rastertext. Die Fixtures enthalten kontrollierten Text; komplexe reale Layouts
+und OCR-Genauigkeit bleiben dokumentabhängig.

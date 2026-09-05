@@ -7,6 +7,7 @@ import Vision
 /// damit der Nutzer sie im Kontext des erhaltenen Originalbildes prüfen kann.
 struct VisionTextRecognition: Sendable {
     let text: String
+    let lines: [VisionTextRecognizer.OCRLine]
 }
 
 /// Gemeinsame Vision-Konfiguration für Bildimport und PDF-OCR. Beide Wege
@@ -14,13 +15,15 @@ struct VisionTextRecognition: Sendable {
 enum VisionTextRecognizer {
     static func recognize(
         in image: CGImage,
-        orientation: CGImagePropertyOrientation = .up
+        orientation: CGImagePropertyOrientation = .up,
+        languages: [String] = []
     ) throws -> VisionTextRecognition {
         try ConversionExecution.check()
         let request = VNRecognizeTextRequest()
         request.recognitionLevel = .accurate
         request.usesLanguageCorrection = true
-        request.automaticallyDetectsLanguage = true
+        request.automaticallyDetectsLanguage = languages.isEmpty
+        if !languages.isEmpty { request.recognitionLanguages = languages }
         request.minimumTextHeight = minimumTextHeight
         let handler = VNImageRequestHandler(cgImage: image, orientation: orientation)
         try handler.perform([request])
@@ -38,7 +41,7 @@ enum VisionTextRecognizer {
             return OCRLine(text: text, bounds: observation.boundingBox)
         }
         let ordered = readingOrder(lines)
-        return VisionTextRecognition(text: normalizedText(ordered.map(\.text).joined(separator: "\n")))
+        return VisionTextRecognition(text: normalizedText(ordered.map(\.text).joined(separator: "\n")), lines: ordered)
     }
 
     /// Leserichtung: erst oben nach unten in Baender, dann in jedem Band links
@@ -105,7 +108,7 @@ enum VisionTextRecognizer {
     private static let minimumConfidence: Float = 0.55
     private static let lineGroupingTolerance: CGFloat = 0.015
 
-    struct OCRLine {
+    struct OCRLine: Sendable {
         let text: String
         let bounds: CGRect
     }

@@ -331,9 +331,9 @@ table or as an escaped TSV code block. Formulas are not calculated; stored
 cell results are used. ODM master documents keep their own text and safely
 resolve only existing local ODT sections before flattening them in source order.
 
-PDF uses PDFKit for embedded text. Pages with fewer than 20 extracted characters
-are rendered locally and read with Vision OCR; the Markdown keeps explicit page
-sections. Password-protected PDFs, more than 1,000 pages, and OCR work above the
+PDF uses PDFKit for embedded text. Automatic OCR renders pages with larger
+embedded images or fewer than 20 extracted characters and reads them locally
+with Vision. The Markdown keeps explicit page sections. Password-protected PDFs, more than 1,000 pages, and OCR work above the
 64-million-pixel budget are rejected before publication. Neither PDFKit nor Vision
 opens remote content.
 
@@ -408,7 +408,7 @@ Expected losses or approximations:
 - multiple different hyperlink targets in one spreadsheet cell; the first target
   and all visible text stay, while the additional target is reported as a warning
 - ODM section boundaries and master-document behavior after flattening
-- PDF page layout, columns, tables, headers, footers, and exact text placement;
+- complex PDF page layout, tables, and exact text placement;
   local OCR can contain recognition errors and needs review
 - image OCR reading order and exact layout; the retained original image remains
   the authoritative source for review
@@ -458,3 +458,14 @@ subject to its own license, which ships with the app as
 Poor Man's Text processes documents locally and includes no telemetry. Its only
 network access is the update check. Details are in [PRIVACY.md](PRIVACY.md);
 support information is in [SUPPORT.md](SUPPORT.md).
+
+### PDF text and OCR options
+
+`--pdf-ocr auto|always|off` selects local OCR; automatic mode also recognizes
+scan images below digital headers. `--ocr-language de,en` sets shared PDF/image
+languages supported by the local Vision installation. `--pdf-layout auto|legacy`
+selects two-column ordering or the previous extraction for comparison.
+`--pdf-remove-headers-footers` removes repeated text at page margins;
+`--pdf-dehyphenate` optionally joins conservative lowercase word breaks.
+The app remembers these settings. Original embedded text remains present when
+OCR adds text. Heuristics and limits: [PDF import](docs/PDF-IMPORT.md).

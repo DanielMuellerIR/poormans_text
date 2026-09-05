@@ -81,7 +81,7 @@ struct SpreadsheetAdapter: DocumentConversionAdapter {
                         AdapterInputInspection(
                             format: .xls,
                             priority: 108,
-                            expectedWarnings: warnings(for: workbook, format: .xls)
+                            expectedWarnings: try warnings(for: workbook, format: .xls)
                         )
                     )
                 }
@@ -120,7 +120,7 @@ struct SpreadsheetAdapter: DocumentConversionAdapter {
                     AdapterInputInspection(
                         format: .ods,
                         priority: 108,
-                        expectedWarnings: warnings(for: workbook, format: .ods)
+                        expectedWarnings: try warnings(for: workbook, format: .ods)
                     )
                 )
             }
@@ -130,7 +130,7 @@ struct SpreadsheetAdapter: DocumentConversionAdapter {
                     AdapterInputInspection(
                         format: .xlsx,
                         priority: 108,
-                        expectedWarnings: warnings(for: workbook, format: .xlsx, kind: kind)
+                        expectedWarnings: try warnings(for: workbook, format: .xlsx, kind: kind)
                     )
                 )
             }
@@ -259,7 +259,7 @@ struct SpreadsheetAdapter: DocumentConversionAdapter {
         return StagedConversionResult(
             markdownRelativePath: markdownName,
             assetRelativePaths: [],
-            warnings: warnings(for: workbook, format: context.format, kind: xlsxKind),
+            warnings: try warnings(for: workbook, format: context.format, kind: xlsxKind, includeLocations: true),
             metadata: metadata
         )
     }
@@ -267,8 +267,9 @@ struct SpreadsheetAdapter: DocumentConversionAdapter {
     private func warnings(
         for workbook: SpreadsheetWorkbook,
         format: InputFormat,
-        kind: OOXMLSpreadsheetKind? = nil
-    ) -> [ConversionWarning] {
+        kind: OOXMLSpreadsheetKind? = nil,
+        includeLocations: Bool = false
+    ) throws -> [ConversionWarning] {
         var result = [ConversionWarning]()
         if kind?.hasMacros == true {
             result.append(.spreadsheetMacrosNotPreserved)
@@ -287,6 +288,26 @@ struct SpreadsheetAdapter: DocumentConversionAdapter {
         }
         if format == .xls {
             result.append(.legacySpreadsheetPotentialLoss)
+        }
+        guard includeLocations else { return result }
+        result += workbook.locatedDiagnostics
+        var detailed = 0
+        var omittedFormulas = 0
+        for sheet in workbook.sheets {
+            for (rowIndex, row) in sheet.rows.enumerated() {
+                try ConversionExecution.check()
+                for (columnIndex, cell) in row.enumerated() where cell.formula != nil && cell.displayText.isEmpty {
+                    guard detailed < 256 else { omittedFormulas += 1; continue }
+                    var column = columnIndex + 1
+                    var name = ""
+                    while column > 0 { column -= 1; name = String(UnicodeScalar(65 + column % 26)!) + name; column /= 26 }
+                    result.append(ConversionWarning.spreadsheetFormulaResultMissing.at(ConversionLocation(sheet: sheet.name, cell: "\(name)\(rowIndex + 1)")))
+                    detailed += 1
+                }
+            }
+        }
+        if workbook.locatedDiagnostics.count >= 256 || omittedFormulas > 0 {
+            result.append(ConversionWarning(code: "diagnostics.locationsLimited", message: "Location details are limited to the first 256 package warnings and 256 missing formula results; \(omittedFormulas) further formula locations were omitted. Summary warnings still apply to the whole workbook."))
         }
         return result
     }

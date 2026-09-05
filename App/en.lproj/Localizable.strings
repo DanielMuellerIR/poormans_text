@@ -103,3 +103,15 @@
 "sheet" = "Sheet";
 "frame" = "Image";
 "%@ %d of %d" = "%@ %d of %d";
+
+"PDF OCR" = "PDF OCR";
+"Automatic" = "Automatic";
+"Always" = "Always";
+"Off" = "Off";
+"OCR languages (empty: automatic; e.g. de,en)" = "OCR languages (empty: automatic; e.g. de,en)";
+"PDF text order" = "PDF text order";
+"Detect columns" = "Detect columns";
+"Legacy extraction" = "Legacy extraction";
+"Remove repeated PDF headers and footers" = "Remove repeated PDF headers and footers";
+"Join conservative PDF word breaks" = "Join conservative PDF word breaks";
+"Invalid OCR language selection: %@" = "Invalid OCR language selection: %@";

@@ -97,6 +97,11 @@ public final class AppModel: ObservableObject {
     @Published public var isDropTargeted = false
     /// Gilt nur für Bildimporte; andere Formate ignorieren diese Option.
     @Published public var imageTextRecognition: ImageTextRecognition = .enabled { didSet { savePreferences() } }
+    @Published public var pdfTextRecognition: PDFTextRecognition = .automatic { didSet { savePreferences() } }
+    @Published public var pdfLayout: PDFLayout = .automatic { didSet { savePreferences() } }
+    @Published public var ocrLanguageCodes: String = "" { didSet { savePreferences() } }
+    @Published public var pdfRemoveHeadersFooters: Bool = false { didSet { savePreferences() } }
+    @Published public var pdfDehyphenate: Bool = false { didSet { savePreferences() } }
     @Published public var spreadsheetRendering: SpreadsheetRendering = .markdownTable { didSet { savePreferences() } }
     @Published public var frontmatter = false { didSet { savePreferences() } }
     @Published public var outputLayout: OutputLayout = .markdownFolder { didSet { savePreferences() } }
@@ -112,7 +117,11 @@ public final class AppModel: ObservableObject {
 
     public var conversionOptions: ConversionOptions {
         ConversionOptions(spreadsheetRendering: spreadsheetRendering,
-            imageTextRecognition: imageTextRecognition, frontmatter: frontmatter, outputLayout: outputLayout)
+            imageTextRecognition: imageTextRecognition,
+            frontmatter: frontmatter, outputLayout: outputLayout,
+            pdfTextRecognition: pdfTextRecognition,
+            ocrLanguages: ocrLanguageCodes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? [] : ocrLanguageCodes.components(separatedBy: ","),
+            pdfLayout: pdfLayout, pdfRemoveHeadersFooters: pdfRemoveHeadersFooters, pdfDehyphenate: pdfDehyphenate)
     }
 
     public var selectedResult: ConversionResult? {
@@ -162,6 +171,11 @@ public final class AppModel: ObservableObject {
         frontmatter = defaults.bool(forKey: "frontmatter")
         outputLayout = defaults.string(forKey: "outputLayout").flatMap(OutputLayout.init(rawValue:)) ?? .markdownFolder
         destinationFolder = defaults.string(forKey: "destinationFolder").map { URL(fileURLWithPath: $0) }
+        pdfTextRecognition = defaults.string(forKey: "pdfTextRecognition").flatMap(PDFTextRecognition.init(rawValue:)) ?? .automatic
+        pdfLayout = defaults.string(forKey: "pdfLayout").flatMap(PDFLayout.init(rawValue:)) ?? .automatic
+        ocrLanguageCodes = defaults.string(forKey: "ocrLanguageCodes") ?? ""
+        pdfRemoveHeadersFooters = defaults.bool(forKey: "pdfRemoveHeadersFooters")
+        pdfDehyphenate = defaults.bool(forKey: "pdfDehyphenate")
         loadingPreferences = false
     }
 
@@ -169,6 +183,11 @@ public final class AppModel: ObservableObject {
         guard !loadingPreferences else { return }
         defaults.set(imageTextRecognition.rawValue, forKey: "imageTextRecognition")
         defaults.set(spreadsheetRendering.rawValue, forKey: "spreadsheetRendering")
+        defaults.set(pdfTextRecognition.rawValue, forKey: "pdfTextRecognition")
+        defaults.set(pdfLayout.rawValue, forKey: "pdfLayout")
+        defaults.set(ocrLanguageCodes, forKey: "ocrLanguageCodes")
+        defaults.set(pdfRemoveHeadersFooters, forKey: "pdfRemoveHeadersFooters")
+        defaults.set(pdfDehyphenate, forKey: "pdfDehyphenate")
         defaults.set(frontmatter, forKey: "frontmatter")
         defaults.set(outputLayout.rawValue, forKey: "outputLayout")
         defaults.set(destinationFolder?.path, forKey: "destinationFolder")

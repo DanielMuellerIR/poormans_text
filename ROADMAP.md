@@ -55,11 +55,8 @@ in die Zwischenablage) sind umgesetzt; offen bleibt:
 
 ### Etappe 7 — Qualität des PDF-Imports
 
-- Überschriften aus Schriftgrößen ableiten; Silbentrennung am Zeilenende
-  zusammenführen; zweispaltige Seiten anhand der Textpositionen erkennen;
-  einfache Tabellen aus Zeilen- und Spaltenlagen rekonstruieren.
-- OCR-Sprachen wählbar (`--ocr-language de,en`, App-Einstellung); Vision läuft
-  heute ohne Sprachliste.
+- Überschriften aus Schriftgrößen ableiten und einfache Tabellen aus Zeilen-
+  und Spaltenlagen rekonstruieren.
 
 ### Etappe 8 — App-Bedienung
 
@@ -86,10 +83,6 @@ und nutzt den normalen Import. Keynote fällt unter dieselbe Grenze.
 
 ## Nächste technische Produktarbeit (2026-09-05)
 
-- PDF-OCR automatisch/immer/aus und OCR-Sprachen in CLI und App anbieten.
-  Gemischte Scan-/Textseiten, Spalten, optionale Kopf-/Fußzeilenbereinigung und
-  vorsichtige Silbentrennungsbereinigung mit Vergleichsdokumenten prüfen.
-  Diagnosen sollen verfügbare Seiten-, Blatt- und Zellbezüge tragen.
 - Nach Abbruch- und Speicherarbeit einstellbare Batch-Parallelität mit stabiler
   Ergebnisreihenfolge, Kollisionsschutz und gesonderter OCR-Begrenzung ergänzen;
   zunächst zwei gleichzeitige Dokumente messen.

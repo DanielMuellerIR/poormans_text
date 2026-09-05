@@ -77,7 +77,7 @@ struct ImageAdapter: DocumentConversionAdapter {
         let extraction: ImageExtraction?
         if context.options.imageTextRecognition == .enabled {
             do {
-                extraction = try recognizeText(at: stagedSource, frameCount: probe.frameCount)
+                extraction = try recognizeText(at: stagedSource, frameCount: probe.frameCount, languages: context.options.ocrLanguages)
             } catch {
                 throw ConversionError.invalidInput(context.inputURL, format: .image, reason: error.localizedDescription)
             }
@@ -149,7 +149,7 @@ struct ImageAdapter: DocumentConversionAdapter {
         return ImageProbe(fileFormat: fileFormat, frameCount: frameCount)
     }
 
-    private func recognizeText(at sourceURL: URL, frameCount: Int) throws -> ImageExtraction {
+    private func recognizeText(at sourceURL: URL, frameCount: Int, languages: [String]) throws -> ImageExtraction {
         guard let source = imageSource(at: sourceURL) else {
             throw ImageAdapterError("the verified image source is unreadable")
         }
@@ -195,7 +195,7 @@ struct ImageAdapter: DocumentConversionAdapter {
             }
             let orientation = imageOrientation(from: properties)
             do {
-                pages.append(try VisionTextRecognizer.recognize(in: image, orientation: orientation).text)
+                pages.append(try VisionTextRecognizer.recognize(in: image, orientation: orientation, languages: languages).text)
             } catch {
                 try ConversionExecution.check()
                 hadOCRFailure = true

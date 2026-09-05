@@ -20,7 +20,11 @@ public struct ConversionResult: Sendable {
 
     /// Quellkompatible Textsicht für CLI, App und bisherige Library-Aufrufer.
     public var warnings: [String] {
-        diagnostics.map(\.message)
+        diagnostics.map { warning in
+            guard let location = warning.location else { return warning.message }
+            let parts = [location.page.map { "Page \($0)" }, location.sheet.map { "Sheet \($0)" }, location.cell.map { "Cell \($0)" }].compactMap { $0 }
+            return parts.joined(separator: ", ") + ": " + warning.message
+        }
     }
 
     public init(

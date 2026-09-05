@@ -5,6 +5,8 @@ struct ParsedArguments {
     var inputURLs = [URL]()
     var outputURL: URL?
     var pandocURL: URL?
+    var pdfOptions = ConversionOptions()
+    var setsPDFOptions = false
     var json = false
     var progress = false
     var timeout: TimeInterval?
@@ -36,6 +38,11 @@ Options:
       --spreadsheet-format table|tsv
                           Render spreadsheets as a GFM table (default) or escaped TSV.
       --image-ocr on|off  Add local OCR text for images (default) or preserve only the image asset.
+      --pdf-ocr auto|always|off  Choose local PDF OCR (default: auto).
+      --ocr-language CODES Comma-separated local OCR languages, e.g. de,en.
+      --pdf-layout auto|legacy  Detect columns or keep the previous extraction.
+      --pdf-remove-headers-footers  Remove repeated text at page margins.
+      --pdf-dehyphenate    Join conservative lowercase word breaks.
       --frontmatter       Start the Markdown with a YAML header (title, author, dates) from the source.
       --textbundle        Write INPUT.textbundle (text.md, assets/, info.json) instead of INPUT-markdown.
       --stdout            Print the Markdown to standard output instead of writing a folder.
@@ -109,6 +116,32 @@ func parseArguments(
                 throw CLIArgumentError.missingValue("--timeout requires positive finite seconds")
             }
             parsed.timeout = seconds
+        } else if !optionsEnded && ["--pdf-remove-headers-footers", "--pdf-dehyphenate"].contains(argument) {
+            parsed.setsPDFOptions = true
+            if argument == "--pdf-dehyphenate" { parsed.pdfOptions.pdfDehyphenate = true }
+            else { parsed.pdfOptions.pdfRemoveHeadersFooters = true }
+        } else if !optionsEnded && ["--pdf-ocr", "--pdf-layout", "--ocr-language"].contains(String(argument.split(separator: "=", maxSplits: 1, omittingEmptySubsequences: false)[0])) {
+            let parts = argument.split(separator: "=", maxSplits: 1, omittingEmptySubsequences: false)
+            let option = String(parts[0])
+            let value: String
+            if parts.count == 2 { value = String(parts[1]) }
+            else {
+                index += 1
+                guard index < rawArguments.count else { throw CLIArgumentError.missingValue(option) }
+                value = rawArguments[index]
+            }
+            parsed.setsPDFOptions = true
+            switch option {
+            case "--pdf-ocr":
+                guard let mode = PDFTextRecognition(rawValue: value) else { throw CLIArgumentError.invalidConversionOption("--pdf-ocr requires auto, always, or off") }
+                parsed.pdfOptions.pdfTextRecognition = mode
+            case "--pdf-layout":
+                guard let layout = PDFLayout(rawValue: value) else { throw CLIArgumentError.invalidConversionOption("--pdf-layout requires auto or legacy") }
+                parsed.pdfOptions.pdfLayout = layout
+            default:
+                do { parsed.pdfOptions.ocrLanguages = try OCRLanguageSelection.resolve(value.components(separatedBy: ",")) }
+                catch { throw CLIArgumentError.invalidConversionOption(error.localizedDescription) }
+            }
         } else if !optionsEnded && argument == "--json" {
             parsed.json = true
         } else if !optionsEnded && argument == "--formats" {
@@ -192,6 +225,7 @@ func imageTextRecognition(_ value: String) throws -> ImageTextRecognition {
 }
 
 enum CLIArgumentError: LocalizedError {
+    case invalidConversionOption(String)
     case missingValue(String)
     case unknownOption(String)
     case formatsTakesNoInput
@@ -201,6 +235,7 @@ enum CLIArgumentError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
+        case .invalidConversionOption(let reason): reason
         case .missingValue(let option):
             "Missing value for \(option)."
         case .unknownOption(let option):

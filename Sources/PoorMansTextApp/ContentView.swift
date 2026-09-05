@@ -387,6 +387,18 @@ struct ContentView: View {
                     Text("Add local OCR text").tag(ImageTextRecognition.enabled)
                     Text("Keep only the image").tag(ImageTextRecognition.disabled)
                 }
+                Picker("PDF OCR", selection: $model.pdfTextRecognition) {
+                    Text("Automatic").tag(PDFTextRecognition.automatic)
+                    Text("Always").tag(PDFTextRecognition.always)
+                    Text("Off").tag(PDFTextRecognition.disabled)
+                }
+                TextField("OCR languages (empty: automatic; e.g. de,en)", text: $model.ocrLanguageCodes)
+                Picker("PDF text order", selection: $model.pdfLayout) {
+                    Text("Detect columns").tag(PDFLayout.automatic)
+                    Text("Legacy extraction").tag(PDFLayout.legacy)
+                }
+                Toggle("Remove repeated PDF headers and footers", isOn: $model.pdfRemoveHeadersFooters)
+                Toggle("Join conservative PDF word breaks", isOn: $model.pdfDehyphenate)
                 Toggle("Add YAML frontmatter", isOn: $model.frontmatter)
                 Picker("Output", selection: $model.outputLayout) {
                     Text("Markdown folder").tag(OutputLayout.markdownFolder)

@@ -31,6 +31,7 @@ struct JSONResponse: Encodable {
     let markdownFile: String?
     let assets: [String]?
     let warnings: [String]?
+    var diagnostics: [ConversionWarning]? = nil
     let metadata: JSONMetadata?
     let error: String?
 
@@ -41,6 +42,7 @@ struct JSONResponse: Encodable {
         markdownFile: String? = nil,
         assets: [String]? = nil,
         warnings: [String]? = nil,
+        diagnostics: [ConversionWarning]? = nil,
         metadata: JSONMetadata? = nil,
         error: String? = nil
     ) {
@@ -51,6 +53,7 @@ struct JSONResponse: Encodable {
         self.markdownFile = markdownFile
         self.assets = assets
         self.warnings = warnings
+        self.diagnostics = diagnostics
         self.metadata = metadata
         self.error = error
     }
@@ -63,6 +66,7 @@ struct JSONResponse: Encodable {
             markdownFile: canonicalPath(result.markdownFile),
             assets: result.assets.map(canonicalPath),
             warnings: result.warnings,
+            diagnostics: result.diagnostics.contains { $0.location != nil } ? result.diagnostics : nil,
             metadata: JSONMetadata(result.metadata)
         )
     }
@@ -82,6 +86,7 @@ struct JSONBatchEntry: Encodable {
     let markdownFile: String?
     let assets: [String]?
     let warnings: [String]?
+    var diagnostics: [ConversionWarning]? = nil
     let metadata: JSONMetadata?
     let error: String?
 
@@ -93,6 +98,7 @@ struct JSONBatchEntry: Encodable {
             markdownFile: canonicalPath(result.markdownFile),
             assets: result.assets.map(canonicalPath),
             warnings: result.warnings,
+            diagnostics: result.diagnostics.contains { $0.location != nil } ? result.diagnostics : nil,
             metadata: JSONMetadata(result.metadata),
             error: nil
         )

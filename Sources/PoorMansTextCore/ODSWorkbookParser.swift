@@ -23,6 +23,15 @@ enum ODSWorkbookParser {
         var workbook = SpreadsheetWorkbook(sheets: [])
         var failure: Error?
 
+        private func locate(_ warning: ConversionWarning) {
+            guard workbook.locatedDiagnostics.count < 256 else { return }
+            // Leere Wiederholungen sind noch nicht materialisiert. Bei einem
+            // wiederholten betroffenen Element bezeichnet der Bezug dessen erste Zelle.
+            var column = (currentRow?.count ?? 0) + pendingEmptyCells + 1
+            var name = ""
+            while column > 0 { column -= 1; name = String(UnicodeScalar(65 + column % 26)!) + name; column /= 26 }
+            workbook.locatedDiagnostics.append(warning.at(ConversionLocation(sheet: currentSheetName, cell: "\(name)\(currentRows.count + pendingEmptyRows + 1)")))
+        }
         private var currentSheetName: String?
         private var currentRows = [[SpreadsheetCell]]()
         private var currentRow: [SpreadsheetCell]?
@@ -138,6 +147,7 @@ enum ODSWorkbookParser {
                 )
                 if columnSpan > 1 || rowSpan > 1 {
                     workbook.hasFlattenedMerges = true
+                    locate(.spreadsheetMergesFlattened)
                 }
                 currentCell = CellBuilder(
                     repeated: repeated,
@@ -174,6 +184,7 @@ enum ODSWorkbookParser {
                     // Ein nicht übernehmbares Schema ist ein sichtbarer
                     // Verlust: Der Linktext bleibt, das Ziel fällt weg.
                     workbook.hasUnsupportedObjects = true
+                    locate(ConversionWarning(code: "spreadsheet.hyperlinkNotPreserved", message: "A cell hyperlink could not be preserved safely."))
                     return
                 }
                 // Ein Tabellenfeld kann im gemeinsamen Modell genau ein Ziel
@@ -182,6 +193,7 @@ enum ODSWorkbookParser {
                 // Verlustwarnung.
                 if let existing = currentCell?.linkTarget, existing != target {
                     workbook.hasUnsupportedObjects = true
+                    locate(ConversionWarning(code: "spreadsheet.hyperlinkNotPreserved", message: "A cell hyperlink could not be preserved safely."))
                 } else {
                     currentCell?.linkTarget = target
                 }

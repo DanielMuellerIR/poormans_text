@@ -22,6 +22,17 @@ public enum ImageTextRecognition: String, Codable, Equatable, Sendable {
     case disabled
 }
 
+public enum PDFTextRecognition: String, Codable, Equatable, Sendable {
+    case automatic = "auto"
+    case always
+    case disabled = "off"
+}
+
+public enum PDFLayout: String, Codable, Equatable, Sendable {
+    case automatic = "auto"
+    case legacy
+}
+
 /// Wie das Ergebnis auf der Platte liegt.
 public enum OutputLayout: String, Codable, Equatable, Sendable {
     /// `Name-markdown/Name.md` plus `images/`, das bisherige Format.
@@ -38,19 +49,34 @@ public struct ConversionOptions: Equatable, Sendable {
     /// YAML-Kopf mit Titel, Autor und Daten aus dem Quelldokument voranstellen.
     public var frontmatter: Bool
     public var outputLayout: OutputLayout
+    public var pdfTextRecognition: PDFTextRecognition
+    public var ocrLanguages: [String]
+    public var pdfLayout: PDFLayout
+    public var pdfRemoveHeadersFooters: Bool
+    public var pdfDehyphenate: Bool
 
     public init(
         pandocExecutable: URL? = nil,
         spreadsheetRendering: SpreadsheetRendering = .markdownTable,
         imageTextRecognition: ImageTextRecognition = .enabled,
         frontmatter: Bool = false,
-        outputLayout: OutputLayout = .markdownFolder
+        outputLayout: OutputLayout = .markdownFolder,
+        pdfTextRecognition: PDFTextRecognition = .automatic,
+        ocrLanguages: [String] = [],
+        pdfLayout: PDFLayout = .automatic,
+        pdfRemoveHeadersFooters: Bool = false,
+        pdfDehyphenate: Bool = false
     ) {
         self.pandocExecutable = pandocExecutable
         self.spreadsheetRendering = spreadsheetRendering
         self.imageTextRecognition = imageTextRecognition
         self.frontmatter = frontmatter
         self.outputLayout = outputLayout
+        self.pdfTextRecognition = pdfTextRecognition
+        self.ocrLanguages = ocrLanguages
+        self.pdfLayout = pdfLayout
+        self.pdfRemoveHeadersFooters = pdfRemoveHeadersFooters
+        self.pdfDehyphenate = pdfDehyphenate
     }
 }
 

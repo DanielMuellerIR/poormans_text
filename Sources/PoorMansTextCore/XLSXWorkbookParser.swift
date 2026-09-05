@@ -146,6 +146,9 @@ enum XLSXWorkbookParser {
             materializedTextBytes += parsed.materializedTextBytes
             hyperlinkScannedCells += parsed.hyperlinkScannedCells
             result.sheets.append(SpreadsheetSheet(name: definition.name, rows: parsed.rows))
+            result.locatedDiagnostics += parsed.locatedDiagnostics.prefix(max(0, 256 - result.locatedDiagnostics.count)).map {
+                ConversionWarning(code: $0.code, message: $0.message, location: ConversionLocation(sheet: definition.name, cell: $0.location?.cell))
+            }
             result.hasFlattenedMerges = result.hasFlattenedMerges || parsed.hasMerges
             result.hasFormulaWithoutResult = result.hasFormulaWithoutResult
                 || parsed.hasFormulaWithoutResult
@@ -542,6 +545,7 @@ enum XLSXWorkbookParser {
         let expandedCellCount: Int
         let materializedTextBytes: Int
         let hyperlinkScannedCells: Int
+        let locatedDiagnostics: [ConversionWarning]
     }
 
     private enum WorksheetParser {
@@ -580,11 +584,13 @@ enum XLSXWorkbookParser {
                 hasUnsupportedHyperlinks: delegate.hasUnsupportedHyperlinks,
                 expandedCellCount: delegate.expandedCellCount,
                 materializedTextBytes: delegate.materializedTextBytes,
-                hyperlinkScannedCells: delegate.hyperlinkScannedCells
+                hyperlinkScannedCells: delegate.hyperlinkScannedCells,
+                locatedDiagnostics: delegate.locatedDiagnostics
             )
         }
 
         private final class Delegate: NSObject, XMLParserDelegate {
+            var locatedDiagnostics: [ConversionWarning] = []
             var rows = [[SpreadsheetCell]]()
             var hasMerges = false
             var hasFormulaWithoutResult = false
@@ -697,6 +703,9 @@ enum XLSXWorkbookParser {
                     capture = .inlineText
                 } else if elementName == "mergeCell" {
                     hasMerges = true
+                    if locatedDiagnostics.count < 256 {
+                        locatedDiagnostics.append(ConversionWarning.spreadsheetMergesFlattened.at(ConversionLocation(cell: xlsxAttribute("ref", in: attributeDict))))
+                    }
                 } else if elementName == "hyperlink" {
                     guard let reference = xlsxAttribute("ref", in: attributeDict) else {
                         hasUnsupportedHyperlinks = true
@@ -725,6 +734,9 @@ enum XLSXWorkbookParser {
                     // Ein verworfenes Ziel lässt den Anzeigetext stehen und
                     // meldet den Verlust.
                     let acceptedTarget = target.flatMap(SpreadsheetLinkTarget.accepted)
+                    if acceptedTarget == nil, locatedDiagnostics.count < 256 {
+                        locatedDiagnostics.append(ConversionWarning(code: "spreadsheet.hyperlinkNotPreserved", message: "A cell hyperlink could not be preserved safely.", location: ConversionLocation(cell: reference)))
+                    }
                     if target != nil, acceptedTarget == nil {
                         hasUnsupportedHyperlinks = true
                     }

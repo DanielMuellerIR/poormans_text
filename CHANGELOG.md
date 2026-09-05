@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Add remembered PDF OCR auto/always/off, shared local PDF/image OCR languages,
+  automatic two-column text order, optional repeated margin removal and
+  conservative dehyphenation in the app and CLI. Mixed digital/scan pages retain
+  their embedded text and add scan content. Fix automatic PDF raster orientation;
+  `--pdf-layout legacy` retains the previous extraction for direct comparison.
+- Add optional page/sheet/cell locations to diagnostics and JSON results, including
+  PDF failures, XLSX/ODS merges and discarded links, and missing spreadsheet
+  formula results. Workbook location details are bounded; summary warnings remain.
+- Verify real generated mixed, two-column and repeated-margin PDFs against all
+  source sentences, stable counts, previous output and unchanged source bytes.
+
 - Separate generic ZIP validation from Word/ODT package inspection. Native and
   Pandoc adapters reuse a reader bound to their own fully verified working copy,
   including its archive directory and entry index. Detection keeps a non-mapped

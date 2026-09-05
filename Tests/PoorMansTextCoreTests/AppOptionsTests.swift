@@ -16,11 +16,20 @@ final class AppOptionsTests: XCTestCase {
         model.imageTextRecognition = .disabled
         model.spreadsheetRendering = .tabSeparated
         model.outputLayout = .textbundle
+        model.pdfTextRecognition = .always
+        model.pdfLayout = .legacy
+        model.ocrLanguageCodes = "de,en"
+        model.pdfRemoveHeadersFooters = true
+        model.pdfDehyphenate = true
         let restored = AppModel(defaults: defaults)
         XCTAssertEqual(restored.conversionOptions, model.conversionOptions)
         let request = restored.request(for: URL(fileURLWithPath: "/tmp/input.csv"), options: restored.conversionOptions)
         XCTAssertEqual(request.destination, .directory(URL(fileURLWithPath: "/tmp/output/input.textbundle")))
         XCTAssertTrue(request.options.frontmatter)
+        XCTAssertEqual(request.options.ocrLanguages, ["de", "en"])
+        XCTAssertEqual(request.options.pdfTextRecognition, .always)
+        XCTAssertTrue(request.options.pdfRemoveHeadersFooters)
+        XCTAssertTrue(request.options.pdfDehyphenate)
     }
 
     @MainActor

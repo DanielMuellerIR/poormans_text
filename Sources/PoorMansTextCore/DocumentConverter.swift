@@ -94,6 +94,9 @@ public struct DocumentConverter: Sendable {
         cancellation: ConversionCancellationToken? = nil,
         processTimeout: TimeInterval? = nil
     ) throws -> ConversionResult {
+        var options = request.options
+        options.ocrLanguages = try OCRLanguageSelection.resolve(options.ocrLanguages)
+        let request = ConversionRequest(inputURL: request.inputURL, destination: request.destination, options: options)
         let inherited = ConversionExecution.current
         let context = ConversionExecution.Context(
             cancellation: cancellation.map { ConversionCancellationToken(parent: $0) }

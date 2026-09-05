@@ -33,7 +33,7 @@ do {
 
     if arguments.listFormats {
         guard arguments.inputURLs.isEmpty, arguments.outputURL == nil,
-              !arguments.setsSpreadsheetRendering, !arguments.setsImageTextRecognition,
+              !arguments.setsPDFOptions, !arguments.setsSpreadsheetRendering, !arguments.setsImageTextRecognition,
               !arguments.writeToStandardOutput, !arguments.frontmatter,
               arguments.outputLayout == .markdownFolder, !arguments.progress, arguments.timeout == nil else {
             throw CLIArgumentError.formatsTakesNoInput
@@ -51,7 +51,12 @@ do {
         spreadsheetRendering: arguments.spreadsheetRendering,
         imageTextRecognition: arguments.imageTextRecognition,
         frontmatter: arguments.frontmatter,
-        outputLayout: arguments.outputLayout
+        outputLayout: arguments.outputLayout,
+        pdfTextRecognition: arguments.pdfOptions.pdfTextRecognition,
+        ocrLanguages: arguments.pdfOptions.ocrLanguages,
+        pdfLayout: arguments.pdfOptions.pdfLayout,
+        pdfRemoveHeadersFooters: arguments.pdfOptions.pdfRemoveHeadersFooters,
+        pdfDehyphenate: arguments.pdfOptions.pdfDehyphenate
     )
     let enumerator = InputEnumerator()
 

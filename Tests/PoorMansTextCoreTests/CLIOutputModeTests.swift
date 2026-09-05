@@ -20,6 +20,22 @@ final class CLIOutputModeTests: XCTestCase {
         try? FileManager.default.removeItem(at: root)
     }
 
+    func testPDFAndLanguageOptionsValidateBeforeConverting() throws {
+        for arguments in [
+            ["--pdf-ocr", "never"], ["--pdf-layout=bad"], ["--ocr-language", "zz-no-such-language"],
+            ["--ocr-language="], ["--formats", "--pdf-ocr", "auto"],
+            ["--formats", "--pdf-remove-headers-footers"], ["--formats", "--pdf-dehyphenate"],
+            ["--formats", "--ocr-language", "en"],
+        ] {
+            let result = try runCLI(arguments)
+            XCTAssertEqual(result.status, 64, result.standardError)
+        }
+        let image = try copyImage(to: "languages.png")
+        let result = try runCLI(["--stdout", "--image-ocr=off", "--ocr-language=de,en", "--pdf-ocr=off", "--pdf-layout=legacy", image.path])
+        XCTAssertEqual(result.status, 0, result.standardError)
+        XCTAssertTrue(result.standardOutput.contains("images/image01.png"))
+    }
+
     func testStandardOutputPrintsTheMarkdownAndLeavesNoFolderBehind() throws {
         let image = try copyImage(to: "Bild.png")
 

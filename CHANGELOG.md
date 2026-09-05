@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 0.10.0 — 2026-09-05
 
 - Add `--jobs 1..4` and remembered app batch parallelism, defaulting to one
   document. A shared core planner validates all outputs against every batch

@@ -20,7 +20,7 @@ nur über `supportedFormatDescriptors`; der Orchestrator bleibt unverändert.
 Was [docs/MARKITDOWN-COMPARISON.md](docs/MARKITDOWN-COMPARISON.md) vorschlägt,
 ist hier eingeordnet. Die Etappen 1 (mehrere Eingaben und Ordner), 2 (Dienste,
 bis auf App Intents), 3 (`--stdout`, `--frontmatter`, `--textbundle`) sowie 4
-(kleine Formatgewinne) und 5 (Präsentationen und Notebooks) sind umgesetzt und stehen bis zum nächsten Release im Changelog unter „Unreleased“.
+(kleine Formatgewinne) und 5 (Präsentationen und Notebooks) sind umgesetzt und stehen im Changelog zu Version 0.10.0.
 
 ### Etappe 2 — Systemintegration ohne Terminal
 

@@ -63,8 +63,11 @@ public enum RichTextClipboard {
     /// als Hinweis gemeldet, statt die Verweise stillschweigend zu behalten.
     public static func convert(
         _ source: Source,
-        options: ConversionOptions = ConversionOptions()
+        options: ConversionOptions = ConversionOptions(),
+        progress: ConversionProgressHandler? = nil,
+        cancellation: ConversionCancellationToken? = nil
     ) throws -> ClipboardOutcome {
+        try cancellation?.checkCancellation()
         let fileManager = FileManager.default
         let workDirectory = fileManager.temporaryDirectory.appendingPathComponent(
             "PoorMansTextClipboard-\(UUID().uuidString)",
@@ -94,7 +97,8 @@ public enum RichTextClipboard {
         }
 
         let result = try DocumentConverter().convert(
-            ConversionRequest(inputURL: inputURL, destination: .temporary, options: options)
+            ConversionRequest(inputURL: inputURL, destination: .temporary, options: options),
+            progress: progress, cancellation: cancellation
         )
         defer { try? fileManager.removeItem(at: result.outputDirectory) }
 

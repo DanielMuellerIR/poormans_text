@@ -71,6 +71,7 @@ enum ZIPArchiveInspector {
         // ein billiger Weg, die Erkennung lange zu beschäftigen
         // (Review-Fund 2026-08-20).
         for name in requestedNames where names.contains(name) && entries[name] == nil {
+                try ConversionExecution.check()
             entries[name] = try archive.data(named: name)
         }
         return ZIPPackageContents(entryNames: names, entries: entries)
@@ -261,6 +262,7 @@ enum ZIPArchiveInspector {
             var offset = centralOffset
 
             for _ in 0..<entryCount {
+                try ConversionExecution.check()
                 guard data.uint32(at: offset) == 0x02014B50 else {
                     throw ArchiveError("the ZIP central directory contains an invalid entry")
                 }
@@ -466,6 +468,7 @@ enum ZIPArchiveInspector {
         /// streamende Prüfung dann der größte Speicherverbraucher überhaupt.
         func verifyEntryContents() throws {
             for entry in entries where !entry.isDirectory {
+                try ConversionExecution.check()
                 let contentRange = try contentRange(for: entry)
                 switch entry.method {
                 case 0:
@@ -851,16 +854,23 @@ enum ZIPArchiveInspector {
             inflateEnd(&stream)
         }
 
-        var output = Data(count: max(expectedSize, 1))
-        let status = compressed.withUnsafeBytes { inputBuffer in
-            output.withUnsafeMutableBytes { outputBuffer -> Int32 in
+        var output = Data(count: max(expectedSize + 1, 1))
+        let status = try compressed.withUnsafeBytes { inputBuffer in
+            try output.withUnsafeMutableBytes { outputBuffer -> Int32 in
                 stream.next_in = UnsafeMutablePointer<Bytef>(
                     mutating: inputBuffer.bindMemory(to: Bytef.self).baseAddress
                 )
                 stream.avail_in = uInt(inputBuffer.count)
-                stream.next_out = outputBuffer.bindMemory(to: Bytef.self).baseAddress
-                stream.avail_out = uInt(outputBuffer.count)
-                return zlib.inflate(&stream, Z_FINISH)
+                var status = Z_OK
+                while status == Z_OK {
+                    try ConversionExecution.check()
+                    let offset = Int(stream.total_out)
+                    guard offset < outputBuffer.count else { return Z_BUF_ERROR }
+                    stream.next_out = outputBuffer.bindMemory(to: Bytef.self).baseAddress?.advanced(by: offset)
+                    stream.avail_out = uInt(min(65_536, outputBuffer.count - offset))
+                    status = zlib.inflate(&stream, Z_NO_FLUSH)
+                }
+                return status
             }
         }
         guard status == Z_STREAM_END,
@@ -907,6 +917,7 @@ enum ZIPArchiveInspector {
             stream.avail_in = uInt(input.count)
 
             while status == Z_OK {
+                if ConversionExecution.isCancelled { return }
                 status = buffer.withUnsafeMutableBufferPointer { output -> Int32 in
                     stream.next_out = output.baseAddress
                     stream.avail_out = uInt(output.count)
@@ -924,6 +935,7 @@ enum ZIPArchiveInspector {
             }
         }
 
+        try ConversionExecution.check()
         guard produced <= expectedSize else {
             throw ArchiveError("\(entryName) expands beyond the size declared in the ZIP directory")
         }
@@ -940,11 +952,14 @@ enum ZIPArchiveInspector {
         expected: UInt32,
         entryName: String
     ) throws {
-        let checksum = content.withUnsafeBytes { buffer -> UInt32 in
-            guard let baseAddress = buffer.bindMemory(to: Bytef.self).baseAddress else {
-                return UInt32(zlib.crc32(0, nil, 0))
+        let checksum = try content.withUnsafeBytes { buffer -> UInt32 in
+            var checksum = zlib.crc32(0, nil, 0)
+            guard let base = buffer.bindMemory(to: Bytef.self).baseAddress else { return UInt32(checksum) }
+            for offset in stride(from: 0, to: buffer.count, by: 65_536) {
+                try ConversionExecution.check()
+                checksum = zlib.crc32(checksum, base.advanced(by: offset), uInt(min(65_536, buffer.count - offset)))
             }
-            return UInt32(zlib.crc32(0, baseAddress, uInt(buffer.count)))
+            return UInt32(checksum)
         }
         guard checksum == expected else {
             throw ArchiveError("the checksum of \(entryName) is invalid")
@@ -981,7 +996,9 @@ private func parseXML(_ xml: Data, with delegate: XMLParserDelegate) throws {
     parser.shouldProcessNamespaces = true
     parser.shouldReportNamespacePrefixes = true
     parser.shouldResolveExternalEntities = false
-    guard parser.parse() else {
+    let parsedSuccessfully = parser.parse()
+    try ConversionExecution.check()
+    guard parsedSuccessfully else {
         throw parser.parserError ?? CocoaError(.fileReadCorruptFile)
     }
 }
@@ -1027,6 +1044,7 @@ private enum ExternalImageRelationshipParser {
             qualifiedName qName: String?,
             attributes attributeDict: [String: String] = [:]
         ) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
             guard elementName == "Relationship",
                   attributeValue(localName: "TargetMode", in: attributeDict)?.lowercased()
                     == "external",
@@ -1086,6 +1104,7 @@ private enum WordprocessingContentTypesParser {
             qualifiedName qName: String?,
             attributes attributeDict: [String: String] = [:]
         ) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
             if !sawRoot {
                 sawRoot = true
                 hasValidRoot = elementName == "Types"
@@ -1167,6 +1186,7 @@ private enum WordprocessingContentParser {
             qualifiedName qName: String?,
             attributes attributeDict: [String: String] = [:]
         ) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
             if rootElementName == nil {
                 rootElementName = elementName
                 rootNamespaceURI = namespaceURI
@@ -1217,10 +1237,12 @@ private enum ODTContentParser {
             didStartMappingPrefix prefix: String,
             toURI namespaceURI: String
         ) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
             prefixes.startMapping(prefix: prefix, uri: namespaceURI)
         }
 
         func parser(_ parser: XMLParser, didEndMappingPrefix prefix: String) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
             prefixes.endMapping(prefix: prefix)
         }
 
@@ -1231,6 +1253,7 @@ private enum ODTContentParser {
             qualifiedName qName: String?,
             attributes attributeDict: [String: String] = [:]
         ) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
             // Jedes Element zählt nur in seinem ODF-Namensraum. Ein fremdes
             // `foo:image` oder `foo:annotation` ist kein ODF-Bild und keine
             // ODF-Notiz und darf deshalb keine Warnung oder Ablehnung auslösen.

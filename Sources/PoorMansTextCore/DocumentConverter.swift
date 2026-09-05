@@ -90,9 +90,29 @@ public struct DocumentConverter: Sendable {
 
     public func convert(
         _ request: ConversionRequest,
-        progress: ConversionProgressHandler? = nil
+        progress: ConversionProgressHandler? = nil,
+        cancellation: ConversionCancellationToken? = nil,
+        processTimeout: TimeInterval? = nil
     ) throws -> ConversionResult {
-        progress?(ConversionProgress(phase: .detectingInput))
+        let inherited = ConversionExecution.current
+        let context = ConversionExecution.Context(
+            cancellation: cancellation.map { ConversionCancellationToken(parent: $0) }
+                ?? inherited?.cancellation ?? ConversionCancellationToken(),
+            progress: progress ?? inherited?.progress,
+            processTimeout: processTimeout ?? inherited?.processTimeout)
+        return try ConversionExecution.$current.withValue(context) {
+            do { return try convertInContext(request) }
+            catch {
+                // Parser und Systemadapter dürfen ihre Fehler übersetzen. Ein
+                // angeforderter Abbruch bleibt an der API-Grenze trotzdem Abbruch.
+                try context.cancellation.checkCancellation()
+                throw error
+            }
+        }
+    }
+
+    private func convertInContext(_ request: ConversionRequest) throws -> ConversionResult {
+        try ConversionExecution.report(ConversionProgress(phase: .detectingInput))
         let inputURL = request.inputURL.standardizedFileURL
         // Die echte Quelle wird GENAU EINMAL aufgelöst. Vorher löste jede Stufe
         // für sich auf: die Ausgabeprüfung vor dem Umwandeln, der Adapter beim
@@ -119,7 +139,7 @@ public struct DocumentConverter: Sendable {
             )
         }
 
-        progress?(ConversionProgress(phase: .preparingOutput, format: format))
+        try ConversionExecution.report(ConversionProgress(phase: .preparingOutput, format: format))
         let destination = try resolveDestination(for: request, inputURL: inputURL)
         let fileManager = FileManager.default
         try validateOutput(
@@ -136,6 +156,7 @@ public struct DocumentConverter: Sendable {
         let workDirectory = temporaryRoot.appendingPathComponent("work", isDirectory: true)
         let stagedOutput = temporaryRoot.appendingPathComponent("result", isDirectory: true)
 
+        defer { try? fileManager.removeItem(at: temporaryRoot) }
         do {
             try fileManager.createDirectory(at: workDirectory, withIntermediateDirectories: true)
             try fileManager.createDirectory(at: stagedOutput, withIntermediateDirectories: true)
@@ -143,11 +164,7 @@ public struct DocumentConverter: Sendable {
             throw ConversionError.fileSystemFailure(error.localizedDescription)
         }
 
-        defer {
-            try? fileManager.removeItem(at: temporaryRoot)
-        }
-
-        progress?(ConversionProgress(phase: .converting, format: format))
+        try ConversionExecution.report(ConversionProgress(phase: .converting, format: format))
         let stagedResult = try detected.adapter.convert(
             AdapterConversionContext(
                 inputURL: inputURL,
@@ -159,6 +176,7 @@ public struct DocumentConverter: Sendable {
             )
         )
 
+        try ConversionExecution.check()
         var markdownRelativePath = try validateRelativePath(stagedResult.markdownRelativePath)
         var assetRelativePaths = try stagedResult.assetRelativePaths.map(validateRelativePath)
         var warnings = stagedResult.warnings
@@ -192,7 +210,7 @@ public struct DocumentConverter: Sendable {
             )
         }
 
-        progress?(ConversionProgress(phase: .publishing, format: format))
+        try ConversionExecution.report(ConversionProgress(phase: .publishing, format: format))
         try publish(
             stagedOutput,
             to: destination.url,
@@ -210,7 +228,7 @@ public struct DocumentConverter: Sendable {
             diagnostics: warnings,
             metadata: stagedResult.metadata
         )
-        progress?(ConversionProgress(phase: .finished, format: format))
+        ConversionExecution.current?.progress?(ConversionProgress(phase: .finished, format: format))
         return result
     }
 

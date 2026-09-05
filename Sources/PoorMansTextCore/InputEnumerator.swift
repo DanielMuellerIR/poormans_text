@@ -88,7 +88,7 @@ public struct InputEnumerator: Sendable {
         return !isPackage(url)
     }
 
-    public func enumerate(_ roots: [URL]) throws -> [EnumeratedInput] {
+    public func enumerate(_ roots: [URL], cancellation: ConversionCancellationToken? = nil) throws -> [EnumeratedInput] {
         var seen = Set<String>()
         var result = [EnumeratedInput]()
 
@@ -107,6 +107,7 @@ public struct InputEnumerator: Sendable {
         // den Argumentfehler sofort (Tests in CLIBatchTests und
         // AppModelBatchTests, README-Absatz zum Mehrfachlauf).
         for root in roots.map(\.standardizedFileURL) {
+            try cancellation?.checkCancellation()
             var isDirectory: ObjCBool = false
             guard FileManager.default.fileExists(atPath: root.path, isDirectory: &isDirectory) else {
                 throw InputEnumerationError.inputDoesNotExist(root)
@@ -116,7 +117,7 @@ public struct InputEnumerator: Sendable {
                 continue
             }
 
-            let found = try search(root)
+            let found = try search(root, cancellation: cancellation)
             guard !found.isEmpty else {
                 throw InputEnumerationError.noSupportedDocuments(root)
             }
@@ -136,7 +137,7 @@ public struct InputEnumerator: Sendable {
         fileExtensions.contains(url.pathExtension.lowercased())
     }
 
-    private func search(_ root: URL) throws -> [EnumeratedInput] {
+    private func search(_ root: URL, cancellation: ConversionCancellationToken?) throws -> [EnumeratedInput] {
         let keys: [URLResourceKey] = [.isDirectoryKey, .isRegularFileKey, .isSymbolicLinkKey]
         var failure: (URL, Error)?
         guard let enumerator = FileManager.default.enumerator(
@@ -154,6 +155,7 @@ public struct InputEnumerator: Sendable {
         var found = [EnumeratedInput]()
         let rootComponents = root.pathComponents
         for case let entry as URL in enumerator {
+            try cancellation?.checkCancellation()
             let values = try? entry.resourceValues(forKeys: Set(keys))
             // Symbolische Links werden nicht verfolgt: Ein Link auf einen
             // Elternordner wäre eine Endlosschleife, ein Link nach außen

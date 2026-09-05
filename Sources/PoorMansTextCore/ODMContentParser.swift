@@ -13,7 +13,9 @@ enum ODMContentParser {
         parser.shouldProcessNamespaces = true
         parser.shouldReportNamespacePrefixes = true
         parser.shouldResolveExternalEntities = false
-        guard parser.parse() else {
+        let parsedSuccessfully = parser.parse()
+        try ConversionExecution.check()
+        guard parsedSuccessfully else {
             throw parser.parserError ?? CocoaError(.fileReadCorruptFile)
         }
         guard !delegate.items.isEmpty else {
@@ -38,10 +40,12 @@ enum ODMContentParser {
             didStartMappingPrefix prefix: String,
             toURI namespaceURI: String
         ) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
             prefixes.startMapping(prefix: prefix, uri: namespaceURI)
         }
 
         func parser(_ parser: XMLParser, didEndMappingPrefix prefix: String) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
             prefixes.endMapping(prefix: prefix)
         }
 
@@ -52,6 +56,7 @@ enum ODMContentParser {
             qualifiedName qName: String?,
             attributes attributeDict: [String: String] = [:]
         ) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
             if namespaceURI == Namespaces.text, elementName == "section" {
                 sections.append(
                     SectionBuilder(name: prefixes.attributeValue(
@@ -100,6 +105,7 @@ enum ODMContentParser {
         }
 
         func parser(_ parser: XMLParser, foundCharacters string: String) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
             appendToOpenParagraph(string)
         }
 
@@ -185,6 +191,7 @@ enum ODMContentParser {
             namespaceURI: String?,
             qualifiedName qName: String?
         ) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
             if namespaceURI == Namespaces.text,
                (elementName == "h" || elementName == "p"),
                let text = texts.popLast() {

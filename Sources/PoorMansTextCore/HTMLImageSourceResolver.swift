@@ -64,6 +64,7 @@ enum HTMLImageSourceResolver {
         var localNames = [String: String]()
 
         for match in tagExpression.matches(in: html, range: NSRange(location: 0, length: nsHTML.length)) {
+            try ConversionExecution.check()
             output += nsHTML.substring(with: NSRange(location: cursor, length: match.range.location - cursor))
             cursor = match.range.location + match.range.length
             let tag = nsHTML.substring(with: match.range)

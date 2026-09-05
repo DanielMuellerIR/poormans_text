@@ -113,6 +113,7 @@ enum VerifiedDirectoryStaging {
         defer { closedir(directory) }
 
         while true {
+            try ConversionExecution.check()
             // `readdir` liefert `nil` sowohl am Ende der Liste als auch bei einem
             // Lesefehler; nur `errno` unterscheidet beides. Ohne die Prüfung galt
             // ein halb gelesenes Paket als vollständiger Snapshot
@@ -243,6 +244,7 @@ enum VerifiedDirectoryStaging {
         var buffer = [UInt8](repeating: 0, count: chunkSize)
         var fileBytes = 0
         while true {
+            try ConversionExecution.check()
             let readBytes = buffer.withUnsafeMutableBytes { raw -> Int in
                 guard let base = raw.baseAddress else { return -1 }
                 return read(source, base, raw.count)
@@ -261,6 +263,7 @@ enum VerifiedDirectoryStaging {
                 guard var position = raw.baseAddress else { return }
                 var remaining = readBytes
                 while remaining > 0 {
+                    try ConversionExecution.check()
                     let written = write(destination, position, remaining)
                     if written < 0, errno == EINTR { continue }
                     guard written > 0 else {

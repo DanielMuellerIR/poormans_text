@@ -169,6 +169,7 @@ struct ImageAdapter: DocumentConversionAdapter {
         var hadOCRFailure = false
         var wasDownscaled = false
         for frameIndex in 0..<frameCount {
+            try ConversionExecution.report(unit: .frame, completed: frameIndex, total: frameCount)
             let properties = try frameProperties(source, at: frameIndex)
             let dimensions = try frameDimensions(from: properties, frameIndex: frameIndex)
             let maximumEdge = downscaledEdge(for: dimensions, budget: frameBudget)
@@ -196,10 +197,12 @@ struct ImageAdapter: DocumentConversionAdapter {
             do {
                 pages.append(try VisionTextRecognizer.recognize(in: image, orientation: orientation).text)
             } catch {
+                try ConversionExecution.check()
                 hadOCRFailure = true
                 pages.append("")
             }
         }
+        try ConversionExecution.report(unit: .frame, completed: frameCount, total: frameCount)
         return ImageExtraction(
             frames: pages,
             hadOCRFailure: hadOCRFailure,

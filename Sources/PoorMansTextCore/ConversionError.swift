@@ -2,6 +2,8 @@ import Foundation
 
 /// Fehler, die Aufrufer des Konvertierungskerns gezielt behandeln können.
 public enum ConversionError: LocalizedError, Sendable {
+    case cancelled
+    case processTimedOut
     case inputDoesNotExist(URL)
     case unsupportedInput(URL)
     case invalidInput(URL, format: InputFormat, reason: String)
@@ -19,6 +21,8 @@ public enum ConversionError: LocalizedError, Sendable {
 
     public var errorDescription: String? {
         switch self {
+        case .cancelled: return "Conversion cancelled."
+        case .processTimedOut: return "The conversion tool exceeded its time limit."
         case .inputDoesNotExist(let url):
             return "Input does not exist: \(url.path)"
         case .unsupportedInput(let url):

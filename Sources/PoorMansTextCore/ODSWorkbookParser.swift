@@ -8,7 +8,9 @@ enum ODSWorkbookParser {
         parser.shouldProcessNamespaces = true
         parser.shouldReportNamespacePrefixes = true
         parser.shouldResolveExternalEntities = false
-        guard parser.parse(), delegate.failure == nil else {
+        let parsedSuccessfully = parser.parse()
+        try ConversionExecution.check()
+        guard parsedSuccessfully, delegate.failure == nil else {
             throw delegate.failure ?? parser.parserError ?? CocoaError(.fileReadCorruptFile)
         }
         guard !delegate.workbook.sheets.isEmpty else {
@@ -46,10 +48,12 @@ enum ODSWorkbookParser {
             didStartMappingPrefix prefix: String,
             toURI namespaceURI: String
         ) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
             namespacePrefixes.startMapping(prefix: prefix, uri: namespaceURI)
         }
 
         func parser(_ parser: XMLParser, didEndMappingPrefix prefix: String) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
             namespacePrefixes.endMapping(prefix: prefix)
         }
 
@@ -60,6 +64,7 @@ enum ODSWorkbookParser {
             qualifiedName qName: String?,
             attributes attributeDict: [String: String] = [:]
         ) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
             guard failure == nil else { return }
 
             let parent = elementStack.last
@@ -200,6 +205,7 @@ enum ODSWorkbookParser {
         }
 
         func parser(_ parser: XMLParser, foundCharacters string: String) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
             if tableDepth == 1, capturesCellText {
                 currentCell?.text.append(string)
             }
@@ -211,6 +217,7 @@ enum ODSWorkbookParser {
             namespaceURI: String?,
             qualifiedName qName: String?
         ) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
             defer {
                 if elementStack.last?.namespaceURI == namespaceURI,
                    elementStack.last?.name == elementName {

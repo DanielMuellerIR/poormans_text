@@ -107,6 +107,7 @@ struct OpenDocumentMasterAdapter: DocumentConversionAdapter {
         var linkedIndex = 0
 
         for item in items {
+            try ConversionExecution.check()
             switch item {
             case .markdown(let markdown):
                 sections.append(markdown)
@@ -201,6 +202,7 @@ struct OpenDocumentMasterAdapter: DocumentConversionAdapter {
         var warnings = [ConversionWarning.openDocumentMasterFlattened]
         let adapter = WordProcessingPackageAdapter()
         for item in items {
+            try ConversionExecution.check()
             guard case .section(_, let reference) = item else { continue }
             let url = try resolve(reference, relativeTo: masterURL)
             switch try adapter.inspectInput(at: url) {

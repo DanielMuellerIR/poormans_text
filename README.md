@@ -253,6 +253,17 @@ Keyboard Shortcuts › Services):
   and reported, because the clipboard carries text only. Selections that only
   offer RTF need Pandoc, like `.rtf` files.
 
+While conversion runs, the app shows the current file and known page, sheet, or
+image-frame progress. Cancel Conversion retains completed batch results and
+removes the current document's workspace without publishing it. Unstarted inputs
+remain available for retry. Cancellation waits for an active PDFKit, ImageIO,
+or Vision call to return; external tool processes are terminated.
+
+The CLI accepts `--progress` for stderr progress and `--timeout SECONDS` for a
+positive time limit per external tool process. SIGINT and SIGTERM request cleanup
+and return exit 130; tool timeout returns 124. A timed-out document does not stop
+later batch inputs. Captured tool output is limited to 16 MiB per stream.
+
 ## Signed installation
 
 The installer builds universal app and CLI binaries, signs both with Developer

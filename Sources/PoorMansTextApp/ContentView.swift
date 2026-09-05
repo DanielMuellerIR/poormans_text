@@ -145,6 +145,19 @@ struct ContentView: View {
     private var dropArea: some View {
         VStack(spacing: 18) {
             stateContent
+            if model.isConverting {
+                if let progress = model.conversionProgress {
+                    if let completed = progress.completed, let total = progress.total, let unit = progress.unit {
+                        ProgressView(value: Double(completed), total: Double(max(total, 1)))
+                        Text(String(format: NSLocalizedString("%@ %d of %d", comment: ""),
+                            NSLocalizedString(unit.rawValue, comment: ""), min(completed + 1, total), total))
+                    } else {
+                        Text(LocalizedStringKey(progress.phase.rawValue))
+                    }
+                }
+                Button(model.cancellationRequested ? "Cancelling…" : "Cancel Conversion") { model.cancelConversion() }
+                    .disabled(model.cancellationRequested)
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(28)

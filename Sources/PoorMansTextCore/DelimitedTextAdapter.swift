@@ -252,7 +252,10 @@ enum DelimitedTextParser {
             }
         }
         var lookahead: Character? = iterator.next()
+        var cancellationCounter = 0
         while let character = lookahead {
+            cancellationCounter += 1
+            if cancellationCounter & 4095 == 0 { try ConversionExecution.check() }
             lookahead = iterator.next()
             if inQuotes {
                 if character == "\"" {

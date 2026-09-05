@@ -58,6 +58,42 @@ public final class AppModel: ObservableObject {
     }
 
     @Published public private(set) var state: State = .idle
+    @Published public private(set) var conversionProgress: ConversionProgress?
+    @Published public private(set) var cancellationRequested = false
+    private var activeCancellation: ConversionCancellationToken?
+    private var conversionTask: Task<Void, Never>?
+
+    public func cancelConversion() {
+        guard isConverting else { return }
+        cancellationRequested = true
+        activeCancellation?.cancel()
+    }
+
+    private func beginConversion() -> ConversionCancellationToken {
+        let token = ConversionCancellationToken()
+        activeCancellation = token
+        cancellationRequested = false
+        conversionProgress = nil
+        return token
+    }
+
+    private func finishConversion(_ token: ConversionCancellationToken) {
+        guard activeCancellation === token else { return }
+        activeCancellation = nil
+        conversionTask = nil
+        conversionProgress = nil
+        cancellationRequested = false
+    }
+
+    private func progressHandler(_ token: ConversionCancellationToken) -> ConversionProgressHandler {
+        { [weak self] value in
+            Task { @MainActor in
+                guard let self, self.activeCancellation === token else { return }
+                self.conversionProgress = value
+            }
+        }
+    }
+
     @Published public var isDropTargeted = false
     /// Gilt nur für Bildimporte; andere Formate ignorieren diese Option.
     @Published public var imageTextRecognition: ImageTextRecognition = .enabled { didSet { savePreferences() } }
@@ -235,14 +271,20 @@ public final class AppModel: ObservableObject {
             let options = conversionOptions
             let requests = retry.map { request(for: $0.input, options: options) }
             state = .convertingBatch(BatchProgress(finished: items.filter { $0.result != nil }, current: first.input, total: items.count))
-            Task {
+            let cancellation = beginConversion()
+            let progress = progressHandler(cancellation)
+            conversionTask = Task {
+                defer { finishConversion(cancellation) }
                 var updated = items
                 for (item, request) in zip(retry, requests) {
+                    if cancellation.isCancelled { break }
+                    state = .convertingBatch(BatchProgress(finished: updated.filter { $0.result != nil }, current: item.input, total: items.count))
                     let outcome: BatchItem.Outcome
                     do {
                         let result = try await Task.detached(priority: .userInitiated) {
+                            try cancellation.checkCancellation()
                             try Self.prepareParent(for: request, protecting: items.map(\.input))
-                            return try DocumentConverter().convert(request)
+                            return try DocumentConverter().convert(request, progress: progress, cancellation: cancellation)
                         }.value
                         outcome = .succeeded(result)
                     } catch { outcome = .failed(AppErrorMessage.describe(error)) }
@@ -282,10 +324,13 @@ public final class AppModel: ObservableObject {
 
         // Die Dateikonvertierung läuft außerhalb des Main Actors, damit das Fenster
         // während textutil und Pandoc weiterhin reagiert.
-        Task {
+        let cancellation = beginConversion()
+        let progress = progressHandler(cancellation)
+        conversionTask = Task {
+            defer { finishConversion(cancellation) }
             do {
                 let result = try await Task.detached(priority: .userInitiated) {
-                    try DocumentConverter().convert(request)
+                    try DocumentConverter().convert(request, progress: progress, cancellation: cancellation)
                 }.value
                 state = .succeeded(result)
             } catch {
@@ -317,11 +362,14 @@ public final class AppModel: ObservableObject {
         preview = nil
         actionMessage = nil
 
-        Task {
+        let cancellation = beginConversion()
+        let progress = progressHandler(cancellation)
+        conversionTask = Task {
+            defer { finishConversion(cancellation) }
             let inputs: [EnumeratedInput]
             do {
                 inputs = try await Task.detached(priority: .userInitiated) {
-                    try enumerator.enumerate(inputURLs)
+                    try enumerator.enumerate(inputURLs, cancellation: cancellation)
                 }.value
             } catch {
                 failedEnumerationInputs = inputURLs
@@ -332,6 +380,10 @@ public final class AppModel: ObservableObject {
             relativeDirectories = Dictionary(uniqueKeysWithValues: inputs.map { ($0.url.path, $0.relativeDirectory) })
             var finished = [BatchItem]()
             for input in inputs {
+                if cancellation.isCancelled {
+                    finished.append(BatchItem(input: input.url, outcome: .failed(AppErrorMessage.describe(ConversionError.cancelled))))
+                    continue
+                }
                 state = .convertingBatch(
                     BatchProgress(finished: finished, current: input.url, total: inputs.count)
                 )
@@ -346,8 +398,9 @@ public final class AppModel: ObservableObject {
                 let outcome: BatchItem.Outcome
                 do {
                     let result = try await Task.detached(priority: .userInitiated) {
+                        try cancellation.checkCancellation()
                         try Self.prepareParent(for: request, protecting: inputs.map(\.url))
-                        return try DocumentConverter().convert(request)
+                        return try DocumentConverter().convert(request, progress: progress, cancellation: cancellation)
                     }.value
                     outcome = .succeeded(result)
                 } catch {
@@ -497,11 +550,15 @@ public final class AppModel: ObservableObject {
         state = .converting(URL(fileURLWithPath: source.fileName))
         let options = conversionOptions
 
-        Task {
+        let cancellation = beginConversion()
+        let progress = progressHandler(cancellation)
+        conversionTask = Task {
+            defer { finishConversion(cancellation) }
             do {
                 let outcome = try await Task.detached(priority: .userInitiated) {
-                    try RichTextClipboard.convert(source, options: options)
+                    try RichTextClipboard.convert(source, options: options, progress: progress, cancellation: cancellation)
                 }.value
+                try cancellation.checkCancellation()
                 // `setString` meldet `false`, wenn inzwischen ein anderer
                 // Prozess die Zwischenablage übernommen hat; dann wäre
                 // „copied" eine Falschmeldung.

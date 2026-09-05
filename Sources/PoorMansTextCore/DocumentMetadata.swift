@@ -198,11 +198,13 @@ enum PackageMetadataParser {
             qualifiedName: String?,
             attributes: [String: String]
         ) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
             current = (namespaceURI ?? "", elementName)
             text = ""
         }
 
         func parser(_ parser: XMLParser, foundCharacters string: String) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
             text += string
         }
 
@@ -212,6 +214,7 @@ enum PackageMetadataParser {
             namespaceURI: String?,
             qualifiedName: String?
         ) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
             defer { current = nil }
             guard let current, current.name == elementName else {
                 return

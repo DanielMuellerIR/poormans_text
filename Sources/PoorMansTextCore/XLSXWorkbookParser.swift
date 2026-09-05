@@ -121,6 +121,7 @@ enum XLSXWorkbookParser {
         var hyperlinkScannedCells = 0
         var hasHyperlinks = false
         for (definition, path) in zip(worksheetDefinitions, sheetPaths) {
+            try ConversionExecution.report(unit: .sheet, completed: result.sheets.count, total: sheetPaths.count)
             guard let xml = worksheetPackage.entries[path] else {
                 throw ParserError("the worksheet part is missing: \(path)")
             }
@@ -221,7 +222,9 @@ enum XLSXWorkbookParser {
         parser.shouldProcessNamespaces = true
         parser.shouldReportNamespacePrefixes = true
         parser.shouldResolveExternalEntities = false
-        guard parser.parse() else {
+        let parsedSuccessfully = parser.parse()
+        try ConversionExecution.check()
+        guard parsedSuccessfully else {
             throw parser.parserError ?? CocoaError(.fileReadCorruptFile)
         }
     }
@@ -239,6 +242,7 @@ enum XLSXWorkbookParser {
             qualifiedName qName: String?,
             attributes attributeDict: [String: String] = [:]
         ) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
             if !sawRoot {
                 sawRoot = true
                 hasValidRoot = elementName == "Types"
@@ -281,10 +285,12 @@ enum XLSXWorkbookParser {
                 didStartMappingPrefix prefix: String,
                 toURI namespaceURI: String
             ) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
                 prefixes.startMapping(prefix: prefix, uri: namespaceURI)
             }
 
             func parser(_ parser: XMLParser, didEndMappingPrefix prefix: String) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
                 prefixes.endMapping(prefix: prefix)
             }
 
@@ -295,6 +301,7 @@ enum XLSXWorkbookParser {
                 qualifiedName qName: String?,
                 attributes attributeDict: [String: String] = [:]
             ) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
                 if !sawRoot {
                     sawRoot = true
                     hasValidRoot = elementName == "workbook"
@@ -361,6 +368,7 @@ enum XLSXWorkbookParser {
                 qualifiedName qName: String?,
                 attributes attributeDict: [String: String] = [:]
             ) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
                 if !sawRoot {
                     sawRoot = true
                     hasValidRoot = elementName == "Relationships"
@@ -422,6 +430,7 @@ enum XLSXWorkbookParser {
                 qualifiedName qName: String?,
                 attributes attributeDict: [String: String] = [:]
             ) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
                 if !sawRoot {
                     sawRoot = true
                     hasValidRoot = elementName == "Relationships"
@@ -456,7 +465,9 @@ enum XLSXWorkbookParser {
             parser.shouldProcessNamespaces = true
             parser.shouldReportNamespacePrefixes = true
             parser.shouldResolveExternalEntities = false
-            guard parser.parse(), delegate.failure == nil else {
+            let parsedSuccessfully = parser.parse()
+            try ConversionExecution.check()
+            guard parsedSuccessfully, delegate.failure == nil else {
                 throw delegate.failure ?? parser.parserError ?? CocoaError(.fileReadCorruptFile)
             }
             guard delegate.hasValidRoot else {
@@ -480,6 +491,7 @@ enum XLSXWorkbookParser {
                 qualifiedName qName: String?,
                 attributes attributeDict: [String: String] = [:]
             ) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
                 if !sawRoot {
                     sawRoot = true
                     hasValidRoot = elementName == "sst"
@@ -491,6 +503,7 @@ enum XLSXWorkbookParser {
             }
 
             func parser(_ parser: XMLParser, foundCharacters string: String) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
                 if capturesText { current?.append(string) }
             }
 
@@ -500,6 +513,7 @@ enum XLSXWorkbookParser {
                 namespaceURI: String?,
                 qualifiedName qName: String?
             ) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
                 guard namespaceURI == Namespaces.spreadsheet else { return }
                 if elementName == "t" { capturesText = false }
                 if elementName == "si", let current {
@@ -546,7 +560,9 @@ enum XLSXWorkbookParser {
             parser.shouldProcessNamespaces = true
             parser.shouldReportNamespacePrefixes = true
             parser.shouldResolveExternalEntities = false
-            guard parser.parse(), delegate.failure == nil else {
+            let parsedSuccessfully = parser.parse()
+            try ConversionExecution.check()
+            guard parsedSuccessfully, delegate.failure == nil else {
                 throw delegate.failure ?? parser.parserError ?? CocoaError(.fileReadCorruptFile)
             }
             guard delegate.hasValidRoot else {
@@ -612,10 +628,12 @@ enum XLSXWorkbookParser {
                 didStartMappingPrefix prefix: String,
                 toURI namespaceURI: String
             ) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
                 prefixes.startMapping(prefix: prefix, uri: namespaceURI)
             }
 
             func parser(_ parser: XMLParser, didEndMappingPrefix prefix: String) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
                 prefixes.endMapping(prefix: prefix)
             }
 
@@ -626,6 +644,7 @@ enum XLSXWorkbookParser {
                 qualifiedName qName: String?,
                 attributes attributeDict: [String: String] = [:]
             ) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
                 guard failure == nil else { return }
                 if !sawRoot {
                     sawRoot = true
@@ -713,6 +732,7 @@ enum XLSXWorkbookParser {
             }
 
             func parser(_ parser: XMLParser, foundCharacters string: String) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
                 switch capture {
                 case .value: currentCell?.rawValue.append(string)
                 case .formula: currentCell?.formula.append(string)
@@ -727,6 +747,7 @@ enum XLSXWorkbookParser {
                 namespaceURI: String?,
                 qualifiedName qName: String?
             ) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
                 guard namespaceURI == Namespaces.spreadsheet else { return }
                 if elementName == "v" || elementName == "f" || elementName == "t" {
                     capture = nil

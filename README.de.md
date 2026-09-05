@@ -265,6 +265,19 @@ Tastaturkurzbefehle › Dienste):
   trägt. Eine Auswahl, die nur RTF anbietet, braucht Pandoc wie eine
   `.rtf`-Datei.
 
+Während der Konvertierung zeigt die App die aktuelle Datei sowie bekannte
+Seiten-, Blatt- oder Bildfortschritte. „Konvertierung abbrechen“ erhält fertige
+Batch-Ergebnisse und entfernt den Arbeitsbereich des laufenden Dokuments, ohne
+es zu veröffentlichen. Noch nicht gestartete Eingaben lassen sich erneut versuchen.
+Ein aktiver PDFKit-, ImageIO- oder Vision-Aufruf kehrt vor dem Abbruch zunächst
+zurück; externe Werkzeugprozesse werden beendet.
+
+Die CLI kennt `--progress` für Fortschritt auf stderr und `--timeout SEKUNDEN`
+für ein positives Zeitlimit pro externem Werkzeugprozess. SIGINT und SIGTERM
+fordern Aufräumen an und ergeben Exit 130, ein Werkzeugtimeout Exit 124.
+Nach einem Timeout laufen weitere Batch-Eingaben weiter. Erfasste Werkzeugausgaben
+sind auf 16 MiB je Stream begrenzt.
+
 ## Signierte Installation
 
 Der Installer baut App und CLI als Universal Binaries, signiert beide mit

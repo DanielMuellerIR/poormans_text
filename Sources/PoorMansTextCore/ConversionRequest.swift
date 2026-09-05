@@ -82,12 +82,20 @@ public struct ConversionProgress: Equatable, Sendable {
         case finished
     }
 
+    public enum Unit: String, Equatable, Sendable { case file, page, sheet, frame }
     public let phase: Phase
     public let format: InputFormat?
+    public let unit: Unit?
+    public let completed: Int?
+    public let total: Int?
 
-    public init(phase: Phase, format: InputFormat? = nil) {
+    public init(phase: Phase, format: InputFormat? = nil, unit: Unit? = nil,
+                completed: Int? = nil, total: Int? = nil) {
         self.phase = phase
         self.format = format
+        self.unit = unit
+        self.completed = completed
+        self.total = total
     }
 }
 

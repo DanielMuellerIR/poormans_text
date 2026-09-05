@@ -16,6 +16,7 @@ enum VisionTextRecognizer {
         in image: CGImage,
         orientation: CGImagePropertyOrientation = .up
     ) throws -> VisionTextRecognition {
+        try ConversionExecution.check()
         let request = VNRecognizeTextRequest()
         request.recognitionLevel = .accurate
         request.usesLanguageCorrection = true
@@ -23,6 +24,7 @@ enum VisionTextRecognizer {
         request.minimumTextHeight = minimumTextHeight
         let handler = VNImageRequestHandler(cgImage: image, orientation: orientation)
         try handler.perform([request])
+        try ConversionExecution.check()
 
         let lines = (request.results ?? []).compactMap { observation -> OCRLine? in
             guard let candidate = observation.topCandidates(1).first,

@@ -89,3 +89,17 @@
 "File-system operation failed: %@" = "Dateisystemoperation fehlgeschlagen: %@";
 "The folder contains no supported documents: %@" = "Der Ordner enthält keine unterstützten Dokumente: %@";
 "Could not read the folder %@: %@" = "Der Ordner %@ konnte nicht gelesen werden: %@";
+"Conversion cancelled." = "Konvertierung abgebrochen.";
+"The conversion tool exceeded its time limit." = "Das Konvertierungswerkzeug hat sein Zeitlimit überschritten.";
+"Cancel Conversion" = "Konvertierung abbrechen";
+"Cancelling…" = "Abbruch läuft…";
+"detectingInput" = "Eingabe wird erkannt";
+"preparingOutput" = "Ausgabe wird vorbereitet";
+"converting" = "Dokument wird konvertiert";
+"publishing" = "Ergebnis wird veröffentlicht";
+"finished" = "Fertig";
+"file" = "Datei";
+"page" = "Seite";
+"sheet" = "Blatt";
+"frame" = "Bild";
+"%@ %d of %d" = "%@ %d von %d";

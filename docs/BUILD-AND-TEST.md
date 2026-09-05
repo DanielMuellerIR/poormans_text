@@ -197,3 +197,14 @@ App-Modelltests verwenden eigene flüchtige Einstellungen und eine eigene
 Zwischenablage; sie verändern keine Benutzerpräferenzen.
 `./build.sh debug` kopiert `App/en.lproj` und `App/de.lproj` in das lokale Bundle.
 Diese Prüfungen belegen Modell und Bundle, keine visuelle Bedienprüfung.
+
+## Abbruch und Zeitlimits headless prüfen
+
+`ConversionCancellationTests`, `CLICancellationTests` und die PDF-Adaptertests
+prüfen Abbruch an der Veröffentlichungsgrenze, nach einer fertigen Batch-Datei
+und an einer echten PDF-Seite. Temporäre CSV-/RTFD-/PDF-Quellen werden vor und
+nach dem Lauf unabhängig verglichen; Ergebnis- und Arbeitsordner des abgebrochenen
+Dokuments dürfen nicht zurückbleiben. Prozessprüfungen haben eigene Fristen und
+beenden nur ihre aufgezeichneten Prozesse, falls die getestete Beendigung ausfällt.
+Die CLI-Signaltests verlangen Exit 130 für SIGINT und SIGTERM, die Timeoutprüfung
+Exit 124 und eine dennoch gelungene nachfolgende CSV-Eingabe.

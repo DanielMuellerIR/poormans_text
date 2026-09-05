@@ -217,6 +217,7 @@ struct PDFAdapter: DocumentConversionAdapter {
         var extractedTextBytes = 0
 
         for pageIndex in 0..<document.pageCount {
+            try ConversionExecution.report(unit: .page, completed: pageIndex, total: document.pageCount)
             guard let page = document.page(at: pageIndex) else {
                 throw PDFAdapterError("the PDF page \(pageIndex + 1) is unreadable")
             }
@@ -245,10 +246,12 @@ struct PDFAdapter: DocumentConversionAdapter {
 
         var hadOCRFailure = false
         for plan in ocrPlans {
+            try ConversionExecution.report(unit: .page, completed: plan.index, total: document.pageCount)
             let recognizedText: String
             do {
                 recognizedText = try recognizeText(in: plan.page, dimensions: plan.dimensions)
             } catch {
+                try ConversionExecution.check()
                 hadOCRFailure = true
                 continue
             }
@@ -261,6 +264,7 @@ struct PDFAdapter: DocumentConversionAdapter {
             try accountText(recognizedText, totalBytes: &extractedTextBytes)
             pages[plan.index] = recognizedText
         }
+        try ConversionExecution.report(unit: .page, completed: document.pageCount, total: document.pageCount)
         return PDFExtraction(
             pages: pages,
             usedOCR: !ocrPlans.isEmpty,

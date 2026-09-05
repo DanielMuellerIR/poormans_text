@@ -1,8 +1,12 @@
 import Foundation
+import Dispatch
+import Darwin
 import PoorMansTextCore
 
 private enum CLIExitCode: Int32 {
     case success = 0
+    case cancelled = 130
+    case timedOut = 124
     case usage = 64
     case dataError = 65
     case noInput = 66
@@ -17,6 +21,8 @@ private struct ParsedArguments {
     var outputURL: URL?
     var pandocURL: URL?
     var json = false
+    var progress = false
+    var timeout: TimeInterval?
     var showHelp = false
     var showVersion = false
     var listFormats = false
@@ -203,6 +209,8 @@ Options:
       --frontmatter       Start the Markdown with a YAML header (title, author, dates) from the source.
       --textbundle        Write INPUT.textbundle (text.md, assets/, info.json) instead of INPUT-markdown.
       --stdout            Print the Markdown to standard output instead of writing a folder.
+      --progress          Report phases and known page/sheet progress on stderr.
+      --timeout SECONDS   Limit each external tool process (positive seconds).
       --json              Write a machine-readable result to stdout.
   -h, --help              Show this help text.
   -V, --version           Show the product version.
@@ -210,7 +218,8 @@ Options:
 The default output directory is INPUT-markdown next to the source. Existing
 output directories are never overwritten. Exit codes follow sysexits values:
 64 usage, 65 invalid data, 66 missing input, 69 missing dependency,
-70 conversion failure, 73 output collision, and 74 file-system failure.
+70 conversion failure, 73 output collision, 74 file-system failure,
+124 tool timeout, and 130 cancelled (SIGINT/SIGTERM).
 
 With several inputs, or with a folder as input, every document is converted in
 turn and a failure does not stop the others. A folder is searched recursively
@@ -257,6 +266,19 @@ private func parseArguments(
             parsed.showHelp = true
         } else if !optionsEnded && (argument == "-V" || argument == "--version") {
             parsed.showVersion = true
+        } else if !optionsEnded && argument == "--progress" {
+            parsed.progress = true
+        } else if !optionsEnded && (argument == "--timeout" || argument.hasPrefix("--timeout=")) {
+            let value: String
+            if argument == "--timeout" {
+                index += 1
+                guard index < rawArguments.count else { throw CLIArgumentError.missingValue(argument) }
+                value = rawArguments[index]
+            } else { value = String(argument.dropFirst("--timeout=".count)) }
+            guard let seconds = Double(value), seconds.isFinite, seconds > 0 else {
+                throw CLIArgumentError.missingValue("--timeout requires positive finite seconds")
+            }
+            parsed.timeout = seconds
         } else if !optionsEnded && argument == "--json" {
             parsed.json = true
         } else if !optionsEnded && argument == "--formats" {
@@ -451,6 +473,8 @@ private func exitCode(for error: Error) -> CLIExitCode {
     }
 
     switch conversionError {
+    case .cancelled: return .cancelled
+    case .processTimedOut: return .timedOut
     case .inputDoesNotExist:
         return .noInput
     case .unsupportedInput, .invalidInput, .ambiguousInput,
@@ -485,17 +509,20 @@ private func writeError(_ message: String) {
 /// `--stdout`: in ein temporäres Ziel umwandeln, den Text ausgeben, aufräumen.
 /// Bilder haben auf der Standardausgabe keinen Platz; ihre Verweise bleiben im
 /// Text stehen, und die Zahl der ausgelassenen Dateien geht an stderr.
-private func convertToStandardOutput(_ inputURL: URL, options: ConversionOptions) throws {
+private func convertToStandardOutput(_ inputURL: URL, options: ConversionOptions, arguments: ParsedArguments, cancellation: ConversionCancellationToken) throws {
     let result = try DocumentConverter().convert(
-        ConversionRequest(inputURL: inputURL, destination: .temporary, options: options)
+        ConversionRequest(inputURL: inputURL, destination: .temporary, options: options),
+        progress: progressHandler(arguments, input: inputURL), cancellation: cancellation, processTimeout: arguments.timeout
     )
     defer { try? FileManager.default.removeItem(at: result.outputDirectory) }
+    try cancellation.checkCancellation()
     let markdown: Data
     do {
         markdown = try Data(contentsOf: result.markdownFile)
     } catch {
         throw ConversionError.fileSystemFailure(error.localizedDescription)
     }
+    try cancellation.checkCancellation()
     FileHandle.standardOutput.write(markdown)
     for warning in result.warnings {
         FileHandle.standardError.write(Data("Warning: \(warning)\n".utf8))
@@ -569,10 +596,12 @@ private func batchDestination(
 private func convertBatch(
     _ inputs: [EnumeratedInput],
     arguments: ParsedArguments,
-    options: ConversionOptions
+    options: ConversionOptions,
+    cancellation: ConversionCancellationToken
 ) -> CLIExitCode {
     if let outputRoot = arguments.outputURL {
         do {
+            try cancellation.checkCancellation()
             try prepareBatchOutputRoot(outputRoot)
         } catch {
             if arguments.json {
@@ -590,13 +619,15 @@ private func convertBatch(
     let converter = DocumentConverter()
     for input in inputs {
         do {
+            try cancellation.checkCancellation()
             let destination = try batchDestination(
                 for: input,
                 outputRoot: arguments.outputURL,
                 options: options
             )
             let result = try converter.convert(
-                ConversionRequest(inputURL: input.url, destination: destination, options: options)
+                ConversionRequest(inputURL: input.url, destination: destination, options: options),
+                progress: progressHandler(arguments, input: input.url), cancellation: cancellation, processTimeout: arguments.timeout
             )
             if arguments.json {
                 entries.append(.success(result))
@@ -618,6 +649,10 @@ private func convertBatch(
             } else {
                 writeError("\(input.url.path): \(error.localizedDescription)")
             }
+            if cancellation.isCancelled {
+                firstFailure = exitCode(for: error)
+                break
+            }
         }
     }
 
@@ -629,9 +664,29 @@ private func convertBatch(
     return firstFailure ?? .success
 }
 
+private func progressHandler(_ arguments: ParsedArguments, input: URL) -> ConversionProgressHandler? {
+    guard arguments.progress else { return nil }
+    return { value in
+        let detail = value.unit.map { " \($0.rawValue) \(value.completed ?? 0)/\(value.total ?? 0)" } ?? ""
+        FileHandle.standardError.write(Data("Progress: \(input.lastPathComponent): \(value.phase.rawValue)\(detail)\n".utf8))
+    }
+}
+
+private let cancellation = ConversionCancellationToken()
+// Dispatch verarbeitet Signale abseits des blockierten Hauptthreads. Im
+// Signalhandler selbst laufen keine Swift-Allokationen oder Dateizugriffe.
+private let signalSources: [DispatchSourceSignal] = [SIGINT, SIGTERM].map { number in
+    signal(number, SIG_IGN)
+    let source = DispatchSource.makeSignalSource(signal: number, queue: .global())
+    let token = cancellation
+    source.setEventHandler { @Sendable in token.cancel() }
+    source.resume()
+    return source
+}
 private var parsedArguments = ParsedArguments()
 
 do {
+    _ = signalSources
     try parseArguments(Array(CommandLine.arguments.dropFirst()), into: &parsedArguments)
     let arguments = parsedArguments
 
@@ -649,7 +704,7 @@ do {
         guard arguments.inputURLs.isEmpty, arguments.outputURL == nil,
               !arguments.setsSpreadsheetRendering, !arguments.setsImageTextRecognition,
               !arguments.writeToStandardOutput, !arguments.frontmatter,
-              arguments.outputLayout == .markdownFolder else {
+              arguments.outputLayout == .markdownFolder, !arguments.progress, arguments.timeout == nil else {
             throw CLIArgumentError.formatsTakesNoInput
         }
         writeFormats(formatCatalog(pandocURL: arguments.pandocURL), json: arguments.json)
@@ -682,7 +737,7 @@ do {
         if arguments.inputURLs.count > 1 || enumerator.isSearchableDirectory(firstInputURL) {
             throw CLIArgumentError.standardOutputConflict("takes exactly one document, not several or a folder")
         }
-        try convertToStandardOutput(firstInputURL, options: options)
+        try convertToStandardOutput(firstInputURL, options: options, arguments: arguments, cancellation: cancellation)
         exit(CLIExitCode.success.rawValue)
     }
 
@@ -690,8 +745,8 @@ do {
     // bisherige Einzelweg mit unveränderter Antwort — darauf verlässt sich
     // Fastra. Alles andere ist ein Mehrfachlauf mit Listenantwort.
     if arguments.inputURLs.count > 1 || enumerator.isSearchableDirectory(firstInputURL) {
-        let inputs = try enumerator.enumerate(arguments.inputURLs)
-        exit(convertBatch(inputs, arguments: arguments, options: options).rawValue)
+        let inputs = try enumerator.enumerate(arguments.inputURLs, cancellation: cancellation)
+        exit(convertBatch(inputs, arguments: arguments, options: options, cancellation: cancellation).rawValue)
     }
 
     let destination = arguments.outputURL.map(ConversionDestination.directory)
@@ -701,7 +756,8 @@ do {
             inputURL: firstInputURL,
             destination: destination,
             options: options
-        )
+        ),
+        progress: progressHandler(arguments, input: firstInputURL), cancellation: cancellation, processTimeout: arguments.timeout
     )
 
     if arguments.json {

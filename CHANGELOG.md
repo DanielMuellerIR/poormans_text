@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Carry cancellation and progress through the app, CLI, and conversion adapters.
+  The app keeps its active task and cancellation token; Cancel Conversion stops
+  at cooperative checkpoints, retains completed batch results, and leaves
+  interrupted or unstarted inputs available for retry. Clipboard conversions
+  leave the clipboard untouched when cancelled.
+- Report known PDF pages, image frames, and spreadsheet sheets. Add CLI
+  `--progress` on stderr and handle SIGINT/SIGTERM with exit 130 and workspace
+  cleanup. External tools support `--timeout SECONDS` (exit 124); a timeout in
+  one batch document does not stop later documents.
+- Terminate owned helper process groups with TERM, then KILL after a short
+  grace period. Bound captured tool output to 16 MiB per stream. Add cancellation
+  checkpoints to package staging, ZIP inflation and CRC checks, XML delegates,
+  legacy XLS parsing, CSV parsing, and spreadsheet rendering. Cancellation at
+  the publication callback prevents the atomic move; cancellation after the
+  finished callback leaves the published result intact.
+
 - Remember the app's output parent, spreadsheet rendering, image OCR,
   frontmatter, and Textbundle options. Folder imports preserve their relative
   directories under the selected output parent.

@@ -63,7 +63,6 @@ in die Zwischenablage) sind umgesetzt; offen bleibt:
 
 ### Etappe 8 — App-Bedienung
 
-- Fortschritt und Abbruch für lange Umwandlungen über `ConversionProgress`.
 - Direkte Auswahl von Fastra als Ziel-App (Markdown lässt sich bereits in der
   zugeordneten Standard-App öffnen).
 - Homebrew-Cask neben dem DMG.
@@ -87,9 +86,6 @@ und nutzt den normalen Import. Keynote fällt unter dieselbe Grenze.
 
 ## Nächste technische Produktarbeit (2026-09-05)
 
-- Fortschritt bis in App und Adapter weiterreichen, bekannte Seiten-/Blattzahlen
-  anzeigen und Aufträge kooperativ abbrechen. Externe Prozesse erhalten Zeitlimits
-  und kontrollierte Beendigung. Fertige Batch-Ergebnisse bleiben erhalten.
 - Vor Paketänderungen große XLSX-, medienreiche DOCX-Dateien und viele kleine
   Eingaben auf Laufzeit und maximalen Speicherbedarf messen. Danach geprüfte
   Paketkopien samt Verzeichnis wiederverwenden und XLSX-Blätter einzeln lesen.

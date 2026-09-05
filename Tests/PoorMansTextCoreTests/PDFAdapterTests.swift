@@ -178,6 +178,23 @@ final class PDFAdapterTests: XCTestCase {
         )
     }
 
+    func testPageProgressCanCancelRealPDFWithoutPublishing() throws {
+        let source = temporaryDirectory.appendingPathComponent("cancel.pdf")
+        try createPDF(pages: ["First page with sufficient digital text.", "Second page with sufficient digital text."], at: source)
+        let original = try Data(contentsOf: source)
+        let token = ConversionCancellationToken()
+        XCTAssertThrowsError(try DocumentConverter().convert(ConversionRequest(inputURL: source), progress: { value in
+            if value.unit == .page && value.completed == 1 {
+                XCTAssertEqual(value.total, 2)
+                token.cancel()
+            }
+        }, cancellation: token)) { error in
+            guard case ConversionError.cancelled = error else { return XCTFail("\(error)") }
+        }
+        XCTAssertEqual(try Data(contentsOf: source), original)
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: temporaryDirectory.path), ["cancel.pdf"])
+    }
+
     private func createPDF(
         pages: [String],
         at url: URL,

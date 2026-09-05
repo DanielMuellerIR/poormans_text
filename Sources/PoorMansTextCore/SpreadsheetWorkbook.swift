@@ -127,7 +127,8 @@ enum SpreadsheetMarkdownRenderer {
         try output.append(
             "# \(MarkdownEscaping.heading(sourceURL.deletingPathExtension().lastPathComponent))"
         )
-        for sheet in workbook.sheets {
+        for (index, sheet) in workbook.sheets.enumerated() {
+            try ConversionExecution.report(unit: .sheet, completed: index, total: workbook.sheets.count)
             try output.append("\n\n## Sheet: \(MarkdownEscaping.heading(sheet.name))\n\n")
             guard !sheet.rows.isEmpty else {
                 try output.append("_Empty sheet._")
@@ -159,6 +160,7 @@ enum SpreadsheetMarkdownRenderer {
         }
         try output.append(" |")
         for row in rows.dropFirst() {
+            try ConversionExecution.check()
             try output.append("\n")
             try appendTableRow(row, columnCount: columnCount, to: &output)
         }
@@ -233,6 +235,7 @@ enum SpreadsheetMarkdownRenderer {
         let fence = String(repeating: "`", count: max(3, longestTicks + 1))
         try output.append("\(fence)tsv\n")
         for (rowIndex, row) in rows.enumerated() {
+            try ConversionExecution.check()
             if rowIndex > 0 {
                 try output.append("\n")
             }
@@ -293,6 +296,7 @@ enum SpreadsheetMarkdownRenderer {
         // danach sofort geprüft — ein Überlauf ist damit ausgeschlossen.
         var lowerBoundBytes = 0
         for (rowIndex, row) in rows.enumerated() {
+            try ConversionExecution.check()
             if rowIndex > 0 {
                 lowerBoundBytes += 1                    // Zeilentrenner
             }

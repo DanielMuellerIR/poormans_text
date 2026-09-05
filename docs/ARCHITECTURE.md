@@ -222,3 +222,45 @@ enthält ausschließlich den Markdown-Text und meldet ausgelassene Asset-Dateien
 Die SwiftUI-Ergebnisliste erzeugt Zeilen bedarfsgerecht über `LazyVStack`.
 Die englischen und deutschen `Localizable.strings` liegen im fertigen App-Bundle
 unter `Contents/Resources`, damit SwiftUI und AppKit dasselbe Sprachpaket lesen.
+
+## Fortschritt, Auftragsabbruch und Werkzeuglimits
+
+`ConversionCancellationToken` ist threadsicher und gehört dem aufrufenden
+Auftrag. `DocumentConverter.convert` bindet pro Dokument einen abgeleiteten Token,
+den Fortschrittscallback und das Werkzeug-Zeitlimit in `ConversionExecution`
+(`TaskLocal`). Synchrone ODM-Unterimporte erben diese Bindung; getrennte
+Konvertierungen erhalten getrennte Kontexte. Ein Werkzeugtimeout markiert nur
+das aktuelle Dokument, nicht den übergeordneten Batch-Token. Die äußere
+API-Grenze erhält Abbruch- und Timeoutfehler auch dann, wenn ein Adapter seinen
+Parserfehler in einen Formatfehler übersetzt.
+
+`ConversionProgress` enthält neben der Phase optional Einheit, erledigte Anzahl
+und Gesamtzahl. PDF-Seiten, Bildframes und Tabellenblätter melden bekannte
+Fortschritte. Die App wechselt für die Darstellung auf den Main Actor und
+verwirft verspätete Meldungen eines beendeten Auftrags. Sie hält Task und Token
+bis zur tatsächlichen Beendigung; der Abbruchknopf fordert Abbruch an und sperrt
+sich während des Aufräumens. Bereits fertige Batch-Ausgaben bleiben erhalten.
+Noch nicht gestartete Eingaben erscheinen als abgebrochen und können erneut
+versucht werden.
+
+Die Engine prüft Abbruch vor und nach Phasenmeldungen, insbesondere direkt nach
+`publishing` und vor dem atomaren Move. Mit dem erfolgreichen Move gilt das
+Dokument als veröffentlicht; ein Abbruch im anschließenden `finished`-Callback
+widerruft diesen Erfolg nicht. Der dokumentbezogene temporäre Ordner wird auch
+bei Fehlern während seiner Anlage entfernt. Bereits angelegte leere Elternordner
+eines gemeinsamen Batch-Ziels bleiben bestehen.
+
+`ProcessRunner` prüft Zeit und Abbruch alle 10 ms und sendet TERM an die
+nachweislich eigene Prozessgruppe (sonst nur an den gestarteten Prozess), nach
+250 ms nötigenfalls KILL. Testaufrufe können Zeitlimit, Schonfrist und
+Ausgabegrenze ändern. Datei-Capture vermeidet volle Pipes; maximal 16 MiB je
+Stream werden eingelesen. Der Größenmonitor beendet einen übermäßig schreibenden
+Prozess, wobei die temporäre Datei zwischen zwei Prüfungen größer werden kann.
+Kindprozesse, die absichtlich eine andere Prozessgruppe gründen, gehören nicht
+zur erfassten Gruppe.
+
+Der Abbruch ist kooperativ: Paketkopien, ZIP-CRC und Entpacken prüfen blockweise,
+CSV alle 4096 Zeichen, XML-Parser an Delegate-Aufrufen, XLS an Datensatz- und
+Sektorgrenzen. PDFKit/ImageIO und ein bereits laufender Vision-Aufruf kehren
+zunächst aus ihrem jeweiligen Systemaufruf zurück; davor und danach wird der
+Token geprüft. Entfernte Inhalte werden weiterhin nicht geladen.

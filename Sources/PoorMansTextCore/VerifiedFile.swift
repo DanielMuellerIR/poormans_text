@@ -97,6 +97,7 @@ struct VerifiedFile {
         guard let base = buffer.baseAddress else { return 0 }
         var offset = 0
         while offset < buffer.count {
+            try ConversionExecution.check()
             let readBytes = read(descriptor, base + offset, buffer.count - offset)
             if readBytes == 0 {
                 break
@@ -127,6 +128,7 @@ struct VerifiedFile {
         var readTotal = 0
         var buffer = [UInt8](repeating: 0, count: chunkSize)
         while true {
+            try ConversionExecution.check()
             let readBytes = buffer.withUnsafeMutableBytes { raw -> Int in
                 guard let base = raw.baseAddress else { return -1 }
                 return read(descriptor, base, chunkSize)

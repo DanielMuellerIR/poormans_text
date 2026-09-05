@@ -10,6 +10,8 @@ enum AppErrorMessage {
         }
         if let error = error as? ConversionError {
             switch error {
+            case .cancelled: return format("Conversion cancelled.")
+            case .processTimedOut: return format("The conversion tool exceeded its time limit.")
             case .inputDoesNotExist(let url): return format("Input does not exist: %@", url.path)
             case .unsupportedInput(let url): return format("Unsupported input format: %@", url.path)
             case .invalidInput(let url, let kind, let reason): return format("Invalid %@ input at %@: %@", kind.rawValue.uppercased(), url.path, reason)

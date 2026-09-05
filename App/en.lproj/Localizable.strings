@@ -89,3 +89,17 @@
 "File-system operation failed: %@" = "File-system operation failed: %@";
 "The folder contains no supported documents: %@" = "The folder contains no supported documents: %@";
 "Could not read the folder %@: %@" = "Could not read the folder %@: %@";
+"Conversion cancelled." = "Conversion cancelled.";
+"The conversion tool exceeded its time limit." = "The conversion tool exceeded its time limit.";
+"Cancel Conversion" = "Cancel Conversion";
+"Cancelling…" = "Cancelling…";
+"detectingInput" = "Detecting input";
+"preparingOutput" = "Preparing output";
+"converting" = "Converting document";
+"publishing" = "Publishing result";
+"finished" = "Finished";
+"file" = "File";
+"page" = "Page";
+"sheet" = "Sheet";
+"frame" = "Image";
+"%@ %d of %d" = "%@ %d of %d";

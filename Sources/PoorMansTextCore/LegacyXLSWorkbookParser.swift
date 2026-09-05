@@ -89,6 +89,7 @@ enum LegacyXLSWorkbookParser {
             let difatCount = Int(data.legacyUInt32(at: 72))
             var seenDIFAT = Set<UInt32>()
             for _ in 0..<difatCount {
+                try ConversionExecution.check()
                 guard difatSector < UInt32(sectorCount), seenDIFAT.insert(difatSector).inserted else {
                     throw ParserError("the OLE DIFAT chain is invalid")
                 }
@@ -105,6 +106,7 @@ enum LegacyXLSWorkbookParser {
             fatSectorIDs = Array(fatSectorIDs.prefix(fatSectorCount))
             var parsedFAT = [UInt32]()
             for id in fatSectorIDs {
+                try ConversionExecution.check()
                 guard id < UInt32(sectorCount) else {
                     throw ParserError("an OLE FAT sector lies outside the file")
                 }
@@ -219,6 +221,7 @@ enum LegacyXLSWorkbookParser {
             var current = start
             var seen = Set<UInt32>()
             while current != Constants.endOfChain {
+                try ConversionExecution.check()
                 guard current < UInt32(fat.count), seen.insert(current).inserted else {
                     throw ParserError("an OLE sector chain is invalid")
                 }
@@ -252,6 +255,7 @@ enum LegacyXLSWorkbookParser {
             var current = start
             var seen = Set<UInt32>()
             while current != Constants.endOfChain, result.count < size {
+                try ConversionExecution.check()
                 guard current < UInt32(miniFAT.count), seen.insert(current).inserted else {
                     throw ParserError("an OLE mini-sector chain is invalid")
                 }
@@ -348,6 +352,7 @@ enum LegacyXLSWorkbookParser {
             var expandedCellCount = 0
             var hyperlinkScannedCellCount = 0
             for bound in bounds {
+                try ConversionExecution.report(unit: .sheet, completed: workbook.sheets.count, total: bounds.count)
                 let endOffset = physicalOffsets.first(where: { $0 > bound.offset }) ?? data.count
                 let parsed = try parseSheet(
                     data,
@@ -390,6 +395,7 @@ enum LegacyXLSWorkbookParser {
                 throw ParserError("an XLS BIFF record range is invalid")
             }
             while offset + 4 <= end {
+                try ConversionExecution.check()
                 let id = data.legacyUInt16(at: offset)
                 let length = Int(data.legacyUInt16(at: offset + 2))
                 guard offset + 4 + length <= end else {
@@ -429,6 +435,7 @@ enum LegacyXLSWorkbookParser {
             var strings = [String]()
             strings.reserveCapacity(uniqueCount)
             for _ in 0..<uniqueCount {
+                try ConversionExecution.check()
                 strings.append(try cursor.readUnicodeString())
             }
             return strings
@@ -464,6 +471,7 @@ enum LegacyXLSWorkbookParser {
             var hyperlinkScannedCellCount = 0
 
             for record in sheetRecords.dropFirst() {
+                try ConversionExecution.check()
                 if record.id == 0x000A { break }
                 switch record.id {
                 case 0x00FD: // LABELSST
@@ -1025,6 +1033,7 @@ enum LegacyXLSWorkbookParser {
                 var remaining = characterCount
                 var result = ""
                 while remaining > 0 {
+                try ConversionExecution.check()
                     if offset == segments[segmentIndex].count {
                         try moveToNextSegment()
                         wide = try readRawByte() & 0x1 != 0

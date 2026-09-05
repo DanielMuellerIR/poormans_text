@@ -266,11 +266,21 @@ struct ContentView: View {
 
         case .convertingBatch(let progress):
             ProgressView(
-                value: Double(progress.finished.count),
+                value: Double(progress.completed),
                 total: Double(max(progress.total, 1))
             )
             .frame(maxWidth: 320)
-            Text("Converting \(progress.finished.count + 1) of \(progress.total): \(progress.current.lastPathComponent)…")
+            Text(String(format: NSLocalizedString("Completed %d of %d documents", comment: ""), progress.completed, progress.total))
+            ForEach(model.runningJobs) { job in
+                HStack {
+                    Text(job.input.lastPathComponent).lineLimit(1)
+                    if let value = job.progress, let unit = value.unit, let completed = value.completed, let total = value.total {
+                        Text(String(format: NSLocalizedString("%@ %d of %d", comment: ""), NSLocalizedString(unit.rawValue, comment: ""), min(completed + 1, total), total))
+                    } else if let value = job.progress { Text(LocalizedStringKey(value.phase.rawValue)) }
+                }
+                .font(.caption)
+            }
+            Text(progress.current.lastPathComponent)
                 .font(.title3.bold())
                 .lineLimit(2)
             Text("The source documents are left unchanged.")
@@ -399,6 +409,10 @@ struct ContentView: View {
                 }
                 Toggle("Remove repeated PDF headers and footers", isOn: $model.pdfRemoveHeadersFooters)
                 Toggle("Join conservative PDF word breaks", isOn: $model.pdfDehyphenate)
+                Picker("Batch documents at once", selection: $model.batchParallelism) {
+                    ForEach(1...4, id: \.self) { Text(String($0)).tag($0) }
+                }
+                Text("Local OCR processes one image at a time.").font(.caption)
                 Toggle("Add YAML frontmatter", isOn: $model.frontmatter)
                 Picker("Output", selection: $model.outputLayout) {
                     Text("Markdown folder").tag(OutputLayout.markdownFolder)

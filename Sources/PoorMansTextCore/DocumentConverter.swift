@@ -104,7 +104,8 @@ public struct DocumentConverter: Sendable {
             cancellation: cancellation.map { ConversionCancellationToken(parent: $0) }
                 ?? inherited?.cancellation ?? ConversionCancellationToken(),
             progress: progress ?? inherited?.progress,
-            processTimeout: processTimeout ?? inherited?.processTimeout)
+            processTimeout: processTimeout ?? inherited?.processTimeout,
+            protectedInputs: inherited?.protectedInputs ?? [], plannedSources: inherited?.plannedSources ?? [:])
         return try ConversionExecution.$current.withValue(context) {
             do { return try convertInContext(request) }
             catch {
@@ -133,6 +134,9 @@ public struct DocumentConverter: Sendable {
         // vor und nach der Erkennung aufgelöst; weichen beide Ergebnisse ab,
         // wurde der Link währenddessen umgehängt (Review-Fund 2026-09-03).
         let resolvedBeforeDetection = inputURL.resolvingSymlinksInPath()
+        if let planned = ConversionExecution.current?.plannedSources[inputURL.path], planned != resolvedBeforeDetection {
+            throw ConversionError.fileSystemFailure("the batch source changed after output planning")
+        }
         let detected = try detectInput(at: inputURL)
         let format = detected.inspection.format
         let resolvedInputURL = inputURL.resolvingSymlinksInPath()
@@ -367,6 +371,7 @@ public struct DocumentConverter: Sendable {
         resolvedInputURL: URL,
         fileManager: FileManager
     ) throws {
+        try BatchSourceProtection.validate([outputURL], sources: ConversionExecution.current?.protectedInputs ?? [])
         guard !fileManager.fileExists(atPath: outputURL.path) else {
             throw ConversionError.outputAlreadyExists(outputURL)
         }

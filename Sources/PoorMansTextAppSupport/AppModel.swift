@@ -31,15 +31,23 @@ public struct BatchItem: Sendable, Identifiable {
 /// Zwischenstand eines Mehrfachlaufs: was fertig ist, was gerade läuft und
 /// wie viele Eingaben es insgesamt sind. `total` ist erst nach dem Durchsuchen
 /// der Ordner bekannt; solange steht dort die Zahl der abgelegten Pfade.
+public struct BatchRunningJob: Sendable, Identifiable {
+    public let id: Int
+    public let input: URL
+    public let progress: ConversionProgress?
+}
+
 public struct BatchProgress: Sendable {
     public let finished: [BatchItem]
     public let current: URL
     public let total: Int
+    public let completed: Int
 
-    public init(finished: [BatchItem], current: URL, total: Int) {
+    public init(finished: [BatchItem], current: URL, total: Int, completed: Int? = nil) {
         self.finished = finished
         self.current = current
         self.total = total
+        self.completed = completed ?? finished.count
     }
 }
 
@@ -60,6 +68,10 @@ public final class AppModel: ObservableObject {
     @Published public private(set) var state: State = .idle
     @Published public private(set) var conversionProgress: ConversionProgress?
     @Published public private(set) var cancellationRequested = false
+    @Published public private(set) var runningJobs: [BatchRunningJob] = []
+    private var batchSequence = 0
+    private var batchDisplayItems: [Int: BatchItem] = [:]
+    private var batchDocumentProgress: [Int: ConversionProgress] = [:]
     private var activeCancellation: ConversionCancellationToken?
     private var conversionTask: Task<Void, Never>?
 
@@ -74,6 +86,10 @@ public final class AppModel: ObservableObject {
         activeCancellation = token
         cancellationRequested = false
         conversionProgress = nil
+        runningJobs = []
+        batchSequence = 0
+        batchDisplayItems = [:]
+        batchDocumentProgress = [:]
         return token
     }
 
@@ -83,6 +99,7 @@ public final class AppModel: ObservableObject {
         conversionTask = nil
         conversionProgress = nil
         cancellationRequested = false
+        runningJobs = []
     }
 
     private func progressHandler(_ token: ConversionCancellationToken) -> ConversionProgressHandler {
@@ -105,6 +122,13 @@ public final class AppModel: ObservableObject {
     @Published public var spreadsheetRendering: SpreadsheetRendering = .markdownTable { didSet { savePreferences() } }
     @Published public var frontmatter = false { didSet { savePreferences() } }
     @Published public var outputLayout: OutputLayout = .markdownFolder { didSet { savePreferences() } }
+    @Published public var batchParallelism = 1 {
+        didSet {
+            let bounded = min(max(batchParallelism, 1), 4)
+            if batchParallelism != bounded { batchParallelism = bounded; return }
+            savePreferences()
+        }
+    }
     @Published public var destinationFolder: URL? { didSet { savePreferences() } }
     @Published public var selectedInput: String?
     @Published public private(set) var actionMessage: String?
@@ -176,6 +200,7 @@ public final class AppModel: ObservableObject {
         ocrLanguageCodes = defaults.string(forKey: "ocrLanguageCodes") ?? ""
         pdfRemoveHeadersFooters = defaults.bool(forKey: "pdfRemoveHeadersFooters")
         pdfDehyphenate = defaults.bool(forKey: "pdfDehyphenate")
+        batchParallelism = min(max(defaults.integer(forKey: "batchParallelism"), 1), 4)
         loadingPreferences = false
     }
 
@@ -188,6 +213,7 @@ public final class AppModel: ObservableObject {
         defaults.set(ocrLanguageCodes, forKey: "ocrLanguageCodes")
         defaults.set(pdfRemoveHeadersFooters, forKey: "pdfRemoveHeadersFooters")
         defaults.set(pdfDehyphenate, forKey: "pdfDehyphenate")
+        defaults.set(batchParallelism, forKey: "batchParallelism")
         defaults.set(frontmatter, forKey: "frontmatter")
         defaults.set(outputLayout.rawValue, forKey: "outputLayout")
         defaults.set(destinationFolder?.path, forKey: "destinationFolder")
@@ -201,22 +227,46 @@ public final class AppModel: ObservableObject {
         return ConversionRequest(inputURL: input, destination: destination.map(ConversionDestination.directory) ?? .adjacentToInput, options: options)
     }
 
-    /// Die Elternordner entstehen vor dem Engine-Aufruf. Deshalb schon hier
-    /// alle Quelldokumente des Batches schützen, auch ein anderes RTFD-Paket.
-    nonisolated private static func prepareParent(for request: ConversionRequest, protecting inputs: [URL]) throws {
-        guard case .directory(let output) = request.destination else { return }
-        let resolvedOutputPath = output.standardizedFileURL.resolvingSymlinksInPath().path + "/"
-        for input in inputs {
-            let resolvedInput = input.standardizedFileURL.resolvingSymlinksInPath()
-            let caseSensitive = (try? resolvedInput.resourceValues(forKeys: [.volumeSupportsCaseSensitiveNamesKey]))?.volumeSupportsCaseSensitiveNames == true
-            let inputPath = resolvedInput.path + "/"
-            let liesInside = caseSensitive ? resolvedOutputPath.hasPrefix(inputPath)
-                : resolvedOutputPath.lowercased().hasPrefix(inputPath.lowercased())
-            guard !liesInside else {
-                throw ConversionError.outputInsideInput(output)
+    /// Alle Teilaufträge laufen durch dieselbe Core-Planung wie CLI-Batches.
+    /// Ein Retry ersetzt nur seine Slots; Erfolge und übrige Fehler bleiben stehen.
+    private func executeBatch(_ requests: [ConversionRequest], original: [BatchItem], slots: [Int], jobs: Int,
+                              cancellation: ConversionCancellationToken) async -> [BatchItem] {
+        let attempted = Set(slots)
+        batchDisplayItems = Dictionary(uniqueKeysWithValues: original.enumerated().filter { !attempted.contains($0.offset) }.map { ($0.offset, $0.element) })
+        let baseCompleted = original.count - slots.count
+        let handler: BatchConversionProgressHandler = { [weak self] event in
+            Task { @MainActor in
+                guard let self, self.activeCancellation === cancellation else { return }
+                if let result = event.result {
+                    self.batchDisplayItems[slots[result.index]] = Self.batchItem(result)
+                }
+                guard event.sequence > self.batchSequence else { return }
+                self.batchSequence = event.sequence
+                if let document = event.documentProgress { self.batchDocumentProgress[event.index] = document }
+                self.runningJobs = event.running.map { BatchRunningJob(id: slots[$0], input: requests[$0].inputURL, progress: self.batchDocumentProgress[$0]) }
+                let finished = self.batchDisplayItems.sorted { $0.key < $1.key }.map(\.value)
+                self.state = .convertingBatch(BatchProgress(finished: finished, current: self.runningJobs.first?.input ?? event.inputURL,
+                    total: original.count, completed: baseCompleted + event.completed))
             }
         }
-        try FileManager.default.createDirectory(at: output.deletingLastPathComponent(), withIntermediateDirectories: true)
+        var updated = original
+        do {
+            let protectedInputs = original.map(\.input)
+            let results = try await Task.detached(priority: .userInitiated) {
+                try BatchConverter().convert(requests, jobs: jobs, protecting: protectedInputs, cancellation: cancellation, progress: handler)
+            }.value
+            for result in results { updated[slots[result.index]] = Self.batchItem(result) }
+        } catch {
+            for (index, request) in requests.enumerated() { updated[slots[index]] = BatchItem(input: request.inputURL, outcome: .failed(AppErrorMessage.describe(error))) }
+        }
+        return updated
+    }
+
+    nonisolated private static func batchItem(_ result: BatchConversionResult) -> BatchItem {
+        switch result.outcome {
+        case .success(let value): return BatchItem(input: result.inputURL, outcome: .succeeded(value))
+        case .failure(let error): return BatchItem(input: result.inputURL, outcome: .failed(AppErrorMessage.describe(error)))
+        }
     }
 
     public func chooseDestinationFolder() {
@@ -291,26 +341,11 @@ public final class AppModel: ObservableObject {
             let requests = retry.map { request(for: $0.input, options: options) }
             state = .convertingBatch(BatchProgress(finished: items.filter { $0.result != nil }, current: first.input, total: items.count))
             let cancellation = beginConversion()
-            let progress = progressHandler(cancellation)
+            let jobs = batchParallelism
+            let slots = retry.compactMap { item in items.firstIndex { $0.id == item.id } }
             conversionTask = Task {
                 defer { finishConversion(cancellation) }
-                var updated = items
-                for (item, request) in zip(retry, requests) {
-                    if cancellation.isCancelled { break }
-                    state = .convertingBatch(BatchProgress(finished: updated.filter { $0.result != nil }, current: item.input, total: items.count))
-                    let outcome: BatchItem.Outcome
-                    do {
-                        let result = try await Task.detached(priority: .userInitiated) {
-                            try cancellation.checkCancellation()
-                            try Self.prepareParent(for: request, protecting: items.map(\.input))
-                            return try DocumentConverter().convert(request, progress: progress, cancellation: cancellation)
-                        }.value
-                        outcome = .succeeded(result)
-                    } catch { outcome = .failed(AppErrorMessage.describe(error)) }
-                    if let index = updated.firstIndex(where: { $0.id == item.id }) {
-                        updated[index] = BatchItem(input: item.input, outcome: outcome)
-                    }
-                }
+                let updated = await executeBatch(requests, original: items, slots: slots, jobs: jobs, cancellation: cancellation)
                 state = .batchFinished(updated)
             }
         } else if let first = failedInputs.first { convertSingle(first, isRetry: true) }
@@ -382,7 +417,7 @@ public final class AppModel: ObservableObject {
         actionMessage = nil
 
         let cancellation = beginConversion()
-        let progress = progressHandler(cancellation)
+        let jobs = batchParallelism
         conversionTask = Task {
             defer { finishConversion(cancellation) }
             let inputs: [EnumeratedInput]
@@ -397,36 +432,13 @@ public final class AppModel: ObservableObject {
             }
 
             relativeDirectories = Dictionary(uniqueKeysWithValues: inputs.map { ($0.url.path, $0.relativeDirectory) })
-            var finished = [BatchItem]()
-            for input in inputs {
-                if cancellation.isCancelled {
-                    finished.append(BatchItem(input: input.url, outcome: .failed(AppErrorMessage.describe(ConversionError.cancelled))))
-                    continue
-                }
-                state = .convertingBatch(
-                    BatchProgress(finished: finished, current: input.url, total: inputs.count)
-                )
-                let parent = outputRoot.map { root in
-                    input.relativeDirectory.reduce(root) { $0.appendingPathComponent($1, isDirectory: true) }
-                }
-                let destination = overrides[input.url.path] ?? parent.map {
-                    $0.appendingPathComponent(DocumentConverter.outputDirectoryName(for: input.url, layout: options.outputLayout))
-                }
-                let request = ConversionRequest(inputURL: input.url,
-                    destination: destination.map(ConversionDestination.directory) ?? .adjacentToInput, options: options)
-                let outcome: BatchItem.Outcome
-                do {
-                    let result = try await Task.detached(priority: .userInitiated) {
-                        try cancellation.checkCancellation()
-                        try Self.prepareParent(for: request, protecting: inputs.map(\.url))
-                        return try DocumentConverter().convert(request, progress: progress, cancellation: cancellation)
-                    }.value
-                    outcome = .succeeded(result)
-                } catch {
-                    outcome = .failed(AppErrorMessage.describe(error))
-                }
-                finished.append(BatchItem(input: input.url, outcome: outcome))
+            let requests = inputs.map { input in
+                let parent = outputRoot.map { root in input.relativeDirectory.reduce(root) { $0.appendingPathComponent($1, isDirectory: true) } }
+                let destination = overrides[input.url.path] ?? parent.map { $0.appendingPathComponent(DocumentConverter.outputDirectoryName(for: input.url, layout: options.outputLayout)) }
+                return ConversionRequest(inputURL: input.url, destination: destination.map(ConversionDestination.directory) ?? .adjacentToInput, options: options)
             }
+            let original = inputs.map { BatchItem(input: $0.url, outcome: .failed(AppErrorMessage.describe(ConversionError.cancelled))) }
+            let finished = await executeBatch(requests, original: original, slots: Array(original.indices), jobs: jobs, cancellation: cancellation)
             selectedInput = finished.first(where: { $0.result != nil })?.id
             state = .batchFinished(finished)
         }

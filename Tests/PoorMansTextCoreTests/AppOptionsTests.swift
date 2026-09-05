@@ -16,6 +16,7 @@ final class AppOptionsTests: XCTestCase {
         model.imageTextRecognition = .disabled
         model.spreadsheetRendering = .tabSeparated
         model.outputLayout = .textbundle
+        model.batchParallelism = 3
         model.pdfTextRecognition = .always
         model.pdfLayout = .legacy
         model.ocrLanguageCodes = "de,en"
@@ -23,6 +24,7 @@ final class AppOptionsTests: XCTestCase {
         model.pdfDehyphenate = true
         let restored = AppModel(defaults: defaults)
         XCTAssertEqual(restored.conversionOptions, model.conversionOptions)
+        XCTAssertEqual(restored.batchParallelism, 3)
         let request = restored.request(for: URL(fileURLWithPath: "/tmp/input.csv"), options: restored.conversionOptions)
         XCTAssertEqual(request.destination, .directory(URL(fileURLWithPath: "/tmp/output/input.textbundle")))
         XCTAssertTrue(request.options.frontmatter)
@@ -109,6 +111,28 @@ final class AppOptionsTests: XCTestCase {
     }
 
     @MainActor
+    func testAdjacentBatchOutputNeverWritesInsideAnotherSourcePackage() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let package = root.appendingPathComponent("source.rtfd")
+        try FileManager.default.createDirectory(at: package, withIntermediateDirectories: false)
+        let file = package.appendingPathComponent("TXT.rtf")
+        let bytes = Data(#"{\rtf1\ansi Unchanged}"#.utf8)
+        try bytes.write(to: file)
+        let model = AppModel(defaults: .isolatedForAppTest())
+        model.batchParallelism = 2
+        model.convert([file, package])
+        try await wait(model)
+        guard case .batchFinished(let items) = model.state else { return XCTFail("No batch result") }
+        XCTAssertEqual(items.count, 2)
+        XCTAssertTrue(items.allSatisfy { $0.result == nil })
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: package.path), ["TXT.rtf"])
+        XCTAssertEqual(try Data(contentsOf: file), bytes)
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: root.path), ["source.rtfd"])
+    }
+
+    @MainActor
     func testBatchDoesNotCreateParentsInsideAnySourcePackage() async throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
@@ -120,6 +144,7 @@ final class AppOptionsTests: XCTestCase {
         let csv = root.appendingPathComponent("table.csv")
         try Data("Name,Value\nAlpha,42\n".utf8).write(to: csv)
         let model = AppModel(defaults: .isolatedForAppTest())
+        model.batchParallelism = 2
         model.destinationFolder = package.appendingPathComponent("new/nested")
         model.convert([csv, package])
         try await wait(model)

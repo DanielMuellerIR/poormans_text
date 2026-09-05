@@ -25,6 +25,8 @@ enum ConversionExecution {
         let cancellation: ConversionCancellationToken
         let progress: ConversionProgressHandler?
         let processTimeout: TimeInterval?
+        var protectedInputs: [URL] = []
+        var plannedSources: [String: URL] = [:]
     }
     @TaskLocal static var current: Context?
 

@@ -56,8 +56,8 @@ path; the converter keeps the text and returns a warning instead.
 - [Pandoc](https://pandoc.org/installing.html) for word-processing and ODM files
 - Swift 6.2 or newer when building from source
 
-ODS, XLSX, XLS, CSV, TSV, PDF, and images are read natively and need no external
-conversion tool.
+ODS, XLSX, XLS, CSV, TSV, PPTX/PPTM/POTX, ODP, IPYNB, PDF, and images are
+read natively and need no external conversion tool.
 For the remaining formats, the converter searches for Pandoc in the common Homebrew
 locations and then on `PATH`. The CLI also accepts an explicit executable
 through `--pandoc PATH`.
@@ -123,8 +123,9 @@ The default output directory is `Document-markdown` next to the source. Run
 `poormans-text --help` for all options. Without an installation, the same
 commands work in a source checkout as `swift run poormans-text …`.
 
-Several inputs, or a folder, are converted one after another; a failure does
-not stop the remaining documents. A path that does not exist or a folder
+Several inputs, or a folder, are converted sequentially by default; `--jobs 2`
+to `--jobs 4` enables parallel conversion. A failure does not stop the remaining
+documents. A path that does not exist or a folder
 without supported documents is an argument error, though: the run stops
 before anything is converted. A folder is searched recursively for
 supported file extensions. Packages such as `.rtfd` count as one document,
@@ -208,7 +209,7 @@ fb2         .fb2                                              file     pandoc   
 
 Without Pandoc, the word-processing, ODM, HTML, e-book, and text-markup lines
 read `unavailable (missing required tool: pandoc)`; ODS, XLSX, XLS, CSV, TSV,
-PDF, and images remain available. The `textutil` that DOC and RTFD additionally require is part of
+PPTX/PPTM/POTX, ODP, IPYNB, PDF, and images remain available. The `textutil` that DOC and RTFD additionally require is part of
 macOS.
 
 This is the intended way for another application to decide whether to offer a
@@ -231,11 +232,12 @@ the CLI, into the repository root. Both copies are ad-hoc signed for local
 testing only: they are not a notarized distribution build and must not be copied
 to `/Applications`.
 
-Drop any number of supported documents, spreadsheets, PDFs, images, or folders
+Drop any number of supported documents, spreadsheets, presentations, notebooks,
+PDFs, images, or folders
 into the window or onto the app, or choose them from the open panel. A folder is
 searched with the same rules as on the command line. Conversion Options remembers
 an output parent (by default next to each source), table format, image OCR,
-frontmatter, and Textbundle. Subdirectories are preserved under a selected parent.
+frontmatter, Textbundle, PDF OCR/layout, OCR languages, and batch parallelism. Subdirectories are preserved under a selected parent.
 Select a batch result to open its Markdown in the default app, copy it, show it
 in Finder, or read a text preview limited to 256 KiB. Copying reports omitted
 asset files. Retry Failed Inputs retains successful outputs and result order;
@@ -256,8 +258,8 @@ Keyboard Shortcuts › Services):
   and reported, because the clipboard carries text only. Selections that only
   offer RTF need Pandoc, like `.rtf` files.
 
-While conversion runs, the app shows the current file and known page, sheet, or
-image-frame progress. Cancel Conversion retains completed batch results and
+While conversion runs, the app shows active files and known page, sheet, slide,
+notebook-cell, or image-frame progress. Cancel Conversion retains completed batch results and
 removes the current document's workspace without publishing it. Unstarted inputs
 remain available for retry. Cancellation waits for an active PDFKit, ImageIO,
 or Vision call to return; external tool processes are terminated.
@@ -482,3 +484,23 @@ outputs and embedded images; notebook code is never executed.
 Unsupported objects or output representations and unavailable assets are
 reported. Details and budgets: [presentations](docs/PRESENTATION-IMPORT.md),
 [notebooks](docs/NOTEBOOK-IMPORT.md).
+
+### Batch parallelism and source protection
+
+`--jobs 1..4` controls the number of simultaneous batch documents; the default
+is 1. The app remembers the same setting. Local Vision OCR processes at most one
+image per process, while other documents can continue without OCR. A waiting
+OCR request checks cancellation every 50 ms. Four documents can still retain
+substantial parser, image and subprocess memory; this is a concurrency limit,
+not a fixed RAM limit. Measurements are recorded in [performance](docs/PERFORMANCE.md).
+
+All batch targets and output roots are planned and checked against every source
+before any directory or worker is created. This includes adjacent outputs for a
+file inside another source package. The first input position reserves a target;
+conflicting later inputs fail regardless of worker speed. Existing outputs are
+never overwritten. Results, JSON entries and the first ordinary error retain
+input order. SIGINT/SIGTERM returns 130, retains committed results, waits for
+running workers to clean up, and leaves remaining inputs available for retry.
+An individual tool timeout does not cancel the other documents. Empty output
+parent directories can remain after cancellation; unfinished document workspaces
+and partial results are removed.

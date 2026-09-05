@@ -91,6 +91,33 @@ final class CLIBatchTests: XCTestCase {
         XCTAssertEqual(results.map { $0["ok"] as? Bool }, [false, false])
     }
 
+    func testBatchJobsValidateAndProtectEverySourceBeforeCreatingOutputParents() throws {
+        for arguments in [["--jobs=0"], ["--jobs", "5"], ["--jobs=1.5"], ["--jobs"], ["--formats", "--jobs=1"]] {
+            let result = try runCLI(arguments)
+            XCTAssertEqual(result.status, 64, result.standardError)
+        }
+        let package = root.appendingPathComponent("source.rtfd")
+        try FileManager.default.createDirectory(at: package, withIntermediateDirectories: false)
+        let inside = package.appendingPathComponent("TXT.rtf")
+        let original = Data(#"{\rtf1\ansi Unchanged source document}"#.utf8)
+        try original.write(to: inside)
+        let csv = root.appendingPathComponent("table.csv")
+        let csvBytes = Data("Name,Value\nAlpha,42\n".utf8)
+        try csvBytes.write(to: csv)
+        for arguments in [
+            ["--json", "--jobs=2", "--output", package.appendingPathComponent("new").path, csv.path, package.path],
+            ["--json", "--jobs", "2", inside.path, package.path]
+        ] {
+            let result = try runCLI(arguments)
+            XCTAssertEqual(result.status, 73, result.standardError)
+            XCTAssertEqual(try decodeJSON(result.standardOutput)["ok"] as? Bool, false)
+            XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: package.path), ["TXT.rtf"])
+            XCTAssertEqual(try Data(contentsOf: inside), original)
+            XCTAssertEqual(try Data(contentsOf: csv), csvBytes)
+        }
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: root.path).sorted(), ["source.rtfd", "table.csv"])
+    }
+
     func testAFolderWithoutDocumentsAndAMissingOutputParentFailBeforeConverting() throws {
         let empty = root.appendingPathComponent("Leer", isDirectory: true)
         try FileManager.default.createDirectory(at: empty, withIntermediateDirectories: false)

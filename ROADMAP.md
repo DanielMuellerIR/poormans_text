@@ -71,12 +71,6 @@ exportiert, lohnt den Aufwand nicht. Wer eine Pages-/Numbers-Datei umwandeln
 will, exportiert sie in der jeweiligen Apple-App als DOCX beziehungsweise XLSX
 und nutzt den normalen Import. Keynote fällt unter dieselbe Grenze.
 
-## Nächste technische Produktarbeit (2026-09-05)
-
-- Nach Abbruch- und Speicherarbeit einstellbare Batch-Parallelität mit stabiler
-  Ergebnisreihenfolge, Kollisionsschutz und gesonderter OCR-Begrenzung ergänzen;
-  zunächst zwei gleichzeitige Dokumente messen.
-
 ## Fastra-Integration
 
 Die Seite von Poor Man's Text ist erledigt: `poormans-text --formats [--json]`
@@ -89,9 +83,9 @@ Offen bleibt auf der Seite des Hosts:
 
 - Warnungen und Formatverluste vor dem Öffnen zusammenfassen. Fastra bekommt sie
   bereits über `--json`; die Darstellung liegt beim Host.
-- Eine direkte Library-Anbindung statt des CLI-Aufrufs wäre erst nötig, wenn
-  Fortschrittsanzeige oder Abbruch während einer Umwandlung gefordert werden.
-  Der Prozessweg bleibt bis dahin die einfachere und besser isolierte Grenze.
+- Eine direkte Library-Anbindung prüfen, falls Fastra typisierte
+  Fortschrittscallbacks statt CLI-Ausgabe benötigt. Die CLI bietet bereits
+  `--progress` und Abbruch über SIGINT/SIGTERM; deren Nutzung entscheidet der Host.
 
 ## Technische Referenzen
 

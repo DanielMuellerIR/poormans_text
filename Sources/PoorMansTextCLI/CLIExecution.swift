@@ -29,134 +29,59 @@ func convertToStandardOutput(_ inputURL: URL, options: ConversionOptions, argume
     }
 }
 
-/// Legt den gemeinsamen Elternordner einer Mehrfachumwandlung an. Dieselben
-/// Regeln wie beim Einzelziel: Der Elternordner des Ziels muss existieren, und
-/// eine vorhandene Datei gleichen Namens wird nie überschrieben. Ein bereits
-/// vorhandener Ordner ist erlaubt — die Kollisionsprüfung je Dokument macht
-/// anschließend der Kern.
-func prepareBatchOutputRoot(_ url: URL) throws {
-    let fileManager = FileManager.default
-    var isDirectory: ObjCBool = false
-    if fileManager.fileExists(atPath: url.path, isDirectory: &isDirectory) {
-        guard isDirectory.boolValue else {
-            throw ConversionError.outputAlreadyExists(url)
-        }
-        return
-    }
-    let parent = url.deletingLastPathComponent()
-    guard fileManager.fileExists(atPath: parent.path, isDirectory: &isDirectory),
-          isDirectory.boolValue else {
-        throw ConversionError.outputParentDoesNotExist(url)
-    }
+/// Die Planung bleibt ohne Dateisystemänderung. Der gemeinsame Core-Batchplan
+/// prüft alle Quellen, bevor er Root oder gespiegelte Elternordner anlegt.
+func batchDestination(for input: EnumeratedInput, outputRoot: URL?, options: ConversionOptions) -> ConversionDestination {
+    guard let outputRoot else { return .adjacentToInput }
+    let parent = input.relativeDirectory.reduce(outputRoot) { $0.appendingPathComponent($1, isDirectory: true) }
+    return .directory(parent.appendingPathComponent(DocumentConverter.outputDirectoryName(for: input.url, layout: options.outputLayout)))
+}
+
+func convertBatch(_ inputs: [EnumeratedInput], arguments: ParsedArguments, options: ConversionOptions, cancellation: ConversionCancellationToken) -> CLIExitCode {
+    let requests = inputs.map { ConversionRequest(inputURL: $0.url, destination: batchDestination(for: $0, outputRoot: arguments.outputURL, options: options), options: options) }
     do {
-        try fileManager.createDirectory(at: url, withIntermediateDirectories: false)
-    } catch {
-        throw ConversionError.fileSystemFailure(error.localizedDescription)
-    }
-}
-
-/// Ziel eines einzelnen Dokuments innerhalb einer Mehrfachumwandlung. Ohne
-/// `--output` neben der Quelle; sonst unter dem Elternordner, gespiegelt um den
-/// Unterordner, aus dem das Dokument beim Durchsuchen stammt.
-func batchDestination(
-    for input: EnumeratedInput,
-    outputRoot: URL?,
-    options: ConversionOptions
-) throws -> ConversionDestination {
-    guard let outputRoot else {
-        return .adjacentToInput
-    }
-    var parent = outputRoot
-    for component in input.relativeDirectory {
-        parent.appendPathComponent(component, isDirectory: true)
-    }
-    if !input.relativeDirectory.isEmpty {
-        do {
-            try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: true)
-        } catch {
-            throw ConversionError.fileSystemFailure(error.localizedDescription)
-        }
-    }
-    return .directory(
-        parent.appendingPathComponent(
-            DocumentConverter.outputDirectoryName(for: input.url, layout: options.outputLayout),
-            isDirectory: true
-        )
-    )
-}
-
-/// Wandelt mehrere Eingaben nacheinander um. Ein Fehler beendet den Lauf
-/// nicht; er wird je Eingabe berichtet, und der Exit-Code ist der des ersten
-/// Fehlers.
-func convertBatch(
-    _ inputs: [EnumeratedInput],
-    arguments: ParsedArguments,
-    options: ConversionOptions,
-    cancellation: ConversionCancellationToken
-) -> CLIExitCode {
-    if let outputRoot = arguments.outputURL {
-        do {
-            try cancellation.checkCancellation()
-            try prepareBatchOutputRoot(outputRoot)
-        } catch {
-            if arguments.json {
-                writeJSON(JSONResponse.failure(error.localizedDescription))
-            } else {
-                writeError(error.localizedDescription)
+        let handler: BatchConversionProgressHandler?
+        if arguments.progress {
+            handler = { event in
+            let value = event.documentProgress
+            let detail = value?.unit.map { " \($0.rawValue) \(value?.completed ?? 0)/\(value?.total ?? 0)" } ?? ""
+            CLIProgressOutput.write("Progress: \(event.inputURL.lastPathComponent): \(value?.phase.rawValue ?? "batch")\(detail); files \(event.completed)/\(event.total), running \(event.running.count)\n")
             }
-            return exitCode(for: error)
-        }
-    }
-
-    var entries = [JSONBatchEntry]()
-    var firstFailure: CLIExitCode?
-    var failureCount = 0
-    let converter = DocumentConverter()
-    for input in inputs {
-        do {
-            try cancellation.checkCancellation()
-            let destination = try batchDestination(
-                for: input,
-                outputRoot: arguments.outputURL,
-                options: options
-            )
-            let result = try converter.convert(
-                ConversionRequest(inputURL: input.url, destination: destination, options: options),
-                progress: progressHandler(arguments, input: input.url), cancellation: cancellation, processTimeout: arguments.timeout
-            )
-            if arguments.json {
-                entries.append(.success(result))
-            } else {
-                print(result.outputDirectory.path)
-                for warning in result.warnings {
-                    FileHandle.standardError.write(
-                        Data("Warning: \(input.url.lastPathComponent): \(warning)\n".utf8)
-                    )
+        } else { handler = nil }
+        let results = try BatchConverter().convert(requests, jobs: arguments.jobs,
+            outputRoots: arguments.outputURL.map { [$0] } ?? [], cancellation: cancellation,
+            processTimeout: arguments.timeout, progress: handler)
+        var entries: [JSONBatchEntry] = []
+        var firstFailure: CLIExitCode?
+        var failures = 0
+        for item in results {
+            switch item.outcome {
+            case .success(let result):
+                if arguments.json { entries.append(.success(result)) }
+                else {
+                    print(result.outputDirectory.path)
+                    for warning in result.warnings { CLIProgressOutput.write("Warning: \(item.inputURL.lastPathComponent): \(warning)\n") }
                 }
-            }
-        } catch {
-            failureCount += 1
-            if firstFailure == nil {
-                firstFailure = exitCode(for: error)
-            }
-            if arguments.json {
-                entries.append(.failure(input.url, error.localizedDescription))
-            } else {
-                writeError("\(input.url.path): \(error.localizedDescription)")
-            }
-            if cancellation.isCancelled {
-                firstFailure = exitCode(for: error)
-                break
+            case .failure(let error):
+                failures += 1
+                if firstFailure == nil { firstFailure = exitCode(for: error) }
+                if arguments.json { entries.append(.failure(item.inputURL, error.localizedDescription)) }
+                else { writeError("\(item.inputURL.path): \(error.localizedDescription)") }
             }
         }
+        if arguments.json { writeJSON(JSONBatchResponse(ok: failures == 0, version: ProductInfo.version, results: entries)) }
+        else if failures > 0 { writeError("\(failures) of \(inputs.count) inputs failed.") }
+        return cancellation.isCancelled ? .cancelled : firstFailure ?? .success
+    } catch {
+        if arguments.json { writeJSON(JSONResponse.failure(error.localizedDescription)) }
+        else { writeError(error.localizedDescription) }
+        return exitCode(for: error)
     }
+}
 
-    if arguments.json {
-        writeJSON(JSONBatchResponse(ok: failureCount == 0, version: ProductInfo.version, results: entries))
-    } else if failureCount > 0 {
-        writeError("\(failureCount) of \(inputs.count) inputs failed.")
-    }
-    return firstFailure ?? .success
+private enum CLIProgressOutput {
+    static let lock = NSLock()
+    static func write(_ message: String) { lock.withLock { FileHandle.standardError.write(Data(message.utf8)) } }
 }
 
 func progressHandler(_ arguments: ParsedArguments, input: URL) -> ConversionProgressHandler? {

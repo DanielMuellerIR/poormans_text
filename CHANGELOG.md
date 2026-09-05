@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Add `--jobs 1..4` and remembered app batch parallelism, defaulting to one
+  document. A shared core planner validates all outputs against every batch
+  source before creating directories or starting workers, including adjacent
+  outputs inside another RTFD source package.
+- Reserve destinations by input position, retain stable result/error order, and
+  wait for running conversions to clean up after cancellation. Completed results
+  remain available and retries replace failed inputs only; individual process
+  timeouts do not cancel the other documents.
+- Serialize local Vision OCR per process with cancellation-aware waiting while
+  allowing non-OCR work to continue. Show completed-file counts and each active
+  app document's known progress without constructing result previews eagerly.
+- Test true concurrent conversion, deterministic collisions, source-package
+  protection, nil-callback result delivery, OCR waiting/cancellation and ordered
+  CLI output with genuine temporary inputs.
+- Add a reproducible batch benchmark with sampled process-tree memory. Eighteen
+  paired-document runs retain identical output bytes; two workers reduce XLSX
+  and DOCX runtime on the measured host while increasing memory use. OCR shows
+  no meaningful runtime gain. Record measurements and limits in `docs/PERFORMANCE.md`.
+
 - Import PPTX/PPTM/POTX and ODP natively through a shared slide model: source
   slide order, paragraphs and nested lists, GFM tables, speaker notes and image
   assets. Reuse verified ZIP working copies and package metadata readers; report

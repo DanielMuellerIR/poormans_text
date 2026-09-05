@@ -33,7 +33,7 @@ do {
 
     if arguments.listFormats {
         guard arguments.inputURLs.isEmpty, arguments.outputURL == nil,
-              !arguments.setsPDFOptions, !arguments.setsSpreadsheetRendering, !arguments.setsImageTextRecognition,
+              !arguments.setsJobs, !arguments.setsPDFOptions, !arguments.setsSpreadsheetRendering, !arguments.setsImageTextRecognition,
               !arguments.writeToStandardOutput, !arguments.frontmatter,
               arguments.outputLayout == .markdownFolder, !arguments.progress, arguments.timeout == nil else {
             throw CLIArgumentError.formatsTakesNoInput

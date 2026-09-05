@@ -26,7 +26,7 @@ enum VisionTextRecognizer {
         if !languages.isEmpty { request.recognitionLanguages = languages }
         request.minimumTextHeight = minimumTextHeight
         let handler = VNImageRequestHandler(cgImage: image, orientation: orientation)
-        try handler.perform([request])
+        try OCRConcurrencyGate.shared.withPermit { try handler.perform([request]) }
         try ConversionExecution.check()
 
         let lines = (request.results ?? []).compactMap { observation -> OCRLine? in

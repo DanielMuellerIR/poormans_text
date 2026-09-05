@@ -19,9 +19,9 @@ Mehrere Eingaben löst `InputEnumerator` im Kern auf: Dateien und Pakete
 unverändert, Ordner rekursiv nach den Endungen des Formatkatalogs, ohne
 versteckte Einträge, symbolische Links und frühere `*-markdown`-Ergebnisse.
 CLI und App rufen dieselbe Funktion, damit ein Ordner an beiden Stellen
-dieselben Dokumente in derselben Reihenfolge ergibt. Der Kern wandelt weiterhin
-ein Dokument je Aufruf um; die Schleife liegt beim Aufrufer, der auch
-entscheidet, ob ein Fehler den Lauf beendet.
+dieselben Dokumente in derselben Reihenfolge ergibt. `DocumentConverter` wandelt
+ein Dokument je Aufruf um; `BatchConverter` plant gemeinsame Ziele und steuert
+die begrenzte Worker-Schleife. CLI und App stellen deren Ergebnisse dar.
 - `PoorMansTextApp`: ausschließlich SwiftUI-Darstellung.
 
 Der Kern ist GUI-frei, aber das aktuelle Target bleibt macOS-spezifisch: Der
@@ -30,10 +30,11 @@ standardkonform eingebetteter Bilder direkt über Pandoc; ein Cocoa-Roundtrip
 würde diese Bilder verwerfen. DOC benutzt den macOS-Systemimport über `textutil`.
 DOCX einschließlich DOCM/DOTX/DOTM und ODT teilen einen Pandoc-Paketadapter.
 ODS, XLSX und XLS werden nativ in ein gemeinsames Arbeitsmappenmodell gelesen;
-ODM löst ausschließlich lokale ODT-Teildokumente auf. Alle Wege liegen hinter
+PPTX/PPTM/POTX und ODP teilen ein Folienmodell; IPYNB nutzt einen eigenen
+JSON-Import ohne Codeausführung. ODM löst ausschließlich lokale ODT-Teildokumente auf. Alle Wege liegen hinter
 derselben Foundation-basierten Anfrage und bestimmen deren API nicht.
 PDFKit liest eingebetteten PDF-Text, und Vision verarbeitet ausschließlich lokal
-gerenderte textarme Seiten. ImageIO übernimmt Bilddaten unverändert als Asset;
+gerenderte Seiten entsprechend dem gewählten OCR-Modus. ImageIO übernimmt Bilddaten unverändert als Asset;
 Vision ergänzt dort optional lokalen Text.
 
 ## Formatneutrale Konvertierung
@@ -50,6 +51,8 @@ DocumentConverter ─ Inspections priorisieren, Adapter wählen, atomar veröffe
         ├── WordProcessing…      DOCX/DOCM/DOTX/DOTM, ODT und isolierte Medien
         ├── LegacyWordAdapter    DOC über textutil, danach HTML/Pandoc
         ├── SpreadsheetAdapter   ODS, XLSX und XLS über native Leser
+        ├── PresentationAdapter  PPTX/PPTM/POTX und ODP nativ ins Folienmodell
+        ├── NotebookAdapter      IPYNB-Zellen, Ausgaben und Bilder ohne Ausführung
         ├── OpenDocumentMaster…  ODM plus geprüfte lokale ODT-Teildokumente
         ├── ImageAdapter         ImageIO-Asset + optionales Vision-OCR
         ├── PDFAdapter           PDFKit-Text + lokaler Vision-OCR-Fallback
@@ -95,8 +98,8 @@ Nebenressourcen (`WebArchiveReader`). Pandoc läuft mit `--sandbox`, sodass etwa
 
 Jeder Adapter liefert neben Markdown und Assets ein `DocumentMetadata`, soweit
 sein Format Titel, Autor oder Daten kennt (`docProps/core.xml`, `meta.xml`,
-RTF-`\info`, PDF-Info-Wörterbuch; DOC, XLS und Bilder liefern nichts). Die
-Nachbearbeitung liegt im Orchestrator und findet noch im Staging-Bereich statt:
+RTF-`\info`, PDF-Info-Wörterbuch; DOC, XLS, IPYNB und Bilder liefern nichts).
+`ConversionPostprocessor` übernimmt die Nachbearbeitung im Staging-Bereich:
 `ConversionOptions.frontmatter` stellt den YAML-Kopf voran,
 `ConversionOptions.outputLayout == .textbundle` baut das Ergebnis in
 `text.md`, `assets/` und `info.json` um und schreibt die Asset-Links über den
@@ -206,8 +209,8 @@ openMarkdown(result.markdownFile)
 
 ## App-Einstellungen und Ergebnisaktionen
 
-`AppModel` speichert Zielordner, Tabellenformat, Bild-OCR, Frontmatter und
-Ausgabelayout in `UserDefaults`. Es bildet daraus `ConversionRequest` und
+`AppModel` speichert Zielordner, Tabellenformat, Bild-/PDF-OCR, OCR-Sprachen,
+PDF-Layout, Frontmatter, Ausgabelayout und Batch-Parallelität in `UserDefaults`. Es bildet daraus `ConversionRequest` und
 friert Optionen und Ziel für einen Mehrfachlauf ein. Der Zielordner ist ein
 Elternordner; rekursiv gefundene Eingaben behalten darunter ihre relativen
 Unterordner. Die Engine prüft weiterhin jede Veröffentlichung auf Kollisionen.
@@ -235,8 +238,8 @@ API-Grenze erhält Abbruch- und Timeoutfehler auch dann, wenn ein Adapter seinen
 Parserfehler in einen Formatfehler übersetzt.
 
 `ConversionProgress` enthält neben der Phase optional Einheit, erledigte Anzahl
-und Gesamtzahl. PDF-Seiten, Bildframes und Tabellenblätter melden bekannte
-Fortschritte. Die App wechselt für die Darstellung auf den Main Actor und
+und Gesamtzahl. PDF-Seiten, Bildframes, Tabellenblätter, Präsentationsfolien
+und Notebook-Zellen melden bekannte Fortschritte. Die App wechselt für die Darstellung auf den Main Actor und
 verwirft verspätete Meldungen eines beendeten Auftrags. Sie hält Task und Token
 bis zur tatsächlichen Beendigung; der Abbruchknopf fordert Abbruch an und sperrt
 sich während des Aufräumens. Bereits fertige Batch-Ausgaben bleiben erhalten.
@@ -341,3 +344,27 @@ Codefences verhindern, dass Quellcode Markdown-Struktur öffnet. Der bestehende
 implementieren. Beide Importwege nutzen `ImportMediaStore` für begrenzte lokale
 Bilddaten, Hash-Deduplizierung und Assetpfade sowie `ImportDiagnostics` für
 begrenzte Warnungslisten. Kein neuer Importweg startet externe Prozesse.
+
+### Gemeinsame Batchgrenze
+
+`BatchConverter` führt vorgeplante `ConversionRequest`-Werte mit ein bis vier
+Workern aus. `BatchOutputPlan` prüft alle Ziele und optionalen Root-Verzeichnisse
+gegen sämtliche Quellen, reserviert Ziele in Eingabereihenfolge und legt erst
+danach Elternordner an. Der Plan schützt auch die einmal aufgelösten Quellpfade;
+`ConversionExecution.Context` führt diese Schutzmenge und die geplanten
+Quellauflösungen bis in die erneute Ausgabeprüfung vor Veröffentlichung weiter.
+
+`BatchConversionResult` bleibt an seinen ursprünglichen Index gebunden.
+`BatchConversionProgress` trägt Sequenz, Index, abgeschlossene Gesamtzahl,
+laufende Indizes und optionalen Dokumentfortschritt. CLI-Ausgabe und Appzustand
+entstehen weiterhin in den dünnen Adaptern. Die App verwirft veraltete
+Fortschrittsmeldungen, erhält beim Retry bestehende Ergebnisse und verwendet
+weiterhin die bedarfsgerecht aufgebaute Ergebnisliste ohne automatische Vorschau.
+
+`OCRConcurrencyGate` umschließt nur `VisionTextRecognizer` unmittelbar beim
+`handler.perform`. Ein `NSCondition`-Slot begrenzt OCR pro Prozess auf eins;
+wartende Dokumente prüfen ihren Token alle 50 ms und geben den Slot per `defer`
+frei. Jedes Dokument behält einen eigenen Kind-Token, damit Prozesszeitlimits
+keinen ganzen Batch abbrechen. Nach Benutzerabbruch wartet die Batchgrenze auf
+alle Worker und liefert fertige, fehlgeschlagene und nicht gestartete Eingaben
+in ihrer ursprünglichen Reihenfolge zurück.

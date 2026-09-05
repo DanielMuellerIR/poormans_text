@@ -61,8 +61,8 @@ und der Konverter meldet den Verlust als Warnung.
 - [Pandoc](https://pandoc.org/installing.html) für Textdokumente und ODM
 - Swift 6.2 oder neuer für den Bau aus dem Quellcode
 
-ODS, XLSX, XLS, CSV, TSV, PDF und Bilder werden nativ gelesen und brauchen kein
-externes Konvertierungswerkzeug. Für die übrigen Formate sucht der Konverter Pandoc in
+ODS, XLSX, XLS, CSV, TSV, PPTX/PPTM/POTX, ODP, IPYNB, PDF und Bilder werden
+nativ gelesen und brauchen kein externes Konvertierungswerkzeug. Für die übrigen Formate sucht der Konverter Pandoc in
 den üblichen Homebrew-Verzeichnissen und danach über `PATH`. Dem CLI kann mit
 `--pandoc PFAD` auch ein bestimmtes Programm übergeben werden.
 
@@ -129,8 +129,9 @@ Standardmäßig entsteht `Dokument-markdown` neben der Quelle. Alle Optionen zei
 `poormans-text --help`. Ohne Installation funktionieren dieselben Aufrufe im
 Quellcode-Verzeichnis als `swift run poormans-text …`.
 
-Mehrere Eingaben oder ein Ordner werden nacheinander umgewandelt; ein Fehler
-hält die übrigen Dokumente nicht auf. Ein nicht vorhandener Pfad oder ein
+Mehrere Eingaben oder ein Ordner werden standardmäßig nacheinander umgewandelt.
+Mit `--jobs 2` bis `--jobs 4` laufen Dokumente parallel; ein Fehler hält die
+übrigen Dokumente nicht auf. Ein nicht vorhandener Pfad oder ein
 Ordner ohne bekannte Dokumente ist dagegen ein Argumentfehler: Der Lauf
 endet, bevor etwas umgewandelt wird. Ein Ordner wird rekursiv nach bekannten
 Dateiendungen durchsucht. Pakete wie `.rtfd` zählen als ein Dokument;
@@ -218,7 +219,7 @@ fb2         .fb2                                              file     pandoc   
 
 Fehlt Pandoc, steht bei Textdokumenten, ODM, HTML, E-Books und den
 Textauszeichnungen `unavailable (missing required tool: pandoc)`; ODS, XLSX,
-XLS, CSV, TSV, PDF und Bilder bleiben verfügbar. Das für DOC und RTFD zusätzlich nötige `textutil` gehört zu macOS.
+XLS, CSV, TSV, PPTX/PPTM/POTX, ODP, IPYNB, PDF und Bilder bleiben verfügbar. Das für DOC und RTFD zusätzlich nötige `textutil` gehört zu macOS.
 
 So entscheidet eine andere App, ob sie eine Umwandlung anbietet. Weil die Liste
 aus dem Konverter selbst stammt, übernimmt ein Aufrufer später hinzukommende
@@ -240,12 +241,14 @@ CLI zusätzlich im Repo-Root ab. Beide Kopien sind nur für lokale Tests
 ad-hoc-signiert: Sie sind kein notarisierter Distributions-Build und gehören
 nicht nach `/Applications`.
 
-Beliebig viele unterstützte Dokumente, Tabellen, PDFs, Bilder oder Ordner
+Beliebig viele unterstützte Dokumente, Tabellen, Präsentationen, Notebooks,
+PDFs, Bilder oder Ordner
 können in das Fenster oder auf die App gezogen oder über den Dateidialog
 ausgewählt werden. Ein Ordner wird nach denselben Regeln wie auf der
 Kommandozeile durchsucht. „Konvertierungsoptionen“ merkt sich Zielordner
 (standardmäßig neben der Quelle), Tabellenformat, Bild-OCR, Frontmatter und
-Textbundle. Unter einem gewählten Zielordner bleiben Unterordner erhalten.
+Textbundle sowie PDF-OCR/-Layout, OCR-Sprachen und Batch-Parallelität.
+Unter einem gewählten Zielordner bleiben Unterordner erhalten.
 Einzelne Batch-Ergebnisse lassen sich auswählen, in der Standard-App öffnen,
 kopieren, im Finder zeigen oder als Textvorschau mit höchstens 256 KiB lesen.
 Beim Kopieren meldet die App ausgelassene Asset-Dateien. „Fehlgeschlagene Eingaben
@@ -269,8 +272,8 @@ Tastaturkurzbefehle › Dienste):
   trägt. Eine Auswahl, die nur RTF anbietet, braucht Pandoc wie eine
   `.rtf`-Datei.
 
-Während der Konvertierung zeigt die App die aktuelle Datei sowie bekannte
-Seiten-, Blatt- oder Bildfortschritte. „Konvertierung abbrechen“ erhält fertige
+Während der Konvertierung zeigt die App laufende Dateien sowie bekannte
+Seiten-, Blatt-, Folien-, Notebook-Zell- oder Bildfortschritte. „Konvertierung abbrechen“ erhält fertige
 Batch-Ergebnisse und entfernt den Arbeitsbereich des laufenden Dokuments, ohne
 es zu veröffentlichen. Noch nicht gestartete Eingaben lassen sich erneut versuchen.
 Ein aktiver PDFKit-, ImageIO- oder Vision-Aufruf kehrt vor dem Abbruch zunächst
@@ -503,3 +506,24 @@ eingebettete Bilder; Notebook-Code wird niemals ausgeführt. Nicht darstellbare
 Objekte/Ausgaben und nicht verfügbare Assets werden diagnostiziert.
 Details und Grenzen: [Präsentationen](docs/PRESENTATION-IMPORT.md),
 [Notebooks](docs/NOTEBOOK-IMPORT.md).
+
+### Batch-Parallelität und Quellschutz
+
+`--jobs 1..4` legt die Zahl gleichzeitig bearbeiteter Batch-Dokumente fest;
+Standard ist 1. Die App merkt sich dieselbe Einstellung. Lokale Vision-OCR
+verarbeitet pro Prozess höchstens ein Bild, während andere Dokumente ohne OCR
+weiterarbeiten können. Wartende OCR prüft Abbruch alle 50 ms. Vier Dokumente
+können dennoch viel Speicher für Parser, Bilder und Werkzeugprozesse benötigen;
+die Einstellung begrenzt Parallelität, keinen festen RAM-Verbrauch. Messungen
+stehen unter [Performance](docs/PERFORMANCE.md).
+
+Alle Batch-Ziele und Ausgabe-Elternordner werden vor dem ersten mkdir oder
+Worker gegen sämtliche Quellen geprüft, auch Nachbarausgaben von Dateien innerhalb
+eines anderen Quellpakets. Die erste Eingabeposition reserviert ihr Ziel; spätere
+Kollisionen scheitern unabhängig von der Verarbeitungsgeschwindigkeit. Vorhandene
+Ausgaben bleiben unverändert. Ergebnisse, JSON-Einträge und der erste gewöhnliche
+Fehler folgen der Eingabereihenfolge. SIGINT/SIGTERM liefert Exit 130, erhält
+fertige Ergebnisse und wartet auf die Bereinigung laufender Worker; übrige
+Eingaben bleiben erneut versuchbar. Ein einzelnes Werkzeug-Zeitlimit stoppt die
+anderen Dokumente nicht. Leere Ausgabe-Elternordner können nach Abbruch bestehen
+bleiben; temporäre Dokumentarbeitsbereiche und Teilergebnisse werden entfernt.

@@ -118,3 +118,7 @@
 
 "slide" = "Slide";
 "cell" = "Cell";
+
+"Completed %d of %d documents" = "Completed %d of %d documents";
+"Batch documents at once" = "Batch documents at once";
+"Local OCR processes one image at a time." = "Local OCR processes one image at a time.";

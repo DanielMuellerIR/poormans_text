@@ -20,7 +20,7 @@ final class CLICancellationTests: XCTestCase {
         let csv = root.appendingPathComponent("second.csv")
         try Data("Name,Value\nAlpha,42\n".utf8).write(to: csv)
         let result = try ProcessRunner.run(executable: cli,
-            arguments: ["--json", "--timeout", "0.1", "--pandoc", tool.path, source.path, csv.path],
+            arguments: ["--json", "--jobs=2", "--timeout", "0.1", "--pandoc", tool.path, source.path, csv.path],
             currentDirectory: root, captureStandardOutput: true, timeout: 5)
         XCTAssertEqual(result.status, 124, result.standardError)
         let json = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(result.standardOutput.utf8)) as? [String: Any])

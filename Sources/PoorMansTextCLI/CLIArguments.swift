@@ -10,6 +10,8 @@ struct ParsedArguments {
     var json = false
     var progress = false
     var timeout: TimeInterval?
+    var jobs = 1
+    var setsJobs = false
     var showHelp = false
     var showVersion = false
     var listFormats = false
@@ -47,6 +49,7 @@ Options:
       --textbundle        Write INPUT.textbundle (text.md, assets/, info.json) instead of INPUT-markdown.
       --stdout            Print the Markdown to standard output instead of writing a folder.
       --progress          Report phases and known page/sheet/slide/cell progress on stderr.
+      --jobs 1..4         Convert up to four batch documents concurrently (default: 1); OCR stays serial.
       --timeout SECONDS   Limit each external tool process (positive seconds).
       --json              Write a machine-readable result to stdout.
   -h, --help              Show this help text.
@@ -59,11 +62,13 @@ output directories are never overwritten. Exit codes follow sysexits values:
 124 tool timeout, and 130 cancelled (SIGINT/SIGTERM).
 
 With several inputs, or with a folder as input, every document is converted in
-turn and a failure does not stop the others. A folder is searched recursively
+turn by default; --jobs 2 through 4 runs documents concurrently. Failures do not stop the others. A folder is searched recursively
 for supported file extensions; packages such as .rtfd count as one document,
 and hidden entries, symbolic links, and earlier *-markdown results are skipped.
 --output then names a parent directory that receives one INPUT-markdown folder
-per document, mirroring the folder structure. --json reports a list under
+per document, mirroring the folder structure. Results retain input order, and
+the first input reserves a colliding target. OCR runs one image at a time.
+--json reports a list under
 "results", and the exit code is that of the first failed input.
 
 --frontmatter reads title, author, subject, keywords, and dates from OOXML
@@ -142,6 +147,15 @@ func parseArguments(
                 do { parsed.pdfOptions.ocrLanguages = try OCRLanguageSelection.resolve(value.components(separatedBy: ",")) }
                 catch { throw CLIArgumentError.invalidConversionOption(error.localizedDescription) }
             }
+        } else if !optionsEnded && (argument == "--jobs" || argument.hasPrefix("--jobs=")) {
+            let value: String
+            if argument == "--jobs" {
+                index += 1
+                guard index < rawArguments.count else { throw CLIArgumentError.missingValue(argument) }
+                value = rawArguments[index]
+            } else { value = String(argument.dropFirst("--jobs=".count)) }
+            guard let jobs = Int(value), (1...4).contains(jobs) else { throw CLIArgumentError.invalidConversionOption("--jobs requires an integer from 1 through 4") }
+            parsed.jobs = jobs; parsed.setsJobs = true
         } else if !optionsEnded && argument == "--json" {
             parsed.json = true
         } else if !optionsEnded && argument == "--formats" {

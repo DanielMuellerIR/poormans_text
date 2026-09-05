@@ -6,6 +6,17 @@ struct LegacyWordAdapter: DocumentConversionAdapter {
     /// Auch die Verfügbarkeitsprüfung des Formatkatalogs benutzt genau diesen Pfad.
     static let textutilPath = "/usr/bin/textutil"
 
+    /// Austauschbarer Prozessaufruf, damit Tests unerwünschte Word-Proben
+    /// erkennen, ohne von Apples Laufzeit auf fremden OLE-Formaten abzuhängen.
+    var inspectWord: @Sendable (URL) throws -> ProcessResult = { snapshot in
+        try ProcessRunner.run(
+            executable: URL(fileURLWithPath: Self.textutilPath),
+            arguments: ["-info", "--", snapshot.path],
+            currentDirectory: snapshot.deletingLastPathComponent(),
+            captureStandardOutput: true
+        )
+    }
+
     let supportedFormatDescriptors: [SupportedFormat] = [
         SupportedFormat(
             format: .doc,
@@ -50,14 +61,26 @@ struct LegacyWordAdapter: DocumentConversionAdapter {
                         : .noMatch
                 }
 
+                // OLE ist auch der Container für XLS. textutil kann sich an
+                // solchen Dateien festlaufen; nur ein vorhandener Word-Stream
+                // rechtfertigt die anschließende Word-Prüfung. Wir lesen dafür
+                // dieselbe begrenzte Arbeitskopie wie der externe Prozess.
+                let container = try? OLECompoundDocument(
+                    data: Data(contentsOf: snapshot, options: [.mappedIfSafe])
+                )
+                guard container?.containsStream(named: "WordDocument") == true else {
+                    return hasDOCExtension
+                        ? .invalid(
+                            format: .doc,
+                            priority: 105,
+                            reason: "the compound document has no WordDocument stream"
+                        )
+                        : .noMatch
+                }
+
                 let info: ProcessResult
                 do {
-                    info = try ProcessRunner.run(
-                        executable: URL(fileURLWithPath: Self.textutilPath),
-                        arguments: ["-info", "--", snapshot.path],
-                        currentDirectory: snapshot.deletingLastPathComponent(),
-                        captureStandardOutput: true
-                    )
+                    info = try inspectWord(snapshot)
                 } catch {
                     return hasDOCExtension
                         ? .invalid(

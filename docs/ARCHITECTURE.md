@@ -301,6 +301,8 @@ freigegeben. Das Zellmodell bleibt absichtlich vollständig erhalten; die
 Speichermessung steht in [PERFORMANCE.md](PERFORMANCE.md).
 
 `OLECompoundDocument` kennt Header, Sektorketten, Mini-Streams und benannte Streams.
+`LegacyWordAdapter` prüft darin auf `WordDocument`, bevor `textutil` die geprüfte
+Arbeitskopie untersucht; XLS-Container gelangen damit nicht in Apples Word-Importer.
 `LegacyXLSWorkbookParser` interpretiert erst den gelieferten `Workbook`-/`Book`-
 Stream als BIFF und baut das Tabellenmodell. Gemeinsame begrenzte Little-Endian-
 Lesezugriffe liegen in `BinaryDataReading.swift`.

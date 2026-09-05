@@ -3,6 +3,42 @@ import XCTest
 @testable import PoorMansTextCore
 
 final class LegacyXLSBoundaryTests: XCTestCase {
+    func testWorkbookDetectionAndConversionDoNotInvokeWordInspection() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "PoorMansTextXLSDetection-\(UUID().uuidString)", isDirectory: true
+        )
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let bytes = SyntheticXLSFixture.workbook(missingFirstSheetEOF: false)
+        let container = try OLECompoundDocument(data: bytes)
+        XCTAssertTrue(container.containsStream(named: "workbook"))
+        XCTAssertFalse(container.containsStream(named: "Root Entry"))
+        XCTAssertFalse(container.containsStream(named: "WordDocument"))
+        // Auch eine falsche Endung darf die inhaltsbasierte XLS-Erkennung
+        // nicht in Apples Word-Importer führen.
+        for fileExtension in ["xls", "doc", "bin"] {
+            let source = root.appendingPathComponent("Workbook.\(fileExtension)")
+            try bytes.write(to: source)
+            let wordAdapter = LegacyWordAdapter(inspectWord: { _ in
+                XCTFail("An Excel container must not be passed to the Word inspector")
+                throw CocoaError(.fileReadUnknown)
+            })
+            _ = try wordAdapter.inspectInput(at: source)
+            let output = root.appendingPathComponent("output-\(fileExtension)")
+            let result = try DocumentConverter().convert(
+                ConversionRequest(inputURL: source, destination: .directory(output)),
+                processTimeout: 2
+            )
+            XCTAssertEqual(result.format, .xls)
+            let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+            XCTAssertTrue(markdown.contains("## Sheet: First"), markdown)
+            XCTAssertTrue(markdown.contains("## Sheet: Second"), markdown)
+            XCTAssertTrue(markdown.contains("| 1 |"), markdown)
+            XCTAssertTrue(markdown.contains("|  | 2 |"), markdown)
+            XCTAssertEqual(try Data(contentsOf: source), bytes)
+        }
+    }
+
     func testGeneratedBIFFWorkbookProducesExactIndependentOutput() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(
             "PoorMansTextGeneratedXLS-\(UUID().uuidString)",

@@ -154,6 +154,12 @@ struct OLECompoundDocument {
         }
     }
 
+    func containsStream(named name: String) -> Bool {
+        entries.contains {
+            $0.type == 2 && $0.name.caseInsensitiveCompare(name) == .orderedSame
+        }
+    }
+
     func stream(named name: String) throws -> Data? {
         guard let entry = entries.first(where: {
             $0.type == 2 && $0.name.caseInsensitiveCompare(name) == .orderedSame
@@ -267,4 +273,3 @@ struct OLECompoundDocument {
         static let difatSector: UInt32 = 0xFFFF_FFFC
     }
 }
-

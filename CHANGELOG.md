@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## 0.10.0 — 2026-09-05
 
+- Check the OLE directory for a WordDocument stream before invoking Apple's
+  Word inspector. Valid XLS workbooks no longer hang in `textutil` during
+  format detection, including workbooks with a misleading file extension.
+
 - Add `--jobs 1..4` and remembered app batch parallelism, defaulting to one
   document. A shared core planner validates all outputs against every batch
   source before creating directories or starting workers, including adjacent

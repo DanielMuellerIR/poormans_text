@@ -27,7 +27,7 @@ final class AppModelBatchTests: XCTestCase {
         let broken = root.appendingPathComponent("Kaputt.png")
         try Data("not a png".utf8).write(to: broken)
         let second = try copyImage(to: "Zwei.png")
-        let model = AppModel()
+        let model = AppModel(defaults: .isolatedForAppTest())
         model.imageTextRecognition = .disabled
 
         model.convert([first, broken, second])
@@ -48,6 +48,13 @@ final class AppModelBatchTests: XCTestCase {
             )
         )
         XCTAssertTrue(model.acceptsNewDocuments)
+        model.selectResult(items[0])
+        let pasteboard = NSPasteboard.withUniqueName()
+        defer { pasteboard.releaseGlobally() }
+        model.copyMarkdown(to: pasteboard)
+        XCTAssertTrue(model.actionMessage?.contains("not copied") == true)
+        let result = try XCTUnwrap(items[0].result)
+        XCTAssertEqual(pasteboard.string(forType: .string), try String(contentsOf: result.markdownFile, encoding: .utf8))
     }
 
     @MainActor
@@ -56,7 +63,7 @@ final class AppModelBatchTests: XCTestCase {
         try copyImage(to: "Ordner/Anhang/Foto.jpg")
         try Data("plain".utf8).write(to: root.appendingPathComponent("Ordner/Notiz.txt"))
         let folder = root.appendingPathComponent("Ordner")
-        let model = AppModel()
+        let model = AppModel(defaults: .isolatedForAppTest())
         model.imageTextRecognition = .disabled
 
         // Ein einzelner Ordner nimmt ebenfalls den Mehrfachweg.
@@ -76,7 +83,7 @@ final class AppModelBatchTests: XCTestCase {
     func testAnEmptyFolderFailsVisiblyInsteadOfFinishingSilently() async throws {
         let empty = root.appendingPathComponent("Leer", isDirectory: true)
         try FileManager.default.createDirectory(at: empty, withIntermediateDirectories: false)
-        let model = AppModel()
+        let model = AppModel(defaults: .isolatedForAppTest())
 
         model.convert([empty])
 
@@ -96,7 +103,7 @@ final class AppModelBatchTests: XCTestCase {
     func testDroppingSeveralProvidersConvertsAllOfThem() async throws {
         let first = try copyImage(to: "A.png")
         let second = try copyImage(to: "B.png")
-        let model = AppModel()
+        let model = AppModel(defaults: .isolatedForAppTest())
         model.imageTextRecognition = .disabled
 
         XCTAssertTrue(
@@ -114,7 +121,7 @@ final class AppModelBatchTests: XCTestCase {
     @MainActor
     func testOneChosenFileStillUsesTheSingleResultView() async throws {
         let image = try copyImage(to: "Solo.png")
-        let model = AppModel()
+        let model = AppModel(defaults: .isolatedForAppTest())
         model.imageTextRecognition = .disabled
 
         model.chooseDocument(selectDocuments: { [image] })

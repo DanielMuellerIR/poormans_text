@@ -32,7 +32,7 @@ struct PoorMansTextDesktopApp: App {
             // App-Menü. Er bleibt ausgegraut, solange Sparkle selbst sucht
             // oder gerade installiert.
             CommandGroup(after: .appInfo) {
-                Button(UpdateController.menuTitle) {
+                Button(LocalizedStringKey(UpdateController.menuTitle)) {
                     updates.checkForUpdates()
                 }
                 .disabled(!updates.canCheckForUpdates)

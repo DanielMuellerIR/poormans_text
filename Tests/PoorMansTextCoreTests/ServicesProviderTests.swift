@@ -32,7 +32,7 @@ final class ServicesProviderTests: XCTestCase {
     func testTheFileServiceConvertsEveryFileOnThePasteboard() async throws {
         let first = try copyImage(to: "A.png")
         let second = try copyImage(to: "B.png")
-        let model = AppModel()
+        let model = AppModel(defaults: .isolatedForAppTest())
         model.imageTextRecognition = .disabled
         let provider = ServicesProvider(model: model, outputPasteboard: output)
         input.clearContents()
@@ -49,7 +49,7 @@ final class ServicesProviderTests: XCTestCase {
 
     @MainActor
     func testTheFileServiceReportsAnEmptyPasteboardInsteadOfDoingNothing() {
-        let model = AppModel()
+        let model = AppModel(defaults: .isolatedForAppTest())
         let provider = ServicesProvider(model: model, outputPasteboard: output)
         input.clearContents()
         input.setString("no file", forType: .string)
@@ -75,7 +75,7 @@ final class ServicesProviderTests: XCTestCase {
         ))
         input.clearContents()
         input.setData(rtfd, forType: .rtfd)
-        let model = AppModel()
+        let model = AppModel(defaults: .isolatedForAppTest())
         let provider = ServicesProvider(model: model, outputPasteboard: output)
 
         var serviceError: NSString?
@@ -95,7 +95,7 @@ final class ServicesProviderTests: XCTestCase {
         input.setString("plain only", forType: .string)
         output.clearContents()
         output.setString("untouched", forType: .string)
-        let model = AppModel()
+        let model = AppModel(defaults: .isolatedForAppTest())
         let provider = ServicesProvider(model: model, outputPasteboard: output)
 
         var serviceError: NSString?

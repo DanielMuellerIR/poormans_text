@@ -60,7 +60,40 @@ public final class AppModel: ObservableObject {
     @Published public private(set) var state: State = .idle
     @Published public var isDropTargeted = false
     /// Gilt nur für Bildimporte; andere Formate ignorieren diese Option.
-    @Published public var imageTextRecognition: ImageTextRecognition = .enabled
+    @Published public var imageTextRecognition: ImageTextRecognition = .enabled { didSet { savePreferences() } }
+    @Published public var spreadsheetRendering: SpreadsheetRendering = .markdownTable { didSet { savePreferences() } }
+    @Published public var frontmatter = false { didSet { savePreferences() } }
+    @Published public var outputLayout: OutputLayout = .markdownFolder { didSet { savePreferences() } }
+    @Published public var destinationFolder: URL? { didSet { savePreferences() } }
+    @Published public var selectedInput: String?
+    @Published public private(set) var actionMessage: String?
+    @Published public private(set) var preview: MarkdownPreview?
+    private let defaults: UserDefaults
+    private var loadingPreferences = true
+    private var destinationOverrides: [String: URL] = [:]
+    private var failedEnumerationInputs: [URL] = []
+    private var relativeDirectories: [String: [String]] = [:]
+
+    public var conversionOptions: ConversionOptions {
+        ConversionOptions(spreadsheetRendering: spreadsheetRendering,
+            imageTextRecognition: imageTextRecognition, frontmatter: frontmatter, outputLayout: outputLayout)
+    }
+
+    public var selectedResult: ConversionResult? {
+        switch state {
+        case .succeeded(let result): return result
+        case .batchFinished(let items): return items.first { $0.id == selectedInput }?.result
+        default: return nil
+        }
+    }
+
+    public var failedInputs: [URL] {
+        switch state {
+        case .failed(let input, _): return input.map { [$0] } ?? []
+        case .batchFinished(let items): return items.filter { $0.result == nil }.map(\.input)
+        default: return []
+        }
+    }
     /// Wahr, solange die App Pandoc über Homebrew nachinstalliert.
     @Published public private(set) var isInstallingPandoc = false
 
@@ -86,11 +119,149 @@ public final class AppModel: ObservableObject {
     /// (Review-Fund 2026-09-03).
     private var pendingDrops = 0
 
-    public init() {}
+    public init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        imageTextRecognition = defaults.string(forKey: "imageTextRecognition").flatMap(ImageTextRecognition.init(rawValue:)) ?? .enabled
+        spreadsheetRendering = defaults.string(forKey: "spreadsheetRendering").flatMap(SpreadsheetRendering.init(rawValue:)) ?? .markdownTable
+        frontmatter = defaults.bool(forKey: "frontmatter")
+        outputLayout = defaults.string(forKey: "outputLayout").flatMap(OutputLayout.init(rawValue:)) ?? .markdownFolder
+        destinationFolder = defaults.string(forKey: "destinationFolder").map { URL(fileURLWithPath: $0) }
+        loadingPreferences = false
+    }
+
+    private func savePreferences() {
+        guard !loadingPreferences else { return }
+        defaults.set(imageTextRecognition.rawValue, forKey: "imageTextRecognition")
+        defaults.set(spreadsheetRendering.rawValue, forKey: "spreadsheetRendering")
+        defaults.set(frontmatter, forKey: "frontmatter")
+        defaults.set(outputLayout.rawValue, forKey: "outputLayout")
+        defaults.set(destinationFolder?.path, forKey: "destinationFolder")
+    }
+
+    public func request(for input: URL, options: ConversionOptions) -> ConversionRequest {
+        let destination = destinationOverrides[input.path] ?? destinationFolder.map {
+            let parent = (relativeDirectories[input.path] ?? []).reduce($0) { $0.appendingPathComponent($1, isDirectory: true) }
+            return parent.appendingPathComponent(DocumentConverter.outputDirectoryName(for: input, layout: options.outputLayout))
+        }
+        return ConversionRequest(inputURL: input, destination: destination.map(ConversionDestination.directory) ?? .adjacentToInput, options: options)
+    }
+
+    /// Die Elternordner entstehen vor dem Engine-Aufruf. Deshalb schon hier
+    /// alle Quelldokumente des Batches schützen, auch ein anderes RTFD-Paket.
+    nonisolated private static func prepareParent(for request: ConversionRequest, protecting inputs: [URL]) throws {
+        guard case .directory(let output) = request.destination else { return }
+        let resolvedOutputPath = output.standardizedFileURL.resolvingSymlinksInPath().path + "/"
+        for input in inputs {
+            let resolvedInput = input.standardizedFileURL.resolvingSymlinksInPath()
+            let caseSensitive = (try? resolvedInput.resourceValues(forKeys: [.volumeSupportsCaseSensitiveNamesKey]))?.volumeSupportsCaseSensitiveNames == true
+            let inputPath = resolvedInput.path + "/"
+            let liesInside = caseSensitive ? resolvedOutputPath.hasPrefix(inputPath)
+                : resolvedOutputPath.lowercased().hasPrefix(inputPath.lowercased())
+            guard !liesInside else {
+                throw ConversionError.outputInsideInput(output)
+            }
+        }
+        try FileManager.default.createDirectory(at: output.deletingLastPathComponent(), withIntermediateDirectories: true)
+    }
+
+    public func chooseDestinationFolder() {
+        guard acceptsNewDocuments else { return }
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        panel.allowsMultipleSelection = false
+        if panel.runModal() == .OK { destinationFolder = panel.url }
+    }
+
+    /// Der Dialog wählt einen neuen Ergebnisordner; die Engine prüft weiterhin
+    /// atomar auf Kollisionen, auch wenn nach dem Dialog jemand das Ziel anlegt.
+    public func chooseAlternativeDestination(for input: URL) {
+        guard acceptsNewDocuments else { return }
+        let panel = NSSavePanel()
+        panel.title = NSLocalizedString("Choose a new output folder name", comment: "")
+        panel.nameFieldStringValue = DocumentConverter.outputDirectoryName(for: input, layout: outputLayout)
+        panel.directoryURL = destinationFolder ?? input.deletingLastPathComponent()
+        panel.canCreateDirectories = true
+        if panel.runModal() == .OK, let url = panel.url {
+            destinationOverrides[input.path] = outputLayout == .textbundle && url.pathExtension.lowercased() != "textbundle"
+                ? url.appendingPathExtension("textbundle") : url
+            retryFailed(only: input)
+        }
+    }
+
+    public func selectResult(_ item: BatchItem) {
+        selectedInput = item.id
+        preview = nil
+        actionMessage = nil
+    }
+
+    public func openResult() {
+        guard let result = selectedResult else { return }
+        if !NSWorkspace.shared.open(result.markdownFile) {
+            actionMessage = NSLocalizedString("The Markdown file could not be opened.", comment: "")
+        }
+    }
+
+    public func loadPreview() {
+        guard let result = selectedResult else { return }
+        do { preview = try MarkdownPreview.read(result.markdownFile) }
+        catch { actionMessage = AppErrorMessage.describe(error) }
+    }
+
+    public func copyMarkdown(to pasteboard: NSPasteboard = .general) {
+        guard let result = selectedResult else { return }
+        do {
+            let text = try String(contentsOf: result.markdownFile, encoding: .utf8)
+            pasteboard.clearContents()
+            guard pasteboard.setString(text, forType: .string) else {
+                actionMessage = NSLocalizedString("The Markdown could not be placed on the clipboard.", comment: "")
+                return
+            }
+            actionMessage = result.assets.isEmpty
+                ? NSLocalizedString("Markdown copied to the clipboard", comment: "")
+                : NSLocalizedString("Markdown copied. Image and attachment files were not copied; relative links require the output folder.", comment: "")
+        } catch { actionMessage = AppErrorMessage.describe(error) }
+    }
+
+    public func retryFailed(only input: URL? = nil) {
+        guard acceptsNewDocuments else { return }
+        if !failedEnumerationInputs.isEmpty {
+            convert(failedEnumerationInputs)
+            return
+        }
+        if case .batchFinished(let items) = state {
+            let retry = items.filter { $0.result == nil && (input == nil || $0.input == input) }
+            guard let first = retry.first else { return }
+            let options = conversionOptions
+            let requests = retry.map { request(for: $0.input, options: options) }
+            state = .convertingBatch(BatchProgress(finished: items.filter { $0.result != nil }, current: first.input, total: items.count))
+            Task {
+                var updated = items
+                for (item, request) in zip(retry, requests) {
+                    let outcome: BatchItem.Outcome
+                    do {
+                        let result = try await Task.detached(priority: .userInitiated) {
+                            try Self.prepareParent(for: request, protecting: items.map(\.input))
+                            return try DocumentConverter().convert(request)
+                        }.value
+                        outcome = .succeeded(result)
+                    } catch { outcome = .failed(AppErrorMessage.describe(error)) }
+                    if let index = updated.firstIndex(where: { $0.id == item.id }) {
+                        updated[index] = BatchItem(input: item.input, outcome: outcome)
+                    }
+                }
+                state = .batchFinished(updated)
+            }
+        } else if let first = failedInputs.first { convertSingle(first, isRetry: true) }
+    }
 
     /// Wandelt eine einzelne Datei oder ein Paket um. Ein durchsuchbarer Ordner
     /// läuft über den Mehrfachweg, damit beide Einstiege gleich reagieren.
     public func convert(_ inputURL: URL) {
+        convertSingle(inputURL, isRetry: false)
+    }
+
+    private func convertSingle(_ inputURL: URL, isRetry: Bool) {
         guard acceptsNewDocuments else {
             return
         }
@@ -99,11 +270,15 @@ public final class AppModel: ObservableObject {
             return
         }
 
+        if !isRetry {
+            failedEnumerationInputs = []
+            destinationOverrides = [:]
+            relativeDirectories = [:]
+        }
         state = .converting(inputURL)
-        let request = ConversionRequest(
-            inputURL: inputURL,
-            options: ConversionOptions(imageTextRecognition: imageTextRecognition)
-        )
+        preview = nil
+        actionMessage = nil
+        let request = request(for: inputURL, options: conversionOptions)
 
         // Die Dateikonvertierung läuft außerhalb des Main Actors, damit das Fenster
         // während textutil und Pandoc weiterhin reagiert.
@@ -114,7 +289,7 @@ public final class AppModel: ObservableObject {
                 }.value
                 state = .succeeded(result)
             } catch {
-                state = .failed(input: inputURL, message: error.localizedDescription)
+                state = .failed(input: inputURL, message: AppErrorMessage.describe(error))
             }
         }
     }
@@ -132,8 +307,15 @@ public final class AppModel: ObservableObject {
             return
         }
 
+        destinationOverrides = [:]
+        relativeDirectories = [:]
+        failedEnumerationInputs = []
         state = .convertingBatch(BatchProgress(finished: [], current: first, total: inputURLs.count))
-        let options = ConversionOptions(imageTextRecognition: imageTextRecognition)
+        let options = conversionOptions
+        let outputRoot = destinationFolder
+        let overrides = destinationOverrides
+        preview = nil
+        actionMessage = nil
 
         Task {
             let inputs: [EnumeratedInput]
@@ -142,29 +324,38 @@ public final class AppModel: ObservableObject {
                     try enumerator.enumerate(inputURLs)
                 }.value
             } catch {
-                state = .failed(input: first, message: error.localizedDescription)
+                failedEnumerationInputs = inputURLs
+                state = .failed(input: first, message: AppErrorMessage.describe(error))
                 return
             }
 
+            relativeDirectories = Dictionary(uniqueKeysWithValues: inputs.map { ($0.url.path, $0.relativeDirectory) })
             var finished = [BatchItem]()
             for input in inputs {
                 state = .convertingBatch(
                     BatchProgress(finished: finished, current: input.url, total: inputs.count)
                 )
-                // Jedes Ergebnis landet neben seiner Quelle; ein gemeinsamer
-                // Zielordner ist Sache der CLI.
-                let request = ConversionRequest(inputURL: input.url, options: options)
+                let parent = outputRoot.map { root in
+                    input.relativeDirectory.reduce(root) { $0.appendingPathComponent($1, isDirectory: true) }
+                }
+                let destination = overrides[input.url.path] ?? parent.map {
+                    $0.appendingPathComponent(DocumentConverter.outputDirectoryName(for: input.url, layout: options.outputLayout))
+                }
+                let request = ConversionRequest(inputURL: input.url,
+                    destination: destination.map(ConversionDestination.directory) ?? .adjacentToInput, options: options)
                 let outcome: BatchItem.Outcome
                 do {
                     let result = try await Task.detached(priority: .userInitiated) {
-                        try DocumentConverter().convert(request)
+                        try Self.prepareParent(for: request, protecting: inputs.map(\.url))
+                        return try DocumentConverter().convert(request)
                     }.value
                     outcome = .succeeded(result)
                 } catch {
-                    outcome = .failed(error.localizedDescription)
+                    outcome = .failed(AppErrorMessage.describe(error))
                 }
                 finished.append(BatchItem(input: input.url, outcome: outcome))
             }
+            selectedInput = finished.first(where: { $0.result != nil })?.id
             state = .batchFinished(finished)
         }
     }
@@ -230,8 +421,8 @@ public final class AppModel: ObservableObject {
     /// erlaubt; ein Ordner wird wie beim Drop rekursiv durchsucht.
     private static func presentOpenPanel() -> [URL] {
         let panel = NSOpenPanel()
-        panel.title = "Choose Documents, Spreadsheets, PDFs, Images, or a Folder"
-        panel.prompt = "Convert"
+        panel.title = NSLocalizedString("Choose Documents, Spreadsheets, PDFs, Images, or a Folder", comment: "")
+        panel.prompt = NSLocalizedString("Convert", comment: "")
         let extensions = DocumentConverter().supportedFormatDescriptors
             .flatMap(\.fileExtensions)
         panel.allowedContentTypes = Array(Set(extensions)).sorted().compactMap {
@@ -286,7 +477,7 @@ public final class AppModel: ObservableObject {
         case .succeeded(let result):
             NSWorkspace.shared.activateFileViewerSelecting([result.markdownFile])
         case .batchFinished(let items):
-            let files = items.compactMap { $0.result?.markdownFile }
+            let files = items.filter { selectedInput == nil || $0.id == selectedInput }.compactMap { $0.result?.markdownFile }
             guard !files.isEmpty else {
                 return
             }
@@ -304,7 +495,7 @@ public final class AppModel: ObservableObject {
             return
         }
         state = .converting(URL(fileURLWithPath: source.fileName))
-        let options = ConversionOptions(imageTextRecognition: imageTextRecognition)
+        let options = conversionOptions
 
         Task {
             do {
@@ -321,7 +512,7 @@ public final class AppModel: ObservableObject {
                 }
                 state = .copiedToClipboard(outcome)
             } catch {
-                state = .failed(input: nil, message: error.localizedDescription)
+                state = .failed(input: nil, message: AppErrorMessage.describe(error))
             }
         }
     }
@@ -330,6 +521,12 @@ public final class AppModel: ObservableObject {
         guard !isConverting else {
             return
         }
+        preview = nil
+        actionMessage = nil
+        selectedInput = nil
+        destinationOverrides = [:]
+        relativeDirectories = [:]
+        failedEnumerationInputs = []
         state = .idle
     }
 }

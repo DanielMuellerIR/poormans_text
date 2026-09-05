@@ -63,11 +63,9 @@ in die Zwischenablage) sind umgesetzt; offen bleibt:
 
 ### Etappe 8 — App-Bedienung
 
-- Markdown-Vorschau im Fenster, Warnungen als Liste, Knopf „in Fastra öffnen“.
-- Zielordner wählbar; Tabellenformat, OCR, Frontmatter und Textbundle als
-  gemerkte Einstellungen (der Kern kennt beide Optionen bereits); Fortschritt und Abbruch für lange Umwandlungen über das
-  vorhandene `ConversionProgress`.
-- Deutsche Lokalisierung der Oberfläche.
+- Fortschritt und Abbruch für lange Umwandlungen über `ConversionProgress`.
+- Direkte Auswahl von Fastra als Ziel-App (Markdown lässt sich bereits in der
+  zugeordneten Standard-App öffnen).
 - Homebrew-Cask neben dem DMG.
 
 ### Nicht geplant
@@ -86,6 +84,24 @@ oder Numbers voraussetzt und per AppleScript nach DOCX beziehungsweise XLSX
 exportiert, lohnt den Aufwand nicht. Wer eine Pages-/Numbers-Datei umwandeln
 will, exportiert sie in der jeweiligen Apple-App als DOCX beziehungsweise XLSX
 und nutzt den normalen Import. Keynote fällt unter dieselbe Grenze.
+
+## Nächste technische Produktarbeit (2026-09-05)
+
+- Fortschritt bis in App und Adapter weiterreichen, bekannte Seiten-/Blattzahlen
+  anzeigen und Aufträge kooperativ abbrechen. Externe Prozesse erhalten Zeitlimits
+  und kontrollierte Beendigung. Fertige Batch-Ergebnisse bleiben erhalten.
+- Vor Paketänderungen große XLSX-, medienreiche DOCX-Dateien und viele kleine
+  Eingaben auf Laufzeit und maximalen Speicherbedarf messen. Danach geprüfte
+  Paketkopien samt Verzeichnis wiederverwenden und XLSX-Blätter einzeln lesen.
+- ZIP-Prüfung von Word-/ODT-Inspektion, OLE-Container von BIFF, CLI-Argumente von
+  Ausgabe/Ausführung und Frontmatter/Textbundle vom Orchestrator trennen.
+- PDF-OCR automatisch/immer/aus und OCR-Sprachen in CLI und App anbieten.
+  Gemischte Scan-/Textseiten, Spalten, optionale Kopf-/Fußzeilenbereinigung und
+  vorsichtige Silbentrennungsbereinigung mit Vergleichsdokumenten prüfen.
+  Diagnosen sollen verfügbare Seiten-, Blatt- und Zellbezüge tragen.
+- Nach Abbruch- und Speicherarbeit einstellbare Batch-Parallelität mit stabiler
+  Ergebnisreihenfolge, Kollisionsschutz und gesonderter OCR-Begrenzung ergänzen;
+  zunächst zwei gleichzeitige Dokumente messen.
 
 ## Fastra-Integration
 

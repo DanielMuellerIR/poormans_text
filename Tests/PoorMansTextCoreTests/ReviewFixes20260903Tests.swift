@@ -159,7 +159,7 @@ final class ReviewFixes20260903Tests: XCTestCase {
     func testADropReservesTheAppUntilItsFilesAreLoaded() async throws {
         let inputURL = root.appendingPathComponent("Eins.csv")
         try Data("a,b\n1,2\n".utf8).write(to: inputURL)
-        let model = AppModel()
+        let model = AppModel(defaults: .isolatedForAppTest())
         model.imageTextRecognition = .disabled
 
         XCTAssertTrue(model.acceptDrop([NSItemProvider(object: inputURL as NSURL)]))

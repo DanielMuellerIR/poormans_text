@@ -37,7 +37,7 @@ final class AppModelDropTests: XCTestCase {
         try await withTemporaryDirectory { temporaryDirectory in
             let inputURL = temporaryDirectory.appendingPathComponent("Plain text.data")
             try Data("plain text".utf8).write(to: inputURL)
-            let model = AppModel()
+            let model = AppModel(defaults: .isolatedForAppTest())
 
             model.convert(inputURL)
 
@@ -67,7 +67,7 @@ final class AppModelDropTests: XCTestCase {
                 at: wordProcessingFixture("fixture.png"),
                 to: inputURL
             )
-            let model = AppModel()
+            let model = AppModel(defaults: .isolatedForAppTest())
             model.imageTextRecognition = .disabled
 
             model.convert(inputURL)
@@ -100,7 +100,7 @@ final class AppModelDropTests: XCTestCase {
             "Pandoc is required for the app drop integration tests."
         )
         let provider = NSItemProvider(object: inputURL as NSURL)
-        let model = AppModel()
+        let model = AppModel(defaults: .isolatedForAppTest())
 
         XCTAssertTrue(model.acceptDrop([provider]))
 

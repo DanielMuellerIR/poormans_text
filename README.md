@@ -230,9 +230,14 @@ to `/Applications`.
 
 Drop any number of supported documents, spreadsheets, PDFs, images, or folders
 into the window or onto the app, or choose them from the open panel. A folder is
-searched with the same rules as on the command line, and every result is
-created next to its source. The app lists the outcome per document and can
-reveal the generated Markdown in Finder.
+searched with the same rules as on the command line. Conversion Options remembers
+an output parent (by default next to each source), table format, image OCR,
+frontmatter, and Textbundle. Subdirectories are preserved under a selected parent.
+Select a batch result to open its Markdown in the default app, copy it, show it
+in Finder, or read a text preview limited to 256 KiB. Copying reports omitted
+asset files. Retry Failed Inputs retains successful outputs and result order;
+a failed input also offers another output name or destination. Existing output
+is never replaced. The interface follows the system's English or German language.
 
 The app also registers two system services, available once it has been
 launched at least once (macOS lists them under System Settings › Keyboard ›
@@ -240,7 +245,7 @@ Keyboard Shortcuts › Services):
 
 - **Convert to Markdown with Poor Man's Text** appears in the Finder context
   menu for supported documents and folders. It hands the selection to the app,
-  which converts everything next to its source, exactly like a drop.
+  which uses the current conversion settings, exactly like a drop.
 - **Convert Text to Markdown with Poor Man's Text** appears in the Services
   submenu of any app that offers selected rich text, such as Mail, Pages,
   TextEdit, or Safari. The Markdown is placed on the clipboard, ready to paste;

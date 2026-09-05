@@ -58,6 +58,7 @@ mkdir -p "$contents_path/MacOS" "$contents_path/Resources" "$contents_path/Frame
 cp "$binary_directory/PoorMansTextApp" "$contents_path/MacOS/PoorMansTextApp"
 cp "$binary_directory/poormans-text" "$bundled_cli"
 cp "$project_root/LICENSE" "$bundled_license"
+cp -R "$project_root/App/en.lproj" "$project_root/App/de.lproj" "$contents_path/Resources/"
 cp "$project_root/.build/icon/AppIcon.icns" "$bundled_icon"
 cp "$project_root/App/Info.plist" "$contents_path/Info.plist"
 chmod 755 "$contents_path/MacOS/PoorMansTextApp" "$bundled_cli"

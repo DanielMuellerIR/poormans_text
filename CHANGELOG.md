@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Remember the app's output parent, spreadsheet rendering, image OCR,
+  frontmatter, and Textbundle options. Folder imports preserve their relative
+  directories under the selected output parent.
+- Select individual batch results, open or copy their Markdown, and show a
+  bounded 256 KiB text preview. Copying explicitly reports omitted asset files.
+  Retry only failed inputs while retaining successful results and list order;
+  choose another output name or destination after a failure without replacing
+  existing output. Keep the existing diagnostic lists visible.
+- Add German interface translations to the app bundle.
+
 - Convert several inputs in one run. The CLI accepts any number of paths, and a
   folder is searched recursively for supported file extensions: packages such
   as `.rtfd` count as one document; hidden entries, symbolic links, and earlier

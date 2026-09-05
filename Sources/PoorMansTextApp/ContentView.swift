@@ -16,6 +16,7 @@ struct ContentView: View {
     var body: some View {
         VStack(spacing: 24) {
             header
+            options
             dropArea
             footer
         }
@@ -189,17 +190,10 @@ struct ContentView: View {
                     .accessibilityHidden(true)
                 Text("Drop documents, spreadsheets, PDFs, images, or a folder here")
                     .font(.title3.bold())
-                Text("A new folder with Markdown and any extracted assets is created next to each document. A dropped folder is searched for supported documents.")
+                Text("A new folder with Markdown and assets is created at the selected destination. A dropped folder is searched for supported documents.")
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: 390)
-                Picker("Images", selection: $model.imageTextRecognition) {
-                    Text("Add local OCR text").tag(ImageTextRecognition.enabled)
-                    Text("Keep only the image").tag(ImageTextRecognition.disabled)
-                }
-                .pickerStyle(.segmented)
-                .frame(maxWidth: 320)
-                .accessibilityLabel("Image import mode")
                 Button("Choose Document…") {
                     model.chooseDocument()
                 }
@@ -245,6 +239,7 @@ struct ContentView: View {
                 }
                 .frame(maxHeight: 110)
             }
+            resultActions
             HStack {
                 Button("Show in Finder") {
                     model.revealResult()
@@ -280,12 +275,16 @@ struct ContentView: View {
             Text(batchSummary(succeeded: succeeded, total: items.count))
                 .font(.title3.bold())
             batchList(items)
+            if !model.failedInputs.isEmpty {
+                Button("Retry Failed Inputs") { model.retryFailed() }
+            }
+            resultActions
             HStack {
                 Button("Show in Finder") {
                     model.revealResult()
                 }
                 .keyboardShortcut(.defaultAction)
-                .disabled(succeeded == 0)
+                .disabled(model.selectedResult == nil)
                 Button("Convert More") {
                     model.reset()
                 }
@@ -322,11 +321,17 @@ struct ContentView: View {
             .controlSize(.large)
             .keyboardShortcut(.defaultAction)
 
-        case .failed(_, let message):
+        case .failed(let input, let message):
             Image(systemName: "xmark.octagon.fill")
                 .font(.system(size: 46))
                 .foregroundStyle(.red)
                 .accessibilityHidden(true)
+            if let input {
+                HStack {
+                    Button("Retry") { model.retryFailed() }
+                    Button("Choose Another Name or Destination…") { model.chooseAlternativeDestination(for: input) }
+                }
+            }
             Text("Conversion failed")
                 .font(.title3.bold())
             Text(message)
@@ -346,6 +351,57 @@ struct ContentView: View {
                 }
             }
             .controlSize(.large)
+        }
+    }
+
+    private var options: some View {
+        DisclosureGroup("Conversion Options") {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("Destination")
+                    Text(model.destinationFolder?.path ?? NSLocalizedString("Next to each source", comment: ""))
+                        .lineLimit(1).truncationMode(.middle)
+                    Button("Choose…") { model.chooseDestinationFolder() }
+                    if model.destinationFolder != nil {
+                        Button("Reset") { model.destinationFolder = nil }
+                    }
+                }
+                Picker("Tables", selection: $model.spreadsheetRendering) {
+                    Text("Markdown tables").tag(SpreadsheetRendering.markdownTable)
+                    Text("Tab-separated text").tag(SpreadsheetRendering.tabSeparated)
+                }
+                Picker("Images", selection: $model.imageTextRecognition) {
+                    Text("Add local OCR text").tag(ImageTextRecognition.enabled)
+                    Text("Keep only the image").tag(ImageTextRecognition.disabled)
+                }
+                Toggle("Add YAML frontmatter", isOn: $model.frontmatter)
+                Picker("Output", selection: $model.outputLayout) {
+                    Text("Markdown folder").tag(OutputLayout.markdownFolder)
+                    Text("Textbundle").tag(OutputLayout.textbundle)
+                }
+            }
+            .padding(.top, 8)
+            .disabled(!model.acceptsNewDocuments)
+        }
+    }
+
+    @ViewBuilder private var resultActions: some View {
+        if model.selectedResult != nil {
+            HStack {
+                Button("Open Markdown") { model.openResult() }
+                Button("Copy Markdown") { model.copyMarkdown() }
+                Button("Text Preview") { model.loadPreview() }
+            }
+            if let preview = model.preview {
+                ScrollView([.horizontal, .vertical]) {
+                    Text(verbatim: preview.text).font(.body.monospaced()).textSelection(.enabled)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }.frame(maxHeight: 160)
+                if preview.truncated { Text("Preview limited to 256 KiB. Open the file to read all text.").font(.caption) }
+            }
+        }
+        if let message = model.actionMessage {
+            Text(message).font(.callout).textSelection(.enabled)
         }
     }
 
@@ -370,7 +426,7 @@ struct ContentView: View {
     /// Fenster nicht sprengt.
     private func batchList(_ items: [BatchItem]) -> some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 6) {
+            LazyVStack(alignment: .leading, spacing: 6) {
                 ForEach(items) { item in
                     HStack(alignment: .firstTextBaseline, spacing: 8) {
                         switch item.outcome {
@@ -406,7 +462,14 @@ struct ContentView: View {
                             }
                         }
                     }
-                    .textSelection(.enabled)
+                    .padding(5)
+                    .background(model.selectedInput == item.id ? Color.accentColor.opacity(0.15) : Color.clear)
+                    .contentShape(Rectangle())
+                    .onTapGesture { model.selectResult(item) }
+                    .accessibilityAction { model.selectResult(item) }
+                    if item.result == nil && !model.isConverting {
+                        Button("Choose Another Name or Destination…") { model.chooseAlternativeDestination(for: item.input) }
+                    }
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -416,24 +479,24 @@ struct ContentView: View {
 
     private func clipboardSummary(_ outcome: ClipboardOutcome) -> String {
         let lines = outcome.markdown.split(omittingEmptySubsequences: false, whereSeparator: \.isNewline).count
-        return lines == 1 ? "1 line, ready to paste" : "\(lines) lines, ready to paste"
+        return lines == 1 ? NSLocalizedString("1 line, ready to paste", comment: "") : String(format: NSLocalizedString("%d lines, ready to paste", comment: ""), lines)
     }
 
     private func batchSummary(succeeded: Int, total: Int) -> String {
         if succeeded == total {
-            return total == 1 ? "Markdown created" : "\(total) documents converted"
+            return total == 1 ? NSLocalizedString("Markdown created", comment: "") : String(format: NSLocalizedString("%d documents converted", comment: ""), total)
         }
-        return "\(succeeded) of \(total) documents converted"
+        return String(format: NSLocalizedString("%d of %d documents converted", comment: ""), succeeded, total)
     }
 
     private func assetSummary(_ result: ConversionResult) -> String {
         switch result.assets.count {
         case 0:
-            "No image assets"
+            NSLocalizedString("No image assets", comment: "")
         case 1:
-            "1 image asset"
+            NSLocalizedString("1 image asset", comment: "")
         default:
-            "\(result.assets.count) image assets"
+            String(format: NSLocalizedString("%d image assets", comment: ""), result.assets.count)
         }
     }
 

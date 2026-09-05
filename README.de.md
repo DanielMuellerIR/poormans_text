@@ -239,9 +239,16 @@ nicht nach `/Applications`.
 Beliebig viele unterstützte Dokumente, Tabellen, PDFs, Bilder oder Ordner
 können in das Fenster oder auf die App gezogen oder über den Dateidialog
 ausgewählt werden. Ein Ordner wird nach denselben Regeln wie auf der
-Kommandozeile durchsucht, und jedes Ergebnis entsteht neben seiner Quelle. Die
-App zeigt den Ausgang je Dokument und kann die erzeugten Markdown-Dateien im
-Finder anzeigen.
+Kommandozeile durchsucht. „Konvertierungsoptionen“ merkt sich Zielordner
+(standardmäßig neben der Quelle), Tabellenformat, Bild-OCR, Frontmatter und
+Textbundle. Unter einem gewählten Zielordner bleiben Unterordner erhalten.
+Einzelne Batch-Ergebnisse lassen sich auswählen, in der Standard-App öffnen,
+kopieren, im Finder zeigen oder als Textvorschau mit höchstens 256 KiB lesen.
+Beim Kopieren meldet die App ausgelassene Asset-Dateien. „Fehlgeschlagene Eingaben
+erneut versuchen“ erhält erfolgreiche Ausgaben und die Ergebnisreihenfolge.
+Für fehlgeschlagene Eingaben lässt sich ein anderer Name oder Zielordner wählen;
+vorhandene Ausgaben werden nie ersetzt. Die Oberfläche folgt der englischen oder
+deutschen Systemsprache.
 
 Die App meldet außerdem zwei Systemdienste an, die nach dem ersten Start zur
 Verfügung stehen (macOS führt sie unter Systemeinstellungen › Tastatur ›
@@ -249,7 +256,7 @@ Tastaturkurzbefehle › Dienste):
 
 - **Convert to Markdown with Poor Man's Text** erscheint im Kontextmenü des
   Finders für unterstützte Dokumente und Ordner. Der Dienst übergibt die Auswahl
-  an die App, die alles neben seiner Quelle umwandelt, genau wie beim Ablegen.
+  an die App, die die aktuellen Konvertierungsoptionen verwendet, genau wie beim Ablegen.
 - **Convert Text to Markdown with Poor Man's Text** erscheint im Untermenü
   „Dienste" jeder App, die markierten Rich Text anbietet, etwa Mail, Pages,
   TextEdit oder Safari. Das Markdown landet in der Zwischenablage und kann

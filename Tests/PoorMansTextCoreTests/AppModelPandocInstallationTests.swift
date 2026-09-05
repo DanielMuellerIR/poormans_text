@@ -10,7 +10,7 @@ import XCTest
 final class AppModelPandocInstallationTests: XCTestCase {
     @MainActor
     func testEveryEntryPointIsBlockedWhilePandocIsInstalling() async throws {
-        let model = AppModel()
+        let model = AppModel(defaults: .isolatedForAppTest())
         let gate = InstallationGate()
         let document = URL(fileURLWithPath: "/tmp/PoorMansTextNeverConverted.rtf")
 
@@ -54,7 +54,7 @@ final class AppModelPandocInstallationTests: XCTestCase {
     /// „Pandoc Installed", während der erste Homebrew-Lauf noch läuft.
     @MainActor
     func testASecondParallelInstallationIsNotReportedAsCompleted() async throws {
-        let model = AppModel()
+        let model = AppModel(defaults: .isolatedForAppTest())
         let gate = InstallationGate()
         let counter = InstallationCounter()
 
@@ -83,7 +83,7 @@ final class AppModelPandocInstallationTests: XCTestCase {
     /// die App nach einer misslungenen Installation dauerhaft blockiert.
     @MainActor
     func testAFailedInstallationReleasesTheEntryPoints() async throws {
-        let model = AppModel()
+        let model = AppModel(defaults: .isolatedForAppTest())
 
         do {
             try await model.installPandoc(brewExecutable: Self.brewExecutable) { _ in

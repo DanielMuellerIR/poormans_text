@@ -203,3 +203,22 @@ openMarkdown(result.markdownFile)
 - Weitere manuelle Editorproben bleiben außerhalb des öffentlichen Repos und
   dienen als zusätzlicher Output-Diff, nicht als still aktualisierbares Golden
   Master.
+
+## App-Einstellungen und Ergebnisaktionen
+
+`AppModel` speichert Zielordner, Tabellenformat, Bild-OCR, Frontmatter und
+Ausgabelayout in `UserDefaults`. Es bildet daraus `ConversionRequest` und
+friert Optionen und Ziel für einen Mehrfachlauf ein. Der Zielordner ist ein
+Elternordner; rekursiv gefundene Eingaben behalten darunter ihre relativen
+Unterordner. Die Engine prüft weiterhin jede Veröffentlichung auf Kollisionen.
+Wiederholungen ersetzen nur fehlgeschlagene Listeneinträge, an derselben Position.
+Erfolgreiche Ausgaben bleiben bestehen.
+
+`MarkdownPreview` liest über einen auf reguläre Dateien geprüften Deskriptor
+höchstens 256 KiB plus ein Prüfbyte und kürzt eine angeschnittene UTF-8-Endsequenz.
+Die Vorschau lädt keine Bilder und führt kein Markdown oder HTML aus.
+Öffnen und Kopieren beziehen sich auf das ausgewählte Ergebnis; die Zwischenablage
+enthält ausschließlich den Markdown-Text und meldet ausgelassene Asset-Dateien.
+Die SwiftUI-Ergebnisliste erzeugt Zeilen bedarfsgerecht über `LazyVStack`.
+Die englischen und deutschen `Localizable.strings` liegen im fertigen App-Bundle
+unter `Contents/Resources`, damit SwiftUI und AppKit dasselbe Sprachpaket lesen.

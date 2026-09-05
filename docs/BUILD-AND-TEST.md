@@ -185,3 +185,15 @@ Nach Commit, annotiertem Release-Tag und vollständiger Notarisierung prüft
 Tag- und Versionsgleichheit, Universal Binaries, beide App-Kopien, DMG und
 SHA-256-Datei. Der öffentliche Ablauf steht in
 [GITHUB-RELEASE.md](GITHUB-RELEASE.md).
+
+## App-Optionen headless prüfen
+
+`swift test --filter AppOptionsTests` prüft gespeicherte Optionen und Requests,
+einen realen temporären CSV-Import als Textbundle mit unabhängig gezählten
+Zellwerten, unveränderte Quellen und Altausgaben, Wiederholung nur fehlgeschlagener
+Eingaben, stabile Ergebnisreihenfolge, gespiegelte Unterordner sowie die begrenzte
+UTF-8-Vorschau und das sofortige Zurückweisen einer FIFO-Datei.
+App-Modelltests verwenden eigene flüchtige Einstellungen und eine eigene
+Zwischenablage; sie verändern keine Benutzerpräferenzen.
+`./build.sh debug` kopiert `App/en.lproj` und `App/de.lproj` in das lokale Bundle.
+Diese Prüfungen belegen Modell und Bundle, keine visuelle Bedienprüfung.

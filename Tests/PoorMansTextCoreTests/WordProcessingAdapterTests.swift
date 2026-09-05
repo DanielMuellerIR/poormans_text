@@ -49,8 +49,14 @@ final class WordProcessingAdapterTests: XCTestCase {
         }
     }
 
-    func testDOCXAndODTMatchDirectPandocOutputAndPreserveMediaFromTwoProducers() throws {
+    func testDOCXAndODTPreserveDirectPandocContentAndMediaFromTwoProducers() throws {
         try requirePandoc()
+        // Erlaubt denselben Vergleich gezielt mit einer weiteren Pandoc-Version,
+        // ohne die systemweite Installation oder Produktauflösung zu ändern.
+        let pandoc = try PandocTool.resolve(
+            ProcessInfo.processInfo.environment["POORMANS_TEXT_TEST_PANDOC"]
+                .map { URL(fileURLWithPath: $0) }
+        )
         let embeddedImage = try Data(contentsOf: fixture("fixture.png"))
 
         for format in [InputFormat.docx, .odt] {
@@ -63,23 +69,31 @@ final class WordProcessingAdapterTests: XCTestCase {
                 let result = try DocumentConverter().convert(
                     ConversionRequest(
                         inputURL: sourceURL,
-                        destination: .directory(outputURL)
+                        destination: .directory(outputURL),
+                        options: ConversionOptions(pandocExecutable: pandoc)
                     )
                 )
                 let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
                 let directMarkdown = try convertDirectlyWithPandoc(
                     sourceURL,
                     format: format,
-                    name: "\(producer)-\(format.rawValue)-direct.md"
+                    name: "\(producer)-\(format.rawValue)-direct.md",
+                    pandoc: pandoc
                 )
 
                 XCTAssertEqual(result.format, format)
                 XCTAssertEqual(result.diagnostics, [])
                 XCTAssertEqual(
-                    normalizeImageReferences(in: markdown),
-                    normalizeImageReferences(in: directMarkdown),
+                    normalizeComparisonFormatting(in: markdown),
+                    normalizeComparisonFormatting(in: directMarkdown),
                     "\(producer) \(format.rawValue) differs from direct Pandoc output"
                 )
+                if producer == "pandoc", format == .docx {
+                    // Das Fixture setzt w:jc=right. Pandoc 3.11 verliert dies
+                    // beim direkten DOCX→GFM-Weg; der HTML-Zwischenschritt der
+                    // App muss die explizite Ausrichtung weiterhin erhalten.
+                    XCTAssertTrue(markdown.contains("|--------|------:|"), markdown)
+                }
                 XCTAssertTrue(markdown.contains("# Fixture heading ä"))
                 XCTAssertTrue(markdown.contains("**bold text**"))
                 XCTAssertTrue(markdown.contains("*italic text*"))
@@ -400,7 +414,8 @@ final class WordProcessingAdapterTests: XCTestCase {
     private func convertDirectlyWithPandoc(
         _ inputURL: URL,
         format: InputFormat,
-        name: String
+        name: String,
+        pandoc: URL? = nil
     ) throws -> String {
         let outputURL = temporaryDirectory.appendingPathComponent(name)
         var arguments = [
@@ -414,7 +429,7 @@ final class WordProcessingAdapterTests: XCTestCase {
         }
         arguments.append(contentsOf: ["--output", outputURL.path, inputURL.path])
         let result = try ProcessRunner.run(
-            executable: try PandocTool.resolve(nil),
+            executable: try PandocTool.resolve(pandoc),
             arguments: arguments,
             currentDirectory: temporaryDirectory
         )
@@ -422,6 +437,21 @@ final class WordProcessingAdapterTests: XCTestCase {
         return MarkdownNormalizer.normalize(
             try String(contentsOf: outputURL, encoding: .utf8)
         )
+    }
+
+    /// Nur für das feste Tabellenfixture: alle Zelltexte und übrigen Zeilen
+    /// bleiben erhalten. Pandocs unterschiedliche Tabellenpolsterung und
+    /// Ausrichtungsmarker gehören nicht zum unabhängigen Inhaltsvergleich.
+    private func normalizeComparisonFormatting(in markdown: String) -> String {
+        normalizeImageReferences(in: markdown).components(separatedBy: "\n").map { line in
+            guard line.hasPrefix("|"), line.hasSuffix("|") else { return line }
+            let cells = line.dropFirst().dropLast().components(separatedBy: "|")
+                .map { $0.trimmingCharacters(in: .whitespaces) }
+            let separator = cells.allSatisfy { cell in
+                cell.contains("-") && cell.allSatisfy { $0 == "-" || $0 == ":" }
+            }
+            return "|" + (separator ? cells.map { _ in "---" } : cells).joined(separator: "|") + "|"
+        }.joined(separator: "\n")
     }
 
     private func normalizeImageReferences(in markdown: String) -> String {

@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.10.1 — 2026-09-05
+
+- Verify DOCX/ODT content independently of Pandoc table padding and separately
+  require the explicit numeric-column alignment preserved by the app. The
+  conversion comparison covers Pandoc 3.9 and 3.11 without changing fixtures.
+- Version 0.10.0 was a tagged release candidate; 0.10.1 is the public release.
+
 ## 0.10.0 — 2026-09-05
 
 - Check the OLE directory for a WordDocument stream before invoking Apple's

@@ -42,7 +42,7 @@ struct WordProcessingPackageAdapter: DocumentConversionAdapter {
         }
 
         do {
-            guard let inspection = try ZIPArchiveInspector.inspectWordProcessingPackage(
+            guard let inspection = try WordProcessingPackageInspector.inspect(
                 at: inputURL
             ) else {
                 if let extensionFormat {
@@ -78,6 +78,7 @@ struct WordProcessingPackageAdapter: DocumentConversionAdapter {
         // Originalpfad könnte zwischen Prüfung und Pandoc-Lauf ausgetauscht
         // werden, sodass Pandoc andere als die geprüften Bytes bekäme.
         let stagedInputURL: URL
+        let reader: ZIPPackageReader
         let inspection: WordProcessingPackageInspection
         do {
             // Gestagt wird ueber `resolvedInputURL`, den EINMAL zentral
@@ -85,13 +86,14 @@ struct WordProcessingPackageAdapter: DocumentConversionAdapter {
             // Verweis nach der Erkennung, aber vor dem Staging umgehaengt
             // werden — der Adapter las dann ein anderes Dokument als das
             // gepruefte (Review-Fund 2026-08-25).
-            stagedInputURL = try ZIPArchiveInspector.stageVerifiedPackage(
+            reader = try ZIPArchiveInspector.openVerifiedPackage(
                 from: context.resolvedInputURL,
                 into: context.workDirectory,
                 named: "verified-source.\(context.format.rawValue)"
             )
-            guard let detected = try ZIPArchiveInspector.inspectWordProcessingPackage(
-                at: stagedInputURL
+            stagedInputURL = reader.url
+            guard let detected = try WordProcessingPackageInspector.inspect(
+                reader: reader
             ), detected.format == context.format else {
                 throw ConversionError.invalidInput(
                     context.inputURL,
@@ -172,7 +174,7 @@ struct WordProcessingPackageAdapter: DocumentConversionAdapter {
             assetRelativePaths: converted.assetRelativePaths,
             warnings: inspection.warnings,
             metadata: PackageMetadataParser.read(
-                fromPackageAt: stagedInputURL,
+                from: reader,
                 entryName: context.format == .odt ? "meta.xml" : "docProps/core.xml"
             )
         )

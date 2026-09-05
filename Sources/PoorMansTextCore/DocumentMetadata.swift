@@ -158,6 +158,11 @@ enum PackageMetadataParser {
         return parse(xml)
     }
 
+    static func read(from reader: ZIPPackageReader, entryName: String) -> DocumentMetadata {
+        guard let xml = try? reader.dataIfPresent(named: entryName) else { return DocumentMetadata() }
+        return parse(xml)
+    }
+
     static func parse(_ xml: Data) -> DocumentMetadata {
         let delegate = Delegate()
         let parser = XMLParser(data: xml)

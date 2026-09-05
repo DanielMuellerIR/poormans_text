@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Separate generic ZIP validation from Word/ODT package inspection. Native and
+  Pandoc adapters reuse a reader bound to their own fully verified working copy,
+  including its archive directory and entry index. Detection keeps a non-mapped
+  descriptor snapshot; foreign source files are never mapped.
+- Load and release XLSX worksheet XML and its parser one sheet at a time,
+  including an autorelease pool per sheet. On a 384,000-cell fixture the largest
+  measured resident set across three runs fell from 129,744,896 to 87,621,632
+  bytes; all output file hashes matched the baseline. Runtime and media-heavy
+  DOCX memory did not improve consistently; see `docs/PERFORMANCE.md`.
+- Move OLE sector and stream handling out of the BIFF workbook parser, split
+  CLI arguments, serialization and execution into separate files, and isolate
+  frontmatter/Textbundle postprocessing from conversion orchestration.
+- Add a reproducible macOS benchmark with generated XLSX, media-heavy DOCX and
+  200 CSV inputs, complete token/asset/source checks and optional baseline
+  output-hash comparison. Existing fixtures and result directories are retained.
+
 - Carry cancellation and progress through the app, CLI, and conversion adapters.
   The app keeps its active task and cancellation token; Cancel Conversion stops
   at cooperative checkpoints, retains completed batch results, and leaves

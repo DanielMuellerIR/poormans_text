@@ -34,13 +34,15 @@ enum OOXMLSpreadsheetKind: Equatable, Sendable {
 
 enum XLSXWorkbookParser {
     static func parse(packageAt url: URL) throws -> SpreadsheetWorkbook {
-        let metadata = try ZIPArchiveInspector.packageContents(
-            at: url,
+        try parse(reader: ZIPArchiveInspector.inspectionSnapshot(at: url))
+    }
+
+    static func parse(reader: any ZIPPackageReading) throws -> SpreadsheetWorkbook {
+        let metadata = try reader.contents(
             entryNames: [
                 "[Content_Types].xml",
                 "xl/workbook.xml",
                 "xl/_rels/workbook.xml.rels",
-                "xl/sharedStrings.xml",
             ]
         )
         guard let contentTypes = metadata.entries["[Content_Types].xml"],
@@ -104,12 +106,8 @@ enum XLSXWorkbookParser {
                 (path, worksheetRelationshipPath(for: path))
             }
         )
-        let worksheetPackage = try ZIPArchiveInspector.packageContents(
-            at: url,
-            entryNames: sheetPaths + Array(worksheetRelationshipPaths.values)
-        )
         let sharedStrings: [String]
-        if let xml = metadata.entries["xl/sharedStrings.xml"] {
+        if let xml = try reader.dataIfPresent(named: "xl/sharedStrings.xml") {
             sharedStrings = try SharedStringsParser.parse(xml)
         } else {
             sharedStrings = []
@@ -122,24 +120,28 @@ enum XLSXWorkbookParser {
         var hasHyperlinks = false
         for (definition, path) in zip(worksheetDefinitions, sheetPaths) {
             try ConversionExecution.report(unit: .sheet, completed: result.sheets.count, total: sheetPaths.count)
-            guard let xml = worksheetPackage.entries[path] else {
-                throw ParserError("the worksheet part is missing: \(path)")
+            // XML und Parser dieses Blattes enden hier; nur Zellwerte wandern
+            // ins Workbook. Foundation-Autoreleases werden pro Blatt freigegeben.
+            let parsed = try autoreleasepool {
+                guard let xml = try reader.dataIfPresent(named: path) else {
+                    throw ParserError("the worksheet part is missing: \(path)")
+                }
+                let hyperlinkTargets: [String: String]
+                if let relationshipsPath = worksheetRelationshipPaths[path],
+                   let relationshipsXML = try reader.dataIfPresent(named: relationshipsPath) {
+                    hyperlinkTargets = try WorksheetHyperlinkRelationshipParser.parse(relationshipsXML)
+                } else {
+                    hyperlinkTargets = [:]
+                }
+                return try WorksheetParser.parse(
+                    xml,
+                    sharedStrings: sharedStrings,
+                    maximumCells: Limits.maximumCells - expandedCellCount,
+                    maximumTextBytes: SpreadsheetLimits.maximumOutputBytes - materializedTextBytes,
+                    maximumHyperlinkScans: Limits.maximumCells - hyperlinkScannedCells,
+                    hyperlinkTargets: hyperlinkTargets
+                )
             }
-            let hyperlinkTargets: [String: String]
-            if let relationshipsPath = worksheetRelationshipPaths[path],
-               let relationshipsXML = worksheetPackage.entries[relationshipsPath] {
-                hyperlinkTargets = try WorksheetHyperlinkRelationshipParser.parse(relationshipsXML)
-            } else {
-                hyperlinkTargets = [:]
-            }
-            let parsed = try WorksheetParser.parse(
-                xml,
-                sharedStrings: sharedStrings,
-                maximumCells: Limits.maximumCells - expandedCellCount,
-                maximumTextBytes: SpreadsheetLimits.maximumOutputBytes - materializedTextBytes,
-                maximumHyperlinkScans: Limits.maximumCells - hyperlinkScannedCells,
-                hyperlinkTargets: hyperlinkTargets
-            )
             expandedCellCount += parsed.expandedCellCount
             materializedTextBytes += parsed.materializedTextBytes
             hyperlinkScannedCells += parsed.hyperlinkScannedCells
@@ -152,7 +154,7 @@ enum XLSXWorkbookParser {
         // `xl/threadedComments/…` ist der Ablageort moderner Excel-Kommentare;
         // ohne ihn blieben genau die still verworfen.
         result.hasUnsupportedObjects = hasSkippedSheets || hasHyperlinks
-            || metadata.entryNames.contains {
+            || reader.entryNames.contains {
                 $0.hasPrefix("xl/charts/")
                     || $0.hasPrefix("xl/drawings/")
                     || $0.hasPrefix("xl/media/")
@@ -172,8 +174,11 @@ enum XLSXWorkbookParser {
     /// Aufbau von XLSX, nur ihr Hauptinhaltstyp unterscheidet sie — wie bei
     /// DOCM und DOTX im Word-Adapter.
     static func spreadsheetKind(packageAt url: URL) throws -> OOXMLSpreadsheetKind? {
-        let metadata = try ZIPArchiveInspector.packageContents(
-            at: url,
+        try spreadsheetKind(reader: ZIPArchiveInspector.inspectionSnapshot(at: url))
+    }
+
+    static func spreadsheetKind(reader: any ZIPPackageReading) throws -> OOXMLSpreadsheetKind? {
+        let metadata = try reader.contents(
             entryNames: ["[Content_Types].xml", "xl/workbook.xml", "xl/_rels/workbook.xml.rels"]
         )
         guard let contentTypes = metadata.entries["[Content_Types].xml"],

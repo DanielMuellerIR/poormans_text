@@ -208,3 +208,12 @@ Dokuments dürfen nicht zurückbleiben. Prozessprüfungen haben eigene Fristen u
 beenden nur ihre aufgezeichneten Prozesse, falls die getestete Beendigung ausfällt.
 Die CLI-Signaltests verlangen Exit 130 für SIGINT und SIGTERM, die Timeoutprüfung
 Exit 124 und eine dennoch gelungene nachfolgende CSV-Eingabe.
+
+## Paket- und Speicherprüfung
+
+`ZIPPackageReaderTests` prüft die Bindung an die private Kopie nach Quell- und
+Symlink-Austausch, die Vollprüfung auch ungelesener Medieneinträge und das
+Aufräumen kurzlebiger Leser. Die vorhandenen ZIP-, XLS-, XLSX-, ODS- und
+ODM-Tests bleiben unveränderte Verhaltensprüfungen der Sicherheitsgrenzen.
+Für eine reproduzierbare Release-Messung mit vollständigem Inhaltsvergleich
+siehe [PERFORMANCE.md](PERFORMANCE.md) und `scripts/benchmark_packages.py`.

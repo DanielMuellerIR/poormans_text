@@ -51,7 +51,7 @@ in die Zwischenablage) sind umgesetzt; offen bleibt:
 
 - EML und `.emlx` (Apple Mail): Kopfzeilen als Tabelle oder Frontmatter, der
   HTML- oder Textkörper durch den Rewriter, Anhänge nach `attachments/`.
-- MSG (Outlook) über den OLE-Leser des XLS-Parsers.
+- MSG (Outlook) über den eigenständigen OLE-Containerleser.
 
 ### Etappe 7 — Qualität des PDF-Imports
 
@@ -86,11 +86,6 @@ und nutzt den normalen Import. Keynote fällt unter dieselbe Grenze.
 
 ## Nächste technische Produktarbeit (2026-09-05)
 
-- Vor Paketänderungen große XLSX-, medienreiche DOCX-Dateien und viele kleine
-  Eingaben auf Laufzeit und maximalen Speicherbedarf messen. Danach geprüfte
-  Paketkopien samt Verzeichnis wiederverwenden und XLSX-Blätter einzeln lesen.
-- ZIP-Prüfung von Word-/ODT-Inspektion, OLE-Container von BIFF, CLI-Argumente von
-  Ausgabe/Ausführung und Frontmatter/Textbundle vom Orchestrator trennen.
 - PDF-OCR automatisch/immer/aus und OCR-Sprachen in CLI und App anbieten.
   Gemischte Scan-/Textseiten, Spalten, optionale Kopf-/Fußzeilenbereinigung und
   vorsichtige Silbentrennungsbereinigung mit Vergleichsdokumenten prüfen.

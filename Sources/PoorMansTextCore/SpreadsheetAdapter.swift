@@ -159,6 +159,7 @@ struct SpreadsheetAdapter: DocumentConversionAdapter {
         let stagedInput: URL
         let workbook: SpreadsheetWorkbook
         var xlsxKind: OOXMLSpreadsheetKind?
+        var packageReader: ZIPPackageReader?
         do {
             if context.format == .xls {
                 stagedInput = context.workDirectory.appendingPathComponent("verified-source.xls")
@@ -186,14 +187,15 @@ struct SpreadsheetAdapter: DocumentConversionAdapter {
                     Data(contentsOf: stagedInput, options: [.mappedIfSafe])
                 )
             } else {
-                stagedInput = try ZIPArchiveInspector.stageVerifiedPackage(
+                let reader = try ZIPArchiveInspector.openVerifiedPackage(
                     from: context.resolvedInputURL,
                     into: context.workDirectory,
                     named: "verified-source.\(context.format.rawValue)"
                 )
+                stagedInput = reader.url
+                packageReader = reader
                 if context.format == .ods {
-                    let package = try ZIPArchiveInspector.packageContents(
-                        at: stagedInput,
+                    let package = try reader.contents(
                         entryNames: ["mimetype", "content.xml"]
                     )
                     guard let content = package.entries["content.xml"],
@@ -206,11 +208,11 @@ struct SpreadsheetAdapter: DocumentConversionAdapter {
                     }
                     workbook = try ODSWorkbookParser.parse(content)
                 } else {
-                    guard let kind = try XLSXWorkbookParser.spreadsheetKind(packageAt: stagedInput) else {
+                    guard let kind = try XLSXWorkbookParser.spreadsheetKind(reader: reader) else {
                         throw SpreadsheetError("the verified XLSX package changed after inspection")
                     }
                     xlsxKind = kind
-                    workbook = try XLSXWorkbookParser.parse(packageAt: stagedInput)
+                    workbook = try XLSXWorkbookParser.parse(reader: reader)
                 }
             }
         } catch let error as ConversionError {
@@ -247,9 +249,9 @@ struct SpreadsheetAdapter: DocumentConversionAdapter {
         let metadata: DocumentMetadata
         switch context.format {
         case .ods:
-            metadata = PackageMetadataParser.read(fromPackageAt: stagedInput, entryName: "meta.xml")
+            metadata = packageReader.map { PackageMetadataParser.read(from: $0, entryName: "meta.xml") } ?? DocumentMetadata()
         case .xlsx:
-            metadata = PackageMetadataParser.read(fromPackageAt: stagedInput, entryName: "docProps/core.xml")
+            metadata = packageReader.map { PackageMetadataParser.read(from: $0, entryName: "docProps/core.xml") } ?? DocumentMetadata()
         default:
             // Das BIFF-SummaryInformation-Stream von XLS wird nicht gelesen.
             metadata = DocumentMetadata()

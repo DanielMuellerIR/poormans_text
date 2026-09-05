@@ -264,3 +264,47 @@ CSV alle 4096 Zeichen, XML-Parser an Delegate-Aufrufen, XLS an Datensatz- und
 Sektorgrenzen. PDFKit/ImageIO und ein bereits laufender Vision-Aufruf kehren
 zunächst aus ihrem jeweiligen Systemaufruf zurück; davor und danach wird der
 Token geprüft. Entfernte Inhalte werden weiterhin nicht geladen.
+
+## Paketleser und Formatinspektion
+
+`ZIPArchiveInspector` prüft ausschließlich ZIP-Struktur, Pfadnamen, Eintragsarten,
+Größenbudgets und CRC-Prüfsummen. `WordProcessingPackageInspector` besitzt das
+Word-/ODT-Formatwissen und seine XML-Delegates. Beide Paketwege implementieren
+`ZIPPackageReading`: einen Eintrag lesen, vorhandene Namen abfragen oder gezielt
+mehrere Einträge lesen. Entpackte XML-Dateien werden nicht global gespeichert.
+
+Für die Erkennung liest `ZIPInspectionSnapshot` die fremde Quelle über einen
+geprüften Deskriptor in einen nichtgemappten Datensnapshot. Es gelten weiterhin
+Archivbudgets und die Größen-/CRC-Prüfung jedes tatsächlich gelesenen Eintrags.
+Eine vollständige Medienprüfung bei jedem Erkennungsversuch brachte im Benchmark
+keinen Vorteil und wurde nicht zur Voraussetzung der Formaterkennung gemacht.
+
+Für die Konvertierung erzeugt `openVerifiedPackage` zuerst selbst eine neue
+Arbeitskopie und prüft **alle** Einträge vollständig, auch nicht gelesene Medien.
+Nur dieser Pfad erzeugt einen `ZIPPackageReader` mit einer gemappten privaten
+Kopie. Er hält deren Verzeichnis und Namensindex bis zum Ende der Nutzung.
+Sein Initialisierer ist dateiprivat; kein anderer Adapter kann einen beliebigen
+Quellpfad als geprüfte Kopie ausgeben. Die Engine besitzt den Arbeitsordner und
+räumt ihn auf. DOCX/ODT, ODS/XLSX und ODM reichen denselben Reader an
+Formatprüfung, Parser und Metadatenleser weiter, statt die Paketdatei mehrfach
+vollständig einzulesen. Ein kurzer `withVerifiedReader`-Aufruf besitzt und entfernt
+seinen eigenen temporären Ordner.
+
+`XLSXWorkbookParser` hält das gemeinsame Zellmodell und die Shared-String-Werte,
+liest aber jeweils nur die XML-Datei eines Blattes und dessen Beziehungen.
+Ein `autoreleasepool` beendet pro Blatt zusätzlich die Lebensdauer der
+Foundation-Parserobjekte. Shared-String-XML wird nach seiner Auswertung ebenfalls
+freigegeben. Das Zellmodell bleibt absichtlich vollständig erhalten; die
+Speichermessung steht in [PERFORMANCE.md](PERFORMANCE.md).
+
+`OLECompoundDocument` kennt Header, Sektorketten, Mini-Streams und benannte Streams.
+`LegacyXLSWorkbookParser` interpretiert erst den gelieferten `Workbook`-/`Book`-
+Stream als BIFF und baut das Tabellenmodell. Gemeinsame begrenzte Little-Endian-
+Lesezugriffe liegen in `BinaryDataReading.swift`.
+
+Die CLI trennt `CLIArguments.swift` (Optionen und Validierung), `CLIOutput.swift`
+(JSON, Katalogdarstellung und Exit-Codes) und `CLIExecution.swift` (Dateiausführung,
+Batch-Ziele und Fortschritt). `main.swift` hält Einstieg und Signalregistrierung.
+`ConversionPostprocessor` führt Frontmatter und Textbundle ausschließlich im
+Staging-Bereich aus. `DocumentConverter` behält Pfadvalidierung, Abbruch und den
+atomaren Veröffentlichungsschritt. Der Markdown-Rewriter wurde nicht verändert.

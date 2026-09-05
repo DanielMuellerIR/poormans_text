@@ -75,15 +75,15 @@ struct OpenDocumentMasterAdapter: DocumentConversionAdapter {
         // Nur so reden Prüfung und Adapter über dasselbe Dokument
         // (Review-Fund 2026-08-20).
         let masterURL = context.resolvedInputURL
-        let stagedMaster: URL
+        let reader: ZIPPackageReader
         let items: [ODMContentItem]
         do {
-            stagedMaster = try ZIPArchiveInspector.stageVerifiedPackage(
+            reader = try ZIPArchiveInspector.openVerifiedPackage(
                 from: masterURL,
                 into: context.workDirectory,
                 named: "verified-source.odm"
             )
-            let package = try masterPackage(at: stagedMaster)
+            let package = try masterPackage(contents: reader.contents(entryNames: ["mimetype", "content.xml"]))
             guard package.isMaster else {
                 throw MasterError("the verified ODM package changed after inspection")
             }
@@ -176,7 +176,7 @@ struct OpenDocumentMasterAdapter: DocumentConversionAdapter {
             markdownRelativePath: markdownName,
             assetRelativePaths: assetRelativePaths,
             warnings: warnings,
-            metadata: PackageMetadataParser.read(fromPackageAt: stagedMaster, entryName: "meta.xml")
+            metadata: PackageMetadataParser.read(from: reader, entryName: "meta.xml")
         )
     }
 
@@ -185,6 +185,10 @@ struct OpenDocumentMasterAdapter: DocumentConversionAdapter {
             at: url,
             entryNames: ["mimetype", "content.xml"]
         )
+        return masterPackage(contents: package)
+    }
+
+    private func masterPackage(contents package: ZIPPackageContents) -> (isMaster: Bool, content: Data) {
         guard let content = package.entries["content.xml"] else {
             return (false, Data())
         }

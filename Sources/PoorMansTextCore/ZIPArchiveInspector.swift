@@ -1,138 +1,48 @@
 import Foundation
 import zlib
 
-enum WordProcessingPackageKind {
-    case document
-    case macroEnabledDocument
-    case template
-    case macroEnabledTemplate
-
-    var containsMacros: Bool {
-        self == .macroEnabledDocument || self == .macroEnabledTemplate
-    }
-
-    var isTemplate: Bool {
-        self == .template || self == .macroEnabledTemplate
-    }
-}
-
-struct WordProcessingPackageInspection {
-    let format: InputFormat
-    let packageKind: WordProcessingPackageKind?
-    let containsComments: Bool
-    let containsTrackedChanges: Bool
-    let unsafeImageReferences: [String]
-
-    var warnings: [ConversionWarning] {
-        var result = [ConversionWarning]()
-        if packageKind?.containsMacros == true {
-            result.append(.wordProcessingMacrosNotPreserved)
-        }
-        if packageKind?.isTemplate == true {
-            result.append(.wordProcessingTemplateSemanticsNotPreserved)
-        }
-        if containsComments {
-            result.append(.wordProcessingCommentsNotPreserved)
-        }
-        if containsTrackedChanges {
-            result.append(
-                format == .docx
-                    ? .wordProcessingChangesAccepted
-                    : .openDocumentChangesNotPreserved
-            )
-        }
-        return result
-    }
-}
-
 struct ZIPPackageContents {
     let entryNames: Set<String>
     let entries: [String: Data]
 }
 
-/// Liest nur das ZIP-Verzeichnis und wenige XML-Dateien. So wird ein Paket
-/// inhaltlich erkannt und auf Traversal, Symlinks und ZIP-Bomben geprüft, bevor
-/// Pandoc es in einem isolierten Arbeitsordner öffnet.
+/// Prüft ZIP-Struktur, Pfade, Größen und Prüfsummen ohne Formatwissen.
+/// Fremde Quellen werden über einen Deskriptor gelesen; nur selbst erzeugte
+/// Arbeitskopien dürfen per mmap im Speicher liegen.
 enum ZIPArchiveInspector {
     /// Stellt ausgewählte Paketdateien für andere native Adapter bereit. Schon
     /// das Öffnen des Archivs prüft Namen, Größenbudgets, Verschlüsselung,
     /// Kompressionsarten und Symlinks; die Konvertierung ruft diese Funktion auf
     /// einer zuvor vollständig verifizierten Arbeitskopie auf.
-    static func packageContents(
-        at inputURL: URL,
-        entryNames requestedNames: [String]
-    ) throws -> ZIPPackageContents {
-        let archive = try Archive(url: inputURL)
-        let names = Set(archive.entries.map(\.name))
-        var entries = [String: Data]()
-        // `entries[name] == nil` überspringt bereits entpackte Namen. Steht ein
-        // Name mehrfach in `requestedNames`, wurde derselbe Eintrag sonst
-        // mehrfach entpackt — bei 256 Blattverweisen auf dieselbe Datei war das
-        // ein billiger Weg, die Erkennung lange zu beschäftigen
-        // (Review-Fund 2026-08-20).
-        for name in requestedNames where names.contains(name) && entries[name] == nil {
-                try ConversionExecution.check()
-            entries[name] = try archive.data(named: name)
-        }
-        return ZIPPackageContents(entryNames: names, entries: entries)
+    static func packageContents(at inputURL: URL, entryNames: [String]) throws -> ZIPPackageContents {
+        try inspectionSnapshot(at: inputURL).contents(entryNames: entryNames)
     }
 
-    static func inspectWordProcessingPackage(
-        at inputURL: URL
-    ) throws -> WordProcessingPackageInspection? {
-        let archive = try Archive(url: inputURL)
-        let entryNames = Set(archive.entries.map(\.name))
+    /// Die Erkennung bleibt beim nichtgemappten Deskriptorsnapshot. Namen,
+    /// Archivbudgets und jeder gelesene Eintrag werden wie bisher geprüft;
+    /// die Vollprüfung aller Medien folgt erst vor der Konvertierung.
+    static func inspectionSnapshot(at inputURL: URL) throws -> some ZIPPackageReading {
+        ZIPInspectionSnapshot(archive: try Archive(url: inputURL))
+    }
 
-        if entryNames.contains("[Content_Types].xml"),
-           entryNames.contains("word/document.xml") {
-            let packageKind = try WordprocessingContentTypesParser.packageKind(
-                in: try archive.data(named: "[Content_Types].xml")
-            )
-            let document = try WordprocessingContentParser.inspect(
-                try archive.data(named: "word/document.xml")
-            )
-            guard document.hasDocumentRoot else {
-                throw ArchiveError("word/document.xml has no valid WordprocessingML document root")
-            }
-            let commentDefinitions = entryNames.contains("word/comments.xml")
-                ? try WordprocessingContentParser.inspect(
-                    try archive.data(named: "word/comments.xml")
-                ).containsCommentDefinitions
-                : false
-            let comments = document.containsCommentAnchors || commentDefinitions
-            let changes = document.containsTrackedChanges
-            let externalImages = try archive.entries
-                .filter { $0.name.hasSuffix(".rels") && !$0.isDirectory }
-                .flatMap { entry -> [String] in
-                    let xml = try archive.data(for: entry)
-                    return try ExternalImageRelationshipParser.targets(in: xml)
-                }
+    /// Der Reader darf nur aus einem selbst angelegten, vollständig geprüften
+    /// Snapshot entstehen. Der Aufrufer besitzt den privaten Arbeitsordner.
+    static func openVerifiedPackage(from inputURL: URL, into directory: URL, named name: String) throws -> ZIPPackageReader {
+        let stagedURL = try stageCopy(from: inputURL, into: directory, named: name)
+        let archive = try Archive(url: stagedURL, mapsPrivateCopy: true)
+        try archive.verifyEntryContents()
+        return ZIPPackageReader(url: stagedURL, archive: archive)
+    }
 
-            return WordProcessingPackageInspection(
-                format: .docx,
-                packageKind: packageKind,
-                containsComments: comments,
-                containsTrackedChanges: changes,
-                unsafeImageReferences: externalImages.sorted()
-            )
-        }
-
-        if entryNames.contains("mimetype"),
-           entryNames.contains("content.xml"),
-           try archive.string(named: "mimetype")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-            == "application/vnd.oasis.opendocument.text" {
-            let parsed = try ODTContentParser.inspect(try archive.data(named: "content.xml"))
-            return WordProcessingPackageInspection(
-                format: .odt,
-                packageKind: nil,
-                containsComments: parsed.containsAnnotations,
-                containsTrackedChanges: parsed.containsTrackedChanges,
-                unsafeImageReferences: parsed.externalImageReferences.sorted()
-            )
-        }
-
-        return nil
+    /// Kurzlebiger Reader für Erkennung und eigenständige Parseraufrufe.
+    /// Auch hier wird nie ein fremdes Original per mmap abgebildet.
+    static func withVerifiedReader<T>(at inputURL: URL, _ body: (ZIPPackageReader) throws -> T) throws -> T {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("PoorMansTextPackage-\(UUID())")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: false,
+            attributes: [.posixPermissions: 0o700])
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let reader = try openVerifiedPackage(from: inputURL, into: directory, named: "source.zip")
+        return try body(reader)
     }
 
     /// Kopiert das Paket unveränderlich in den privaten Arbeitsbereich und prüft
@@ -150,6 +60,10 @@ enum ZIPArchiveInspector {
         into directory: URL,
         named name: String
     ) throws -> URL {
+        try openVerifiedPackage(from: inputURL, into: directory, named: name).url
+    }
+
+    private static func stageCopy(from inputURL: URL, into directory: URL, named name: String) throws -> URL {
         // Öffnen, prüfen und begrenzt streamen in einem Zug — den Pfad erst zu
         // prüfen und danach zu kopieren ließ einen parallelen Austausch der
         // Quelle die Größengrenze umgehen (Review-Fund 2026-08-17).
@@ -169,12 +83,6 @@ enum ZIPArchiveInspector {
             throw ConversionError.fileSystemFailure(error.localizedDescription)
         }
 
-        // Nur HIER darf abgebildet werden: Die Kopie ist gerade selbst in den
-        // privaten Arbeitsordner geschrieben worden und wird von niemandem sonst
-        // gekürzt. Genau an dieser Stelle spart die Abbildung am meisten, weil
-        // `verifyEntryContents` jeden Eintrag durchläuft.
-        let archive = try Archive(url: stagedURL, mapsPrivateCopy: true)
-        try archive.verifyEntryContents()
         return stagedURL
     }
 
@@ -207,9 +115,10 @@ enum ZIPArchiveInspector {
         }
     }
 
-    private struct Archive {
+    fileprivate struct Archive {
         let data: Data
         let entries: [Entry]
+        private let entriesByName: [String: Entry]
 
         /// - Parameter mapsPrivateCopy: nur `true` für eine Datei, die dieser
         ///   Prozess gerade selbst in seinen Arbeitsordner geschrieben hat.
@@ -396,6 +305,7 @@ enum ZIPArchiveInspector {
                 throw ArchiveError("the ZIP central directory size is inconsistent")
             }
             entries = parsedEntries
+            entriesByName = Dictionary(uniqueKeysWithValues: parsedEntries.map { ($0.name, $0) })
         }
 
         func string(named name: String) throws -> String {
@@ -403,7 +313,7 @@ enum ZIPArchiveInspector {
         }
 
         func data(named name: String) throws -> Data {
-            guard let entry = entries.first(where: { $0.name == name }) else {
+            guard let entry = entriesByName[name] else {
                 throw ArchiveError("the document package is missing \(name)")
             }
             return try data(for: entry)
@@ -721,7 +631,7 @@ enum ZIPArchiveInspector {
         let rawDecoded: String
     }
 
-    private struct Entry {
+    fileprivate struct Entry {
         let name: String
         let rawName: Data
         let flags: UInt16
@@ -979,317 +889,53 @@ enum ZIPArchiveInspector {
     }
 }
 
-/// Startet einen XML-Lauf mit Namensraumverarbeitung.
-///
-/// Ohne sie liefert `XMLParser` den Elementnamen samt Präfix (`r:Relationship`),
-/// und ein Paket mit einem anderen — aber völlig gültigen — Präfix rutscht an
-/// jeder Namensprüfung vorbei. Mit ihr ist `elementName` der lokale Name.
-///
-/// Attributnamen behalten ihr Präfix auch dann. Damit ein Delegate es auflösen
-/// kann, meldet `shouldReportNamespacePrefixes` zusätzlich jede
-/// Präfix-Deklaration; ohne dieses Flag ruft `XMLParser` die zugehörigen
-/// Delegate-Methoden gar nicht erst auf. In die Attributliste geraten die
-/// `xmlns`-Deklarationen dadurch nicht.
-private func parseXML(_ xml: Data, with delegate: XMLParserDelegate) throws {
-    let parser = XMLParser(data: xml)
-    parser.delegate = delegate
-    parser.shouldProcessNamespaces = true
-    parser.shouldReportNamespacePrefixes = true
-    parser.shouldResolveExternalEntities = false
-    let parsedSuccessfully = parser.parse()
-    try ConversionExecution.check()
-    guard parsedSuccessfully else {
-        throw parser.parserError ?? CocoaError(.fileReadCorruptFile)
+
+/// Gemeinsame Leseoberfläche; ein Inspektionssnapshot ist keine Berechtigung,
+/// ihn an ein externes Konvertierungswerkzeug weiterzugeben.
+protocol ZIPPackageReading {
+    var entryNames: Set<String> { get }
+    func data(named name: String) throws -> Data
+}
+
+extension ZIPPackageReading {
+    func dataIfPresent(named name: String) throws -> Data? {
+        try entryNames.contains(name) ? data(named: name) : nil
+    }
+    func string(named name: String) throws -> String {
+        String(decoding: try data(named: name), as: UTF8.self)
+    }
+    func contents(entryNames names: [String]) throws -> ZIPPackageContents {
+        var entries: [String: Data] = [:]
+        for name in names where entryNames.contains(name) && entries[name] == nil {
+            entries[name] = try data(named: name)
+        }
+        return ZIPPackageContents(entryNames: entryNames, entries: entries)
     }
 }
 
-/// Der Wert eines laut OPC unpräfigierten Attributs.
-///
-/// Der XML-Standard legt unpräfigierte Attribute in keinen Namensraum. Deshalb
-/// darf ein fremdes `foo:PartName` oder `foo:Target` nicht allein wegen seines
-/// gleichen Suffixes als OPC-Attribut gelten.
-private func attributeValue(
-    localName: String,
-    in attributes: [String: String]
-) -> String? {
-    attributes[localName]
+/// Liest bedarfsgerecht aus einer vollständig geprüften Arbeitskopie. Entpackte
+/// Einträge werden nicht gesammelt: Der Aufrufer bestimmt die XML-Lebensdauer.
+final class ZIPPackageReader: ZIPPackageReading {
+    let url: URL
+    let entryNames: Set<String>
+    private let archive: ZIPArchiveInspector.Archive
+
+    fileprivate init(url: URL, archive: ZIPArchiveInspector.Archive) {
+        self.url = url
+        self.archive = archive
+        entryNames = Set(archive.entries.map(\.name))
+    }
+    func data(named name: String) throws -> Data { try archive.data(named: name) }
 }
 
-/// Die Namensräume, deren Elemente die Paketprüfung auswerten darf.
-private enum InspectedNamespaces {
-    static let office = "urn:oasis:names:tc:opendocument:xmlns:office:1.0"
-    static let text = "urn:oasis:names:tc:opendocument:xmlns:text:1.0"
-    static let drawing = "urn:oasis:names:tc:opendocument:xmlns:drawing:1.0"
-    static let xlink = "http://www.w3.org/1999/xlink"
-    static let wordprocessing: Set<String> = [
-        "http://schemas.openxmlformats.org/wordprocessingml/2006/main",
-        "http://purl.oclc.org/ooxml/wordprocessingml/main",
-    ]
-}
-
-private enum ExternalImageRelationshipParser {
-    static func targets(in xml: Data) throws -> [String] {
-        let delegate = RelationshipDelegate()
-        try parseXML(xml, with: delegate)
-        return delegate.targets
+private struct ZIPInspectionSnapshot: ZIPPackageReading {
+    let entryNames: Set<String>
+    private let archive: ZIPArchiveInspector.Archive
+    init(archive: ZIPArchiveInspector.Archive) {
+        self.archive = archive
+        entryNames = Set(archive.entries.map(\.name))
     }
-
-    private final class RelationshipDelegate: NSObject, XMLParserDelegate {
-        var targets = [String]()
-
-        func parser(
-            _ parser: XMLParser,
-            didStartElement elementName: String,
-            namespaceURI: String?,
-            qualifiedName qName: String?,
-            attributes attributeDict: [String: String] = [:]
-        ) {
-            if ConversionExecution.isCancelled { parser.abortParsing(); return }
-            guard elementName == "Relationship",
-                  attributeValue(localName: "TargetMode", in: attributeDict)?.lowercased()
-                    == "external",
-                  attributeValue(localName: "Type", in: attributeDict)?
-                    .lowercased().hasSuffix("/image") == true,
-                  let target = attributeValue(localName: "Target", in: attributeDict) else {
-                return
-            }
-            targets.append(target)
-        }
-    }
-}
-
-/// Liest den Typ des Word-Hauptteils aus dem dafür verbindlichen
-/// `[Content_Types].xml`. So werden DOCM und DOTX nicht still wie ein normales
-/// DOCX behandelt, und ein beliebiges ZIP mit `word/document.xml` reicht nicht
-/// mehr als Formaterkennung aus.
-private enum WordprocessingContentTypesParser {
-    static func packageKind(in xml: Data) throws -> WordProcessingPackageKind {
-        let delegate = ContentTypesDelegate()
-        try parseXML(xml, with: delegate)
-        guard delegate.hasValidRoot else {
-            throw ContentTypeError("[Content_Types].xml has no valid Types root")
-        }
-        guard delegate.mainContentTypes.count == 1,
-              let contentType = delegate.mainContentTypes.first else {
-            throw ContentTypeError(
-                "[Content_Types].xml must declare exactly one content type for word/document.xml"
-            )
-        }
-
-        return switch contentType.lowercased() {
-        case "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml":
-            .document
-        case "application/vnd.ms-word.document.macroenabled.main+xml":
-            .macroEnabledDocument
-        case "application/vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml":
-            .template
-        case "application/vnd.ms-word.template.macroenabledtemplate.main+xml":
-            .macroEnabledTemplate
-        default:
-            throw ContentTypeError(
-                "word/document.xml has an unsupported main content type: \(contentType)"
-            )
-        }
-    }
-
-    private final class ContentTypesDelegate: NSObject, XMLParserDelegate {
-        var hasValidRoot = false
-        var mainContentTypes = Set<String>()
-        private var sawRoot = false
-
-        func parser(
-            _ parser: XMLParser,
-            didStartElement elementName: String,
-            namespaceURI: String?,
-            qualifiedName qName: String?,
-            attributes attributeDict: [String: String] = [:]
-        ) {
-            if ConversionExecution.isCancelled { parser.abortParsing(); return }
-            if !sawRoot {
-                sawRoot = true
-                hasValidRoot = elementName == "Types"
-                    && namespaceURI == "http://schemas.openxmlformats.org/package/2006/content-types"
-            }
-            guard namespaceURI == "http://schemas.openxmlformats.org/package/2006/content-types",
-                  elementName == "Override",
-                  let partName = attributeValue(localName: "PartName", in: attributeDict),
-                  "/" + partName.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-                    == "/word/document.xml",
-                  let contentType = attributeValue(
-                    localName: "ContentType",
-                    in: attributeDict
-                  ) else {
-                return
-            }
-            mainContentTypes.insert(contentType)
-        }
-    }
-
-    private struct ContentTypeError: LocalizedError {
-        let reason: String
-
-        init(_ reason: String) {
-            self.reason = reason
-        }
-
-        var errorDescription: String? { reason }
-    }
-}
-
-private struct WordprocessingContentInspection {
-    let rootElementName: String?
-    let rootNamespaceURI: String?
-    let containsCommentAnchors: Bool
-    let containsCommentDefinitions: Bool
-    let containsTrackedChanges: Bool
-
-    var hasDocumentRoot: Bool {
-        guard rootElementName == "document", let rootNamespaceURI else {
-            return false
-        }
-        return InspectedNamespaces.wordprocessing.contains(rootNamespaceURI)
-    }
-}
-
-/// Zählt WordprocessingML-Elemente über ihren exakten lokalen Namen und ihren
-/// Namensraum.
-///
-/// Eine Teilstringsuche nach `<w:ins` trifft auch den ganz gewöhnlichen
-/// Feldcode `<w:instrText>`; ein Dokument mit Inhaltsverzeichnis oder Seitenzahl
-/// bekäme dann die falsche Warnung, nachverfolgte Änderungen seien angenommen
-/// worden. Und ein `ins`-Element aus einem fremden Namensraum — etwa aus
-/// eingebettetem HTML — ist überhaupt keine nachverfolgte Änderung.
-private enum WordprocessingContentParser {
-    static func inspect(_ xml: Data) throws -> WordprocessingContentInspection {
-        let delegate = ContentDelegate()
-        try parseXML(xml, with: delegate)
-        return WordprocessingContentInspection(
-            rootElementName: delegate.rootElementName,
-            rootNamespaceURI: delegate.rootNamespaceURI,
-            containsCommentAnchors: delegate.containsCommentAnchors,
-            containsCommentDefinitions: delegate.containsCommentDefinitions,
-            containsTrackedChanges: delegate.containsTrackedChanges
-        )
-    }
-
-    private final class ContentDelegate: NSObject, XMLParserDelegate {
-        var containsCommentAnchors = false
-        var containsCommentDefinitions = false
-        var containsTrackedChanges = false
-        var rootElementName: String?
-        var rootNamespaceURI: String?
-
-        func parser(
-            _ parser: XMLParser,
-            didStartElement elementName: String,
-            namespaceURI: String?,
-            qualifiedName qName: String?,
-            attributes attributeDict: [String: String] = [:]
-        ) {
-            if ConversionExecution.isCancelled { parser.abortParsing(); return }
-            if rootElementName == nil {
-                rootElementName = elementName
-                rootNamespaceURI = namespaceURI
-            }
-            guard let namespaceURI,
-                  InspectedNamespaces.wordprocessing.contains(namespaceURI) else {
-                return
-            }
-            switch elementName {
-            case "commentRangeStart":
-                containsCommentAnchors = true
-            case "comment":
-                containsCommentDefinitions = true
-            case "ins", "del", "moveFrom", "moveTo":
-                containsTrackedChanges = true
-            default:
-                break
-            }
-        }
-    }
-}
-
-private struct ODTContentInspection {
-    let containsAnnotations: Bool
-    let containsTrackedChanges: Bool
-    let externalImageReferences: [String]
-}
-
-private enum ODTContentParser {
-    static func inspect(_ xml: Data) throws -> ODTContentInspection {
-        let delegate = ContentDelegate()
-        try parseXML(xml, with: delegate)
-        return ODTContentInspection(
-            containsAnnotations: delegate.containsAnnotations,
-            containsTrackedChanges: delegate.containsTrackedChanges,
-            externalImageReferences: delegate.externalImages
-        )
-    }
-
-    private final class ContentDelegate: NSObject, XMLParserDelegate {
-        var containsAnnotations = false
-        var containsTrackedChanges = false
-        var externalImages = [String]()
-        private let prefixes = NamespacePrefixTracker()
-
-        func parser(
-            _ parser: XMLParser,
-            didStartMappingPrefix prefix: String,
-            toURI namespaceURI: String
-        ) {
-            if ConversionExecution.isCancelled { parser.abortParsing(); return }
-            prefixes.startMapping(prefix: prefix, uri: namespaceURI)
-        }
-
-        func parser(_ parser: XMLParser, didEndMappingPrefix prefix: String) {
-            if ConversionExecution.isCancelled { parser.abortParsing(); return }
-            prefixes.endMapping(prefix: prefix)
-        }
-
-        func parser(
-            _ parser: XMLParser,
-            didStartElement elementName: String,
-            namespaceURI: String?,
-            qualifiedName qName: String?,
-            attributes attributeDict: [String: String] = [:]
-        ) {
-            if ConversionExecution.isCancelled { parser.abortParsing(); return }
-            // Jedes Element zählt nur in seinem ODF-Namensraum. Ein fremdes
-            // `foo:image` oder `foo:annotation` ist kein ODF-Bild und keine
-            // ODF-Notiz und darf deshalb keine Warnung oder Ablehnung auslösen.
-            guard let namespaceURI else { return }
-            switch (namespaceURI, elementName) {
-            case (InspectedNamespaces.office, "annotation"):
-                containsAnnotations = true
-            case (InspectedNamespaces.text, "tracked-changes"):
-                containsTrackedChanges = true
-            case (InspectedNamespaces.drawing, "image"):
-                guard let reference = prefixes.attributeValue(
-                    localName: "href",
-                    namespaceURI: InspectedNamespaces.xlink,
-                    in: attributeDict
-                ), isUnsafe(reference) else {
-                    return
-                }
-                externalImages.append(reference)
-            default:
-                break
-            }
-        }
-
-        private func isUnsafe(_ reference: String) -> Bool {
-            guard !reference.isEmpty else {
-                return true
-            }
-            if let url = URL(string: reference), url.scheme != nil {
-                return true
-            }
-            let components = NSString(string: reference).pathComponents
-            return reference.hasPrefix("/")
-                || reference.contains("\\")
-                || components.contains("..")
-        }
-    }
+    func data(named name: String) throws -> Data { try archive.data(named: name) }
 }
 
 private extension Data {

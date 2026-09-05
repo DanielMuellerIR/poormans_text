@@ -44,7 +44,7 @@ final class ZIPArchiveVerificationTests: XCTestCase {
         try Data("not a ZIP any more".utf8).write(to: sourceURL)
 
         XCTAssertEqual(try Data(contentsOf: stagedURL), archive)
-        let inspection = try ZIPArchiveInspector.inspectWordProcessingPackage(at: stagedURL)
+        let inspection = try WordProcessingPackageInspector.inspect(at: stagedURL)
         XCTAssertEqual(inspection?.format, .docx)
     }
 

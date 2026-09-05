@@ -11,6 +11,62 @@
         <dict>
             <key>CFBundleTypeExtensions</key>
             <array>
+                <string>pptx</string>
+            </array>
+            <key>CFBundleTypeName</key>
+            <string>PowerPoint Presentation</string>
+            <key>CFBundleTypeRole</key>
+            <string>Viewer</string>
+            <key>LSHandlerRank</key>
+            <string>Alternate</string>
+            <key>LSItemContentTypes</key>
+            <array><string>org.openxmlformats.presentationml.presentation</string></array>
+        </dict>
+        <dict>
+            <key>CFBundleTypeExtensions</key><array><string>pptm</string></array>
+            <key>CFBundleTypeName</key><string>PowerPoint PPTM</string>
+            <key>CFBundleTypeRole</key><string>Viewer</string>
+            <key>LSHandlerRank</key><string>Alternate</string>
+            <key>LSItemContentTypes</key><array><string>org.openxmlformats.presentationml.presentation.macroenabled</string></array>
+        </dict>
+        <dict>
+            <key>CFBundleTypeExtensions</key><array><string>potx</string></array>
+            <key>CFBundleTypeName</key><string>PowerPoint POTX</string>
+            <key>CFBundleTypeRole</key><string>Viewer</string>
+            <key>LSHandlerRank</key><string>Alternate</string>
+            <key>LSItemContentTypes</key><array><string>org.openxmlformats.presentationml.template</string></array>
+        </dict>
+        <dict>
+            <key>CFBundleTypeExtensions</key>
+            <array>
+                <string>odp</string>
+            </array>
+            <key>CFBundleTypeName</key>
+            <string>OpenDocument Presentation</string>
+            <key>CFBundleTypeRole</key>
+            <string>Viewer</string>
+            <key>LSHandlerRank</key>
+            <string>Alternate</string>
+            <key>LSItemContentTypes</key>
+            <array><string>org.oasis-open.opendocument.presentation</string></array>
+        </dict>
+        <dict>
+            <key>CFBundleTypeExtensions</key>
+            <array>
+                <string>ipynb</string>
+            </array>
+            <key>CFBundleTypeName</key>
+            <string>Jupyter Notebook</string>
+            <key>CFBundleTypeRole</key>
+            <string>Viewer</string>
+            <key>LSHandlerRank</key>
+            <string>Alternate</string>
+            <key>LSItemContentTypes</key>
+            <array><string>org.jupyter.ipynb</string></array>
+        </dict>
+        <dict>
+            <key>CFBundleTypeExtensions</key>
+            <array>
                 <string>rtf</string>
             </array>
             <key>CFBundleTypeName</key>
@@ -349,6 +405,11 @@
                 <string>com.microsoft.excel.sheet.macroenabled</string>
                 <string>com.microsoft.excel.template</string>
                 <string>com.microsoft.word.doc</string>
+                <string>org.openxmlformats.presentationml.presentation</string>
+                <string>org.openxmlformats.presentationml.presentation.macroenabled</string>
+                <string>org.openxmlformats.presentationml.template</string>
+                <string>org.oasis-open.opendocument.presentation</string>
+                <string>org.jupyter.ipynb</string>
                 <string>org.oasis-open.opendocument.spreadsheet</string>
                 <string>org.oasis-open.opendocument.text</string>
                 <string>org.openxmlformats.wordprocessingml.document</string>
@@ -379,6 +440,16 @@
                 <string>com.apple.flat-rtfd</string>
                 <string>public.rtf</string>
             </array>
+        </dict>
+    </array>
+    <key>UTImportedTypeDeclarations</key>
+    <array>
+        <dict>
+            <key>UTTypeIdentifier</key><string>org.jupyter.ipynb</string>
+            <key>UTTypeDescription</key><string>Jupyter Notebook</string>
+            <key>UTTypeConformsTo</key><array><string>public.json</string></array>
+            <key>UTTypeTagSpecification</key>
+            <dict><key>public.filename-extension</key><array><string>ipynb</string></array></dict>
         </dict>
     </array>
     <key>NSHighResolutionCapable</key>

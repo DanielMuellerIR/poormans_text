@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Import PPTX/PPTM/POTX and ODP natively through a shared slide model: source
+  slide order, paragraphs and nested lists, GFM tables, speaker notes and image
+  assets. Reuse verified ZIP working copies and package metadata readers; report
+  macros, unsupported objects, flattened structures and missing/oversized media.
+- Import version-4 IPYNB without executing code. Preserve Markdown, language-tagged
+  code fences, text/error outputs and image attachments; report unsupported MIME
+  outputs and unsafe or unavailable resource references. Existing Markdown code
+  containers remain literal when attachment targets are rewritten.
+- Add slide/cell progress, bounded XML and expanded-text/table budgets, app and
+  Services file associations, and regression fixtures for content order, image
+  bytes, GFM structure, cancellation, CRC failures and non-execution.
+
 - Add remembered PDF OCR auto/always/off, shared local PDF/image OCR languages,
   automatic two-column text order, optional repeated margin removal and
   conservative dehyphenation in the app and CLI. Mixed digital/scan pages retain

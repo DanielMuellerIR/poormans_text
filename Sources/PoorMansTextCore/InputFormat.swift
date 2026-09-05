@@ -21,6 +21,9 @@ public struct InputFormat: RawRepresentable, Codable, Hashable, Sendable {
     public static let xlsx = InputFormat(rawValue: "xlsx")
     public static let xls = InputFormat(rawValue: "xls")
     public static let odm = InputFormat(rawValue: "odm")
+    public static let pptx = InputFormat(rawValue: "pptx")
+    public static let odp = InputFormat(rawValue: "odp")
+    public static let ipynb = InputFormat(rawValue: "ipynb")
     public static let pdf = InputFormat(rawValue: "pdf")
     public static let image = InputFormat(rawValue: "image")
     /// CSV und TSV; ein Format, weil beide dieselbe Ein-Blatt-Mappe ergeben.

@@ -29,7 +29,7 @@ let usage = """
 Usage: poormans-text [options] INPUT [INPUT ...]
        poormans-text --formats [--json] [--pandoc PATH]
 
-Convert supported documents, spreadsheets, PDFs, or images into new folders containing Markdown.
+Convert documents, spreadsheets, presentations, notebooks, PDFs, or images into new Markdown folders.
 
 Options:
   -o, --output DIRECTORY  Set the new output directory.
@@ -46,7 +46,7 @@ Options:
       --frontmatter       Start the Markdown with a YAML header (title, author, dates) from the source.
       --textbundle        Write INPUT.textbundle (text.md, assets/, info.json) instead of INPUT-markdown.
       --stdout            Print the Markdown to standard output instead of writing a folder.
-      --progress          Report phases and known page/sheet progress on stderr.
+      --progress          Report phases and known page/sheet/slide/cell progress on stderr.
       --timeout SECONDS   Limit each external tool process (positive seconds).
       --json              Write a machine-readable result to stdout.
   -h, --help              Show this help text.

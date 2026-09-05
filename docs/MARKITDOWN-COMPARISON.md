@@ -1,5 +1,13 @@
 # Vergleichsanalyse: Poor Man's Text vs. Microsoft MarkItDown
 
+Statusnachtrag 2026-09-05: PPTX/PPTM/POTX, ODP und IPYNB sind inzwischen
+implementiert und getestet; siehe [Präsentationsimport](PRESENTATION-IMPORT.md)
+und [Notebook-Import](NOTEBOOK-IMPORT.md). Die folgenden Vorschläge beschreiben
+den damaligen Analysestand. Performance-Aussagen dieser statischen Analyse
+sind keine Messwerte; tatsächliche Paketmessungen stehen in
+[PERFORMANCE.md](PERFORMANCE.md).
+
+
 Diese Analyse stellt das Architekturdesign, die Funktionsweise, die Stärken und Schwächen von **[Microsoft MarkItDown](https://github.com/microsoft/markitdown)** und **Poor Man's Text** detailliert gegenüber und leitet daraus konkrete Vorschläge für die Weiterentwicklung ab.
 
 ---

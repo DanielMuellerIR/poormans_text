@@ -12,7 +12,8 @@
 
 Poor Man's Text wandelt RTF, RTFD, DOCX (einschließlich DOCM und DOTX/DOTM), ODT,
 alte Word-Dateien (`.doc`), ODS, XLSX (einschließlich XLSM und XLTX/XLTM), XLS,
-CSV und TSV, OpenDocument-Masterdokumente (`.odm`), PDFs, HTML und
+CSV und TSV, PPTX/PPTM/POTX- und ODP-Präsentationen, IPYNB-Notebooks,
+OpenDocument-Masterdokumente (`.odm`), PDFs, HTML und
 Safari-Webarchive, EPUB, LaTeX, DocBook, Org, MediaWiki, Textile,
 reStructuredText, FictionBook sowie PNG-, JPEG-, HEIC-, TIFF-, GIF-, BMP- und
 WebP-Bilder in Ordner mit Markdown und gegebenenfalls separat gespeicherten
@@ -199,6 +200,9 @@ xls         .xls                                              file              
 odm         .odm                                              file     pandoc           available
 image       .png .jpg .jpeg .heic .tif .tiff .gif .bmp .webp  file                      available
 pdf         .pdf                                              file                      available
+pptx        .pptx .pptm .potx                                 file                      available
+odp         .odp                                              file                      available
+ipynb       .ipynb                                            file                      available
 csv         .csv .tsv                                         file                      available
 html        .html .htm .xhtml                                 file     pandoc           available
 webarchive  .webarchive                                       file     pandoc           available
@@ -489,3 +493,13 @@ wählt zweispaltige Textordnung oder die bisherige Extraktion zum Vergleich.
 `--pdf-dehyphenate` verbindet auf Wunsch vorsichtig kleingeschriebene Wortteile.
 Die App merkt sich diese Einstellungen. Digitaler Quelltext bleibt erhalten,
 wenn OCR Text ergänzt. Heuristiken und Grenzen: [PDF-Import](docs/PDF-IMPORT.md).
+
+### Präsentationen und Notebooks
+
+PPTX/PPTM/POTX, ODP und IPYNB werden nativ ohne Pandoc gelesen. Folien behalten
+Quellreihenfolge, Text, verschachtelte Listen, Tabellen, Notizen und unterstützte
+Bild-Assets. Notebooks behalten Markdown, sprachmarkierten Code, Textausgaben und
+eingebettete Bilder; Notebook-Code wird niemals ausgeführt. Nicht darstellbare
+Objekte/Ausgaben und nicht verfügbare Assets werden diagnostiziert.
+Details und Grenzen: [Präsentationen](docs/PRESENTATION-IMPORT.md),
+[Notebooks](docs/NOTEBOOK-IMPORT.md).

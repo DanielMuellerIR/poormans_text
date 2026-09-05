@@ -12,7 +12,7 @@
 
 Poor Man's Text converts RTF, RTFD, DOCX (including DOCM and DOTX/DOTM), ODT,
 legacy Word (`.doc`), ODS, XLSX (including XLSM and XLTX/XLTM), XLS, CSV and
-TSV, OpenDocument master (`.odm`), PDF, HTML and Safari web archives, EPUB,
+TSV, PPTX/PPTM/POTX and ODP presentations, IPYNB notebooks, OpenDocument master (`.odm`), PDF, HTML and Safari web archives, EPUB,
 LaTeX, DocBook, Org, MediaWiki, Textile, reStructuredText, FictionBook, and
 PNG, JPEG, HEIC, TIFF, GIF, BMP, or WebP images into folders containing
 Markdown and any separately stored image assets.
@@ -190,6 +190,9 @@ xls         .xls                                              file              
 odm         .odm                                              file     pandoc           available
 image       .png .jpg .jpeg .heic .tif .tiff .gif .bmp .webp  file                      available
 pdf         .pdf                                              file                      available
+pptx        .pptx .pptm .potx                                 file                      available
+odp         .odp                                              file                      available
+ipynb       .ipynb                                            file                      available
 csv         .csv .tsv                                         file                      available
 html        .html .htm .xhtml                                 file     pandoc           available
 webarchive  .webarchive                                       file     pandoc           available
@@ -469,3 +472,13 @@ selects two-column ordering or the previous extraction for comparison.
 `--pdf-dehyphenate` optionally joins conservative lowercase word breaks.
 The app remembers these settings. Original embedded text remains present when
 OCR adds text. Heuristics and limits: [PDF import](docs/PDF-IMPORT.md).
+
+### Presentations and notebooks
+
+PPTX/PPTM/POTX, ODP and IPYNB are native inputs and do not require Pandoc.
+Slides retain source order, text, nested lists, tables, notes and supported
+image assets. Notebook imports preserve Markdown, language-tagged code, text
+outputs and embedded images; notebook code is never executed.
+Unsupported objects or output representations and unavailable assets are
+reported. Details and budgets: [presentations](docs/PRESENTATION-IMPORT.md),
+[notebooks](docs/NOTEBOOK-IMPORT.md).

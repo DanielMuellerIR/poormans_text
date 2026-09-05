@@ -115,3 +115,6 @@
 "Remove repeated PDF headers and footers" = "Remove repeated PDF headers and footers";
 "Join conservative PDF word breaks" = "Join conservative PDF word breaks";
 "Invalid OCR language selection: %@" = "Invalid OCR language selection: %@";
+
+"slide" = "Slide";
+"cell" = "Cell";

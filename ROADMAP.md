@@ -6,20 +6,21 @@ Erledigte Punkte werden beim Release aus dieser Datei entfernt und in
 
 Die formatneutrale Engine, sichere Inhaltserkennung und wählbare dauerhafte oder
 temporäre Veröffentlichung sind vorhanden. RTF, RTFD, DOCX/DOCM/DOTX/DOTM,
-ODT, DOC, ODS, XLSX/XLSM/XLTX/XLTM, XLS, CSV/TSV, ODM, PDF, HTML, Webarchive,
+ODT, DOC, ODS, XLSX/XLSM/XLTX/XLTM, XLS, CSV/TSV, ODM, PDF, PPTX/PPTM/POTX,
+ODP, IPYNB, HTML, Webarchive,
 EPUB, LaTeX, DocBook, Org, MediaWiki, Textile, reStructuredText, FictionBook
 sowie PNG, JPEG, HEIC, TIFF, GIF, BMP und WebP sind implementiert. Ihre Importwege stehen in
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-## Etappenplan (Stand 2026-09-02)
+## Etappenplan (Stand 2026-09-05)
 
 Die Etappen sind nach Nutzen je Aufwand sortiert und bauen aufeinander auf.
 Jede Etappe ist für sich releasefähig. Ein neuer Adapter meldet sich weiterhin
 nur über `supportedFormatDescriptors`; der Orchestrator bleibt unverändert.
 Was [docs/MARKITDOWN-COMPARISON.md](docs/MARKITDOWN-COMPARISON.md) vorschlägt,
 ist hier eingeordnet. Die Etappen 1 (mehrere Eingaben und Ordner), 2 (Dienste,
-bis auf App Intents), 3 (`--stdout`, `--frontmatter`, `--textbundle`) und 4
-(kleine Formatgewinne) sind umgesetzt und stehen bis zum nächsten Release im Changelog unter „Unreleased“.
+bis auf App Intents), 3 (`--stdout`, `--frontmatter`, `--textbundle`) sowie 4
+(kleine Formatgewinne) und 5 (Präsentationen und Notebooks) sind umgesetzt und stehen bis zum nächsten Release im Changelog unter „Unreleased“.
 
 ### Etappe 2 — Systemintegration ohne Terminal
 
@@ -35,17 +36,6 @@ in die Zwischenablage) sind umgesetzt; offen bleibt:
   Protokollliste je Übersetzungseinheit und ein eigener Prozessor-Aufruf pro
   Architektur. Erst angehen, wenn der Aufwand den Nutzen gegenüber „Shell-Skript
   ausführen“ mit `poormans-text --json` in Kurzbefehle rechtfertigt.
-
-### Etappe 5 — Präsentationen und Notebooks
-
-- PPTX/PPTM/POTX nativ: ZIP-Inspector und XML-Streaming wie beim
-  Tabellenimport. Eine Überschrift je Folie, Text-Shapes als Absätze und Listen,
-  Tabellen als GFM-Tabellen, Notizen als Blockzitat, Bilder aus `ppt/media`
-  über die Asset-Pipeline. Pandoc liest keine Präsentationen.
-- ODP über dasselbe Folienmodell mit dem OpenDocument-Parser.
-- IPYNB: Markdown-Zellen durchreichen, Code-Zellen als Fenced Blocks mit
-  Sprache aus den Metadaten, Textausgaben als Ausgabe-Fences, Base64-Bilder aus
-  Ausgaben nach `images/`.
 
 ### Etappe 6 — E-Mail
 

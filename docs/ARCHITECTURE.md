@@ -325,3 +325,19 @@ die App zeigt den Bezug in ihrer bisherigen Warnungsliste.
 ODS-Positionsdiagnosen berücksichtigen noch nicht materialisierte leere Zeilen
 und Zellen. Bei wiederholten betroffenen Elementen nennen sie die erste Zelle
 des wiederholten Bereichs.
+
+### Präsentationen und Notebooks
+
+`PresentationAdapter` bindet PPTX/PPTM/POTX und ODP an den geprüften Paketleser.
+`PresentationImport` liest ihre Struktur; `PresentationSlide`/`PresentationBlock`
+und `PresentationRenderer` teilen Absatz-, Listen-, Tabellen-, Bild- und
+Notizdarstellung. `ImportXML` begrenzt die XML-Bäume und lehnt Entitätsdeklarationen
+ab. `ImportTextBuilder` prüft vor jeder String-Vergrößerung das Ausgabebudget;
+ODP-Wiederholungen werden zusätzlich vor ihrer Expansion geprüft.
+
+`NotebookAdapter`/`NotebookImport` lesen ausschließlich Notebook-JSON. Dynamische
+Codefences verhindern, dass Quellcode Markdown-Struktur öffnet. Der bestehende
+`MarkdownLinkTargetRewriter` übernimmt Attachments, ohne Codezustände neu zu
+implementieren. Beide Importwege nutzen `ImportMediaStore` für begrenzte lokale
+Bilddaten, Hash-Deduplizierung und Assetpfade sowie `ImportDiagnostics` für
+begrenzte Warnungslisten. Kein neuer Importweg startet externe Prozesse.

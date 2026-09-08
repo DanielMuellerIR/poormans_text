@@ -217,3 +217,16 @@ Aufräumen kurzlebiger Leser. Die vorhandenen ZIP-, XLS-, XLSX-, ODS- und
 ODM-Tests bleiben unveränderte Verhaltensprüfungen der Sicherheitsgrenzen.
 Für eine reproduzierbare Release-Messung mit vollständigem Inhaltsvergleich
 siehe [PERFORMANCE.md](PERFORMANCE.md) und `scripts/benchmark_packages.py`.
+
+## Kompatibilitätsblöcke und Notebook-Ressourcen
+
+`PresentationNotebookTests` erzeugt PPTX- und Notebook-Dateien temporär und
+konvertiert sie über `DocumentConverter`. Die Prüfungen zählen ausgewählte
+Folieninhalte, verwerfen nicht unterstützte Alternativen und prüfen auch lokal
+neu gebundene XML-Präfixe. Notebook-Tests prüfen vollständige Bildziele mit
+Leerzeichen, ausgeglichenen Klammern und Escapes, unveränderte Codebeispiele
+sowie Zeilengrenzen in Tracebacks bei weiterhin verbundenen Quelltextfragmenten.
+`PDFQualityTests.testInheritedPageResourcesDetectScanCandidates` erzeugt zwei
+PDFs mit gleichem digitalen Kopf und Bild, einmal mit direkten und einmal mit
+geerbten Ressourcen. Beide müssen die automatische OCR auslösen. Alle drei
+Dokumenttypen werden zusätzlich auf unveränderte Quelldateien geprüft.

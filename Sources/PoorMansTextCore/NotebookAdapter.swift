@@ -88,7 +88,7 @@ final class NotebookImport {
                         let unsupported = data.keys.filter { $0 != "text/plain" && !$0.hasPrefix("image/") }.sorted()
                         if !unsupported.isEmpty { warn("outputNotRepresented", "Output representations are not rendered: \(unsupported.joined(separator: ", ")).") }
                     case "error":
-                        let text = try string(output["traceback"])
+                        let text = try traceback(output["traceback"])
                         let fallback = (output["ename"] as? String ?? "Error") + ": " + (output["evalue"] as? String ?? "")
                         try append(Self.fence(text.isEmpty ? fallback : text, language: "text") + "\n\n")
                     default: warn("outputNotRepresented", "An unknown notebook output type is not rendered.")
@@ -117,6 +117,15 @@ final class NotebookImport {
             return lines.joined()
         }
         throw ImportFailure("notebook text must be a string or array of strings in cell \(cellNumber)")
+    }
+    private func traceback(_ value: Any?) throws -> String {
+        guard let lines = value as? [String] else { return try string(value) }
+        // Quelltextarrays sind Fragmente, Traceback-Einträge dagegen Zeilen.
+        // Vorhandene Zeilenenden erhalten, fehlende zwischen Einträgen ergänzen.
+        _ = try string(lines)
+        return lines.enumerated().map { index, line in
+            line + (index < lines.count - 1 && !line.hasSuffix("\n") && !line.hasSuffix("\r") ? "\n" : "")
+        }.joined()
     }
     static func fence(_ text: String, language: String) -> String {
         var maximum = 0
@@ -152,18 +161,7 @@ final class NotebookImport {
         }
         // Nur Kandidaten sammeln. Ob ein Kandidat tatsächlich außerhalb eines
         // Code-/HTML-Containers liegt, entscheidet der bestehende Markdown-Rewriter.
-        let patterns = [#"!?\[[^\]\n]*\]\(\s*<?([^\s)>]+)"#, #"(?m)^\s{0,3}\[[^\]\n]+\]:\s*<?([^\s>]+)"#]
-        var targets = Set<String>()
-        for pattern in patterns {
-            let regex = try NSRegularExpression(pattern: pattern)
-            var exceeded = false
-            regex.enumerateMatches(in: result, range: NSRange(result.startIndex..., in: result)) { match, _, stop in
-                guard let match, let range = Range(match.range(at: 1), in: result) else { return }
-                targets.insert(String(result[range]))
-                if targets.count > 4_096 { exceeded = true; stop.pointee = true }
-            }
-            if exceeded { throw ImportFailure("notebook cell exceeds 4,096 Markdown resource targets") }
-        }
+        let targets = try MarkdownLinkTargetRewriter.resourceCandidates(in: result, maximum: 4_096)
         for target in targets.sorted() {
             try ConversionExecution.check()
             guard !media.paths.contains(target), !target.hasPrefix("#") else { continue }

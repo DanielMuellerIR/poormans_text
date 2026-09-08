@@ -6,6 +6,7 @@ final class ImportXML {
     let name: String
     let namespace: String
     let attributes: [String: String]
+    var requiredNamespaces: [String] = []
     var children: [ImportXML] = []
     var content: [Content] = []
     enum Content { case text(String), element(ImportXML) }
@@ -18,6 +19,19 @@ final class ImportXML {
         children.flatMap { ($0.name == name && $0.namespace == namespace ? [$0] : []) + $0.descendants(name, namespace: namespace) }
     }
     var text: String { content.map { switch $0 { case .text(let text): text; case .element(let node): node.text } }.joined() }
+    /// Entfernt alternative Darstellungen vor jeder Text-/Tabellenrekursion.
+    /// Dadurch sehen auch `text` und `descendants` nur den gewählten Inhalt.
+    func selectAlternateContent(supportedNamespaces: Set<String>) {
+        let compatibility = "http://schemas.openxmlformats.org/markup-compatibility/2006"
+        if name == "AlternateContent", namespace == compatibility {
+            let choice = elements("Choice", namespace: compatibility).first {
+                !$0.requiredNamespaces.isEmpty && $0.requiredNamespaces.allSatisfy(supportedNamespaces.contains)
+            } ?? elements("Fallback", namespace: compatibility).first
+            content = choice?.content ?? []
+            children = choice?.children ?? []
+        }
+        for child in children { child.selectAlternateContent(supportedNamespaces: supportedNamespaces) }
+    }
     static func parse(_ data: Data) throws -> ImportXML {
         guard data.count <= 16 * 1_024 * 1_024 else { throw ImportFailure("XML exceeds the 16 MiB entry limit") }
         let delegate = Delegate()
@@ -53,6 +67,10 @@ final class ImportXML {
                 expanded[namespace + "|" + String(parts.last!)] = value
             }
             let node = ImportXML(name: name, namespace: namespaceURI ?? "", attributes: expanded)
+            // Requires enthält Präfixe aus dem Geltungsbereich dieses Elements.
+            node.requiredNamespaces = (attributes["Requires"] ?? "").split(whereSeparator: \.isWhitespace).map {
+                namespaces[String($0)]?.last ?? "?"
+            }
             if let parent = stack.last { parent.children.append(node); parent.content.append(.element(node)) }
             else { root = node }
             stack.append(node)

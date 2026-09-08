@@ -687,6 +687,58 @@ enum MarkdownLinkTargetRewriter {
         return result
     }
 
+    /// Kandidaten und Ersetzung teilen die Zielgrenzen. Code-/HTML-Zustände
+    /// prüft anschließend `replacing`; hier werden noch keine Links verändert.
+    static func resourceCandidates(in markdown: String, maximum: Int) throws -> Set<String> {
+        var targets = Set<String>()
+        let starts = try NSRegularExpression(pattern: #"\]\(|(?m)^\s{0,3}\[[^\]\n]+\]:[ \t]*"#)
+        var exceeded = false
+        starts.enumerateMatches(in: markdown, range: NSRange(markdown.startIndex..., in: markdown)) { match, _, stop in
+            guard let match, let range = Range(match.range, in: markdown),
+                  let target = destination(in: markdown, from: range.upperBound) else { return }
+            targets.insert(String(markdown[target.range]))
+            if targets.count > maximum { exceeded = true; stop.pointee = true }
+        }
+        if exceeded { throw ImportFailure("notebook cell exceeds \(maximum) Markdown resource targets") }
+        return targets
+    }
+
+    private static func destination(
+        in text: String, from start: String.Index
+    ) -> (range: Range<String.Index>, usesAngles: Bool)? {
+        var index = start
+        while index < text.endIndex, text[index] == " " || text[index] == "\t" { index = text.index(after: index) }
+        let angles = index < text.endIndex && text[index] == "<"
+        if angles { index = text.index(after: index) }
+        let pathStart = index
+        var depth = 0
+        while index < text.endIndex {
+            let character = text[index]
+            if character == "\n" || character == "\r" { break }
+            if character == "\\" {
+                let next = text.index(after: index)
+                if next < text.endIndex, text[next].isASCII, text[next].isPunctuation || text[next].isSymbol {
+                    index = text.index(after: next)
+                    continue
+                }
+            }
+            if angles {
+                if character == ">" { return (pathStart..<index, true) }
+                if character == "<" { return nil }
+            } else {
+                if character == "(" { depth += 1 }
+                if character == ")" {
+                    if depth == 0 { break }
+                    depth -= 1
+                }
+                if character.isWhitespace { break }
+            }
+            index = text.index(after: index)
+        }
+        guard !angles, depth == 0, index > pathStart else { return nil }
+        return (pathStart..<index, false)
+    }
+
     private static func rewrittenTarget(
         in line: String,
         after openingParenthesis: String.Index,
@@ -698,11 +750,11 @@ enum MarkdownLinkTargetRewriter {
         originalPathEnd: String.Index,
         resumeAt: String.Index
     )? {
-        let targetStart = line.index(after: openingParenthesis)
-        let usesAngles = targetStart < line.endIndex && line[targetStart] == "<"
-        let pathStart = usesAngles ? line.index(after: targetStart) : targetStart
-        guard line[pathStart...].hasPrefix(oldPath) else { return nil }
-        let pathEnd = line.index(pathStart, offsetBy: oldPath.count)
+        guard let destination = destination(in: line, from: line.index(after: openingParenthesis)),
+              String(line[destination.range]) == oldPath else { return nil }
+        let pathStart = destination.range.lowerBound
+        let pathEnd = destination.range.upperBound
+        let usesAngles = destination.usesAngles
         guard let linkEnd = inlineLinkEnd(
             in: line,
             afterPath: pathEnd,

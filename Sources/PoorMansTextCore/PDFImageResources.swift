@@ -1,14 +1,14 @@
 import CoreGraphics
 import PDFKit
 
-/// Sucht lokal deklarierte größere Bildressourcen, auch in Form-XObjects.
+/// Sucht effektive größere Bildressourcen, auch in Form-XObjects.
 /// Ressourcen sind ein Hinweis auf Scaninhalt, keine Zusage über ihre Platzierung.
 enum PDFImageResources {
     static func containsScanCandidate(on page: PDFPage) -> Bool {
         guard let pageReference = page.pageRef,
               let dictionary = pageReference.dictionary else { return false }
         let scanner = Scanner()
-        scanner.visit(dictionary, depth: 0)
+        scanner.visit(dictionary, depth: 0, inheritPageResources: true)
         return scanner.found
     }
 
@@ -21,12 +21,28 @@ enum PDFImageResources {
     private final class Scanner {
         var remaining = 10_000
         var found = false
-        func visit(_ dictionary: CGPDFDictionaryRef, depth: Int) {
+        func visit(_ dictionary: CGPDFDictionaryRef, depth: Int, inheritPageResources: Bool = false) {
             guard !ConversionExecution.isCancelled, depth < 16, remaining > 0, !found else { return }
             remaining -= 1
             var resources: CGPDFDictionaryRef?
             var objects: CGPDFDictionaryRef?
-            guard CGPDFDictionaryGetDictionary(dictionary, "Resources", &resources), let resources,
+            var current = dictionary
+            var visited = Set<CGPDFDictionaryRef>()
+            // Nur Seiten erben Ressourcen. Ein eigenes Wörterbuch ersetzt das
+            // geerbte vollständig; Form-XObjects folgen keiner Parent-Kette.
+            for _ in 0..<64 {
+                guard !ConversionExecution.isCancelled, visited.insert(current).inserted else { return }
+                var declared: CGPDFObjectRef?
+                if CGPDFDictionaryGetObject(current, "Resources", &declared) {
+                    _ = CGPDFDictionaryGetDictionary(current, "Resources", &resources)
+                    break
+                }
+                var parent: CGPDFDictionaryRef?
+                guard inheritPageResources,
+                      CGPDFDictionaryGetDictionary(current, "Parent", &parent), let parent else { return }
+                current = parent
+            }
+            guard let resources,
                   CGPDFDictionaryGetDictionary(resources, "XObject", &objects), let objects else { return }
             let context = Context(self, depth)
             CGPDFDictionaryApplyFunction(objects, { _, object, pointer in

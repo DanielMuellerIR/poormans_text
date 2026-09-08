@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.10.2 — 2026-09-08
+
+- Select one supported PowerPoint compatibility representation, or its fallback,
+  instead of repeating alternative slide text and image references.
+- Detect scan images in inherited PDF page resources so automatic OCR also runs
+  for mixed pages whose digital header would otherwise hide scanned content.
+- Preserve complete notebook Markdown resource targets with angle brackets,
+  spaces, escaped punctuation and balanced parentheses when diagnosing missing files.
+- Keep notebook traceback entries on separate lines without changing source and
+  stream fragment decoding.
+
 ## 0.10.1 — 2026-09-05
 
 - Verify DOCX/ODT content independently of Pandoc table padding and separately

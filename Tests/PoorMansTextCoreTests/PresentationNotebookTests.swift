@@ -64,6 +64,57 @@ final class PresentationNotebookTests: XCTestCase {
         XCTAssertTrue(contains(json, type: "Table"))
         XCTAssertTrue(contains(json, type: "OrderedList"))
     }
+    func testPowerPointAlternateContentSelectsOneRepresentation() throws {
+        let a = PresentationImport.drawing, p = PresentationImport.presentation
+        func shape(_ token: String) -> String { "<p:sp><p:txBody><a:p><a:r><a:t>\(token)</a:t></a:r></a:p></p:txBody></p:sp>" }
+        let xml = """
+        <p:sld xmlns:p="\(p)" xmlns:a="\(a)" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:a14="urn:unsupported" xmlns:alias="\(a)">
+        <p:cSld><p:spTree>
+        <mc:AlternateContent><mc:Choice Requires="a14">\(shape("DUPLICATE"))</mc:Choice><mc:Fallback>\(shape("ONCETOKEN"))</mc:Fallback></mc:AlternateContent>
+        <mc:AlternateContent><mc:Choice Requires="alias">\(shape("SUPPORTED"))</mc:Choice><mc:Choice Requires="a">\(shape("LATER"))</mc:Choice><mc:Fallback>\(shape("FALLBACK"))</mc:Fallback></mc:AlternateContent>
+        <mc:AlternateContent><mc:Choice xmlns:alias="urn:unsupported" Requires="alias">\(shape("SHADOWED"))</mc:Choice><mc:Fallback>\(shape("SHADOWFALLBACK"))</mc:Fallback></mc:AlternateContent>
+        </p:spTree></p:cSld></p:sld>
+        """
+        var entries = try pptxEntries().filter { $0.name != "ppt/slides/slide1.xml" }
+        entries.append(entry("ppt/slides/slide1.xml", xml))
+        let source = root.appendingPathComponent("alternatives.pptx")
+        let bytes = try ZIPFixtureBuilder.archive(entries: entries)
+        try bytes.write(to: source)
+        let result = try DocumentConverter().convert(ConversionRequest(inputURL: source))
+        let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+        for token in ["ONCETOKEN", "SUPPORTED", "SHADOWFALLBACK"] {
+            XCTAssertEqual(markdown.components(separatedBy: token).count - 1, 1, markdown)
+        }
+        for token in ["DUPLICATE", "LATER", "SHADOWED"] { XCTAssertFalse(markdown.contains(token), markdown) }
+        XCTAssertEqual(try Data(contentsOf: source), bytes)
+    }
+
+    func testNotebookCompleteResourceTargetsAndTracebackLines() throws {
+        let targets = ["missing.png", "<missing file.png>", "missing(1).png", #"missing\(2\).png"#, #"<missing\>file.png>"#]
+        let links = targets.map { "![x](\($0))" }.joined(separator: "\n")
+        let cells: [[String: Any]] = [
+            ["cell_type": "markdown", "source": links + "\n`![literal](missing(1).png)`"],
+            ["cell_type": "code", "source": ["FRAG", "MENT"], "outputs": [
+                ["output_type": "error", "traceback": ["FIRST FRAME", "SECOND FRAME\n", "FINAL ERROR"]],
+                ["output_type": "stream", "text": ["STREAM", "FRAGMENTS"]]
+            ]]
+        ]
+        let source = root.appendingPathComponent("resources.ipynb")
+        let bytes = try JSONSerialization.data(withJSONObject: ["nbformat": 4, "cells": cells])
+        try bytes.write(to: source)
+        let result = try DocumentConverter().convert(ConversionRequest(inputURL: source))
+        let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+        XCTAssertEqual(markdown.components(separatedBy: "#unavailable-resource").count - 1, targets.count, markdown)
+        XCTAssertTrue(markdown.contains("![x](<#unavailable-resource>)"), markdown)
+        XCTAssertFalse(markdown.contains(".png)\n"), markdown)
+        XCTAssertTrue(markdown.contains("`![literal](missing(1).png)`"), markdown)
+        XCTAssertTrue(markdown.contains("FIRST FRAME\nSECOND FRAME\nFINAL ERROR"), markdown)
+        XCTAssertTrue(markdown.contains("FRAGMENT"), markdown)
+        XCTAssertTrue(markdown.contains("STREAMFRAGMENTS"), markdown)
+        XCTAssertTrue(result.diagnostics.contains { $0.code == "notebook.resourceUnavailable" })
+        XCTAssertEqual(try Data(contentsOf: source), bytes)
+    }
+
     func testODPNumberedNestedListsAndNotes() throws {
         let xml = """
         <office:document-content xmlns:office="\(PresentationImport.office)" xmlns:draw="\(PresentationImport.draw)" xmlns:text="\(PresentationImport.text)" xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0" xmlns:presentation="\(PresentationImport.presentationODF)">

@@ -94,6 +94,44 @@ pdf("margins.pdf", pages: 3) { context, page in
         XCTAssertTrue(always.diagnostics.contains { $0.code == "pdf.ocrApplied" })
     }
 
+    func testInheritedPageResourcesDetectScanCandidates() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        for inherited in [false, true] {
+            let resources = "/Resources << /Font << /F1 4 0 R >> /XObject << /Im1 6 0 R >> >>"
+            let content = "BT /F1 12 Tf 20 750 Td (Digital header with more than twenty characters) Tj ET q 256 0 0 128 20 300 cm /Im1 Do Q"
+            let pixels = String(repeating: "A", count: 256 * 128)
+            let objects = [
+                "<< /Type /Catalog /Pages 2 0 R >>",
+                "<< /Type /Pages /Kids [3 0 R] /Count 1 \(inherited ? resources : "") >>",
+                "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 5 0 R \(inherited ? "" : resources) >>",
+                "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+                "<< /Length \(content.utf8.count) >>\nstream\n\(content)\nendstream",
+                "<< /Type /XObject /Subtype /Image /Width 256 /Height 128 /ColorSpace /DeviceGray /BitsPerComponent 8 /Length \(pixels.utf8.count) >>\nstream\n\(pixels)\nendstream"
+            ]
+            var pdf = "%PDF-1.4\n", offsets = [0]
+            for (index, object) in objects.enumerated() {
+                offsets.append(pdf.utf8.count)
+                pdf += "\(index + 1) 0 obj\n\(object)\nendobj\n"
+            }
+            let xref = pdf.utf8.count
+            pdf += "xref\n0 7\n0000000000 65535 f \n"
+            for offset in offsets.dropFirst() { pdf += String(format: "%010d 00000 n \n", offset) }
+            pdf += "trailer\n<< /Size 7 /Root 1 0 R >>\nstartxref\n\(xref)\n%%EOF\n"
+            let source = root.appendingPathComponent("\(inherited).pdf")
+            let bytes = Data(pdf.utf8)
+            try bytes.write(to: source)
+            let document = try XCTUnwrap(PDFDocument(url: source))
+            let page = try XCTUnwrap(document.page(at: 0))
+            XCTAssertTrue((page.string ?? "").contains("Digital header with more than twenty characters"))
+            XCTAssertTrue(PDFImageResources.containsScanCandidate(on: page), "inherited=\(inherited)")
+            let result = try DocumentConverter().convert(ConversionRequest(inputURL: source, options: ConversionOptions(ocrLanguages: ["en"])))
+            XCTAssertTrue(result.diagnostics.contains { $0.code == "pdf.ocrApplied" })
+            XCTAssertEqual(try Data(contentsOf: source), bytes)
+        }
+    }
+
     func testLanguageValidationAndLegacyWarningDecoding() throws {
         XCTAssertEqual(try OCRLanguageSelection.resolve(["de", "en", "DE"]), ["de-DE", "en-US"])
         XCTAssertThrowsError(try OCRLanguageSelection.resolve(["not-a-language"]))

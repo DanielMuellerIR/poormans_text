@@ -149,13 +149,16 @@ final class PresentationImport {
     private func pptxSlide(_ part: String) throws -> PresentationSlide {
         let root = try ImportXML.parse(reader.data(named: part))
         guard root.name == "sld", root.namespace == Self.presentation else { throw ImportFailure("invalid slide root at \(part)") }
+        root.selectAlternateContent(supportedNamespaces: [Self.presentation, Self.drawing, Self.relations])
         let relations = try relationships(for: part)
         var result = PresentationSlide(blocks: try pptxBlocks(root, part: part, relations: relations))
         for relation in relations.values where relation.type.hasSuffix("/notesSlide") {
             guard !relation.external else { diagnostics.add("presentation.notesUnavailable", "External notes were not loaded.", page: page); continue }
             let path = try ImportPackagePath.resolve(relation.target, relativeTo: part)
             guard let data = try reader.dataIfPresent(named: path) else { diagnostics.add("presentation.notesUnavailable", "A notes part is missing: \(path)", page: page); continue }
-            result.notes += try pptxBlocks(ImportXML.parse(data), part: path, relations: relationships(for: path))
+            let notes = try ImportXML.parse(data)
+            notes.selectAlternateContent(supportedNamespaces: [Self.presentation, Self.drawing, Self.relations])
+            result.notes += try pptxBlocks(notes, part: path, relations: relationships(for: path))
         }
         return result
     }

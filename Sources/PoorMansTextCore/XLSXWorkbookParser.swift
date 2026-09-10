@@ -225,11 +225,7 @@ enum XLSXWorkbookParser {
     }
 
     private static func parse(_ xml: Data, delegate: XMLParserDelegate) throws {
-        let parser = XMLParser(data: xml)
-        parser.delegate = delegate
-        parser.shouldProcessNamespaces = true
-        parser.shouldReportNamespacePrefixes = true
-        parser.shouldResolveExternalEntities = false
+        let parser = ImportXMLParser.make(xml, delegate: delegate)
         let parsedSuccessfully = parser.parse()
         try ConversionExecution.check()
         guard parsedSuccessfully else {
@@ -468,11 +464,7 @@ enum XLSXWorkbookParser {
     private enum SharedStringsParser {
         static func parse(_ xml: Data) throws -> [String] {
             let delegate = Delegate()
-            let parser = XMLParser(data: xml)
-            parser.delegate = delegate
-            parser.shouldProcessNamespaces = true
-            parser.shouldReportNamespacePrefixes = true
-            parser.shouldResolveExternalEntities = false
+            let parser = ImportXMLParser.make(xml, delegate: delegate)
             let parsedSuccessfully = parser.parse()
             try ConversionExecution.check()
             guard parsedSuccessfully, delegate.failure == nil else {
@@ -564,11 +556,7 @@ enum XLSXWorkbookParser {
                 maximumHyperlinkScans: maximumHyperlinkScans,
                 hyperlinkTargets: hyperlinkTargets
             )
-            let parser = XMLParser(data: xml)
-            parser.delegate = delegate
-            parser.shouldProcessNamespaces = true
-            parser.shouldReportNamespacePrefixes = true
-            parser.shouldResolveExternalEntities = false
+            let parser = ImportXMLParser.make(xml, delegate: delegate)
             let parsedSuccessfully = parser.parse()
             try ConversionExecution.check()
             guard parsedSuccessfully, delegate.failure == nil else {

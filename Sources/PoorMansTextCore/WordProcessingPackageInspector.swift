@@ -114,23 +114,10 @@ enum WordProcessingPackageInspector {
     }
 }
 
-/// Startet einen XML-Lauf mit Namensraumverarbeitung.
-///
-/// Ohne sie liefert `XMLParser` den Elementnamen samt Präfix (`r:Relationship`),
-/// und ein Paket mit einem anderen — aber völlig gültigen — Präfix rutscht an
-/// jeder Namensprüfung vorbei. Mit ihr ist `elementName` der lokale Name.
-///
-/// Attributnamen behalten ihr Präfix auch dann. Damit ein Delegate es auflösen
-/// kann, meldet `shouldReportNamespacePrefixes` zusätzlich jede
-/// Präfix-Deklaration; ohne dieses Flag ruft `XMLParser` die zugehörigen
-/// Delegate-Methoden gar nicht erst auf. In die Attributliste geraten die
-/// `xmlns`-Deklarationen dadurch nicht.
+/// Startet einen XML-Lauf und wirft, wenn das Paket-XML defekt ist. Die
+/// Einstellungen des Parsers stehen in `ImportXMLParser`.
 private func parseXML(_ xml: Data, with delegate: XMLParserDelegate) throws {
-    let parser = XMLParser(data: xml)
-    parser.delegate = delegate
-    parser.shouldProcessNamespaces = true
-    parser.shouldReportNamespacePrefixes = true
-    parser.shouldResolveExternalEntities = false
+    let parser = ImportXMLParser.make(xml, delegate: delegate)
     let parsedSuccessfully = parser.parse()
     try ConversionExecution.check()
     guard parsedSuccessfully else {

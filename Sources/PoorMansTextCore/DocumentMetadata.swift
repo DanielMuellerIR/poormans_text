@@ -187,12 +187,7 @@ enum PackageMetadataParser {
 
     static func parse(_ xml: Data) -> DocumentMetadata {
         let delegate = Delegate()
-        let parser = XMLParser(data: xml)
-        parser.shouldProcessNamespaces = true
-        // Wie an allen anderen XMLParser-Stellen im Kern ausdrücklich gesetzt:
-        // Ein fremdes Metadaten-XML darf keine externen Entitäten nachladen.
-        parser.shouldResolveExternalEntities = false
-        parser.delegate = delegate
+        let parser = ImportXMLParser.make(xml, delegate: delegate)
         // Ein kaputtes Metadaten-XML ist kein Grund, das Dokument abzulehnen:
         // Dann gibt es eben keine Angaben.
         _ = parser.parse()

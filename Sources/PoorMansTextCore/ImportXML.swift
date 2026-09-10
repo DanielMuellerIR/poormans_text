@@ -35,11 +35,7 @@ final class ImportXML {
     static func parse(_ data: Data) throws -> ImportXML {
         guard data.count <= 16 * 1_024 * 1_024 else { throw ImportFailure("XML exceeds the 16 MiB entry limit") }
         let delegate = Delegate()
-        let parser = XMLParser(data: data)
-        parser.shouldProcessNamespaces = true
-        parser.shouldReportNamespacePrefixes = true
-        parser.shouldResolveExternalEntities = false
-        parser.delegate = delegate
+        let parser = ImportXMLParser.make(data, delegate: delegate)
         let success = parser.parse()
         try ConversionExecution.check()
         guard success, delegate.failure == nil, let root = delegate.root else {

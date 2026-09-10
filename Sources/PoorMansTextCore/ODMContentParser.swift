@@ -8,11 +8,7 @@ enum ODMContentItem: Equatable {
 enum ODMContentParser {
     static func parse(_ xml: Data) throws -> [ODMContentItem] {
         let delegate = Delegate()
-        let parser = XMLParser(data: xml)
-        parser.delegate = delegate
-        parser.shouldProcessNamespaces = true
-        parser.shouldReportNamespacePrefixes = true
-        parser.shouldResolveExternalEntities = false
+        let parser = ImportXMLParser.make(xml, delegate: delegate)
         let parsedSuccessfully = parser.parse()
         try ConversionExecution.check()
         guard parsedSuccessfully else {

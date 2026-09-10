@@ -204,7 +204,11 @@ enum DelimitedTextParser {
     /// Wählt das Trennzeichen, das in den ersten Zeilen am gleichmäßigsten
     /// vorkommt. Ohne Treffer bleibt das Komma, die Datei wird dann einspaltig.
     static func sniffDelimiter(in text: String) -> Character {
-        let lines = text.split(omittingEmptySubsequences: true, whereSeparator: \.isNewline).prefix(20)
+        // `maxSplits` hält nach 20 Trennungen an; der Rest der Datei bleibt
+        // ein einziger, nicht kopierter Teilstring und fällt mit `prefix`
+        // weg. Vorher zerlegte die Suche die ganze Datei in Zeilen, um
+        // zwanzig anzusehen (Roadmap-Punkt, 2026-09-10).
+        let lines = text.split(maxSplits: 20, omittingEmptySubsequences: true, whereSeparator: \.isNewline).prefix(20)
         guard !lines.isEmpty else {
             return ","
         }

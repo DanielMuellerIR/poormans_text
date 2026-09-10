@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Skip phonetic reading hints (`<rPh>`) in XLSX shared and inline strings; a
+  Japanese workbook read `日本ニホン` where the cell says `日本`.
+- Count memory before it is spent in the spreadsheet readers: a BIFF sheet
+  stops at the cell budget while its records are still being collected, an
+  XLSX row index that skips rows charges the skipped rows to the expanded-cell
+  budget, and CSV delimiter sniffing splits only the first twenty lines instead
+  of the whole file.
 - Read metadata from EPUB and FictionBook sources: the OPF named by
   `META-INF/container.xml` (Dublin Core, `dc:date` as the creation date) and
   the `title-info` block (book title, first author, genres, annotation, date).

@@ -143,6 +143,29 @@ final class LegacyXLSBoundaryTests: XCTestCase {
     /// Ein HLINK-Record kann jedes Ziel tragen. Ein ausführbares Schema wird
     /// nicht übernommen: Der Zellwert bleibt, das Ziel fällt weg, und der
     /// Verlust ist als Warnung sichtbar.
+    /// Die dünne Zellstruktur prüfte `maximumCells` erst beim Verdichten;
+    /// Millionen Zellrecords belegten den Speicher vorher ungebremst. Jetzt
+    /// zählt jede NEUE Zelle beim Einfügen gegen das Budget; Überschreiben
+    /// derselben Zelle zählt nicht. Geprüft am Einfügeschritt selbst, weil ein
+    /// Fixture mit einer Million Zellen den OLE-Schreiber der Tests sprengt.
+    func testTheSparseCellBudgetCountsNewCellsWhileTheyAreInserted() throws {
+        typealias Parser = LegacyXLSWorkbookParser.BIFFParser
+        var cells = [Int: [Int: SpreadsheetCell]]()
+        var budget = Parser.CellBudget(maximum: 2)
+        let cell = SpreadsheetCell(value: .number("1"), displayText: "1", formula: nil)
+
+        try Parser.setCell(cell, row: 0, column: 0, in: &cells, budget: &budget)
+        try Parser.setCell(cell, row: 0, column: 0, in: &cells, budget: &budget)
+        XCTAssertEqual(budget.count, 1, "Überschreiben derselben Zelle zählt nicht.")
+        try Parser.setCell(cell, row: 7, column: 3, in: &cells, budget: &budget)
+        XCTAssertEqual(budget.count, 2)
+
+        XCTAssertThrowsError(try Parser.setCell(cell, row: 9, column: 0, in: &cells, budget: &budget)) { error in
+            XCTAssertTrue(error.localizedDescription.contains("exceeds the cell budget"), error.localizedDescription)
+        }
+        XCTAssertNil(cells[9], "Die abgelehnte Zelle darf nicht gesetzt sein.")
+    }
+
     func testGeneratedBIFFWorkbookDropsAScriptHyperlink() throws {
         let document = SyntheticXLSFixture.workbook(
             missingFirstSheetEOF: false,

@@ -97,6 +97,11 @@ final class DelimitedTextAdapterTests: XCTestCase {
         // Kommas im Text, Semikolons als Struktur: das gleichmäßige Zeichen gewinnt.
         XCTAssertEqual(DelimitedTextParser.sniffDelimiter(in: "Name;Ort\nMüller, A.;Köln\nB;C, D, E\n"), ";")
         XCTAssertEqual(DelimitedTextParser.sniffDelimiter(in: "nur text\nohne trenner\n"), ",")
+        // Nur die ersten zwanzig Zeilen zählen; der Rest der Datei wird nicht
+        // mehr zerlegt und darf das Ergebnis nicht ändern.
+        let head = String(repeating: "a;b;c\n", count: 20)
+        XCTAssertEqual(DelimitedTextParser.sniffDelimiter(in: head), ";")
+        XCTAssertEqual(DelimitedTextParser.sniffDelimiter(in: head + String(repeating: "x,y,z\n", count: 100)), ";")
     }
 
     func testTheLastLineWithoutANewlineCountsAndAnEmptyFileHasNoRows() throws {

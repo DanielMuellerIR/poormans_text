@@ -13,15 +13,15 @@
       "id": "converter-engine",
       "last_run": {
         "campaign_id": "20260910T154243481221+0200",
-        "completed_at": "2026-09-10T15:57:42+02:00",
-        "observed_head": "633629c094ec33cceb14fda82078fdebb58c650e",
-        "content_sha256": "b0bb92e9055ab7b10c281c9f961dc1aa82c704793a0c5f99321b23d99ae42b6c",
+        "completed_at": "2026-09-10T16:17:38+02:00",
+        "observed_head": "ca90371c03d082d91547aef19f165609b6df3545",
+        "content_sha256": "c37a126f70fbca24278f954293b065ebb0007d1213e4b4602a9c271f75288f61",
         "file_count": 33,
         "review": "delta-plus-boundaries",
         "outcome": "improved",
-        "summary": "Delta = ProcessRunner/ProcessResult package-sichtbar für AppSupport; Verhalten des Runners unverändert, Aufrufer im Kern unverändert.",
+        "summary": "Delta = EPUB/FB2-Metadaten (Leser in DocumentMetadata.swift, Adapter-Aufruf, Hilfetext); Grenzen unverändert.",
         "tests": [
-          "swift test: 518 passed (ProcessRunnerTests, PandocInstallerTests mit echten Prozessen)"
+          "swift test: 529 passed"
         ]
       },
       "paths": [
@@ -216,15 +216,15 @@
       "id": "pandoc-text",
       "last_run": {
         "campaign_id": "20260910T154243481221+0200",
-        "completed_at": "2026-09-10T16:14:01+02:00",
-        "observed_head": "521bcf31d305268a40a34942bc85f79432e9246b",
-        "content_sha256": "5cd2ee38d5db2d9b790eb564be599bcb5a4c98d849e10ea88adb972038434a46",
+        "completed_at": "2026-09-10T16:17:38+02:00",
+        "observed_head": "ca90371c03d082d91547aef19f165609b6df3545",
+        "content_sha256": "4cbf18b7d8493a0262bb5d9146284f638a3d8ce914bf83cf50bb759914adce28",
         "file_count": 5,
         "review": "delta-plus-boundaries",
         "outcome": "improved",
-        "summary": "Delta = Zeichensatz-Rückfallkette, Bildkopie-Fehlerabbildung, Webarchiv-Dedup; Grenzen zu VerifiedFileStaging (StagingError.kind) und HTMLDocumentConverter unverändert.",
+        "summary": "Delta = EPUB/FB2-Metadaten (Leser in DocumentMetadata.swift, Adapter-Aufruf, Hilfetext); Grenzen unverändert.",
         "tests": [
-          "swift test: 527 passed"
+          "swift test: 529 passed"
         ]
       },
       "paths": [
@@ -385,15 +385,15 @@
       "id": "cli",
       "last_run": {
         "campaign_id": "20260910T154243481221+0200",
-        "completed_at": "2026-09-10T16:04:04+02:00",
-        "observed_head": "eabaff4f253fba21d64b6005fdd61d082a440ca5",
-        "content_sha256": "e857aeeef622b53fa95f14552919f8bd74718d761de84671fb43092ebf8d44f3",
+        "completed_at": "2026-09-10T16:17:38+02:00",
+        "observed_head": "ca90371c03d082d91547aef19f165609b6df3545",
+        "content_sha256": "5c1d63f9148249d6de8215855ca2f74a8baeaf20ac5d389f890fbfae4ab363f4",
         "file_count": 7,
         "review": "delta-plus-boundaries",
         "outcome": "improved",
-        "summary": "Delta = Parserumbau (valueOptions, Vorabscan, Switch) und --stdout/--jobs-Konflikt; Grenzen zu Core unverändert; Ausgabemodus und Exit-Codes über CLIIntegration-/CLIOutputMode-/CLIBatch-Tests geprüft.",
+        "summary": "Delta = EPUB/FB2-Metadaten (Leser in DocumentMetadata.swift, Adapter-Aufruf, Hilfetext); Grenzen unverändert.",
         "tests": [
-          "swift test: 519 passed"
+          "swift test: 529 passed"
         ]
       },
       "paths": [
@@ -501,7 +501,7 @@
     "token_budget": 3000000,
     "status": "active",
     "started_at": "2026-09-10T15:42:43+02:00",
-    "tokens_spent": 146343
+    "tokens_spent": 157911
   },
   "campaign_history": [
     {
@@ -909,14 +909,18 @@
         "Sources/PoorMansTextCore/DocumentMetadata.swift"
       ],
       "priority": 2,
-      "state": "in_progress",
+      "state": "completed",
       "noted_at": "2026-09-10T15:42:44+02:00",
       "campaign_id": "20260910T154243481221+0200",
       "started_at": "2026-09-10T16:14:01+02:00",
-      "active_run": {
+      "completed": {
         "campaign_id": "20260910T154243481221+0200",
-        "started_at": "2026-09-10T16:14:01+02:00",
-        "observed_head": "521bcf31d305268a40a34942bc85f79432e9246b"
+        "completed_at": "2026-09-10T16:17:38+02:00",
+        "observed_head": "ca90371c03d082d91547aef19f165609b6df3545",
+        "summary": "EPUBMetadataReader (container.xml → OPF → PackageMetadataParser, dc:date als created) und FB2MetadataParser (title-info: book-title, erster Autor, genre, annotation, date value) in DocumentMetadata.swift; PandocTextAdapter setzt metadata für .epub und .fb2; Hilfe/README/ARCHITECTURE nennen die neuen Quellen.",
+        "tests": [
+          "swift test: 529 passed (2 neue Leser-Tests ohne Pandoc; EPUB-/FB2-Umwandlungstests prüfen Titel/Autor/Datum)"
+        ]
       }
     },
     {
@@ -929,9 +933,15 @@
         "Sources/PoorMansTextCore/SpreadsheetWorkbook.swift"
       ],
       "priority": 2,
-      "state": "pending",
+      "state": "in_progress",
       "noted_at": "2026-09-10T15:42:44+02:00",
-      "campaign_id": "20260910T154243481221+0200"
+      "campaign_id": "20260910T154243481221+0200",
+      "started_at": "2026-09-10T16:17:38+02:00",
+      "active_run": {
+        "campaign_id": "20260910T154243481221+0200",
+        "started_at": "2026-09-10T16:17:38+02:00",
+        "observed_head": "ca90371c03d082d91547aef19f165609b6df3545"
+      }
     },
     {
       "id": "presentation-images",

@@ -482,6 +482,7 @@ enum XLSXWorkbookParser {
             var hasValidRoot = false
             private var current: String?
             private var capturesText = false
+            private var phoneticDepth = 0
             private var sawRoot = false
 
             func parser(
@@ -499,7 +500,11 @@ enum XLSXWorkbookParser {
                 }
                 guard namespaceURI == Namespaces.spreadsheet else { return }
                 if elementName == "si" { current = "" }
-                if elementName == "t", current != nil { capturesText = true }
+                // `<rPh>` trägt phonetische Lesehinweise (Furigana) mit einem
+                // eigenen `<t>`; sie gehören nicht zum Zellwert. Vorher wurde
+                // aus `日本` ein `日本ニホン` (Roadmap-Punkt, 2026-09-10).
+                if elementName == "rPh" { phoneticDepth += 1 }
+                if elementName == "t", current != nil, phoneticDepth == 0 { capturesText = true }
             }
 
             func parser(_ parser: XMLParser, foundCharacters string: String) {
@@ -516,6 +521,7 @@ enum XLSXWorkbookParser {
             if ConversionExecution.isCancelled { parser.abortParsing(); return }
                 guard namespaceURI == Namespaces.spreadsheet else { return }
                 if elementName == "t" { capturesText = false }
+                if elementName == "rPh" { phoneticDepth -= 1 }
                 if elementName == "si", let current {
                     guard strings.count < SpreadsheetLimits.maximumSharedStrings else {
                         failure = ParserError("the XLSX shared-string table exceeds the budget")
@@ -602,6 +608,7 @@ enum XLSXWorkbookParser {
             /// den Rest als `maximumHyperlinkScans` mit.
             private(set) var hyperlinkScannedCells = 0
             private var sawRoot = false
+            private var phoneticDepth = 0
             private let prefixes = NamespacePrefixTracker()
             /// Breite, die der Zellparser bereits gegen das Gesamtbudget
             /// gerechnet hat. Das bleibt auch für eine später weggetrimmte leere
@@ -658,6 +665,18 @@ enum XLSXWorkbookParser {
                           rowNumber >= rows.count + 1 else {
                         return fail("an XLSX row index is invalid or exceeds the budget", parser: parser)
                     }
+                    // Übersprungene Zeilen werden als leere Zeilen angelegt und
+                    // kosten je eine Einheit des Zellbudgets: Ein `<row
+                    // r="100000"/>` erzeugte vorher 99 999 leere Arrays, ohne
+                    // gegen irgendein Budget zu zählen (Roadmap-Punkt,
+                    // 2026-09-10). Das Budget gilt über alle Blätter.
+                    let skippedRows = rowNumber - rows.count - 1
+                    if skippedRows > 0 {
+                        guard expandedCellCount <= maximumCells - skippedRows else {
+                            return fail("the XLSX sheet exceeds the expanded-cell budget", parser: parser)
+                        }
+                        expandedCellCount += skippedRows
+                    }
                     while rows.count + 1 < rowNumber {
                         rows.append([])
                         accountedRowWidths.append(0)
@@ -687,7 +706,10 @@ enum XLSXWorkbookParser {
                     // Element überhaupt da war, nicht sein Text.
                     currentCell?.hasFormulaElement = true
                     capture = .formula
-                } else if elementName == "t", currentCell?.type == "inlineStr" {
+                } else if elementName == "rPh" {
+                    // Lesehinweise eines Inline-Strings, siehe Shared Strings.
+                    phoneticDepth += 1
+                } else if elementName == "t", currentCell?.type == "inlineStr", phoneticDepth == 0 {
                     capture = .inlineText
                 } else if elementName == "mergeCell" {
                     hasMerges = true
@@ -754,7 +776,9 @@ enum XLSXWorkbookParser {
             ) {
             if ConversionExecution.isCancelled { parser.abortParsing(); return }
                 guard namespaceURI == Namespaces.spreadsheet else { return }
-                if elementName == "v" || elementName == "f" || elementName == "t" {
+                if elementName == "rPh" {
+                    phoneticDepth -= 1
+                } else if elementName == "v" || elementName == "f" || elementName == "t" {
                     capture = nil
                 } else if elementName == "c" {
                     finishCell(parser: parser)

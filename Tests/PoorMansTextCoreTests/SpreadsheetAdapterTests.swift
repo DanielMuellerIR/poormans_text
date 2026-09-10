@@ -288,6 +288,107 @@ final class SpreadsheetAdapterTests: XCTestCase {
         }
     }
 
+    /// Ein `<row r="100000"/>` legte 99 999 leere Zeilen an, ohne gegen ein
+    /// Budget zu zählen. Jetzt kostet jede übersprungene Zeile eine Einheit des
+    /// Zellbudgets: Dieselbe Mappe, die knapp unter dem Budget liegt, kippt
+    /// mit der Lücke darüber.
+    func testXLSXRowGapsCountAgainstTheExpandedCellBudget() throws {
+        let wideRows = (1...55).map { #"<row r="\#($0)"><c r="XFD\#($0)"><v>1</v></c></row>"# }.joined()
+        func sheet(withGap: Bool) -> String {
+            """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+              <sheetData>\(wideRows)\(withGap ? #"<row r="100000"/>"# : "")</sheetData>
+            </worksheet>
+            """
+        }
+        let emptySheet = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData/></worksheet>
+        """
+        let within = temporaryDirectory.appendingPathComponent("Within.xlsx")
+        try ZIPFixtureBuilder.xlsxPackage(firstSheetXML: sheet(withGap: false), secondSheetXML: emptySheet).write(to: within)
+        XCTAssertNoThrow(try DocumentConverter().inspect(within))
+
+        let gap = temporaryDirectory.appendingPathComponent("Gap.xlsx")
+        try ZIPFixtureBuilder.xlsxPackage(firstSheetXML: sheet(withGap: true), secondSheetXML: emptySheet).write(to: gap)
+        XCTAssertThrowsError(try DocumentConverter().inspect(gap)) { error in
+            XCTAssertTrue(error.localizedDescription.contains("expanded-cell budget"), error.localizedDescription)
+        }
+    }
+
+    /// Excel in japanischer Lokalisierung schreibt `<rPh>` mit einem eigenen
+    /// `<t>` in dieselbe Zeichenkette; das gehört nicht zum Zellwert.
+    func testXLSXSkipsPhoneticReadingHintsInSharedAndInlineStrings() throws {
+        let sharedStrings = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="1" uniqueCount="1">
+          <si><t>日本</t><rPh sb="0" eb="2"><t>ニホン</t></rPh><phoneticPr fontId="1"/></si>
+        </sst>
+        """
+        let sheet = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+          <sheetData><row r="1">
+            <c r="A1" t="s"><v>0</v></c>
+            <c r="B1" t="inlineStr"><is><t>東京</t><rPh sb="0" eb="2"><t>トウキョウ</t></rPh></is></c>
+          </row></sheetData>
+        </worksheet>
+        """
+        let sourceURL = temporaryDirectory.appendingPathComponent("Furigana.xlsx")
+        try minimalXLSX(sharedStrings: sharedStrings, sheet: sheet).write(to: sourceURL)
+
+        let result = try DocumentConverter().convert(
+            ConversionRequest(inputURL: sourceURL, destination: .directory(temporaryDirectory.appendingPathComponent("furigana-result")))
+        )
+        let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+        XCTAssertTrue(markdown.contains("| 日本 | 東京 |"), markdown)
+        XCTAssertFalse(markdown.contains("ニホン"), markdown)
+        XCTAssertFalse(markdown.contains("トウキョウ"), markdown)
+    }
+
+    /// Eine Mappe mit genau einem Blatt und eigener Shared-String-Tabelle.
+    private func minimalXLSX(sharedStrings: String, sheet: String) throws -> Data {
+        let contentTypes = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+          <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+          <Default Extension="xml" ContentType="application/xml"/>
+          <Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
+          <Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
+          <Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/>
+        </Types>
+        """
+        let rootRelationships = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+          <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
+        </Relationships>
+        """
+        let workbook = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+          xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+          <sheets><sheet name="Blatt" sheetId="1" r:id="rId1"/></sheets>
+        </workbook>
+        """
+        let workbookRelationships = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+          <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
+          <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings" Target="sharedStrings.xml"/>
+        </Relationships>
+        """
+        return try ZIPFixtureBuilder.archive(entries: [
+            ZIPFixtureBuilder.Entry(name: "[Content_Types].xml", content: Data(contentTypes.utf8)),
+            ZIPFixtureBuilder.Entry(name: "_rels/.rels", content: Data(rootRelationships.utf8)),
+            ZIPFixtureBuilder.Entry(name: "xl/workbook.xml", content: Data(workbook.utf8)),
+            ZIPFixtureBuilder.Entry(name: "xl/_rels/workbook.xml.rels", content: Data(workbookRelationships.utf8)),
+            ZIPFixtureBuilder.Entry(name: "xl/sharedStrings.xml", content: Data(sharedStrings.utf8)),
+            ZIPFixtureBuilder.Entry(name: "xl/worksheets/sheet1.xml", content: Data(sheet.utf8)),
+        ])
+    }
+
     func testXLSXExpandedCellBudgetRejectsManySparseRows() throws {
         let rows = (1...31).map {
             #"<row r="\#($0)"><c r="XFD\#($0)"><v>1</v></c></row>"#

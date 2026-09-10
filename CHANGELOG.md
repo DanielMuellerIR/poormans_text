@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Report files opened through the Dock, a double-click, or `open -a` while the
+  app is busy. That path silently dropped them; the window now says why they
+  were not accepted, and ⌘O is disabled during the Pandoc installation instead
+  of opening a dialog whose selection went nowhere.
 - Hand the app's destination folder to the batch as its output root, the way
   `--output` reaches the CLI. A destination pointing at a file now fails with
   "output already exists" instead of a raw file-system error per input, and a

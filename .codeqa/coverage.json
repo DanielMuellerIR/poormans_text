@@ -510,7 +510,7 @@
     "token_budget": 3000000,
     "status": "active",
     "started_at": "2026-09-10T15:42:43+02:00",
-    "tokens_spent": 43000
+    "tokens_spent": 63000
   },
   "campaign_history": [
     {
@@ -783,14 +783,18 @@
         "Sources/PoorMansTextCore/BatchConverter.swift"
       ],
       "priority": 1,
-      "state": "in_progress",
+      "state": "completed",
       "noted_at": "2026-09-10T15:42:43+02:00",
       "campaign_id": "20260910T154243481221+0200",
       "started_at": "2026-09-10T15:50:02+02:00",
-      "active_run": {
+      "completed": {
         "campaign_id": "20260910T154243481221+0200",
-        "started_at": "2026-09-10T15:50:02+02:00",
-        "observed_head": "c986fe9797a665b8989b699c7ce7ca88637b418a"
+        "completed_at": "2026-09-10T15:52:54+02:00",
+        "observed_head": "a5aa75e4c254fffa823ba259c787d8c7265eeb20",
+        "summary": "AppModel.executeBatch übergibt destinationFolder als outputRoots an BatchConverter; damit gelten in App und CLI dieselben Regeln (Wurzel eine Ebene tief anlegen, Datei = outputAlreadyExists, fehlender Elternordner = outputParentDoesNotExist, Wurzel gegen Quellen geprüft).",
+        "tests": [
+          "swift test: 515 passed (2 neue: Zielordner ist Datei; Zielordner gelöscht mit/ohne Elternordner)"
+        ]
       }
     },
     {
@@ -802,9 +806,15 @@
         "Sources/PoorMansTextApp/ContentView.swift"
       ],
       "priority": 1,
-      "state": "pending",
+      "state": "in_progress",
       "noted_at": "2026-09-10T15:42:43+02:00",
-      "campaign_id": "20260910T154243481221+0200"
+      "campaign_id": "20260910T154243481221+0200",
+      "started_at": "2026-09-10T15:52:54+02:00",
+      "active_run": {
+        "campaign_id": "20260910T154243481221+0200",
+        "started_at": "2026-09-10T15:52:54+02:00",
+        "observed_head": "a5aa75e4c254fffa823ba259c787d8c7265eeb20"
+      }
     },
     {
       "id": "cli-json-position",

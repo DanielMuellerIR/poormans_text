@@ -85,6 +85,7 @@ public final class AppModel: ObservableObject {
         let token = ConversionCancellationToken()
         activeCancellation = token
         cancellationRequested = false
+        openRejectionMessage = nil
         conversionProgress = nil
         runningJobs = []
         batchSequence = 0
@@ -132,6 +133,12 @@ public final class AppModel: ObservableObject {
     @Published public var destinationFolder: URL? { didSet { savePreferences() } }
     @Published public var selectedInput: String?
     @Published public private(set) var actionMessage: String?
+    /// Warum die zuletzt über Dock, Doppelklick oder `open -a` übergebenen
+    /// Dateien nicht angenommen wurden. Drop meldet `false` (Cursor), der
+    /// Dienst meldet Text an das rufende Programm — dieser Weg hatte bisher
+    /// keinen Kanal und schwieg (Roadmap-Punkt, 2026-09-10). Der nächste
+    /// angenommene Auftrag löscht die Meldung wieder.
+    @Published public private(set) var openRejectionMessage: String?
     @Published public private(set) var preview: MarkdownPreview?
     private let defaults: UserDefaults
     private var loadingPreferences = true
@@ -519,6 +526,23 @@ public final class AppModel: ObservableObject {
         }
     }
 
+    /// Nimmt Dateien an, die macOS der App zum Öffnen übergibt (Dock,
+    /// Doppelklick, `open -a`). Ist die App beschäftigt, bleibt der Auftrag
+    /// unbearbeitet und das Fenster sagt warum; der Rückgabewert ist derselbe
+    /// wie bei `acceptDrop`.
+    @discardableResult
+    public func openDocuments(_ urls: [URL]) -> Bool {
+        guard acceptsNewDocuments else {
+            openRejectionMessage = isInstallingPandoc
+                ? NSLocalizedString("Files are accepted again once the installation has finished.", comment: "")
+                : NSLocalizedString("Poor Man's Text is busy with another conversion.", comment: "")
+            return false
+        }
+        openRejectionMessage = nil
+        convert(urls)
+        return true
+    }
+
     /// Der Einstieg der App: Öffnen-Dialog anzeigen und die Auswahl umwandeln.
     public func chooseDocument() {
         chooseDocument(selectDocuments: { AppModel.presentOpenPanel() })
@@ -676,6 +700,7 @@ public final class AppModel: ObservableObject {
         }
         preview = nil
         actionMessage = nil
+        openRejectionMessage = nil
         selectedInput = nil
         destinationOverrides = [:]
         relativeDirectories = [:]

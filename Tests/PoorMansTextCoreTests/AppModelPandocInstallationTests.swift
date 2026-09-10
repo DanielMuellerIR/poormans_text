@@ -22,7 +22,12 @@ final class AppModelPandocInstallationTests: XCTestCase {
         try await waitUntil("die Installation läuft") { model.isInstallingPandoc }
         XCTAssertFalse(model.acceptsNewDocuments)
 
-        // Einstieg 1: `onOpenURL` reicht die Datei direkt an `convert` weiter.
+        // Einstieg 1: Dock, Doppelklick und `open -a` kommen über
+        // `openDocuments` an. Der Weg meldet die Sperre jetzt im Fenster;
+        // vorher schwieg er (Roadmap-Punkt, 2026-09-10).
+        XCTAssertFalse(model.openDocuments([document]), "Das Öffnen wurde trotz laufender Installation angenommen.")
+        XCTAssertFalse(model.isConverting, "Die Umwandlung lief trotz laufender Installation an.")
+        XCTAssertEqual(model.openRejectionMessage, "Files are accepted again once the installation has finished.")
         model.convert(document)
         XCTAssertFalse(model.isConverting, "Die Umwandlung lief trotz laufender Installation an.")
 

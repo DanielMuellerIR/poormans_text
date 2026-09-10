@@ -145,6 +145,15 @@ struct ContentView: View {
     private var dropArea: some View {
         VStack(spacing: 18) {
             stateContent
+            // Dateien aus Dock oder Doppelklick, die wegen laufender Arbeit
+            // nicht angenommen wurden: sichtbar in jedem Zustand, nicht nur
+            // bei einem Ergebnis.
+            if let message = model.openRejectionMessage {
+                Label(message, systemImage: "exclamationmark.triangle.fill")
+                    .font(.callout)
+                    .foregroundStyle(.orange)
+                    .multilineTextAlignment(.center)
+            }
             if model.isConverting {
                 if let progress = model.conversionProgress {
                     if let completed = progress.completed, let total = progress.total, let unit = progress.unit {

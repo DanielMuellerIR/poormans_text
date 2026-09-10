@@ -99,6 +99,30 @@ final class AppModelBatchTests: XCTestCase {
         XCTFail("The empty folder did not fail within five seconds.")
     }
 
+    /// Dateien aus Dock oder Doppelklick treffen auf eine laufende Umwandlung:
+    /// Der Weg meldet die Ablehnung im Fenster, statt zu schweigen, und der
+    /// nächste angenommene Auftrag räumt die Meldung wieder weg.
+    @MainActor
+    func testOpeningDocumentsWhileBusyIsReportedInTheWindow() async throws {
+        let first = try copyImage(to: "A.png")
+        let second = try copyImage(to: "B.png")
+        let model = AppModel(defaults: .isolatedForAppTest())
+        model.imageTextRecognition = .disabled
+
+        XCTAssertTrue(model.openDocuments([first, second]))
+        XCTAssertTrue(model.isConverting)
+        XCTAssertFalse(model.openDocuments([first]), "Das Öffnen wurde trotz laufender Umwandlung angenommen.")
+        XCTAssertEqual(model.openRejectionMessage, "Poor Man's Text is busy with another conversion.")
+
+        let items = try await awaitBatch(model)
+        XCTAssertEqual(items.map { $0.input.lastPathComponent }, ["A.png", "B.png"])
+        XCTAssertEqual(model.openRejectionMessage, "Poor Man's Text is busy with another conversion.",
+            "Die Meldung bleibt stehen, bis ein neuer Auftrag angenommen wird.")
+
+        model.reset()
+        XCTAssertNil(model.openRejectionMessage)
+    }
+
     @MainActor
     func testDroppingSeveralProvidersConvertsAllOfThem() async throws {
         let first = try copyImage(to: "A.png")

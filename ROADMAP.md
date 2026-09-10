@@ -115,9 +115,6 @@ weil sie eine Entwurfsentscheidung brauchen:
 
 Belegt, aber bewusst nicht in der Kampagne umgesetzt:
 
-- **Über Dock oder Doppelklick geöffnete Dateien melden nichts**, wenn die App
-  gerade beschäftigt ist. Drop meldet `false`, der Dienst meldet Text, dieser
-  Weg schweigt. Dazu ist ⌘O während der Pandoc-Installation aktiv und wirkungslos.
 - **Nicht übersetzte Texte in Nebenwegen.** Die Hinweistexte von
   `RichTextClipboard` sowie die Fehlermeldungen der beiden Installationswege
   gehen ohne Übersetzung in die Oberfläche; die Installationsdialoge nehmen

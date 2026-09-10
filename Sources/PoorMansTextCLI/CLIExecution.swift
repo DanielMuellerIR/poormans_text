@@ -43,6 +43,13 @@ func convertBatch(_ inputs: [EnumeratedInput], arguments: ParsedArguments, optio
         let handler: BatchConversionProgressHandler?
         if arguments.progress {
             handler = { event in
+            // Der Batch vergibt `sequence` unter seiner Sperre, ruft den
+            // Handler aber danach — zwei Worker können ihn also in falscher
+            // Reihenfolge erreichen. Ohne diesen Filter lief der Dateizähler
+            // gelegentlich rückwärts. Die App filtert längst so
+            // (AppModel.batchSequence), die CLI tat es nicht
+            // (Review-Fund 2026-09-10).
+            guard CLIProgressOutput.accepts(event.sequence) else { return }
             let value = event.documentProgress
             let detail = value?.unit.map { " \($0.rawValue) \(value?.completed ?? 0)/\(value?.total ?? 0)" } ?? ""
             CLIProgressOutput.write("Progress: \(event.inputURL.lastPathComponent): \(value?.phase.rawValue ?? "batch")\(detail); files \(event.completed)/\(event.total), running \(event.running.count)\n")
@@ -81,7 +88,16 @@ func convertBatch(_ inputs: [EnumeratedInput], arguments: ParsedArguments, optio
 
 private enum CLIProgressOutput {
     static let lock = NSLock()
+    nonisolated(unsafe) private static var lastSequence = 0
     static func write(_ message: String) { lock.withLock { FileHandle.standardError.write(Data(message.utf8)) } }
+    /// Verwirft ein Ereignis, das nach einem neueren eintrifft.
+    static func accepts(_ sequence: Int) -> Bool {
+        lock.withLock {
+            guard sequence > lastSequence else { return false }
+            lastSequence = sequence
+            return true
+        }
+    }
 }
 
 func progressHandler(_ arguments: ParsedArguments, input: URL) -> ConversionProgressHandler? {

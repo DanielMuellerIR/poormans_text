@@ -35,6 +35,7 @@ enum AppErrorMessage {
             switch error {
             case .inputDoesNotExist(let url): return format("Input does not exist: %@", url.path)
             case .noSupportedDocuments(let url): return format("The folder contains no supported documents: %@", url.path)
+            case .earlierResult(let url): return format("The folder is the result of an earlier conversion: %@", url.path)
             case .fileSystemFailure(let url, let message): return format("Could not read the folder %@: %@", url.path, message)
             }
         }

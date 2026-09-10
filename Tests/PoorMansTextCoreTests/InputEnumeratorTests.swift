@@ -80,6 +80,53 @@ final class InputEnumeratorTests: XCTestCase {
         XCTAssertEqual(inputs.map { $0.url.lastPathComponent }, ["Bericht.docx"])
     }
 
+    /// Ein Textbundle ist KEIN Paketformat der Erkennung — ohne die zweite
+    /// Bedingung im Ergebnisfilter würde ein zweiter Lauf die `assets/*.png` des
+    /// ersten erneut umwandeln. Geprüft hat das bisher nichts
+    /// (Review-Fund 2026-09-10).
+    func testAnEarlierTextbundleResultIsSkipped() throws {
+        try touch("Notiz.docx")
+        try touch("Notiz.textbundle/text.md")
+        try touch("Notiz.textbundle/assets/bild.png")
+
+        let inputs = try InputEnumerator().enumerate([root])
+
+        XCTAssertEqual(inputs.map { $0.url.lastPathComponent }, ["Notiz.docx"])
+    }
+
+    /// Der Ergebnisfilter griff bisher nur für gefundene Nachfahren. Ein direkt
+    /// genanntes Ergebnisverzeichnis — per Tab-Vervollständigung oder aus dem
+    /// Finder ins App-Fenster gezogen — wurde durchsucht, und der zweite Lauf
+    /// wandelte die Bilder des ersten erneut um, mitten in den alten
+    /// Ergebnisordner hinein (Review-Fund 2026-09-10).
+    func testADirectlyNamedResultFolderIsRefusedInsteadOfSearched() throws {
+        try touch("Bericht-markdown/images/image01.png")
+        try touch("Notiz.textbundle/assets/bild.png")
+
+        for folder in ["Bericht-markdown", "Notiz.textbundle"] {
+            let url = root.appendingPathComponent(folder, isDirectory: true)
+            XCTAssertThrowsError(try InputEnumerator().enumerate([url])) { error in
+                guard case InputEnumerationError.earlierResult = error else {
+                    return XCTFail("unerwarteter Fehler für \(folder): \(error)")
+                }
+            }
+        }
+    }
+
+    /// Zwei Läufe über denselben Ordner müssen dieselbe Liste in derselben
+    /// Reihenfolge ergeben; bisher zählte jeder Test genau einmal auf.
+    func testRepeatedEnumerationOfTheSameFolderIsStable() throws {
+        for name in ["Kapitel 10.docx", "Kapitel 2.docx", "änderung.pdf", "Anderung.pdf"] {
+            try touch(name)
+        }
+
+        let first = try InputEnumerator().enumerate([root])
+        let second = try InputEnumerator().enumerate([root])
+
+        XCTAssertEqual(first, second)
+        XCTAssertEqual(first.count, 4)
+    }
+
     func testADirectlyNamedFileIsNotFilteredByExtension() throws {
         let odd = try touch("Unbekannt.data")
 

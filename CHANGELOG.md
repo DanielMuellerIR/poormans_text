@@ -33,6 +33,14 @@ All notable changes to this project will be documented in this file.
 - Reject an end record whose two entry counts disagree, and a ZIP64 locator that
   carries no sentinel values. Both let another unpacker read a different set of
   entries than the one this package gate verified.
+- Refuse a result folder that is named directly as an input. The rule that skips
+  `Name-markdown` and `Name.textbundle` applied only while searching, so naming
+  such a folder — or dropping it onto the app — converted the images of the
+  earlier run again and nested the result inside the old output folder.
+- Drop stale batch progress events in the CLI. The batch assigns the sequence
+  number under its lock but calls the handler after releasing it, so the file
+  counter could run backwards with `--jobs 2` and higher. The app already
+  filtered these events.
 
 ## 0.10.2 — 2026-09-08
 

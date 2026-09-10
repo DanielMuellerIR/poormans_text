@@ -88,6 +88,7 @@
 "%@ failed with exit status %d: %@" = "%@ wurde mit Fehlerstatus %d beendet: %@";
 "File-system operation failed: %@" = "Dateisystemoperation fehlgeschlagen: %@";
 "The folder contains no supported documents: %@" = "Der Ordner enthält keine unterstützten Dokumente: %@";
+"The folder is the result of an earlier conversion: %@" = "Der Ordner ist das Ergebnis einer früheren Umwandlung: %@";
 "Could not read the folder %@: %@" = "Der Ordner %@ konnte nicht gelesen werden: %@";
 "Conversion cancelled." = "Konvertierung abgebrochen.";
 "The conversion tool exceeded its time limit." = "Das Konvertierungswerkzeug hat sein Zeitlimit überschritten.";

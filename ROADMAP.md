@@ -115,12 +115,6 @@ weil sie eine Entwurfsentscheidung brauchen:
 
 Belegt, aber bewusst nicht in der Kampagne umgesetzt:
 
-- **App und CLI behandeln denselben Zielordner verschieden.** Die App übergibt
-  dem Stapel keine Zielwurzel. Ist der gemerkte Zielordner inzwischen gelöscht,
-  legt die App die ganze Pfadkette neu an, während die CLI „output parent
-  directory does not exist" meldet; zeigt er auf eine Datei, meldet die CLI
-  „output already exists" und die App je Eingabe einen rohen Dateisystemfehler.
-  Gleiche Option, zwei Verhalten — gegen die Adapter-Invariante.
 - **Über Dock oder Doppelklick geöffnete Dateien melden nichts**, wenn die App
   gerade beschäftigt ist. Drop meldet `false`, der Dienst meldet Text, dieser
   Weg schweigt. Dazu ist ⌘O während der Pandoc-Installation aktiv und wirkungslos.

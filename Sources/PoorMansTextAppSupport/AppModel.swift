@@ -238,8 +238,18 @@ public final class AppModel: ObservableObject {
 
     /// Alle Teilaufträge laufen durch dieselbe Core-Planung wie CLI-Batches.
     /// Ein Retry ersetzt nur seine Slots; Erfolge und übrige Fehler bleiben stehen.
+    ///
+    /// `outputRoot` ist der gemerkte Zielordner. Er geht wie `--output` in der
+    /// CLI als Zielwurzel an den Stapel: Der prüft sie vor dem ersten Worker
+    /// gegen alle Quellen, legt sie höchstens eine Ebene tief an und meldet
+    /// eine Datei an dieser Stelle als „output already exists", einen fehlenden
+    /// Elternordner als „output parent directory does not exist". Vorher
+    /// übergab die App keine Wurzel, legte einen gelöschten Zielordner samt
+    /// Pfadkette still neu an und zeigte bei einer Datei je Eingabe einen rohen
+    /// Dateisystemfehler — gleiche Option, zwei Verhalten (Roadmap-Punkt,
+    /// 2026-09-10).
     private func executeBatch(_ requests: [ConversionRequest], original: [BatchItem], slots: [Int], jobs: Int,
-                              cancellation: ConversionCancellationToken) async -> [BatchItem] {
+                              outputRoot: URL?, cancellation: ConversionCancellationToken) async -> [BatchItem] {
         let attempted = Set(slots)
         batchDisplayItems = Dictionary(uniqueKeysWithValues: original.enumerated().filter { !attempted.contains($0.offset) }.map { ($0.offset, $0.element) })
         let baseCompleted = original.count - slots.count
@@ -261,8 +271,10 @@ public final class AppModel: ObservableObject {
         var updated = original
         do {
             let protectedInputs = original.map(\.input)
+            let outputRoots = outputRoot.map { [$0] } ?? []
             let results = try await Task.detached(priority: .userInitiated) {
-                try BatchConverter().convert(requests, jobs: jobs, protecting: protectedInputs, cancellation: cancellation, progress: handler)
+                try BatchConverter().convert(requests, jobs: jobs, outputRoots: outputRoots, protecting: protectedInputs,
+                    cancellation: cancellation, progress: handler)
             }.value
             for result in results { updated[slots[result.index]] = Self.batchItem(result) }
         } catch {
@@ -357,10 +369,12 @@ public final class AppModel: ObservableObject {
             state = .convertingBatch(BatchProgress(finished: items.filter { $0.result != nil }, current: first.input, total: items.count))
             let cancellation = beginConversion()
             let jobs = batchParallelism
+            let outputRoot = destinationFolder
             let slots = retry.compactMap { item in items.firstIndex { $0.id == item.id } }
             conversionTask = Task {
                 defer { finishConversion(cancellation) }
-                let updated = await executeBatch(requests, original: items, slots: slots, jobs: jobs, cancellation: cancellation)
+                let updated = await executeBatch(requests, original: items, slots: slots, jobs: jobs,
+                    outputRoot: outputRoot, cancellation: cancellation)
                 state = .batchFinished(updated)
             }
         } else if let first = failedInputs.first { convertSingle(first, isRetry: true) }
@@ -459,7 +473,8 @@ public final class AppModel: ObservableObject {
                 return ConversionRequest(inputURL: input.url, destination: destination.map(ConversionDestination.directory) ?? .adjacentToInput, options: options)
             }
             let original = inputs.map { BatchItem(input: $0.url, outcome: .failed(AppErrorMessage.describe(ConversionError.cancelled))) }
-            let finished = await executeBatch(requests, original: original, slots: Array(original.indices), jobs: jobs, cancellation: cancellation)
+            let finished = await executeBatch(requests, original: original, slots: Array(original.indices), jobs: jobs,
+                outputRoot: outputRoot, cancellation: cancellation)
             selectedInput = finished.first(where: { $0.result != nil })?.id
             state = .batchFinished(finished)
         }

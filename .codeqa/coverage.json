@@ -509,7 +509,8 @@
     "id": "20260910T154243481221+0200",
     "token_budget": 3000000,
     "status": "active",
-    "started_at": "2026-09-10T15:42:43+02:00"
+    "started_at": "2026-09-10T15:42:43+02:00",
+    "tokens_spent": 43000
   },
   "campaign_history": [
     {
@@ -759,14 +760,18 @@
         "Sources/PoorMansTextApp/ContentView.swift"
       ],
       "priority": 1,
-      "state": "in_progress",
+      "state": "completed",
       "noted_at": "2026-09-10T15:42:43+02:00",
       "campaign_id": "20260910T154243481221+0200",
       "started_at": "2026-09-10T15:42:59+02:00",
-      "active_run": {
+      "completed": {
         "campaign_id": "20260910T154243481221+0200",
-        "started_at": "2026-09-10T15:42:59+02:00",
-        "observed_head": "1a7c2a0dcd507449d30183537cc435944cca574d"
+        "completed_at": "2026-09-10T15:49:47+02:00",
+        "observed_head": "c986fe9797a665b8989b699c7ce7ca88637b418a",
+        "summary": "Homebrew und osascript laufen über den package-sichtbaren ProcessRunner des Kerns (Zeitlimit, Abbruch-Token, Prozessgruppen-Kill, stdin=/dev/null, Dateicapture). PandocInstaller: 15-Minuten-Limit, InstallError.cancelled/timedOut; AppModel: cancelPandocInstallation + isCancellingPandocInstallation; ContentView: Abbruchknopf. Verhalten sonst unverändert.",
+        "tests": [
+          "swift test: 513 passed (4 neue: Zeitlimit beendet brew, Token-Abbruch beendet brew, keine stdin-Vererbung, App-Abbruch gibt Einstiege frei)"
+        ]
       }
     },
     {
@@ -778,9 +783,15 @@
         "Sources/PoorMansTextCore/BatchConverter.swift"
       ],
       "priority": 1,
-      "state": "pending",
+      "state": "in_progress",
       "noted_at": "2026-09-10T15:42:43+02:00",
-      "campaign_id": "20260910T154243481221+0200"
+      "campaign_id": "20260910T154243481221+0200",
+      "started_at": "2026-09-10T15:50:02+02:00",
+      "active_run": {
+        "campaign_id": "20260910T154243481221+0200",
+        "started_at": "2026-09-10T15:50:02+02:00",
+        "observed_head": "c986fe9797a665b8989b699c7ce7ca88637b418a"
+      }
     },
     {
       "id": "dock-open-feedback",

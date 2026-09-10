@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Hand the app's destination folder to the batch as its output root, the way
+  `--output` reaches the CLI. A destination pointing at a file now fails with
+  "output already exists" instead of a raw file-system error per input, and a
+  deleted destination is recreated one level deep at most; a missing parent
+  fails before any conversion starts instead of being created silently.
 - Give the Homebrew installation of Pandoc a cancel button, a 15-minute limit,
   and no standard input. It ran through its own process starter without any of
   the three, so a Homebrew waiting for a password or a confirmation kept the

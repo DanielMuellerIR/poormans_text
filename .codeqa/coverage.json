@@ -112,15 +112,15 @@
       "state": "completed",
       "last_run": {
         "campaign_id": "20260910T101608235407+0200",
-        "completed_at": "2026-09-10T10:37:59+02:00",
-        "observed_head": "81a009fae20f58a1d5500f24b911508236b0e1f4",
-        "content_sha256": "77ecf066a2b0299be031f49b7c73ba3474e194e3962ac3bb8bc80c6635a0f6b7",
+        "completed_at": "2026-09-10T11:55:18+02:00",
+        "observed_head": "c437f0aeb1554290e01d20c4666372e7be667d9d",
+        "content_sha256": "2ad8ce17e90494cad76a49dd8e871b5d38e3608ff0be2cdcad998d424bcb4947",
         "file_count": 33,
         "review": "delta-plus-boundaries",
         "outcome": "reviewed-clean",
-        "summary": "Nachbuchung: die in diesem Bereich neu geschriebene Regressionsdatei ReviewFixes20260910Tests.swift dem Bereich zugeordnet. Ihr Inhalt ist der soeben verifizierte Prüfnachweis der vier Korrektheitsfixes; keine weitere Änderung.",
+        "summary": "Nachbuchung nach dem Querschnitts-Fund xmlparser-konfiguration: Das Delta dieses Bereichs ist genau der soeben verifizierte Theme-Diff — die lokale XMLParser-Konfiguration weicht dem gemeinsamen ImportXMLParser. Keine weitere Änderung.",
         "tests": [
-          "swift test --filter ReviewFixes20260910Tests: 10 passed, 0 failed"
+          "swift test: 496 passed, 0 failed"
         ]
       }
     },
@@ -240,17 +240,15 @@
       "state": "completed",
       "last_run": {
         "campaign_id": "20260910T101608235407+0200",
-        "completed_at": "2026-09-10T11:50:54+02:00",
-        "observed_head": "0836df16420c7193f8ea4f75624953e5e39b782c",
-        "content_sha256": "99cc61c3cddde8fa887c72f96cc13485a1c77cfad159c7993020af37b8b2b21b",
+        "completed_at": "2026-09-10T11:55:18+02:00",
+        "observed_head": "c437f0aeb1554290e01d20c4666372e7be667d9d",
+        "content_sha256": "487dc698cc0b112786bc059c2a86aeb2395491fbbc151e44ba8e93b578f468c8",
         "file_count": 14,
         "review": "delta-plus-boundaries",
-        "outcome": "improved",
-        "summary": "Delta seit c68c961 plus DelimitedTextAdapter. Drei Korrektheitsfehler behoben: komprimierte BIFF8-Zeichenketten wurden als ISO-8859-1 statt Windows-1252 gelesen, sodass jede westliche XLS mit typografischem Apostroph, Halbgeviertstrich oder Eurozeichen C1-Steuerzeichen ins Markdown trug; ein ODS mit LibreOffice-typischer leerer Schlusszeile (number-rows-repeated=1048575) wurde komplett abgewiesen; eine UTF-16-CSV mit NUL galt als Text, dieselbe Datei ohne Stückliste als Binärdatei. Der ODS-Fix wurde zuerst als Klemmung gebaut und an drei echten Testdateien als still kürzend erkannt, danach auf 'erst beim Materialisieren entscheiden' korrigiert. Qualität: drei wortgleiche Limits-Kopien der Arbeitsmappen-Leser zu SpreadsheetLimits zusammengeführt. Vier belegte, nicht umgesetzte Punkte stehen in ROADMAP.md.",
+        "outcome": "reviewed-clean",
+        "summary": "Nachbuchung nach dem Querschnitts-Fund xmlparser-konfiguration: Das Delta dieses Bereichs ist genau der soeben verifizierte Theme-Diff — die lokale XMLParser-Konfiguration weicht dem gemeinsamen ImportXMLParser. Keine weitere Änderung.",
         "tests": [
-          "swift test: 494 passed, 0 failed (vorher 490)",
-          "Mutationstest: Rückmutation auf isoLatin1 lässt zwei Zusicherungen fehlschlagen",
-          "CLI-Gegenprobe mit drei gebauten ODS: leere Schlusswiederholung konvertiert, Wiederholung mit Inhalt und Lücke zwischen Inhalt werden weiter abgelehnt"
+          "swift test: 496 passed, 0 failed"
         ]
       }
     },
@@ -312,24 +310,25 @@
       "id": "xml-shared-infra",
       "paths": [
         "Sources/PoorMansTextCore/NamespacePrefixTracker.swift",
-        "Tests/PoorMansTextCoreTests/NamespacePrefixTrackerTests.swift"
+        "Tests/PoorMansTextCoreTests/NamespacePrefixTrackerTests.swift",
+        "Sources/PoorMansTextCore/ImportXMLParser.swift",
+        "Tests/PoorMansTextCoreTests/ImportXMLParserTests.swift"
       ],
       "risk": "medium",
       "priority": 3,
       "reason": "Gemeinsame XML-Namensraum-Hilfsklasse, aus der Konsolidierung des Querschnitts-Funds entstanden; von ZIP-Inspector und XLSX-Parser genutzt",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20260819T180037868197+0200",
-        "completed_at": "2026-08-19T18:38:15+02:00",
-        "observed_head": "05549094c359d484ab33c60cf4c8a8f2f0fdf39d",
-        "content_sha256": "422799b8f32d91faf71343c8b64b732e03c68c3a958a99a9e0721e89233ccddd",
-        "file_count": 2,
-        "review": "full",
-        "outcome": "improved",
-        "summary": "Vollreview der Klasse samt aller drei Aufrufer: Präfix-Stapel korrekt, vollständiger statt Suffix-Vergleich des lokalen Namens, unpräfigierte Attribute zählen richtigerweise nie. Ein Fund: Bei zwei Präfixen auf denselben Namensraum entschied die Dictionary-Reihenfolge und damit der Hash-Seed des Prozesses — dasselbe ODM konvertierte über 20 Läufe viermal und scheiterte sechzehnmal. Jetzt gewinnt stabil der kleinste Attributname. Der Bereich hatte keine eigenen Tests; fünf sind dazugekommen",
+        "campaign_id": "20260910T101608235407+0200",
+        "completed_at": "2026-09-10T11:55:19+02:00",
+        "observed_head": "c437f0aeb1554290e01d20c4666372e7be667d9d",
+        "content_sha256": "11b2302a0f1167804abbebefd8b1957a9a56c98d2a129d05ac02155670885c6f",
+        "file_count": 4,
+        "review": "delta-plus-boundaries",
+        "outcome": "reviewed-clean",
+        "summary": "Nachbuchung nach dem Querschnitts-Fund xmlparser-konfiguration: Das Delta dieses Bereichs ist genau der soeben verifizierte Theme-Diff — die lokale XMLParser-Konfiguration weicht dem gemeinsamen ImportXMLParser. Keine weitere Änderung.",
         "tests": [
-          "swift test: 235 passed, 0 failures",
-          "Messung über die CLI: vor dem Fix 4/16 wechselnd über 20 Läufe, danach 20/20 stabil"
+          "swift test: 496 passed, 0 failed"
         ]
       }
     },
@@ -626,9 +625,20 @@
         "Sources/PoorMansTextCore/XLSXWorkbookParser.swift"
       ],
       "priority": 1,
-      "state": "pending",
+      "state": "completed",
       "noted_at": "2026-09-10T10:21:40+02:00",
-      "campaign_id": "20260910T101608235407+0200"
+      "campaign_id": "20260910T101608235407+0200",
+      "started_at": "2026-09-10T11:51:10+02:00",
+      "completed": {
+        "campaign_id": "20260910T101608235407+0200",
+        "completed_at": "2026-09-10T11:55:10+02:00",
+        "observed_head": "c437f0aeb1554290e01d20c4666372e7be667d9d",
+        "summary": "ImportXMLParser.make setzt die drei Einstellungen jetzt einmal für alle acht Leser; die fehlende Sperre gegen externe Entitäten in PackageMetadataParser ist damit strukturell ausgeschlossen. 42 Zeilen weniger. Zwei der drei Einstellungen sind per Mutationstest festgenagelt; beim dritten hält der Test das Verhalten fest, nicht die Einstellung, und sagt das auch.",
+        "tests": [
+          "swift test: 496 passed, 0 failed (vorher 494)",
+          "Mutationstest: shouldProcessNamespaces=false und shouldReportNamespacePrefixes=false lassen Tests fehlschlagen"
+        ]
+      }
     },
     {
       "id": "markdown-datei-schreiben",

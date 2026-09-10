@@ -308,6 +308,175 @@ enum PackageMetadataParser {
     }
 }
 
+/// Liest die Metadaten eines EPUB: `META-INF/container.xml` nennt die
+/// OPF-Datei, deren `<metadata>` Dublin Core trägt — dieselben Elemente wie
+/// `meta.xml`, deshalb derselbe Parser. `dc:date` ist im OPF das
+/// Veröffentlichungsdatum und wird als Erstelldatum geführt. Vorher lieferte
+/// EPUB nie Metadaten, `--frontmatter` warnte trotz `dc:title` im Buch
+/// (Roadmap-Punkt, 2026-09-10). Fehlt etwas oder ist es unlesbar, gibt es
+/// keine Angaben — nie einen Fehler.
+enum EPUBMetadataReader {
+    static let containerNamespace = "urn:oasis:names:tc:opendocument:xmlns:container"
+
+    static func read(fromPackageAt url: URL) -> DocumentMetadata {
+        guard let reader = try? ZIPArchiveInspector.inspectionSnapshot(at: url),
+              let container = try? reader.dataIfPresent(named: "META-INF/container.xml"),
+              let rootFile = rootFilePath(in: container),
+              let opf = try? reader.dataIfPresent(named: rootFile) else {
+            return DocumentMetadata()
+        }
+        let parsed = PackageMetadataParser.parse(opf)
+        return DocumentMetadata(
+            title: parsed.title,
+            author: parsed.author,
+            subject: parsed.subject,
+            description: parsed.description,
+            keywords: parsed.keywords,
+            created: parsed.modified,
+            modified: nil
+        )
+    }
+
+    /// Der `full-path` des ersten `<rootfile>`, relativ zur Paketwurzel.
+    static func rootFilePath(in containerXML: Data) -> String? {
+        let delegate = ContainerDelegate()
+        let parser = ImportXMLParser.make(containerXML, delegate: delegate)
+        _ = parser.parse()
+        guard let path = delegate.path else { return nil }
+        return path.hasPrefix("/") ? String(path.dropFirst()) : path
+    }
+
+    private final class ContainerDelegate: NSObject, XMLParserDelegate {
+        var path: String?
+
+        func parser(
+            _ parser: XMLParser,
+            didStartElement elementName: String,
+            namespaceURI: String?,
+            qualifiedName: String?,
+            attributes: [String: String]
+        ) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
+            guard path == nil, elementName == "rootfile",
+                  namespaceURI == EPUBMetadataReader.containerNamespace,
+                  let fullPath = attributes["full-path"], !fullPath.isEmpty else {
+                return
+            }
+            path = fullPath
+        }
+    }
+}
+
+/// Liest `<description><title-info>` eines FictionBook: Buchtitel, erster
+/// Autor (Vor-, Zweit- und Nachname, sonst Spitzname), Genres als
+/// Schlüsselwörter, Annotation als Beschreibung, `date` als Erstelldatum —
+/// bevorzugt aus dem maschinenlesbaren Attribut `value`. `document-info`
+/// beschreibt die Datei, nicht das Buch, und zählt nicht. Vorher lieferte FB2
+/// nie Metadaten (Roadmap-Punkt, 2026-09-10).
+enum FB2MetadataParser {
+    static let namespace = "http://www.gribuser.ru/xml/fictionbook/2.0"
+
+    static func parse(_ xml: Data) -> DocumentMetadata {
+        let delegate = Delegate()
+        let parser = ImportXMLParser.make(xml, delegate: delegate)
+        // Ein defekter Kopf ist kein Grund, das Buch abzulehnen; das
+        // entscheidet Pandoc beim Lesen des Textes.
+        _ = parser.parse()
+        return delegate.result()
+    }
+
+    private final class Delegate: NSObject, XMLParserDelegate {
+        /// Elementnamen im FB2-Namensraum von der Wurzel bis zum aktuellen.
+        private var path = [String]()
+        private var text = ""
+        private var title: String?
+        private var nameParts = [String]()
+        private var nickname: String?
+        private var authorsSeen = 0
+        private var genres = [String]()
+        private var annotation = ""
+        private var date: String?
+
+        private var inTitleInfo: Bool {
+            path.count >= 3 && path[1] == "description" && path[2] == "title-info"
+        }
+        private var inFirstAuthor: Bool {
+            inTitleInfo && authorsSeen == 0 && path.contains("author")
+        }
+
+        func result() -> DocumentMetadata {
+            let name = nameParts.joined(separator: " ")
+            return DocumentMetadata(
+                title: title,
+                author: DocumentMetadata.cleaned(name) ?? nickname,
+                description: annotation,
+                keywords: genres,
+                created: date.flatMap(DocumentMetadata.parseDate)
+            )
+        }
+
+        func parser(
+            _ parser: XMLParser,
+            didStartElement elementName: String,
+            namespaceURI: String?,
+            qualifiedName: String?,
+            attributes: [String: String]
+        ) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
+            guard namespaceURI == FB2MetadataParser.namespace else { return }
+            path.append(elementName)
+            text = ""
+            if inTitleInfo, elementName == "date", date == nil,
+               let value = attributes["value"], DocumentMetadata.cleaned(value) != nil {
+                date = value
+            }
+        }
+
+        func parser(_ parser: XMLParser, foundCharacters string: String) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
+            text += string
+            if inTitleInfo, path.contains("annotation") { annotation += string }
+        }
+
+        func parser(_ parser: XMLParser, foundCDATA CDATABlock: Data) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
+            guard let string = String(data: CDATABlock, encoding: .utf8) else { return }
+            text += string
+            if inTitleInfo, path.contains("annotation") { annotation += string }
+        }
+
+        func parser(
+            _ parser: XMLParser,
+            didEndElement elementName: String,
+            namespaceURI: String?,
+            qualifiedName: String?
+        ) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
+            guard namespaceURI == FB2MetadataParser.namespace, path.last == elementName else { return }
+            defer { path.removeLast() }
+            guard inTitleInfo else { return }
+            switch elementName {
+            case "book-title":
+                if title == nil { title = text }
+            case "first-name", "middle-name", "last-name":
+                if inFirstAuthor, let part = DocumentMetadata.cleaned(text) { nameParts.append(part) }
+            case "nickname":
+                if inFirstAuthor, nickname == nil { nickname = text }
+            case "author":
+                authorsSeen += 1
+            case "genre":
+                if let genre = DocumentMetadata.cleaned(text) { genres.append(genre) }
+            case "p" where path.contains("annotation"):
+                annotation += " "
+            case "date":
+                if date == nil { date = text }
+            default:
+                break
+            }
+        }
+    }
+}
+
 /// Liest die `\info`-Gruppe eines RTF-Dokuments: `{\info{\title …}{\author …}
 /// {\subject …}{\keywords …}{\doccomm …}{\creatim\yr…\mo…\dy…\hr…\min…}}`.
 /// Der Leser folgt nur der Gruppenklammerung und kennt die Escapes `\'hh`,

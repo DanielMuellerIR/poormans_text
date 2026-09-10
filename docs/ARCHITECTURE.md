@@ -98,7 +98,8 @@ Nebenressourcen (`WebArchiveReader`). Pandoc läuft mit `--sandbox`, sodass etwa
 
 Jeder Adapter liefert neben Markdown und Assets ein `DocumentMetadata`, soweit
 sein Format Titel, Autor oder Daten kennt (`docProps/core.xml`, `meta.xml`,
-RTF-`\info`, PDF-Info-Wörterbuch; DOC, XLS, IPYNB und Bilder liefern nichts).
+RTF-`\info`, PDF-Info-Wörterbuch, EPUB-OPF, FB2-`title-info`, HTML-Kopf; DOC,
+XLS, IPYNB und Bilder liefern nichts).
 `ConversionPostprocessor` übernimmt die Nachbearbeitung im Staging-Bereich:
 `ConversionOptions.frontmatter` stellt den YAML-Kopf voran,
 `ConversionOptions.outputLayout == .textbundle` baut das Ergebnis in

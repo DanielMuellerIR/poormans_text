@@ -146,8 +146,10 @@ nothing is overwritten.
 `--frontmatter` starts the Markdown with a YAML header built from the source:
 title, author, subject, description, keywords, and creation and modification
 dates, read from OOXML core properties (DOCX, XLSX), OpenDocument `meta.xml`
-(ODT, ODS, ODM), the RTF `\info` group (RTF, RTFD), or the PDF information
-dictionary. Every value is quoted, dates are ISO 8601 in UTC. A source without
+(ODT, ODS, ODM), the RTF `\info` group (RTF, RTFD), the PDF information
+dictionary, the OPF metadata of an EPUB, the `title-info` of a FictionBook, or
+the `<title>` and `<meta>` tags of HTML and web archives. Every value is
+quoted, dates are ISO 8601 in UTC. A source without
 any of these gets a warning instead of an empty header. The same fields appear
 as `metadata` in every `--json` answer, whether or not the header was written.
 

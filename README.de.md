@@ -153,7 +153,9 @@ Kollision am Ausgabeziel gemeldet, und nichts wird überschrieben.
 Titel, Autor, Thema, Beschreibung, Schlüsselwörter sowie Erstell- und
 Änderungsdatum, gelesen aus den OOXML-Kerneigenschaften (DOCX, XLSX), der
 OpenDocument-Datei `meta.xml` (ODT, ODS, ODM), der RTF-Gruppe `\info` (RTF,
-RTFD) oder dem PDF-Informationswörterbuch. Jeder Wert steht in
+RTFD), dem PDF-Informationswörterbuch, den OPF-Metadaten eines EPUB, der
+`title-info` eines FictionBook oder `<title>` und `<meta>` von HTML und
+Webarchiven. Jeder Wert steht in
 Anführungszeichen, Daten sind ISO 8601 in UTC. Eine Quelle ohne solche Angaben
 bekommt eine Warnung statt eines leeren Kopfs. Dieselben Felder stehen als
 `metadata` in jeder `--json`-Antwort, auch ohne den Schalter.

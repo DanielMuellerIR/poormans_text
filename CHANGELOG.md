@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Read metadata from EPUB and FictionBook sources: the OPF named by
+  `META-INF/container.xml` (Dublin Core, `dc:date` as the creation date) and
+  the `title-info` block (book title, first author, genres, annotation, date).
+  `--frontmatter` previously always reported that no metadata was available.
 - Honor the charset an HTML file declares before assuming Windows-1252. A page
   in windows-1251 or shift_jis was read as mojibake with the generic encoding
   warning; UTF-8 still comes first, and the warning now only appears when

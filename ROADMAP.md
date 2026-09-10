@@ -141,13 +141,6 @@ Belegt, aber bewusst nicht in der Kampagne umgesetzt:
   Eine Folie mit vielen Verweisen auf dasselbe Bild kostet dadurch ein
   Vielfaches.
 
-## Offene Punkte beim HTML-Import (Stand 2026-09-10)
-
-Belegt, aber bewusst nicht in der Kampagne umgesetzt:
-
-- **EPUB und FictionBook liefern nie Metadaten.** `--frontmatter` meldet dort
-  immer `metadataUnavailable`, obwohl `dc:title` und `dc:creator` im Buch stehen.
-
 ## Offene Punkte der Tabellenleser (Stand 2026-09-10)
 
 Belegt, aber bewusst nicht in der Kampagne umgesetzt:

@@ -215,18 +215,16 @@
     {
       "id": "pandoc-text",
       "last_run": {
-        "campaign_id": "20260910T101608235407+0200",
-        "completed_at": "2026-09-10T12:17:09+02:00",
-        "content_sha256": "5caccab10b12739818d9b81f597cd027f720613aa9433a3cdb6d1614cd37eb90",
+        "campaign_id": "20260910T154243481221+0200",
+        "completed_at": "2026-09-10T16:14:01+02:00",
+        "observed_head": "521bcf31d305268a40a34942bc85f79432e9246b",
+        "content_sha256": "5cd2ee38d5db2d9b790eb564be599bcb5a4c98d849e10ea88adb972038434a46",
         "file_count": 5,
-        "observed_head": "517e57b644d6d65c3d9e7b2eed112c21a0aca692",
+        "review": "delta-plus-boundaries",
         "outcome": "improved",
-        "review": "full",
-        "summary": "Vollreview. Vier Korrektheitsfehler behoben, alle reproduziert: die Endung eines kopierten Bildes stammte aus dem fremden Verweis, sodass ein verlinktes HTML als images/image01.html im Ergebnis landete und beim Öffnen entfernte Ressourcen nachlud — jetzt entscheidet der über ImageIO geprüfte Inhalt; ein > in einem Attributwert beendete das img-Tag und kostete das echte Bild samt Tagrest im Markdown (in Bildleser UND Rewriter); ein # oder ? im Dateinamen galt als URL-Trenner und ließ das Bild als fehlend gelten; ein Lesefehler der Arbeitskopie ergab ein leeres Dokument statt eines Fehlers. Eigene Gegenprobe mit laufendem lokalem HTTP-Server: null Zugriffe, http bleibt Link mit Warnung, file:, javascript:, protokollrelativ und Aufwärtsverweise fallen mit Warnung weg. Vier belegte, nicht umgesetzte Punkte stehen in ROADMAP.md.",
+        "summary": "Delta = Zeichensatz-Rückfallkette, Bildkopie-Fehlerabbildung, Webarchiv-Dedup; Grenzen zu VerifiedFileStaging (StagingError.kind) und HTMLDocumentConverter unverändert.",
         "tests": [
-          "swift test: 500 passed, 0 failed (vorher 496)",
-          "Mutationstest: entfernte Typprüfung und zurückgesetzte Tag-Regex lassen je drei Zusicherungen fehlschlagen",
-          "CLI-Gegenprobe gegen lokalen HTTP-Server: 0 Zugriffe bei sechs Bildverweisen"
+          "swift test: 527 passed"
         ]
       },
       "paths": [
@@ -503,7 +501,7 @@
     "token_budget": 3000000,
     "status": "active",
     "started_at": "2026-09-10T15:42:43+02:00",
-    "tokens_spent": 128833
+    "tokens_spent": 146343
   },
   "campaign_history": [
     {
@@ -889,14 +887,18 @@
         "Sources/PoorMansTextCore/WebArchiveReader.swift"
       ],
       "priority": 2,
-      "state": "in_progress",
+      "state": "completed",
       "noted_at": "2026-09-10T15:42:44+02:00",
       "campaign_id": "20260910T154243481221+0200",
       "started_at": "2026-09-10T16:07:33+02:00",
-      "active_run": {
+      "completed": {
         "campaign_id": "20260910T154243481221+0200",
-        "started_at": "2026-09-10T16:07:33+02:00",
-        "observed_head": "757e493f48e322b0b7c9e35bd480343e44d925e7"
+        "completed_at": "2026-09-10T16:14:01+02:00",
+        "observed_head": "521bcf31d305268a40a34942bc85f79432e9246b",
+        "summary": "PandocTextAdapter.declaredCharset (meta charset, http-equiv, XML encoding) zwischen UTF-8 und Windows-1252-Annahme (Produktentscheidung: UTF-8 zuerst, weil viele Seiten falsch Latin-1 deklarieren; .tex bleibt hart UTF-8); copyLocalImage: StagingError.source → nil statt fileSystemFailure; Webarchiv-Nebenressourcen über localNames dedupliziert.",
+        "tests": [
+          "swift test: 527 passed (3 neue: windows-1251 mit meta charset ohne Warnung + cp1252 ohne Deklaration mit Warnung + drei Deklarationsformen; spärliches 256-MiB+1-Bild fällt weg; Nebenressource zweimal referenziert einmal geschrieben)"
+        ]
       }
     },
     {
@@ -907,9 +909,15 @@
         "Sources/PoorMansTextCore/DocumentMetadata.swift"
       ],
       "priority": 2,
-      "state": "pending",
+      "state": "in_progress",
       "noted_at": "2026-09-10T15:42:44+02:00",
-      "campaign_id": "20260910T154243481221+0200"
+      "campaign_id": "20260910T154243481221+0200",
+      "started_at": "2026-09-10T16:14:01+02:00",
+      "active_run": {
+        "campaign_id": "20260910T154243481221+0200",
+        "started_at": "2026-09-10T16:14:01+02:00",
+        "observed_head": "521bcf31d305268a40a34942bc85f79432e9246b"
+      }
     },
     {
       "id": "spreadsheet-memory-and-phonetics",

@@ -231,6 +231,7 @@ struct PandocTextAdapter: DocumentConversionAdapter {
             } catch {
                 throw ConversionError.invalidInput(context.inputURL, format: context.format, reason: error.localizedDescription)
             }
+            metadata = EPUBMetadataReader.read(fromPackageAt: staged)
             html = try Self.pandocHTML(from: staged, reader: kind.reader, context: context, pandocExecutable: pandocExecutable)
             baseDirectory = nil
 
@@ -238,6 +239,9 @@ struct PandocTextAdapter: DocumentConversionAdapter {
             let staged = try Self.stageFile(context, named: "verified-source.\(context.inputURL.pathExtension.lowercased())", maximumBytes: Self.maximumTextBytes)
             guard let data = try? Data(contentsOf: staged, options: [.mappedIfSafe]), String(data: data, encoding: .utf8) != nil else {
                 throw ConversionError.invalidInput(context.inputURL, format: context.format, reason: "the file is not valid UTF-8 text")
+            }
+            if context.format == .fb2 {
+                metadata = FB2MetadataParser.parse(data)
             }
             html = try Self.pandocHTML(from: staged, reader: kind.reader, context: context, pandocExecutable: pandocExecutable)
         }

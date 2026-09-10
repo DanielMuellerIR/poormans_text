@@ -221,7 +221,8 @@ final class PandocTextAdapterTests: XCTestCase {
         <?xml version="1.0" encoding="UTF-8"?>
         <package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="id">
         <metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:identifier id="id">x</dc:identifier>
-        <dc:title>Testbuch</dc:title><dc:language>de</dc:language></metadata>
+        <dc:title>Testbuch</dc:title><dc:creator>Anna Autorin</dc:creator><dc:date>2020-05-01</dc:date>
+        <dc:language>de</dc:language></metadata>
         <manifest>
         <item id="k1" href="kapitel1.xhtml" media-type="application/xhtml+xml"/>
         <item id="k2" href="kapitel2.xhtml" media-type="application/xhtml+xml"/>
@@ -252,6 +253,53 @@ final class PandocTextAdapterTests: XCTestCase {
         XCTAssertEqual(result.assets.map(\.lastPathComponent), ["image01.png"])
         XCTAssertTrue(markdown.contains("images/image01.png"), markdown)
         XCTAssertTrue(result.diagnostics.contains(.epubFlattened))
+        // Die Metadaten kommen aus dem OPF; vorher blieb `--frontmatter` leer.
+        XCTAssertEqual(result.metadata.title, "Testbuch")
+        XCTAssertEqual(result.metadata.author, "Anna Autorin")
+        XCTAssertEqual(result.metadata.created, DocumentMetadata.parseDate("2020-05-01"))
+        XCTAssertNil(result.metadata.modified)
+    }
+
+    /// Der OPF-Leser ohne Pandoc: `container.xml` nennt den Pfad, auch mit
+    /// führendem Schrägstrich; Dublin Core wird wie in `meta.xml` gelesen.
+    func testEPUBMetadataAreReadFromTheOPF() throws {
+        let container = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
+        <rootfiles><rootfile full-path="/Inhalt/buch.opf" media-type="application/oebps-package+xml"/></rootfiles>
+        </container>
+        """
+        let opf = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="id">
+        <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+        <dc:title>Buchtitel</dc:title><dc:creator>Erste Autorin</dc:creator><dc:creator>Zweiter Autor</dc:creator>
+        <dc:description>Kurzbeschreibung</dc:description><dc:subject>Thema</dc:subject><dc:date>2019-12-24</dc:date>
+        </metadata><manifest/><spine/></package>
+        """
+        let epub = try ZIPFixtureBuilder.archive(entries: [
+            ZIPFixtureBuilder.Entry(name: "mimetype", content: Data("application/epub+zip".utf8), isStored: true),
+            ZIPFixtureBuilder.Entry(name: "META-INF/container.xml", content: Data(container.utf8)),
+            ZIPFixtureBuilder.Entry(name: "Inhalt/buch.opf", content: Data(opf.utf8)),
+        ])
+        let sourceURL = root.appendingPathComponent("Meta.epub")
+        try epub.write(to: sourceURL)
+
+        let metadata = EPUBMetadataReader.read(fromPackageAt: sourceURL)
+        XCTAssertEqual(metadata.title, "Buchtitel")
+        XCTAssertEqual(metadata.author, "Erste Autorin")
+        XCTAssertEqual(metadata.description, "Kurzbeschreibung")
+        XCTAssertEqual(metadata.subject, "Thema")
+        XCTAssertEqual(metadata.created, DocumentMetadata.parseDate("2019-12-24"))
+        XCTAssertNil(metadata.modified)
+
+        // Ohne container.xml gibt es keine Angaben, aber auch keinen Fehler.
+        let bare = try ZIPFixtureBuilder.archive(entries: [
+            ZIPFixtureBuilder.Entry(name: "mimetype", content: Data("application/epub+zip".utf8), isStored: true),
+        ])
+        let bareURL = root.appendingPathComponent("Leer.epub")
+        try bare.write(to: bareURL)
+        XCTAssertTrue(EPUBMetadataReader.read(fromPackageAt: bareURL).isEmpty)
     }
 
     func testAZIPWithoutEPUBMimetypeIsNotAnEPUB() throws {
@@ -274,7 +322,8 @@ final class PandocTextAdapterTests: XCTestCase {
         let fb2 = """
         <?xml version="1.0" encoding="UTF-8"?>
         <FictionBook xmlns="http://www.gribuser.ru/xml/fictionbook/2.0" xmlns:l="http://www.w3.org/1999/xlink">
-        <description><title-info><book-title>Geschichte</book-title></title-info></description>
+        <description><title-info><book-title>Geschichte</book-title>
+        <author><first-name>Anna</first-name><last-name>Autorin</last-name></author></title-info></description>
         <body><section><title><p>Erstes Kapitel</p></title><p>Ein <strong>starker</strong> Satz.</p>
         <image l:href="#bild.png"/></section></body>
         <binary id="bild.png" content-type="image/png">\(pngData.base64EncodedString())</binary>
@@ -290,6 +339,45 @@ final class PandocTextAdapterTests: XCTestCase {
         XCTAssertTrue(markdown.contains("Erstes Kapitel"), markdown)
         XCTAssertTrue(markdown.contains("**starker**"), markdown)
         XCTAssertEqual(result.assets.count, 1, markdown)
+        XCTAssertEqual(result.metadata.title, "Geschichte")
+        XCTAssertEqual(result.metadata.author, "Anna Autorin")
+    }
+
+    /// Der FB2-Leser ohne Pandoc: nur `title-info` zählt, der erste Autor,
+    /// Genres als Schlüsselwörter, Annotation als Beschreibung, das Datum
+    /// bevorzugt aus `value`.
+    func testFB2MetadataComeFromTheTitleInfoOnly() throws {
+        let fb2 = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <FictionBook xmlns="http://www.gribuser.ru/xml/fictionbook/2.0">
+        <description>
+        <title-info><genre>prose</genre><genre>history</genre>
+        <author><first-name>Anna</first-name><middle-name>B.</middle-name><last-name>Autorin</last-name></author>
+        <author><first-name>Zweiter</first-name><last-name>Autor</last-name></author>
+        <book-title>Die Geschichte</book-title>
+        <annotation><p>Erster Absatz.</p><p>Zweiter Absatz.</p></annotation>
+        <date value="2005-01-31">31. Januar 2005</date></title-info>
+        <document-info><author><nickname>scanner42</nickname></author><date>2010-01-01</date></document-info>
+        </description>
+        <body><section><p>Text</p></section></body>
+        </FictionBook>
+        """
+        let metadata = FB2MetadataParser.parse(Data(fb2.utf8))
+
+        XCTAssertEqual(metadata.title, "Die Geschichte")
+        XCTAssertEqual(metadata.author, "Anna B. Autorin")
+        XCTAssertEqual(metadata.keywords, ["prose", "history"])
+        XCTAssertEqual(metadata.description, "Erster Absatz. Zweiter Absatz.")
+        XCTAssertEqual(metadata.created, DocumentMetadata.parseDate("2005-01-31"))
+
+        let nickname = """
+        <FictionBook xmlns="http://www.gribuser.ru/xml/fictionbook/2.0"><description><title-info>
+        <author><nickname>anon</nickname></author><book-title>T</book-title><date>2001-02-03</date>
+        </title-info></description></FictionBook>
+        """
+        let byNickname = FB2MetadataParser.parse(Data(nickname.utf8))
+        XCTAssertEqual(byNickname.author, "anon")
+        XCTAssertEqual(byNickname.created, DocumentMetadata.parseDate("2001-02-03"))
     }
 
     func testTheFormatCatalogNamesPandocForEveryTextFormat() {

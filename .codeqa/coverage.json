@@ -6,7 +6,7 @@
     "token_budget": 4000000,
     "status": "active",
     "started_at": "2026-09-10T10:16:08+02:00",
-    "tokens_spent": 861422
+    "tokens_spent": 1150090
   },
   "campaign_history": [
     {
@@ -166,7 +166,23 @@
       "risk": "high",
       "priority": 2,
       "reason": "Parallele Stapelverarbeitung mit gemeinsamem Quellschutz und kooperativem Abbruch: Datenintegrität und breite Aufrufwirkung",
-      "state": "pending"
+      "state": "completed",
+      "last_run": {
+        "campaign_id": "20260910T101608235407+0200",
+        "completed_at": "2026-09-10T11:18:32+02:00",
+        "observed_head": "59030d6fe2554c9829122f1d05b9e1aecfe18997",
+        "content_sha256": "e50f4909a5cf3a1aa3c6fb2989cae73b357ff906e6ce5300a37a91dc72839a37",
+        "file_count": 7,
+        "review": "full",
+        "outcome": "improved",
+        "summary": "Vollreview der neuen Stapelschicht. Zwei Korrektheitsfehler behoben: Ein direkt genannter Ergebnisordner wurde durchsucht — der Filter für Name-markdown/Name.textbundle galt nur für gefundene Nachfahren —, sodass ein zweiter Lauf die Bilder des ersten erneut umwandelte und das Ergebnis IN den alten Ergebnisordner legte (reproduziert). Und die CLI verwarf veraltete Fortschrittsereignisse nicht, wodurch der Dateizähler mit --jobs 2..4 rückwärts laufen konnte; die App filterte längst so. Zwei falsche Doku-Zusagen berichtigt (Callback-Nebenläufigkeit, Reichweite von relativeDirectory). Testabdeckung per Mutationstest belegt: vier Schutzschritte waren löschbar, ohne dass ein Test rot wurde; jetzt nicht mehr. Eigene CLI-Gegenproben: Parallellauf über einen Ordner, Namenskollision auf case-insensitivem Volume, zweiter Lauf ins selbe Ziel, SIGINT mitten im Lauf — alle korrekt.",
+        "tests": [
+          "swift test: 490 passed, 0 failed (vorher 483)",
+          "Mutationstest: 4 von 4 entfernten Schutzschritten führen jetzt zu roten Tests",
+          "Flakiness-Messung: BatchConverterTests 18 Läufe grün, davon 6 unter Volllast auf 12 Kernen",
+          "CLI-Gegenprobe: SIGINT bei 40 Dokumenten lässt 8 vollständige Ergebnisse stehen, keine halben, keine Temp-Reste"
+        ]
+      }
     },
     {
       "id": "media-import",

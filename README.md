@@ -162,7 +162,10 @@ without carrying the bundle files. Folder searches skip existing bundles.
 Markdown to standard output, and removes the temporary result. Diagnostics go
 to standard error. Image assets are not kept and are reported; their links stay
 in the text. It cannot be combined with `--json`, `--output`, `--textbundle`,
-several inputs, or a folder.
+`--jobs`, several inputs, or a folder.
+
+Text mode prints one result path per line. A path that itself contains a line
+break spans two lines, so scripts that parse the output should use `--json`.
 
 Exit codes follow conventional `sysexits` values: `64` for usage errors, `65`
 for invalid input data, `66` for a missing input, `69` when Pandoc is not

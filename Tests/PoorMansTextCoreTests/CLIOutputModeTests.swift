@@ -69,6 +69,10 @@ final class CLIOutputModeTests: XCTestCase {
         for arguments in [
             ["--stdout", "--output", root.appendingPathComponent("out").path, image.path],
             ["--stdout", "--textbundle", image.path],
+            // Wirkungslos, deshalb wie im Katalogmodus ein Aufruffehler
+            // (Roadmap-Punkt, 2026-09-10).
+            ["--stdout", "--jobs", "2", image.path],
+            ["--stdout", "--jobs=4", image.path],
             ["--stdout", image.path, second.path],
             ["--stdout", folder.path],
             ["--formats", "--stdout"],

@@ -170,8 +170,12 @@ vorhandene Bundles.
 Markdown auf der Standardausgabe aus und entfernt das temporäre Ergebnis.
 Diagnosen gehen an die Standardfehlerausgabe. Bilder werden nicht behalten und
 gemeldet; ihre Verweise bleiben im Text. Der Schalter lässt sich nicht mit
-`--json`, `--output`, `--textbundle`, mehreren Eingaben oder einem Ordner
-kombinieren.
+`--json`, `--output`, `--textbundle`, `--jobs`, mehreren Eingaben oder einem
+Ordner kombinieren.
+
+Der Textmodus gibt je Ergebnis einen Pfad pro Zeile aus. Ein Pfad, der selbst
+einen Zeilenumbruch enthält, belegt zwei Zeilen; Skripte, die die Ausgabe
+auswerten, nehmen deshalb `--json`.
 
 Die Exit-Codes folgen den üblichen `sysexits`-Werten: `64` für Aufruffehler,
 `65` für ungültige Eingabedaten, `66` für eine fehlende Eingabe, `69` für ein

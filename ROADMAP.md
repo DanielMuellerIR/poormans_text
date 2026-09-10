@@ -133,13 +133,6 @@ Belegt, aber bewusst nicht in der Kampagne umgesetzt:
   hält `testJSONModeUsesOnlyOptionsRecognizedByParser` fest. Sauber wäre ein
   wertbewusster Vorabscan; dafür müsste die Auswertung erst eine gemeinsame
   Liste der Optionen mit Wert bekommen, statt der heutigen if-else-Kette.
-- **Der Textmodus ist bei Sonderzeichen im Dateinamen nicht zeilenweise
-  parsbar.** Ein Ergebnispfad mit Zeilenumbruch erzeugt zwei Zeilen. Die Hilfe
-  beschreibt den Textmodus als Zeilenliste; wer sicher parsen will, nimmt
-  `--json`. Entweder die Hilfe sagt das ausdrücklich, oder der Textmodus
-  maskiert — beides ist eine Produktentscheidung.
-- **`--stdout --jobs 4` wird stillschweigend geschluckt**, während dieselbe
-  wirkungslose Angabe im Katalogmodus ein Nutzungsfehler ist.
 
 ## Offene Punkte bei Präsentationen (Stand 2026-09-10)
 

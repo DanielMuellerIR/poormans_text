@@ -70,6 +70,11 @@ do {
         if arguments.outputLayout == .textbundle {
             throw CLIArgumentError.standardOutputConflict("cannot be combined with --textbundle")
         }
+        // Wie im Katalogmodus: Eine wirkungslose Angabe ist ein Aufruffehler,
+        // kein stilles Schlucken (Roadmap-Punkt, 2026-09-10).
+        if arguments.setsJobs {
+            throw CLIArgumentError.standardOutputConflict("cannot be combined with --jobs")
+        }
         if arguments.inputURLs.count > 1 || enumerator.isSearchableDirectory(firstInputURL) {
             throw CLIArgumentError.standardOutputConflict("takes exactly one document, not several or a folder")
         }

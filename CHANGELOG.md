@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Reject `--stdout` together with `--jobs` as a usage error, the way the
+  catalog mode already rejects options that cannot take effect; the parallelism
+  was silently ignored. The help and the README now say that text mode prints
+  one path per line and that a path containing a line break spans two lines,
+  so parsing scripts should use `--json`.
 - Translate the messages of the side paths: the image notice of the rich-text
   service, both installation dialogs, and the errors the rich-text service
   reports to the calling app now go through the app's central message mapping

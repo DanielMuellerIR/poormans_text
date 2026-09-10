@@ -69,7 +69,9 @@ and hidden entries, symbolic links, and earlier *-markdown results are skipped.
 per document, mirroring the folder structure. Results retain input order, and
 the first input reserves a colliding target. OCR runs one image at a time.
 --json reports a list under
-"results", and the exit code is that of the first failed input.
+"results", and the exit code is that of the first failed input. Text mode prints
+one result path per line; a path that itself contains a line break spans two
+lines, so scripts that parse the output should use --json.
 
 --frontmatter reads title, author, subject, keywords, and dates from OOXML
 core properties, OpenDocument meta.xml, the RTF info group, or the PDF
@@ -77,7 +79,7 @@ information dictionary; a source without any of them gets a warning instead of
 an empty header. --stdout converts exactly one document into a temporary place,
 prints its Markdown, and removes that place again; image assets are not kept and
 are reported on standard error. It cannot be combined with --json, --output,
---textbundle, several inputs, or a folder.
+--textbundle, --jobs, several inputs, or a folder.
 
 --formats reports every format this build can read, its file extensions, whether
 it is a single file or a folder package, which external tools it needs, and

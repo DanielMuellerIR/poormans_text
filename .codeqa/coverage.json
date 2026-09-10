@@ -454,17 +454,17 @@
     {
       "id": "build-scripts",
       "last_run": {
-        "campaign_id": "20260819T180037868197+0200",
-        "completed_at": "2026-08-19T18:45:34+02:00",
-        "content_sha256": "213901705d9dc1b1acea66934fe00b425d99f643cd9011452dfcb07d4bd5a0c6",
-        "file_count": 19,
-        "observed_head": "05549094c359d484ab33c60cf4c8a8f2f0fdf39d",
-        "outcome": "reviewed-clean",
+        "campaign_id": "20260910T101608235407+0200",
+        "completed_at": "2026-09-10T15:16:04+02:00",
+        "observed_head": "d5f187840dfe91279f6770e6af96048e274920fb",
+        "content_sha256": "dd75514d7494d52d8f41dfd61087c951d58fd3bf73237fba7fd051bea3cc3e68",
+        "file_count": 21,
         "review": "delta-plus-boundaries",
-        "summary": "Delta in install_transaction.sh geprüft: Der 'rolled-back'-Arm ist jetzt genau einmal vorhanden (vorher stand er zusätzlich in einem nie erreichbaren zweiten case-Arm), und das Link-Staging bewertet zuerst den beobachtbaren Endzustand, meldet einen ln-Fehlerstatus aber weiterhin — damit kennt das Cleanup einen Link, den ein Signal zwischen symlink(2) und Exit hinterlassen hat. Alle 15 Skripte sind syntaktisch fehlerfrei (bash -n). Die zentrale Invariante aus AGENTS.md gilt nachweislich: bei --no-notarize endet der Lauf nach Build und Signatur mit exit 0, bevor /Applications berührt wird, und vor der Installation laufen stapler validate und spctl --assess über verify_bundle.sh --notarized. 21 Rollback-Tests decken die Signalfenster ab, einschließlich des Falls 'Link erstellt, Identität noch nicht zugewiesen'",
+        "outcome": "reviewed-clean",
+        "summary": "Selbst geprüft, weil der Reviewer am Sitzungslimit scheiterte. Delta seit c68c961 sind die zwei neuen Benchmark-Skripte plus eine Zeile in build_app.sh; beide Skripte verlangen einen ausdrücklichen Arbeitsordner (kein Standardwert, der ins Repo schreibt), legen Dateien ausschließlich exklusiv an (open('x'), mkdir(exist_ok=False)) und lesen aus ps nur PID, Eltern-PID und RSS, um keine Prozessargumente mitzunehmen. Die Grenzen des Bereichs geprüft und ohne Fund: set -euo pipefail steht in jedem Einstiegspunkt, die vier Skripte ohne eigenes set werden ausschließlich in scripts/install.sh gesourct und erben es; die Signatur läuft von innen nach außen (CLI, Autoupdate, Updater.app, Framework, App); die gesamte Prüfkette (codesign deep/strict, Hardened-Runtime-Flag, stapler validate, spctl assess) liegt VOR jedem Zugriff auf /Applications; es gibt kein rm -rf, sondern eine Löschhilfe auf exakten Pfaden über FileManager; die Installation ist eine Transaktion mit Zustandsverfolgung, Rollback und Signal-Trap; und vom Notary-Profil wird nur der Name weitergereicht, das Passwort bleibt im Schlüsselbund.",
         "tests": [
-          "swift test: 235 passed, 0 failures (darin 21 InstallScriptRollbackTests)",
-          "bash -n über alle 15 Skripte: fehlerfrei"
+          "swift test: 509 passed, 0 failed (enthält InstallModeTests, InstallScriptRollbackTests, ReleaseWorkflowTests)",
+          "Statische Prüfung: keine ungequotete Pfadvariable außerhalb von echo, kein rm -rf, kein Geheimnis in einer Ausgabe"
         ]
       },
       "paths": [
@@ -512,7 +512,7 @@
     "started_at": "2026-09-10T10:16:08+02:00",
     "status": "active",
     "token_budget": 4000000,
-    "tokens_spent": 2386477
+    "tokens_spent": 2399862
   },
   "campaign_history": [
     {

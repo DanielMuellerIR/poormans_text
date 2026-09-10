@@ -152,7 +152,11 @@ final class PresentationImport {
         root.selectAlternateContent(supportedNamespaces: [Self.presentation, Self.drawing, Self.relations])
         let relations = try relationships(for: part)
         var result = PresentationSlide(blocks: try pptxBlocks(root, part: part, relations: relations))
-        for relation in relations.values where relation.type.hasSuffix("/notesSlide") {
+        // Nach Beziehungs-Id sortiert: `relations.values` ist ungeordnet, und
+        // eine Folie mit zwei Notizteilen ergab je Lauf eine andere Reihenfolge
+        // der Notizblöcke (Review-Fund 2026-09-10).
+        for relation in relations.sorted(by: { $0.key < $1.key }).map(\.value)
+        where relation.type.hasSuffix("/notesSlide") {
             guard !relation.external else { diagnostics.add("presentation.notesUnavailable", "External notes were not loaded.", page: page); continue }
             let path = try ImportPackagePath.resolve(relation.target, relativeTo: part)
             guard let data = try reader.dataIfPresent(named: path) else { diagnostics.add("presentation.notesUnavailable", "A notes part is missing: \(path)", page: page); continue }

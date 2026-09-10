@@ -155,16 +155,24 @@ final class NotebookImport {
         return result
     }
     private func markdownResources(_ text: String, attachments: [String: String]) throws -> String {
-        var result = text
-        for (target, path) in attachments.sorted(by: { $0.key < $1.key }) {
-            result = MarkdownLinkTargetRewriter.replacing(in: result, from: target, to: path)
-        }
+        // EIN Durchlauf für alle Anhänge. Je Anhang einmal über den ganzen
+        // Zelltext zu laufen war quadratisch: Ein 2,6 MB großes Notebook mit
+        // 20 000 Anhängen lief über zehn Minuten und ließ sich nicht abbrechen
+        // (Review-Fund 2026-09-10).
+        try ConversionExecution.check()
+        var result = MarkdownLinkTargetRewriter.replacing(in: text, mapping: attachments)
         // Nur Kandidaten sammeln. Ob ein Kandidat tatsächlich außerhalb eines
         // Code-/HTML-Containers liegt, entscheidet der bestehende Markdown-Rewriter.
+        let ownAssets = Set(attachments.values)
         let targets = try MarkdownLinkTargetRewriter.resourceCandidates(in: result, maximum: 4_096)
         for target in targets.sorted() {
             try ConversionExecution.check()
-            guard !media.paths.contains(target), !target.hasPrefix("#") else { continue }
+            // `media.paths` sind die von UNS vergebenen Namen. Ein Verweis der
+            // QUELLE darf nur dann stehen bleiben, wenn er aus dieser Zelle
+            // stammt — sonst zeigte `![x](images/image1.png)` still auf den
+            // Anhang einer anderen Zelle, je nach Zellenreihenfolge einmal so
+            // und einmal als fehlend (Review-Fund 2026-09-10).
+            guard !ownAssets.contains(target), !target.hasPrefix("#") else { continue }
             let probe = MarkdownLinkTargetRewriter.replacing(in: result, from: target, to: "#pmt-resource-check")
             guard probe != result else { continue }
             let scheme = URLComponents(string: target)?.scheme?.lowercased()

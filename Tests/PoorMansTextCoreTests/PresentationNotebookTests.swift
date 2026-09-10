@@ -265,4 +265,73 @@ final class PresentationNotebookTests: XCTestCase {
             XCTAssertThrowsError(try ImportPackagePath.resolve(target, relativeTo: "ppt/slide.xml"), target)
         }
     }
+    // MARK: - Review-Funde 2026-09-10
+
+    private func notebook(_ cells: [[String: Any]]) throws -> URL {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("PMTNotebook-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        let url = root.appendingPathComponent("Buch.ipynb")
+        let json: [String: Any] = ["cells": cells, "metadata": [:], "nbformat": 4, "nbformat_minor": 5]
+        try JSONSerialization.data(withJSONObject: json).write(to: url)
+        return url
+    }
+
+    private static let tinyPNGBase64 =
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg=="
+
+    /// Ein Verweis der QUELLE auf einen von uns vergebenen Asset-Namen zeigte
+    /// still auf den Anhang einer ANDEREN Zelle — je nach Zellenreihenfolge
+    /// einmal so und einmal als fehlend gemeldet.
+    func testAReferenceToAnotherCellsAssetNameIsReportedInEitherCellOrder() throws {
+        let withAttachment: [String: Any] = [
+            "cell_type": "markdown", "metadata": [:],
+            "source": ["![a](attachment:x.png)\n"],
+            "attachments": ["x.png": ["image/png": Self.tinyPNGBase64]],
+        ]
+        let borrowing: [String: Any] = [
+            "cell_type": "markdown", "metadata": [:],
+            "source": ["![b](images/image1.png)\n"],
+        ]
+
+        for cells in [[withAttachment, borrowing], [borrowing, withAttachment]] {
+            let url = try notebook(cells)
+            defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+            let result = try DocumentConverter().convert(ConversionRequest(inputURL: url))
+            let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+
+            XCTAssertTrue(markdown.contains("![b](#unavailable-resource)"), markdown)
+            XCTAssertTrue(markdown.contains("![a](images/image1.png)"), markdown)
+            XCTAssertTrue(result.diagnostics.contains { $0.code == "notebook.resourceUnavailable" })
+        }
+    }
+
+    /// Alle Anhänge einer Zelle werden ersetzt, auch viele. Die Ersetzung läuft
+    /// seit dem 2026-09-10 in EINEM Durchlauf statt einmal je Anhang; die
+    /// Beschleunigung selbst ist gemessen (20 000 Anhänge: über zehn Minuten
+    /// und nicht abbrechbar gegen 1,6 Sekunden) und steht bewusst nicht als
+    /// Zeitzusicherung hier — ein Zeitvergleich im Test wäre auf einer
+    /// ausgelasteten Maschine unzuverlässig und träfe die quadratische Kurve
+    /// erst bei einer Größe, die die Suite spürbar verlangsamt.
+    func testEveryAttachmentOfACellIsRewritten() throws {
+        let count = 200
+        var attachments = [String: Any]()
+        var source = [String]()
+        for index in 0..<count {
+            attachments["a\(index).png"] = ["image/png": Self.tinyPNGBase64]
+            source.append("![\(index)](attachment:a\(index).png)\n")
+        }
+        let url = try notebook([[
+            "cell_type": "markdown", "metadata": [:], "source": source, "attachments": attachments,
+        ]])
+        defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+
+        let result = try DocumentConverter().convert(ConversionRequest(inputURL: url))
+        let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+
+        XCTAssertFalse(markdown.contains("attachment:"), "kein Anhangsverweis bleibt stehen")
+        XCTAssertFalse(markdown.contains("#unavailable-resource"), markdown)
+        XCTAssertEqual(result.assets.count, 1, "gleiche Bytes ergeben eine Datei")
+    }
+
 }

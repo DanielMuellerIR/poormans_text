@@ -37,6 +37,15 @@ All notable changes to this project will be documented in this file.
   `Name-markdown` and `Name.textbundle` applied only while searching, so naming
   such a folder — or dropping it onto the app — converted the images of the
   earlier run again and nested the result inside the old output folder.
+- Rewrite every attachment reference of a notebook cell in a single pass. Doing
+  it once per attachment was quadratic: a 2.6 MB notebook with 20,000
+  attachments ran for over ten minutes and ignored cancellation. The same file
+  now converts in under two seconds.
+- Report a notebook Markdown reference that points at an asset name this
+  conversion generated for another cell. It used to be left in place, silently
+  showing a foreign image, and the result depended on the cell order.
+- Count attributes against the XML import limits, and read the notes parts of a
+  slide in relationship order so repeated runs produce the same output.
 - Report tracked changes that live only in footnotes or endnotes, and tracked
   formatting changes such as `rPrChange`. Pandoc accepts those changes during
   the conversion, so leaving them unreported dropped exactly the warning that

@@ -5,6 +5,21 @@ import Foundation
 /// Code-Span, einem Codeblock oder hinter einem Escape treffen.
 enum MarkdownLinkTargetRewriter {
     static func replacing(in markdown: String, from oldPath: String, to newPath: String) -> String {
+        replacing(in: markdown, mapping: [oldPath: newPath])
+    }
+
+    /// Alle Ziele in EINEM Durchlauf ersetzen.
+    ///
+    /// Je Aufruf wird das ganze Markdown einmal zerlegt. Der Notebook-Import
+    /// rief das vorher je Anhang einmal auf: Ein 2,6 MB großes Notebook mit
+    /// 20 000 Anhängen lief dadurch über zehn Minuten und ließ sich nicht
+    /// abbrechen (Review-Fund 2026-09-10).
+    static func replacing(in markdown: String, mapping: [String: String]) -> String {
+        guard !mapping.isEmpty else { return markdown }
+        return rewrite(markdown, mapping: mapping)
+    }
+
+    private static func rewrite(_ markdown: String, mapping: [String: String]) -> String {
         var result = ""
         var fencedCode: MarkdownFenceState?
         var htmlBlock: MarkdownHTMLBlockState?
@@ -121,8 +136,7 @@ enum MarkdownLinkTargetRewriter {
                     sourceLineStart: line.startIndex,
                     inlineBlockEnd: inlineBlockEnd ?? line.endIndex,
                     backtickIndex: backtickIndex,
-                    from: oldPath,
-                    to: newPath,
+                    mapping: mapping,
                     inlineCodeTicks: &inlineCodeTicks,
                     bracketDepth: &bracketDepth
                 )
@@ -602,8 +616,7 @@ enum MarkdownLinkTargetRewriter {
         sourceLineStart: String.Index,
         inlineBlockEnd: String.Index,
         backtickIndex: BacktickRunIndex,
-        from oldPath: String,
-        to newPath: String,
+        mapping: [String: String],
         inlineCodeTicks: inout Int?,
         bracketDepth: inout Int
     ) -> String {
@@ -671,8 +684,7 @@ enum MarkdownLinkTargetRewriter {
                    let replacement = rewrittenTarget(
                     in: line,
                     after: openingParenthesis,
-                    from: oldPath,
-                    to: newPath
+                    mapping: mapping
                    ) {
                     result += line[index..<replacement.end]
                     result += replacement.text
@@ -742,8 +754,7 @@ enum MarkdownLinkTargetRewriter {
     private static func rewrittenTarget(
         in line: String,
         after openingParenthesis: String.Index,
-        from oldPath: String,
-        to newPath: String
+        mapping: [String: String]
     ) -> (
         end: String.Index,
         text: String,
@@ -761,10 +772,10 @@ enum MarkdownLinkTargetRewriter {
         // Textbundle verschob dann das Bild nach `assets/`, ohne den Link
         // mitzunehmen: das Bild war still weg (Review-Fund 2026-09-10).
         let replacement: String
-        if target == oldPath {
-            replacement = newPath
-        } else if target.removingPercentEncoding == oldPath {
-            replacement = percentEncodedPath(newPath)
+        if let mapped = mapping[target] {
+            replacement = mapped
+        } else if let decoded = target.removingPercentEncoding, let mapped = mapping[decoded] {
+            replacement = percentEncodedPath(mapped)
         } else {
             return nil
         }

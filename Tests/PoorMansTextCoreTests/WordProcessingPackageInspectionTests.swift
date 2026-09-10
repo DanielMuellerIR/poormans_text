@@ -309,4 +309,61 @@ final class WordProcessingPackageInspectionTests: XCTestCase {
         </w:document>
         """
     }
+    // MARK: - Nachverfolgte Änderungen (Review-Funde 2026-09-10)
+
+    private func inspectDOCX(document: String, extraParts: [String: String] = [:]) throws
+        -> WordProcessingPackageInspection? {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("PMTTracked-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let url = root.appendingPathComponent("Doc.docx")
+        try ZIPFixtureBuilder.docxPackage(documentXML: document, extraParts: extraParts).write(to: url)
+        return try WordProcessingPackageInspector.inspect(at: url)
+    }
+
+    private static let plainDocument = """
+    <?xml version="1.0" encoding="UTF-8"?>
+    <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+    <w:body><w:p><w:r><w:t>Text</w:t></w:r></w:p></w:body>
+    </w:document>
+    """
+
+    /// Pandoc liest Fuß- und Endnoten mit und wendet `--track-changes=accept`
+    /// auch dort an. Geprüft wurde bisher nur `word/document.xml`, also nahm die
+    /// Umwandlung eine dort nachverfolgte Änderung still an.
+    func testATrackedChangeOnlyInTheFootnotesIsStillReported() throws {
+        let notes = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <w:footnotes xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+        <w:footnote w:id="1"><w:p><w:ins w:id="9" w:author="A"><w:r><w:t>neu</w:t></w:r></w:ins></w:p></w:footnote>
+        </w:footnotes>
+        """
+        let inspection = try inspectDOCX(
+            document: Self.plainDocument, extraParts: ["word/footnotes.xml": notes]
+        )
+
+        XCTAssertEqual(inspection?.containsTrackedChanges, true)
+        XCTAssertTrue(inspection?.warnings.contains(.wordProcessingChangesAccepted) == true)
+        // Ohne die Notiz bleibt es beim ungewarnten Dokument.
+        XCTAssertEqual(try inspectDOCX(document: Self.plainDocument)?.containsTrackedChanges, false)
+    }
+
+    /// Wurde mit eingeschalteter Verfolgung nur formatiert, fehlte die Warnung
+    /// ganz — `rPrChange` und Verwandte galten nicht als Änderung.
+    func testAFormatOnlyTrackedChangeIsReported() throws {
+        for element in ["rPrChange", "pPrChange", "tblPrChange", "cellMerge"] {
+            let document = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+            <w:body><w:p><w:pPr><w:\(element) w:id="3" w:author="A"/></w:pPr>
+            <w:r><w:t>Text</w:t></w:r></w:p></w:body>
+            </w:document>
+            """
+            XCTAssertEqual(
+                try inspectDOCX(document: document)?.containsTrackedChanges, true, element
+            )
+        }
+    }
+
 }

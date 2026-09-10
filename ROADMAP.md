@@ -111,6 +111,24 @@ weil sie eine Entwurfsentscheidung brauchen:
   `S_IFREG`-Prüfung in `DocumentConverter.detectInput` weist eine untergeschobene
   FIFO heute schon ab; offen bleibt nur das schmale Fenster dazwischen.
 
+## Offene Punkte der Word-Erkennung (Stand 2026-09-10)
+
+Belegt, aber bewusst nicht in der Kampagne umgesetzt:
+
+- **Der Hauptteil ist fest auf `word/document.xml` verdrahtet.** OPC bestimmt
+  ihn über die `officeDocument`-Beziehung in `_rels/.rels`; Pandoc löst so auf.
+  Ein von Word repariertes Dokument mit `word/document2.xml` wird deshalb
+  abgelehnt, obwohl Pandoc es umwandelt. Die Gegenrichtung ist dicht: Ohne
+  passenden Haupt-Content-Type gilt ein beliebiges ZIP nicht als DOCX.
+- **Ein einziges defektes `.rels` verwirft das ganze Dokument.** Geprüft wird
+  jeder Eintrag auf `.rels`, auch solche, die Pandoc nie liest. Ein leerer oder
+  kaputter Nebenteil macht das Dokument ungültig. Es einfach zu überspringen
+  wäre die bequeme Antwort, würde aber die Prüfung auf externe Bildziele an
+  dieser Stelle blind machen — die Entscheidung gehört bewusst getroffen.
+- **ODT prüft nur `content.xml`.** Ein `draw:image` mit externem `xlink:href`
+  in `styles.xml` taucht in den unsicheren Verweisen nicht auf. Pandoc gibt
+  Master-Page-Inhalte heute nicht aus, die Prüflücke bleibt trotzdem.
+
 ## Offene Punkte beim HTML-Import (Stand 2026-09-10)
 
 Belegt, aber bewusst nicht in der Kampagne umgesetzt:

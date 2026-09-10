@@ -37,6 +37,10 @@ All notable changes to this project will be documented in this file.
   `Name-markdown` and `Name.textbundle` applied only while searching, so naming
   such a folder — or dropping it onto the app — converted the images of the
   earlier run again and nested the result inside the old output folder.
+- Report tracked changes that live only in footnotes or endnotes, and tracked
+  formatting changes such as `rPrChange`. Pandoc accepts those changes during
+  the conversion, so leaving them unreported dropped exactly the warning that
+  exists for it.
 - Copy a referenced image only after verifying that the copy really is an
   image, and name it after the verified type. The extension came from the
   foreign reference, so `<img src="page.html">` placed that HTML file into the

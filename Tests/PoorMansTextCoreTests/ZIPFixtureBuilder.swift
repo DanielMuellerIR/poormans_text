@@ -92,7 +92,8 @@ enum ZIPFixtureBuilder {
         documentXML: String,
         relationshipsXML: String? = nil,
         mainContentType: String = docxMainContentType,
-        contentTypesOverride: String? = nil
+        contentTypesOverride: String? = nil,
+        extraParts: [String: String] = [:]
     ) throws -> Data {
         let contentTypes = contentTypesOverride
             ?? contentTypesXML(mainContentType: mainContentType)
@@ -107,6 +108,9 @@ enum ZIPFixtureBuilder {
                     content: Data(relationshipsXML.utf8)
                 )
             )
+        }
+        for name in extraParts.keys.sorted() {
+            entries.append(Entry(name: name, content: Data(extraParts[name]!.utf8)))
         }
         return try archive(entries: entries)
     }

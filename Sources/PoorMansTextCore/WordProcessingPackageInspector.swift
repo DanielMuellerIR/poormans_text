@@ -72,7 +72,18 @@ enum WordProcessingPackageInspector {
                 ).containsCommentDefinitions
                 : false
             let comments = document.containsCommentAnchors || commentDefinitions
-            let changes = document.containsTrackedChanges
+            // Fuß- und Endnoten gehören zum selben Dokument: Pandoc liest sie
+            // mit und wendet `--track-changes=accept` auch dort an. Wurde nur
+            // dort etwas nachverfolgt, nahm die Umwandlung die Änderung still
+            // an — ohne die Warnung, für die es sie gibt
+            // (Review-Fund 2026-09-10).
+            var changes = document.containsTrackedChanges
+            for name in ["word/footnotes.xml", "word/endnotes.xml"] where !changes {
+                guard let xml = try reader.dataIfPresent(named: name) else {
+                    continue
+                }
+                changes = try WordprocessingContentParser.inspect(xml).containsTrackedChanges
+            }
             let externalImages = try entryNames.sorted()
                 .filter { $0.hasSuffix(".rels") }
                 .flatMap { name -> [String] in
@@ -322,7 +333,13 @@ private enum WordprocessingContentParser {
                 containsCommentAnchors = true
             case "comment":
                 containsCommentDefinitions = true
-            case "ins", "del", "moveFrom", "moveTo":
+            // Auch reine Formatänderungen sind nachverfolgte Änderungen: Wurde
+            // mit eingeschalteter Verfolgung nur formatiert, fehlte die Warnung
+            // ganz (Review-Fund 2026-09-10).
+            case "ins", "del", "moveFrom", "moveTo",
+                 "rPrChange", "pPrChange", "sectPrChange", "numberingChange",
+                 "tblPrChange", "trPrChange", "tcPrChange", "tblGridChange",
+                 "cellIns", "cellDel", "cellMerge":
                 containsTrackedChanges = true
             default:
                 break

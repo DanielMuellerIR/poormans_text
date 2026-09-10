@@ -90,8 +90,25 @@ pdf("margins.pdf", pages: 3) { context, page in
         XCTAssertEqual(result.diagnostics.filter { $0.code == "pdf.repeatedMarginRemoved" }.compactMap { $0.location?.page }, [1, 2, 3])
         let (legacy, _) = try convert("columns", ConversionOptions(pdfTextRecognition: .disabled, pdfLayout: .legacy))
         XCTAssertLessThan(try XCTUnwrap(legacy.range(of: "RIGHT 1")).lowerBound, try XCTUnwrap(legacy.range(of: "LEFT 8")).lowerBound)
-        let (_, always) = try convert("columns", ConversionOptions(pdfTextRecognition: .always, ocrLanguages: ["en"]))
+        let (alwaysMarkdown, always) = try convert("columns", ConversionOptions(pdfTextRecognition: .always, ocrLanguages: ["en"]))
         XCTAssertTrue(always.diagnostics.contains { $0.code == "pdf.ocrApplied" })
+        // Der Dublettenfilter verglich den DEKORIERTEN OCR-Text. Eine Zeile
+        // unter der Konfidenzschwelle traf er deshalb nie, und derselbe Satz
+        // stand zweimal im Markdown (Review-Fund 2026-09-10).
+        for index in 1...8 {
+            XCTAssertEqual(
+                alwaysMarkdown.components(separatedBy: "LEFT \(index) alpha beta gamma").count, 2, alwaysMarkdown
+            )
+        }
+
+        // Der Legacy-Weg kippte die Seite vor der Erkennung, obwohl Vision das
+        // Bild mit `orientation: .up` bekommt. Die OCR las gespiegelten Unsinn,
+        // ohne Fehler und ohne Warnung (Review-Fund 2026-09-10).
+        let (legacyOCR, legacyOCRResult) = try convert(
+            "mixed", ConversionOptions(pdfTextRecognition: .always, ocrLanguages: ["en"], pdfLayout: .legacy)
+        )
+        XCTAssertTrue(legacyOCRResult.diagnostics.contains { $0.code == "pdf.ocrApplied" })
+        for paragraph in paragraphs { XCTAssertTrue(legacyOCR.contains(paragraph), legacyOCR) }
     }
 
     func testInheritedPageResourcesDetectScanCandidates() throws {

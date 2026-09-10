@@ -87,6 +87,30 @@ Offen bleibt auf der Seite des Hosts:
   Fortschrittscallbacks statt CLI-Ausgabe benötigt. Die CLI bietet bereits
   `--progress` und Abbruch über SIGINT/SIGTERM; deren Nutzung entscheidet der Host.
 
+## Offene Härtung aus der CodeQA-Kampagne (Stand 2026-09-10)
+
+Zwei Punkte außerhalb des ZIP-Tors sind belegt, aber bewusst nicht umgesetzt,
+weil sie eine Entwurfsentscheidung brauchen:
+
+- **Spaltenerkennung gegen Tabellenzeilen.** `PDFTextLayout.ordered` liest zwei
+  Gruppen links und rechts der Seitenmitte als zwei Spalten und gibt erst alle
+  linken, dann alle rechten Zeilen aus. Für ein echtes Zweispaltenlayout ist das
+  richtig; für Tabellen- oder Inhaltsverzeichniszeilen („Kapitel eins … 5") wäre
+  es falsch, weil die Zuordnung Beschriftung↔Zahl verloren ginge. Auf
+  Funktionsebene ist das reproduziert; über ein echtes PDF konnte es bisher
+  niemand auslösen, weil `PDFTextLayout.lines` solche Zeilen nicht auftrennt.
+  Beide Fälle sind geometrisch nicht sicher zu unterscheiden — nötig wäre ein
+  zusätzliches Merkmal (Zeilendichte je Spalte, Punktführung, Spaltenbreite),
+  nicht eine weitere Schwelle.
+- **Geprüfter Deskriptor für Bilder.** `ImageAdapter.imageProbe` beschreibt den
+  Pfad mit `resourceValues` und öffnet ihn danach ein zweites Mal über
+  `CGImageSourceCreateWithURL`. Für PDF wurde genau dieses Muster bereits durch
+  einen gemeinsamen Deskriptor ersetzt. Bei Bildern hieße das, die Datei
+  vollständig in den Speicher zu lesen (`CGImageSourceCreateWithData`), was
+  `kCGImageSourceShouldCache: false` bewusst vermeidet. Die zentrale
+  `S_IFREG`-Prüfung in `DocumentConverter.detectInput` weist eine untergeschobene
+  FIFO heute schon ab; offen bleibt nur das schmale Fenster dazwischen.
+
 ## Offene Härtung des ZIP-Tors (Stand 2026-09-10)
 
 Die CodeQA-Kampagne vom 2026-09-10 hat drei Punkte belegt, aber bewusst nicht

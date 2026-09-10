@@ -37,6 +37,15 @@ All notable changes to this project will be documented in this file.
   `Name-markdown` and `Name.textbundle` applied only while searching, so naming
   such a folder — or dropping it onto the app — converted the images of the
   earlier run again and nested the result inside the old output folder.
+- Render PDF pages upright for OCR with `--pdf-layout legacy`. The legacy path
+  flipped the page before handing it to Vision, which reads with an upright
+  orientation, so its result was mirrored nonsense — reported as a successful
+  OCR run. `HELLO OCR WORLD` came back as `НЕГГО ОСЬ MOBD`.
+- Compare the recognized text, not its uncertainty note, when dropping OCR lines
+  that duplicate embedded PDF text. A line below the confidence threshold could
+  never match, so the same sentence appeared twice.
+- Check for cancellation while preparing the extracted PDF text. A long document
+  finished its whole text assembly before a cancellation took effect.
 - Drop stale batch progress events in the CLI. The batch assigns the sequence
   number under its lock but calls the handler after releasing it, so the file
   counter could run backwards with `--jobs 2` and higher. The app already

@@ -6,7 +6,7 @@
     "token_budget": 4000000,
     "status": "active",
     "started_at": "2026-09-10T10:16:08+02:00",
-    "tokens_spent": 545836
+    "tokens_spent": 861422
   },
   "campaign_history": [
     {
@@ -134,23 +134,23 @@
       "risk": "critical",
       "priority": 1,
       "reason": "Zentrales Paket-Gate: Traversal, Symlinks, Größenbudgets — sicherheitskritisch für alle ZIP-Formate",
-      "state": "pending",
+      "state": "completed",
       "last_run": {
-        "campaign_id": "20260830T110351547281+0200",
-        "completed_at": "2026-08-30T11:06:34+02:00",
-        "observed_head": "c68c961d97fc1cb7e161151a62e21c052c9a856e",
-        "content_sha256": "2291e6791fd3ee423d5d9a550c44c4cdad04f4bd383ff7c7de4463a3ffa2641a",
-        "file_count": 3,
+        "campaign_id": "20260910T101608235407+0200",
+        "completed_at": "2026-09-10T11:01:44+02:00",
+        "observed_head": "2d3694d2093918f36ef37fd7f16f452a3096217b",
+        "content_sha256": "681cf5f16992a87ca42f16028cd91fe542c8b72b17def53605defee6ecf670c8",
+        "file_count": 4,
         "review": "delta-plus-boundaries",
-        "outcome": "reviewed-clean",
-        "summary": "Delta und Datenpfad bis zu Metadatenverbrauchern geprüft: komprimierte Metadatengröße und Stored-Konsistenz werden vor dem Slice begrenzt; Deskriptorfehler bleiben Ein-/Ausgabefehler. Keine zusätzliche Verbesserung erforderlich.",
+        "outcome": "improved",
+        "summary": "Delta seit c68c961 (Auslagerung der Formatprüfung, neuer ZIPPackageReader, Abbruchprüfungen) plus die heutigen Grenzen des Parsers geprüft. Zwei Korrektheitsfehler behoben: Prüfsumme und beide Größen des lokalen Headers wurden nie gegen das Zentralverzeichnis verglichen, und Verzeichniseinträge übersprangen die Kopfprüfung ganz — beides ließ einen streamenden Entpacker einen nie geprüften Strom sehen. Die Regel für den Datendeskriptor ist an 600 echten Archiven mit 134879 Einträgen gemessen, damit LibreOffice-Pakete weiter durchgehen. Dazu gehärtet: beide Eintragszahlen des Schlussblocks müssen übereinstimmen, ein ZIP64-Locator wird auch ohne Sentinel abgelehnt, und entriesByName trappt nicht mehr bei Namensgleichheit. Testabdeckung per Mutationstest belegt: die Prüfung des wirksamen Eintragsnamens, deren Kollisionsprüfung und das Entpackbudget waren löschbar, ohne dass ein Test rot wurde; jetzt schlagen alle fünf Mutationen fehl. Drei nicht umgesetzte Härtungen stehen begründet in ROADMAP.md.",
         "tests": [
-          "swift test --filter 'ZIPArchiveVerificationTests|ReviewFixes20260830Tests.testCompressedZIPMetadataIsBoundedBeforeItsInputSlice': 11 Tests, 0 Fehler"
+          "swift test: 483 passed, 0 failed (vorher 474)",
+          "swift build: keine Warnungen",
+          "Mutationstest: 5 von 5 entfernten Schutzprüfungen führen jetzt zu roten Tests (vorher 3 davon grün)",
+          "CLI-Gegenprobe: 9 echte DOCX/ODT/ODS-Fixtures konvertieren unverändert, die 3 absichtlich unsicheren werden weiter abgelehnt"
         ]
-      },
-      "pending_paths": [
-        "Tests/PoorMansTextCoreTests/ZIPPackageReaderTests.swift"
-      ]
+      }
     },
     {
       "id": "batch-orchestration",

@@ -279,6 +279,234 @@ final class ZIPArchiveVerificationTests: XCTestCase {
             .appendingPathComponent("Fixtures/WordProcessing")
             .appendingPathComponent(name)
     }
+    // MARK: - Lokaler Header gegen Verzeichniseintrag
+
+    /// Prüfsumme und beide Größen des lokalen Headers standen als einzige Felder
+    /// ungeprüft da, obwohl Flags, Methode und Rohname längst beidseitig
+    /// verglichen wurden. Ein streamender Entpacker liest genau diese lokale
+    /// Längenangabe — und bekam damit einen Strom, den weder Entpackbudget noch
+    /// Prüfsumme je gesehen haben (Review-Fund 2026-09-10).
+    func testRejectsALocalHeaderThatDeclaresAnotherSizeOrChecksum() throws {
+        let base = ZIPFixtureBuilder.Entry(
+            name: "word/media/image1.bin",
+            content: Data(repeating: 0x2E, count: 4096)
+        )
+        var lyingCompressedSize = base
+        lyingCompressedSize.localDeclaredCompressedSize = 4_000_000
+        var lyingUncompressedSize = base
+        lyingUncompressedSize.localDeclaredUncompressedSize = 900_000_000
+        var lyingChecksum = base
+        lyingChecksum.localDeclaredChecksum = 0xDEAD_BEEF
+
+        for (index, media) in [lyingCompressedSize, lyingUncompressedSize, lyingChecksum].enumerated() {
+            try assertRejected(
+                try ZIPFixtureBuilder.archive(entries: documentEntries + [media]),
+                named: "LocalHeader\(index).docx",
+                containing: "declares a different size or checksum"
+            )
+        }
+    }
+
+    /// Mit Datendeskriptor (Bit 3) lässt der Erzeuger die Felder offen. Ein
+    /// LibreOffice-Paket schreibt dort drei Nullen, andere tragen die entpackte
+    /// Größe ein — beides muss durchgehen, ein abweichender Wert nicht.
+    func testADataDescriptorEntryMayLeaveTheLocalFieldsEmptyButNotWrong() throws {
+        var deferred = ZIPFixtureBuilder.Entry(
+            name: "word/media/image1.bin",
+            content: Data(repeating: 0x2E, count: 4096),
+            explicitFlags: 0x0008
+        )
+        deferred.localDeclaredChecksum = 0
+        deferred.localDeclaredCompressedSize = 0
+        deferred.localDeclaredUncompressedSize = 0
+        XCTAssertNoThrow(
+            try stage(try ZIPFixtureBuilder.archive(entries: documentEntries + [deferred]),
+                      named: "Deferred.docx")
+        )
+
+        var wrong = deferred
+        wrong.localDeclaredUncompressedSize = 900_000_000
+        try assertRejected(
+            try ZIPFixtureBuilder.archive(entries: documentEntries + [wrong]),
+            named: "DeferredWrong.docx",
+            containing: "declares a different size or checksum"
+        )
+    }
+
+    /// Verzeichniseinträge übersprangen die Kopfprüfung vollständig: Ihr lokaler
+    /// Header durfte eine beliebige Nutzlast deklarieren, die ein streamender
+    /// Verbraucher sieht und diese Prüfung nie.
+    func testADirectoryEntryAlsoHasItsLocalHeaderChecked() throws {
+        var directory = ZIPFixtureBuilder.Entry(name: "word/media/", content: Data(), isStored: true)
+        directory.localDeclaredUncompressedSize = 65_536
+        try assertRejected(
+            try ZIPFixtureBuilder.archive(entries: documentEntries + [directory]),
+            named: "DirectoryHeader.docx",
+            containing: "declares a different size or checksum"
+        )
+
+        // Ein regulärer, leerer Verzeichniseintrag bleibt gültig.
+        let plain = ZIPFixtureBuilder.Entry(name: "word/media/", content: Data(), isStored: true)
+        XCTAssertNoThrow(
+            try stage(try ZIPFixtureBuilder.archive(entries: documentEntries + [plain]),
+                      named: "DirectoryPlain.docx")
+        )
+    }
+
+    // MARK: - Bisher ungeprüfte Schutzmechanismen
+
+    /// Das Entpackbudget summiert die deklarierten Größen schon beim Lesen des
+    /// Verzeichnisses. Der bisherige Test dazu löste in Wahrheit die spätere
+    /// Größenprüfung beim Entpacken aus; beide Meldungen beginnen mit
+    /// „expands beyond".
+    func testRejectsAPackageWhoseDeclaredSizesExceedTheUnpackBudget() throws {
+        let entries = (0..<5).map { index in
+            ZIPFixtureBuilder.Entry(
+                name: "word/media/image\(index).bin",
+                content: Data("x".utf8),
+                declaredUncompressedSize: 262_144_000,
+                isStored: true
+            )
+        }
+        try assertRejected(
+            try ZIPFixtureBuilder.archive(entries: documentEntries + entries),
+            named: "Budget.docx",
+            containing: "expands beyond the supported size limit"
+        )
+    }
+
+    /// Bisher prüfte kein Test den WIRKSAMEN Namen: Der vorhandene
+    /// Traversal-Test legt den unsicheren Pfad in die Rohbytes und trifft damit
+    /// nur die zweite der beiden Prüfungen.
+    func testRejectsAnUnsafePathThatOnlyTheUnicodeFieldDeclares() throws {
+        var entry = ZIPFixtureBuilder.Entry(
+            name: "word/media/image1.bin",
+            content: Data(repeating: 0x2E, count: 64)
+        )
+        entry.centralUnicodePathName = "../ausbruch.bin"
+        try assertRejected(
+            try ZIPFixtureBuilder.archive(entries: documentEntries + [entry]),
+            named: "UnsafeEffective.docx",
+            containing: "unsafe entry path"
+        )
+    }
+
+    /// Dasselbe für die Kollisionsprüfung: Alle vorhandenen Duplikat-Tests
+    /// treffen die Rohnamen-Sicht, weil dort beide Namen gleich sind.
+    func testRejectsTwoEntriesThatOnlyCollideInTheirEffectiveName() throws {
+        var first = ZIPFixtureBuilder.Entry(
+            name: "ignoriert-a",
+            content: Data(repeating: 0x2E, count: 32),
+            rawNameBytes: Data("word/media/a.bin".utf8)
+        )
+        first.centralUnicodePathName = "word/media/image1.bin"
+        var second = ZIPFixtureBuilder.Entry(
+            name: "ignoriert-b",
+            content: Data(repeating: 0x2E, count: 32),
+            rawNameBytes: Data("word/media/b.bin".utf8)
+        )
+        second.centralUnicodePathName = "word/media/image1.bin"
+        try assertRejectsAsDuplicate(
+            try ZIPFixtureBuilder.archive(entries: documentEntries + [first, second]),
+            fileName: "EffectiveCollision.docx"
+        )
+    }
+
+    /// Der Schlussblock nennt die Eintragszahl zweimal. Gelesen wurde nur die
+    /// Gesamtzahl; ein Entpacker, der die andere nimmt, sah einen anderen
+    /// Eintragssatz als diese Prüfung.
+    func testRejectsAnEndRecordThatDisagreesAboutItsEntryCount() throws {
+        try assertRejected(
+            try ZIPFixtureBuilder.archive(entries: documentEntries, entriesOnThisDiskOverride: 1),
+            named: "EntryCount.docx",
+            containing: "disagrees about its entry count"
+        )
+    }
+
+    /// Ein ZIP64-Locator vor dem Schlussblock reicht manchen Entpackern, um die
+    /// 32-Bit-Angaben zu ersetzen — auch ohne Sentinel-Werte, an denen diese
+    /// Prüfung ZIP64 bisher allein erkannte.
+    func testRejectsAZIP64LocatorEvenWithoutSentinelValues() throws {
+        try assertRejected(
+            try ZIPFixtureBuilder.archive(entries: documentEntries, precedesZIP64Locator: true),
+            named: "Locator.docx",
+            containing: "ZIP64 packages are not supported"
+        )
+    }
+
+    func testRejectsEncryptedEntriesAndZIP64Sentinels() throws {
+        let encrypted = ZIPFixtureBuilder.Entry(
+            name: "word/media/image1.bin",
+            content: Data(repeating: 0x2E, count: 32),
+            explicitFlags: 0x0001
+        )
+        try assertRejected(
+            try ZIPFixtureBuilder.archive(entries: documentEntries + [encrypted]),
+            named: "Encrypted.docx",
+            containing: "encrypted ZIP entries are not supported"
+        )
+
+        let zip64 = ZIPFixtureBuilder.Entry(
+            name: "word/media/image1.bin",
+            content: Data(repeating: 0x2E, count: 32),
+            declaredCompressedSize: Int(UInt32.max)
+        )
+        try assertRejected(
+            try ZIPFixtureBuilder.archive(entries: documentEntries + [zip64]),
+            named: "ZIP64.docx",
+            containing: "ZIP64 entries are not supported"
+        )
+    }
+
+    // MARK: - Hilfen
+
+    /// Die beiden Einträge, die ein Paket überhaupt erst als DOCX erkennbar
+    /// machen; die Tests hängen ihren jeweiligen Prüffall daran.
+    private var documentEntries: [ZIPFixtureBuilder.Entry] {
+        let documentXML = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+        <w:body><w:p><w:r><w:t>Fixture text</w:t></w:r></w:p></w:body>
+        </w:document>
+        """
+        return [
+            ZIPFixtureBuilder.Entry(
+                name: "[Content_Types].xml",
+                content: Data(ZIPFixtureBuilder.contentTypesXML(
+                    mainContentType: ZIPFixtureBuilder.docxMainContentType
+                ).utf8)
+            ),
+            ZIPFixtureBuilder.Entry(name: "word/document.xml", content: Data(documentXML.utf8)),
+        ]
+    }
+
+    @discardableResult
+    private func stage(_ archive: Data, named fileName: String) throws -> URL {
+        let sourceURL = temporaryDirectory.appendingPathComponent(fileName)
+        try archive.write(to: sourceURL)
+        return try ZIPArchiveInspector.stageVerifiedPackage(
+            from: sourceURL,
+            into: workDirectory,
+            named: "verified-\(fileName)"
+        )
+    }
+
+    private func assertRejected(
+        _ archive: Data,
+        named fileName: String,
+        containing needle: String,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) throws {
+        XCTAssertThrowsError(try stage(archive, named: fileName), file: file, line: line) { error in
+            XCTAssertTrue(
+                error.localizedDescription.contains(needle),
+                "Unexpected error: \(error.localizedDescription)",
+                file: file,
+                line: line
+            )
+        }
+    }
 }
 
 /// Review-Fund 2026-08-17: Die Namensdekodierung ignorierte das

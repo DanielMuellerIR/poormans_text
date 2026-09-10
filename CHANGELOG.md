@@ -21,6 +21,18 @@ All notable changes to this project will be documented in this file.
 - Accept a cancellation token and a process timeout in `inspect` and
   `detectFormat`. Format detection starts `textutil` for DOC files and
   previously ran without any limit a caller could reach.
+- Compare the checksum and both sizes of every local ZIP header against the
+  central directory, the three fields that were the only ones left unchecked.
+  A streaming unpacker reads the local length, so a package could hand it a
+  stream that neither the unpack budget nor the checksum had ever seen. Entries
+  with a data descriptor may still leave those fields empty, as LibreOffice
+  writes them.
+- Check the local header of directory entries too. They skipped the only place
+  that looks at a local header at all, so theirs could declare a different name
+  and an arbitrary payload.
+- Reject an end record whose two entry counts disagree, and a ZIP64 locator that
+  carries no sentinel values. Both let another unpacker read a different set of
+  entries than the one this package gate verified.
 
 ## 0.10.2 — 2026-09-08
 

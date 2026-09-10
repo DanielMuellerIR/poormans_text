@@ -144,9 +144,25 @@ enum ZIPArchiveInspector {
             let entryCount = Int(data.uint16(at: endOffset + 10))
             let centralSize = Int(data.uint32(at: endOffset + 12))
             let centralOffset = Int(data.uint32(at: endOffset + 16))
+            // Die Eintragszahl steht zweimal im Schlussblock: einmal für diesen
+            // Datenträger, einmal insgesamt. Nur die Gesamtzahl wurde gelesen —
+            // ein Verbraucher, der die andere nimmt, sah einen anderen
+            // Eintragssatz als diese Prüfung (Review-Fund 2026-09-10). Alle 600
+            // geprüften echten Archive tragen dort denselben Wert.
+            guard Int(data.uint16(at: endOffset + 8)) == entryCount else {
+                throw ArchiveError("the ZIP end record disagrees about its entry count")
+            }
             guard entryCount != Int(UInt16.max),
                   centralSize != Int(UInt32.max),
                   centralOffset != Int(UInt32.max) else {
+                throw ArchiveError("ZIP64 packages are not supported")
+            }
+            // ZIP64 wurde bisher allein an den Sentinel-Werten erkannt. Liegt
+            // direkt vor dem Schlussblock ein ZIP64-Locator, ersetzen manche
+            // Entpacker die 32-Bit-Angaben ohne jede Sentinel-Bedingung und
+            // lesen damit ein anderes, hier nie geprüftes Verzeichnis. Kein
+            // einziges der 600 geprüften echten Archive trägt einen Locator.
+            if endOffset >= 20, data.uint32(at: endOffset - 20) == 0x07064B50 {
                 throw ArchiveError("ZIP64 packages are not supported")
             }
             guard entryCount <= Limits.maximumEntryCount else {
@@ -305,7 +321,15 @@ enum ZIPArchiveInspector {
                 throw ArchiveError("the ZIP central directory size is inconsistent")
             }
             entries = parsedEntries
-            entriesByName = Dictionary(uniqueKeysWithValues: parsedEntries.map { ($0.name, $0) })
+            // `uniqueKeysWithValues` würde bei zwei gleichnamigen Einträgen
+            // nicht werfen, sondern den Prozess beenden. Die Kollisionsprüfung
+            // oben schließt das heute aus — aber ein Absturz darf nicht die
+            // letzte Sicherung eines fremden Archivs sein, deshalb gewinnt hier
+            // schlicht der erste Eintrag (Review-Fund 2026-09-10).
+            entriesByName = Dictionary(
+                parsedEntries.map { ($0.name, $0) },
+                uniquingKeysWith: { first, _ in first }
+            )
         }
 
         func string(named name: String) throws -> String {
@@ -377,9 +401,20 @@ enum ZIPArchiveInspector {
         /// bei einem zulässigen Archiv von bis zu 1 GiB wäre die angeblich
         /// streamende Prüfung dann der größte Speicherverbraucher überhaupt.
         func verifyEntryContents() throws {
-            for entry in entries where !entry.isDirectory {
+            for entry in entries {
                 try ConversionExecution.check()
+                // Auch Verzeichniseinträge durchlaufen die Kopfprüfung. Sonst
+                // ist `contentRange` — die EINZIGE Stelle, die einen lokalen
+                // Header überhaupt ansieht — für sie nie aufgerufen worden: Ihr
+                // lokaler Header durfte einen anderen Namen und eine beliebige
+                // Nutzlast deklarieren, die ein streamender Verbraucher sieht
+                // und diese Prüfung nie (Review-Fund 2026-09-10). Alle 2517
+                // Verzeichniseinträge der geprüften 600 echten Archive tragen
+                // einen lokalen Header.
                 let contentRange = try contentRange(for: entry)
+                guard !entry.isDirectory else {
+                    continue
+                }
                 switch entry.method {
                 case 0:
                     guard entry.compressedSize == entry.uncompressedSize else {
@@ -414,6 +449,9 @@ enum ZIPArchiveInspector {
             }
             let localFlags = data.uint16(at: offset + 6)
             let localMethod = data.uint16(at: offset + 8)
+            let localChecksum = data.uint32(at: offset + 14)
+            let localCompressedSize = Int(data.uint32(at: offset + 18))
+            let localUncompressedSize = Int(data.uint32(at: offset + 22))
             let nameLength = Int(data.uint16(at: offset + 26))
             let extraLength = Int(data.uint16(at: offset + 28))
             let contentStart = offset + 30 + nameLength + extraLength
@@ -425,6 +463,29 @@ enum ZIPArchiveInspector {
                   data.subdata(in: (offset + 30)..<(offset + 30 + nameLength))
                     == entry.rawName else {
                 throw ArchiveError("the local ZIP entry for \(entry.name) is inconsistent")
+            }
+            // Prüfsumme und beide Größen standen bisher als einzige Felder des
+            // lokalen Headers ungeprüft da. Der geprüfte Bytebereich stammt aus
+            // dem Verzeichniseintrag; ein Verbraucher, der stattdessen die
+            // lokale Längenangabe liest — so arbeiten streamende Entpacker —
+            // bekam damit einen Strom, den weder Entpackbudget noch Prüfsumme je
+            // gesehen haben (Review-Fund 2026-09-10).
+            //
+            // Die Regel folgt dem, was echte Erzeuger schreiben, geprüft an 600
+            // Archiven mit 134 879 Einträgen: Ohne Datendeskriptor (Bit 3) sind
+            // beide Kopien gleich. Mit Bit 3 lässt der Erzeuger die Felder offen,
+            // füllt sie aber teils trotzdem — LibreOffice schreibt alle drei als
+            // 0, andere tragen die entpackte Größe ein. Deshalb gilt dort je
+            // Feld: entweder 0 oder derselbe Wert.
+            let allowsDeferredFields = entry.flags & 0x0008 != 0
+            let localFields = [localChecksum == entry.crc, localCompressedSize == entry.compressedSize,
+                               localUncompressedSize == entry.uncompressedSize]
+            let deferredFields = [localChecksum == 0, localCompressedSize == 0, localUncompressedSize == 0]
+            for (matches, isDeferred) in zip(localFields, deferredFields)
+            where !matches && !(allowsDeferredFields && isDeferred) {
+                throw ArchiveError(
+                    "the local ZIP header for \(entry.name) declares a different size or checksum"
+                )
             }
             // Das Extrafeld steht zweimal im Archiv, und manche Verbraucher lesen
             // den Namen aus dem lokalen Header. Ein eigenes Unicode-Path-Feld dort

@@ -87,6 +87,34 @@ Offen bleibt auf der Seite des Hosts:
   Fortschrittscallbacks statt CLI-Ausgabe benötigt. Die CLI bietet bereits
   `--progress` und Abbruch über SIGINT/SIGTERM; deren Nutzung entscheidet der Host.
 
+## Offene Härtung des ZIP-Tors (Stand 2026-09-10)
+
+Die CodeQA-Kampagne vom 2026-09-10 hat drei Punkte belegt, aber bewusst nicht
+umgesetzt, weil sie eine Abwägung gegen reale, nicht ganz regelkonforme Archive
+verlangen. Alle drei entstehen daraus, dass ein anderer Entpacker dieselbe Datei
+anders lesen kann als `ZIPArchiveInspector`:
+
+- **Ungeprüfte Bereiche der Datei.** Geprüft wird nur, dass das
+  Zentralverzeichnis vor dem Schlussblock endet, nicht dass es unmittelbar davor
+  endet. In eine Lücke passt ein zweites, vollständiges Verzeichnis. Ebenso darf
+  vor dem Verzeichnis beliebiges unreferenziertes Material liegen, und hinter dem
+  Deflate-Strom eines Eintrags beliebiger Füllstoff (`Z_STREAM_END` wird
+  verlangt, `avail_in == 0` nicht). Keines der 600 daraufhin geprüften echten
+  Archive hat eine solche Lücke — nach APPNOTE dürfen dort aber Signatur- und
+  Entschlüsselungsblöcke stehen, deshalb ist ein hartes `==` nicht ohne Prüfung
+  gegen ein größeres Feld einzuführen.
+- **Auswahl des Schlussblocks.** `endOfCentralDirectory` verlangt, dass
+  Kommentarlänge und Dateiende zusammenpassen, und sucht sonst weiter nach vorn.
+  Info-ZIP `unzip` und Pythons `zipfile` nehmen dagegen schlicht das letzte
+  Vorkommen der Signatur. Bei zwei Schlussblöcken arbeiten beide Seiten mit
+  verschiedenen Eintragssätzen. Die strengere Regel ist richtig; offen ist, ob
+  eine Abweichung zum Abbruch führen soll.
+- **Speicher bei der Erkennung.** Jeder `packageContents`/`inspectionSnapshot`
+  liest die vollständige Fremddatei in den Heap — bis zu 1 GiB Spitze, auch wenn
+  nur der vier Byte lange `mimetype`-Eintrag gebraucht wird. Ein streamender
+  Zugriff über den Deskriptor auf Schlussblock, Verzeichnis und Zieleintrag
+  würde reichen.
+
 ## Technische Referenzen
 
 - [Apple Vision](https://developer.apple.com/documentation/vision) — lokale

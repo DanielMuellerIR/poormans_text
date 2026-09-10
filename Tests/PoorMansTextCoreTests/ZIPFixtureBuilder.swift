@@ -42,6 +42,13 @@ enum ZIPFixtureBuilder {
         /// `centralUnicodePathName` vor. Nur so lässt sich ein Header mit MEHR
         /// als einem Unicode-Path-Feld nachbauen.
         var centralExtraFieldBytes: Data?
+        /// Prüfsumme und Größen NUR im lokalen Header. Ohne Angabe schreibt der
+        /// Builder dort dieselben Werte wie ins Verzeichnis. Damit lassen sich
+        /// Archive bauen, deren beide Kopien sich widersprechen — ein
+        /// streamender Entpacker liest die lokale, diese Prüfung die zentrale.
+        var localDeclaredChecksum: UInt32?
+        var localDeclaredCompressedSize: Int?
+        var localDeclaredUncompressedSize: Int?
     }
 
     enum BuilderError: Error {
@@ -113,7 +120,7 @@ enum ZIPFixtureBuilder {
     static let dotmMainContentType =
         "application/vnd.ms-word.template.macroEnabledTemplate.main+xml"
 
-    private static func contentTypesXML(mainContentType: String) -> String {
+    static func contentTypesXML(mainContentType: String) -> String {
         """
         <?xml version="1.0" encoding="UTF-8"?>
         <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
@@ -239,7 +246,17 @@ enum ZIPFixtureBuilder {
         ])
     }
 
-    static func archive(entries: [Entry]) throws -> Data {
+    /// - Parameters:
+    ///   - entriesOnThisDiskOverride: die ERSTE der beiden Eintragszahlen im
+    ///     Schlussblock. Weicht sie ab, sehen zwei Entpacker verschiedene
+    ///     Eintragssätze.
+    ///   - precedesZIP64Locator: setzt einen ZIP64-Locator direkt vor den
+    ///     Schlussblock, ohne dessen 32-Bit-Felder auf Sentinel zu stellen.
+    static func archive(
+        entries: [Entry],
+        entriesOnThisDiskOverride: UInt16? = nil,
+        precedesZIP64Locator: Bool = false
+    ) throws -> Data {
         var localSection = Data()
         var centralSection = Data()
 
@@ -273,9 +290,13 @@ enum ZIPFixtureBuilder {
             localSection.appendUInt16(method)
             localSection.appendUInt16(0)                        // Uhrzeit
             localSection.appendUInt16(0)                        // Datum
-            localSection.appendUInt32(checksum)
-            localSection.appendUInt32(declaredCompressedSize)
-            localSection.appendUInt32(declaredSize)
+            localSection.appendUInt32(entry.localDeclaredChecksum ?? checksum)
+            localSection.appendUInt32(
+                entry.localDeclaredCompressedSize.map(UInt32.init) ?? declaredCompressedSize
+            )
+            localSection.appendUInt32(
+                entry.localDeclaredUncompressedSize.map(UInt32.init) ?? declaredSize
+            )
             localSection.appendUInt16(UInt16(nameBytes.count))
             localSection.appendUInt16(UInt16(localExtra.count))
             localSection.append(nameBytes)
@@ -307,10 +328,17 @@ enum ZIPFixtureBuilder {
         var archive = localSection
         let centralOffset = UInt32(archive.count)
         archive.append(centralSection)
+        if precedesZIP64Locator {
+            archive.appendUInt32(0x0706_4B50)                   // ZIP64-Locator
+            archive.appendUInt32(0)                             // Datenträger mit ZIP64-EOCD
+            archive.appendUInt32(0)                             // Offset, untere Hälfte
+            archive.appendUInt32(0)                             // Offset, obere Hälfte
+            archive.appendUInt32(1)                             // Datenträgerzahl
+        }
         archive.appendUInt32(0x0605_4B50)
         archive.appendUInt16(0)                                 // Datenträgernummer
         archive.appendUInt16(0)                                 // Datenträger mit Verzeichnis
-        archive.appendUInt16(UInt16(entries.count))
+        archive.appendUInt16(entriesOnThisDiskOverride ?? UInt16(entries.count))
         archive.appendUInt16(UInt16(entries.count))
         archive.appendUInt32(UInt32(centralSection.count))
         archive.appendUInt32(centralOffset)

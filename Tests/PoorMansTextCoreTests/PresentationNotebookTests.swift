@@ -230,6 +230,59 @@ final class PresentationNotebookTests: XCTestCase {
         XCTAssertEqual(result.diagnostics.filter { $0.code == "presentation.hyperlinkFlattened" }.count, 2)
         XCTAssertTrue(result.diagnostics.contains { $0.code == "presentation.nestedTableFlattened" && $0.location?.page == 1 })
     }
+    /// Ein Bild im Absatz (`text:p` > `draw:frame` > `draw:image`) fiel ohne
+    /// Diagnose weg, weil der Leser den Absatz mit seinem Text beantwortete.
+    func testODPImageInsideAParagraphIsKept() throws {
+        let xml = odpDocument("<text:p>Vorher<draw:frame><draw:image xlink:href=\"Pictures/p.png\"/></draw:frame></text:p><text:p><draw:frame><draw:image xlink:href=\"Pictures/p.png\"/></draw:frame></text:p>")
+        let source = root.appendingPathComponent("inline-image.odp")
+        try ZIPFixtureBuilder.archive(entries: [
+            entry("mimetype", "application/vnd.oasis.opendocument.presentation"), entry("content.xml", xml),
+            .init(name: "Pictures/p.png", content: try png),
+        ]).write(to: source)
+
+        let result = try DocumentConverter().convert(ConversionRequest(inputURL: source))
+        let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+
+        XCTAssertEqual(result.assets.count, 1)
+        XCTAssertTrue(markdown.contains("Vorher\n\n![Slide image](images/image1.png)"), markdown)
+        XCTAssertEqual(markdown.components(separatedBy: "![Slide image](images/image1.png)").count - 1, 2, markdown)
+        XCTAssertFalse(result.diagnostics.contains { $0.code == "presentation.imageUnavailable" })
+    }
+
+    /// Dasselbe Bild mit drei Verweisen wird einmal aus dem Paket gelesen;
+    /// vorher holte der Leser den Eintrag je `a:blip` erneut und hashte ihn neu.
+    func testAnImageReferencedSeveralTimesIsReadFromThePackageOnce() throws {
+        var entries = try pptxEntries()
+        let p = PresentationImport.presentation, a = PresentationImport.drawing, r = PresentationImport.relations
+        entries.removeAll { $0.name == "ppt/slides/slide1.xml" }
+        entries.append(entry("ppt/slides/slide1.xml", "<p:sld xmlns:p=\"\(p)\" xmlns:a=\"\(a)\" xmlns:r=\"\(r)\"><p:cSld><p:spTree><p:pic><a:blip r:embed=\"picture\"/></p:pic><p:pic><a:blip r:embed=\"picture\"/></p:pic><p:pic><a:blip r:embed=\"picture\"/></p:pic></p:spTree></p:cSld></p:sld>"))
+        entries.append(entry("ppt/slides/_rels/slide1.xml.rels", "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"picture\" Type=\"\(r)/image\" Target=\"../media/picture.png\"/></Relationships>"))
+        let source = root.appendingPathComponent("repeated.pptx")
+        try ZIPFixtureBuilder.archive(entries: entries).write(to: source)
+        let output = root.appendingPathComponent("repeated-output", isDirectory: true)
+        try FileManager.default.createDirectory(at: output, withIntermediateDirectories: true)
+
+        let reader = CountingReader(base: try ZIPArchiveInspector.inspectionSnapshot(at: source))
+        let importer = PresentationImport(reader: reader, output: output)
+        let markdown = try importer.convert(format: .pptx, title: "Wiederholt")
+
+        XCTAssertEqual(reader.reads["ppt/media/picture.png"], 1)
+        XCTAssertEqual(importer.media.paths, ["images/image1.png"])
+        XCTAssertEqual(markdown.components(separatedBy: "![Slide image](images/image1.png)").count - 1, 5, markdown)
+    }
+
+    /// Zählt, wie oft jeder Paketeintrag gelesen wird.
+    private final class CountingReader: ZIPPackageReading {
+        let base: any ZIPPackageReading
+        var reads: [String: Int] = [:]
+        init(base: any ZIPPackageReading) { self.base = base }
+        var entryNames: Set<String> { base.entryNames }
+        func data(named name: String) throws -> Data {
+            reads[name, default: 0] += 1
+            return try base.data(named: name)
+        }
+    }
+
     private func odpDocument(_ body: String) -> String {
         "<office:document-content xmlns:office=\"\(PresentationImport.office)\" xmlns:draw=\"\(PresentationImport.draw)\" xmlns:text=\"\(PresentationImport.text)\" xmlns:table=\"\(PresentationImport.table)\" xmlns:xlink=\"\(PresentationImport.xlink)\"><office:body><office:presentation><draw:page>\(body)</draw:page></office:presentation></office:body></office:document-content>"
     }

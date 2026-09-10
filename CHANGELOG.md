@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Keep an ODP image that sits inside a paragraph (`draw:frame` within
+  `text:p`); the reader stopped at the paragraph text and dropped the image
+  without a warning. A presentation image referenced many times is unpacked,
+  decoded, and hashed once instead of once per reference.
 - Skip phonetic reading hints (`<rPh>`) in XLSX shared and inline strings; a
   Japanese workbook read `日本ニホン` where the cell says `日本`.
 - Count memory before it is spent in the spreadsheet readers: a BIFF sheet

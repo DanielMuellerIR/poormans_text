@@ -126,21 +126,6 @@ Belegt, aber bewusst nicht in der Kampagne umgesetzt:
 Belegt, aber bewusst nicht in der Kampagne umgesetzt:
 
 
-## Offene Punkte bei Präsentationen (Stand 2026-09-10)
-
-Belegt, aber bewusst nicht in der Kampagne umgesetzt:
-
-- **ODP-Bilder in einem Absatz fallen ohne Diagnose weg.** Der Leser
-  beantwortet `text:p` sofort mit dessen Text und steigt nicht in die Kinder ab;
-  ODF erlaubt dort aber ein `draw:frame` mit `draw:image`. Das Bild fehlt in der
-  Ausgabe, und es gibt keine Warnung. Der Absatzweg abzusteigen ändert die
-  Struktur der ODP-Ausgabe und gehört deshalb in eine eigene Etappe.
-- **Ein mehrfach verwendetes Bild wird je Verweis neu entpackt.** Der
-  Präsentationsleser holt zu jedem `a:blip` den Paketeintrag erneut und
-  berechnet Prüfsumme und Bildtyp neu, obwohl die Ablage schon dedupliziert.
-  Eine Folie mit vielen Verweisen auf dasselbe Bild kostet dadurch ein
-  Vielfaches.
-
 ## Offene Punkte der Tabellenleser (Stand 2026-09-10)
 
 Belegt, aber bewusst nicht in der Kampagne umgesetzt:

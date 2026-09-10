@@ -155,16 +155,16 @@
     {
       "id": "spreadsheet-import",
       "last_run": {
-        "campaign_id": "20260910T101608235407+0200",
-        "completed_at": "2026-09-10T15:21:46+02:00",
-        "observed_head": "10b07fdcbfd2e561b1dd5ad79535bd85005b06bc",
-        "content_sha256": "e26a162ff22cb3bba2291ee23b39014e26a61d3b680d2bced3cb7d0571fce82b",
+        "campaign_id": "20260910T154243481221+0200",
+        "completed_at": "2026-09-10T16:25:15+02:00",
+        "observed_head": "d3a600ed8f5dd45872b67e1280b58b3a069d1c9c",
+        "content_sha256": "fa65528a450add4d4657b041b401dcbd9fb956bfd6c89ce0cc8eced4470b1012",
         "file_count": 14,
         "review": "delta-plus-boundaries",
-        "outcome": "reviewed-clean",
-        "summary": "Nachbuchung zum Querschnitts-Fund markdown-datei-schreiben: Das Delta ist genau der dort verifizierte Diff — AdapterConversionContext.writeMarkdown ersetzt die dreifach wortgleiche Schreibsequenz.",
+        "outcome": "improved",
+        "summary": "Delta = rPh-Filter, Zeilenlücken-Budget, CellBudget, Sniffing; Grenzen zu SpreadsheetLimits und Renderer unverändert.",
         "tests": [
-          "swift test: 509 passed, 0 failed"
+          "swift test: 532 passed"
         ]
       },
       "paths": [
@@ -501,7 +501,7 @@
     "token_budget": 3000000,
     "status": "active",
     "started_at": "2026-09-10T15:42:43+02:00",
-    "tokens_spent": 157911
+    "tokens_spent": 198396
   },
   "campaign_history": [
     {
@@ -933,14 +933,18 @@
         "Sources/PoorMansTextCore/SpreadsheetWorkbook.swift"
       ],
       "priority": 2,
-      "state": "in_progress",
+      "state": "completed",
       "noted_at": "2026-09-10T15:42:44+02:00",
       "campaign_id": "20260910T154243481221+0200",
       "started_at": "2026-09-10T16:17:38+02:00",
-      "active_run": {
+      "completed": {
         "campaign_id": "20260910T154243481221+0200",
-        "started_at": "2026-09-10T16:17:38+02:00",
-        "observed_head": "ca90371c03d082d91547aef19f165609b6df3545"
+        "completed_at": "2026-09-10T16:25:15+02:00",
+        "observed_head": "d3a600ed8f5dd45872b67e1280b58b3a069d1c9c",
+        "summary": "XLSX: phoneticDepth überspringt rPh in sst und inlineStr; Zeilenlücken einer row r=… kosten je eine Einheit des Zellbudgets. XLS: CellBudget zählt neue Zellen in setCell (BIFFParser/setCell für Tests intern). CSV: sniffDelimiter mit maxSplits 20. Die zwei Zeilenbudgets (CSV 1M/5M vs Arbeitsmappen 100k/1M) bleiben als Produktentscheidung in der ROADMAP; CSV-Graphem-Trennung ist ein eigener Fund.",
+        "tests": [
+          "swift test: 532 passed (4 neue: rPh in Shared/Inline; Zeilenlücke kippt Budget; Zellbudget beim Einfügen; Sniffing ignoriert Zeilen nach 20)"
+        ]
       }
     },
     {
@@ -951,9 +955,15 @@
         "Sources/PoorMansTextCore/PresentationDocument.swift"
       ],
       "priority": 2,
-      "state": "pending",
+      "state": "in_progress",
       "noted_at": "2026-09-10T15:42:44+02:00",
-      "campaign_id": "20260910T154243481221+0200"
+      "campaign_id": "20260910T154243481221+0200",
+      "started_at": "2026-09-10T16:25:15+02:00",
+      "active_run": {
+        "campaign_id": "20260910T154243481221+0200",
+        "started_at": "2026-09-10T16:25:15+02:00",
+        "observed_head": "d3a600ed8f5dd45872b67e1280b58b3a069d1c9c"
+      }
     },
     {
       "id": "app-untranslated-texts",

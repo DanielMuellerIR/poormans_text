@@ -86,6 +86,12 @@ final class PresentationImport {
     private var page = 0
     private var expandedTextBytes = 0
     private var listStyles: [String: [Int: Bool]] = [:]
+    /// Bereits abgelegte Bilder je Paketpfad. Die Ablage dedupliziert zwar
+    /// nach Prüfsumme, aber erst nach Entpacken, Dekodieren und Hashen; ein
+    /// Bild mit vielen Verweisen kostete das je Verweis erneut (Roadmap-Punkt,
+    /// 2026-09-10). Fehlschläge werden nicht gemerkt: Ihre Diagnose gehört zu
+    /// jeder Stelle.
+    private var storedImages: [String: String] = [:]
     init(reader: any ZIPPackageReading, output: URL) { self.reader = reader; media = ImportMediaStore(output: output) }
     private struct Relation { let type: String; let target: String; let external: Bool }
     private func relationships(for part: String) throws -> [String: Relation] {
@@ -210,7 +216,9 @@ final class PresentationImport {
     private func packageImage(_ target: String, part: String) throws -> [PresentationBlock] {
         do {
             let path = try ImportPackagePath.resolve(target, relativeTo: part)
+            if let stored = storedImages[path] { return [.image(stored, "Slide image")] }
             let stored = try media.save(reader.data(named: path))
+            storedImages[path] = stored
             return [.image(stored, "Slide image")]
         } catch {
             try ConversionExecution.check()
@@ -221,7 +229,18 @@ final class PresentationImport {
     private func odpBlocks(_ node: ImportXML, level: Int?, listStyle: String? = nil) throws -> [PresentationBlock] {
         try ConversionExecution.check()
         if node.namespace == Self.text {
-            if node.name == "p" || node.name == "h" { return [.paragraph(try odfText(node), level: level, ordered: listStyle.flatMap { listStyles[$0]?[(level ?? 0) + 1] } ?? false)] }
+            if node.name == "p" || node.name == "h" {
+                let text = try odfText(node)
+                // ODF erlaubt im Absatz einen Zeichenrahmen mit Bild
+                // (`draw:frame` > `draw:image`). Vorher endete der Abstieg
+                // beim Absatztext, und das Bild fehlte ohne Diagnose
+                // (Roadmap-Punkt, 2026-09-10). Der Text verschachtelter
+                // Textrahmen steckt schon in `odfText`; hier kommen nur die
+                // Bilder dazu, nach dem Absatz.
+                let images = try node.descendants("image", namespace: Self.draw).flatMap { try odpBlocks($0, level: level, listStyle: listStyle) }
+                if text.isEmpty, !images.isEmpty { return images }
+                return [.paragraph(text, level: level, ordered: listStyle.flatMap { listStyles[$0]?[(level ?? 0) + 1] } ?? false)] + images
+            }
             if node.name == "list" {
                 let style = node.attribute("style-name", namespace: Self.text) ?? listStyle
                 if let style, listStyles[style] == nil { diagnostics.add("presentation.listStyleNotPreserved", "An unavailable list style was rendered as bullets: \(style)", page: page) }

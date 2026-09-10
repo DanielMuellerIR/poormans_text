@@ -123,3 +123,5 @@
 "Completed %d of %d documents" = "%d von %d Dokumenten abgeschlossen";
 "Batch documents at once" = "Gleichzeitige Batch-Dokumente";
 "Local OCR processes one image at a time." = "Lokale OCR verarbeitet jeweils ein Bild.";
+"The service received no files." = "Der Dienst hat keine Dateien erhalten.";
+"Poor Man's Text is busy with another conversion." = "Poor Man’s Text ist mit einer anderen Umwandlung beschäftigt.";

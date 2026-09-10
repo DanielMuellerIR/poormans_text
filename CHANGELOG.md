@@ -37,6 +37,13 @@ All notable changes to this project will be documented in this file.
   `Name-markdown` and `Name.textbundle` applied only while searching, so naming
   such a folder — or dropping it onto the app — converted the images of the
   earlier run again and nested the result inside the old output folder.
+- Keep the destination chosen through "Choose Another Name or Destination…"
+  when retrying, and retry only the input that was asked for. The retry path
+  cleared the override it had just been given and ignored the filter, so the
+  choice had no effect.
+- Localize the clipboard and service messages that were shown in English to
+  German users, and report the command-line installer's own error in English
+  instead of a German sentence inside an English message.
 - Refuse an empty path argument instead of reading it as the working directory.
   `poormans-text "$FILE"` with an unset variable converted the whole working
   directory tree, and `--output ""` wrote there without a word.

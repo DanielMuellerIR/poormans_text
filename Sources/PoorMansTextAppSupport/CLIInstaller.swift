@@ -54,6 +54,9 @@ public enum CLIInstaller {
             throw InstallError.targetUnavailable
         }
 
+        // Die Meldung im Skript ist bewusst ENGLISCH: Sie wandert als Ursache
+        // in die Fehlermeldung der App. Vorher stand dort ein deutscher Satz
+        // mitten in einer englischen Meldung (Review-Fund 2026-09-10).
         let script = #"""
         on run argv
             set sourcePath to item 1 of argv
@@ -65,7 +68,7 @@ public enum CLIInstaller {
             set quotedDirectory to quoted form of targetDirectory
             set shellCommand to "set -eu; " & ¬
                 "if [ -e " & quotedTarget & " ] || [ -L " & quotedTarget & " ]; then " & ¬
-                "echo 'Das CLI-Ziel ist inzwischen belegt.' >&2; exit 73; fi; " & ¬
+                "echo 'the command-line target is already in use' >&2; exit 73; fi; " & ¬
                 "/bin/mkdir -p " & quotedDirectory & "; " & ¬
                 "/bin/ln -s " & quotedSource & " " & quotedTarget
             if useAdministratorPrivileges is "true" then

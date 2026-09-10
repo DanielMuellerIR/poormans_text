@@ -111,6 +111,39 @@ weil sie eine Entwurfsentscheidung brauchen:
   `S_IFREG`-Prüfung in `DocumentConverter.detectInput` weist eine untergeschobene
   FIFO heute schon ab; offen bleibt nur das schmale Fenster dazwischen.
 
+## Offene Punkte der App (Stand 2026-09-10)
+
+Belegt, aber bewusst nicht in der Kampagne umgesetzt:
+
+- **Die Pandoc-Installation kennt weder Zeitgrenze noch Abbruch.** `brew install
+  pandoc` läuft ohne Zeitlimit, ohne Abbruch-Token und erbt die
+  Standardeingabe. Hängt Homebrew — Netzwerk, Passwort- oder
+  Bestätigungsabfrage —, bleibt der Installationszustand dauerhaft gesetzt;
+  damit sind Drop-Zone, ⌘O, das Öffnen aus dem Dock und beide Systemdienste
+  gesperrt, und die Oberfläche bietet keinen Abbruch an. Nur ein Neustart
+  hilft. Die Umwandlung hat beides längst; die Installation braucht dieselbe
+  Behandlung.
+- **App und CLI behandeln denselben Zielordner verschieden.** Die App übergibt
+  dem Stapel keine Zielwurzel. Ist der gemerkte Zielordner inzwischen gelöscht,
+  legt die App die ganze Pfadkette neu an, während die CLI „output parent
+  directory does not exist" meldet; zeigt er auf eine Datei, meldet die CLI
+  „output already exists" und die App je Eingabe einen rohen Dateisystemfehler.
+  Gleiche Option, zwei Verhalten — gegen die Adapter-Invariante.
+- **Über Dock oder Doppelklick geöffnete Dateien melden nichts**, wenn die App
+  gerade beschäftigt ist. Drop meldet `false`, der Dienst meldet Text, dieser
+  Weg schweigt. Dazu ist ⌘O während der Pandoc-Installation aktiv und wirkungslos.
+- **Nicht übersetzte Texte in Nebenwegen.** Die Hinweistexte von
+  `RichTextClipboard` sowie die Fehlermeldungen der beiden Installationswege
+  gehen ohne Übersetzung in die Oberfläche; die Installationsdialoge nehmen
+  ohnehin `localizedDescription` statt der zentralen Meldungsabbildung. Ein
+  verwaister Schlüssel („Converting %lld of %lld: %@…") steht in beiden
+  `.strings`-Dateien.
+- **Nicht reproduziert, deshalb nur notiert:** Die Anhangnamen eines
+  Flat-RTFD werden beim Auspacken ungeprüft als Pfadbestandteile benutzt. Ein
+  Ausbruch über `../` ließ sich nicht konstruieren — AppKit scheint den Namen
+  beim Schreiben zu bereinigen —, belegt ist er damit aber auch nicht. Die
+  übrigen Wege des Projekts vergeben für fremde Anhänge bewusst eigene Namen.
+
 ## Offene Punkte der CLI (Stand 2026-09-10)
 
 Belegt, aber bewusst nicht in der Kampagne umgesetzt:

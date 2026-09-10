@@ -219,6 +219,40 @@ final class AppOptionsTests: XCTestCase {
         while model.isConverting && Date() < deadline { try await Task.sleep(for: .milliseconds(20)) }
         XCTAssertFalse(model.isConverting)
     }
+
+    // MARK: - Review-Funde 2026-09-10
+
+    /// `convert(_:)` löschte die Zielvorgaben, bevor es sie las. Damit blieb
+    /// „Anderen Namen oder Zielordner wählen…" nach einem Aufzählungsfehler
+    /// ohne Wirkung, und `retryFailed(only:)` versuchte trotz Filter alles.
+    @MainActor
+    func testRetryingASingleEnumerationFailureKeepsItsChosenDestination() async throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("PMTRetry-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        // Zwei leere Ordner: beide scheitern an der Aufzählung.
+        let first = root.appendingPathComponent("eins", isDirectory: true)
+        let second = root.appendingPathComponent("zwei", isDirectory: true)
+        for url in [first, second] {
+            try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        }
+
+        let model = AppModel()
+        model.convert([first, second])
+        try await Task.sleep(nanoseconds: 300_000_000)
+        XCTAssertEqual(Set(model.failedEnumerationInputs), [first, second])
+
+        // Genau eine Eingabe erneut versuchen, mit einer gesetzten Zielvorgabe.
+        model.destinationOverrides[first.path] = root.appendingPathComponent("ziel", isDirectory: true)
+        model.retryFailed(only: first)
+        try await Task.sleep(nanoseconds: 300_000_000)
+
+        XCTAssertEqual(model.destinationOverrides[first.path]?.lastPathComponent, "ziel",
+                       "die Vorgabe darf nicht gelöscht werden")
+        XCTAssertEqual(model.failedEnumerationInputs, [first],
+                       "nur die gefilterte Eingabe wurde erneut versucht")
+    }
 }
 
 extension UserDefaults {
@@ -233,4 +267,5 @@ private final class VolatileAppTestDefaults: UserDefaults, @unchecked Sendable {
     override func object(forKey key: String) -> Any? { values[key] }
     override func string(forKey key: String) -> String? { values[key] as? String }
     override func bool(forKey key: String) -> Bool { values[key] as? Bool ?? false }
+
 }

@@ -135,8 +135,11 @@ public final class AppModel: ObservableObject {
     @Published public private(set) var preview: MarkdownPreview?
     private let defaults: UserDefaults
     private var loadingPreferences = true
-    private var destinationOverrides: [String: URL] = [:]
-    private var failedEnumerationInputs: [URL] = []
+    /// Nicht `private`: Der Test belegt damit, dass ein Wiederholen die gewählte
+    /// Zielvorgabe behält und den `only:`-Filter achtet — beides ging vorher
+    /// verloren (Review-Fund 2026-09-10).
+    var destinationOverrides: [String: URL] = [:]
+    var failedEnumerationInputs: [URL] = []
     private var relativeDirectories: [String: [String]] = [:]
 
     public var conversionOptions: ConversionOptions {
@@ -331,7 +334,13 @@ public final class AppModel: ObservableObject {
     public func retryFailed(only input: URL? = nil) {
         guard acceptsNewDocuments else { return }
         if !failedEnumerationInputs.isEmpty {
-            convert(failedEnumerationInputs)
+            // Der Filter galt hier nicht: Ein „nur dieses eine noch einmal"
+            // versuchte alle gescheiterten Eingaben erneut
+            // (Review-Fund 2026-09-10).
+            let retry = input.map { url in failedEnumerationInputs.filter { $0 == url } }
+                ?? failedEnumerationInputs
+            guard !retry.isEmpty else { return }
+            convert(retry, keepingDestinationOverrides: true)
             return
         }
         if case .batchFinished(let items) = state {
@@ -396,7 +405,13 @@ public final class AppModel: ObservableObject {
     /// Wandelt mehrere Pfade nacheinander um; Ordner werden dabei nach denselben
     /// Regeln wie in der CLI durchsucht. Genau eine Datei nimmt weiterhin den
     /// Einzelweg mit seiner gewohnten Ergebnisansicht.
-    public func convert(_ inputURLs: [URL]) {
+    /// - Parameter keepingDestinationOverrides: `true` für einen erneuten
+    ///   Versuch. Eine NEUE Auswahl beginnt ohne die Zielvorgaben des letzten
+    ///   Laufs; ein Wiederholen muss sie dagegen behalten, sonst löschte
+    ///   `convert` genau die Vorgabe, die `chooseAlternativeDestination` gerade
+    ///   gesetzt hat, und „Anderen Namen oder Zielordner wählen…" blieb ohne
+    ///   Wirkung (Review-Fund 2026-09-10).
+    public func convert(_ inputURLs: [URL], keepingDestinationOverrides: Bool = false) {
         guard acceptsNewDocuments, let first = inputURLs.first else {
             return
         }
@@ -406,7 +421,7 @@ public final class AppModel: ObservableObject {
             return
         }
 
-        destinationOverrides = [:]
+        if !keepingDestinationOverrides { destinationOverrides = [:] }
         relativeDirectories = [:]
         failedEnumerationInputs = []
         state = .convertingBatch(BatchProgress(finished: [], current: first, total: inputURLs.count))
@@ -595,7 +610,10 @@ public final class AppModel: ObservableObject {
                 // „copied" eine Falschmeldung.
                 outputPasteboard.clearContents()
                 guard outputPasteboard.setString(outcome.markdown, forType: .string) else {
-                    state = .failed(input: nil, message: "The Markdown could not be placed on the clipboard.")
+                    state = .failed(
+                        input: nil,
+                        message: NSLocalizedString("The Markdown could not be placed on the clipboard.", comment: "")
+                    )
                     return
                 }
                 state = .copiedToClipboard(outcome)

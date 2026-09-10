@@ -6,7 +6,7 @@
     "token_budget": 4000000,
     "status": "active",
     "started_at": "2026-09-10T10:16:08+02:00",
-    "tokens_spent": 1311471
+    "tokens_spent": 1517503
   },
   "campaign_history": [
     {
@@ -206,22 +206,17 @@
       "state": "completed",
       "last_run": {
         "campaign_id": "20260910T101608235407+0200",
-        "completed_at": "2026-09-10T11:34:22+02:00",
-        "observed_head": "f9ef8dfd4a636828b6e0a99259009d88f8dfe026",
+        "completed_at": "2026-09-10T11:34:33+02:00",
+        "observed_head": "aae642a2f869613e983d2cacf2296a46d4c60007",
         "content_sha256": "d5ce4e05fa7a0b14b8da46c192c0d0590e6b01e6ca6edcdb05beacad50a1d037",
         "file_count": 11,
         "review": "delta-plus-boundaries",
-        "outcome": "improved",
-        "summary": "Delta seit c68c961 plus die fünf neu zugeordneten Dateien (OCR-Gate, Sprachauswahl, PDF-Bildressourcen, PDF-Textordnung). Drei Korrektheitsfehler behoben: --pdf-layout legacy kippte die Seite vor der Erkennung und die OCR las gespiegelten Unsinn, meldete aber Erfolg (mit einem selbst gebauten Scan-PDF reproduziert); der Dublettenfilter verglich den dekorierten OCR-Text und traf eine unsichere Zeile nie, sodass derselbe Satz zweimal im Markdown stand; die Aufbereitung aller Seiten lief ohne Abbruchprüfung. Qualität: die wortgleich doppelte Textbereinigung aus PDFAdapter und VisionTextRecognizer liegt jetzt einmal in ExtractedText.swift (22 Zeilen weniger). Zwei belegte Punkte bewusst nicht umgesetzt und in ROADMAP.md festgehalten: die Spaltenerkennung gegenüber Tabellenzeilen und der geprüfte Deskriptor für Bilder.",
+        "outcome": "reviewed-clean",
+        "summary": "Nachbuchung: ExtractedText.swift entstand während dieses Bereichsreviews aus der Zusammenführung der doppelten Textbereinigung und ist mit ihm verifiziert; keine weitere Änderung.",
         "tests": [
-          "swift test: 490 passed, 0 failed",
-          "Mutationstest: der zurückgesetzte Legacy-Flip lässt 12 Zusicherungen fehlschlagen",
-          "CLI-Gegenprobe mit echtem Scan-PDF: --pdf-layout legacy liefert jetzt 'HELLO OCR WORLD' statt 'НЕГГО ОСЬ MOBD'"
+          "swift test: 490 passed, 0 failed"
         ]
-      },
-      "pending_paths": [
-        "Sources/PoorMansTextCore/ExtractedText.swift"
-      ]
+      }
     },
     {
       "id": "spreadsheet-import",
@@ -242,24 +237,22 @@
       "risk": "high",
       "priority": 2,
       "reason": "Drei native Binär-/XML-Parser, Datenintegrität, größter Codeblock",
-      "state": "pending",
+      "state": "completed",
       "last_run": {
-        "campaign_id": "20260830T110351547281+0200",
-        "completed_at": "2026-08-30T11:07:38+02:00",
-        "observed_head": "c68c961d97fc1cb7e161151a62e21c052c9a856e",
-        "content_sha256": "8a4822cf8036eb4b655e0d4de44c01901c2e745be1b9d296350dc16af5fa8c29",
-        "file_count": 12,
+        "campaign_id": "20260910T101608235407+0200",
+        "completed_at": "2026-09-10T11:50:54+02:00",
+        "observed_head": "0836df16420c7193f8ea4f75624953e5e39b782c",
+        "content_sha256": "99cc61c3cddde8fa887c72f96cc13485a1c77cfad159c7993020af37b8b2b21b",
+        "file_count": 14,
         "review": "delta-plus-boundaries",
-        "outcome": "reviewed-clean",
-        "summary": "Renderer-Delta und XLS/XLSX/ODS-Linkgrenzen geprüft: Dateiname, Blattname und Literalzellen können keine Markdown-Ressourcen erzeugen; Linkschemata bleiben allowlist-gebunden und Ziele syntaktisch gekapselt. Keine zusätzliche Verbesserung erforderlich.",
+        "outcome": "improved",
+        "summary": "Delta seit c68c961 plus DelimitedTextAdapter. Drei Korrektheitsfehler behoben: komprimierte BIFF8-Zeichenketten wurden als ISO-8859-1 statt Windows-1252 gelesen, sodass jede westliche XLS mit typografischem Apostroph, Halbgeviertstrich oder Eurozeichen C1-Steuerzeichen ins Markdown trug; ein ODS mit LibreOffice-typischer leerer Schlusszeile (number-rows-repeated=1048575) wurde komplett abgewiesen; eine UTF-16-CSV mit NUL galt als Text, dieselbe Datei ohne Stückliste als Binärdatei. Der ODS-Fix wurde zuerst als Klemmung gebaut und an drei echten Testdateien als still kürzend erkannt, danach auf 'erst beim Materialisieren entscheiden' korrigiert. Qualität: drei wortgleiche Limits-Kopien der Arbeitsmappen-Leser zu SpreadsheetLimits zusammengeführt. Vier belegte, nicht umgesetzte Punkte stehen in ROADMAP.md.",
         "tests": [
-          "swift test --filter 'SpreadsheetAdapterTests|SpreadsheetFeasibilityTests|LegacyXLSBoundaryTests|SpreadsheetLinkTargetTests|ReviewFixes20260830Tests.testSpreadsheetNamesAndLiteralCellsCannotCreateMarkdownResources': 48 Tests, 0 Fehler"
+          "swift test: 494 passed, 0 failed (vorher 490)",
+          "Mutationstest: Rückmutation auf isoLatin1 lässt zwei Zusicherungen fehlschlagen",
+          "CLI-Gegenprobe mit drei gebauten ODS: leere Schlusswiederholung konvertiert, Wiederholung mit Inhalt und Lücke zwischen Inhalt werden weiter abgelehnt"
         ]
-      },
-      "pending_paths": [
-        "Sources/PoorMansTextCore/DelimitedTextAdapter.swift",
-        "Tests/PoorMansTextCoreTests/DelimitedTextAdapterTests.swift"
-      ]
+      }
     },
     {
       "id": "odm-master",
@@ -663,6 +656,20 @@
       "priority": 2,
       "state": "pending",
       "noted_at": "2026-09-10T10:37:01+02:00",
+      "campaign_id": "20260910T101608235407+0200"
+    },
+    {
+      "id": "lokale-fehlertypen",
+      "summary": "Achtzehn private Fehlertypen im Kern haben dieselbe Gestalt: ein 'reason', ein init(_:) und errorDescription, das ihn zurueckgibt (ArchiveError, StagingError zweimal, ParserError viermal, PDFAdapterError, ImageAdapterError, MasterError, SpreadsheetError, InspectionError, ContentTypeError, WebArchiveError, DelimitedTextError, SpreadsheetRenderError). Achtung beim Konsolidieren: Die TYPEN muessen getrennt bleiben, weil Fangstellen nach Typ filtern (etwa 'catch let error as StagingError' in RichTextConverter). Zusammenfassbar ist nur die Wiederholung selbst, etwa ueber ein Protokoll mit Standardimplementierung von errorDescription; das spart rund 36 Zeilen und beruehrt 18 Dateien in vielen Bereichen. Nutzen also gering, Streubreite gross.",
+      "evidence": [
+        "Sources/PoorMansTextCore/ZIPArchiveInspector.swift",
+        "Sources/PoorMansTextCore/XLSXWorkbookParser.swift",
+        "Sources/PoorMansTextCore/ODMContentParser.swift",
+        "Sources/PoorMansTextCore/VerifiedFileStaging.swift"
+      ],
+      "priority": 4,
+      "state": "pending",
+      "noted_at": "2026-09-10T11:36:56+02:00",
       "campaign_id": "20260910T101608235407+0200"
     }
   ]

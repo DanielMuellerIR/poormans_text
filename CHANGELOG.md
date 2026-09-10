@@ -37,6 +37,19 @@ All notable changes to this project will be documented in this file.
   `Name-markdown` and `Name.textbundle` applied only while searching, so naming
   such a folder — or dropping it onto the app — converted the images of the
   earlier run again and nested the result inside the old output folder.
+- Copy a referenced image only after verifying that the copy really is an
+  image, and name it after the verified type. The extension came from the
+  foreign reference, so `<img src="page.html">` placed that HTML file into the
+  result folder and linked it as an image; opening it fetched exactly the remote
+  resources the core never fetches. The same now applies to web-archive
+  subresources, which may claim `image/png` and contain something else.
+- Keep reading an `<img>` tag past a `>` inside a quoted attribute. An alt text
+  like `"width > height"` ended the tag early, so a valid local image was lost
+  and the rest of the tag appeared as literal text in the Markdown.
+- Find images whose file name contains `#` or `?`. Both were treated as URL
+  separators and cut the name short, in encoded and unencoded references alike.
+- Fail instead of producing an empty document when the staged HTML copy cannot
+  be read.
 - Read compressed BIFF8 strings as Windows-1252 instead of ISO-8859-1. Every
   western XLS with typographic quotes, an en dash, or a euro sign carried raw
   control characters into the Markdown; the hyperlink paths in the same file

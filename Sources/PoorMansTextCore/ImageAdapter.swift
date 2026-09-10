@@ -413,7 +413,9 @@ enum ImageOCRBudget {
     }
 }
 
-private enum ImageFileFormat {
+/// Nicht `private`: Der HTML-Bildleser prüft mit demselben Typkatalog, ob eine
+/// als Bild verwiesene Datei wirklich ein Bild ist (Review-Fund 2026-09-10).
+enum ImageFileFormat {
     case png
     case jpeg
     case heic

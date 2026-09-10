@@ -312,4 +312,100 @@ final class PandocTextAdapterTests: XCTestCase {
     private func pngFixture() throws -> Data {
         try Data(contentsOf: Bundle.module.resourceURL!.appendingPathComponent("Fixtures/WordProcessing/fixture.png"))
     }
+    // MARK: - Bildverweise in fremdem HTML (Review-Funde 2026-09-10)
+
+    private static let pngBytes = Data([
+        0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D,
+        0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+        0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4, 0x89, 0x00, 0x00, 0x00,
+        0x0A, 0x49, 0x44, 0x41, 0x54, 0x78, 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00,
+        0x05, 0x00, 0x01, 0x0D, 0x0A, 0x2D, 0xB4, 0x00, 0x00, 0x00, 0x00, 0x49,
+        0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82,
+    ])
+
+    private func resolveImages(
+        _ html: String,
+        baseDirectory: URL? = nil,
+        subresources: [String: HTMLImageSourceResolver.Subresource] = [:]
+    ) throws -> HTMLImageSourceResolver.Resolution {
+        let work = root.appendingPathComponent("work-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: work, withIntermediateDirectories: true)
+        return try HTMLImageSourceResolver.resolve(
+            html: html, baseDirectory: baseDirectory, baseURL: nil,
+            subresources: subresources, workDirectory: work
+        )
+    }
+
+    /// Die Endung stammte aus dem fremden Verweis, nicht aus dem geprüften Typ.
+    /// Ein `<img src="seite.html">` landete dadurch als `images/image01.html`
+    /// im Ergebnisordner und wurde im Markdown verlinkt — geöffnet lud diese
+    /// Datei genau die entfernten Ressourcen nach, die der Kern nie lädt.
+    func testAReferencedNonImageFileIsNotCopiedIntoTheResult() throws {
+        let source = root.appendingPathComponent("quelle", isDirectory: true)
+        try FileManager.default.createDirectory(at: source, withIntermediateDirectories: true)
+        try Data("<html><img src=\"http://example.test/t.png\"></html>".utf8)
+            .write(to: source.appendingPathComponent("nachlader.html"))
+        try Self.pngBytes.write(to: source.appendingPathComponent("echt.png"))
+
+        let resolution = try resolveImages(
+            "<img src=\"nachlader.html\" alt=\"A\"><img src=\"echt.png\" alt=\"B\">",
+            baseDirectory: source
+        )
+
+        XCTAssertFalse(resolution.html.contains("nachlader"), resolution.html)
+        XCTAssertFalse(resolution.html.contains(".html\""), resolution.html)
+        XCTAssertTrue(resolution.html.contains("external/local02.png"), resolution.html)
+        XCTAssertEqual(resolution.missingImagesDropped, 1)
+    }
+
+    /// Dasselbe für eine Nebenressource eines Webarchivs: Sie darf
+    /// `image/png` behaupten und trotzdem etwas anderes enthalten.
+    func testAnArchivedSubresourceThatIsNoImageIsDropped() throws {
+        let resolution = try resolveImages(
+            "<img src=\"https://x.test/evil.png\" alt=\"A\">",
+            subresources: ["https://x.test/evil.png": .init(
+                data: Data("<html><script src=\"http://x.test/x.js\"></script></html>".utf8),
+                mimeType: "image/png"
+            )]
+        )
+
+        XCTAssertFalse(resolution.html.contains("external/"), resolution.html)
+        XCTAssertEqual(resolution.missingImagesDropped, 1)
+    }
+
+    /// `?` und `#` trennen im URL-Text Query und Fragment ab, im Dateinamen
+    /// sind sie erlaubt. `Skizze #1.png` wurde vorher auf `Skizze ` gekürzt und
+    /// galt als fehlend — kodiert wie unkodiert.
+    func testAHashInAFileNameStillFindsTheImage() throws {
+        let source = root.appendingPathComponent("quelle3", isDirectory: true)
+        try FileManager.default.createDirectory(at: source, withIntermediateDirectories: true)
+        try Self.pngBytes.write(to: source.appendingPathComponent("Skizze #1.png"))
+
+        let resolution = try resolveImages(
+            "<img src=\"Skizze #1.png\" alt=\"R\"><img src=\"Skizze%20%231.png\" alt=\"K\">",
+            baseDirectory: source
+        )
+
+        XCTAssertEqual(resolution.missingImagesDropped, 0, resolution.html)
+        // Beide Verweise teilen sich eine Kopie.
+        XCTAssertEqual(resolution.html.components(separatedBy: "external/local01.png").count, 3, resolution.html)
+    }
+
+    /// Ein `>` innerhalb eines Attributwerts beendet das Tag nicht. Vorher
+    /// endete der Treffer schon im Alt-Text: Das echte Bild ging verloren, und
+    /// der Rest des Tags stand wörtlich im Ergebnis.
+    func testAGreaterThanSignInAnAttributeDoesNotEndTheImageTag() throws {
+        let source = root.appendingPathComponent("quelle2", isDirectory: true)
+        try FileManager.default.createDirectory(at: source, withIntermediateDirectories: true)
+        try Self.pngBytes.write(to: source.appendingPathComponent("echt.png"))
+
+        let resolution = try resolveImages(
+            "<img alt=\"Breite > Höhe\" src=\"echt.png\">", baseDirectory: source
+        )
+
+        XCTAssertTrue(resolution.html.contains("external/local01.png"), resolution.html)
+        XCTAssertFalse(resolution.html.contains("src=\"echt.png\""), resolution.html)
+        XCTAssertEqual(resolution.missingImagesDropped, 0)
+    }
+
 }

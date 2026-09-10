@@ -189,7 +189,15 @@ struct PandocTextAdapter: DocumentConversionAdapter {
 
         case .signatureAlone where context.format == .html:
             let staged = try Self.stageFile(context, named: "verified-source.html", maximumBytes: Self.maximumTextBytes)
-            let data = (try? Data(contentsOf: staged, options: [.mappedIfSafe])) ?? Data()
+            // Ein Lesefehler der eigenen Arbeitskopie ist ein Fehler, kein
+            // leeres Dokument: Mit `?? Data()` „gelang" die Umwandlung vorher
+            // mit leerem Markdown (Review-Fund 2026-09-10).
+            let data: Data
+            do {
+                data = try Data(contentsOf: staged, options: [.mappedIfSafe])
+            } catch {
+                throw ConversionError.fileSystemFailure(error.localizedDescription)
+            }
             if let text = String(data: data, encoding: .utf8) {
                 html = text
             } else if let text = String(data: data, encoding: .windowsCP1252) {

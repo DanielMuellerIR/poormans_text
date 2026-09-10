@@ -111,6 +111,26 @@ weil sie eine Entwurfsentscheidung brauchen:
   `S_IFREG`-Prüfung in `DocumentConverter.detectInput` weist eine untergeschobene
   FIFO heute schon ab; offen bleibt nur das schmale Fenster dazwischen.
 
+## Offene Punkte beim HTML-Import (Stand 2026-09-10)
+
+Belegt, aber bewusst nicht in der Kampagne umgesetzt:
+
+- **Zeichensatz der Quelle wird bei HTML nicht gelesen.** Der Rückfall geht von
+  UTF-8 direkt auf Windows-1252, ohne `<meta charset>` zu beachten. Eine Seite
+  in `windows-1251` oder `shift_jis` wird deshalb vollständig als Mojibake
+  gelesen, mit der allgemeinen Kodierungswarnung statt einem Hinweis auf den
+  falschen Zeichensatz. Der Webarchiv-Weg wertet seinen deklarierten Zeichensatz
+  dagegen aus; ein `.tex` in Latin-1 wird hart abgelehnt. Drei Wege, drei
+  Verhalten — welches gelten soll, ist eine Produktentscheidung.
+- **Ein zu großes Einzelbild bricht das ganze Dokument ab.** Ein 300-MiB-Bild
+  neben der Quelle endet als Dateisystemfehler für die gesamte Umwandlung,
+  statt wie andere unbrauchbare Verweise nur wegzufallen.
+- **Nebenressourcen eines Webarchivs werden je Verweis neu geschrieben.** Ein
+  200-mal verwendetes Spacer-GIF ergibt 200 identische Dateien; die
+  Dedup-Tabelle gilt bisher nur für Dateien neben der Quelle.
+- **EPUB und FictionBook liefern nie Metadaten.** `--frontmatter` meldet dort
+  immer `metadataUnavailable`, obwohl `dc:title` und `dc:creator` im Buch stehen.
+
 ## Offene Punkte der Tabellenleser (Stand 2026-09-10)
 
 Belegt, aber bewusst nicht in der Kampagne umgesetzt:

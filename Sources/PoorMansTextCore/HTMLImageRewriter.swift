@@ -7,7 +7,13 @@ struct HTMLRewriteResult: Sendable {
 }
 
 enum HTMLImageRewriter {
-    private static let imageSourcePattern = #"(<img\b[^>]*\bsrc\s*=\s*[\"'])([^\"']+)([\"'])"#
+    /// Wie in `HTMLImageSourceResolver`: Ein `>` INNERHALB eines
+    /// Anführungszeichenpaars beendet das Tag nicht. Mit `[^>]*` fand dieser
+    /// Ausdruck das `src` hinter einem Alt-Text wie `"Breite > Höhe"` nicht
+    /// mehr, und das bereits geprüfte Bild blieb unter `external/` liegen statt
+    /// im Ergebnisordner zu landen (Review-Fund 2026-09-10).
+    private static let imageSourcePattern =
+        #"(<img\b(?:[^>\"']|\"[^\"]*\"|'[^']*')*?\bsrc\s*=\s*[\"'])([^\"']+)([\"'])"#
 
     static func rewrite(
         html: String,

@@ -22,6 +22,20 @@ final class ReviewFixes20260903Tests: XCTestCase {
 
     // MARK: - HTMLImageSourceResolver
 
+    /// Ein echtes 1x1-PNG. Seit dem 2026-09-10 prüft der Bildleser den INHALT
+    /// der Kopie: Ein `<img src>` auf eine Nicht-Bilddatei landete vorher mit
+    /// deren Endung im Ergebnisordner, und ein verlinktes HTML lud beim Öffnen
+    /// entfernte Ressourcen nach. Fixtures brauchen deshalb echte Bildbytes.
+    private static let pngBytes = Data([
+        0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D,
+        0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+        0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4, 0x89, 0x00, 0x00, 0x00,
+        0x0A, 0x49, 0x44, 0x41, 0x54, 0x78, 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00,
+        0x05, 0x00, 0x01, 0x0D, 0x0A, 0x2D, 0xB4, 0x00, 0x00, 0x00, 0x00, 0x49,
+        0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82,
+    ])
+
+
     private func resolve(
         _ html: String,
         baseDirectory: URL? = nil,
@@ -66,7 +80,7 @@ final class ReviewFixes20260903Tests: XCTestCase {
     }
 
     func testALocalImageIsCopiedThroughTheVerifiedStagingPath() throws {
-        try Data("png-bytes".utf8).write(to: root.appendingPathComponent("bild.png"))
+        try Self.pngBytes.write(to: root.appendingPathComponent("bild.png"))
 
         let resolution = try resolve("<img src=\"bild.png\" alt=\"Bild\">", baseDirectory: root)
 
@@ -75,7 +89,7 @@ final class ReviewFixes20260903Tests: XCTestCase {
     }
 
     func testUnquotedAttributesAreReadLikeQuotedOnes() throws {
-        try Data("png-bytes".utf8).write(to: root.appendingPathComponent("bild.png"))
+        try Self.pngBytes.write(to: root.appendingPathComponent("bild.png"))
 
         let resolution = try resolve("<img src=bild.png alt=Bild>", baseDirectory: root)
 
@@ -88,8 +102,8 @@ final class ReviewFixes20260903Tests: XCTestCase {
 
     func testALocallySavedWebArchiveFindsItsFileSubresources() throws {
         let subresources = [
-            "file:///Users/x/Seite_files/a.png": HTMLImageSourceResolver.Subresource(data: Data("a".utf8), mimeType: "image/png"),
-            "file:///Users/x/b.png": HTMLImageSourceResolver.Subresource(data: Data("b".utf8), mimeType: "image/png"),
+            "file:///Users/x/Seite_files/a.png": HTMLImageSourceResolver.Subresource(data: Self.pngBytes, mimeType: "image/png"),
+            "file:///Users/x/b.png": HTMLImageSourceResolver.Subresource(data: Self.pngBytes, mimeType: "image/png"),
         ]
         let html = """
         <img src="Seite_files/a.png" alt="Relativ">

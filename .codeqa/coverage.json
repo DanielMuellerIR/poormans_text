@@ -196,15 +196,15 @@
       "id": "odm-master",
       "last_run": {
         "campaign_id": "20260910T101608235407+0200",
-        "completed_at": "2026-09-10T11:56:18+02:00",
-        "content_sha256": "50530f8ca3e64545ab4844a0cb8c9a4314e8ab395d1275cdf91558e3d086f220",
+        "completed_at": "2026-09-10T12:56:37+02:00",
+        "observed_head": "4f55976369b0891e51b84ae8b3e976e10a22288c",
+        "content_sha256": "7c55213813c6979eadd0372671933d2f061a55c42597b7ccb54994885151904f",
         "file_count": 4,
-        "observed_head": "a31af434c6e569b0f5911dae3944a3c7553be103",
-        "outcome": "reviewed-clean",
         "review": "delta-plus-boundaries",
-        "summary": "Delta seit c68c961 geprüft: gemeinsame destination-Funktion im Link-Rewriter, Abbruchprüfungen im ODM-Parser, Umstellung auf den geprüften ZIPPackageReader und Metadaten aus meta.xml. Kein Korrektheitsfehler gefunden. Die Auflösung der Teildokumente ist streng — kein Schema, kein Host, keine Query, kein absoluter Pfad, kein Rückwärtsschritt, Existenzprüfung und nach der Symlink-Auflösung Präfixprüfung gegen das Masterverzeichnis — und mit 28 Tests belegt. Die prozentkodierten Asset-Links, die im Textbundle-Fall stillschweigend verloren gingen, deckt seit dem converter-engine-Fix derselbe Rewriter mit ab; im ODM-Pfad tragen die von Pandoc erzeugten Mediennamen ohnehin keine kodierpflichtigen Zeichen. Der gebuchte Verbrauch enthält zusätzlich den Querschnitts-Fund xmlparser-konfiguration.",
+        "outcome": "reviewed-clean",
+        "summary": "Nachbuchung zum presentation-notebook-Fix: Das Delta ist genau der dort verifizierte Diff im MarkdownLinkTargetRewriter — Ersetzung über eine Abbildung in einem Durchlauf, replacing(in:from:to:) bleibt als Hülle. Keine weitere Änderung.",
         "tests": [
-          "swift test: 496 passed, 0 failed"
+          "swift test: 504 passed, 0 failed"
         ]
       },
       "paths": [
@@ -259,7 +259,22 @@
       "priority": 3,
       "reason": "Neu hinzugekommene native Leser für PPTX/ODP und Jupyter-Notebooks samt eigenem XML-Parser; noch nie per CodeQA geprüft",
       "risk": "high",
-      "state": "pending"
+      "state": "completed",
+      "last_run": {
+        "campaign_id": "20260910T101608235407+0200",
+        "completed_at": "2026-09-10T12:56:37+02:00",
+        "observed_head": "4f55976369b0891e51b84ae8b3e976e10a22288c",
+        "content_sha256": "70b4404d3b2e2766a5c59e0774aa9e006c94b511ac90b7bacdb4869d5b22f2e5",
+        "file_count": 5,
+        "review": "full",
+        "outcome": "improved",
+        "summary": "Vollreview. Vier Korrektheitsfehler behoben: Der Notebook-Import ersetzte Anhangsverweise je Anhang einmal über den ganzen Zelltext — ein 2,6-MB-Notebook mit 20000 Anhängen lief über zehn Minuten und ignorierte SIGINT mindestens 20 s (gemessen; jetzt 1,64 s). Ein Quellverweis auf einen selbst vergebenen Asset-Namen blieb stehen und zeigte still auf den Anhang einer anderen Zelle, reihenfolgeabhängig. Attribute zählten gegen keine XML-Grenze. Notizteile wurden in ungeordneter Wörterbuchreihenfolge gelesen. Eigene Gegenproben: bösartige Anhangnamen (../../ausbruch.png, /etc/passwd) werden umbenannt statt zu entkommen, ein als image/png getarntes HTML wird abgewiesen, Bildzuordnung byteweise korrekt und über fünf Läufe deterministisch. Zwei belegte, nicht umgesetzte Punkte stehen in ROADMAP.md.",
+        "tests": [
+          "swift test: 504 passed, 0 failed (vorher 502)",
+          "Mutationstest: zurückgesetzte Eigen-Asset-Prüfung lässt zwei Zusicherungen fehlschlagen",
+          "CLI-Messung: 20000-Anhänge-Notebook von über 600 s (nicht abbrechbar) auf 1,64 s bei 34 MB"
+        ]
+      }
     },
     {
       "id": "xml-shared-infra",
@@ -491,7 +506,7 @@
     "started_at": "2026-09-10T10:16:08+02:00",
     "status": "active",
     "token_budget": 4000000,
-    "tokens_spent": 1899433
+    "tokens_spent": 2048908
   },
   "campaign_history": [
     {

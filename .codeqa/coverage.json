@@ -6,7 +6,7 @@
     "token_budget": 4000000,
     "status": "active",
     "started_at": "2026-09-10T10:16:08+02:00",
-    "tokens_spent": 1150090
+    "tokens_spent": 1311471
   },
   "campaign_history": [
     {
@@ -63,7 +63,8 @@
       "install.sh",
       "release.sh",
       "Package.swift",
-      ".github/workflows"
+      ".github/workflows",
+      "App"
     ],
     "exclusions": []
   },
@@ -196,31 +197,30 @@
         "Sources/PoorMansTextCore/OCRLanguageSelection.swift",
         "Sources/PoorMansTextCore/PDFImageResources.swift",
         "Sources/PoorMansTextCore/PDFTextLayout.swift",
-        "Tests/PoorMansTextCoreTests/PDFQualityTests.swift"
+        "Tests/PoorMansTextCoreTests/PDFQualityTests.swift",
+        "Sources/PoorMansTextCore/ExtractedText.swift"
       ],
       "risk": "high",
       "priority": 2,
       "reason": "Neu zugewachsener PDF-/Bild-Import mit lokaler Vision-OCR; nie CodeQA-geprüft, arbeitet mit Speicherbudgets und Fremddateien",
-      "state": "pending",
+      "state": "completed",
       "last_run": {
-        "campaign_id": "20260830T110351547281+0200",
-        "completed_at": "2026-08-30T11:07:11+02:00",
-        "observed_head": "c68c961d97fc1cb7e161151a62e21c052c9a856e",
-        "content_sha256": "6e8fe45de286e697eaac8627e8d6b1cc3bfb1ecdb1654cf85df2200ea4fbadb0",
-        "file_count": 5,
+        "campaign_id": "20260910T101608235407+0200",
+        "completed_at": "2026-09-10T11:34:22+02:00",
+        "observed_head": "f9ef8dfd4a636828b6e0a99259009d88f8dfe026",
+        "content_sha256": "d5ce4e05fa7a0b14b8da46c192c0d0590e6b01e6ca6edcdb05beacad50a1d037",
+        "file_count": 11,
         "review": "delta-plus-boundaries",
-        "outcome": "reviewed-clean",
-        "summary": "PDF- und Bild-Delta samt Staging-, Decoder-, OCR- und Warnungsgrenzen geprüft: PDFKit erhält nur private Snapshots; Bildflächenbudget berücksichtigt Mindestkanten und validiert Decoderergebnis; OCR-Rückfalltext bleibt erhalten. Keine zusätzliche Verbesserung erforderlich.",
+        "outcome": "improved",
+        "summary": "Delta seit c68c961 plus die fünf neu zugeordneten Dateien (OCR-Gate, Sprachauswahl, PDF-Bildressourcen, PDF-Textordnung). Drei Korrektheitsfehler behoben: --pdf-layout legacy kippte die Seite vor der Erkennung und die OCR las gespiegelten Unsinn, meldete aber Erfolg (mit einem selbst gebauten Scan-PDF reproduziert); der Dublettenfilter verglich den dekorierten OCR-Text und traf eine unsichere Zeile nie, sodass derselbe Satz zweimal im Markdown stand; die Aufbereitung aller Seiten lief ohne Abbruchprüfung. Qualität: die wortgleich doppelte Textbereinigung aus PDFAdapter und VisionTextRecognizer liegt jetzt einmal in ExtractedText.swift (22 Zeilen weniger). Zwei belegte Punkte bewusst nicht umgesetzt und in ROADMAP.md festgehalten: die Spaltenerkennung gegenüber Tabellenzeilen und der geprüfte Deskriptor für Bilder.",
         "tests": [
-          "swift test --filter 'PDFAdapterTests|ImageAdapterTests|ReviewFixes20260830Tests.testNarrowImageBudgetAccountsForTheOnePixelMinimumEdge|ReviewFixes20260830Tests.testPDFFailureWarningAllowsForPreservedFallbackText': 18 Tests, 0 Fehler"
+          "swift test: 490 passed, 0 failed",
+          "Mutationstest: der zurückgesetzte Legacy-Flip lässt 12 Zusicherungen fehlschlagen",
+          "CLI-Gegenprobe mit echtem Scan-PDF: --pdf-layout legacy liefert jetzt 'HELLO OCR WORLD' statt 'НЕГГО ОСЬ MOBD'"
         ]
       },
       "pending_paths": [
-        "Sources/PoorMansTextCore/OCRConcurrencyGate.swift",
-        "Sources/PoorMansTextCore/OCRLanguageSelection.swift",
-        "Sources/PoorMansTextCore/PDFImageResources.swift",
-        "Sources/PoorMansTextCore/PDFTextLayout.swift",
-        "Tests/PoorMansTextCoreTests/PDFQualityTests.swift"
+        "Sources/PoorMansTextCore/ExtractedText.swift"
       ]
     },
     {
@@ -457,7 +457,8 @@
         "Tests/PoorMansTextCoreTests/UpdateControllerTests.swift",
         "Tests/PoorMansTextCoreTests/AppOptionsTests.swift",
         "Tests/PoorMansTextCoreTests/OpenedDocumentsRelayTests.swift",
-        "Tests/PoorMansTextCoreTests/ServicesProviderTests.swift"
+        "Tests/PoorMansTextCoreTests/ServicesProviderTests.swift",
+        "App"
       ],
       "risk": "medium",
       "priority": 7,
@@ -479,7 +480,8 @@
       "pending_paths": [
         "Tests/PoorMansTextCoreTests/AppOptionsTests.swift",
         "Tests/PoorMansTextCoreTests/OpenedDocumentsRelayTests.swift",
-        "Tests/PoorMansTextCoreTests/ServicesProviderTests.swift"
+        "Tests/PoorMansTextCoreTests/ServicesProviderTests.swift",
+        "App"
       ]
     },
     {

@@ -295,6 +295,153 @@ final class WordProcessingPackageInspectionTests: XCTestCase {
         }
     }
 
+    // MARK: - Hauptteil laut OPC (Roadmap-Punkte 2026-09-10)
+
+    /// Ein Paket, dessen Hauptteil nicht `word/document.xml` heißt; `_rels/.rels`
+    /// zeigt darauf, wie es OPC vorsieht und Pandoc auflöst.
+    private func renamedMainPartPackage(documentXML: String, target: String = "word/document2.xml",
+                                        partName: String = "word/document2.xml") throws -> Data {
+        let contentTypes = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+        <Override PartName="/\(partName)" ContentType="\(ZIPFixtureBuilder.docxMainContentType)"/>
+        </Types>
+        """
+        let rootRelationships = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+        <Relationship Id="rId1" \
+        Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" \
+        Target="\(target)"/>
+        </Relationships>
+        """
+        return try ZIPFixtureBuilder.archive(entries: [
+            ZIPFixtureBuilder.Entry(name: "[Content_Types].xml", content: Data(contentTypes.utf8)),
+            ZIPFixtureBuilder.Entry(name: "_rels/.rels", content: Data(rootRelationships.utf8)),
+            ZIPFixtureBuilder.Entry(name: partName, content: Data(documentXML.utf8)),
+        ])
+    }
+
+    /// Der Hauptteil war fest auf `word/document.xml` verdrahtet; ein von Word
+    /// repariertes Dokument mit `word/document2.xml` wurde abgelehnt, obwohl
+    /// Pandoc es umwandelt.
+    func testMainPartIsResolvedThroughTheOfficeDocumentRelationship() throws {
+        let tracked = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+        <w:body><w:p><w:ins w:id="2"><w:r><w:t>Accepted change</w:t></w:r></w:ins></w:p></w:body>
+        </w:document>
+        """
+        let url = try write(try renamedMainPartPackage(documentXML: tracked), as: "Repaired.docx")
+
+        let inspection = try DocumentConverter().inspect(url)
+        XCTAssertEqual(inspection.format, .docx)
+        // Die Warnung beweist, dass wirklich `word/document2.xml` gelesen wurde.
+        XCTAssertEqual(inspection.expectedWarnings.map(\.code), ["wordProcessing.changesAccepted"])
+
+        // Ein führender Schrägstrich im Ziel ist laut OPC gleichwertig.
+        let absolute = try write(
+            try renamedMainPartPackage(documentXML: minimalDocumentXML, target: "/word/document2.xml"),
+            as: "Absolute.docx"
+        )
+        XCTAssertEqual(try DocumentConverter().inspect(absolute).format, .docx)
+    }
+
+    func testARepairedDocumentConvertsLikePandocReadsIt() throws {
+        guard ExternalToolResolver().isAvailable(.pandoc) else {
+            throw XCTSkip("Pandoc is required for this conversion test.")
+        }
+        let url = try write(try renamedMainPartPackage(documentXML: minimalDocumentXML), as: "Repaired.docx")
+        let outputURL = temporaryDirectory.appendingPathComponent("repaired-result", isDirectory: true)
+
+        let result = try DocumentConverter().convert(
+            ConversionRequest(inputURL: url, destination: .directory(outputURL))
+        )
+
+        XCTAssertTrue(try String(contentsOf: result.markdownFile, encoding: .utf8).contains("Fixture text"))
+    }
+
+    /// Zeigt `_rels/.rels` auf einen fehlenden Teil, ist das Paket kein
+    /// lesbares Word-Dokument — nicht still `word/document.xml` nehmen.
+    func testAMissingOfficeDocumentTargetIsRejected() throws {
+        let url = try write(
+            try renamedMainPartPackage(documentXML: minimalDocumentXML, target: "word/missing.xml"),
+            as: "Dangling.docx"
+        )
+
+        XCTAssertThrowsError(try DocumentConverter().inspect(url)) { error in
+            XCTAssertTrue(error.localizedDescription.contains("document-package entries are missing"), error.localizedDescription)
+        }
+    }
+
+    /// Ein leerer `.rels`-Teil kann kein externes Bildziel verbergen und
+    /// verwirft das Dokument nicht mehr; ein defekter bleibt ein Ablehnungsgrund.
+    func testAnEmptyRelationshipsPartIsToleratedButABrokenOneIsNot() throws {
+        // Der Builder deflatiert nicht leer; der leere Teil wird gespeichert.
+        let empty = try write(
+            try ZIPFixtureBuilder.archive(entries: [
+                ZIPFixtureBuilder.Entry(
+                    name: "[Content_Types].xml",
+                    content: Data(ZIPFixtureBuilder.contentTypesXML(mainContentType: ZIPFixtureBuilder.docxMainContentType).utf8)
+                ),
+                ZIPFixtureBuilder.Entry(name: "word/document.xml", content: Data(minimalDocumentXML.utf8)),
+                ZIPFixtureBuilder.Entry(name: "word/_rels/styles.xml.rels", content: Data(), isStored: true),
+            ]),
+            as: "EmptyRels.docx"
+        )
+        XCTAssertEqual(try DocumentConverter().inspect(empty).format, .docx)
+
+        let broken = try write(
+            try ZIPFixtureBuilder.docxPackage(
+                documentXML: minimalDocumentXML, extraParts: ["word/_rels/styles.xml.rels": "<Relationships"]
+            ),
+            as: "BrokenRels.docx"
+        )
+        XCTAssertThrowsError(try DocumentConverter().inspect(broken))
+    }
+
+    /// Ein externes `draw:image` in `styles.xml` (Kopf-/Fußzeile) wurde nicht
+    /// geprüft; nur `content.xml` zählte.
+    func testODTExternalImageInStylesIsRejected() throws {
+        let stylesXML = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <office:document-styles \
+        xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" \
+        xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0" \
+        xmlns:draw="urn:oasis:names:tc:opendocument:xmlns:drawing:1.0" \
+        xmlns:xlink="http://www.w3.org/1999/xlink">
+        <office:master-styles><style:master-page style:name="Standard">
+        <style:header><draw:frame><draw:image xlink:href="https://example.com/header.png"/></draw:frame></style:header>
+        </style:master-page></office:master-styles>
+        </office:document-styles>
+        """
+        let contentXML = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <office:document-content xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" \
+        xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0">
+        <office:body><office:text><text:p>Body text</text:p></office:text></office:body>
+        </office:document-content>
+        """
+        let archive = try ZIPFixtureBuilder.archive(entries: [
+            ZIPFixtureBuilder.Entry(
+                name: "mimetype", content: Data("application/vnd.oasis.opendocument.text".utf8), isStored: true
+            ),
+            ZIPFixtureBuilder.Entry(name: "content.xml", content: Data(contentXML.utf8)),
+            ZIPFixtureBuilder.Entry(name: "styles.xml", content: Data(stylesXML.utf8)),
+        ])
+        let url = try write(archive, as: "HeaderImage.odt")
+        let outputURL = temporaryDirectory.appendingPathComponent("odt-header-result", isDirectory: true)
+
+        XCTAssertThrowsError(
+            try DocumentConverter().convert(ConversionRequest(inputURL: url, destination: .directory(outputURL)))
+        ) { error in
+            guard case ConversionError.unsafeImageReference(let reference) = error else {
+                return XCTFail("Unexpected error: \(error)")
+            }
+            XCTAssertEqual(reference, "https://example.com/header.png")
+        }
+    }
+
     private func write(_ archive: Data, as name: String) throws -> URL {
         let url = temporaryDirectory.appendingPathComponent(name)
         try archive.write(to: url)

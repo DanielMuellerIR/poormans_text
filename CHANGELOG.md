@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Resolve the main part of a Word package through the `officeDocument`
+  relationship in `_rels/.rels`, the way OPC defines it and Pandoc reads it. A
+  document repaired by Word carries `word/document2.xml` and was rejected as
+  missing its package entries. Comments, footnotes, and endnotes are looked up
+  next to the resolved part. An empty `.rels` part no longer rejects the whole
+  document; a malformed one still does, because it could hide an external image
+  target. ODT packages are now also checked for external images in `styles.xml`.
 - Report an argument error as JSON whenever `--json` appears anywhere among the
   options, not only when it precedes the faulty argument. A value-aware scan
   decides the output mode before parsing; `--pandoc --json` still names a tool

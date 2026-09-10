@@ -386,18 +386,16 @@
     {
       "id": "cli",
       "last_run": {
-        "campaign_id": "20260910T101608235407+0200",
-        "completed_at": "2026-09-10T13:13:04+02:00",
-        "observed_head": "056d6a0e1664b89839cfd8575f9965f379aef468",
-        "content_sha256": "d8f9899c96939f693c4ecd2b3efe34d7a9c1be8b48e47190c6189208dd9de0d8",
+        "campaign_id": "20260910T154243481221+0200",
+        "completed_at": "2026-09-10T16:04:04+02:00",
+        "observed_head": "eabaff4f253fba21d64b6005fdd61d082a440ca5",
+        "content_sha256": "e857aeeef622b53fa95f14552919f8bd74718d761de84671fb43092ebf8d44f3",
         "file_count": 7,
         "review": "delta-plus-boundaries",
         "outcome": "improved",
-        "summary": "Delta seit c68c961 (Aufteilung von main.swift in Argumente, Ausführung und Ausgabe). Zwei Korrektheitsfehler behoben: Ein leeres Pfadargument wurde als Arbeitsverzeichnis gelesen, sodass 'poormans-text $FILE' mit leerer Variable den ganzen Arbeitsordner rekursiv umwandelte (reproduziert), und ein ungültiges Zeitlimit meldete sich als fehlender Wert mit kaputter Grammatik. Beim dritten Reviewer-Fund (angehängtes --json wirkt bei Argumentfehlern nicht) habe ich einen Vorabscan gebaut, der vier bestehende Tests brach, weil er --json als Optionswert mitliest; zurückgenommen und als offener Punkt festgehalten. Ohne Fund geprüft: Exit-Codes vollständig und konsistent, -- beendet die Optionen korrekt, JSON bleibt auch bei Dateinamen mit Zeilenumbruch und Anführungszeichen gültig.",
+        "summary": "Delta = Parserumbau (valueOptions, Vorabscan, Switch) und --stdout/--jobs-Konflikt; Grenzen zu Core unverändert; Ausgabemodus und Exit-Codes über CLIIntegration-/CLIOutputMode-/CLIBatch-Tests geprüft.",
         "tests": [
-          "swift test: 508 passed, 0 failed (vorher 506)",
-          "Mutationstest: erlaubter leerer Pfad und zurückgesetzter Zeitlimit-Fehler lassen sieben beziehungsweise drei Zusicherungen fehlschlagen",
-          "CLI-Gegenprobe: 12 Argumentkombinationen mit erwarteten Exit-Codes, JSON gültig bei Dateinamen mit Steuerzeichen"
+          "swift test: 519 passed"
         ]
       },
       "paths": [
@@ -505,7 +503,7 @@
     "token_budget": 3000000,
     "status": "active",
     "started_at": "2026-09-10T15:42:43+02:00",
-    "tokens_spent": 94202
+    "tokens_spent": 112385
   },
   "campaign_history": [
     {
@@ -824,14 +822,18 @@
         "Tests/PoorMansTextCoreTests/CLIOutputModeTests.swift"
       ],
       "priority": 2,
-      "state": "in_progress",
+      "state": "completed",
       "noted_at": "2026-09-10T15:42:43+02:00",
       "campaign_id": "20260910T154243481221+0200",
       "started_at": "2026-09-10T16:00:26+02:00",
-      "active_run": {
+      "completed": {
         "campaign_id": "20260910T154243481221+0200",
-        "started_at": "2026-09-10T16:00:26+02:00",
-        "observed_head": "18c6392037d877d76f4219fb0f02cfb070c8e206"
+        "completed_at": "2026-09-10T16:04:04+02:00",
+        "observed_head": "eabaff4f253fba21d64b6005fdd61d082a440ca5",
+        "summary": "valueOptions als einzige Liste der Optionen mit Wert; requestsJSONOutput als wertbewusster Vorabscan vor dem Parsen; parseArguments als Switch (apply(flag:)/apply(option:value:)) statt if-else-Kette; Verhalten erhalten (Inline-Werte nur bei --langen Optionen, Schalter mit =Wert unbekannt).",
+        "tests": [
+          "swift test: 519 passed (Fehler vor --json als JSON; --pandoc=--json und -- --json weiter Text; jede Wertoption verbraucht ihren Wert und meldet fehlenden Wert)"
+        ]
       }
     },
     {
@@ -864,9 +866,15 @@
         "Sources/PoorMansTextCore/WordProcessingPackageAdapter.swift"
       ],
       "priority": 2,
-      "state": "pending",
+      "state": "in_progress",
       "noted_at": "2026-09-10T15:42:44+02:00",
-      "campaign_id": "20260910T154243481221+0200"
+      "campaign_id": "20260910T154243481221+0200",
+      "started_at": "2026-09-10T16:04:04+02:00",
+      "active_run": {
+        "campaign_id": "20260910T154243481221+0200",
+        "started_at": "2026-09-10T16:04:04+02:00",
+        "observed_head": "eabaff4f253fba21d64b6005fdd61d082a440ca5"
+      }
     },
     {
       "id": "html-charset-and-images",

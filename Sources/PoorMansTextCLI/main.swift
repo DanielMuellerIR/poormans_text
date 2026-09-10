@@ -109,6 +109,12 @@ do {
 } catch {
     let message = error.localizedDescription
 
+    // Nur das bereits GELESENE `--json` gilt. Ein Vorabscan über alle Argumente
+    // wäre bequem, würde aber `--pandoc --json` als JSON-Wunsch lesen, obwohl
+    // dort ein Werkzeugpfad namens `--json` gemeint ist — genau das hält
+    // testJSONModeUsesOnlyOptionsRecognizedByParser fest. Folge: Ein
+    // Argumentfehler VOR `--json` meldet sich als Text (Review-Fund 2026-09-10,
+    // in ROADMAP.md festgehalten).
     if parsedArguments.json {
         writeJSON(JSONResponse.failure(message))
     } else {

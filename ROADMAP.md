@@ -111,6 +111,26 @@ weil sie eine Entwurfsentscheidung brauchen:
   `S_IFREG`-Prüfung in `DocumentConverter.detectInput` weist eine untergeschobene
   FIFO heute schon ab; offen bleibt nur das schmale Fenster dazwischen.
 
+## Offene Punkte der CLI (Stand 2026-09-10)
+
+Belegt, aber bewusst nicht in der Kampagne umgesetzt:
+
+- **`--json` wirkt nur, wenn es VOR dem fehlerhaften Argument steht.** Der
+  Fehlerausgang liest den Teilzustand des Parsers; ein Wrapper, der `--json`
+  anhängt, bekommt bei einem Argumentfehler Text statt JSON. Ein Vorabscan über
+  alle Argumente wäre bequem, würde aber `--pandoc --json` als JSON-Wunsch
+  lesen, obwohl dort ein Werkzeugpfad namens `--json` gemeint ist — genau das
+  hält `testJSONModeUsesOnlyOptionsRecognizedByParser` fest. Sauber wäre ein
+  wertbewusster Vorabscan; dafür müsste die Auswertung erst eine gemeinsame
+  Liste der Optionen mit Wert bekommen, statt der heutigen if-else-Kette.
+- **Der Textmodus ist bei Sonderzeichen im Dateinamen nicht zeilenweise
+  parsbar.** Ein Ergebnispfad mit Zeilenumbruch erzeugt zwei Zeilen. Die Hilfe
+  beschreibt den Textmodus als Zeilenliste; wer sicher parsen will, nimmt
+  `--json`. Entweder die Hilfe sagt das ausdrücklich, oder der Textmodus
+  maskiert — beides ist eine Produktentscheidung.
+- **`--stdout --jobs 4` wird stillschweigend geschluckt**, während dieselbe
+  wirkungslose Angabe im Katalogmodus ein Nutzungsfehler ist.
+
 ## Offene Punkte bei Präsentationen (Stand 2026-09-10)
 
 Belegt, aber bewusst nicht in der Kampagne umgesetzt:

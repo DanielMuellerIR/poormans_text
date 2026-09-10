@@ -37,6 +37,11 @@ All notable changes to this project will be documented in this file.
   `Name-markdown` and `Name.textbundle` applied only while searching, so naming
   such a folder — or dropping it onto the app — converted the images of the
   earlier run again and nested the result inside the old output folder.
+- Refuse an empty path argument instead of reading it as the working directory.
+  `poormans-text "$FILE"` with an unset variable converted the whole working
+  directory tree, and `--output ""` wrote there without a word.
+- Report an out-of-range or unparsable `--timeout` as an invalid option rather
+  than a missing value.
 - Rewrite every attachment reference of a notebook cell in a single pass. Doing
   it once per attachment was quadratic: a 2.6 MB notebook with 20,000
   attachments ran for over ten minutes and ignored cancellation. The same file

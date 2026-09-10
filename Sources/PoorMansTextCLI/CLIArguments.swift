@@ -118,7 +118,9 @@ func parseArguments(
                 value = rawArguments[index]
             } else { value = String(argument.dropFirst("--timeout=".count)) }
             guard let seconds = Double(value), seconds.isFinite, seconds > 0 else {
-                throw CLIArgumentError.missingValue("--timeout requires positive finite seconds")
+                throw CLIArgumentError.invalidConversionOption(
+                    "--timeout requires positive finite seconds"
+                )
             }
             parsed.timeout = seconds
         } else if !optionsEnded && ["--pdf-remove-headers-footers", "--pdf-dehyphenate"].contains(argument) {
@@ -195,26 +197,39 @@ func parseArguments(
             guard index < rawArguments.count else {
                 throw CLIArgumentError.missingValue(argument)
             }
-            parsed.outputURL = fileURL(rawArguments[index])
+            parsed.outputURL = try fileURL(rawArguments[index], option: "--output")
         } else if !optionsEnded && argument.hasPrefix("--output=") {
-            parsed.outputURL = fileURL(String(argument.dropFirst("--output=".count)))
+            parsed.outputURL = try fileURL(String(argument.dropFirst("--output=".count)), option: "--output")
         } else if !optionsEnded && argument == "--pandoc" {
             index += 1
             guard index < rawArguments.count else {
                 throw CLIArgumentError.missingValue(argument)
             }
-            parsed.pandocURL = fileURL(rawArguments[index])
+            parsed.pandocURL = try fileURL(rawArguments[index], option: "--pandoc")
         } else if !optionsEnded && argument.hasPrefix("--pandoc=") {
-            parsed.pandocURL = fileURL(String(argument.dropFirst("--pandoc=".count)))
+            parsed.pandocURL = try fileURL(String(argument.dropFirst("--pandoc=".count)), option: "--pandoc")
         } else if !optionsEnded && argument.hasPrefix("-") {
             throw CLIArgumentError.unknownOption(argument)
         } else {
-            parsed.inputURLs.append(fileURL(argument))
+            parsed.inputURLs.append(try fileURL(argument, option: "an input"))
         }
 
         index += 1
     }
 
+}
+
+/// Ein LEERER Pfad ist kein Pfad.
+///
+/// `URL(fileURLWithPath: "")` ergibt das Arbeitsverzeichnis. Damit wandelte
+/// `poormans-text "$FILE"` mit leerer Variable den gesamten Arbeitsordner
+/// rekursiv um, und `--output ""` schrieb kommentarlos dorthin — beides ohne
+/// Rückfrage und ohne Fehler (Review-Fund 2026-09-10).
+func fileURL(_ path: String, option: String) throws -> URL {
+    guard !path.isEmpty else {
+        throw CLIArgumentError.invalidConversionOption("\(option) needs a path, but the value is empty")
+    }
+    return fileURL(path)
 }
 
 func fileURL(_ path: String) -> URL {

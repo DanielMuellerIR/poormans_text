@@ -505,7 +505,7 @@
     "token_budget": 3000000,
     "status": "active",
     "started_at": "2026-09-10T15:42:43+02:00",
-    "tokens_spent": 80518
+    "tokens_spent": 94202
   },
   "campaign_history": [
     {
@@ -824,9 +824,15 @@
         "Tests/PoorMansTextCoreTests/CLIOutputModeTests.swift"
       ],
       "priority": 2,
-      "state": "pending",
+      "state": "in_progress",
       "noted_at": "2026-09-10T15:42:43+02:00",
-      "campaign_id": "20260910T154243481221+0200"
+      "campaign_id": "20260910T154243481221+0200",
+      "started_at": "2026-09-10T16:00:26+02:00",
+      "active_run": {
+        "campaign_id": "20260910T154243481221+0200",
+        "started_at": "2026-09-10T16:00:26+02:00",
+        "observed_head": "18c6392037d877d76f4219fb0f02cfb070c8e206"
+      }
     },
     {
       "id": "cli-stdout-jobs",
@@ -836,14 +842,18 @@
         "Sources/PoorMansTextCLI/CLIOutput.swift"
       ],
       "priority": 2,
-      "state": "in_progress",
+      "state": "completed",
       "noted_at": "2026-09-10T15:42:43+02:00",
       "campaign_id": "20260910T154243481221+0200",
       "started_at": "2026-09-10T15:57:53+02:00",
-      "active_run": {
+      "completed": {
         "campaign_id": "20260910T154243481221+0200",
-        "started_at": "2026-09-10T15:57:53+02:00",
-        "observed_head": "633629c094ec33cceb14fda82078fdebb58c650e"
+        "completed_at": "2026-09-10T16:00:26+02:00",
+        "observed_head": "18c6392037d877d76f4219fb0f02cfb070c8e206",
+        "summary": "main.swift: --stdout mit gesetztem --jobs wirft standardOutputConflict; Hilfe und README (en/de) nennen --jobs im Ausschluss und die Zeilenregel des Textmodus (Produktentscheidung: dokumentieren statt maskieren, kein Verhaltenswechsel der Ausgabe).",
+        "tests": [
+          "swift test: 518 passed (Konfliktliste um --stdout --jobs 2 und --jobs=4 erweitert)"
+        ]
       }
     },
     {

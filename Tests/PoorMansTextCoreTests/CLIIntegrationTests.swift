@@ -123,6 +123,35 @@ final class CLIIntegrationTests: XCTestCase {
         assertTextFailure(outputNamedJSON, expectedStatus: 64)
 
         try assertJSONFailure(["--json", "--unknown"], expectedStatus: 64)
+
+        // Ein Fehler VOR `--json` kommt ebenfalls als JSON: Ein Wrapper, der
+        // `--json` anhängt, bekam hier vorher Text (Roadmap-Punkt, 2026-09-10).
+        try assertJSONFailure(["--unknown", "--json"], expectedStatus: 64)
+        try assertJSONFailure(["--timeout", "abc", "--json"], expectedStatus: 64)
+        try assertJSONFailure(["--pandoc=--json", "--json"], expectedStatus: 64)
+        // Nach `--` ist auch ein zweites `--json` eine Eingabe.
+        assertTextFailure(try runCLI(["--", "--json", "--json"]), expectedStatus: 66)
+    }
+
+    /// Jede Option mit Wert muss ihren Wert wirklich verbrauchen — sonst läse
+    /// der Vorabscan ein `--json` an dieser Stelle als Ausgabemodus, obwohl es
+    /// ein Pfad oder ein ungültiger Wert ist. Die Liste hier spiegelt
+    /// `valueOptions` in CLIArguments.swift; eine neue Option mit Wert gehört
+    /// an beide Stellen.
+    func testEveryValueOptionConsumesItsValue() throws {
+        let valueOptions = [
+            "-o", "--output", "--pandoc", "--timeout", "--jobs", "--spreadsheet-format",
+            "--image-ocr", "--pdf-ocr", "--pdf-layout", "--ocr-language",
+        ]
+        for option in valueOptions {
+            let asValue = try runCLI([option, "--json"])
+            XCTAssertNotEqual(asValue.status, 0, option)
+            XCTAssertTrue(asValue.standardOutput.isEmpty, "\(option) --json wurde als JSON-Modus gelesen: \(asValue.standardOutput)")
+
+            let missing = try runCLI([option])
+            XCTAssertEqual(missing.status, 64, option)
+            XCTAssertTrue(missing.standardError.contains("Missing value for \(option)."), "\(option): \(missing.standardError)")
+        }
     }
 
     func testDOCXUsesTheSameJSONContract() throws {

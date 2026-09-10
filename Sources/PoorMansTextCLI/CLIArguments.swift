@@ -90,6 +90,34 @@ conversion option such as --spreadsheet-format or --image-ocr is a usage error
 and exits 64.
 """
 
+/// Optionen, die einen Wert erwarten — als nächstes Argument oder, bei langen
+/// Optionen, als `--name=Wert`. Die Liste ist die einzige Stelle, die das
+/// weiß: Parser und Vorabscan lesen sie beide, sonst könnten sie `--pandoc
+/// --json` verschieden deuten.
+let valueOptions: Set<String> = [
+    "-o", "--output", "--pandoc", "--timeout", "--jobs", "--spreadsheet-format",
+    "--image-ocr", "--pdf-ocr", "--pdf-layout", "--ocr-language",
+]
+
+/// Sagt VOR dem Parsen, ob `--json` als Option vorkommt, damit auch ein
+/// Argumentfehler vor `--json` als JSON gemeldet wird. Vorher galt nur das
+/// bereits gelesene `--json`; ein Wrapper, der es anhängt, bekam bei einem
+/// Fehler Text (Roadmap-Punkt, 2026-09-10). Der Scan ist wertbewusst: Nach
+/// einer Option mit Wert wird das nächste Argument übersprungen, sodass
+/// `--pandoc --json` ein Werkzeugpfad bleibt; nach `--` sind alle Argumente
+/// Eingaben.
+func requestsJSONOutput(_ rawArguments: [String]) -> Bool {
+    var index = 0
+    while index < rawArguments.count {
+        let argument = rawArguments[index]
+        if argument == "--" { return false }
+        if argument == "--json" { return true }
+        if valueOptions.contains(argument) { index += 1 }
+        index += 1
+    }
+    return false
+}
+
 func parseArguments(
     _ rawArguments: [String],
     into parsed: inout ParsedArguments
@@ -99,126 +127,104 @@ func parseArguments(
 
     while index < rawArguments.count {
         let argument = rawArguments[index]
+        index += 1
 
-        if !optionsEnded && argument == "--" {
+        if optionsEnded || !argument.hasPrefix("-") {
+            parsed.inputURLs.append(try fileURL(argument, option: "an input"))
+            continue
+        }
+        if argument == "--" {
             optionsEnded = true
-            index += 1
             continue
         }
 
-        if !optionsEnded && (argument == "-h" || argument == "--help") {
-            parsed.showHelp = true
-        } else if !optionsEnded && (argument == "-V" || argument == "--version") {
-            parsed.showVersion = true
-        } else if !optionsEnded && argument == "--progress" {
-            parsed.progress = true
-        } else if !optionsEnded && (argument == "--timeout" || argument.hasPrefix("--timeout=")) {
-            let value: String
-            if argument == "--timeout" {
-                index += 1
-                guard index < rawArguments.count else { throw CLIArgumentError.missingValue(argument) }
-                value = rawArguments[index]
-            } else { value = String(argument.dropFirst("--timeout=".count)) }
-            guard let seconds = Double(value), seconds.isFinite, seconds > 0 else {
-                throw CLIArgumentError.invalidConversionOption(
-                    "--timeout requires positive finite seconds"
-                )
-            }
-            parsed.timeout = seconds
-        } else if !optionsEnded && ["--pdf-remove-headers-footers", "--pdf-dehyphenate"].contains(argument) {
-            parsed.setsPDFOptions = true
-            if argument == "--pdf-dehyphenate" { parsed.pdfOptions.pdfDehyphenate = true }
-            else { parsed.pdfOptions.pdfRemoveHeadersFooters = true }
-        } else if !optionsEnded && ["--pdf-ocr", "--pdf-layout", "--ocr-language"].contains(String(argument.split(separator: "=", maxSplits: 1, omittingEmptySubsequences: false)[0])) {
-            let parts = argument.split(separator: "=", maxSplits: 1, omittingEmptySubsequences: false)
-            let option = String(parts[0])
-            let value: String
-            if parts.count == 2 { value = String(parts[1]) }
-            else {
-                index += 1
-                guard index < rawArguments.count else { throw CLIArgumentError.missingValue(option) }
-                value = rawArguments[index]
-            }
-            parsed.setsPDFOptions = true
-            switch option {
-            case "--pdf-ocr":
-                guard let mode = PDFTextRecognition(rawValue: value) else { throw CLIArgumentError.invalidConversionOption("--pdf-ocr requires auto, always, or off") }
-                parsed.pdfOptions.pdfTextRecognition = mode
-            case "--pdf-layout":
-                guard let layout = PDFLayout(rawValue: value) else { throw CLIArgumentError.invalidConversionOption("--pdf-layout requires auto or legacy") }
-                parsed.pdfOptions.pdfLayout = layout
-            default:
-                do { parsed.pdfOptions.ocrLanguages = try OCRLanguageSelection.resolve(value.components(separatedBy: ",")) }
-                catch { throw CLIArgumentError.invalidConversionOption(error.localizedDescription) }
-            }
-        } else if !optionsEnded && (argument == "--jobs" || argument.hasPrefix("--jobs=")) {
-            let value: String
-            if argument == "--jobs" {
-                index += 1
-                guard index < rawArguments.count else { throw CLIArgumentError.missingValue(argument) }
-                value = rawArguments[index]
-            } else { value = String(argument.dropFirst("--jobs=".count)) }
-            guard let jobs = Int(value), (1...4).contains(jobs) else { throw CLIArgumentError.invalidConversionOption("--jobs requires an integer from 1 through 4") }
-            parsed.jobs = jobs; parsed.setsJobs = true
-        } else if !optionsEnded && argument == "--json" {
-            parsed.json = true
-        } else if !optionsEnded && argument == "--formats" {
-            parsed.listFormats = true
-        } else if !optionsEnded && argument == "--stdout" {
-            parsed.writeToStandardOutput = true
-        } else if !optionsEnded && argument == "--frontmatter" {
-            parsed.frontmatter = true
-        } else if !optionsEnded && argument == "--textbundle" {
-            parsed.outputLayout = .textbundle
-        } else if !optionsEnded && argument == "--spreadsheet-format" {
-            index += 1
-            guard index < rawArguments.count else {
-                throw CLIArgumentError.missingValue(argument)
-            }
-            parsed.spreadsheetRendering = try spreadsheetRendering(rawArguments[index])
-            parsed.setsSpreadsheetRendering = true
-        } else if !optionsEnded && argument.hasPrefix("--spreadsheet-format=") {
-            parsed.spreadsheetRendering = try spreadsheetRendering(
-                String(argument.dropFirst("--spreadsheet-format=".count))
-            )
-            parsed.setsSpreadsheetRendering = true
-        } else if !optionsEnded && argument == "--image-ocr" {
-            index += 1
-            guard index < rawArguments.count else {
-                throw CLIArgumentError.missingValue(argument)
-            }
-            parsed.imageTextRecognition = try imageTextRecognition(rawArguments[index])
-            parsed.setsImageTextRecognition = true
-        } else if !optionsEnded && argument.hasPrefix("--image-ocr=") {
-            parsed.imageTextRecognition = try imageTextRecognition(
-                String(argument.dropFirst("--image-ocr=".count))
-            )
-            parsed.setsImageTextRecognition = true
-        } else if !optionsEnded && (argument == "-o" || argument == "--output") {
-            index += 1
-            guard index < rawArguments.count else {
-                throw CLIArgumentError.missingValue(argument)
-            }
-            parsed.outputURL = try fileURL(rawArguments[index], option: "--output")
-        } else if !optionsEnded && argument.hasPrefix("--output=") {
-            parsed.outputURL = try fileURL(String(argument.dropFirst("--output=".count)), option: "--output")
-        } else if !optionsEnded && argument == "--pandoc" {
-            index += 1
-            guard index < rawArguments.count else {
-                throw CLIArgumentError.missingValue(argument)
-            }
-            parsed.pandocURL = try fileURL(rawArguments[index], option: "--pandoc")
-        } else if !optionsEnded && argument.hasPrefix("--pandoc=") {
-            parsed.pandocURL = try fileURL(String(argument.dropFirst("--pandoc=".count)), option: "--pandoc")
-        } else if !optionsEnded && argument.hasPrefix("-") {
-            throw CLIArgumentError.unknownOption(argument)
-        } else {
-            parsed.inputURLs.append(try fileURL(argument, option: "an input"))
+        // `--name=Wert` nur bei langen Optionen trennen; `-o=x` bleibt eine
+        // unbekannte Option, wie bisher.
+        var name = argument
+        var inlineValue: String?
+        if argument.hasPrefix("--"), let separator = argument.firstIndex(of: "=") {
+            name = String(argument[..<separator])
+            inlineValue = String(argument[argument.index(after: separator)...])
         }
 
-        index += 1
+        if valueOptions.contains(name) {
+            let value: String
+            if let inlineValue {
+                value = inlineValue
+            } else {
+                guard index < rawArguments.count else { throw CLIArgumentError.missingValue(name) }
+                value = rawArguments[index]
+                index += 1
+            }
+            try apply(option: name, value: value, to: &parsed)
+        } else {
+            // Ein Schalter trägt keinen Wert: `--json=1` ist unbekannt.
+            guard inlineValue == nil else { throw CLIArgumentError.unknownOption(argument) }
+            try apply(flag: name, to: &parsed)
+        }
     }
+}
 
+private func apply(flag: String, to parsed: inout ParsedArguments) throws {
+    switch flag {
+    case "-h", "--help": parsed.showHelp = true
+    case "-V", "--version": parsed.showVersion = true
+    case "--progress": parsed.progress = true
+    case "--pdf-remove-headers-footers":
+        parsed.setsPDFOptions = true
+        parsed.pdfOptions.pdfRemoveHeadersFooters = true
+    case "--pdf-dehyphenate":
+        parsed.setsPDFOptions = true
+        parsed.pdfOptions.pdfDehyphenate = true
+    case "--json": parsed.json = true
+    case "--formats": parsed.listFormats = true
+    case "--stdout": parsed.writeToStandardOutput = true
+    case "--frontmatter": parsed.frontmatter = true
+    case "--textbundle": parsed.outputLayout = .textbundle
+    default: throw CLIArgumentError.unknownOption(flag)
+    }
+}
+
+private func apply(option: String, value: String, to parsed: inout ParsedArguments) throws {
+    switch option {
+    case "--timeout":
+        guard let seconds = Double(value), seconds.isFinite, seconds > 0 else {
+            throw CLIArgumentError.invalidConversionOption(
+                "--timeout requires positive finite seconds"
+            )
+        }
+        parsed.timeout = seconds
+    case "--pdf-ocr":
+        parsed.setsPDFOptions = true
+        guard let mode = PDFTextRecognition(rawValue: value) else { throw CLIArgumentError.invalidConversionOption("--pdf-ocr requires auto, always, or off") }
+        parsed.pdfOptions.pdfTextRecognition = mode
+    case "--pdf-layout":
+        parsed.setsPDFOptions = true
+        guard let layout = PDFLayout(rawValue: value) else { throw CLIArgumentError.invalidConversionOption("--pdf-layout requires auto or legacy") }
+        parsed.pdfOptions.pdfLayout = layout
+    case "--ocr-language":
+        parsed.setsPDFOptions = true
+        do { parsed.pdfOptions.ocrLanguages = try OCRLanguageSelection.resolve(value.components(separatedBy: ",")) }
+        catch { throw CLIArgumentError.invalidConversionOption(error.localizedDescription) }
+    case "--jobs":
+        guard let jobs = Int(value), (1...4).contains(jobs) else { throw CLIArgumentError.invalidConversionOption("--jobs requires an integer from 1 through 4") }
+        parsed.jobs = jobs
+        parsed.setsJobs = true
+    case "--spreadsheet-format":
+        parsed.spreadsheetRendering = try spreadsheetRendering(value)
+        parsed.setsSpreadsheetRendering = true
+    case "--image-ocr":
+        parsed.imageTextRecognition = try imageTextRecognition(value)
+        parsed.setsImageTextRecognition = true
+    case "-o", "--output":
+        parsed.outputURL = try fileURL(value, option: "--output")
+    case "--pandoc":
+        parsed.pandocURL = try fileURL(value, option: "--pandoc")
+    default:
+        // `valueOptions` und dieser Switch müssen zusammenpassen; ein Test
+        // prüft jede Option der Liste einmal durch.
+        throw CLIArgumentError.unknownOption(option)
+    }
 }
 
 /// Ein LEERER Pfad ist kein Pfad.

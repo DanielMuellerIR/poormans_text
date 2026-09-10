@@ -18,7 +18,11 @@ private var parsedArguments = ParsedArguments()
 
 do {
     _ = signalSources
-    try parseArguments(Array(CommandLine.arguments.dropFirst()), into: &parsedArguments)
+    let rawArguments = Array(CommandLine.arguments.dropFirst())
+    // Der wertbewusste Vorabscan legt den Ausgabemodus fest, bevor der Parser
+    // an einem früheren Argument scheitern kann.
+    parsedArguments.json = requestsJSONOutput(rawArguments)
+    try parseArguments(rawArguments, into: &parsedArguments)
     let arguments = parsedArguments
 
     if arguments.showHelp {
@@ -114,12 +118,9 @@ do {
 } catch {
     let message = error.localizedDescription
 
-    // Nur das bereits GELESENE `--json` gilt. Ein Vorabscan über alle Argumente
-    // wäre bequem, würde aber `--pandoc --json` als JSON-Wunsch lesen, obwohl
-    // dort ein Werkzeugpfad namens `--json` gemeint ist — genau das hält
-    // testJSONModeUsesOnlyOptionsRecognizedByParser fest. Folge: Ein
-    // Argumentfehler VOR `--json` meldet sich als Text (Review-Fund 2026-09-10,
-    // in ROADMAP.md festgehalten).
+    // `json` stammt aus dem Vorabscan und gilt deshalb auch für einen Fehler
+    // VOR `--json`; `--pandoc --json` und `-- --json` bleiben Text, weil der
+    // Scan Werte und Eingaben genauso überspringt wie der Parser.
     if parsedArguments.json {
         writeJSON(JSONResponse.failure(message))
     } else {

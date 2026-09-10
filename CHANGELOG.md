@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Report an argument error as JSON whenever `--json` appears anywhere among the
+  options, not only when it precedes the faulty argument. A value-aware scan
+  decides the output mode before parsing; `--pandoc --json` still names a tool
+  path and `-- --json` still names an input. The parser now reads every option
+  that takes a value through one shared list instead of its own branch.
 - Reject `--stdout` together with `--jobs` as a usage error, the way the
   catalog mode already rejects options that cannot take effect; the parallelism
   was silently ignored. The help and the README now say that text mode prints

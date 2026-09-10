@@ -125,14 +125,6 @@ Belegt, aber bewusst nicht in der Kampagne umgesetzt:
 
 Belegt, aber bewusst nicht in der Kampagne umgesetzt:
 
-- **`--json` wirkt nur, wenn es VOR dem fehlerhaften Argument steht.** Der
-  Fehlerausgang liest den Teilzustand des Parsers; ein Wrapper, der `--json`
-  anhängt, bekommt bei einem Argumentfehler Text statt JSON. Ein Vorabscan über
-  alle Argumente wäre bequem, würde aber `--pandoc --json` als JSON-Wunsch
-  lesen, obwohl dort ein Werkzeugpfad namens `--json` gemeint ist — genau das
-  hält `testJSONModeUsesOnlyOptionsRecognizedByParser` fest. Sauber wäre ein
-  wertbewusster Vorabscan; dafür müsste die Auswertung erst eine gemeinsame
-  Liste der Optionen mit Wert bekommen, statt der heutigen if-else-Kette.
 
 ## Offene Punkte bei Präsentationen (Stand 2026-09-10)
 

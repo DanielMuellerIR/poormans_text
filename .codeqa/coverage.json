@@ -13,15 +13,15 @@
       "id": "converter-engine",
       "last_run": {
         "campaign_id": "20260910T101608235407+0200",
-        "completed_at": "2026-09-10T12:17:09+02:00",
-        "content_sha256": "e5306a0fdacdb02847dd63cdfa50b0d653ccecf03bb6564b9f24e3c2233d06f3",
+        "completed_at": "2026-09-10T15:21:46+02:00",
+        "observed_head": "10b07fdcbfd2e561b1dd5ad79535bd85005b06bc",
+        "content_sha256": "76f05048ac169fe7b3044a61a13feab5637f3ccca8150e1863d4f22dbb803302",
         "file_count": 33,
-        "observed_head": "517e57b644d6d65c3d9e7b2eed112c21a0aca692",
-        "outcome": "reviewed-clean",
         "review": "delta-plus-boundaries",
-        "summary": "Nachbuchung zum pandoc-text-Fix: Das Delta ist genau der dort verifizierte Diff — echte PNG-Bytes in den Bildleser-Fixtures (converter-engine), ImageFileFormat nicht mehr privat (media-import) beziehungsweise dieselbe Tag-Regex im HTMLImageRewriter (wordprocessing).",
+        "outcome": "reviewed-clean",
+        "summary": "Nachbuchung zum Querschnitts-Fund markdown-datei-schreiben: Das Delta ist genau der dort verifizierte Diff — AdapterConversionContext.writeMarkdown ersetzt die dreifach wortgleiche Schreibsequenz.",
         "tests": [
-          "swift test: 500 passed, 0 failed"
+          "swift test: 509 passed, 0 failed"
         ]
       },
       "paths": [
@@ -126,15 +126,15 @@
       "id": "media-import",
       "last_run": {
         "campaign_id": "20260910T101608235407+0200",
-        "completed_at": "2026-09-10T12:17:09+02:00",
-        "content_sha256": "8a2dc7457bbdaad3bc36c40726913f198bbea66ba71097bedbb9886599973d44",
+        "completed_at": "2026-09-10T15:21:46+02:00",
+        "observed_head": "10b07fdcbfd2e561b1dd5ad79535bd85005b06bc",
+        "content_sha256": "ae3c6dcabff2c759a8aea5d65e2b2d0c6669ccab59ea8b318a77992e1c02b6ab",
         "file_count": 11,
-        "observed_head": "517e57b644d6d65c3d9e7b2eed112c21a0aca692",
-        "outcome": "reviewed-clean",
         "review": "delta-plus-boundaries",
-        "summary": "Nachbuchung zum pandoc-text-Fix: Das Delta ist genau der dort verifizierte Diff — echte PNG-Bytes in den Bildleser-Fixtures (converter-engine), ImageFileFormat nicht mehr privat (media-import) beziehungsweise dieselbe Tag-Regex im HTMLImageRewriter (wordprocessing).",
+        "outcome": "reviewed-clean",
+        "summary": "Nachbuchung zum Querschnitts-Fund markdown-datei-schreiben: Das Delta ist genau der dort verifizierte Diff — AdapterConversionContext.writeMarkdown ersetzt die dreifach wortgleiche Schreibsequenz.",
         "tests": [
-          "swift test: 500 passed, 0 failed"
+          "swift test: 509 passed, 0 failed"
         ]
       },
       "paths": [
@@ -159,15 +159,15 @@
       "id": "spreadsheet-import",
       "last_run": {
         "campaign_id": "20260910T101608235407+0200",
-        "completed_at": "2026-09-10T11:55:18+02:00",
-        "content_sha256": "487dc698cc0b112786bc059c2a86aeb2395491fbbc151e44ba8e93b578f468c8",
+        "completed_at": "2026-09-10T15:21:46+02:00",
+        "observed_head": "10b07fdcbfd2e561b1dd5ad79535bd85005b06bc",
+        "content_sha256": "e26a162ff22cb3bba2291ee23b39014e26a61d3b680d2bced3cb7d0571fce82b",
         "file_count": 14,
-        "observed_head": "c437f0aeb1554290e01d20c4666372e7be667d9d",
-        "outcome": "reviewed-clean",
         "review": "delta-plus-boundaries",
-        "summary": "Nachbuchung nach dem Querschnitts-Fund xmlparser-konfiguration: Das Delta dieses Bereichs ist genau der soeben verifizierte Theme-Diff — die lokale XMLParser-Konfiguration weicht dem gemeinsamen ImportXMLParser. Keine weitere Änderung.",
+        "outcome": "reviewed-clean",
+        "summary": "Nachbuchung zum Querschnitts-Fund markdown-datei-schreiben: Das Delta ist genau der dort verifizierte Diff — AdapterConversionContext.writeMarkdown ersetzt die dreifach wortgleiche Schreibsequenz.",
         "tests": [
-          "swift test: 496 passed, 0 failed"
+          "swift test: 509 passed, 0 failed"
         ]
       },
       "paths": [
@@ -346,17 +346,15 @@
       "state": "completed",
       "last_run": {
         "campaign_id": "20260910T101608235407+0200",
-        "completed_at": "2026-09-10T12:30:23+02:00",
-        "observed_head": "9eeb46282985880a5ed4125c322f856d5ea4c714",
-        "content_sha256": "20921827ffe2c1c42c7ea9de78cfa80e70ee44451290af7df2b7fd87ed4cd25d",
+        "completed_at": "2026-09-10T15:19:36+02:00",
+        "observed_head": "204cb38c850b36e1e7af8fd0a93c3b6e9a435f14",
+        "content_sha256": "8dc2f930a6ac7d299cb6d5c0f451d4146915e33ea09cc1528287d6e80b952b40",
         "file_count": 28,
-        "review": "full",
-        "outcome": "improved",
-        "summary": "Vollreview nach einer zuvor falschen Buchung dieses Bereichs als geprüft — die ist zurückgesetzt und hier ehrlich nachgeholt. Zwei Korrektheitsfehler behoben: Nachverfolgte Änderungen wurden nur in word/document.xml gesucht, obwohl Pandoc Fuß- und Endnoten mitliest und dort ebenfalls annimmt; und reine Formatänderungen (rPrChange und Verwandte) galten gar nicht als nachverfolgte Änderung. In beiden Fällen fehlte die Warnung, für die es sie gibt. Gemessen und deshalb nicht geändert: die byteweise RTF-Schleife ohne Abbruchprüfung reagierte bei 21,7 MB in unter einer Sekunde auf SIGINT. Drei belegte, nicht umgesetzte Punkte stehen in ROADMAP.md.",
+        "review": "delta-plus-boundaries",
+        "outcome": "reviewed-clean",
+        "summary": "Nachbuchung zum Querschnitts-Fund asset-pfad-kodierung: Das Delta ist genau der dort verifizierte Diff — HTMLImageRewriter benutzt die gemeinsame Kodierfunktion statt einer eigenen Kopie.",
         "tests": [
-          "swift test: 502 passed, 0 failed (vorher 500)",
-          "Mutationstest: entfernte Notenprüfung und zurückgesetzte Elementliste lassen zwei beziehungsweise vier Zusicherungen fehlschlagen",
-          "Abbruchmessung: 21,7-MB-RTF reagiert auf SIGINT in unter 1 s"
+          "swift test: 509 passed, 0 failed"
         ]
       }
     },
@@ -687,8 +685,19 @@
       "id": "markdown-datei-schreiben",
       "noted_at": "2026-09-10T10:21:40+02:00",
       "priority": 3,
-      "state": "pending",
-      "summary": "Derselbe Fuenfzeiler 'Markdown atomar schreiben, Fehler auf ConversionError.fileSystemFailure abbilden' steht wortgleich in SpreadsheetAdapter:244, PDFAdapter:113 und DelimitedTextAdapter:116; PresentationAdapter:48 und ImageAdapter:97 schreiben gleich, bilden den Fehler aber anders ab. Eine gemeinsame Hilfe im Adapter-Kontext wuerde Schreibweg und Fehlerabbildung vereinheitlichen."
+      "state": "completed",
+      "summary": "Derselbe Fuenfzeiler 'Markdown atomar schreiben, Fehler auf ConversionError.fileSystemFailure abbilden' steht wortgleich in SpreadsheetAdapter:244, PDFAdapter:113 und DelimitedTextAdapter:116; PresentationAdapter:48 und ImageAdapter:97 schreiben gleich, bilden den Fehler aber anders ab. Eine gemeinsame Hilfe im Adapter-Kontext wuerde Schreibweg und Fehlerabbildung vereinheitlichen.",
+      "started_at": "2026-09-10T15:19:36+02:00",
+      "completed": {
+        "campaign_id": "20260910T101608235407+0200",
+        "completed_at": "2026-09-10T15:21:32+02:00",
+        "observed_head": "10b07fdcbfd2e561b1dd5ad79535bd85005b06bc",
+        "summary": "AdapterConversionContext.writeMarkdown fasst Name, atomaren Schreibweg und Fehlerabbildung zusammen; SpreadsheetAdapter, PDFAdapter und DelimitedTextAdapter nutzen sie. ImageAdapter und PresentationAdapter bleiben bewusst außen vor, weil sie einen Schreibfehler auf ihren Formatfehler abbilden und nicht auf fileSystemFailure — das ist eine andere Bedeutung, keine Wiederholung.",
+        "tests": [
+          "swift test: 509 passed, 0 failed",
+          "CLI-Gegenprobe: CSV, TSV und ODS ergeben unverändert dieselbe Ausgabe"
+        ]
+      }
     },
     {
       "campaign_id": "20260910T101608235407+0200",
@@ -700,8 +709,19 @@
       "id": "asset-pfad-kodierung",
       "noted_at": "2026-09-10T10:37:01+02:00",
       "priority": 2,
-      "state": "pending",
-      "summary": "Die Regel 'Asset-Links prozentkodieren, erlaubt sind nur A-Za-z0-9-._~' steht jetzt an zwei Stellen: privat als percentEncodePathComponent in HTMLImageRewriter (schreibt die Links) und als percentEncodedPath in MarkdownLinkTargetRewriter (schreibt sie um). Weichen beide je auseinander, verfehlt der Rewriter die Links wieder still. Eine gemeinsame Stelle im Kern wuerde die Regel an einen Ort binden; NotebookAdapter und OpenDocumentMasterAdapter sind die weiteren Nutzer des Rewriters."
+      "state": "completed",
+      "summary": "Die Regel 'Asset-Links prozentkodieren, erlaubt sind nur A-Za-z0-9-._~' steht jetzt an zwei Stellen: privat als percentEncodePathComponent in HTMLImageRewriter (schreibt die Links) und als percentEncodedPath in MarkdownLinkTargetRewriter (schreibt sie um). Weichen beide je auseinander, verfehlt der Rewriter die Links wieder still. Eine gemeinsame Stelle im Kern wuerde die Regel an einen Ort binden; NotebookAdapter und OpenDocumentMasterAdapter sind die weiteren Nutzer des Rewriters.",
+      "started_at": "2026-09-10T15:16:21+02:00",
+      "completed": {
+        "campaign_id": "20260910T101608235407+0200",
+        "completed_at": "2026-09-10T15:19:36+02:00",
+        "observed_head": "204cb38c850b36e1e7af8fd0a93c3b6e9a435f14",
+        "summary": "Die Kodierregel für Asset-Links liegt jetzt einmal in MarkdownLinkTargetRewriter.percentEncodedPath; HTMLImageRewriter ruft sie auf, statt sie zu wiederholen. Belegt durch Mutation: Ändert man die gemeinsame Regel, schlägt der vorhandene Rundlauftest über ein Bild mit + im Namen fehl.",
+        "tests": [
+          "swift test: 509 passed, 0 failed",
+          "Mutationstest: geänderte gemeinsame Kodierregel lässt eine Zusicherung fehlschlagen"
+        ]
+      }
     },
     {
       "campaign_id": "20260910T101608235407+0200",
@@ -714,8 +734,13 @@
       "id": "lokale-fehlertypen",
       "noted_at": "2026-09-10T11:36:56+02:00",
       "priority": 4,
-      "state": "pending",
-      "summary": "Achtzehn private Fehlertypen im Kern haben dieselbe Gestalt: ein 'reason', ein init(_:) und errorDescription, das ihn zurueckgibt (ArchiveError, StagingError zweimal, ParserError viermal, PDFAdapterError, ImageAdapterError, MasterError, SpreadsheetError, InspectionError, ContentTypeError, WebArchiveError, DelimitedTextError, SpreadsheetRenderError). Achtung beim Konsolidieren: Die TYPEN muessen getrennt bleiben, weil Fangstellen nach Typ filtern (etwa 'catch let error as StagingError' in RichTextConverter). Zusammenfassbar ist nur die Wiederholung selbst, etwa ueber ein Protokoll mit Standardimplementierung von errorDescription; das spart rund 36 Zeilen und beruehrt 18 Dateien in vielen Bereichen. Nutzen also gering, Streubreite gross."
+      "state": "dismissed",
+      "summary": "Achtzehn private Fehlertypen im Kern haben dieselbe Gestalt: ein 'reason', ein init(_:) und errorDescription, das ihn zurueckgibt (ArchiveError, StagingError zweimal, ParserError viermal, PDFAdapterError, ImageAdapterError, MasterError, SpreadsheetError, InspectionError, ContentTypeError, WebArchiveError, DelimitedTextError, SpreadsheetRenderError). Achtung beim Konsolidieren: Die TYPEN muessen getrennt bleiben, weil Fangstellen nach Typ filtern (etwa 'catch let error as StagingError' in RichTextConverter). Zusammenfassbar ist nur die Wiederholung selbst, etwa ueber ein Protokoll mit Standardimplementierung von errorDescription; das spart rund 36 Zeilen und beruehrt 18 Dateien in vielen Bereichen. Nutzen also gering, Streubreite gross.",
+      "dismissed": {
+        "campaign_id": "20260910T101608235407+0200",
+        "dismissed_at": "2026-09-10T15:21:47+02:00",
+        "reason": "Kein lohnender Umbau. Die achtzehn Typen sehen gleich aus, sind aber fachlich verschieden: Fangstellen filtern nach Typ (etwa 'catch let error as StagingError' in RichTextConverter), sie zusammenzuziehen wäre genau das, wovor der Skill warnt. Zusammenfassbar bliebe nur die Wiederholung von errorDescription über ein Protokoll mit Standardimplementierung — rund 36 Zeilen Ersparnis, verteilt auf 18 Dateien in fast allen Bereichen. Aufwand und Streubreite stehen in keinem Verhältnis zum Nutzen; die Beschreibung des Fundes bleibt als Hinweis erhalten, falls jemand einmal ohnehin alle Fehlertypen anfasst."
+      }
     }
   ]
 }

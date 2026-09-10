@@ -115,14 +115,6 @@ weil sie eine Entwurfsentscheidung brauchen:
 
 Belegt, aber bewusst nicht in der Kampagne umgesetzt:
 
-- **Die Pandoc-Installation kennt weder Zeitgrenze noch Abbruch.** `brew install
-  pandoc` läuft ohne Zeitlimit, ohne Abbruch-Token und erbt die
-  Standardeingabe. Hängt Homebrew — Netzwerk, Passwort- oder
-  Bestätigungsabfrage —, bleibt der Installationszustand dauerhaft gesetzt;
-  damit sind Drop-Zone, ⌘O, das Öffnen aus dem Dock und beide Systemdienste
-  gesperrt, und die Oberfläche bietet keinen Abbruch an. Nur ein Neustart
-  hilft. Die Umwandlung hat beides längst; die Installation braucht dieselbe
-  Behandlung.
 - **App und CLI behandeln denselben Zielordner verschieden.** Die App übergibt
   dem Stapel keine Zielwurzel. Ist der gemerkte Zielordner inzwischen gelöscht,
   legt die App die ganze Pfadkette neu an, während die CLI „output parent

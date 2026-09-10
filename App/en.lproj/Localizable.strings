@@ -94,6 +94,7 @@
 "The conversion tool exceeded its time limit." = "The conversion tool exceeded its time limit.";
 "Cancel Conversion" = "Cancel Conversion";
 "Cancelling…" = "Cancelling…";
+"Cancel Installation" = "Cancel Installation";
 "detectingInput" = "Detecting input";
 "preparingOutput" = "Preparing output";
 "converting" = "Converting document";

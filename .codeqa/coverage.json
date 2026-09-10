@@ -506,13 +506,10 @@
     }
   ],
   "campaign": {
-    "id": "20260910T101608235407+0200",
-    "started_at": "2026-09-10T10:16:08+02:00",
-    "status": "complete",
-    "token_budget": 4000000,
-    "tokens_spent": 2419574,
-    "finished_at": "2026-09-10T15:23:05+02:00",
-    "finish_reason": "all-current"
+    "id": "20260910T154243481221+0200",
+    "token_budget": 3000000,
+    "status": "active",
+    "started_at": "2026-09-10T15:42:43+02:00"
   },
   "campaign_history": [
     {
@@ -558,6 +555,15 @@
       "started_at": "2026-08-30T11:03:51+02:00",
       "status": "complete",
       "token_budget": 3000000
+    },
+    {
+      "id": "20260910T101608235407+0200",
+      "started_at": "2026-09-10T10:16:08+02:00",
+      "status": "complete",
+      "token_budget": 4000000,
+      "tokens_spent": 2419574,
+      "finished_at": "2026-09-10T15:23:05+02:00",
+      "finish_reason": "all-current"
     }
   ],
   "project": "poormans_text",
@@ -743,6 +749,207 @@
         "dismissed_at": "2026-09-10T15:21:47+02:00",
         "reason": "Kein lohnender Umbau. Die achtzehn Typen sehen gleich aus, sind aber fachlich verschieden: Fangstellen filtern nach Typ (etwa 'catch let error as StagingError' in RichTextConverter), sie zusammenzuziehen wäre genau das, wovor der Skill warnt. Zusammenfassbar bliebe nur die Wiederholung von errorDescription über ein Protokoll mit Standardimplementierung — rund 36 Zeilen Ersparnis, verteilt auf 18 Dateien in fast allen Bereichen. Aufwand und Streubreite stehen in keinem Verhältnis zum Nutzen; die Beschreibung des Fundes bleibt als Hinweis erhalten, falls jemand einmal ohnehin alle Fehlertypen anfasst."
       }
+    },
+    {
+      "id": "pandoc-install-timeout",
+      "summary": "ROADMAP App: brew install pandoc läuft ohne Zeitlimit, ohne Abbruch-Token und erbt stdin; hängt Homebrew, bleibt der Installationszustand dauerhaft gesetzt und sperrt Drop-Zone, ⌘O, Dock-Öffnen und beide Dienste ohne Abbruchmöglichkeit. Die Umwandlung hat Timeout und Abbruch längst; die Installation braucht dieselbe Behandlung.",
+      "evidence": [
+        "Sources/PoorMansTextAppSupport/PandocInstaller.swift",
+        "Sources/PoorMansTextAppSupport/AppModel.swift",
+        "Sources/PoorMansTextApp/ContentView.swift"
+      ],
+      "priority": 1,
+      "state": "in_progress",
+      "noted_at": "2026-09-10T15:42:43+02:00",
+      "campaign_id": "20260910T154243481221+0200",
+      "started_at": "2026-09-10T15:42:59+02:00",
+      "active_run": {
+        "campaign_id": "20260910T154243481221+0200",
+        "started_at": "2026-09-10T15:42:59+02:00",
+        "observed_head": "1a7c2a0dcd507449d30183537cc435944cca574d"
+      }
+    },
+    {
+      "id": "app-cli-target-parity",
+      "summary": "ROADMAP App: App übergibt dem Stapel keine Zielwurzel. Gelöschter gemerkter Zielordner: App legt Pfadkette neu an, CLI meldet 'output parent directory does not exist'; Zielordner ist Datei: CLI meldet 'output already exists', App je Eingabe rohen Dateisystemfehler. Gleiche Option, zwei Verhalten — gegen die Adapter-Invariante.",
+      "evidence": [
+        "Sources/PoorMansTextAppSupport/AppModel.swift",
+        "Sources/PoorMansTextCLI/CLIExecution.swift",
+        "Sources/PoorMansTextCore/BatchConverter.swift"
+      ],
+      "priority": 1,
+      "state": "pending",
+      "noted_at": "2026-09-10T15:42:43+02:00",
+      "campaign_id": "20260910T154243481221+0200"
+    },
+    {
+      "id": "dock-open-feedback",
+      "summary": "ROADMAP App: Über Dock/Doppelklick geöffnete Dateien melden nichts, wenn die App beschäftigt ist (Drop meldet false, Dienst meldet Text, dieser Weg schweigt); ⌘O ist während der Pandoc-Installation aktiv und wirkungslos.",
+      "evidence": [
+        "Sources/PoorMansTextAppSupport/AppModel.swift",
+        "Sources/PoorMansTextAppSupport/OpenedDocumentsRelay.swift",
+        "Sources/PoorMansTextApp/ContentView.swift"
+      ],
+      "priority": 1,
+      "state": "pending",
+      "noted_at": "2026-09-10T15:42:43+02:00",
+      "campaign_id": "20260910T154243481221+0200"
+    },
+    {
+      "id": "cli-json-position",
+      "summary": "ROADMAP CLI: --json wirkt nur, wenn es VOR dem fehlerhaften Argument steht; der Fehlerausgang liest den Parser-Teilzustand. Nötig ist ein wertbewusster Vorabscan, der '--pandoc --json' weiter als Werkzeugpfad liest (testJSONModeUsesOnlyOptionsRecognizedByParser). Dafür braucht die Auswertung eine gemeinsame Liste der Optionen mit Wert statt der if-else-Kette.",
+      "evidence": [
+        "Sources/PoorMansTextCLI/CLIArguments.swift",
+        "Sources/PoorMansTextCLI/main.swift",
+        "Tests/PoorMansTextCoreTests/CLIOutputModeTests.swift"
+      ],
+      "priority": 2,
+      "state": "pending",
+      "noted_at": "2026-09-10T15:42:43+02:00",
+      "campaign_id": "20260910T154243481221+0200"
+    },
+    {
+      "id": "cli-stdout-jobs",
+      "summary": "ROADMAP CLI: '--stdout --jobs 4' wird stillschweigend geschluckt, während dieselbe wirkungslose Angabe im Katalogmodus ein Nutzungsfehler ist. Dazu: Textmodus ist bei Zeilenumbruch im Dateinamen nicht zeilenweise parsbar — Hilfe sagt das nicht.",
+      "evidence": [
+        "Sources/PoorMansTextCLI/CLIArguments.swift",
+        "Sources/PoorMansTextCLI/CLIOutput.swift"
+      ],
+      "priority": 2,
+      "state": "pending",
+      "noted_at": "2026-09-10T15:42:43+02:00",
+      "campaign_id": "20260910T154243481221+0200"
+    },
+    {
+      "id": "word-officedocument-rels",
+      "summary": "ROADMAP Word: Hauptteil fest auf word/document.xml verdrahtet statt über die officeDocument-Beziehung in _rels/.rels (so löst Pandoc auf); ein repariertes Dokument mit word/document2.xml wird abgelehnt. Dazu: ein einziges defektes .rels verwirft das ganze Dokument, auch Nebenteile, die Pandoc nie liest. Und ODT prüft nur content.xml, nicht styles.xml auf externe draw:image-Verweise.",
+      "evidence": [
+        "Sources/PoorMansTextCore/WordProcessingPackageInspector.swift",
+        "Sources/PoorMansTextCore/WordProcessingPackageAdapter.swift"
+      ],
+      "priority": 2,
+      "state": "pending",
+      "noted_at": "2026-09-10T15:42:44+02:00",
+      "campaign_id": "20260910T154243481221+0200"
+    },
+    {
+      "id": "html-charset-and-images",
+      "summary": "ROADMAP HTML: Rückfall geht von UTF-8 direkt auf Windows-1252 ohne <meta charset>; windows-1251/shift_jis werden Mojibake. Ein zu großes Einzelbild neben der Quelle bricht die ganze Umwandlung als Dateisystemfehler ab statt wegzufallen. Webarchiv-Nebenressourcen werden je Verweis neu geschrieben (Dedup nur für Dateien neben der Quelle).",
+      "evidence": [
+        "Sources/PoorMansTextCore/PandocTextAdapter.swift",
+        "Sources/PoorMansTextCore/HTMLImageSourceResolver.swift",
+        "Sources/PoorMansTextCore/WebArchiveReader.swift"
+      ],
+      "priority": 2,
+      "state": "pending",
+      "noted_at": "2026-09-10T15:42:44+02:00",
+      "campaign_id": "20260910T154243481221+0200"
+    },
+    {
+      "id": "epub-fb2-metadata",
+      "summary": "ROADMAP HTML-Import: EPUB und FictionBook liefern nie Metadaten; --frontmatter meldet dort immer metadataUnavailable, obwohl dc:title und dc:creator im Buch stehen.",
+      "evidence": [
+        "Sources/PoorMansTextCore/PandocTextAdapter.swift",
+        "Sources/PoorMansTextCore/DocumentMetadata.swift"
+      ],
+      "priority": 2,
+      "state": "pending",
+      "noted_at": "2026-09-10T15:42:44+02:00",
+      "campaign_id": "20260910T154243481221+0200"
+    },
+    {
+      "id": "spreadsheet-memory-and-phonetics",
+      "summary": "ROADMAP Tabellen: Speicher wächst vor der Grenze (LegacyXLSWorkbookParser sammelt Zellen dünn und prüft maximumCells erst beim Verdichten; XLSX <row r=100000/> erzeugt 99 999 leere Zeilen-Arrays ohne Budget; DelimitedTextAdapter.sniffDelimiter zerlegt die ganze Datei für 20 Zeilen). Phonetische <rPh>-Lesehinweise landen im Zellwert (日本ニホン statt 日本). Zwei Zeilenbudgets für dasselbe Modell (CSV 1M/5M vs Arbeitsmappen 100k/1M).",
+      "evidence": [
+        "Sources/PoorMansTextCore/LegacyXLSWorkbookParser.swift",
+        "Sources/PoorMansTextCore/XLSXWorkbookParser.swift",
+        "Sources/PoorMansTextCore/DelimitedTextAdapter.swift",
+        "Sources/PoorMansTextCore/SpreadsheetWorkbook.swift"
+      ],
+      "priority": 2,
+      "state": "pending",
+      "noted_at": "2026-09-10T15:42:44+02:00",
+      "campaign_id": "20260910T154243481221+0200"
+    },
+    {
+      "id": "presentation-images",
+      "summary": "ROADMAP Präsentationen: Ein mehrfach verwendetes Bild wird je a:blip-Verweis neu entpackt, gehasht und typisiert, obwohl die Ablage dedupliziert. ODP-Bilder in einem Absatz (draw:frame in text:p) fallen ohne Diagnose weg, weil der Leser text:p sofort mit dessen Text beantwortet.",
+      "evidence": [
+        "Sources/PoorMansTextCore/PresentationAdapter.swift",
+        "Sources/PoorMansTextCore/PresentationDocument.swift"
+      ],
+      "priority": 2,
+      "state": "pending",
+      "noted_at": "2026-09-10T15:42:44+02:00",
+      "campaign_id": "20260910T154243481221+0200"
+    },
+    {
+      "id": "app-untranslated-texts",
+      "summary": "ROADMAP App: Hinweistexte von RichTextClipboard und die Fehlermeldungen der beiden Installationswege gehen ohne Übersetzung in die Oberfläche; die Installationsdialoge nehmen localizedDescription statt der zentralen Meldungsabbildung. Verwaister Schlüssel 'Converting %lld of %lld: %@…' in beiden .strings-Dateien.",
+      "evidence": [
+        "Sources/PoorMansTextAppSupport/RichTextClipboard.swift",
+        "App/en.lproj/Localizable.strings",
+        "App/de.lproj/Localizable.strings"
+      ],
+      "priority": 3,
+      "state": "pending",
+      "noted_at": "2026-09-10T15:42:44+02:00",
+      "campaign_id": "20260910T154243481221+0200"
+    },
+    {
+      "id": "csv-scalar-delimiter",
+      "summary": "ROADMAP Tabellen: Der CSV-Parser vergleicht Character statt Unicode-Skalare; ein Komma mit folgendem Kombinationszeichen ist ein anderes Graphem und trennt nicht. Der Umbau berührt die gesamte Zustandsmaschine des Parsers.",
+      "evidence": [
+        "Sources/PoorMansTextCore/DelimitedTextAdapter.swift"
+      ],
+      "priority": 3,
+      "state": "pending",
+      "noted_at": "2026-09-10T15:42:44+02:00",
+      "campaign_id": "20260910T154243481221+0200"
+    },
+    {
+      "id": "rtfd-attachment-names",
+      "summary": "ROADMAP App (nicht reproduziert): Anhangnamen eines Flat-RTFD werden beim Auspacken ungeprüft als Pfadbestandteile benutzt; ein Ausbruch über ../ ließ sich nicht konstruieren, ist aber auch nicht widerlegt.",
+      "evidence": [
+        "Sources/PoorMansTextCore/RichTextConverter.swift"
+      ],
+      "priority": 3,
+      "state": "pending",
+      "noted_at": "2026-09-10T15:42:44+02:00",
+      "campaign_id": "20260910T154243481221+0200"
+    },
+    {
+      "id": "zip-gate-hardening",
+      "summary": "ROADMAP ZIP-Tor: (1) ungeprüfte Bereiche der Datei — Zentralverzeichnis muss nur vor dem Schlussblock enden, nicht unmittelbar davor; Füllstoff hinter dem Deflate-Strom wird nicht geprüft (avail_in == 0 fehlt); (2) Schlussblockauswahl weicht von unzip/zipfile ab, Abweichung führt nicht zum Abbruch; (3) packageContents/inspectionSnapshot lesen die ganze Fremddatei in den Heap, bis 1 GiB, auch für den 4-Byte-mimetype-Eintrag.",
+      "evidence": [
+        "Sources/PoorMansTextCore/ZIPArchiveInspector.swift"
+      ],
+      "priority": 3,
+      "state": "pending",
+      "noted_at": "2026-09-10T15:42:44+02:00",
+      "campaign_id": "20260910T154243481221+0200"
+    },
+    {
+      "id": "pdf-column-vs-table",
+      "summary": "ROADMAP Härtung: PDFTextLayout.ordered liest zwei Gruppen links/rechts der Seitenmitte als Spalten; für Tabellen-/Inhaltsverzeichniszeilen ginge Beschriftung↔Zahl verloren. Über ein echtes PDF nicht auslösbar; braucht ein zusätzliches Merkmal, nicht eine weitere Schwelle.",
+      "evidence": [
+        "Sources/PoorMansTextCore/PDFTextLayout.swift"
+      ],
+      "priority": 4,
+      "state": "pending",
+      "noted_at": "2026-09-10T15:42:44+02:00",
+      "campaign_id": "20260910T154243481221+0200"
+    },
+    {
+      "id": "image-verified-descriptor",
+      "summary": "ROADMAP Härtung: ImageAdapter.imageProbe beschreibt den Pfad mit resourceValues und öffnet ihn danach ein zweites Mal über CGImageSourceCreateWithURL; ein gemeinsamer Deskriptor hieße CGImageSourceCreateWithData mit vollständigem Einlesen, was kCGImageSourceShouldCache: false bewusst vermeidet. S_IFREG-Prüfung in detectInput weist FIFOs schon ab; offen ist nur das schmale Fenster.",
+      "evidence": [
+        "Sources/PoorMansTextCore/ImageAdapter.swift"
+      ],
+      "priority": 4,
+      "state": "pending",
+      "noted_at": "2026-09-10T15:42:44+02:00",
+      "campaign_id": "20260910T154243481221+0200"
     }
   ]
 }

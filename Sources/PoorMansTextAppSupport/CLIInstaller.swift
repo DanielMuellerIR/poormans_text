@@ -79,9 +79,11 @@ public enum CLIInstaller {
         end run
         """#
 
-        // CapturedProcess leert die Fehler-Pipe, bevor es auf das Prozessende
-        // wartet — sonst könnte ein gesprächiges osascript am vollen
-        // Pipe-Puffer hängen bleiben, während wir auf es warten.
+        // CapturedProcess schreibt die Fehlerausgabe in eine Datei statt in
+        // eine Pipe — sonst könnte ein gesprächiges osascript am vollen
+        // Pipe-Puffer hängen bleiben, während wir auf es warten. Kein
+        // Zeitlimit: Die Passwortabfrage ist ein Systemdialog, den der Nutzer
+        // selbst beendet.
         let result: (status: Int32, standardError: String)
         do {
             result = try CapturedProcess.run(

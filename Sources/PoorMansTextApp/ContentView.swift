@@ -196,6 +196,12 @@ struct ContentView: View {
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: 390)
+                // Derselbe Weg wie beim Abbruch einer Umwandlung: Der Knopf
+                // fordert den Abbruch an und sperrt sich, bis Homebrew weg ist.
+                Button(model.isCancellingPandocInstallation ? "Cancelling…" : "Cancel Installation") {
+                    model.cancelPandocInstallation()
+                }
+                .disabled(model.isCancellingPandocInstallation)
             } else {
                 Image(systemName: "arrow.down.doc.fill")
                     .font(.system(size: 45, weight: .medium))

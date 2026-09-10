@@ -168,6 +168,12 @@ public final class AppModel: ObservableObject {
     }
     /// Wahr, solange die App Pandoc über Homebrew nachinstalliert.
     @Published public private(set) var isInstallingPandoc = false
+    /// Wahr, sobald der Nutzer die laufende Installation abgebrochen hat und
+    /// Homebrew noch beendet wird; der Abbruchknopf sperrt sich damit.
+    @Published public private(set) var isCancellingPandocInstallation = false
+    /// Der Token der laufenden Installation. Er gehört dem Modell, damit
+    /// `cancelPandocInstallation` Homebrew von der Oberfläche aus beenden kann.
+    private var pandocInstallation: ConversionCancellationToken?
 
     public var isConverting: Bool {
         switch state {
@@ -548,25 +554,51 @@ public final class AppModel: ObservableObject {
     /// durchgeführt hat. Ein zweiter, paralleler Aufruf läuft in die Sperre und
     /// meldet `false`: Er darf keinen Erfolg anzeigen, während der erste
     /// Homebrew-Lauf noch läuft oder später scheitert.
+    ///
+    /// Die Installation bekommt wie eine Umwandlung einen Abbruch-Token und ein
+    /// Zeitlimit (`PandocInstaller.installationTimeout`). Vorher lief
+    /// `brew install` ohne beides: Hing Homebrew, blieb die Sperre bis zum
+    /// Neustart der App bestehen (Roadmap-Punkt, 2026-09-10). Ein Abbruch
+    /// durch den Nutzer ist kein Fehler und endet wie der parallele Aufruf mit
+    /// `false`: Es wurde nichts installiert, aber auch nichts ist schiefgegangen.
     @discardableResult
     public func installPandoc(
         brewExecutable: URL,
-        using install: @escaping @Sendable (URL) async throws -> Void = {
-            try PandocInstaller.installPandoc(brewExecutable: $0)
+        using install: @escaping @Sendable (URL, ConversionCancellationToken) async throws -> Void = {
+            try PandocInstaller.installPandoc(brewExecutable: $0, cancellation: $1)
         }
     ) async throws -> Bool {
         guard !isInstallingPandoc else {
             return false
         }
+        let cancellation = ConversionCancellationToken()
+        pandocInstallation = cancellation
         isInstallingPandoc = true
-        defer { isInstallingPandoc = false }
+        isCancellingPandocInstallation = false
+        defer {
+            isInstallingPandoc = false
+            isCancellingPandocInstallation = false
+            pandocInstallation = nil
+        }
 
         // Wie die Dateikonvertierung läuft der Homebrew-Aufruf außerhalb des
         // Main Actors; `brew install` kann mehrere Minuten dauern.
-        try await Task.detached(priority: .userInitiated) {
-            try await install(brewExecutable)
-        }.value
+        do {
+            try await Task.detached(priority: .userInitiated) {
+                try await install(brewExecutable, cancellation)
+            }.value
+        } catch PandocInstaller.InstallError.cancelled {
+            return false
+        }
         return true
+    }
+
+    /// Beendet die laufende Homebrew-Installation. Ohne laufende Installation
+    /// passiert nichts.
+    public func cancelPandocInstallation() {
+        guard isInstallingPandoc, let pandocInstallation else { return }
+        isCancellingPandocInstallation = true
+        pandocInstallation.cancel()
     }
 
     /// Zeigt das Ergebnis im Finder: die Markdown-Datei eines Einzellaufs oder

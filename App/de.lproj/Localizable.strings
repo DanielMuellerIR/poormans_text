@@ -94,6 +94,7 @@
 "The conversion tool exceeded its time limit." = "Das Konvertierungswerkzeug hat sein Zeitlimit überschritten.";
 "Cancel Conversion" = "Konvertierung abbrechen";
 "Cancelling…" = "Abbruch läuft…";
+"Cancel Installation" = "Installation abbrechen";
 "detectingInput" = "Eingabe wird erkannt";
 "preparingOutput" = "Ausgabe wird vorbereitet";
 "converting" = "Dokument wird konvertiert";

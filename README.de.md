@@ -69,7 +69,9 @@ den üblichen Homebrew-Verzeichnissen und danach über `PATH`. Dem CLI kann mit
 Solange Pandoc fehlt, bietet die App bei jedem Start an, es über Homebrew zu
 installieren; ohne Homebrew verweist sie auf die offizielle
 Installationsanleitung. Das Angebot endet, sobald Pandoc vorhanden ist oder
-„Don't Ask Again" gewählt wurde.
+„Don't Ask Again" gewählt wurde. Die Installation lässt sich im Fenster
+abbrechen und endet von selbst nach 15 Minuten; Homebrew wartet nie auf eine
+Tastatureingabe.
 
 ## Download
 

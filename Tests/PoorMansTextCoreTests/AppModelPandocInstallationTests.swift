@@ -15,7 +15,7 @@ final class AppModelPandocInstallationTests: XCTestCase {
         let document = URL(fileURLWithPath: "/tmp/PoorMansTextNeverConverted.rtf")
 
         let installation = Task {
-            try await model.installPandoc(brewExecutable: Self.brewExecutable) { _ in
+            try await model.installPandoc(brewExecutable: Self.brewExecutable) { _, _ in
                 await gate.waitForRelease()
             }
         }
@@ -59,14 +59,14 @@ final class AppModelPandocInstallationTests: XCTestCase {
         let counter = InstallationCounter()
 
         let installation = Task {
-            try await model.installPandoc(brewExecutable: Self.brewExecutable) { _ in
+            try await model.installPandoc(brewExecutable: Self.brewExecutable) { _, _ in
                 await counter.increment()
                 await gate.waitForRelease()
             }
         }
         try await waitUntil("die Installation läuft") { model.isInstallingPandoc }
 
-        let second = try await model.installPandoc(brewExecutable: Self.brewExecutable) { _ in
+        let second = try await model.installPandoc(brewExecutable: Self.brewExecutable) { _, _ in
             await counter.increment()
         }
         XCTAssertFalse(second, "Der abgewiesene Aufruf meldete eine abgeschlossene Installation.")
@@ -86,7 +86,7 @@ final class AppModelPandocInstallationTests: XCTestCase {
         let model = AppModel(defaults: .isolatedForAppTest())
 
         do {
-            try await model.installPandoc(brewExecutable: Self.brewExecutable) { _ in
+            try await model.installPandoc(brewExecutable: Self.brewExecutable) { _, _ in
                 throw InstallationFailure()
             }
             XCTFail("Der Fehler der Installation kam nicht bei der App an.")
@@ -103,6 +103,41 @@ final class AppModelPandocInstallationTests: XCTestCase {
             return []
         }
         XCTAssertTrue(panelWasPresented, "Die Dokumentauswahl blieb nach dem Fehlschlag gesperrt.")
+    }
+
+    /// Ein Abbruch aus der Oberfläche erreicht den Token der Installation,
+    /// gilt nicht als Fehler und gibt alle Einstiege wieder frei. Vorher
+    /// kannte die Installation weder Token noch Abbruchknopf: Ein hängendes
+    /// Homebrew sperrte die App bis zum Neustart (Roadmap-Punkt, 2026-09-10).
+    @MainActor
+    func testCancellingTheInstallationReachesTheTokenAndReleasesTheEntryPoints() async throws {
+        let model = AppModel(defaults: .isolatedForAppTest())
+
+        let installation = Task {
+            try await model.installPandoc(brewExecutable: Self.brewExecutable) { _, cancellation in
+                // Die Attrappe verhält sich wie `brew`: Sie läuft, bis der Token
+                // sie beendet, und meldet das als Abbruch.
+                while !cancellation.isCancelled {
+                    try await Task.sleep(for: .milliseconds(10))
+                }
+                throw PandocInstaller.InstallError.cancelled
+            }
+        }
+        try await waitUntil("die Installation läuft") { model.isInstallingPandoc }
+        XCTAssertFalse(model.isCancellingPandocInstallation)
+
+        model.cancelPandocInstallation()
+        XCTAssertTrue(model.isCancellingPandocInstallation, "Der Abbruchknopf sperrte sich nicht.")
+
+        let performed = try await installation.value
+        XCTAssertFalse(performed, "Ein abgebrochener Lauf meldete eine abgeschlossene Installation.")
+        XCTAssertFalse(model.isInstallingPandoc)
+        XCTAssertFalse(model.isCancellingPandocInstallation)
+        XCTAssertTrue(model.acceptsNewDocuments)
+
+        // Ohne laufende Installation ist der Abbruch wirkungslos.
+        model.cancelPandocInstallation()
+        XCTAssertFalse(model.isCancellingPandocInstallation)
     }
 
     /// Nur ein Pfad zu einem Homebrew, das die Testattrappe nie aufruft.

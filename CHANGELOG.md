@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Give the Homebrew installation of Pandoc a cancel button, a 15-minute limit,
+  and no standard input. It ran through its own process starter without any of
+  the three, so a Homebrew waiting for a password or a confirmation kept the
+  drop zone, ⌘O, Dock opening, and both services locked until the app was
+  restarted. The app now starts Homebrew and `osascript` through the same
+  process runner as the conversion tools.
 - Escape carriage returns, NUL, and the Unicode line separators in the YAML
   frontmatter. A CRLF pair is a single Swift `Character` and slipped through the
   previous escaping, so a foreign document title could close the header and

@@ -68,7 +68,6 @@
 "Pandoc is required for word-processing documents, HTML, e-books, text markups, and ODM master documents. Spreadsheets, CSV, PDF, and images work without it. Install Pandoc now with Homebrew? This can take a few minutes." = "Pandoc wird für Textverarbeitungsdokumente, HTML, E-Books, Textauszeichnungen und ODM-Globaldokumente benötigt. Tabellen, CSV, PDF und Bilder funktionieren ohne Pandoc. Jetzt mit Homebrew installieren? Das kann einige Minuten dauern.";
 "Pandoc is required for word-processing documents, HTML, e-books, text markups, and ODM master documents. Spreadsheets, CSV, PDF, and images work without it. The Pandoc website offers an official installer." = "Pandoc wird für Textverarbeitungsdokumente, HTML, E-Books, Textauszeichnungen und ODM-Globaldokumente benötigt. Tabellen, CSV, PDF und Bilder funktionieren ohne Pandoc. Auf der Pandoc-Website gibt es ein offizielles Installationsprogramm.";
 "Converting %@…" = "%@ wird konvertiert…";
-"Converting %lld of %lld: %@…" = "Konvertierung %lld von %lld: %@…";
 "Version %@" = "Version %@";
 "%d lines, ready to paste" = "%d Zeilen, bereit zum Einfügen";
 "%d documents converted" = "%d Dokumente konvertiert";
@@ -126,3 +125,14 @@
 "Local OCR processes one image at a time." = "Lokale OCR verarbeitet jeweils ein Bild.";
 "The service received no files." = "Der Dienst hat keine Dateien erhalten.";
 "Poor Man's Text is busy with another conversion." = "Poor Man’s Text ist mit einer anderen Umwandlung beschäftigt.";
+"1 image was left out; the clipboard holds text only, so its image link points nowhere." = "1 Bild wurde ausgelassen; die Zwischenablage enthält nur Text, der Bildverweis führt ins Leere.";
+"%d images were left out; the clipboard holds text only, so their image links point nowhere." = "%d Bilder wurden ausgelassen; die Zwischenablage enthält nur Text, die Bildverweise führen ins Leere.";
+"The selection contains no rich text. Select formatted text in an app that provides RTF." = "Die Auswahl enthält keinen Rich Text. Formatierten Text in einer App auswählen, die RTF liefert.";
+"The selected rich text could not be read." = "Der ausgewählte Rich Text konnte nicht gelesen werden.";
+"Homebrew could not install Pandoc: %@" = "Homebrew konnte Pandoc nicht installieren: %@";
+"Homebrew finished, but Pandoc still cannot be found." = "Homebrew ist fertig, aber Pandoc ist weiterhin nicht zu finden.";
+"The Pandoc installation was cancelled." = "Die Pandoc-Installation wurde abgebrochen.";
+"Homebrew did not finish installing Pandoc within %d minutes." = "Homebrew hat die Pandoc-Installation nicht innerhalb von %d Minuten abgeschlossen.";
+"The command-line tool could not be installed: %@" = "Das Kommandozeilenwerkzeug konnte nicht installiert werden: %@";
+"The command-line target is unavailable or already belongs to another program." = "Das Kommandozeilenziel ist nicht verfügbar oder gehört bereits einem anderen Programm.";
+"The command-line tool was installed but could not be verified." = "Das Kommandozeilenwerkzeug wurde installiert, konnte aber nicht überprüft werden.";

@@ -576,7 +576,7 @@ struct ContentView: View {
                     showsPandocInstallSuccess = true
                 }
             } catch {
-                pandocInstallError = error.localizedDescription
+                pandocInstallError = AppErrorMessage.describe(error)
             }
         }
     }
@@ -618,7 +618,7 @@ struct ContentView: View {
                     try CLIInstaller.install(sourceURL: sourceURL, targetURL: targetURL)
                 }.value
             } catch {
-                cliInstallError = error.localizedDescription
+                cliInstallError = AppErrorMessage.describe(error)
             }
         }
     }

@@ -510,7 +510,7 @@
     "token_budget": 3000000,
     "status": "active",
     "started_at": "2026-09-10T15:42:43+02:00",
-    "tokens_spent": 63000
+    "tokens_spent": 73120
   },
   "campaign_history": [
     {
@@ -806,14 +806,18 @@
         "Sources/PoorMansTextApp/ContentView.swift"
       ],
       "priority": 1,
-      "state": "in_progress",
+      "state": "completed",
       "noted_at": "2026-09-10T15:42:43+02:00",
       "campaign_id": "20260910T154243481221+0200",
       "started_at": "2026-09-10T15:52:54+02:00",
-      "active_run": {
+      "completed": {
         "campaign_id": "20260910T154243481221+0200",
-        "started_at": "2026-09-10T15:52:54+02:00",
-        "observed_head": "a5aa75e4c254fffa823ba259c787d8c7265eeb20"
+        "completed_at": "2026-09-10T15:55:57+02:00",
+        "observed_head": "f2ef5e180631c6b2f03dbd09a709dc7109cf95c7",
+        "summary": "AppModel.openDocuments(_:) als Einstieg für application(_:open:): bei Sperre openRejectionMessage (Installations- oder Beschäftigt-Text) statt Schweigen, in ContentView in jedem Zustand sichtbar; ⌘O auf !acceptsNewDocuments.",
+        "tests": [
+          "swift test: 516 passed (2 neue: Öffnen während Installation meldet Text; Öffnen während Batch meldet Text und Meldung bleibt bis zum nächsten Auftrag)"
+        ]
       }
     },
     {
@@ -913,9 +917,15 @@
         "App/de.lproj/Localizable.strings"
       ],
       "priority": 3,
-      "state": "pending",
+      "state": "in_progress",
       "noted_at": "2026-09-10T15:42:44+02:00",
-      "campaign_id": "20260910T154243481221+0200"
+      "campaign_id": "20260910T154243481221+0200",
+      "started_at": "2026-09-10T15:55:57+02:00",
+      "active_run": {
+        "campaign_id": "20260910T154243481221+0200",
+        "started_at": "2026-09-10T15:55:57+02:00",
+        "observed_head": "f2ef5e180631c6b2f03dbd09a709dc7109cf95c7"
+      }
     },
     {
       "id": "csv-scalar-delimiter",

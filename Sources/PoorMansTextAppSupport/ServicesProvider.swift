@@ -46,7 +46,7 @@ public final class ServicesProvider: NSObject {
         error: AutoreleasingUnsafeMutablePointer<NSString?>
     ) {
         guard let source = RichTextClipboard.Source(pasteboard: pasteboard) else {
-            error.pointee = RichTextClipboard.ClipboardError.noRichText.localizedDescription as NSString
+            error.pointee = AppErrorMessage.describe(RichTextClipboard.ClipboardError.noRichText) as NSString
             return
         }
         guard model.acceptsNewDocuments else {

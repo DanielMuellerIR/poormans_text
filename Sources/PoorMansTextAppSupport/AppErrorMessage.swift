@@ -3,10 +3,35 @@ import PoorMansTextCore
 
 /// Übersetzt die Fehlerkategorie in der App; Werkzeugmeldungen und technische
 /// Parserdetails bleiben im Original erhalten, damit sie nachprüfbar bleiben.
-enum AppErrorMessage {
-    static func describe(_ error: Error, bundle: Bundle = .main) -> String {
+///
+/// Öffentlich, weil auch die Oberfläche (eigenes Target) ihre Alerts darüber
+/// beschriftet: Die Installationsdialoge zeigten vorher `localizedDescription`
+/// und damit englischen Text in der deutschen App (Roadmap-Punkt, 2026-09-10).
+public enum AppErrorMessage {
+    public static func describe(_ error: Error, bundle: Bundle = .main) -> String {
         func format(_ key: String, _ values: CVarArg...) -> String {
             String(format: bundle.localizedString(forKey: key, value: nil, table: nil), arguments: values)
+        }
+        if let error = error as? RichTextClipboard.ClipboardError {
+            switch error {
+            case .noRichText: return format("The selection contains no rich text. Select formatted text in an app that provides RTF.")
+            case .unreadableRichText: return format("The selected rich text could not be read.")
+            }
+        }
+        if let error = error as? PandocInstaller.InstallError {
+            switch error {
+            case .processFailed(let message): return format("Homebrew could not install Pandoc: %@", message)
+            case .verificationFailed: return format("Homebrew finished, but Pandoc still cannot be found.")
+            case .cancelled: return format("The Pandoc installation was cancelled.")
+            case .timedOut: return format("Homebrew did not finish installing Pandoc within %d minutes.", Int(PandocInstaller.installationTimeout / 60))
+            }
+        }
+        if let error = error as? CLIInstaller.InstallError {
+            switch error {
+            case .processFailed(let message): return format("The command-line tool could not be installed: %@", message)
+            case .targetUnavailable: return format("The command-line target is unavailable or already belongs to another program.")
+            case .verificationFailed: return format("The command-line tool was installed but could not be verified.")
+            }
         }
         if let error = error as? OCRLanguageSelection.SelectionError {
             return format("Invalid OCR language selection: %@", error.reason)

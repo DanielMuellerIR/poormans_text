@@ -110,7 +110,9 @@ public enum CLIInstaller {
         }
     }
 
-    private enum InstallError: LocalizedError {
+    /// Nicht `private`: `AppErrorMessage` bildet die Fälle auf die übersetzten
+    /// Meldungen der Oberfläche ab.
+    enum InstallError: LocalizedError {
         case processFailed(String)
         case targetUnavailable
         case verificationFailed

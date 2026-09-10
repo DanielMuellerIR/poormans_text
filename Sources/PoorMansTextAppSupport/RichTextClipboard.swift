@@ -105,11 +105,14 @@ public enum RichTextClipboard {
         let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
         var warnings = result.warnings
         if !result.assets.isEmpty {
+            // Der Hinweis landet direkt im Fenster, deshalb übersetzt: Vorher
+            // ging er als englischer Rohtext in die Oberfläche
+            // (Roadmap-Punkt, 2026-09-10).
             let count = result.assets.count
             warnings.append(
                 count == 1
-                    ? "1 image was left out; the clipboard holds text only, so its image link points nowhere."
-                    : "\(count) images were left out; the clipboard holds text only, so their image links point nowhere."
+                    ? NSLocalizedString("1 image was left out; the clipboard holds text only, so its image link points nowhere.", comment: "")
+                    : String(format: NSLocalizedString("%d images were left out; the clipboard holds text only, so their image links point nowhere.", comment: ""), count)
             )
         }
         return ClipboardOutcome(markdown: markdown, warnings: warnings)

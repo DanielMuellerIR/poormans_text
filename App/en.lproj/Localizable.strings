@@ -68,7 +68,6 @@
 "Pandoc is required for word-processing documents, HTML, e-books, text markups, and ODM master documents. Spreadsheets, CSV, PDF, and images work without it. Install Pandoc now with Homebrew? This can take a few minutes." = "Pandoc is required for word-processing documents, HTML, e-books, text markups, and ODM master documents. Spreadsheets, CSV, PDF, and images work without it. Install Pandoc now with Homebrew? This can take a few minutes.";
 "Pandoc is required for word-processing documents, HTML, e-books, text markups, and ODM master documents. Spreadsheets, CSV, PDF, and images work without it. The Pandoc website offers an official installer." = "Pandoc is required for word-processing documents, HTML, e-books, text markups, and ODM master documents. Spreadsheets, CSV, PDF, and images work without it. The Pandoc website offers an official installer.";
 "Converting %@…" = "Converting %@…";
-"Converting %lld of %lld: %@…" = "Converting %lld of %lld: %@…";
 "Version %@" = "Version %@";
 "%d lines, ready to paste" = "%d lines, ready to paste";
 "%d documents converted" = "%d documents converted";
@@ -126,3 +125,14 @@
 "Local OCR processes one image at a time." = "Local OCR processes one image at a time.";
 "The service received no files." = "The service received no files.";
 "Poor Man's Text is busy with another conversion." = "Poor Man's Text is busy with another conversion.";
+"1 image was left out; the clipboard holds text only, so its image link points nowhere." = "1 image was left out; the clipboard holds text only, so its image link points nowhere.";
+"%d images were left out; the clipboard holds text only, so their image links point nowhere." = "%d images were left out; the clipboard holds text only, so their image links point nowhere.";
+"The selection contains no rich text. Select formatted text in an app that provides RTF." = "The selection contains no rich text. Select formatted text in an app that provides RTF.";
+"The selected rich text could not be read." = "The selected rich text could not be read.";
+"Homebrew could not install Pandoc: %@" = "Homebrew could not install Pandoc: %@";
+"Homebrew finished, but Pandoc still cannot be found." = "Homebrew finished, but Pandoc still cannot be found.";
+"The Pandoc installation was cancelled." = "The Pandoc installation was cancelled.";
+"Homebrew did not finish installing Pandoc within %d minutes." = "Homebrew did not finish installing Pandoc within %d minutes.";
+"The command-line tool could not be installed: %@" = "The command-line tool could not be installed: %@";
+"The command-line target is unavailable or already belongs to another program." = "The command-line target is unavailable or already belongs to another program.";
+"The command-line tool was installed but could not be verified." = "The command-line tool was installed but could not be verified.";

@@ -115,12 +115,6 @@ weil sie eine Entwurfsentscheidung brauchen:
 
 Belegt, aber bewusst nicht in der Kampagne umgesetzt:
 
-- **Nicht übersetzte Texte in Nebenwegen.** Die Hinweistexte von
-  `RichTextClipboard` sowie die Fehlermeldungen der beiden Installationswege
-  gehen ohne Übersetzung in die Oberfläche; die Installationsdialoge nehmen
-  ohnehin `localizedDescription` statt der zentralen Meldungsabbildung. Ein
-  verwaister Schlüssel („Converting %lld of %lld: %@…") steht in beiden
-  `.strings`-Dateien.
 - **Nicht reproduziert, deshalb nur notiert:** Die Anhangnamen eines
   Flat-RTFD werden beim Auspacken ungeprüft als Pfadbestandteile benutzt. Ein
   Ausbruch über `../` ließ sich nicht konstruieren — AppKit scheint den Namen

@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Translate the messages of the side paths: the image notice of the rich-text
+  service, both installation dialogs, and the errors the rich-text service
+  reports to the calling app now go through the app's central message mapping
+  instead of reaching the German window in English. The orphaned
+  "Converting %lld of %lld" key is gone from both language files.
 - Report files opened through the Dock, a double-click, or `open -a` while the
   app is busy. That path silently dropped them; the window now says why they
   were not accepted, and ⌘O is disabled during the Pandoc installation instead

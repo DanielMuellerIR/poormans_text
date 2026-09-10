@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Compare CSV delimiters and line ends as Unicode scalars. A comma followed by
+  a combining mark formed a different grapheme and did not split the field.
 - Keep an ODP image that sits inside a paragraph (`draw:frame` within
   `text:p`); the reader stopped at the paragraph text and dropped the image
   without a warning. A presentation image referenced many times is unpacked,

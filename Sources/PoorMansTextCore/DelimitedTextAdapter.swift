@@ -229,13 +229,22 @@ enum DelimitedTextParser {
         return best?.delimiter ?? ","
     }
 
+    /// Arbeitet auf Unicode-Skalaren, nicht auf Graphemen: Ein Komma, dem ein
+    /// Kombinationszeichen folgt, ist als `Character` ein anderes Zeichen und
+    /// trennte vorher nicht — dieselbe Klasse, die im Frontmatter-Escaping
+    /// schon behoben war (Roadmap-Punkt, 2026-09-10). RFC 4180 kennt nur
+    /// Code-Einheiten. CR+LF sind hier zwei Skalare und beenden die Zeile
+    /// gemeinsam; in einem Anführungsfeld bleiben sie unverändert im Text.
     static func parse(_ text: String, delimiter: Character) throws -> [[SpreadsheetCell]] {
+        guard delimiter.unicodeScalars.count == 1, let separator = delimiter.unicodeScalars.first else {
+            throw DelimitedTextError("the delimiter must be a single Unicode scalar")
+        }
         var rows = [[SpreadsheetCell]]()
         var row = [SpreadsheetCell]()
         var field = ""
         var inQuotes = false
         var cellCount = 0
-        var iterator = text.makeIterator()
+        var iterator = text.unicodeScalars.makeIterator()
 
         func finishField() throws {
             row.append(field.isEmpty ? .empty : SpreadsheetCell(value: .string(field), displayText: field, formula: nil))
@@ -256,14 +265,14 @@ enum DelimitedTextParser {
                 throw DelimitedTextError("the file exceeds \(DelimitedTextLimits.maximumRows) rows")
             }
         }
-        var lookahead: Character? = iterator.next()
+        var lookahead: Unicode.Scalar? = iterator.next()
         var cancellationCounter = 0
-        while let character = lookahead {
+        while let scalar = lookahead {
             cancellationCounter += 1
             if cancellationCounter & 4095 == 0 { try ConversionExecution.check() }
             lookahead = iterator.next()
             if inQuotes {
-                if character == "\"" {
+                if scalar == "\"" {
                     if lookahead == "\"" {
                         field.append("\"")
                         lookahead = iterator.next()
@@ -271,21 +280,23 @@ enum DelimitedTextParser {
                         inQuotes = false
                     }
                 } else {
-                    field.append(character)
+                    field.unicodeScalars.append(scalar)
                 }
                 continue
             }
-            switch character {
+            switch scalar {
             case "\"" where field.isEmpty:
                 inQuotes = true
-            case delimiter:
+            case separator:
                 try finishField()
-            case "\r\n", "\r", "\n":
-                // Swift fasst CR+LF zu einem Zeichen zusammen; alle drei Formen
-                // beenden die Zeile.
+            case "\r":
+                // CR allein oder CR+LF: beide beenden die Zeile einmal.
+                if lookahead == "\n" { lookahead = iterator.next() }
+                try finishRow()
+            case "\n":
                 try finishRow()
             default:
-                field.append(character)
+                field.unicodeScalars.append(scalar)
             }
         }
         // Ein am Dateiende noch offenes Anführungsfeld ist ein Syntaxfehler;

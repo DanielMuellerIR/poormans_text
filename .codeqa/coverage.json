@@ -253,18 +253,16 @@
       "risk": "high",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20260910T101608235407+0200",
-        "completed_at": "2026-09-10T12:56:37+02:00",
-        "observed_head": "4f55976369b0891e51b84ae8b3e976e10a22288c",
-        "content_sha256": "70b4404d3b2e2766a5c59e0774aa9e006c94b511ac90b7bacdb4869d5b22f2e5",
+        "campaign_id": "20260910T154243481221+0200",
+        "completed_at": "2026-09-10T16:27:05+02:00",
+        "observed_head": "8f980ff2049b983a536505ad675f555c091c4198",
+        "content_sha256": "417f7bed4da75efa055e5d900f7c3f61b4e5c6c2c76a35546637cfe6ea0fde5f",
         "file_count": 5,
-        "review": "full",
+        "review": "delta-plus-boundaries",
         "outcome": "improved",
-        "summary": "Vollreview. Vier Korrektheitsfehler behoben: Der Notebook-Import ersetzte Anhangsverweise je Anhang einmal über den ganzen Zelltext — ein 2,6-MB-Notebook mit 20000 Anhängen lief über zehn Minuten und ignorierte SIGINT mindestens 20 s (gemessen; jetzt 1,64 s). Ein Quellverweis auf einen selbst vergebenen Asset-Namen blieb stehen und zeigte still auf den Anhang einer anderen Zelle, reihenfolgeabhängig. Attribute zählten gegen keine XML-Grenze. Notizteile wurden in ungeordneter Wörterbuchreihenfolge gelesen. Eigene Gegenproben: bösartige Anhangnamen (../../ausbruch.png, /etc/passwd) werden umbenannt statt zu entkommen, ein als image/png getarntes HTML wird abgewiesen, Bildzuordnung byteweise korrekt und über fünf Läufe deterministisch. Zwei belegte, nicht umgesetzte Punkte stehen in ROADMAP.md.",
+        "summary": "Delta = Bildcache und Absatzbilder in PresentationAdapter; ImportMediaStore und Renderer unverändert.",
         "tests": [
-          "swift test: 504 passed, 0 failed (vorher 502)",
-          "Mutationstest: zurückgesetzte Eigen-Asset-Prüfung lässt zwei Zusicherungen fehlschlagen",
-          "CLI-Messung: 20000-Anhänge-Notebook von über 600 s (nicht abbrechbar) auf 1,64 s bei 34 MB"
+          "swift test: 534 passed"
         ]
       }
     },
@@ -501,7 +499,7 @@
     "token_budget": 3000000,
     "status": "active",
     "started_at": "2026-09-10T15:42:43+02:00",
-    "tokens_spent": 198396
+    "tokens_spent": 205797
   },
   "campaign_history": [
     {
@@ -955,14 +953,18 @@
         "Sources/PoorMansTextCore/PresentationDocument.swift"
       ],
       "priority": 2,
-      "state": "in_progress",
+      "state": "completed",
       "noted_at": "2026-09-10T15:42:44+02:00",
       "campaign_id": "20260910T154243481221+0200",
       "started_at": "2026-09-10T16:25:15+02:00",
-      "active_run": {
+      "completed": {
         "campaign_id": "20260910T154243481221+0200",
-        "started_at": "2026-09-10T16:25:15+02:00",
-        "observed_head": "d3a600ed8f5dd45872b67e1280b58b3a069d1c9c"
+        "completed_at": "2026-09-10T16:27:04+02:00",
+        "observed_head": "8f980ff2049b983a536505ad675f555c091c4198",
+        "summary": "PresentationImport.storedImages cacht abgelegte Bilder je Paketpfad (Fehlschläge nicht); odpBlocks hängt draw:image-Nachfahren eines text:p/text:h als Bildblöcke an den Absatz (leerer Absatz mit Bild → nur Bild).",
+        "tests": [
+          "swift test: 534 passed (2 neue: Bild im ODP-Absatz zweimal, ein Asset; dreifach verwiesenes PPTX-Bild einmal aus dem Paket gelesen, per zählendem ZIPPackageReading)"
+        ]
       }
     },
     {
@@ -995,9 +997,15 @@
         "Sources/PoorMansTextCore/DelimitedTextAdapter.swift"
       ],
       "priority": 3,
-      "state": "pending",
+      "state": "in_progress",
       "noted_at": "2026-09-10T15:42:44+02:00",
-      "campaign_id": "20260910T154243481221+0200"
+      "campaign_id": "20260910T154243481221+0200",
+      "started_at": "2026-09-10T16:27:05+02:00",
+      "active_run": {
+        "campaign_id": "20260910T154243481221+0200",
+        "started_at": "2026-09-10T16:27:05+02:00",
+        "observed_head": "8f980ff2049b983a536505ad675f555c091c4198"
+      }
     },
     {
       "id": "rtfd-attachment-names",

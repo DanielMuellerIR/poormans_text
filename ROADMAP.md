@@ -135,11 +135,6 @@ Belegt, aber bewusst nicht in der Kampagne umgesetzt:
   beide Wege enden im selben Renderer. Eine Tabelle mit 150 000 Zeilen wird
   also als CSV angenommen und als ODS abgelehnt. Welche Zahl gelten soll, ist
   eine Produktentscheidung.
-- **Trennzeichen auf Graphem-Ebene.** Der CSV-Parser vergleicht `Character`
-  statt Unicode-Skalare. Ein Komma mit folgendem Kombinationszeichen ist ein
-  anderes Graphem und trennt deshalb nicht — dieselbe Klasse, die im
-  Frontmatter-Escaping schon behoben ist. Der Umbau berührt die gesamte
-  Zustandsmaschine des Parsers.
 
 ## Offene Härtung des ZIP-Tors (Stand 2026-09-10)
 

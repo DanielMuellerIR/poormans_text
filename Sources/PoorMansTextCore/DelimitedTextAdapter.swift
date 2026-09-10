@@ -97,8 +97,6 @@ struct DelimitedTextAdapter: DocumentConversionAdapter {
             )
         }
 
-        let markdownName = context.inputURL.deletingPathExtension().lastPathComponent + ".md"
-        let markdownURL = context.stagedOutputDirectory.appendingPathComponent(markdownName)
         let markdown: String
         do {
             markdown = try SpreadsheetMarkdownRenderer.render(
@@ -113,11 +111,7 @@ struct DelimitedTextAdapter: DocumentConversionAdapter {
                 reason: error.localizedDescription
             )
         }
-        do {
-            try Data(markdown.utf8).write(to: markdownURL, options: .atomic)
-        } catch {
-            throw ConversionError.fileSystemFailure(error.localizedDescription)
-        }
+        let markdownName = try context.writeMarkdown(markdown)
         return StagedConversionResult(
             markdownRelativePath: markdownName,
             assetRelativePaths: [],

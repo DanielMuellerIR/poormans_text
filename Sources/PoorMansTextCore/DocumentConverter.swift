@@ -574,6 +574,27 @@ struct AdapterConversionContext: Sendable {
         self.options = options
     }
 }
+extension AdapterConversionContext {
+    /// Schreibt das Ergebnis-Markdown in den Staging-Bereich und liefert seinen
+    /// relativen Pfad.
+    ///
+    /// Name, Schreibweg und Fehlerabbildung standen wortgleich in drei Adaptern
+    /// (Review-Fund 2026-09-10). ImageAdapter und PresentationAdapter schreiben
+    /// bewusst weiter selbst: Sie bilden einen Schreibfehler auf ihren eigenen
+    /// Formatfehler ab, nicht auf `fileSystemFailure`.
+    func writeMarkdown(_ markdown: String) throws -> String {
+        let name = inputURL.deletingPathExtension().lastPathComponent + ".md"
+        do {
+            try Data(markdown.utf8).write(
+                to: stagedOutputDirectory.appendingPathComponent(name),
+                options: .atomic
+            )
+        } catch {
+            throw ConversionError.fileSystemFailure(error.localizedDescription)
+        }
+        return name
+    }
+}
 
 struct StagedConversionResult: Sendable {
     let markdownRelativePath: String

@@ -68,18 +68,15 @@
       "id": "zip-gate",
       "last_run": {
         "campaign_id": "20260910T101608235407+0200",
-        "completed_at": "2026-09-10T11:01:44+02:00",
-        "content_sha256": "681cf5f16992a87ca42f16028cd91fe542c8b72b17def53605defee6ecf670c8",
+        "completed_at": "2026-09-10T12:56:51+02:00",
+        "observed_head": "5fdf7aaae51861a93b4644b73394df70b39dd6dd",
+        "content_sha256": "771fbf95f07ab8facd292a59b27b7c81d28b18d73b888cf9e629939e65b6daf9",
         "file_count": 4,
-        "observed_head": "2d3694d2093918f36ef37fd7f16f452a3096217b",
-        "outcome": "improved",
         "review": "delta-plus-boundaries",
-        "summary": "Delta seit c68c961 (Auslagerung der Formatprüfung, neuer ZIPPackageReader, Abbruchprüfungen) plus die heutigen Grenzen des Parsers geprüft. Zwei Korrektheitsfehler behoben: Prüfsumme und beide Größen des lokalen Headers wurden nie gegen das Zentralverzeichnis verglichen, und Verzeichniseinträge übersprangen die Kopfprüfung ganz — beides ließ einen streamenden Entpacker einen nie geprüften Strom sehen. Die Regel für den Datendeskriptor ist an 600 echten Archiven mit 134879 Einträgen gemessen, damit LibreOffice-Pakete weiter durchgehen. Dazu gehärtet: beide Eintragszahlen des Schlussblocks müssen übereinstimmen, ein ZIP64-Locator wird auch ohne Sentinel abgelehnt, und entriesByName trappt nicht mehr bei Namensgleichheit. Testabdeckung per Mutationstest belegt: die Prüfung des wirksamen Eintragsnamens, deren Kollisionsprüfung und das Entpackbudget waren löschbar, ohne dass ein Test rot wurde; jetzt schlagen alle fünf Mutationen fehl. Drei nicht umgesetzte Härtungen stehen begründet in ROADMAP.md.",
+        "outcome": "reviewed-clean",
+        "summary": "Nachbuchung: Das Delta ist die Erweiterung des ZIPFixtureBuilder um zusätzliche Paketteile (extraParts), die der wordprocessing-Review für seine DOCX-Fixtures brauchte. Keine Änderung am ZIP-Tor selbst.",
         "tests": [
-          "swift test: 483 passed, 0 failed (vorher 474)",
-          "swift build: keine Warnungen",
-          "Mutationstest: 5 von 5 entfernten Schutzprüfungen führen jetzt zu roten Tests (vorher 3 davon grün)",
-          "CLI-Gegenprobe: 9 echte DOCX/ODT/ODS-Fixtures konvertieren unverändert, die 3 absichtlich unsicheren werden weiter abgelehnt"
+          "swift test: 504 passed, 0 failed"
         ]
       },
       "paths": [
@@ -306,12 +303,30 @@
       "id": "binary-containers",
       "paths": [
         "Sources/PoorMansTextCore/OLECompoundDocument.swift",
-        "Sources/PoorMansTextCore/BinaryDataReading.swift"
+        "Sources/PoorMansTextCore/BinaryDataReading.swift",
+        "Tests/PoorMansTextCoreTests/BinaryDataReadingTests.swift"
       ],
       "priority": 4,
       "reason": "Sektor- und Kettenlogik fremder OLE-Container; von LegacyWord und LegacyXLS gemeinsam genutzt, Fehler dort sind Speicher-/Endlosschleifenrisiken",
       "risk": "high",
-      "state": "pending"
+      "state": "completed",
+      "pending_paths": [
+        "Tests/PoorMansTextCoreTests/BinaryDataReadingTests.swift"
+      ],
+      "last_run": {
+        "campaign_id": "20260910T101608235407+0200",
+        "completed_at": "2026-09-10T12:59:22+02:00",
+        "observed_head": "01a42250e4f75d1452be011842683b7471413514",
+        "content_sha256": "3ab85cc797ce33f110c8ed61a5fa562ad506dd79caf8177ec49853d5ecbd8552",
+        "file_count": 3,
+        "review": "full",
+        "outcome": "improved",
+        "summary": "Vollreview, selbst durchgeführt (299 Zeilen). Ein Korrektheitsfehler behoben: Die drei als 'begrenzt' bezeichneten Little-Endian-Lesezugriffe prüften gegen count, griffen aber über absolute Indizes zu. Für eine Data-Teilfolge, die nicht rebasiert wird, beendete das den Prozess statt den neutralen Wert zu liefern; die Rückmutation lässt den Testprozess abstürzen. Heute reicht kein Aufrufer eine Teilfolge herein, alle benutzen subdata. Der OLE-Leser selbst ist ohne Fund: Sektorketten sind zyklusgesichert, Sektor-Ids und Offsets gegen die Dateigröße geprüft, Streamgrößen gegen 1 GiB begrenzt, ungültige Kettenmarker brechen ab, und beide Kettenläufe prüfen den Abbruch.",
+        "tests": [
+          "swift test: 506 passed, 0 failed (vorher 504)",
+          "Mutationstest: absolute Indizes lassen den Testprozess mit Signal 5 abstürzen"
+        ]
+      }
     },
     {
       "id": "wordprocessing",
@@ -506,7 +521,7 @@
     "started_at": "2026-09-10T10:16:08+02:00",
     "status": "active",
     "token_budget": 4000000,
-    "tokens_spent": 2048908
+    "tokens_spent": 2062693
   },
   "campaign_history": [
     {

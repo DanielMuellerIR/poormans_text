@@ -310,21 +310,17 @@
       "reason": "Sektor- und Kettenlogik fremder OLE-Container; von LegacyWord und LegacyXLS gemeinsam genutzt, Fehler dort sind Speicher-/Endlosschleifenrisiken",
       "risk": "high",
       "state": "completed",
-      "pending_paths": [
-        "Tests/PoorMansTextCoreTests/BinaryDataReadingTests.swift"
-      ],
       "last_run": {
         "campaign_id": "20260910T101608235407+0200",
-        "completed_at": "2026-09-10T12:59:22+02:00",
-        "observed_head": "01a42250e4f75d1452be011842683b7471413514",
+        "completed_at": "2026-09-10T12:59:29+02:00",
+        "observed_head": "419463b47a0197525395bab0a86295aacffd92b1",
         "content_sha256": "3ab85cc797ce33f110c8ed61a5fa562ad506dd79caf8177ec49853d5ecbd8552",
         "file_count": 3,
-        "review": "full",
-        "outcome": "improved",
-        "summary": "Vollreview, selbst durchgeführt (299 Zeilen). Ein Korrektheitsfehler behoben: Die drei als 'begrenzt' bezeichneten Little-Endian-Lesezugriffe prüften gegen count, griffen aber über absolute Indizes zu. Für eine Data-Teilfolge, die nicht rebasiert wird, beendete das den Prozess statt den neutralen Wert zu liefern; die Rückmutation lässt den Testprozess abstürzen. Heute reicht kein Aufrufer eine Teilfolge herein, alle benutzen subdata. Der OLE-Leser selbst ist ohne Fund: Sektorketten sind zyklusgesichert, Sektor-Ids und Offsets gegen die Dateigröße geprüft, Streamgrößen gegen 1 GiB begrenzt, ungültige Kettenmarker brechen ab, und beide Kettenläufe prüfen den Abbruch.",
+        "review": "delta-plus-boundaries",
+        "outcome": "reviewed-clean",
+        "summary": "Nachbuchung: BinaryDataReadingTests.swift entstand in diesem Review und ist mit ihm verifiziert.",
         "tests": [
-          "swift test: 506 passed, 0 failed (vorher 504)",
-          "Mutationstest: absolute Indizes lassen den Testprozess mit Signal 5 abstürzen"
+          "swift test: 506 passed, 0 failed"
         ]
       }
     },
@@ -395,16 +391,18 @@
     {
       "id": "cli",
       "last_run": {
-        "campaign_id": "20260829T180733149979+0200",
-        "completed_at": "2026-08-29T18:39:43+02:00",
-        "content_sha256": "ef9a66465166f3414384d0cf35010cb1e9d11ddaed07a6b0cff09ca500161e29",
-        "file_count": 3,
-        "observed_head": "ed67b0b2bc4a7947b554603411c27691090593ac",
-        "outcome": "reviewed-clean",
+        "campaign_id": "20260910T101608235407+0200",
+        "completed_at": "2026-09-10T13:13:04+02:00",
+        "observed_head": "056d6a0e1664b89839cfd8575f9965f379aef468",
+        "content_sha256": "d8f9899c96939f693c4ecd2b3efe34d7a9c1be8b48e47190c6189208dd9de0d8",
+        "file_count": 7,
         "review": "delta-plus-boundaries",
-        "summary": "Delta seit 2026-08-19 geprüft: --image-ocr folgt genau dem Muster von --spreadsheet-format, samt = -Form, Fehlermeldung, Katalogmodus-Sperre und drei Integrationstests. Exit-Code-Abbildung, JSON- und Textausgabe als Grenzen mitgelesen — nichts zu vereinfachen, das den Parser nicht unübersichtlicher machen würde",
+        "outcome": "improved",
+        "summary": "Delta seit c68c961 (Aufteilung von main.swift in Argumente, Ausführung und Ausgabe). Zwei Korrektheitsfehler behoben: Ein leeres Pfadargument wurde als Arbeitsverzeichnis gelesen, sodass 'poormans-text $FILE' mit leerer Variable den ganzen Arbeitsordner rekursiv umwandelte (reproduziert), und ein ungültiges Zeitlimit meldete sich als fehlender Wert mit kaputter Grammatik. Beim dritten Reviewer-Fund (angehängtes --json wirkt bei Argumentfehlern nicht) habe ich einen Vorabscan gebaut, der vier bestehende Tests brach, weil er --json als Optionswert mitliest; zurückgenommen und als offener Punkt festgehalten. Ohne Fund geprüft: Exit-Codes vollständig und konsistent, -- beendet die Optionen korrekt, JSON bleibt auch bei Dateinamen mit Zeilenumbruch und Anführungszeichen gültig.",
         "tests": [
-          "swift test: 302 passed, 0 failures"
+          "swift test: 508 passed, 0 failed (vorher 506)",
+          "Mutationstest: erlaubter leerer Pfad und zurückgesetzter Zeitlimit-Fehler lassen sieben beziehungsweise drei Zusicherungen fehlschlagen",
+          "CLI-Gegenprobe: 12 Argumentkombinationen mit erwarteten Exit-Codes, JSON gültig bei Dateinamen mit Steuerzeichen"
         ]
       },
       "paths": [
@@ -413,13 +411,10 @@
         "Tests/PoorMansTextCoreTests/CLITargetDirectoryTests.swift",
         "Tests/PoorMansTextCoreTests/CLIOutputModeTests.swift"
       ],
-      "pending_paths": [
-        "Tests/PoorMansTextCoreTests/CLIOutputModeTests.swift"
-      ],
       "priority": 6,
       "reason": "Exit-Codes, JSON-Ausgabe, Argumentparser",
       "risk": "medium",
-      "state": "pending"
+      "state": "completed"
     },
     {
       "id": "app-support",
@@ -521,7 +516,7 @@
     "started_at": "2026-09-10T10:16:08+02:00",
     "status": "active",
     "token_budget": 4000000,
-    "tokens_spent": 2062693
+    "tokens_spent": 2202441
   },
   "campaign_history": [
     {

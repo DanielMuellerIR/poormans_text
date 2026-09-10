@@ -156,15 +156,15 @@
       "id": "spreadsheet-import",
       "last_run": {
         "campaign_id": "20260910T154243481221+0200",
-        "completed_at": "2026-09-10T16:25:15+02:00",
-        "observed_head": "d3a600ed8f5dd45872b67e1280b58b3a069d1c9c",
-        "content_sha256": "fa65528a450add4d4657b041b401dcbd9fb956bfd6c89ce0cc8eced4470b1012",
+        "completed_at": "2026-09-10T16:28:37+02:00",
+        "observed_head": "204c32c11b1e324d77936b4cbab9090274ce1c94",
+        "content_sha256": "11241df6c199e054be630ac5b337e05f7cf93548a82d60b8e1d1a0dd94fafc79",
         "file_count": 14,
         "review": "delta-plus-boundaries",
         "outcome": "improved",
-        "summary": "Delta = rPh-Filter, Zeilenlücken-Budget, CellBudget, Sniffing; Grenzen zu SpreadsheetLimits und Renderer unverändert.",
+        "summary": "Delta = Skalar-Parser in DelimitedTextAdapter; Renderer und Budgets unverändert.",
         "tests": [
-          "swift test: 532 passed"
+          "swift test: 535 passed"
         ]
       },
       "paths": [
@@ -499,7 +499,7 @@
     "token_budget": 3000000,
     "status": "active",
     "started_at": "2026-09-10T15:42:43+02:00",
-    "tokens_spent": 205797
+    "tokens_spent": 211534
   },
   "campaign_history": [
     {
@@ -997,14 +997,18 @@
         "Sources/PoorMansTextCore/DelimitedTextAdapter.swift"
       ],
       "priority": 3,
-      "state": "in_progress",
+      "state": "completed",
       "noted_at": "2026-09-10T15:42:44+02:00",
       "campaign_id": "20260910T154243481221+0200",
       "started_at": "2026-09-10T16:27:05+02:00",
-      "active_run": {
+      "completed": {
         "campaign_id": "20260910T154243481221+0200",
-        "started_at": "2026-09-10T16:27:05+02:00",
-        "observed_head": "8f980ff2049b983a536505ad675f555c091c4198"
+        "completed_at": "2026-09-10T16:28:37+02:00",
+        "observed_head": "204c32c11b1e324d77936b4cbab9090274ce1c94",
+        "summary": "DelimitedTextParser.parse iteriert text.unicodeScalars; Trennzeichen als Unicode.Scalar, CR/CRLF/LF-Behandlung explizit; Zustandsmaschine sonst unverändert (Quotes, Budgets, Abbruchprüfung).",
+        "tests": [
+          "swift test: 535 passed (neu: Komma+Kombinationszeichen trennt, CRLF bleibt ein Zeilenende, in Quotes Text; mehrskalariges Trennzeichen abgelehnt)"
+        ]
       }
     },
     {
@@ -1014,9 +1018,15 @@
         "Sources/PoorMansTextCore/RichTextConverter.swift"
       ],
       "priority": 3,
-      "state": "pending",
+      "state": "in_progress",
       "noted_at": "2026-09-10T15:42:44+02:00",
-      "campaign_id": "20260910T154243481221+0200"
+      "campaign_id": "20260910T154243481221+0200",
+      "started_at": "2026-09-10T16:28:37+02:00",
+      "active_run": {
+        "campaign_id": "20260910T154243481221+0200",
+        "started_at": "2026-09-10T16:28:37+02:00",
+        "observed_head": "204c32c11b1e324d77936b4cbab9090274ce1c94"
+      }
     },
     {
       "id": "zip-gate-hardening",

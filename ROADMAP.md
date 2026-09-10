@@ -111,21 +111,6 @@ weil sie eine Entwurfsentscheidung brauchen:
   `S_IFREG`-Prüfung in `DocumentConverter.detectInput` weist eine untergeschobene
   FIFO heute schon ab; offen bleibt nur das schmale Fenster dazwischen.
 
-## Offene Punkte der App (Stand 2026-09-10)
-
-Belegt, aber bewusst nicht in der Kampagne umgesetzt:
-
-- **Nicht reproduziert, deshalb nur notiert:** Die Anhangnamen eines
-  Flat-RTFD werden beim Auspacken ungeprüft als Pfadbestandteile benutzt. Ein
-  Ausbruch über `../` ließ sich nicht konstruieren — AppKit scheint den Namen
-  beim Schreiben zu bereinigen —, belegt ist er damit aber auch nicht. Die
-  übrigen Wege des Projekts vergeben für fremde Anhänge bewusst eigene Namen.
-
-## Offene Punkte der CLI (Stand 2026-09-10)
-
-Belegt, aber bewusst nicht in der Kampagne umgesetzt:
-
-
 ## Offene Punkte der Tabellenleser (Stand 2026-09-10)
 
 Belegt, aber bewusst nicht in der Kampagne umgesetzt:

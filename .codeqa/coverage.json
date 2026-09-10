@@ -419,16 +419,18 @@
     {
       "id": "app-support",
       "last_run": {
-        "campaign_id": "20260829T180733149979+0200",
-        "completed_at": "2026-08-29T18:40:25+02:00",
-        "content_sha256": "30051b70b2a940c43df98e71fc3187f35e51d215a13da90dd179b1520d680766",
-        "file_count": 12,
-        "observed_head": "ed67b0b2bc4a7947b554603411c27691090593ac",
-        "outcome": "reviewed-clean",
+        "campaign_id": "20260910T101608235407+0200",
+        "completed_at": "2026-09-10T13:34:04+02:00",
+        "observed_head": "dd3adaa624fe96323e3d3966e4dc76006d0a2650",
+        "content_sha256": "d4384f7146f702e68e97da502cc0bdb2c1eb211ff03ceace3f8861cf1e8cdcd4",
+        "file_count": 23,
         "review": "delta-plus-boundaries",
-        "summary": "Delta seit 2026-08-19 geprüft: Bild-OCR-Schalter im Modell und in der Drop-Zone, angepasste Texte und Dialogtitel. Grenzen mitgelesen: Sperre gegen parallele Aufträge, Pandoc-Angebot samt dauerhafter Ablehnung über AppStorage, CLI-Installationsangebot mit Konflikt- und /Applications-Prüfung, Sparkle-Verdrahtung. Nichts zu vereinfachen, ohne Verhalten zu ändern",
+        "outcome": "improved",
+        "summary": "Delta seit c68c961 (Stapelansicht, Systemdienste, Zwischenablage, Installationswege, Lokalisierung). Zwei Korrektheitsfehler behoben: convert loeschte die Zielvorgaben bevor es sie las, wodurch 'Anderen Namen oder Zielordner waehlen' nach einem Aufzaehlungsfehler wirkungslos blieb, und retryFailed ignorierte in diesem Zweig seinen only-Filter. Drei Texte gingen unuebersetzt in die Oberflaeche, das CLI-Installationsskript meldete auf Deutsch in eine englische Meldung hinein. Ohne Fund geprueft: kein Worker-Thread fasst Modellzustand an, der Sequenzfilter wird pro Lauf zurueckgesetzt, jeder Lauf bekommt ein frisches Abbruch-Token, beide .strings-Dateien sind deckungsgleich. Fuenf belegte, nicht umgesetzte Punkte stehen in ROADMAP.md.",
         "tests": [
-          "swift test: 302 passed, 0 failures"
+          "swift test: 509 passed, 0 failed (vorher 508)",
+          "Mutationstest: ignorierter only-Filter und geloeschte Zielvorgaben lassen je eine Zusicherung fehlschlagen",
+          "Lokalisierungsabgleich: 124 Schluessel in beiden .strings-Dateien, keine Abweichung"
         ]
       },
       "paths": [
@@ -444,16 +446,10 @@
         "Tests/PoorMansTextCoreTests/ServicesProviderTests.swift",
         "App"
       ],
-      "pending_paths": [
-        "Tests/PoorMansTextCoreTests/AppOptionsTests.swift",
-        "Tests/PoorMansTextCoreTests/OpenedDocumentsRelayTests.swift",
-        "Tests/PoorMansTextCoreTests/ServicesProviderTests.swift",
-        "App"
-      ],
       "priority": 7,
       "reason": "GUI-Zustand, Installer und Sparkle-Update-Controller",
       "risk": "medium",
-      "state": "pending"
+      "state": "completed"
     },
     {
       "id": "build-scripts",
@@ -516,7 +512,7 @@
     "started_at": "2026-09-10T10:16:08+02:00",
     "status": "active",
     "token_budget": 4000000,
-    "tokens_spent": 2202441
+    "tokens_spent": 2386477
   },
   "campaign_history": [
     {

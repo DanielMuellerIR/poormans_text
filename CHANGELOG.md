@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+- Escape carriage returns, NUL, and the Unicode line separators in the YAML
+  frontmatter. A CRLF pair is a single Swift `Character` and slipped through the
+  previous escaping, so a foreign document title could close the header and
+  append its own Markdown.
+- Rewrite percent-encoded asset links when building a Textbundle. Image names
+  containing characters outside `A-Za-z0-9-._~` kept pointing at the removed
+  `images/` folder, which lost the image without a warning.
+- Reject an output directory named `*.textbundle` unless `--textbundle` is set.
+  Such a folder looked like a package to Finder but carried neither `info.json`
+  nor `text.md`, and later folder runs skipped it as a previous result.
+- Read metadata that an empty sibling element used to hide: an empty
+  `dc:creator` no longer blocks `meta:initial-creator`, an unreadable
+  `dcterms:created` falls back to `meta:creation-date`, and a CDATA title is
+  read. Implausible RTF creation timestamps no longer become a date.
+- Accept a cancellation token and a process timeout in `inspect` and
+  `detectFormat`. Format detection starts `textutil` for DOC files and
+  previously ran without any limit a caller could reach.
+
 ## 0.10.2 — 2026-09-08
 
 - Select one supported PowerPoint compatibility representation, or its fallback,

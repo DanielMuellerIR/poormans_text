@@ -152,7 +152,9 @@ as `metadata` in every `--json` answer, whether or not the header was written.
 `--textbundle` writes `Report.textbundle` instead of `Report-markdown`: the
 Markdown is `text.md`, images live in `assets/`, and `info.json` identifies the
 bundle, so Bear, iA Writer, and Ulysses open it directly. With `--output`, the
-name has to end in `.textbundle`. Folder searches skip existing bundles.
+name has to end in `.textbundle` — and a name ending in `.textbundle` is only
+accepted together with `--textbundle`, so no folder can claim the extension
+without carrying the bundle files. Folder searches skip existing bundles.
 
 `--stdout` converts exactly one document in a temporary place, prints the
 Markdown to standard output, and removes the temporary result. Diagnostics go

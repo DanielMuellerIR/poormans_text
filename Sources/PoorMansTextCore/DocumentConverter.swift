@@ -76,9 +76,22 @@ public struct DocumentConverter: Sendable {
     }
 
     /// Erkennt das Format erneut aus der Quelle und beschreibt bekannte Verluste.
-    public func inspect(_ requestedInputURL: URL) throws -> InputInspection {
+    ///
+    /// Die Erkennung startet für DOC ein `textutil -info`. Ohne gebundenen
+    /// Ausführungskontext lief dieser Prozess ohne Zeitgrenze und ohne
+    /// erreichbaren Abbruch-Token: Eine Datei, an der `textutil` sich festläuft,
+    /// hielt den aufrufenden Thread endlos fest. Deshalb nehmen Erkennung und
+    /// Prüfung dieselben Grenzen entgegen wie `convert`
+    /// (Review-Fund 2026-09-10).
+    public func inspect(
+        _ requestedInputURL: URL,
+        cancellation: ConversionCancellationToken? = nil,
+        processTimeout: TimeInterval? = nil
+    ) throws -> InputInspection {
         let inputURL = requestedInputURL.standardizedFileURL
-        let detected = try detectInput(at: inputURL)
+        let detected = try withDetectionContext(cancellation, processTimeout) {
+            try detectInput(at: inputURL)
+        }
         return InputInspection(
             inputURL: inputURL,
             format: detected.inspection.format,
@@ -86,8 +99,36 @@ public struct DocumentConverter: Sendable {
         )
     }
 
-    public func detectFormat(at requestedInputURL: URL) throws -> InputFormat {
-        try detectInput(at: requestedInputURL.standardizedFileURL).inspection.format
+    public func detectFormat(
+        at requestedInputURL: URL,
+        cancellation: ConversionCancellationToken? = nil,
+        processTimeout: TimeInterval? = nil
+    ) throws -> InputFormat {
+        try withDetectionContext(cancellation, processTimeout) {
+            try detectInput(at: requestedInputURL.standardizedFileURL).inspection.format
+        }
+    }
+
+    /// Bindet einen Kontext nur, wenn noch keiner steht. Ein Aufruf aus einer
+    /// laufenden Konvertierung heraus behält damit deren Token und Zeitgrenze.
+    private func withDetectionContext<T>(
+        _ cancellation: ConversionCancellationToken?,
+        _ processTimeout: TimeInterval?,
+        _ body: () throws -> T
+    ) rethrows -> T {
+        if ConversionExecution.current != nil, cancellation == nil, processTimeout == nil {
+            return try body()
+        }
+        let inherited = ConversionExecution.current
+        let context = ConversionExecution.Context(
+            cancellation: cancellation.map { ConversionCancellationToken(parent: $0) }
+                ?? inherited?.cancellation ?? ConversionCancellationToken(),
+            progress: nil,
+            processTimeout: processTimeout ?? inherited?.processTimeout,
+            protectedInputs: inherited?.protectedInputs ?? [],
+            plannedSources: inherited?.plannedSources ?? [:]
+        )
+        return try ConversionExecution.$current.withValue(context) { try body() }
     }
 
     public func convert(
@@ -345,11 +386,23 @@ public struct DocumentConverter: Sendable {
         case .directory(let url):
             // Ein Textbundle ist für den Finder nur mit seiner Endung ein Paket.
             // Ein stilles Anhängen würde ein anderes Ziel erzeugen als genannt.
-            if layout == .textbundle,
-               url.pathExtension.lowercased() != InputEnumerator.textbundleExtension {
+            let namedTextbundle = url.pathExtension.lowercased() == InputEnumerator.textbundleExtension
+            if layout == .textbundle, !namedTextbundle {
                 throw ConversionError.invalidOutputName(
                     url,
                     reason: "a Textbundle output must end in .textbundle"
+                )
+            }
+            // Die Regel gilt in beide Richtungen: Ohne Textbundle-Ablage
+            // entstünde unter diesem Namen ein Ordner ohne `info.json` und
+            // `text.md`. Der Finder hielte ihn trotzdem für ein Paket, kein
+            // Editor könnte ihn öffnen, und ein späterer Mehrfachlauf über den
+            // Elternordner überspränge ihn als vermeintlich eigenes Ergebnis
+            // (Review-Fund 2026-09-10).
+            if layout != .textbundle, namedTextbundle {
+                throw ConversionError.invalidOutputName(
+                    url,
+                    reason: "an output named .textbundle needs the Textbundle layout"
                 )
             }
             return ResolvedDestination(url: url.standardizedFileURL, lifetime: .persistent)

@@ -159,7 +159,9 @@ bekommt eine Warnung statt eines leeren Kopfs. Dieselben Felder stehen als
 `--textbundle` schreibt `Bericht.textbundle` statt `Bericht-markdown`: Das
 Markdown heißt `text.md`, Bilder liegen unter `assets/`, und `info.json`
 kennzeichnet das Paket, sodass Bear, iA Writer und Ulysses es direkt öffnen.
-Mit `--output` muss der Name auf `.textbundle` enden. Die Ordnersuche übergeht
+Mit `--output` muss der Name auf `.textbundle` enden — und ein Name auf
+`.textbundle` wird nur zusammen mit `--textbundle` angenommen, damit kein Ordner
+die Endung führt, ohne die Bundle-Dateien zu enthalten. Die Ordnersuche übergeht
 vorhandene Bundles.
 
 `--stdout` wandelt genau ein Dokument an einem temporären Ort um, gibt das

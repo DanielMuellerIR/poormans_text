@@ -750,8 +750,24 @@ enum MarkdownLinkTargetRewriter {
         originalPathEnd: String.Index,
         resumeAt: String.Index
     )? {
-        guard let destination = destination(in: line, from: line.index(after: openingParenthesis)),
-              String(line[destination.range]) == oldPath else { return nil }
+        guard let destination = destination(in: line, from: line.index(after: openingParenthesis)) else {
+            return nil
+        }
+        let target = String(line[destination.range])
+        // `oldPath` und `newPath` sind Dateinamen auf der Platte. Im Markdown
+        // steht das Ziel dagegen prozentkodiert, sobald der Name ein Zeichen
+        // außerhalb von `A-Za-z0-9-._~` enthält — `HTMLImageRewriter` schreibt
+        // es so. Ein reiner Textvergleich verfehlte diese Links, und ein
+        // Textbundle verschob dann das Bild nach `assets/`, ohne den Link
+        // mitzunehmen: das Bild war still weg (Review-Fund 2026-09-10).
+        let replacement: String
+        if target == oldPath {
+            replacement = newPath
+        } else if target.removingPercentEncoding == oldPath {
+            replacement = percentEncodedPath(newPath)
+        } else {
+            return nil
+        }
         let pathStart = destination.range.lowerBound
         let pathEnd = destination.range.upperBound
         let usesAngles = destination.usesAngles
@@ -760,7 +776,22 @@ enum MarkdownLinkTargetRewriter {
             afterPath: pathEnd,
             usesAngles: usesAngles
         ) else { return nil }
-        return (pathStart, newPath, pathEnd, linkEnd)
+        return (pathStart, replacement, pathEnd, linkEnd)
+    }
+
+    /// Kodiert jeden Pfadbestandteil einzeln, damit die Trennstriche `/`
+    /// erhalten bleiben. Derselbe erlaubte Zeichensatz wie in
+    /// `HTMLImageRewriter`, das die Links ursprünglich schreibt.
+    static func percentEncodedPath(_ path: String) -> String {
+        var allowed = CharacterSet.alphanumerics
+        allowed.insert(charactersIn: "-._~")
+        return path
+            .split(separator: "/", omittingEmptySubsequences: false)
+            .map { component in
+                String(component).addingPercentEncoding(withAllowedCharacters: allowed)
+                    ?? String(component)
+            }
+            .joined(separator: "/")
     }
 
     /// Konsumiert den optionalen Linktitel als Teil derselben Syntaxeinheit.

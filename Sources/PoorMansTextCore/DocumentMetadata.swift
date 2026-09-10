@@ -77,18 +77,40 @@ public struct DocumentMetadata: Codable, Equatable, Sendable {
         return formatter.string(from: date)
     }
 
+    /// Die Schleife läuft über Unicode-Skalare, NICHT über `Character`: In Swift
+    /// ist ein CRLF-Paar EIN `Character`, das weder auf `"\n"` noch auf `"\r"`
+    /// passt. Über `Character` blieb ein CRLF im Titel eines fremden Dokuments
+    /// deshalb komplett unmaskiert stehen und konnte den YAML-Kopf aufbrechen
+    /// (Review-Fund 2026-09-10).
+    ///
+    /// Maskiert werden alle Zeichen, die ein YAML- oder Markdown-Leser als
+    /// Zeilenende versteht: CR, LF, NEL (U+0085), LS (U+2028), PS (U+2029) —
+    /// dazu jedes weitere Steuerzeichen, damit kein NUL in die Datei gerät.
     static func yamlString(_ value: String) -> String {
         var escaped = ""
-        for character in value {
-            switch character {
+        for scalar in value.unicodeScalars {
+            switch scalar {
             case "\"": escaped += "\\\""
             case "\\": escaped += "\\\\"
             case "\n": escaped += "\\n"
+            case "\r": escaped += "\\r"
             case "\t": escaped += "\\t"
-            default: escaped.append(character)
+            default:
+                if isYAMLControl(scalar) {
+                    escaped += String(format: "\\u%04X", scalar.value)
+                } else {
+                    escaped.unicodeScalars.append(scalar)
+                }
             }
         }
         return "\"\(escaped)\""
+    }
+
+    /// C0- und C1-Steuerzeichen sowie die beiden Unicode-Zeilentrenner.
+    private static func isYAMLControl(_ scalar: Unicode.Scalar) -> Bool {
+        scalar.value < 0x20 || scalar.value == 0x7F
+            || (0x80...0x9F).contains(scalar.value)
+            || scalar.value == 0x2028 || scalar.value == 0x2029
     }
 
     /// Whitespace kürzen; ein Wert, der danach leer ist, existiert nicht.
@@ -167,6 +189,9 @@ enum PackageMetadataParser {
         let delegate = Delegate()
         let parser = XMLParser(data: xml)
         parser.shouldProcessNamespaces = true
+        // Wie an allen anderen XMLParser-Stellen im Kern ausdrücklich gesetzt:
+        // Ein fremdes Metadaten-XML darf keine externen Entitäten nachladen.
+        parser.shouldResolveExternalEntities = false
         parser.delegate = delegate
         // Ein kaputtes Metadaten-XML ist kein Grund, das Dokument abzulehnen:
         // Dann gibt es eben keine Angaben.
@@ -180,6 +205,18 @@ enum PackageMetadataParser {
         private var values = [String: String]()
         private var keywords = [String]()
 
+        /// Ein leeres Element zählt nicht als vorhandener Wert. Sonst belegte
+        /// ein `<dc:creator/>` den Schlüssel mit `""`, und der Rückfallschlüssel
+        /// `meta:initial-creator` kam in `result()` nie zum Zug — das Dokument
+        /// nannte seinen Autor, der Frontmatter blieb ohne
+        /// (Review-Fund 2026-09-10).
+        private func store(_ key: String, _ value: String) {
+            guard DocumentMetadata.cleaned(value) != nil else {
+                return
+            }
+            values[key] = value
+        }
+
         func result() -> DocumentMetadata {
             var allKeywords = keywords
             if let combined = values["keywords"] {
@@ -191,9 +228,21 @@ enum PackageMetadataParser {
                 subject: values["subject"],
                 description: values["description"],
                 keywords: allKeywords,
-                created: (values["created"] ?? values["creation-date"]).flatMap(DocumentMetadata.parseDate),
-                modified: (values["modified"] ?? values["date"]).flatMap(DocumentMetadata.parseDate)
+                created: firstDate("created", "creation-date"),
+                modified: firstDate("modified", "date")
             )
+        }
+
+        /// Der erste Schlüssel, der ein LESBARES Datum trägt. Ein `??` auf den
+        /// Rohwerten hätte beim ersten, unlesbaren Wert aufgehört und den
+        /// zweiten Schlüssel nie versucht.
+        private func firstDate(_ keys: String...) -> Date? {
+            for key in keys {
+                if let date = values[key].flatMap(DocumentMetadata.parseDate) {
+                    return date
+                }
+            }
+            return nil
         }
 
         func parser(
@@ -210,6 +259,17 @@ enum PackageMetadataParser {
 
         func parser(_ parser: XMLParser, foundCharacters string: String) {
             if ConversionExecution.isCancelled { parser.abortParsing(); return }
+            text += string
+        }
+
+        /// Ohne diesen Weg fiel ein `<dc:title><![CDATA[Bericht]]></dc:title>`
+        /// still auf den leeren Wert zurück: `foundCharacters` meldet CDATA
+        /// nicht (Review-Fund 2026-09-10).
+        func parser(_ parser: XMLParser, foundCDATA CDATABlock: Data) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
+            guard let string = String(data: CDATABlock, encoding: .utf8) else {
+                return
+            }
             text += string
         }
 
@@ -232,16 +292,16 @@ enum PackageMetadataParser {
                 // ist der erste der Verfasser der letzten Änderung, und der
                 // eigentliche Autor steht in `meta:initial-creator`.
                 if values[current.name] == nil {
-                    values[current.name] = value
+                    store(current.name, value)
                 }
             case (PackageMetadataParser.dublinCore, "date"):
-                values["date"] = value
+                store("date", value)
             case (PackageMetadataParser.dcTerms, "created"), (PackageMetadataParser.dcTerms, "modified"):
-                values[current.name] = value
+                store(current.name, value)
             case (PackageMetadataParser.coreProperties, "keywords"):
-                values["keywords"] = value
+                store("keywords", value)
             case (PackageMetadataParser.odfMeta, "initial-creator"), (PackageMetadataParser.odfMeta, "creation-date"):
-                values[current.name] = value
+                store(current.name, value)
             case (PackageMetadataParser.odfMeta, "keyword"):
                 if let keyword = DocumentMetadata.cleaned(value) {
                     keywords.append(keyword)
@@ -551,7 +611,18 @@ enum RTFInfoParser {
             components[keyPath: keyPath] = number
             found = true
         }
-        guard found, components.year != nil, components.month != nil, components.day != nil else {
+        // `Calendar.date(from:)` rechnet Unsinn still weiter, statt `nil` zu
+        // liefern: `\yr0\mo0\dy0` (schreiben Generatoren für „Zeitpunkt
+        // unbekannt") ergäbe den 30.11. des Jahres 2, `\mo99` rollte acht Jahre
+        // vor. Solche Werte gehören nicht in den Frontmatter, also werden sie
+        // vorher abgewiesen (Review-Fund 2026-09-10).
+        guard found,
+              let year = components.year, (1601...9999).contains(year),
+              let month = components.month, (1...12).contains(month),
+              let day = components.day, (1...31).contains(day),
+              (0...23).contains(components.hour ?? 0),
+              (0...59).contains(components.minute ?? 0),
+              (0...60).contains(components.second ?? 0) else {
             return nil
         }
         return components.date

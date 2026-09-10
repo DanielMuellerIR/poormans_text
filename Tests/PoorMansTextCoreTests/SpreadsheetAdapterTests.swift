@@ -1100,4 +1100,52 @@ final class SpreadsheetAdapterTests: XCTestCase {
         </worksheet>
         """
     }
+    // MARK: - Wiederholte Zeilen (Review-Fund 2026-09-10)
+
+    private func odsSheet(_ rows: String) -> Data {
+        Data("""
+        <?xml version="1.0" encoding="UTF-8"?>
+        <office:document-content xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" \
+        xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0" \
+        xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0">
+        <office:body><office:spreadsheet><table:table table:name="Blatt1">\(rows)
+        </table:table></office:spreadsheet></office:body></office:document-content>
+        """.utf8)
+    }
+
+    /// LibreOffice schließt ein formatiertes Blatt mit einer LEEREN Zeile ab,
+    /// die `number-rows-repeated="1048575"` trägt. Solche Zeilen werden nie
+    /// materialisiert — die Datei deswegen komplett abzuweisen war falsch.
+    func testATrailingEmptyRowRepeatBeyondTheBudgetDoesNotRejectTheFile() throws {
+        let workbook = try ODSWorkbookParser.parse(odsSheet("""
+        <table:table-row><table:table-cell office:value-type="string"><text:p>Wert</text:p></table:table-cell></table:table-row>
+        <table:table-row table:number-rows-repeated="1048575"><table:table-cell table:number-columns-repeated="16384"/></table:table-row>
+        """))
+
+        XCTAssertEqual(workbook.sheets.first?.rows.count, 1)
+        XCTAssertEqual(workbook.sheets.first?.rows.first?.first?.displayText, "Wert")
+    }
+
+    /// Trägt die Wiederholung Inhalt, bleibt es bei der Ablehnung: Stillschweigend
+    /// auf das Budget zu kürzen wäre Inhaltsverlust.
+    func testARepeatedRowWithContentBeyondTheBudgetIsStillRejected() {
+        XCTAssertThrowsError(try ODSWorkbookParser.parse(odsSheet("""
+        <table:table-row table:number-rows-repeated="200000"><table:table-cell office:value-type="string"><text:p>X</text:p></table:table-cell></table:table-row>
+        """))) { error in
+            XCTAssertTrue(error.localizedDescription.contains("row budget"), error.localizedDescription)
+        }
+    }
+
+    /// Ebenso, wenn die leeren Zeilen ZWISCHEN Inhalt stehen und deshalb
+    /// tatsächlich materialisiert werden müssten.
+    func testAnEmptyRowGapBeyondTheBudgetBetweenContentIsRejected() {
+        XCTAssertThrowsError(try ODSWorkbookParser.parse(odsSheet("""
+        <table:table-row><table:table-cell office:value-type="string"><text:p>A</text:p></table:table-cell></table:table-row>
+        <table:table-row table:number-rows-repeated="200000"><table:table-cell/></table:table-row>
+        <table:table-row><table:table-cell office:value-type="string"><text:p>B</text:p></table:table-cell></table:table-row>
+        """))) { error in
+            XCTAssertTrue(error.localizedDescription.contains("row budget"), error.localizedDescription)
+        }
+    }
+
 }

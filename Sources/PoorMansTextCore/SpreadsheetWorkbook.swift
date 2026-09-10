@@ -54,10 +54,20 @@ struct SpreadsheetWorkbook: Equatable, Sendable {
     var hasUnsupportedObjects = false
 }
 
+/// Die Grenzen aller drei Arbeitsmappen-Leser.
+///
+/// XLSX, ODS und XLS lesen dasselbe Modell und standen vorher mit drei
+/// getrennten, wortgleichen Kopien nebeneinander — eine Grenze zu ändern hätte
+/// die Leser auseinanderlaufen lassen (Review-Fund 2026-09-10).
 enum SpreadsheetLimits {
     /// Genug für große reale Tabellen, aber klein genug, damit wiederverwendete
     /// Zelltexte keine praktisch unbegrenzte Markdown-Ausgabe erzeugen können.
     static let maximumOutputBytes = 128 * 1_024 * 1_024
+    static let maximumSheets = 256
+    static let maximumRows = 100_000
+    static let maximumColumns = 16_384
+    static let maximumCells = 1_000_000
+    static let maximumSharedStrings = 1_000_000
 }
 
 /// Entscheidet, ob ein Linkziel aus einer Quelldatei ins Ergebnis darf.

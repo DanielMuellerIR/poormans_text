@@ -191,6 +191,13 @@ enum DelimitedTextDecoder {
         guard let text = String(data: even, encoding: encoding) else {
             throw DelimitedTextError("the file has a UTF-16 byte-order mark but invalid UTF-16 text")
         }
+        // Dieselbe Regel wie in den beiden anderen Zweigen: Ein NUL-Zeichen
+        // heißt Binärdatei. Ohne diese Prüfung galt dieselbe Datei je nach
+        // Stückliste einmal als Binärdatei und einmal als Text, und das NUL
+        // landete im Markdown (Review-Fund 2026-09-10).
+        guard !text.unicodeScalars.contains(where: { $0.value == 0 }) else {
+            throw DelimitedTextError("the file contains binary data, not delimited text")
+        }
         return Decoded(text: text, assumedEncoding: false)
     }
 }

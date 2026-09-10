@@ -111,6 +111,32 @@ weil sie eine Entwurfsentscheidung brauchen:
   `S_IFREG`-Prüfung in `DocumentConverter.detectInput` weist eine untergeschobene
   FIFO heute schon ab; offen bleibt nur das schmale Fenster dazwischen.
 
+## Offene Punkte der Tabellenleser (Stand 2026-09-10)
+
+Belegt, aber bewusst nicht in der Kampagne umgesetzt:
+
+- **Speicher wächst vor der Grenze.** Drei Stellen belegen Speicher, bevor ein
+  Budget zieht: `LegacyXLSWorkbookParser` sammelt Zellen in einer dünnen
+  Wörterbuchstruktur und prüft `maximumCells` erst beim Verdichten; ein
+  XLSX-`<row r="100000"/>` erzeugt 99 999 leere Zeilen-Arrays, ohne gegen ein
+  Budget zu zählen; `DelimitedTextAdapter.sniffDelimiter` zerlegt die ganze
+  Datei, um die ersten zwanzig Zeilen anzusehen. Jede Stelle für sich ist ein
+  kleiner Umbau, zusammen sind sie eine eigene Etappe.
+- **Zwei Zeilenbudgets für dasselbe Modell.** CSV/TSV erlauben 1 000 000 Zeilen
+  und 5 000 000 Zellen, die drei Arbeitsmappen-Leser 100 000 und 1 000 000 —
+  beide Wege enden im selben Renderer. Eine Tabelle mit 150 000 Zeilen wird
+  also als CSV angenommen und als ODS abgelehnt. Welche Zahl gelten soll, ist
+  eine Produktentscheidung.
+- **Phonetische Lesehinweise in XLSX.** Excel in japanischer Lokalisierung
+  schreibt `<rPh>` mit einem eigenen `<t>` in dieselbe Zeichenkette; der Leser
+  nimmt es als Teil des Zellwerts (`日本ニホン` statt `日本`). Der Filter müsste
+  nur `<t>` direkt unter `<si>`, `<is>` und `<r>` gelten lassen.
+- **Trennzeichen auf Graphem-Ebene.** Der CSV-Parser vergleicht `Character`
+  statt Unicode-Skalare. Ein Komma mit folgendem Kombinationszeichen ist ein
+  anderes Graphem und trennt deshalb nicht — dieselbe Klasse, die im
+  Frontmatter-Escaping schon behoben ist. Der Umbau berührt die gesamte
+  Zustandsmaschine des Parsers.
+
 ## Offene Härtung des ZIP-Tors (Stand 2026-09-10)
 
 Die CodeQA-Kampagne vom 2026-09-10 hat drei Punkte belegt, aber bewusst nicht

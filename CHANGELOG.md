@@ -37,6 +37,17 @@ All notable changes to this project will be documented in this file.
   `Name-markdown` and `Name.textbundle` applied only while searching, so naming
   such a folder — or dropping it onto the app — converted the images of the
   earlier run again and nested the result inside the old output folder.
+- Read compressed BIFF8 strings as Windows-1252 instead of ISO-8859-1. Every
+  western XLS with typographic quotes, an en dash, or a euro sign carried raw
+  control characters into the Markdown; the hyperlink paths in the same file
+  were already decoded correctly.
+- Accept a spreadsheet whose trailing empty row declares a repeat beyond the
+  row budget. LibreOffice ends a formatted sheet with
+  `number-rows-repeated="1048575"`, and such rows are never materialised, so
+  refusing the whole file was wrong. A repeat that carries content is still
+  refused rather than silently truncated.
+- Reject a UTF-16 delimited text file that contains NUL, like the other two
+  decoding paths already did.
 - Render PDF pages upright for OCR with `--pdf-layout legacy`. The legacy path
   flipped the page before handing it to Vision, which reads with an upright
   orientation, so its result was mirrored nonsense — reported as a successful

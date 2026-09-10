@@ -123,6 +123,23 @@ final class LegacyXLSBoundaryTests: XCTestCase {
         XCTAssertTrue(markdown.contains("[1](https://example.com/a_%28b%29)"), markdown)
     }
 
+    /// Komprimierte BIFF8-Zeichenketten sind Windows-1252, nicht ISO-8859-1.
+    /// Als Latin-1 gelesen wurde aus dem typografischen Apostroph 0x92 das
+    /// Steuerzeichen U+0092 und aus 0x80 nicht das Eurozeichen — beide landeten
+    /// roh im Markdown (Review-Fund 2026-09-10).
+    func testCompressedSharedStringsUseTheWindowsCodePage() throws {
+        // „Anna’s 5 € – Test": Apostroph 0x92, Euro 0x80, Halbgeviertstrich 0x96.
+        let bytes: [UInt8] = Array("Anna".utf8) + [0x92] + Array("s 5 ".utf8)
+            + [0x80] + Array(" ".utf8) + [0x96] + Array(" Test".utf8)
+        let document = SyntheticXLSFixture.workbook(missingFirstSheetEOF: false, sharedStringBytes: bytes)
+
+        let workbook = try LegacyXLSWorkbookParser.parse(document)
+        let cell = workbook.sheets.first?.rows.last?.first
+
+        XCTAssertEqual(cell?.displayText, "Anna\u{2019}s 5 \u{20AC} \u{2013} Test")
+        XCTAssertFalse(try XCTUnwrap(cell?.displayText).unicodeScalars.contains { $0.value < 0x20 || (0x80...0x9F).contains($0.value) })
+    }
+
     /// Ein HLINK-Record kann jedes Ziel tragen. Ein ausführbares Schema wird
     /// nicht übernommen: Der Zellwert bleibt, das Ziel fällt weg, und der
     /// Verlust ist als Warnung sichtbar.
@@ -153,13 +170,15 @@ private enum SyntheticXLSFixture {
     static func workbook(
         missingFirstSheetEOF: Bool,
         interveningChart: Bool = false,
-        firstHyperlinkTarget: String? = nil
+        firstHyperlinkTarget: String? = nil,
+        sharedStringBytes: [UInt8]? = nil
     ) -> Data {
         let firstSheet = sheet(
             column: 0,
             value: 1,
             includeEOF: !missingFirstSheetEOF,
-            hyperlinkTarget: firstHyperlinkTarget
+            hyperlinkTarget: firstHyperlinkTarget,
+            labelSharedStringIndex: sharedStringBytes == nil ? nil : 0
         )
         let chartSheet = interveningChart ? nonWorksheetSheet(type: 0x0020) : Data()
         let secondSheet = sheet(column: 1, value: 2, includeEOF: true)
@@ -167,7 +186,8 @@ private enum SyntheticXLSFixture {
         let placeholderGlobals = globals(
             firstOffset: 0,
             chartOffset: interveningChart ? 0 : nil,
-            secondOffset: 0
+            secondOffset: 0,
+            sharedStringBytes: sharedStringBytes
         )
         let firstOffset = placeholderGlobals.count
         let chartOffset = interveningChart ? firstOffset + firstSheet.count : nil
@@ -175,7 +195,8 @@ private enum SyntheticXLSFixture {
         var stream = globals(
             firstOffset: firstOffset,
             chartOffset: chartOffset,
-            secondOffset: secondOffset
+            secondOffset: secondOffset,
+            sharedStringBytes: sharedStringBytes
         )
         stream.append(firstSheet)
         stream.append(chartSheet)
@@ -231,8 +252,23 @@ private enum SyntheticXLSFixture {
         return document
     }
 
-    private static func globals(firstOffset: Int, chartOffset: Int?, secondOffset: Int) -> Data {
+    private static func globals(
+        firstOffset: Int,
+        chartOffset: Int?,
+        secondOffset: Int,
+        sharedStringBytes: [UInt8]? = nil
+    ) -> Data {
         var result = record(0x0809, payload: bof(type: 0x0005))
+        if let sharedStringBytes {
+            // SST mit genau einer komprimierten (8-Bit-)Zeichenkette.
+            var sst = Data()
+            sst.appendUInt32(1)                              // Gesamtzahl
+            sst.appendUInt32(1)                              // eindeutige Zahl
+            sst.appendUInt16(UInt16(sharedStringBytes.count))  // Zeichenzahl
+            sst.append(0)                                    // grbit: 8-Bit, keine Runs
+            sst.append(contentsOf: sharedStringBytes)
+            result.append(record(0x00FC, payload: sst))
+        }
         result.append(record(0x0085, payload: boundSheet(offset: firstOffset, name: "First")))
         if let chartOffset {
             result.append(record(
@@ -249,7 +285,8 @@ private enum SyntheticXLSFixture {
         column: UInt16,
         value: Double,
         includeEOF: Bool,
-        hyperlinkTarget: String? = nil
+        hyperlinkTarget: String? = nil,
+        labelSharedStringIndex: UInt32? = nil
     ) -> Data {
         var result = record(0x0809, payload: bof(type: 0x0010))
         var number = Data()
@@ -263,6 +300,14 @@ private enum SyntheticXLSFixture {
                 0x01B8,
                 payload: hyperlink(row: 0, column: column, target: hyperlinkTarget)
             ))
+        }
+        if let labelSharedStringIndex {
+            var label = Data()
+            label.appendUInt16(1)                  // Zeile 2
+            label.appendUInt16(column)
+            label.appendUInt16(0)                  // XF-Index
+            label.appendUInt32(labelSharedStringIndex)
+            result.append(record(0x00FD, payload: label))
         }
         if includeEOF { result.append(record(0x000A, payload: Data())) }
         return result

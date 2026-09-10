@@ -78,7 +78,7 @@ enum LegacyXLSWorkbookParser {
             guard !bounds.isEmpty else {
                 throw ParserError("the XLS workbook contains no worksheets")
             }
-            guard bounds.count <= Limits.maximumSheets else {
+            guard bounds.count <= SpreadsheetLimits.maximumSheets else {
                 throw ParserError("the XLS workbook contains too many sheets")
             }
             // Auch Chart-, Makro- und andere BIFF-Unterstreams begrenzen das
@@ -101,8 +101,8 @@ enum LegacyXLSWorkbookParser {
                     at: bound.offset,
                     before: endOffset,
                     sharedStrings: sharedStrings,
-                    maximumCells: Limits.maximumCells - expandedCellCount,
-                    maximumHyperlinkScans: Limits.maximumCells - hyperlinkScannedCellCount
+                    maximumCells: SpreadsheetLimits.maximumCells - expandedCellCount,
+                    maximumHyperlinkScans: SpreadsheetLimits.maximumCells - hyperlinkScannedCellCount
                 )
                 expandedCellCount += parsed.expandedCellCount
                 hyperlinkScannedCellCount += parsed.hyperlinkScannedCellCount
@@ -171,7 +171,7 @@ enum LegacyXLSWorkbookParser {
             var cursor = SegmentedCursor(segments: segments)
             _ = try cursor.readUInt32()
             let uniqueCount = Int(try cursor.readUInt32())
-            guard uniqueCount <= Limits.maximumSharedStrings else {
+            guard uniqueCount <= SpreadsheetLimits.maximumSharedStrings else {
                 throw ParserError("the XLS shared-string table exceeds the supported limit")
             }
             var strings = [String]()
@@ -355,8 +355,8 @@ enum LegacyXLSWorkbookParser {
             column: Int,
             in cells: inout [Int: [Int: SpreadsheetCell]]
         ) throws {
-            guard row >= 0, row < Limits.maximumRows,
-                  column >= 0, column < Limits.maximumColumns else {
+            guard row >= 0, row < SpreadsheetLimits.maximumRows,
+                  column >= 0, column < SpreadsheetLimits.maximumColumns else {
                 throw ParserError("an XLS cell lies outside the supported row or column budget")
             }
             cells[row, default: [:]][column] = cell
@@ -465,7 +465,7 @@ enum LegacyXLSWorkbookParser {
             let rows = hyperlink.range.lastRow - hyperlink.range.firstRow + 1
             let columns = hyperlink.range.lastColumn - hyperlink.range.firstColumn + 1
             guard rows > 0, columns > 0,
-                  columns <= Limits.maximumCells / rows else {
+                  columns <= SpreadsheetLimits.maximumCells / rows else {
                 throw ParserError("the XLS hyperlinks exceed the scan budget")
             }
             let scannedCells = rows * columns
@@ -567,7 +567,15 @@ enum LegacyXLSWorkbookParser {
                 }
                 return String(decoding: units, as: UTF16.self)
             }
-            return String(data: data, encoding: .isoLatin1)
+            // Windows-1252, nicht ISO-8859-1: Excel schreibt in den komprimierten
+            // BIFF8-Strings die typografischen Zeichen des Windows-Zeichensatzes.
+            // Als Latin-1 gelesen wurde aus dem Apostroph 0x92 das
+            // C1-Steuerzeichen U+0092, aus 0x80 statt des Eurozeichens U+0080
+            // — beide landeten roh im Markdown. Die Hyperlink-Pfade derselben
+            // Datei wurden 137 Zeilen tiefer längst richtig gelesen
+            // (Review-Fund 2026-09-10).
+            return String(data: data, encoding: .windowsCP1252)
+                ?? String(data: data, encoding: .isoLatin1)
                 ?? String(decoding: data, as: UTF8.self)
         }
 
@@ -595,7 +603,7 @@ enum LegacyXLSWorkbookParser {
                 firstColumn = Int(try cursor.readUInt16())
                 lastColumn = Int(try cursor.readUInt16())
                 guard firstRow <= lastRow, firstColumn <= lastColumn,
-                      lastRow < Limits.maximumRows, lastColumn < Limits.maximumColumns else {
+                      lastRow < SpreadsheetLimits.maximumRows, lastColumn < SpreadsheetLimits.maximumColumns else {
                     throw ParserError("an XLS hyperlink lies outside the supported row or column budget")
                 }
             }
@@ -820,13 +828,6 @@ enum LegacyXLSWorkbookParser {
             }
         }
 
-        private enum Limits {
-            static let maximumSheets = 256
-            static let maximumRows = 100_000
-            static let maximumColumns = 16_384
-            static let maximumCells = 1_000_000
-            static let maximumSharedStrings = 1_000_000
-        }
     }
 
     private struct ParserError: LocalizedError {

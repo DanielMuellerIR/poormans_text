@@ -101,7 +101,11 @@ enum HTMLImageRewriter {
                     "internal image-name mapping is missing"
                 )
             }
-            let replacement = "images/" + percentEncodePathComponent(outputName)
+            // Dieselbe Regel wie beim Umschreiben: Der Link-Rewriter muss den
+            // hier geschriebenen Pfad später wiederfinden. Stand die
+            // Kodierregel an zwei Stellen, verfehlte er die Links still, sobald
+            // eine der beiden sich änderte (Review-Fund 2026-09-10).
+            let replacement = MarkdownLinkTargetRewriter.percentEncodedPath("images/" + outputName)
             rewrittenHTML.replaceCharacters(in: match.range(at: 2), with: replacement)
         }
 
@@ -166,9 +170,4 @@ enum HTMLImageRewriter {
         return fileExtension.isEmpty ? stem : "\(stem).\(fileExtension)"
     }
 
-    private static func percentEncodePathComponent(_ component: String) -> String {
-        var allowed = CharacterSet.alphanumerics
-        allowed.insert(charactersIn: "-._~")
-        return component.addingPercentEncoding(withAllowedCharacters: allowed) ?? component
-    }
 }

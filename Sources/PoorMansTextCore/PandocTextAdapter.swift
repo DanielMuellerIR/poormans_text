@@ -198,7 +198,18 @@ struct PandocTextAdapter: DocumentConversionAdapter {
             } catch {
                 throw ConversionError.fileSystemFailure(error.localizedDescription)
             }
+            // UTF-8 zuerst: Viele Seiten deklarieren einen Latin-1-Zeichensatz
+            // und liefern trotzdem UTF-8, und gültiges UTF-8 ist so gut wie nie
+            // Zufall. Danach der deklarierte Zeichensatz (`<meta charset>`,
+            // `http-equiv`, XML-Deklaration), wie ihn der Webarchiv-Weg längst
+            // nutzt; vorher fiel der Rückfall direkt auf Windows-1252, und eine
+            // Seite in windows-1251 oder shift_jis wurde vollständig Mojibake
+            // (Roadmap-Punkt, 2026-09-10). Erst zuletzt die Annahme mit Warnung.
             if let text = String(data: data, encoding: .utf8) {
+                html = text
+            } else if let charset = Self.declaredCharset(in: data),
+                      let encoding = String.Encoding(ianaCharSetName: charset),
+                      let text = String(data: data, encoding: encoding) {
                 html = text
             } else if let text = String(data: data, encoding: .windowsCP1252) {
                 html = text
@@ -319,6 +330,26 @@ struct PandocTextAdapter: DocumentConversionAdapter {
         } catch {
             throw ConversionError.fileSystemFailure("conversion produced no readable HTML: \(error.localizedDescription)")
         }
+    }
+
+    /// Der im Dateikopf deklarierte Zeichensatz: `<meta charset="…">`,
+    /// `<meta http-equiv="Content-Type" content="…; charset=…">` oder die
+    /// `encoding` einer XML-Deklaration. Gelesen werden nur die ersten 4 KiB,
+    /// byteweise als Latin-1, damit die Suche selbst keine Kodierung braucht.
+    static func declaredCharset(in data: Data) -> String? {
+        let head = String(data: data.prefix(4096), encoding: .isoLatin1) ?? ""
+        for pattern in [
+            #"charset\s*=\s*["']?\s*([A-Za-z0-9._:-]+)"#,
+            #"<\?xml[^>]*encoding\s*=\s*["']([^"']+)["']"#,
+        ] {
+            guard let expression = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]),
+                  let match = expression.firstMatch(in: head, range: NSRange(location: 0, length: (head as NSString).length)),
+                  match.numberOfRanges > 1 else {
+                continue
+            }
+            return (head as NSString).substring(with: match.range(at: 1))
+        }
+        return nil
     }
 
     /// `<title>` und `<meta name="author">` aus dem HTML-Kopf.

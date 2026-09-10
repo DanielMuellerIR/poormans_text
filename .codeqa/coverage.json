@@ -342,16 +342,16 @@
       "risk": "medium",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20260910T101608235407+0200",
-        "completed_at": "2026-09-10T15:19:36+02:00",
-        "observed_head": "204cb38c850b36e1e7af8fd0a93c3b6e9a435f14",
-        "content_sha256": "8dc2f930a6ac7d299cb6d5c0f451d4146915e33ea09cc1528287d6e80b952b40",
+        "campaign_id": "20260910T154243481221+0200",
+        "completed_at": "2026-09-10T16:07:33+02:00",
+        "observed_head": "757e493f48e322b0b7c9e35bd480343e44d925e7",
+        "content_sha256": "2de90df3451d9aa34f7d01890b5c088ce1788c20b9ee154631337d8d2025f104",
         "file_count": 28,
         "review": "delta-plus-boundaries",
-        "outcome": "reviewed-clean",
-        "summary": "Nachbuchung zum Querschnitts-Fund asset-pfad-kodierung: Das Delta ist genau der dort verifizierte Diff — HTMLImageRewriter benutzt die gemeinsame Kodierfunktion statt einer eigenen Kopie.",
+        "outcome": "improved",
+        "summary": "Delta = Inspector-Umbau (Hauptteil laut OPC, leere .rels, styles.xml); Adapter unverändert, Grenzen zu ZIPPackageReading (dataIfPresent) und Pandoc geprüft.",
         "tests": [
-          "swift test: 509 passed, 0 failed"
+          "swift test: 524 passed"
         ]
       }
     },
@@ -503,7 +503,7 @@
     "token_budget": 3000000,
     "status": "active",
     "started_at": "2026-09-10T15:42:43+02:00",
-    "tokens_spent": 112385
+    "tokens_spent": 128833
   },
   "campaign_history": [
     {
@@ -866,14 +866,18 @@
         "Sources/PoorMansTextCore/WordProcessingPackageAdapter.swift"
       ],
       "priority": 2,
-      "state": "in_progress",
+      "state": "completed",
       "noted_at": "2026-09-10T15:42:44+02:00",
       "campaign_id": "20260910T154243481221+0200",
       "started_at": "2026-09-10T16:04:04+02:00",
-      "active_run": {
+      "completed": {
         "campaign_id": "20260910T154243481221+0200",
-        "started_at": "2026-09-10T16:04:04+02:00",
-        "observed_head": "eabaff4f253fba21d64b6005fdd61d082a440ca5"
+        "completed_at": "2026-09-10T16:07:33+02:00",
+        "observed_head": "757e493f48e322b0b7c9e35bd480343e44d925e7",
+        "summary": "mainDocumentPart über OfficeDocumentRelationshipParser (_rels/.rels), Fallback word/document.xml ohne .rels; ContentTypes-Parser mit mainPart-Parameter; Nebenteile neben dem Hauptteil; leerer .rels = keine Ziele, defekter bleibt Ablehnung (bewusst, Sicherheit vor Toleranz); ODT prüft styles.xml auf externe Bilder. Real geprüft: pandoc.docx mit document2.xml wandelt jetzt um.",
+        "tests": [
+          "swift test: 524 passed (5 neue: officeDocument-Auflösung inkl. /-Ziel, Pandoc-Umwandlung des reparierten Pakets, fehlendes Ziel, leerer vs. defekter .rels, styles.xml-Bild)"
+        ]
       }
     },
     {
@@ -885,9 +889,15 @@
         "Sources/PoorMansTextCore/WebArchiveReader.swift"
       ],
       "priority": 2,
-      "state": "pending",
+      "state": "in_progress",
       "noted_at": "2026-09-10T15:42:44+02:00",
-      "campaign_id": "20260910T154243481221+0200"
+      "campaign_id": "20260910T154243481221+0200",
+      "started_at": "2026-09-10T16:07:33+02:00",
+      "active_run": {
+        "campaign_id": "20260910T154243481221+0200",
+        "started_at": "2026-09-10T16:07:33+02:00",
+        "observed_head": "757e493f48e322b0b7c9e35bd480343e44d925e7"
+      }
     },
     {
       "id": "epub-fb2-metadata",

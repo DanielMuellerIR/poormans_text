@@ -305,6 +305,75 @@ final class PandocTextAdapterTests: XCTestCase {
 
     // MARK: - Helfer
 
+    // MARK: - Zeichensatz, große Bilder, Webarchiv-Dedup (Roadmap-Punkte 2026-09-10)
+
+    /// Der Rückfall ging von UTF-8 direkt auf Windows-1252; eine Seite in
+    /// windows-1251 wurde vollständig Mojibake, mit der allgemeinen
+    /// Kodierungswarnung statt dem deklarierten Zeichensatz.
+    func testHTMLDeclaredCharsetIsHonoredBeforeAssumingWindows1252() throws {
+        try requirePandoc()
+        let cyrillic = try XCTUnwrap(
+            "<html><head><meta charset=\"windows-1251\"><title>Тест</title></head><body><p>Привет, мир</p></body></html>"
+                .data(using: .windowsCP1251)
+        )
+        let declared = root.appendingPathComponent("kyrillisch.html")
+        try cyrillic.write(to: declared)
+
+        let result = try DocumentConverter().convert(ConversionRequest(inputURL: declared))
+        XCTAssertTrue(try String(contentsOf: result.markdownFile, encoding: .utf8).contains("Привет, мир"))
+        XCTAssertEqual(result.metadata.title, "Тест")
+        XCTAssertFalse(result.diagnostics.contains(.textEncodingAssumed), result.warnings.joined(separator: "\n"))
+
+        // Ohne Deklaration bleibt es bei der Annahme samt Warnung.
+        let undeclared = root.appendingPathComponent("latin.html")
+        try XCTUnwrap("<html><body><p>Grüße</p></body></html>".data(using: .windowsCP1252)).write(to: undeclared)
+        let assumed = try DocumentConverter().convert(ConversionRequest(inputURL: undeclared))
+        XCTAssertTrue(try String(contentsOf: assumed.markdownFile, encoding: .utf8).contains("Grüße"))
+        XCTAssertTrue(assumed.diagnostics.contains(.textEncodingAssumed))
+
+        // Die drei Schreibweisen der Deklaration.
+        XCTAssertEqual(PandocTextAdapter.declaredCharset(in: Data("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=Shift_JIS\">".utf8)), "Shift_JIS")
+        XCTAssertEqual(PandocTextAdapter.declaredCharset(in: Data("<?xml version=\"1.0\" encoding=\"ISO-8859-2\"?><html/>".utf8)), "ISO-8859-2")
+        XCTAssertNil(PandocTextAdapter.declaredCharset(in: Data("<html><body>nichts</body></html>".utf8)))
+    }
+
+    /// Ein zu großes Einzelbild neben der Quelle endete als Dateisystemfehler
+    /// für die gesamte Umwandlung, statt wie andere unbrauchbare Verweise nur
+    /// wegzufallen. Die Datei ist spärlich: Größe ohne Platzverbrauch.
+    func testAnOversizedLocalImageIsDroppedInsteadOfAbortingTheDocument() throws {
+        try Self.pngBytes.write(to: root.appendingPathComponent("klein.png"))
+        let huge = root.appendingPathComponent("riesig.png")
+        XCTAssertTrue(FileManager.default.createFile(atPath: huge.path, contents: nil))
+        let handle = try FileHandle(forWritingTo: huge)
+        try handle.truncate(atOffset: UInt64(HTMLImageSourceResolver.maximumLocalImageBytes) + 1)
+        try handle.close()
+
+        let resolution = try resolveImages(
+            "<p><img src=\"riesig.png\" alt=\"Riesig\"><img src=\"klein.png\" alt=\"Klein\"></p>",
+            baseDirectory: root
+        )
+
+        XCTAssertEqual(resolution.missingImagesDropped, 1)
+        XCTAssertTrue(resolution.html.contains("Riesig"), resolution.html)
+        XCTAssertTrue(resolution.html.contains("src=\"external/local02.png\""), resolution.html)
+    }
+
+    /// Eine 200-mal verwendete Nebenressource eines Webarchivs wurde 200-mal
+    /// geschrieben; die Dedup-Tabelle galt nur für Dateien neben der Quelle.
+    func testAWebArchiveSubresourceUsedTwiceIsWrittenOnce() throws {
+        let subresources = [
+            "https://example.com/spacer.png": HTMLImageSourceResolver.Subresource(data: Self.pngBytes, mimeType: "image/png"),
+        ]
+        let resolution = try resolveImages(
+            "<img src=\"https://example.com/spacer.png\" alt=\"a\"><img src=\"https://example.com/spacer.png\" alt=\"b\">",
+            subresources: subresources
+        )
+
+        XCTAssertEqual(resolution.html.components(separatedBy: "src=\"external/resource01.png\"").count - 1, 2, resolution.html)
+        XCTAssertFalse(resolution.html.contains("resource02"), resolution.html)
+        XCTAssertEqual(resolution.missingImagesDropped, 0)
+    }
+
     private func requirePandoc() throws {
         try XCTSkipUnless(Self.pandocAvailable, "Pandoc is required for this conversion test.")
     }

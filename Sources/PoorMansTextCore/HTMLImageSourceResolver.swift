@@ -100,17 +100,29 @@ enum HTMLImageSourceResolver {
             // der Platte. Ein lokal gesichertes Archiv trägt `file:`-Adressen;
             // die dürfen hier nachgeschlagen, aber nie als Pfad geöffnet werden.
             if let (key, subresource) = archivedSubresource(for: trimmed, baseURL: baseURL, in: subresources) {
-                localCount += 1
-                guard let localPath = try writeLocalCopy(
-                    subresource.data,
-                    preferredName: URL(string: key)?.lastPathComponent ?? key,
-                    mimeType: subresource.mimeType,
-                    index: localCount,
-                    workDirectory: workDirectory
-                ) else {
-                    output += escaped(alt)
-                    missing += 1
-                    continue
+                // Dieselbe Nebenressource einmal schreiben, nicht je Verweis:
+                // Ein 200-mal verwendetes Spacer-GIF ergab 200 identische
+                // Dateien (Roadmap-Punkt, 2026-09-10). Die Tabelle teilt sich
+                // den Schlüsselraum mit lokalen Dateien; Adressen und Pfade
+                // kollidieren nicht.
+                let localPath: String
+                if let known = localNames[key] {
+                    localPath = known
+                } else {
+                    localCount += 1
+                    guard let written = try writeLocalCopy(
+                        subresource.data,
+                        preferredName: URL(string: key)?.lastPathComponent ?? key,
+                        mimeType: subresource.mimeType,
+                        index: localCount,
+                        workDirectory: workDirectory
+                    ) else {
+                        output += escaped(alt)
+                        missing += 1
+                        continue
+                    }
+                    localPath = written
+                    localNames[key] = written
                 }
                 output += replacingSource(in: tag, sourceRange: sourceMatch.range, with: localPath)
                 continue
@@ -298,6 +310,13 @@ enum HTMLImageSourceResolver {
     /// dem Objekt, das es liest, und folgt keinem Symlink: Ein Austausch der
     /// Datei zwischen `fileInside` und dem Kopieren kann so weder die
     /// 256-MiB-Grenze noch die Bindung an den Quellordner umgehen.
+    ///
+    /// Ein Mangel der QUELLE — zu groß, keine reguläre Datei, nicht lesbar —
+    /// macht nur diesen Verweis zum fehlenden Bild (`nil`), wie jeden anderen
+    /// unbrauchbaren Verweis auch. Vorher brach ein 300-MiB-Bild neben der
+    /// Quelle die gesamte Umwandlung als Dateisystemfehler ab (Roadmap-Punkt,
+    /// 2026-09-10). Nur ein Fehler beim Schreiben der Kopie bleibt ein
+    /// Dateisystemfehler.
     private static func copyLocalImage(_ source: URL, index: Int, workDirectory: URL, fileManager: FileManager) throws -> String? {
         let directory = workDirectory.appendingPathComponent("external", isDirectory: true)
         do {
@@ -314,6 +333,9 @@ enum HTMLImageSourceResolver {
                 describedAs: "a referenced image",
                 followSourceSymlink: false
             )
+        } catch let error as VerifiedFileStaging.StagingError where error.kind == .source {
+            try? fileManager.removeItem(at: staged)
+            return nil
         } catch let error as VerifiedFileStaging.StagingError {
             throw ConversionError.fileSystemFailure(error.reason)
         }

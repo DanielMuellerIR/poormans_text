@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Honor the charset an HTML file declares before assuming Windows-1252. A page
+  in windows-1251 or shift_jis was read as mojibake with the generic encoding
+  warning; UTF-8 still comes first, and the warning now only appears when
+  nothing was declared or the declaration does not decode.
+- Drop an oversized local image referenced by an HTML page like any other
+  unusable reference, with the alt text kept, instead of ending the whole
+  conversion with a file-system error. Write a web archive subresource once,
+  however many `<img>` tags reference it.
 - Resolve the main part of a Word package through the `officeDocument`
   relationship in `_rels/.rels`, the way OPC defines it and Pandoc reads it. A
   document repaired by Word carries `word/document2.xml` and was rejected as

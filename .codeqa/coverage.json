@@ -2,12 +2,11 @@
   "schema_version": 2,
   "project": "poormans_text",
   "campaign": {
-    "id": "20260830T110351547281+0200",
-    "token_budget": 3000000,
-    "status": "complete",
-    "started_at": "2026-08-30T11:03:51+02:00",
-    "finished_at": "2026-08-30T11:09:08+02:00",
-    "finish_reason": "all-current"
+    "id": "20260910T101608235407+0200",
+    "token_budget": 4000000,
+    "status": "active",
+    "started_at": "2026-09-10T10:16:08+02:00",
+    "tokens_spent": 545836
   },
   "campaign_history": [
     {
@@ -44,6 +43,14 @@
       "started_at": "2026-08-29T19:46:26+02:00",
       "tokens_spent": 60000,
       "finished_at": "2026-08-29T19:52:04+02:00",
+      "finish_reason": "all-current"
+    },
+    {
+      "id": "20260830T110351547281+0200",
+      "token_budget": 3000000,
+      "status": "complete",
+      "started_at": "2026-08-30T11:03:51+02:00",
+      "finished_at": "2026-08-30T11:09:08+02:00",
       "finish_reason": "all-current"
     }
   ],
@@ -89,23 +96,30 @@
         "Tests/PoorMansTextCoreTests/ReviewFixes20260829Tests.swift",
         "Sources/PoorMansTextCore/VerifiedFile.swift",
         "Sources/PoorMansTextCore/VerifiedDirectoryStaging.swift",
-        "Tests/PoorMansTextCoreTests/ReviewFixes20260830Tests.swift"
+        "Tests/PoorMansTextCoreTests/ReviewFixes20260830Tests.swift",
+        "Sources/PoorMansTextCore/ConversionControl.swift",
+        "Sources/PoorMansTextCore/ConversionPostprocessor.swift",
+        "Sources/PoorMansTextCore/DocumentMetadata.swift",
+        "Tests/PoorMansTextCoreTests/DocumentMetadataTests.swift",
+        "Tests/PoorMansTextCoreTests/ConversionCancellationTests.swift",
+        "Tests/PoorMansTextCoreTests/ReviewFixes20260903Tests.swift",
+        "Tests/PoorMansTextCoreTests/ReviewFixes20260910Tests.swift"
       ],
       "risk": "high",
       "priority": 1,
       "reason": "Orchestrator: Adapterwahl, atomare Veröffentlichung, Kollisionsschutz — breite Aufrufwirkung",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20260830T110351547281+0200",
-        "completed_at": "2026-08-30T11:06:15+02:00",
-        "observed_head": "c68c961d97fc1cb7e161151a62e21c052c9a856e",
-        "content_sha256": "42b95e6e386b872ae13a121f39001618ab68b0e59572b6dd1c401995fb0c69ab",
-        "file_count": 26,
+        "campaign_id": "20260910T101608235407+0200",
+        "completed_at": "2026-09-10T10:37:59+02:00",
+        "observed_head": "81a009fae20f58a1d5500f24b911508236b0e1f4",
+        "content_sha256": "77ecf066a2b0299be031f49b7c73ba3474e194e3962ac3bb8bc80c6635a0f6b7",
+        "file_count": 33,
         "review": "delta-plus-boundaries",
         "outcome": "reviewed-clean",
-        "summary": "Delta und direkte Adaptergrenzen geprüft: deskriptorgebundene Datei-/RTFD-Snapshots erzwingen Regulärdatei, Symlink-, Größen-, Eintrags- und Schreibgrenzen; die zentrale Warnungs- und Versionsänderung ist konsistent. Keine zusätzliche Verbesserung erforderlich.",
+        "summary": "Nachbuchung: die in diesem Bereich neu geschriebene Regressionsdatei ReviewFixes20260910Tests.swift dem Bereich zugeordnet. Ihr Inhalt ist der soeben verifizierte Prüfnachweis der vier Korrektheitsfixes; keine weitere Änderung.",
         "tests": [
-          "swift test --filter 'ReviewFixes20260830Tests|DocumentConverterTests|ProductInfoTests|SymbolicLinkInputTests': 54 Tests, 0 Fehler"
+          "swift test --filter ReviewFixes20260910Tests: 10 passed, 0 failed"
         ]
       }
     },
@@ -114,12 +128,13 @@
       "paths": [
         "Sources/PoorMansTextCore/ZIPArchiveInspector.swift",
         "Tests/PoorMansTextCoreTests/ZIPArchiveVerificationTests.swift",
-        "Tests/PoorMansTextCoreTests/ZIPFixtureBuilder.swift"
+        "Tests/PoorMansTextCoreTests/ZIPFixtureBuilder.swift",
+        "Tests/PoorMansTextCoreTests/ZIPPackageReaderTests.swift"
       ],
       "risk": "critical",
       "priority": 1,
       "reason": "Zentrales Paket-Gate: Traversal, Symlinks, Größenbudgets — sicherheitskritisch für alle ZIP-Formate",
-      "state": "completed",
+      "state": "pending",
       "last_run": {
         "campaign_id": "20260830T110351547281+0200",
         "completed_at": "2026-08-30T11:06:34+02:00",
@@ -132,7 +147,26 @@
         "tests": [
           "swift test --filter 'ZIPArchiveVerificationTests|ReviewFixes20260830Tests.testCompressedZIPMetadataIsBoundedBeforeItsInputSlice': 11 Tests, 0 Fehler"
         ]
-      }
+      },
+      "pending_paths": [
+        "Tests/PoorMansTextCoreTests/ZIPPackageReaderTests.swift"
+      ]
+    },
+    {
+      "id": "batch-orchestration",
+      "paths": [
+        "Sources/PoorMansTextCore/BatchConverter.swift",
+        "Sources/PoorMansTextCore/InputEnumerator.swift",
+        "Tests/PoorMansTextCoreTests/BatchConverterTests.swift",
+        "Tests/PoorMansTextCoreTests/InputEnumeratorTests.swift",
+        "Tests/PoorMansTextCoreTests/CLIBatchTests.swift",
+        "Tests/PoorMansTextCoreTests/AppModelBatchTests.swift",
+        "Tests/PoorMansTextCoreTests/CLICancellationTests.swift"
+      ],
+      "risk": "high",
+      "priority": 2,
+      "reason": "Parallele Stapelverarbeitung mit gemeinsamem Quellschutz und kooperativem Abbruch: Datenintegrität und breite Aufrufwirkung",
+      "state": "pending"
     },
     {
       "id": "media-import",
@@ -141,12 +175,17 @@
         "Sources/PoorMansTextCore/ImageAdapter.swift",
         "Sources/PoorMansTextCore/VisionTextRecognizer.swift",
         "Tests/PoorMansTextCoreTests/PDFAdapterTests.swift",
-        "Tests/PoorMansTextCoreTests/ImageAdapterTests.swift"
+        "Tests/PoorMansTextCoreTests/ImageAdapterTests.swift",
+        "Sources/PoorMansTextCore/OCRConcurrencyGate.swift",
+        "Sources/PoorMansTextCore/OCRLanguageSelection.swift",
+        "Sources/PoorMansTextCore/PDFImageResources.swift",
+        "Sources/PoorMansTextCore/PDFTextLayout.swift",
+        "Tests/PoorMansTextCoreTests/PDFQualityTests.swift"
       ],
       "risk": "high",
       "priority": 2,
       "reason": "Neu zugewachsener PDF-/Bild-Import mit lokaler Vision-OCR; nie CodeQA-geprüft, arbeitet mit Speicherbudgets und Fremddateien",
-      "state": "completed",
+      "state": "pending",
       "last_run": {
         "campaign_id": "20260830T110351547281+0200",
         "completed_at": "2026-08-30T11:07:11+02:00",
@@ -159,7 +198,14 @@
         "tests": [
           "swift test --filter 'PDFAdapterTests|ImageAdapterTests|ReviewFixes20260830Tests.testNarrowImageBudgetAccountsForTheOnePixelMinimumEdge|ReviewFixes20260830Tests.testPDFFailureWarningAllowsForPreservedFallbackText': 18 Tests, 0 Fehler"
         ]
-      }
+      },
+      "pending_paths": [
+        "Sources/PoorMansTextCore/OCRConcurrencyGate.swift",
+        "Sources/PoorMansTextCore/OCRLanguageSelection.swift",
+        "Sources/PoorMansTextCore/PDFImageResources.swift",
+        "Sources/PoorMansTextCore/PDFTextLayout.swift",
+        "Tests/PoorMansTextCoreTests/PDFQualityTests.swift"
+      ]
     },
     {
       "id": "spreadsheet-import",
@@ -173,12 +219,14 @@
         "Tests/PoorMansTextCoreTests/SpreadsheetFeasibilityTests.swift",
         "Tests/PoorMansTextCoreTests/LegacyXLSBoundaryTests.swift",
         "Tests/PoorMansTextCoreTests/Fixtures/Spreadsheets",
-        "Tests/PoorMansTextCoreTests/SpreadsheetLinkTargetTests.swift"
+        "Tests/PoorMansTextCoreTests/SpreadsheetLinkTargetTests.swift",
+        "Sources/PoorMansTextCore/DelimitedTextAdapter.swift",
+        "Tests/PoorMansTextCoreTests/DelimitedTextAdapterTests.swift"
       ],
       "risk": "high",
       "priority": 2,
       "reason": "Drei native Binär-/XML-Parser, Datenintegrität, größter Codeblock",
-      "state": "completed",
+      "state": "pending",
       "last_run": {
         "campaign_id": "20260830T110351547281+0200",
         "completed_at": "2026-08-30T11:07:38+02:00",
@@ -191,7 +239,11 @@
         "tests": [
           "swift test --filter 'SpreadsheetAdapterTests|SpreadsheetFeasibilityTests|LegacyXLSBoundaryTests|SpreadsheetLinkTargetTests|ReviewFixes20260830Tests.testSpreadsheetNamesAndLiteralCellsCannotCreateMarkdownResources': 48 Tests, 0 Fehler"
         ]
-      }
+      },
+      "pending_paths": [
+        "Sources/PoorMansTextCore/DelimitedTextAdapter.swift",
+        "Tests/PoorMansTextCoreTests/DelimitedTextAdapterTests.swift"
+      ]
     },
     {
       "id": "odm-master",
@@ -220,6 +272,34 @@
       }
     },
     {
+      "id": "pandoc-text",
+      "paths": [
+        "Sources/PoorMansTextCore/PandocTextAdapter.swift",
+        "Sources/PoorMansTextCore/WebArchiveReader.swift",
+        "Sources/PoorMansTextCore/HTMLImageSourceResolver.swift",
+        "Tests/PoorMansTextCoreTests/PandocTextAdapterTests.swift",
+        "Tests/PoorMansTextCoreTests/Stage4FormatTests.swift"
+      ],
+      "risk": "high",
+      "priority": 3,
+      "reason": "Fremde HTML-/Webarchiv-/EPUB-Quellen mit externen Verweisen; Grenze zu entfernten Ressourcen ist sicherheitsrelevant",
+      "state": "pending"
+    },
+    {
+      "id": "presentation-notebook",
+      "paths": [
+        "Sources/PoorMansTextCore/PresentationAdapter.swift",
+        "Sources/PoorMansTextCore/PresentationDocument.swift",
+        "Sources/PoorMansTextCore/NotebookAdapter.swift",
+        "Sources/PoorMansTextCore/ImportXML.swift",
+        "Tests/PoorMansTextCoreTests/PresentationNotebookTests.swift"
+      ],
+      "risk": "high",
+      "priority": 3,
+      "reason": "Neu hinzugekommene native Leser für PPTX/ODP und Jupyter-Notebooks samt eigenem XML-Parser; noch nie per CodeQA geprüft",
+      "state": "pending"
+    },
+    {
       "id": "xml-shared-infra",
       "paths": [
         "Sources/PoorMansTextCore/NamespacePrefixTracker.swift",
@@ -245,6 +325,17 @@
       }
     },
     {
+      "id": "binary-containers",
+      "paths": [
+        "Sources/PoorMansTextCore/OLECompoundDocument.swift",
+        "Sources/PoorMansTextCore/BinaryDataReading.swift"
+      ],
+      "risk": "high",
+      "priority": 4,
+      "reason": "Sektor- und Kettenlogik fremder OLE-Container; von LegacyWord und LegacyXLS gemeinsam genutzt, Fehler dort sind Speicher-/Endlosschleifenrisiken",
+      "state": "pending"
+    },
+    {
       "id": "wordprocessing",
       "paths": [
         "Sources/PoorMansTextCore/WordProcessingPackageAdapter.swift",
@@ -257,12 +348,13 @@
         "Tests/PoorMansTextCoreTests/RichTextConverterTests.swift",
         "Tests/PoorMansTextCoreTests/HTMLDocumentConverterTests.swift",
         "Tests/PoorMansTextCoreTests/HTMLImageRewriterTests.swift",
-        "Tests/PoorMansTextCoreTests/Fixtures/WordProcessing"
+        "Tests/PoorMansTextCoreTests/Fixtures/WordProcessing",
+        "Sources/PoorMansTextCore/WordProcessingPackageInspector.swift"
       ],
       "risk": "medium",
       "priority": 4,
       "reason": "DOCX/ODT/DOC/RTF-Adapter samt HTML-Zwischenschicht und Bild-Rewriting",
-      "state": "completed",
+      "state": "pending",
       "last_run": {
         "campaign_id": "20260830T110351547281+0200",
         "completed_at": "2026-08-30T11:08:16+02:00",
@@ -275,7 +367,10 @@
         "tests": [
           "swift test --filter 'WordProcessingAdapterTests|WordProcessingPackageInspectionTests|RichTextConverterTests|HTMLDocumentConverterTests|HTMLImageRewriterTests|ReviewFixes20260830Tests.testLegacyWordDetectionRejectsOversizedInputBeforeTextutil|ReviewFixes20260830Tests.testRTFD': 58 Tests, 0 Fehler"
         ]
-      }
+      },
+      "pending_paths": [
+        "Sources/PoorMansTextCore/WordProcessingPackageInspector.swift"
+      ]
     },
     {
       "id": "markdown-postprocess",
@@ -310,12 +405,13 @@
       "paths": [
         "Sources/PoorMansTextCLI",
         "Tests/PoorMansTextCoreTests/CLIIntegrationTests.swift",
-        "Tests/PoorMansTextCoreTests/CLITargetDirectoryTests.swift"
+        "Tests/PoorMansTextCoreTests/CLITargetDirectoryTests.swift",
+        "Tests/PoorMansTextCoreTests/CLIOutputModeTests.swift"
       ],
       "risk": "medium",
       "priority": 6,
       "reason": "Exit-Codes, JSON-Ausgabe, Argumentparser",
-      "state": "completed",
+      "state": "pending",
       "last_run": {
         "campaign_id": "20260829T180733149979+0200",
         "completed_at": "2026-08-29T18:39:43+02:00",
@@ -328,7 +424,10 @@
         "tests": [
           "swift test: 302 passed, 0 failures"
         ]
-      }
+      },
+      "pending_paths": [
+        "Tests/PoorMansTextCoreTests/CLIOutputModeTests.swift"
+      ]
     },
     {
       "id": "app-support",
@@ -339,12 +438,15 @@
         "Tests/PoorMansTextCoreTests/AppModelPandocInstallationTests.swift",
         "Tests/PoorMansTextCoreTests/CLIInstallerTests.swift",
         "Tests/PoorMansTextCoreTests/PandocInstallerTests.swift",
-        "Tests/PoorMansTextCoreTests/UpdateControllerTests.swift"
+        "Tests/PoorMansTextCoreTests/UpdateControllerTests.swift",
+        "Tests/PoorMansTextCoreTests/AppOptionsTests.swift",
+        "Tests/PoorMansTextCoreTests/OpenedDocumentsRelayTests.swift",
+        "Tests/PoorMansTextCoreTests/ServicesProviderTests.swift"
       ],
       "risk": "medium",
       "priority": 7,
       "reason": "GUI-Zustand, Installer und Sparkle-Update-Controller",
-      "state": "completed",
+      "state": "pending",
       "last_run": {
         "campaign_id": "20260829T180733149979+0200",
         "completed_at": "2026-08-29T18:40:25+02:00",
@@ -357,7 +459,12 @@
         "tests": [
           "swift test: 302 passed, 0 failures"
         ]
-      }
+      },
+      "pending_paths": [
+        "Tests/PoorMansTextCoreTests/AppOptionsTests.swift",
+        "Tests/PoorMansTextCoreTests/OpenedDocumentsRelayTests.swift",
+        "Tests/PoorMansTextCoreTests/ServicesProviderTests.swift"
+      ]
     },
     {
       "id": "build-scripts",
@@ -416,13 +523,13 @@
     }
   ],
   "architecture": {
-    "campaign_id": "20260830T110351547281+0200",
-    "recorded_at": "2026-08-30T11:04:49+02:00",
-    "observed_head": "c68c961d97fc1cb7e161151a62e21c052c9a856e",
-    "summary": "Ist-Zustand bestätigt: SwiftUI bleibt im App-Target; DocumentConverter orchestriert formatneutrale Anfragen und atomare Veröffentlichung; Formatlogik und macOS-spezifische Frameworks bleiben hinter Kern-Adaptern.",
+    "campaign_id": "20260910T101608235407+0200",
+    "recorded_at": "2026-09-10T10:16:59+02:00",
+    "observed_head": "e0afbd465580c182acc62e4ad134c58f0e887eb4",
+    "summary": "Nach den Erweiterungen 0.9–0.10.2 unverändert tragfähig: SwiftUI liegt nur im App-Target, PoorMansTextCore importiert kein Frontend, AppKit steht im Kern allein in ColoredTextMarker (dokumentierte macOS-Bindung). Über DocumentConverter (ein Dokument je Aufruf) liegt jetzt BatchConverter als Planungs- und Worker-Schicht; InputEnumerator liefert CLI und App dieselbe Eingabeliste.",
     "paradigm": "Schichtenmodell mit Adapter-Registry (Kern-Orchestrator + Format-Adapter, dünne CLI/GUI-Frontends)",
     "fit": "passt",
-    "recommendation": "Kein Paradigmenwechsel nötig; lokale Verstöße weiterhin bereichsweise korrigieren."
+    "recommendation": "Kein Paradigmenwechsel nötig. Die neue Batch-Schicht ist der einzige strukturelle Zuwachs und bleibt innerhalb des Schichtenmodells; lokale Verstöße weiter bereichsweise korrigieren."
   },
   "themes": [
     {
@@ -495,6 +602,50 @@
           "perl-alarm-Messung: FileHandle(forReadingFrom:) auf eine FIFO steht nach 30 s noch im open (Exit 142)"
         ]
       }
+    },
+    {
+      "id": "xmlparser-konfiguration",
+      "summary": "Acht XMLParser-Instanzen konfigurieren sich einzeln. Sieben setzen denselben Vierzeiler (shouldProcessNamespaces, shouldReportNamespacePrefixes, shouldResolveExternalEntities = false, delegate); PackageMetadataParser.parse in DocumentMetadata.swift:166 setzt shouldResolveExternalEntities nicht — Foundation stellt zwar false voreingestellt, aber die Sperre gegen externe Entitaeten haengt dort still an der Voreinstellung statt am Code. Eine gemeinsame Fabrik macht die Einstellung unvergesslich.",
+      "evidence": [
+        "Sources/PoorMansTextCore/DocumentMetadata.swift",
+        "Sources/PoorMansTextCore/ImportXML.swift",
+        "Sources/PoorMansTextCore/ODMContentParser.swift",
+        "Sources/PoorMansTextCore/ODSWorkbookParser.swift",
+        "Sources/PoorMansTextCore/WordProcessingPackageInspector.swift",
+        "Sources/PoorMansTextCore/XLSXWorkbookParser.swift"
+      ],
+      "priority": 1,
+      "state": "pending",
+      "noted_at": "2026-09-10T10:21:40+02:00",
+      "campaign_id": "20260910T101608235407+0200"
+    },
+    {
+      "id": "markdown-datei-schreiben",
+      "summary": "Derselbe Fuenfzeiler 'Markdown atomar schreiben, Fehler auf ConversionError.fileSystemFailure abbilden' steht wortgleich in SpreadsheetAdapter:244, PDFAdapter:113 und DelimitedTextAdapter:116; PresentationAdapter:48 und ImageAdapter:97 schreiben gleich, bilden den Fehler aber anders ab. Eine gemeinsame Hilfe im Adapter-Kontext wuerde Schreibweg und Fehlerabbildung vereinheitlichen.",
+      "evidence": [
+        "Sources/PoorMansTextCore/SpreadsheetAdapter.swift",
+        "Sources/PoorMansTextCore/PDFAdapter.swift",
+        "Sources/PoorMansTextCore/DelimitedTextAdapter.swift",
+        "Sources/PoorMansTextCore/PresentationAdapter.swift",
+        "Sources/PoorMansTextCore/ImageAdapter.swift"
+      ],
+      "priority": 3,
+      "state": "pending",
+      "noted_at": "2026-09-10T10:21:40+02:00",
+      "campaign_id": "20260910T101608235407+0200"
+    },
+    {
+      "id": "asset-pfad-kodierung",
+      "summary": "Die Regel 'Asset-Links prozentkodieren, erlaubt sind nur A-Za-z0-9-._~' steht jetzt an zwei Stellen: privat als percentEncodePathComponent in HTMLImageRewriter (schreibt die Links) und als percentEncodedPath in MarkdownLinkTargetRewriter (schreibt sie um). Weichen beide je auseinander, verfehlt der Rewriter die Links wieder still. Eine gemeinsame Stelle im Kern wuerde die Regel an einen Ort binden; NotebookAdapter und OpenDocumentMasterAdapter sind die weiteren Nutzer des Rewriters.",
+      "evidence": [
+        "Sources/PoorMansTextCore/HTMLImageRewriter.swift",
+        "Sources/PoorMansTextCore/MarkdownLinkTargetRewriter.swift",
+        "Sources/PoorMansTextCore/OpenDocumentMasterAdapter.swift"
+      ],
+      "priority": 2,
+      "state": "pending",
+      "noted_at": "2026-09-10T10:37:01+02:00",
+      "campaign_id": "20260910T101608235407+0200"
     }
   ]
 }

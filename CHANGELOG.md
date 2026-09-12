@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Read an HTML charset only from a real `meta` tag or leading XML declaration;
+  examples in comments and scripts no longer override the document encoding.
+- Inspect and rewrite notebook Markdown resources in linear passes, with
+  cancellation checks, while fenced code examples no longer consume the target
+  budget.
 - Compare CSV delimiters and line ends as Unicode scalars. A comma followed by
   a combining mark formed a different grapheme and did not split the field.
 - Keep an ODP image that sits inside a paragraph (`draw:frame` within

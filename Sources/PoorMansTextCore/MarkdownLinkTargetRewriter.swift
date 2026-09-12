@@ -16,10 +16,29 @@ enum MarkdownLinkTargetRewriter {
     /// abbrechen (Review-Fund 2026-09-10).
     static func replacing(in markdown: String, mapping: [String: String]) -> String {
         guard !mapping.isEmpty else { return markdown }
-        return rewrite(markdown, mapping: mapping)
+        return try! rewrite(markdown, mapping: mapping)
     }
 
-    private static func rewrite(_ markdown: String, mapping: [String: String]) -> String {
+    /// Wie `replacing`, prüft aber während des Durchlaufs regelmäßig einen
+    /// möglichen Abbruch. Notebook-Zellen können mehrere MiB groß sein.
+    static func replacing(
+        in markdown: String,
+        mapping: [String: String],
+        checking check: @escaping () throws -> Void
+    ) throws -> String {
+        guard !mapping.isEmpty else {
+            try check()
+            return markdown
+        }
+        return try rewrite(markdown, mapping: mapping, check: check)
+    }
+
+    private static func rewrite(
+        _ markdown: String,
+        mapping: [String: String],
+        targetObserver: ((String) -> Void)? = nil,
+        check: (() throws -> Void)? = nil
+    ) throws -> String {
         var result = ""
         var fencedCode: MarkdownFenceState?
         var htmlBlock: MarkdownHTMLBlockState?
@@ -30,6 +49,7 @@ enum MarkdownLinkTargetRewriter {
         let backtickIndex = BacktickRunIndex(markdown)
 
         for line in markdown.split(separator: "\n", omittingEmptySubsequences: false) {
+            try check?()
             let text = String(line)
             if let fence = fencedCode,
                let fenceCandidate = fenceContent(in: text, fence: fence) {
@@ -137,6 +157,7 @@ enum MarkdownLinkTargetRewriter {
                     inlineBlockEnd: inlineBlockEnd ?? line.endIndex,
                     backtickIndex: backtickIndex,
                     mapping: mapping,
+                    targetObserver: targetObserver,
                     inlineCodeTicks: &inlineCodeTicks,
                     bracketDepth: &bracketDepth
                 )
@@ -617,6 +638,7 @@ enum MarkdownLinkTargetRewriter {
         inlineBlockEnd: String.Index,
         backtickIndex: BacktickRunIndex,
         mapping: [String: String],
+        targetObserver: ((String) -> Void)?,
         inlineCodeTicks: inout Int?,
         bracketDepth: inout Int
     ) -> String {
@@ -684,7 +706,8 @@ enum MarkdownLinkTargetRewriter {
                    let replacement = rewrittenTarget(
                     in: line,
                     after: openingParenthesis,
-                    mapping: mapping
+                    mapping: mapping,
+                    targetObserver: targetObserver
                    ) {
                     result += line[index..<replacement.end]
                     result += replacement.text
@@ -699,18 +722,26 @@ enum MarkdownLinkTargetRewriter {
         return result
     }
 
-    /// Kandidaten und Ersetzung teilen die Zielgrenzen. Code-/HTML-Zustände
-    /// prüft anschließend `replacing`; hier werden noch keine Links verändert.
-    static func resourceCandidates(in markdown: String, maximum: Int) throws -> Set<String> {
+    /// Sammelt nur Ziele echter Markdown-Links. Derselbe Scanner wie beim
+    /// Umschreiben überspringt Code-Spans, Codeblöcke und HTML-Blöcke; dadurch
+    /// können dortige Beispiele das Zielbudget nicht mehr ausschöpfen.
+    static func resourceCandidates(
+        in markdown: String,
+        maximum: Int,
+        checking check: @escaping () throws -> Void
+    ) throws -> Set<String> {
         var targets = Set<String>()
-        let starts = try NSRegularExpression(pattern: #"\]\(|(?m)^\s{0,3}\[[^\]\n]+\]:[ \t]*"#)
         var exceeded = false
-        starts.enumerateMatches(in: markdown, range: NSRange(markdown.startIndex..., in: markdown)) { match, _, stop in
-            guard let match, let range = Range(match.range, in: markdown),
-                  let target = destination(in: markdown, from: range.upperBound) else { return }
-            targets.insert(String(markdown[target.range]))
-            if targets.count > maximum { exceeded = true; stop.pointee = true }
-        }
+        _ = try rewrite(
+            markdown,
+            mapping: [:],
+            targetObserver: { target in
+                guard !exceeded else { return }
+                targets.insert(target)
+                exceeded = targets.count > maximum
+            },
+            check: check
+        )
         if exceeded { throw ImportFailure("notebook cell exceeds \(maximum) Markdown resource targets") }
         return targets
     }
@@ -754,7 +785,8 @@ enum MarkdownLinkTargetRewriter {
     private static func rewrittenTarget(
         in line: String,
         after openingParenthesis: String.Index,
-        mapping: [String: String]
+        mapping: [String: String],
+        targetObserver: ((String) -> Void)?
     ) -> (
         end: String.Index,
         text: String,
@@ -765,6 +797,7 @@ enum MarkdownLinkTargetRewriter {
             return nil
         }
         let target = String(line[destination.range])
+        targetObserver?(target)
         // `oldPath` und `newPath` sind Dateinamen auf der Platte. Im Markdown
         // steht das Ziel dagegen prozentkodiert, sobald der Name ein Zeichen
         // außerhalb von `A-Za-z0-9-._~` enthält — `HTMLImageRewriter` schreibt

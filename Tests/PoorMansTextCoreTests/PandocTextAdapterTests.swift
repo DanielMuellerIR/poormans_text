@@ -401,7 +401,7 @@ final class PandocTextAdapterTests: XCTestCase {
     func testHTMLDeclaredCharsetIsHonoredBeforeAssumingWindows1252() throws {
         try requirePandoc()
         let cyrillic = try XCTUnwrap(
-            "<html><head><meta charset=\"windows-1251\"><title>Тест</title></head><body><p>Привет, мир</p></body></html>"
+            "<html><head><!-- charset=utf-8 --><script>const sample = 'charset=utf-8';</script><meta charset=\"windows-1251\"><title>Тест</title></head><body><p>Привет, мир</p></body></html>"
                 .data(using: .windowsCP1251)
         )
         let declared = root.appendingPathComponent("kyrillisch.html")
@@ -422,6 +422,12 @@ final class PandocTextAdapterTests: XCTestCase {
         // Die drei Schreibweisen der Deklaration.
         XCTAssertEqual(PandocTextAdapter.declaredCharset(in: Data("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=Shift_JIS\">".utf8)), "Shift_JIS")
         XCTAssertEqual(PandocTextAdapter.declaredCharset(in: Data("<?xml version=\"1.0\" encoding=\"ISO-8859-2\"?><html/>".utf8)), "ISO-8859-2")
+        XCTAssertEqual(
+            PandocTextAdapter.declaredCharset(
+                in: Data("<!-- charset=utf-8 --><script>const sample = 'charset=utf-8';</script><meta charset=windows-1251>".utf8)
+            ),
+            "windows-1251"
+        )
         XCTAssertNil(PandocTextAdapter.declaredCharset(in: Data("<html><body>nichts</body></html>".utf8)))
     }
 

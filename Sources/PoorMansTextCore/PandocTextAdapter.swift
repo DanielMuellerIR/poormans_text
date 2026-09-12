@@ -342,16 +342,48 @@ struct PandocTextAdapter: DocumentConversionAdapter {
     /// byteweise als Latin-1, damit die Suche selbst keine Kodierung braucht.
     static func declaredCharset(in data: Data) -> String? {
         let head = String(data: data.prefix(4096), encoding: .isoLatin1) ?? ""
-        for pattern in [
-            #"charset\s*=\s*["']?\s*([A-Za-z0-9._:-]+)"#,
-            #"<\?xml[^>]*encoding\s*=\s*["']([^"']+)["']"#,
-        ] {
-            guard let expression = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]),
-                  let match = expression.firstMatch(in: head, range: NSRange(location: 0, length: (head as NSString).length)),
+        func first(_ pattern: String, in text: String) -> String? {
+            guard let expression = try? NSRegularExpression(
+                pattern: pattern,
+                options: [.caseInsensitive, .dotMatchesLineSeparators]
+            ),
+                  let match = expression.firstMatch(
+                    in: text,
+                    range: NSRange(location: 0, length: (text as NSString).length)
+                  ),
                   match.numberOfRanges > 1 else {
-                continue
+                return nil
             }
-            return (head as NSString).substring(with: match.range(at: 1))
+            return (text as NSString).substring(with: match.range(at: 1))
+        }
+        if let xml = first(#"^\s*<\?xml\b[^>]*\bencoding\s*=\s*["']([^"']+)["']"#, in: head) {
+            return xml
+        }
+
+        // Kommentare sowie Script-/Style-Inhalte sind Text und keine echten
+        // Meta-Tags. Auch ein nicht geschlossener Block reicht bis zum Ende.
+        var markup = head.replacingOccurrences(
+            of: #"(?is)<!--.*?(?:-->|$)"#,
+            with: "",
+            options: .regularExpression
+        )
+        markup = markup.replacingOccurrences(
+            of: #"(?is)<(script|style)\b[^>]*>.*?(?:</\1\s*>|$)"#,
+            with: "",
+            options: .regularExpression
+        )
+        guard let metaExpression = try? NSRegularExpression(
+            pattern: #"<meta\b[^>]*>"#,
+            options: [.caseInsensitive]
+        ) else { return nil }
+        for match in metaExpression.matches(
+            in: markup,
+            range: NSRange(location: 0, length: (markup as NSString).length)
+        ) {
+            let tag = (markup as NSString).substring(with: match.range)
+            if let charset = first(#"\bcharset\s*=\s*["']?\s*([A-Za-z0-9._:-]+)"#, in: tag) {
+                return charset
+            }
         }
         return nil
     }

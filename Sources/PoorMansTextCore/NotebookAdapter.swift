@@ -160,11 +160,13 @@ final class NotebookImport {
         // 20 000 Anhängen lief über zehn Minuten und ließ sich nicht abbrechen
         // (Review-Fund 2026-09-10).
         try ConversionExecution.check()
-        var result = MarkdownLinkTargetRewriter.replacing(in: text, mapping: attachments)
-        // Nur Kandidaten sammeln. Ob ein Kandidat tatsächlich außerhalb eines
-        // Code-/HTML-Containers liegt, entscheidet der bestehende Markdown-Rewriter.
         let ownAssets = Set(attachments.values)
-        let targets = try MarkdownLinkTargetRewriter.resourceCandidates(in: result, maximum: 4_096)
+        let targets = try MarkdownLinkTargetRewriter.resourceCandidates(
+            in: text,
+            maximum: 4_096,
+            checking: ConversionExecution.check
+        )
+        var replacements = attachments
         for target in targets.sorted() {
             try ConversionExecution.check()
             // `media.paths` sind die von UNS vergebenen Namen. Ein Verweis der
@@ -172,17 +174,26 @@ final class NotebookImport {
             // stammt — sonst zeigte `![x](images/image1.png)` still auf den
             // Anhang einer anderen Zelle, je nach Zellenreihenfolge einmal so
             // und einmal als fehlend (Review-Fund 2026-09-10).
-            guard !ownAssets.contains(target), !target.hasPrefix("#") else { continue }
-            let probe = MarkdownLinkTargetRewriter.replacing(in: result, from: target, to: "#pmt-resource-check")
-            guard probe != result else { continue }
+            let decodedTarget = target.removingPercentEncoding
+            guard attachments[target] == nil,
+                  decodedTarget.flatMap({ attachments[$0] }) == nil,
+                  !ownAssets.contains(target),
+                  !target.hasPrefix("#") else { continue }
             let scheme = URLComponents(string: target)?.scheme?.lowercased()
             if ["https", "http", "mailto"].contains(scheme ?? "") {
                 warn("externalReferenceNotLoaded", "External Markdown reference was retained but never loaded: \(target)")
             } else {
                 warn("resourceUnavailable", "A missing local attachment or unsafe Markdown reference was not loaded: \(target)")
-                result = MarkdownLinkTargetRewriter.replacing(in: result, from: target, to: "#unavailable-resource")
+                replacements[target] = "#unavailable-resource"
             }
         }
+        // Anhänge und fehlende Ziele werden gemeinsam in einem Durchlauf
+        // ersetzt. Damit wächst die Laufzeit linear mit Text plus Zielanzahl.
+        let result = try MarkdownLinkTargetRewriter.replacing(
+            in: text,
+            mapping: replacements,
+            checking: ConversionExecution.check
+        )
         if result.range(of: #"<(?:img|script|iframe|object|video|audio)\b"#, options: .regularExpression) != nil {
             warn("htmlNotInterpreted", "Raw HTML is retained as notebook Markdown; embedded resources are not inspected or loaded.")
         }

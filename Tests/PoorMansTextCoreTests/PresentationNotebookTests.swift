@@ -115,6 +115,22 @@ final class PresentationNotebookTests: XCTestCase {
         XCTAssertEqual(try Data(contentsOf: source), bytes)
     }
 
+    func testNotebookResourceBudgetIgnoresFencedCodeExamples() throws {
+        let examples = (0...4_096).map { "![example](missing-\($0).png)" }.joined(separator: "\n")
+        let source = root.appendingPathComponent("code-examples.ipynb")
+        let cell = "```markdown\n\(examples)\n```\n![real](missing.png)"
+        let bytes = try JSONSerialization.data(
+            withJSONObject: ["nbformat": 4, "cells": [["cell_type": "markdown", "source": cell]]]
+        )
+        try bytes.write(to: source)
+
+        let result = try DocumentConverter().convert(ConversionRequest(inputURL: source))
+        let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+        XCTAssertEqual(markdown.components(separatedBy: "#unavailable-resource").count - 1, 1)
+        XCTAssertTrue(markdown.contains("![example](missing-4096.png)"), markdown)
+        XCTAssertEqual(try Data(contentsOf: source), bytes)
+    }
+
     func testODPNumberedNestedListsAndNotes() throws {
         let xml = """
         <office:document-content xmlns:office="\(PresentationImport.office)" xmlns:draw="\(PresentationImport.draw)" xmlns:text="\(PresentationImport.text)" xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0" xmlns:presentation="\(PresentationImport.presentationODF)">

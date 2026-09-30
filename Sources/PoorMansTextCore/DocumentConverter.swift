@@ -18,6 +18,7 @@ public struct DocumentConverter: Sendable {
             DelimitedTextAdapter(),
             PandocTextAdapter(),
             MailAdapter(),
+            MSGAdapter(),
         ])
     }
 

@@ -37,10 +37,6 @@ in die Zwischenablage) sind umgesetzt; offen bleibt:
   Architektur. Erst angehen, wenn der Aufwand den Nutzen gegenüber „Shell-Skript
   ausführen“ mit `poormans-text --json` in Kurzbefehle rechtfertigt.
 
-### Etappe 6 — E-Mail
-
-- MSG (Outlook) über den eigenständigen OLE-Containerleser.
-
 ### Etappe 7 — Qualität des PDF-Imports
 
 - Überschriften aus Schriftgrößen ableiten und einfache Tabellen aus Zeilen-

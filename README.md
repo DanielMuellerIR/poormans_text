@@ -13,7 +13,7 @@
 Poor Man's Text converts RTF, RTFD, DOCX (including DOCM and DOTX/DOTM), ODT,
 legacy Word (`.doc`), ODS, XLSX (including XLSM and XLTX/XLTM), XLS, CSV and
 TSV, PPTX/PPTM/POTX and ODP presentations, IPYNB notebooks, OpenDocument master (`.odm`), PDF, HTML and Safari web archives, EPUB,
-LaTeX, DocBook, Org, MediaWiki, Textile, reStructuredText, FictionBook, EML and Apple Mail (`.emlx`), and
+LaTeX, DocBook, Org, MediaWiki, Textile, reStructuredText, FictionBook, EML, Apple Mail (`.emlx`), Outlook (`.msg`), and
 PNG, JPEG, HEIC, TIFF, GIF, BMP, or WebP images into folders containing
 Markdown and any separately stored image assets.
 
@@ -65,6 +65,16 @@ MIME are rejected with a diagnostic. The reader limits a source to 64 MiB,
 headers to 256 KiB, MIME parts to 1,024, nesting to 32 and cumulative parsed
 part bytes to 128 MiB. Apple Mail's trailing property list is not imported.
 
+Outlook `.msg` files use an independent OLE reader and the same mail engine;
+Office is not required. Unicode and legacy text, HTML, and compressed RTF bodies
+are supported, including HTML encapsulated in RTF. Inline images resolve from
+attachments. Embedded messages are exported as standalone `.msg` attachments,
+with their property streams retained. The source limit is 64 MiB; the reader
+also bounds OLE entries to 100,000, storage depth to 32, recipients to 2,048,
+attachments to 1,024, expanded RTF to 64 MiB and attachment bytes to 128 MiB.
+Broken containers, encrypted messages, non-mail Outlook items and unsupported
+attachment methods are rejected. External attachment references are never opened.
+
 The default is the visible header table. `--frontmatter` remains an explicit
 option for title, sender and date metadata; it does not replace the table.
 Email conversion requires Pandoc, and also supports temporary output and
@@ -95,7 +105,7 @@ Download the DMG and its `.sha256` file from the
 directory, verify the download before opening it:
 
 ```sh
-shasum -a 256 -c Poor-Mans-Text-0.11.0.dmg.sha256
+shasum -a 256 -c Poor-Mans-Text-0.12.0.dmg.sha256
 ```
 
 Open the DMG and drag Poor Man's Text to Applications. The app is signed with
@@ -235,6 +245,7 @@ textile     .textile                                          file     pandoc   
 rst         .rst                                              file     pandoc           available
 fb2         .fb2                                              file     pandoc           available
 eml         .eml .emlx                                        file     pandoc           available
+msg         .msg                                              file     pandoc           available
 ```
 
 Without Pandoc, the word-processing, ODM, HTML, e-book, and text-markup lines
@@ -475,7 +486,7 @@ and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compa
 their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current version is 0.11.0.
+The current version is 0.12.0.
 
 ## License
 

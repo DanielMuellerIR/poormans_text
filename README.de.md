@@ -15,7 +15,7 @@ alte Word-Dateien (`.doc`), ODS, XLSX (einschließlich XLSM und XLTX/XLTM), XLS,
 CSV und TSV, PPTX/PPTM/POTX- und ODP-Präsentationen, IPYNB-Notebooks,
 OpenDocument-Masterdokumente (`.odm`), PDFs, HTML und
 Safari-Webarchive, EPUB, LaTeX, DocBook, Org, MediaWiki, Textile,
-reStructuredText, FictionBook, EML und Apple Mail (`.emlx`) sowie PNG-, JPEG-, HEIC-, TIFF-, GIF-, BMP- und
+reStructuredText, FictionBook, EML, Apple Mail (`.emlx`) und Outlook (`.msg`) sowie PNG-, JPEG-, HEIC-, TIFF-, GIF-, BMP- und
 WebP-Bilder in Ordner mit Markdown und gegebenenfalls separat gespeicherten
 Bildern um.
 
@@ -71,6 +71,17 @@ abgelehnt. Grenzen: 64 MiB Quelldatei, 256 KiB Kopfzeilen, 1.024 MIME-Teile,
 32 Verschachtelungsebenen und 128 MiB kumulativ gelesene Teilbytes. Die
 nachgestellte Apple-Mail-Property-List wird nicht importiert.
 
+Outlook-Dateien (`.msg`) verwenden einen eigenständigen OLE-Leser und dieselbe
+Mail-Engine; Office wird nicht benötigt. Unicode- und ältere Textkodierungen,
+HTML sowie komprimierte RTF-Körper einschließlich darin eingebettetem HTML
+werden unterstützt. Inlinebilder stammen aus den Anhängen. Eingebettete Mails
+werden als eigenständige MSG-Anhänge mit erhaltenen Propertystreams exportiert.
+Die Quelle darf höchstens 64 MiB groß sein; zusätzlich gelten 100.000 OLE-Einträge,
+32 Speicherebenen, 2.048 Empfänger, 1.024 Anhänge, 64 MiB entpacktes RTF und
+128 MiB Anhangsdaten als Grenzen. Defekte Container, verschlüsselte Mails,
+andere Outlook-Objekte und nicht unterstützte Anhangsmethoden werden abgewiesen.
+Externe Anhangsverweise werden nie geöffnet.
+
 Standard ist die sichtbare Kopfzeilentabelle. `--frontmatter` bleibt eine
 bewusst wählbare Option für Titel, Absender und Datum; sie ersetzt die Tabelle
 nicht. Der Mailimport braucht Pandoc und unterstützt auch temporäre Ausgaben
@@ -101,7 +112,7 @@ DMG und zugehörige `.sha256`-Datei stehen im
 Ordner, lässt sich der Download vor dem Öffnen prüfen:
 
 ```sh
-shasum -a 256 -c Poor-Mans-Text-0.11.0.dmg.sha256
+shasum -a 256 -c Poor-Mans-Text-0.12.0.dmg.sha256
 ```
 
 Danach das DMG öffnen und Poor Man's Text in den Programme-Ordner ziehen. Die
@@ -247,6 +258,7 @@ textile     .textile                                          file     pandoc   
 rst         .rst                                              file     pandoc           available
 fb2         .fb2                                              file     pandoc           available
 eml         .eml .emlx                                        file     pandoc           available
+msg         .msg                                              file     pandoc           available
 ```
 
 Fehlt Pandoc, steht bei Textdokumenten, ODM, HTML, E-Books und den
@@ -499,7 +511,7 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.11.0.
+Die aktuelle Version ist 0.12.0.
 
 ## Lizenz
 

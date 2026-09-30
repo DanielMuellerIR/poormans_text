@@ -106,6 +106,19 @@ HTML-Schlussstrecke ohne Zugriff auf lokale Nachbardateien. Kopfzeilen werden
 vollständig als Tabelle ausgegeben; das vorhandene Metadatenmodell erhält
 Betreff, Absender und Datum. GUI und CLI verwenden denselben Adapter.
 
+`MSGAdapter` erkennt Outlook-Mail in OLE-Containern. `MSGProperties` liest
+Propertytabellen mit objektabhängigen Headern und prüft Strings, Codepages und
+Wertlängen. `MSGMessage` bildet Kopfzeilen, Körper und Anhänge auf dieselbe
+Mail-Engine ab. `MSGCompressedRTF` prüft und entpackt LZFu/MELA;
+`MSGRTFHTML` liest das darin gekapselte HTML und normalisiert bei nativem RTF
+Unicode-Fallbacks auf `uc0`, weil Pandoc sonst ein folgendes Literal verschluckt.
+Normales RTF geht über Pandoc in
+einem eigenen temporären Ressourcenordner, ohne Quelldateinachbarn einzubeziehen.
+`MSGEmbeddedWriter` baut für eingebettete Nachrichten eigenständige OLE-Dateien
+mit bytegleichen Wertstreams und der gemeinsamen Named-Property-Zuordnung.
+Empfänger, Anhänge, Streams, Verschachtelung und entpackte Daten bleiben begrenzt;
+externe Anhangsmethoden werden abgewiesen. Office wird nicht geladen.
+
 Jeder Adapter liefert neben Markdown und Assets ein `DocumentMetadata`, soweit
 sein Format Titel, Autor oder Daten kennt (`docProps/core.xml`, `meta.xml`,
 RTF-`\info`, PDF-Info-Wörterbuch, EPUB-OPF, FB2-`title-info`, HTML-Kopf; DOC,

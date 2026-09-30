@@ -17,6 +17,8 @@ struct MSGProperties {
 
     private let values: [UInt32: Data]
     var tags: Set<UInt32> { Set(values.keys) }
+    let recipientCount: Int?
+    let attachmentCount: Int?
 
     init(data: Data, kind: ObjectKind) throws {
         guard data.count >= kind.headerSize, data.count <= 8_000_032,
@@ -34,10 +36,19 @@ struct MSGProperties {
             }
         }
         values = parsed
+        recipientCount = kind == .object ? nil : Int(data.legacyUInt32(at: 16))
+        attachmentCount = kind == .object ? nil : Int(data.legacyUInt32(at: 20))
     }
 
     func integer(_ id: UInt16) -> UInt32? {
         values[UInt32(id) << 16 | 0x0003]?.legacyUInt32(at: 0)
+    }
+
+    func fileTime(_ id: UInt16) -> Date? {
+        guard let bytes = values[UInt32(id) << 16 | 0x0040] else { return nil }
+        let ticks = UInt64(bytes.legacyUInt32(at: 0)) | UInt64(bytes.legacyUInt32(at: 4)) << 32
+        guard ticks != 0 else { return nil }
+        return Date(timeIntervalSince1970: Double(ticks) / 10_000_000 - 11_644_473_600)
     }
 
     func stream(_ tag: UInt32, in tree: OLECompoundDocument.StorageTree, storage: [String]) throws -> Data? {

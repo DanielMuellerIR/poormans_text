@@ -39,6 +39,7 @@ public struct InputFormat: RawRepresentable, Codable, Hashable, Sendable {
     public static let rst = InputFormat(rawValue: "rst")
     public static let fb2 = InputFormat(rawValue: "fb2")
     public static let eml = InputFormat(rawValue: "eml")
+    public static let msg = InputFormat(rawValue: "msg")
 
     public init(from decoder: any Decoder) throws {
         let container = try decoder.singleValueContainer()

@@ -39,7 +39,7 @@ final class DocumentConverterTests: XCTestCase {
             converter.supportedFormats,
             [
                 .rtf, .rtfd, .docx, .odt, .doc, .ods, .xlsx, .xls, .odm, .image, .pdf, .csv, .pptx, .odp, .ipynb,
-                .html, .webarchive, .epub, .latex, .docbook, .org, .mediawiki, .textile, .rst, .fb2,
+                .html, .webarchive, .epub, .latex, .docbook, .org, .mediawiki, .textile, .rst, .fb2, .eml, .msg,
             ]
         )
         XCTAssertEqual(try converter.detectFormat(at: rtfURL), .rtf)

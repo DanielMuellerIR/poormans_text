@@ -51,7 +51,7 @@ struct MailAdapter: DocumentConversionAdapter {
         let metadata: DocumentMetadata
         do {
             table = try Self.headerTable(part.headers)
-            metadata = try Self.metadata(part)
+            metadata = try Self.metadata(part.headers)
             converted = try MailBodyConverter.convert(part, context: context)
         } catch let error as MIMEMessage.Failure {
             throw ConversionError.invalidInput(context.inputURL, format: .eml, reason: error.reason)
@@ -81,7 +81,7 @@ struct MailAdapter: DocumentConversionAdapter {
         return Data(data.dropFirst(data.distance(from: data.startIndex, to: newline) + 1).prefix(count))
     }
 
-    private static func headerTable(_ headers: [MIMEMessage.Header]) throws -> String {
+    static func headerTable(_ headers: [MIMEMessage.Header]) throws -> String {
         var table = "| Header | Value |\n| --- | --- |\n"
         for header in headers {
             try ConversionExecution.check()
@@ -93,14 +93,15 @@ struct MailAdapter: DocumentConversionAdapter {
         return table + "\n"
     }
 
-    private static func metadata(_ part: MIMEMessage.Part) throws -> DocumentMetadata {
+    static func metadata(_ headers: [MIMEMessage.Header]) throws -> DocumentMetadata {
+        func header(_ name: String) -> String? { headers.first { $0.name == name }?.value }
         func decoded(_ name: String) throws -> String? {
-            try part.header(name).map(MIMEMessage.decodedHeader)
+            try header(name).map(MIMEMessage.decodedHeader)
         }
         let subject = try decoded("subject")
         let from = try decoded("from")
         let date: Date?
-        if let value = part.header("date") {
+        if let value = header("date") {
             let formatter = DateFormatter()
             formatter.locale = Locale(identifier: "en_US_POSIX")
             formatter.timeZone = TimeZone(secondsFromGMT: 0)

@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.12.0 — 2026-09-30
+
+- Import Outlook MSG mail without Office through a bounded OLE/property reader
+  and the shared mail engine. Preserve Unicode text, HTML and compressed RTF,
+  inline images, safe byte-preserved attachments and standalone embedded MSG
+  attachments. Keep the visible header table in both app and CLI.
+- Normalize native MSG RTF Unicode fallbacks in the temporary Pandoc input,
+  preserving the character after each escape and leaving source bytes untouched.
+- Register MSG for opening, dropping and the file service. Reject broken
+  containers, unsupported Outlook items and external attachment methods.
+
 ## 0.11.0 — 2026-09-30
 
 - Import EML and Apple Mail EMLX messages through the shared engine, with

@@ -3,7 +3,11 @@ import Foundation
 /// Nutzt für Mailkörper dieselbe HTML- und Asset-Schlussstrecke wie andere Dokumente.
 enum MailBodyConverter {
     static func convert(_ part: MIMEMessage.Part, context: AdapterConversionContext) throws -> StagedConversionResult {
-        let selection = try MailContent.select(part)
+        try convert(MailContent.select(part), context: context)
+    }
+
+    static func convert(_ selection: MailContent.Selection, context: AdapterConversionContext,
+                        resourceDirectory: URL? = nil) throws -> StagedConversionResult {
         let resources = try MailContent.subresources(selection.attachments)
         var warnings = selection.warnings
         let html = try selection.bodies.map { body in
@@ -18,7 +22,7 @@ enum MailBodyConverter {
             let normalized = body.text.replacingOccurrences(of: "\r\n", with: "\n").replacingOccurrences(of: "\r", with: "\n")
             return "<p>" + escapedHTML(normalized).replacingOccurrences(of: "\n", with: "<br>\n") + "</p>"
         }.joined(separator: "\n<hr>\n")
-        let resolution = try HTMLImageSourceResolver.resolve(html: html, baseDirectory: nil, baseURL: nil,
+        let resolution = try HTMLImageSourceResolver.resolve(html: html, baseDirectory: resourceDirectory, baseURL: nil,
                                                              subresources: resources, workDirectory: context.workDirectory)
         if selection.bodies.contains(where: \.isHTML) { warnings.append(.htmlStructureSimplified) }
         if resolution.remoteImagesKeptAsLinks > 0 { warnings.append(.remoteImagesKeptAsLinks(resolution.remoteImagesKeptAsLinks)) }

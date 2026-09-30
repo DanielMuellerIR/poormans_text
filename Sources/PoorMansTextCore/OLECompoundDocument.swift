@@ -1,6 +1,6 @@
 import Foundation
 
-/// OLE-Container: Sektoren, Ketten und benannte Streams, ohne Excel-Semantik.
+/// OLE-Container: Sektoren, Ketten und Speicherhierarchie, ohne Formatsemantik.
 struct OLECompoundDocument {
     static let signature: [UInt8] = [0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1]
     static func hasSignature(_ data: Data) -> Bool { Array(data.prefix(signature.count)) == signature }
@@ -120,7 +120,11 @@ struct OLECompoundDocument {
                 throw ParserError("an OLE stream exceeds the supported size limit")
             }
             parsedEntries.append(
-                DirectoryEntry(name: name, type: type, startSector: start, size: Int(size))
+                DirectoryEntry(id: UInt32(offset / 128), name: name, type: type,
+                    leftSibling: directoryData.legacyUInt32(at: offset + 68),
+                    rightSibling: directoryData.legacyUInt32(at: offset + 72),
+                    child: directoryData.legacyUInt32(at: offset + 76),
+                    startSector: start, size: Int(size))
             )
         }
         entries = parsedEntries
@@ -166,6 +170,80 @@ struct OLECompoundDocument {
         }) else {
             return nil
         }
+        return try read(entry)
+    }
+
+    // DOC/XLS behalten ihren bisherigen Zugriff. MSG muss gleichnamige Properties
+    // verschiedener Objekte unterscheiden und prüft dafür den gesamten Speicherbaum.
+    func storageTree() throws -> StorageTree {
+        guard entries.count <= 100_000,
+              let root = entries.first, root.id == 0, root.type == 5,
+              root.leftSibling == Constants.freeSector,
+              root.rightSibling == Constants.freeSector,
+              entries.filter({ $0.type == 5 }).count == 1 else {
+            throw ParserError("the OLE storage root is invalid")
+        }
+        let byID = Dictionary(uniqueKeysWithValues: entries.map { ($0.id, $0) })
+        var pending: [(id: UInt32, parent: [String])] = [(root.child, [])]
+        var visited: Set<UInt32> = [root.id]
+        var paths = [[String]: DirectoryEntry]()
+        while let item = pending.popLast() {
+            try ConversionExecution.check()
+            if item.id == Constants.freeSector { continue }
+            guard item.parent.count < 32, visited.insert(item.id).inserted,
+                  let entry = byID[item.id], [1, 2].contains(entry.type) else {
+                throw ParserError("the OLE storage hierarchy is invalid or too deep")
+            }
+            let path = item.parent + [entry.name.uppercased()]
+            guard paths.updateValue(entry, forKey: path) == nil else {
+                throw ParserError("the OLE storage has duplicate child names")
+            }
+            pending.append((entry.leftSibling, item.parent))
+            pending.append((entry.rightSibling, item.parent))
+            if entry.type == 1 {
+                pending.append((entry.child, path))
+            } else if entry.child != Constants.freeSector {
+                throw ParserError("an OLE stream cannot contain child objects")
+            }
+        }
+        guard visited.count == entries.count else {
+            throw ParserError("the OLE directory contains unreachable objects")
+        }
+        return StorageTree(document: self, paths: paths)
+    }
+
+    struct StorageTree {
+        fileprivate let document: OLECompoundDocument
+        fileprivate let paths: [[String]: DirectoryEntry]
+
+        var streamPaths: [[String]] {
+            paths.filter { $0.value.type == 2 }.keys.map { path in
+                path.enumerated().map { index, _ in paths[Array(path.prefix(index + 1))]!.name }
+            }.sorted { $0.lexicographicallyPrecedes($1) }
+        }
+
+        func storageNames(in path: [String]) -> [String] {
+            childNames(in: path, type: 1)
+        }
+
+        func streamNames(in path: [String]) -> [String] {
+            childNames(in: path, type: 2)
+        }
+
+        func stream(at path: [String]) throws -> Data? {
+            guard let entry = paths[path.map { $0.uppercased() }], entry.type == 2 else { return nil }
+            return try document.read(entry)
+        }
+
+        private func childNames(in path: [String], type: UInt8) -> [String] {
+            let parent = path.map { $0.uppercased() }
+            return paths.filter {
+                $0.key.count == parent.count + 1 && Array($0.key.dropLast()) == parent && $0.value.type == type
+            }.map { $0.value.name }.sorted()
+        }
+    }
+
+    private func read(_ entry: DirectoryEntry) throws -> Data {
         if entry.size < miniStreamCutoff {
             return try Self.miniStream(
                 start: entry.startSector,
@@ -259,9 +337,13 @@ struct OLECompoundDocument {
         return data.subdata(in: offset..<(offset + sectorSize))
     }
 
-    private struct DirectoryEntry {
+    fileprivate struct DirectoryEntry {
+        let id: UInt32
         let name: String
         let type: UInt8
+        let leftSibling: UInt32
+        let rightSibling: UInt32
+        let child: UInt32
         let startSector: UInt32
         let size: Int
     }

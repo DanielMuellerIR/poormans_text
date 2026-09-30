@@ -66,9 +66,6 @@ enum MailContent {
     static func select(_ part: MIMEMessage.Part) throws -> Selection {
         try ConversionExecution.check()
         let attached = part.disposition == "attachment" || part.filename != nil
-        if attached, !part.children.isEmpty {
-            throw MIMEMessage.Failure(reason: "an attached multipart container cannot be represented safely")
-        }
         if attached || (part.children.isEmpty && !["text/plain", "text/html"].contains(part.mediaType)) {
             return try attachment(part)
         }
@@ -128,11 +125,10 @@ enum MailContent {
     }
 
     private static func attachment(_ part: MIMEMessage.Part) throws -> Selection {
-        guard part.children.isEmpty else {
-            throw MIMEMessage.Failure(reason: "a multipart resource cannot be saved as a decoded attachment")
-        }
         let name = try MIMEMessage.decodedHeader(part.filename ?? defaultName(for: part.mediaType))
-        let attachment = Attachment(name: name, mediaType: part.mediaType, data: part.body,
+        // Ein angehängter Multipart-Container braucht seine MIME-Kopfzeilen zum erneuten Lesen.
+        let data = part.children.isEmpty ? part.body : part.sourceData
+        let attachment = Attachment(name: name, mediaType: part.mediaType, data: data,
                                     contentID: part.header("content-id").map(contentID),
                                     contentLocation: part.header("content-location"))
         var result = Selection(attachments: [attachment])
@@ -144,6 +140,7 @@ enum MailContent {
     }
 
     private static func defaultName(for mediaType: String) -> String {
+        if mediaType.hasPrefix("multipart/") { return "attachment.mime" }
         switch mediaType {
         case "message/rfc822": return "message.eml"
         case "text/plain": return "text.txt"

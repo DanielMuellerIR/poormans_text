@@ -166,4 +166,14 @@ final class MailContentTests: XCTestCase {
         XCTAssertFalse(resolution.html.contains("<img src=\"https:"))
         XCTAssertFalse(resolution.html.contains("<img src=\"cid:"))
     }
+
+    func testAttachedMultipartKeepsCompleteOriginalMIMEEntity() throws {
+        let attached = "Content-Type: multipart/mixed; boundary=a\nContent-Disposition: attachment; filename=nested.mime\n\n--a\nContent-Type: text/plain\n\ninner text\n--a--"
+        let source = "Content-Type: multipart/mixed; boundary=m\n\n--m\nContent-Type: text/plain\n\nouter body\n--m\n" + attached + "\n--m--"
+        let selection = try MailContent.select(MIMEMessage.read(Data(source.utf8)))
+        XCTAssertEqual(selection.bodies.map(\.text), ["outer body"])
+        XCTAssertEqual(selection.attachments.count, 1)
+        XCTAssertEqual(selection.attachments[0].data, Data(attached.utf8))
+        XCTAssertEqual(selection.attachments[0].name, "nested.mime")
+    }
 }

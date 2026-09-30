@@ -23,6 +23,7 @@ enum MIMEMessage {
         let parameters: [String: String]
         let disposition: String
         let dispositionParameters: [String: String]
+        let sourceData: Data
         let body: Data
         let children: [Part]
 
@@ -92,6 +93,7 @@ enum MIMEMessage {
         }
         return Part(headers: headers, mediaType: contentType.0, parameters: contentType.1,
                     disposition: disposition.0, dispositionParameters: disposition.1,
+                    sourceData: data,
                     body: children.isEmpty ? body : Data(), children: children)
     }
 

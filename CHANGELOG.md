@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.14.0 — 2026-09-30
+
+- Inspect foreign ZIP document packages through bounded reads from the same
+  checked file descriptor, retaining the existing archive, entry and metadata
+  budgets. Detection no longer copies the entire archive into the heap.
+- Reject conflicting end-record directory views, unexplained gaps, overlapping
+  local entries and padding after a Deflate stream. Preserve recognized digital
+  signature and archive-extra-data records and signed or unsigned data descriptors.
+- Keep full size and CRC verification on the private conversion copy. ZIP64 and
+  encrypted document packages remain unsupported.
+
 ## 0.13.0 — 2026-09-30
 
 - Infer PDF headings from document font sizes and reconstruct simple closed-grid

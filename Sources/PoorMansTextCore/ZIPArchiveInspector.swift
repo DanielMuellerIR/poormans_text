@@ -18,7 +18,7 @@ enum ZIPArchiveInspector {
         try inspectionSnapshot(at: inputURL).contents(entryNames: entryNames)
     }
 
-    /// Die Erkennung bleibt beim nichtgemappten Deskriptorsnapshot. Namen,
+    /// Die Erkennung liest begrenzte Bereiche über den geprüften Deskriptor. Namen,
     /// Archivbudgets und jeder gelesene Eintrag werden wie bisher geprüft;
     /// die Vollprüfung aller Medien folgt erst vor der Konvertierung.
     static func inspectionSnapshot(at inputURL: URL) throws -> some ZIPPackageReading {
@@ -116,40 +116,41 @@ enum ZIPArchiveInspector {
     }
 
     fileprivate struct Archive {
-        let data: Data
+        let data: ArchiveBytes
         let entries: [Entry]
         private let entriesByName: [String: Entry]
+        private let centralOffset: Int
 
         /// - Parameter mapsPrivateCopy: nur `true` für eine Datei, die dieser
         ///   Prozess gerade selbst in seinen Arbeitsordner geschrieben hat.
         ///   Fremde Originale werden gelesen statt abgebildet.
         init(url: URL, mapsPrivateCopy: Bool = false) throws {
-            // Prüfung und Bytes gehören zu EINEM Deskriptor — siehe
-            // `ZIPArchiveInspector.verifiedContents(of:mapsPrivateCopy:)`. Ein
+            // Prüfung und Bytes gehören zu EINEM geöffneten Objekt. Ein
             // Verweis auf ein gültiges Paket bleibt dabei erlaubt: `open` folgt
             // ihm, und `fstat` beschreibt danach die Datei dahinter statt den
             // Verweis selbst.
-            data = try ZIPArchiveInspector.verifiedContents(
-                of: url,
+            data = try ArchiveBytes(
+                url: url,
                 mapsPrivateCopy: mapsPrivateCopy
             )
-            guard let endOffset = Self.endOfCentralDirectory(in: data) else {
+            guard let endOffset = try Self.endOfCentralDirectory(in: data) else {
                 throw ArchiveError("the ZIP central directory is missing")
             }
-            guard data.uint16(at: endOffset + 4) == 0,
-                  data.uint16(at: endOffset + 6) == 0 else {
+            guard try data.uint16(at: endOffset + 4) == 0,
+                  try data.uint16(at: endOffset + 6) == 0 else {
                 throw ArchiveError("multi-disk ZIP packages are not supported")
             }
 
-            let entryCount = Int(data.uint16(at: endOffset + 10))
-            let centralSize = Int(data.uint32(at: endOffset + 12))
-            let centralOffset = Int(data.uint32(at: endOffset + 16))
+            let entryCount = Int(try data.uint16(at: endOffset + 10))
+            let centralSize = Int(try data.uint32(at: endOffset + 12))
+            let centralOffset = Int(try data.uint32(at: endOffset + 16))
+            self.centralOffset = centralOffset
             // Die Eintragszahl steht zweimal im Schlussblock: einmal für diesen
             // Datenträger, einmal insgesamt. Nur die Gesamtzahl wurde gelesen —
             // ein Verbraucher, der die andere nimmt, sah einen anderen
             // Eintragssatz als diese Prüfung (Review-Fund 2026-09-10). Alle 600
             // geprüften echten Archive tragen dort denselben Wert.
-            guard Int(data.uint16(at: endOffset + 8)) == entryCount else {
+            guard Int(try data.uint16(at: endOffset + 8)) == entryCount else {
                 throw ArchiveError("the ZIP end record disagrees about its entry count")
             }
             guard entryCount != Int(UInt16.max),
@@ -162,7 +163,7 @@ enum ZIPArchiveInspector {
             // Entpacker die 32-Bit-Angaben ohne jede Sentinel-Bedingung und
             // lesen damit ein anderes, hier nie geprüftes Verzeichnis. Kein
             // einziges der 600 geprüften echten Archive trägt einen Locator.
-            if endOffset >= 20, data.uint32(at: endOffset - 20) == 0x07064B50 {
+            if endOffset >= 20, try data.uint32(at: endOffset - 20) == 0x07064B50 {
                 throw ArchiveError("ZIP64 packages are not supported")
             }
             guard entryCount <= Limits.maximumEntryCount else {
@@ -184,23 +185,23 @@ enum ZIPArchiveInspector {
             var names = Set<String>()
             var rawNames = Set<String>()
             var totalUncompressedSize = 0
-            var offset = centralOffset
+            var offset = try Self.directoryStart(in: data, at: centralOffset, limit: centralOffset + centralSize)
 
             for _ in 0..<entryCount {
                 try ConversionExecution.check()
-                guard data.uint32(at: offset) == 0x02014B50 else {
+                guard try data.uint32(at: offset) == 0x02014B50 else {
                     throw ArchiveError("the ZIP central directory contains an invalid entry")
                 }
-                let flags = data.uint16(at: offset + 8)
-                let method = data.uint16(at: offset + 10)
-                let crc = data.uint32(at: offset + 16)
-                let compressedSize = Int(data.uint32(at: offset + 20))
-                let uncompressedSize = Int(data.uint32(at: offset + 24))
-                let nameLength = Int(data.uint16(at: offset + 28))
-                let extraLength = Int(data.uint16(at: offset + 30))
-                let commentLength = Int(data.uint16(at: offset + 32))
-                let externalAttributes = data.uint32(at: offset + 38)
-                let localHeaderOffset = Int(data.uint32(at: offset + 42))
+                let flags = try data.uint16(at: offset + 8)
+                let method = try data.uint16(at: offset + 10)
+                let crc = try data.uint32(at: offset + 16)
+                let compressedSize = Int(try data.uint32(at: offset + 20))
+                let uncompressedSize = Int(try data.uint32(at: offset + 24))
+                let nameLength = Int(try data.uint16(at: offset + 28))
+                let extraLength = Int(try data.uint16(at: offset + 30))
+                let commentLength = Int(try data.uint16(at: offset + 32))
+                let externalAttributes = try data.uint32(at: offset + 38)
+                let localHeaderOffset = Int(try data.uint32(at: offset + 42))
                 let entryEnd = offset + 46 + nameLength + extraLength + commentLength
 
                 guard compressedSize != Int(UInt32.max),
@@ -219,8 +220,8 @@ enum ZIPArchiveInspector {
                     throw ArchiveError("a ZIP entry uses an unsupported compression method")
                 }
 
-                let rawName = data.subdata(in: (offset + 46)..<(offset + 46 + nameLength))
-                let extraField = data.subdata(
+                let rawName = try data.subdata(in: (offset + 46)..<(offset + 46 + nameLength))
+                let extraField = try data.subdata(
                     in: (offset + 46 + nameLength)..<(offset + 46 + nameLength + extraLength)
                 )
                 guard !rawName.contains(0) else {
@@ -317,8 +318,17 @@ enum ZIPArchiveInspector {
                 offset = entryEnd
             }
 
+            let signatureOffset = offset
+            offset = try Self.afterSignature(in: data, at: offset, limit: centralOffset + centralSize)
             guard offset == centralOffset + centralSize else {
                 throw ArchiveError("the ZIP central directory size is inconsistent")
+            }
+            let afterDirectory = try Self.afterSignature(in: data, at: offset, limit: endOffset)
+            guard signatureOffset == offset || afterDirectory == offset else {
+                throw ArchiveError("the ZIP central directory has more than one digital signature record")
+            }
+            guard afterDirectory == endOffset else {
+                throw ArchiveError("the ZIP contains an unexplained gap after its central directory")
             }
             entries = parsedEntries
             // `uniqueKeysWithValues` würde bei zwei gleichnamigen Einträgen
@@ -358,15 +368,16 @@ enum ZIPArchiveInspector {
                     "the stored size of \(entry.name) does not match its declared size"
                 )
             }
+            try validateLayout()
             let contentRange = try contentRange(for: entry)
 
             let result: Data
             switch entry.method {
             case 0:
-                result = Data(data[contentRange])
+                result = Data(try data.bytes(in: contentRange))
             case 8:
                 result = try inflate(
-                    data[contentRange],
+                    try data.bytes(in: contentRange),
                     expectedSize: entry.uncompressedSize,
                     entryName: entry.name
                 )
@@ -396,11 +407,12 @@ enum ZIPArchiveInspector {
         /// Eintrag kann so weder Speicher noch Zeit über sein deklariertes Maß
         /// hinaus verbrauchen.
         ///
-        /// `data[contentRange]` liefert einen Ausschnitt auf denselben Speicher.
+        /// Die private Abbildung liefert einen Ausschnitt auf denselben Speicher.
         /// `subdata(in:)` würde stattdessen jeden Eintrag zusätzlich kopieren —
         /// bei einem zulässigen Archiv von bis zu 1 GiB wäre die angeblich
         /// streamende Prüfung dann der größte Speicherverbraucher überhaupt.
         func verifyEntryContents() throws {
+            try validateLayout()
             for entry in entries {
                 try ConversionExecution.check()
                 // Auch Verzeichniseinträge durchlaufen die Kopfprüfung. Sonst
@@ -423,13 +435,13 @@ enum ZIPArchiveInspector {
                         )
                     }
                     try ZIPArchiveInspector.verifyChecksum(
-                        of: data[contentRange],
+                        of: try data.bytes(in: contentRange),
                         expected: entry.crc,
                         entryName: entry.name
                     )
                 case 8:
                     try ZIPArchiveInspector.verifyDeflated(
-                        data[contentRange],
+                        try data.bytes(in: contentRange),
                         expectedSize: entry.uncompressedSize,
                         expectedChecksum: entry.crc,
                         entryName: entry.name
@@ -444,23 +456,23 @@ enum ZIPArchiveInspector {
         /// den Verzeichniseintrag geprüft wurde.
         private func contentRange(for entry: Entry) throws -> Range<Int> {
             let offset = entry.localHeaderOffset
-            guard data.uint32(at: offset) == 0x04034B50 else {
+            guard try data.uint32(at: offset) == 0x04034B50 else {
                 throw ArchiveError("the local ZIP header for \(entry.name) is invalid")
             }
-            let localFlags = data.uint16(at: offset + 6)
-            let localMethod = data.uint16(at: offset + 8)
-            let localChecksum = data.uint32(at: offset + 14)
-            let localCompressedSize = Int(data.uint32(at: offset + 18))
-            let localUncompressedSize = Int(data.uint32(at: offset + 22))
-            let nameLength = Int(data.uint16(at: offset + 26))
-            let extraLength = Int(data.uint16(at: offset + 28))
+            let localFlags = try data.uint16(at: offset + 6)
+            let localMethod = try data.uint16(at: offset + 8)
+            let localChecksum = try data.uint32(at: offset + 14)
+            let localCompressedSize = Int(try data.uint32(at: offset + 18))
+            let localUncompressedSize = Int(try data.uint32(at: offset + 22))
+            let nameLength = Int(try data.uint16(at: offset + 26))
+            let extraLength = Int(try data.uint16(at: offset + 28))
             let contentStart = offset + 30 + nameLength + extraLength
             let contentEnd = contentStart + entry.compressedSize
             guard localFlags == entry.flags,
                   localMethod == entry.method,
                   entry.compressedSize >= 0,
-                  contentEnd <= data.count,
-                  data.subdata(in: (offset + 30)..<(offset + 30 + nameLength))
+                  contentEnd <= centralOffset,
+                  try data.subdata(in: (offset + 30)..<(offset + 30 + nameLength))
                     == entry.rawName else {
                 throw ArchiveError("the local ZIP entry for \(entry.name) is inconsistent")
             }
@@ -494,7 +506,7 @@ enum ZIPArchiveInspector {
             // nur dieses eine Feld: Die übrigen Extrafelder dürfen sich regulär
             // unterscheiden — Info-ZIP schreibt lokal etwa mehr Zeitstempel als
             // zentral.
-            let localExtraField = data.subdata(
+            let localExtraField = try data.subdata(
                 in: (offset + 30 + nameLength)..<(offset + 30 + nameLength + extraLength)
             )
             let localNames = try Self.entryNames(
@@ -510,20 +522,176 @@ enum ZIPArchiveInspector {
             return contentStart..<contentEnd
         }
 
-        private static func endOfCentralDirectory(in data: Data) -> Int? {
-            guard data.count >= 22 else {
-                return nil
+        private func validateLayout() throws {
+            if data.layoutValidated { return }
+            var cursor = 0
+            let ordered = entries.sorted(by: { $0.localHeaderOffset < $1.localHeaderOffset })
+            for (index, entry) in ordered.enumerated() {
+                try ConversionExecution.check()
+                guard entry.localHeaderOffset == cursor else {
+                    throw ArchiveError("the ZIP contains overlapping entries or unexplained data before its central directory")
+                }
+                cursor = try contentRange(for: entry).upperBound
+                if entry.flags & 0x0008 != 0 {
+                    let nextHeader = index + 1 < ordered.count ? ordered[index + 1].localHeaderOffset : centralOffset
+                    let signed = try data.uint32(at: cursor) == 0x08074B50
+                    let possibleFields = signed ? [cursor + 4, cursor] : [cursor]
+                    var descriptorEnd: Int?
+                    for fields in possibleFields {
+                        if fields + 12 == nextHeader,
+                           try data.uint32(at: fields) == entry.crc,
+                           try data.uint32(at: fields + 4) == UInt32(entry.compressedSize),
+                           try data.uint32(at: fields + 8) == UInt32(entry.uncompressedSize) {
+                            descriptorEnd = fields + 12
+                            break
+                        }
+                    }
+                    if let descriptorEnd { cursor = descriptorEnd }
+                    else if cursor != nextHeader {
+                        throw ArchiveError("the ZIP data descriptor for \(entry.name) is inconsistent")
+                    }
+                    // Die bestehende Kompatibilität erlaubt Bit 3 auch ohne
+                    // Folge; Größen und CRC stammen dann vom geprüften
+                    // Verzeichnis. Dabei darf keine ungeklärte Lücke entstehen.
+                }
             }
-            let lowerBound = max(0, data.count - 65_557)
-            for offset in stride(from: data.count - 22, through: lowerBound, by: -1) {
-                if data.uint32(at: offset) == 0x06054B50 {
-                    let commentLength = Int(data.uint16(at: offset + 20))
-                    if offset + 22 + commentLength == data.count {
-                        return offset
+            guard cursor == centralOffset else {
+                throw ArchiveError("the ZIP contains unexplained data before its central directory")
+            }
+            data.layoutValidated = true
+        }
+
+        private static func directoryStart(in source: ArchiveBytes, at offset: Int, limit: Int) throws -> Int {
+            if try source.uint32(at: offset) == 0x08064B50 {
+                guard offset + 8 <= limit else { throw ArchiveError("the ZIP archive extra data record is truncated") }
+                let end = offset + 8 + Int(try source.uint32(at: offset + 4))
+                guard end <= limit else { throw ArchiveError("the ZIP archive extra data record is truncated") }
+                return end
+            }
+            return offset
+        }
+
+        private static func afterSignature(in source: ArchiveBytes, at offset: Int, limit: Int) throws -> Int {
+            guard offset < limit, try source.uint32(at: offset) == 0x05054B50 else { return offset }
+            guard offset + 6 <= limit else { throw ArchiveError("the ZIP digital signature record is truncated") }
+            let end = offset + 6 + Int(try source.uint16(at: offset + 4))
+            guard end <= limit else { throw ArchiveError("the ZIP digital signature record is truncated") }
+            return end
+        }
+
+        private static func endOfCentralDirectory(in source: ArchiveBytes) throws -> Int? {
+            guard source.count >= 22 else { return nil }
+            let lowerBound = max(0, source.count - 65_557)
+            let tail = Data(try source.bytes(in: lowerBound..<source.count))
+            var selected: Int?
+            var candidates = [Int]()
+            for offset in stride(from: tail.count - 22, through: 0, by: -1) {
+                if tail.uint32(at: offset) == 0x06054B50 {
+                    candidates.append(lowerBound + offset)
+                    if selected == nil, offset + 22 + Int(tail.uint16(at: offset + 20)) == tail.count {
+                        selected = lowerBound + offset
                     }
                 }
             }
-            return nil
+            guard let selected else { return nil }
+            let selectedOffset = Int(try source.uint32(at: selected + 16))
+            let selectedSize = Int(try source.uint32(at: selected + 12))
+            var checkedDirectories = [DirectoryView: Bool]()
+            var equivalentDirectories = Set<DirectoryView>()
+            var remainingComparisonBytes = Limits.maximumArchiveSize
+            var remainingEntries = Limits.maximumEntryCount
+            for candidate in candidates where candidate != selected {
+                try ConversionExecution.check()
+                let offset = Int(try source.uint32(at: candidate + 16))
+                let size = Int(try source.uint32(at: candidate + 12))
+                let count = Int(try source.uint16(at: candidate + 10))
+                guard count <= Limits.maximumEntryCount,
+                      try source.uint16(at: candidate + 4) == 0,
+                      try source.uint16(at: candidate + 6) == 0,
+                      try source.uint16(at: candidate + 8) == UInt16(count),
+                      offset + size <= candidate,
+                      candidate + 22 + Int(try source.uint16(at: candidate + 20)) <= source.count else { continue }
+                let view = DirectoryView(offset: offset, size: size, count: count)
+                // Viele Schlussblockmuster dürfen nicht immer wieder dasselbe
+                // Verzeichnis ablaufen. Unterschiedliche Kandidaten teilen
+                // zusätzlich das vorhandene Eintragsbudget.
+                let valid: Bool
+                if let previous = checkedDirectories[view] {
+                    valid = previous && offset + size <= candidate
+                } else {
+                    valid = try hasDirectory(in: source, endOffset: candidate, remainingEntries: &remainingEntries)
+                    checkedDirectories[view] = valid
+                }
+                guard valid, !equivalentDirectories.contains(view) else { continue }
+                guard size == selectedSize,
+                      try source.uint16(at: candidate + 10) == source.uint16(at: selected + 10),
+                      try sameBytes(in: source, first: selectedOffset, second: offset, count: size,
+                                    remainingBytes: &remainingComparisonBytes) else {
+                    throw ArchiveError("the ZIP has conflicting end records and different directory views")
+                }
+                equivalentDirectories.insert(view)
+            }
+            return selected
+        }
+
+        private struct DirectoryView: Hashable {
+            let offset: Int
+            let size: Int
+            let count: Int
+        }
+
+        /// Ein Signaturmuster im Kommentar genügt nicht: Erst eine vollständig
+        /// begrenzte Verzeichnisfolge belegt die alternative Entpacker-Sicht.
+        private static func hasDirectory(in source: ArchiveBytes, endOffset: Int, remainingEntries: inout Int) throws -> Bool {
+            let count = Int(try source.uint16(at: endOffset + 10))
+            let size = Int(try source.uint32(at: endOffset + 12))
+            let offset = Int(try source.uint32(at: endOffset + 16))
+            guard count <= Limits.maximumEntryCount,
+                  try source.uint16(at: endOffset + 4) == 0,
+                  try source.uint16(at: endOffset + 6) == 0,
+                  try source.uint16(at: endOffset + 8) == UInt16(count),
+                  offset + size <= endOffset,
+                  endOffset + 22 + Int(try source.uint16(at: endOffset + 20)) <= source.count else { return false }
+            var cursor = offset
+            let limit = offset + size
+            if try source.uint32(at: cursor) == 0x08064B50 {
+                guard cursor + 8 <= limit else { return false }
+                cursor += 8 + Int(try source.uint32(at: cursor + 4))
+            }
+            for _ in 0..<count {
+                try ConversionExecution.check()
+                guard remainingEntries > 0 else {
+                    throw ArchiveError("the ZIP end-record ambiguity exceeds the supported inspection budget")
+                }
+                remainingEntries -= 1
+                guard cursor + 46 <= limit, try source.uint32(at: cursor) == 0x02014B50 else { return false }
+                let nameLength = Int(try source.uint16(at: cursor + 28))
+                guard nameLength > 0 else { return false }
+                cursor += 46 + nameLength + Int(try source.uint16(at: cursor + 30))
+                    + Int(try source.uint16(at: cursor + 32))
+                guard cursor <= limit else { return false }
+            }
+            if cursor < limit, try source.uint32(at: cursor) == 0x05054B50 {
+                guard cursor + 6 <= limit else { return false }
+                cursor += 6 + Int(try source.uint16(at: cursor + 4))
+            }
+            return cursor == limit
+        }
+
+        private static func sameBytes(in source: ArchiveBytes, first: Int, second: Int, count: Int,
+                                      remainingBytes: inout Int) throws -> Bool {
+            guard first >= 0, second >= 0, first + count <= source.count, second + count <= source.count else { return false }
+            if first == second { return true }
+            for offset in stride(from: 0, to: count, by: 65_536) {
+                let length = min(65_536, count - offset)
+                guard remainingBytes >= length else {
+                    throw ArchiveError("the ZIP end-record ambiguity exceeds the supported inspection budget")
+                }
+                remainingBytes -= length
+                if try source.bytes(in: (first + offset)..<(first + offset + length))
+                    != source.bytes(in: (second + offset)..<(second + offset + length)) { return false }
+            }
+            return true
         }
 
         /// Der Eintragsname genau so, wie ein regelkonformer ZIP-Verbraucher ihn liest.
@@ -711,34 +879,88 @@ enum ZIPArchiveInspector {
         static let maximumMetadataEntrySize = 16_777_216
     }
 
-    /// Der Archivinhalt, geprüft und gelesen über GENAU EINEN Deskriptor.
-    ///
-    /// Vorher prüfte `resourceValues` den aufgelösten PFAD auf reguläre Datei und
-    /// Größe, und `Data(contentsOf:)` öffnete den Pfad danach ein zweites Mal.
-    /// Zeigte ein Eingabe-Symlink dazwischen auf etwas anderes, gehörten Prüfung
-    /// und gelesene Bytes zu verschiedenen Objekten: Die 1-GiB-Grenze und die
-    /// Regularitätsprüfung galten dann für eine Datei, die nie jemand gelesen hat.
-    /// Die Erkennung öffnet Archive vor dem sicheren Staging, dort war das also
-    /// erreichbar (Review-Fund 2026-08-19).
-    private static func verifiedContents(of url: URL, mapsPrivateCopy: Bool) throws -> Data {
-        try VerifiedFile.open(at: url, failure: packageFailure) { package in
+    fileprivate final class ArchiveBytes {
+        let count: Int
+        private let owned: VerifiedFile.Owned?
+        private let mapped: Data?
+        private var cache = Data()
+        private var cacheOffset = 0
+        var layoutValidated = false
+
+        init(url: URL, mapsPrivateCopy: Bool) throws {
+            let fileOwner = try VerifiedFile.openRetained(at: url, failure: packageFailure)
+            let package = fileOwner.file
             guard package.isRegularFile else {
                 throw ArchiveError("the package is not a regular file")
             }
-            guard package.info.st_size <= Int64(Limits.maximumArchiveSize) else {
+            guard package.info.st_size >= 0,
+                  package.info.st_size <= Int64(Limits.maximumArchiveSize) else {
                 throw ArchiveError("the package exceeds the supported archive-size limit")
             }
-            let length = Int(package.info.st_size)
-            guard length > 0 else {
-                return Data()
+            count = Int(package.info.st_size)
+            if mapsPrivateCopy {
+                if count > 0, isOnALocalVolume(package.descriptor),
+                   let bytes = mappedContents(package.descriptor, length: count) {
+                    mapped = bytes
+                } else {
+                    mapped = try readContents(package, length: count)
+                }
+                owned = nil
+            } else {
+                mapped = nil
+                owned = fileOwner
             }
+        }
 
-            if mapsPrivateCopy,
-               isOnALocalVolume(package.descriptor),
-               let mapped = mappedContents(package.descriptor, length: length) {
-                return mapped
+        func bytes(in range: Range<Int>) throws -> Data {
+            guard range.lowerBound >= 0, range.upperBound <= count else {
+                throw ArchiveError("the ZIP byte range is invalid")
             }
-            return try readContents(package, length: length)
+            if let mapped { return mapped[range] }
+            if range.isEmpty { return Data() }
+            if range.lowerBound >= cacheOffset, range.upperBound <= cacheOffset + cache.count {
+                return cache.subdata(in: (range.lowerBound - cacheOffset)..<(range.upperBound - cacheOffset))
+            }
+            let length = range.count <= 65_536 ? min(65_536, count - range.lowerBound) : range.count
+            var bytes = Data(count: length)
+            try bytes.withUnsafeMutableBytes { buffer in
+                var consumed = 0
+                while consumed < length {
+                    try ConversionExecution.check()
+                    let amount = pread(owned!.file.descriptor, buffer.baseAddress!.advanced(by: consumed),
+                                       length - consumed, off_t(range.lowerBound + consumed))
+                    if amount < 0, errno == EINTR { continue }
+                    guard amount > 0 else { throw ArchiveError("the package could not be read completely") }
+                    consumed += amount
+                }
+            }
+            if range.count <= 65_536 {
+                cache = bytes
+                cacheOffset = range.lowerBound
+                return bytes.subdata(in: 0..<range.count)
+            }
+            return bytes
+        }
+
+        func subdata(in range: Range<Int>) throws -> Data {
+            if let mapped { return mapped.subdata(in: range) }
+            return try bytes(in: range)
+        }
+        func uint16(at offset: Int) throws -> UInt16 {
+            guard offset >= 0, offset <= count - 2 else { return 0 }
+            if let mapped { return mapped.uint16(at: offset) }
+            if offset < cacheOffset || offset + 2 > cacheOffset + cache.count {
+                _ = try bytes(in: offset..<(offset + 2))
+            }
+            return cache.uint16(at: offset - cacheOffset)
+        }
+        func uint32(at offset: Int) throws -> UInt32 {
+            guard offset >= 0, offset <= count - 4 else { return 0 }
+            if let mapped { return mapped.uint32(at: offset) }
+            if offset < cacheOffset || offset + 4 > cacheOffset + cache.count {
+                _ = try bytes(in: offset..<(offset + 4))
+            }
+            return cache.uint32(at: offset - cacheOffset)
         }
     }
 
@@ -845,7 +1067,7 @@ enum ZIPArchiveInspector {
             }
         }
         guard status == Z_STREAM_END,
-              Int(stream.total_out) == expectedSize else {
+              Int(stream.total_out) == expectedSize, stream.avail_in == 0 else {
             throw ArchiveError("the compressed data for \(entryName) is invalid")
         }
         output.count = expectedSize
@@ -910,7 +1132,7 @@ enum ZIPArchiveInspector {
         guard produced <= expectedSize else {
             throw ArchiveError("\(entryName) expands beyond the size declared in the ZIP directory")
         }
-        guard status == Z_STREAM_END, produced == expectedSize else {
+        guard status == Z_STREAM_END, produced == expectedSize, stream.avail_in == 0 else {
             throw ArchiveError("the compressed data for \(entryName) is invalid")
         }
         guard UInt32(truncatingIfNeeded: checksum) == expectedChecksum else {

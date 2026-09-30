@@ -1,4 +1,54 @@
-# Paketverarbeitung: Messung 2026-09-05
+# Speicher und Laufzeit der Paketverarbeitung
+
+## ZIP-Erkennung: Messung 2026-09-30
+
+`scripts/benchmark_zip_detection.py` baut zwei optimierte reine Kernprobes:
+Git-Basis `270e1b9` und aktuellen Quellstand. Unveränderliche Quellkopien und
+SHA-256-Manifeste ordnen beide Messprobes ihren Quellen zu. Keine App wird gestartet.
+
+Die drei gültigen temporären ODT-Pakete enthalten denselben `mimetype`, dieselbe
+Dokument-XML und einen unkomprimierten Zusatzeintrag aus Nullbytes. Die Nutzlast
+wird als Sparse-Datei erzeugt; ihre CRC ist korrekt und Info-ZIP prüfte den
+größten Fall erfolgreich vollständig. Gemessen wird ausschließlich die
+Erkennung mit Namensindex und Lesen der beiden Metadateneinträge. Die vollständige
+Prüfung aller Medien vor der Konvertierung bleibt erhalten und ist nicht Teil
+dieser Messung. Metadaten und Namenslisten sind vor/nachher bytegleich; alle
+Quellenhashes bleiben unverändert.
+
+Umgebung: Apple M5, arm64, macOS 26.6.2, Swift 6.4. Drei abwechselnde Läufe je
+Probe und Eingabe, ohne parallel laufende Projektbuilds oder Tests. Zeit ist
+der Median innerhalb des Erkennungsprobes, Speicher der größte Prozess-RSS
+(`maximum resident set size` von `/usr/bin/time -l`).
+
+| Zusätzliche Nutzlast | Erkennung vorher | Erkennung nachher | Spitzen-RSS vorher | Spitzen-RSS nachher |
+| --- | ---: | ---: | ---: | ---: |
+| 1MiB | 0.676 ms | 0.782 ms | 10.47 MiB | 9.56 MiB |
+| 256MiB | 18.859 ms | 0.803 ms | 265.47 MiB | 9.56 MiB |
+| 768MiB | 52.158 ms | 0.744 ms | 777.47 MiB | 9.56 MiB |
+
+Beim 768-MiB-Fall fällt der Spitzen-RSS um 98,77 %. Die Mediengröße erhöht den
+Erkennungsspeicher in dieser Matrix nicht mehr. Das kleine Paket zeigt einen
+zusätzlichen Prüfaufwand von etwa 0,106 ms; ein allgemeiner Laufzeitgewinn ist
+nicht zugesagt. Die Gesamtprozesszeiten einschließlich Start lagen im Median
+bei 9,34/8,84 ms, 28,77/9,84 ms und 64,57/8,46 ms (vorher/nachher).
+
+Der Reader hält einen 64-KiB-Lesepuffer, den höchstens 65.557 Byte langen
+Schlussbereich, den Namensindex und angeforderte, jeweils bereits auf 16 MiB
+begrenzte Metadaten. Der Index wächst weiterhin mit Zahl und Länge der Namen;
+dies ist keine Zusage eines konstanten Gesamtspeichers für beliebige Verzeichnisse.
+Sparse-Nullnutzlast und diese isolierte Erkennung erlauben keine allgemeine
+Aussage über kalte Datenträger oder den RSS einer vollständigen Konvertierung.
+
+Wiederholen, mit einem neuen temporären Ordner:
+
+```sh
+python3 scripts/benchmark_zip_detection.py --baseline 270e1b9 --root /tmp/zip-detection-new-run
+```
+
+`benchmark.json` enthält Einzelwerte, Quellenmanifeste und Datei-/Ergebnishashes.
+Der Ablauf schreibt weder in den Git-Index noch in vorhandene Ausgabeordner.
+
+## Paketverarbeitung: Messung 2026-09-05
 
 `scripts/benchmark_packages.py` erzeugt drei lokale Testfälle und prüft bei jedem
 Lauf sämtliche eindeutigen Textmarken, Bilddateien und Quellenhashes. Die Messung
@@ -12,7 +62,7 @@ Textzellen (384.000 Zellen). Die DOCX-Datei wurde von Pandoc erzeugt und enthäl
 64 unterschiedliche PNG-Bilder mit insgesamt etwa 50 MB. Der dritte Fall sind
 200 kleine CSV-Dateien. PNG-Pixel werden mit festem Zufallsstartwert erzeugt.
 
-## Vergleich unmittelbar vor und nach der Paketänderung
+### Vergleich unmittelbar vor und nach der Paketänderung
 
 Basis ist `503904c`, also **nach** der Fortschritts-/Abbruchimplementierung.
 Beide CLIs wurden separat aus ihrem Quellstand als Release gebaut und auf
@@ -48,7 +98,7 @@ Snapshot mit Archiv- und gelesenen Eintragsprüfungen. Der Konvertierungsweg pr�
 seine selbst erzeugte Arbeitskopie weiterhin vollständig, einschließlich CRC
 und Größen aller Medien.
 
-## Frühere Gesamtbaseline
+### Frühere Gesamtbaseline
 
 `ad476f4` liegt vor der Fortschritts-/Abbrucharbeit und ist deshalb kein isolierter
 Vergleich für die Paketänderung. Sie bleibt zur Einordnung dokumentiert:
@@ -61,7 +111,7 @@ Vergleich für die Paketänderung. Sie bleibt zur Einordnung dokumentiert:
 
 Auch mit dieser Gesamtbaseline stimmen sämtliche Ausgabedatei-Hashes überein.
 
-## Wiederholen
+### Wiederholen
 
 ```sh
 swift build -c release --product poormans-text
@@ -82,7 +132,7 @@ Zeiten, Speicherwerten und allen Ausgabehashes. Jeder Messlauf hat eine eigene
 Abbruch an. Eine fehlgeschlagene oder teilweise vorhandene Serie bleibt zur
 Prüfung erhalten und wird beim nächsten Aufruf mit demselben Namen abgelehnt.
 
-## Begrenzte Batch-Parallelität
+### Begrenzte Batch-Parallelität
 
 Die abschließende Release-CLI wurde mit denselben Eingaben und Optionen jeweils
 mit `--jobs 1` und `--jobs 2` gemessen, drei Läufe je Einstellung. Währenddessen
@@ -125,7 +175,7 @@ Separate echte CLI-Proben bestätigen die feste Kollisionsreihenfolge mit einem
 langsamen XLSX und einem schnellen CSV, den Quellpaketschutz vor dem ersten
 Schreiben sowie SIGINT nach einem fertigen CSV bei noch laufendem XLSX.
 
-### Batch-Messung wiederholen
+#### Batch-Messung wiederholen
 
 Eine neue Fixture-Ablage erzeugen und darin zweite Kopien unter neuen Namen
 anlegen; bestehende Dateien werden dabei nicht überschrieben:

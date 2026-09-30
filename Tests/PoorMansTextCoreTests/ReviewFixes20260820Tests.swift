@@ -93,7 +93,7 @@ final class ReviewFixes20260820Tests: XCTestCase {
     /// einem eigenen XCTest-Prozess: Er dokumentiert den realen Absturz, ohne
     /// den gesamten Testlauf zu beenden. `ZIPArchiveInspector` darf nur seine
     /// unmittelbar zuvor geschriebene Staging-Kopie abbilden; fremde Quellen
-    /// werden durch `readContents` in den Speicher kopiert.
+    /// werden über begrenzte Deskriptorzugriffe gelesen.
     func testTruncatingAMappedArchiveCrashesOnlyTheChildProcess() throws {
         if let path = ProcessInfo.processInfo.environment["POORMANS_TEXT_MAPPED_ARCHIVE_CHILD"] {
             try crashAfterTruncatingMappedArchive(at: URL(fileURLWithPath: path))

@@ -300,9 +300,20 @@ Word-/ODT-Formatwissen und seine XML-Delegates. Beide Paketwege implementieren
 `ZIPPackageReading`: einen Eintrag lesen, vorhandene Namen abfragen oder gezielt
 mehrere Einträge lesen. Entpackte XML-Dateien werden nicht global gespeichert.
 
-Für die Erkennung liest `ZIPInspectionSnapshot` die fremde Quelle über einen
-geprüften Deskriptor in einen nichtgemappten Datensnapshot. Es gelten weiterhin
-Archivbudgets und die Größen-/CRC-Prüfung jedes tatsächlich gelesenen Eintrags.
+Für die Erkennung hält `ZIPInspectionSnapshot` denselben geöffneten und mit
+`fstat` geprüften Deskriptor bis zum Ende seiner Nutzung. Schlussblock,
+Zentralverzeichnis und angeforderte Einträge werden bedarfsgerecht mit `pread`
+gelesen: höchstens 65.557 Bytes Schlussbereich, ein 64-KiB-Lesepuffer und die
+bereits begrenzten Metadateneinträge. Der Namensindex wächst mit den vorhandenen,
+weiterhin auf 10.000 begrenzten Einträgen; die Mediennutzlast wird nicht gehalten.
+Es gelten weiterhin Archivbudgets und die Größen-/CRC-Prüfung jedes tatsächlich
+gelesenen Eintrags. Fremde Dateien werden weder vollständig kopiert noch gemappt.
+Widersprüchliche Schlussblöcke, überlappende Einträge, ungeklärte Lücken und
+Deflate-Restbytes führen zum Abbruch. Reguläre digitale Signatur- und
+Archive-Extra-Data-Blöcke werden anhand ihrer Längen erkannt. Die bestehende
+Ablehnung von ZIP64 und verschlüsselten Paketen bleibt erhalten; ein
+Entschlüsselungsheader macht ein verschlüsseltes Zentralverzeichnis nicht zu
+einem unterstützten Klartextpaket.
 Eine vollständige Medienprüfung bei jedem Erkennungsversuch brachte im Benchmark
 keinen Vorteil und wurde nicht zur Voraussetzung der Formaterkennung gemacht.
 

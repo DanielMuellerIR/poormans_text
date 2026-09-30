@@ -215,6 +215,13 @@ Exit 124 und eine dennoch gelungene nachfolgende CSV-Eingabe.
 Symlink-Austausch, die Vollprüfung auch ungelesener Medieneinträge und das
 Aufräumen kurzlebiger Leser. Die vorhandenen ZIP-, XLS-, XLSX-, ODS- und
 ODM-Tests bleiben unveränderte Verhaltensprüfungen der Sicherheitsgrenzen.
+`ZIPBoundedInspectionTests` prüft zusätzlich widersprüchliche Schlussblöcke
+gegen die tatsächlichen Sichten von Python und Info-ZIP, reguläre Zusatzblöcke,
+Lücken, Deflate-Restbytes sowie die Deskriptorbindung nach Quellaustausch und
+Kürzung. `scripts/benchmark_zip_detection.py` vergleicht die isolierte Erkennung
+mit einer Git-Basis an identischen temporären ODT-Paketen und kontrolliert
+Metadaten sowie Quellenhashes. Große Nutzlasten werden dabei nicht entpackt;
+die vollständige Inhaltsprüfung bleibt Aufgabe des Konvertierungswegs.
 Für eine reproduzierbare Release-Messung mit vollständigem Inhaltsvergleich
 siehe [PERFORMANCE.md](PERFORMANCE.md) und `scripts/benchmark_packages.py`.
 

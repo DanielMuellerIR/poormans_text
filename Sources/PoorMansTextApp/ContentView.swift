@@ -546,11 +546,11 @@ struct ContentView: View {
     private func assetSummary(_ result: ConversionResult) -> String {
         switch result.assets.count {
         case 0:
-            NSLocalizedString("No image assets", comment: "")
+            NSLocalizedString("No asset files", comment: "")
         case 1:
-            NSLocalizedString("1 image asset", comment: "")
+            NSLocalizedString("1 asset file", comment: "")
         default:
-            String(format: NSLocalizedString("%d image assets", comment: ""), result.assets.count)
+            String(format: NSLocalizedString("%d asset files", comment: ""), result.assets.count)
         }
     }
 

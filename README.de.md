@@ -15,7 +15,7 @@ alte Word-Dateien (`.doc`), ODS, XLSX (einschließlich XLSM und XLTX/XLTM), XLS,
 CSV und TSV, PPTX/PPTM/POTX- und ODP-Präsentationen, IPYNB-Notebooks,
 OpenDocument-Masterdokumente (`.odm`), PDFs, HTML und
 Safari-Webarchive, EPUB, LaTeX, DocBook, Org, MediaWiki, Textile,
-reStructuredText, FictionBook sowie PNG-, JPEG-, HEIC-, TIFF-, GIF-, BMP- und
+reStructuredText, FictionBook, EML und Apple Mail (`.emlx`) sowie PNG-, JPEG-, HEIC-, TIFF-, GIF-, BMP- und
 WebP-Bilder in Ordner mit Markdown und gegebenenfalls separat gespeicherten
 Bildern um.
 
@@ -55,6 +55,27 @@ GFM-Standard; der konkrete Farbwert bleibt dabei nicht erhalten. Im bildsicheren
 RTF-Import lassen sich Farbinformationen nicht erhalten; der Text bleibt erhalten
 und der Konverter meldet den Verlust als Warnung.
 
+## E-Mail-Import
+
+EML und Apple-Mail-Dateien (`.emlx`) verwenden denselben Import. Alle
+Nachrichtenkopfzeilen stehen als Markdown-Tabelle vor dem Körper. Bei
+MIME-Alternativen wird ein Körper ausgegeben, bevorzugt die letzte unterstützte
+Darstellung. HTML-Tabellen werden in Textblöcke umgewandelt, damit auch
+verschachtelte Layouttabellen keinen Text verlieren. Verwandte Inlinebilder werden aus der Mail aufgelöst. Anhänge
+bleiben bytegetreu unter `attachments/`, mit sicheren, eindeutigen Dateinamen
+und Links im Markdown. Eingebettete Nachrichten und angehängte MIME-Container
+bleiben als Anhänge erhalten. Entfernte Bilder bleiben Links und werden nie
+geladen; Verweise auf lokale Dateien außerhalb der Mail werden nicht geöffnet.
+Verschlüsselte Nachrichtkörper und defektes MIME werden mit einer Diagnose
+abgelehnt. Grenzen: 64 MiB Quelldatei, 256 KiB Kopfzeilen, 1.024 MIME-Teile,
+32 Verschachtelungsebenen und 128 MiB kumulativ gelesene Teilbytes. Die
+nachgestellte Apple-Mail-Property-List wird nicht importiert.
+
+Standard ist die sichtbare Kopfzeilentabelle. `--frontmatter` bleibt eine
+bewusst wählbare Option für Titel, Absender und Datum; sie ersetzt die Tabelle
+nicht. Der Mailimport braucht Pandoc und unterstützt auch temporäre Ausgaben
+und Textbundle; dort liegen Anhänge unter `assets/`.
+
 ## Voraussetzungen
 
 - macOS 13 oder neuer
@@ -80,7 +101,7 @@ DMG und zugehörige `.sha256`-Datei stehen im
 Ordner, lässt sich der Download vor dem Öffnen prüfen:
 
 ```sh
-shasum -a 256 -c Poor-Mans-Text-0.10.2.dmg.sha256
+shasum -a 256 -c Poor-Mans-Text-0.11.0.dmg.sha256
 ```
 
 Danach das DMG öffnen und Poor Man's Text in den Programme-Ordner ziehen. Die
@@ -225,6 +246,7 @@ mediawiki   .wiki .mediawiki                                  file     pandoc   
 textile     .textile                                          file     pandoc           available
 rst         .rst                                              file     pandoc           available
 fb2         .fb2                                              file     pandoc           available
+eml         .eml .emlx                                        file     pandoc           available
 ```
 
 Fehlt Pandoc, steht bei Textdokumenten, ODM, HTML, E-Books und den
@@ -477,7 +499,7 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.10.2.
+Die aktuelle Version ist 0.11.0.
 
 ## Lizenz
 

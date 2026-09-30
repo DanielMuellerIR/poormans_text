@@ -328,6 +328,15 @@
         </dict>
         <dict>
             <key>CFBundleTypeExtensions</key>
+            <array><string>eml</string><string>emlx</string></array>
+            <key>CFBundleTypeName</key><string>Email Message</string>
+            <key>CFBundleTypeRole</key><string>Viewer</string>
+            <key>LSHandlerRank</key><string>Alternate</string>
+            <key>LSItemContentTypes</key>
+            <array><string>com.apple.mail.email</string><string>com.apple.mail.emlx</string></array>
+        </dict>
+        <dict>
+            <key>CFBundleTypeExtensions</key>
             <array>
                 <string>epub</string>
             </array>
@@ -377,9 +386,9 @@
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>0.10.2</string>
+    <string>0.11.0</string>
     <key>CFBundleVersion</key>
-    <string>20</string>
+    <string>21</string>
     <key>LSApplicationCategoryType</key>
     <string>public.app-category.utilities</string>
     <key>LSMinimumSystemVersion</key>
@@ -420,6 +429,8 @@
                 <string>public.html</string>
                 <string>public.xhtml</string>
                 <string>com.apple.webarchive</string>
+                <string>com.apple.mail.email</string>
+                <string>com.apple.mail.emlx</string>
                 <string>org.idpf.epub-container</string>
                 <string>public.folder</string>
             </array>

@@ -96,6 +96,16 @@ Links, fehlende Bilder zu ihrem Alt-Text; Webarchive liefern ihre Bilder als
 Nebenressourcen (`WebArchiveReader`). Pandoc läuft mit `--sandbox`, sodass etwa
 `\input` in LaTeX keine fremden Dateien liest.
 
+`MailAdapter` erkennt EML und Apple-Mail-EMLX an den Nachrichtenkopfzeilen und
+liest die begrenzte Quelle über einen geprüften Deskriptor. `MIMEMessage`
+beachtet Apple Mails Bytezählung, Headerfaltung, Transfer- und Zeichencodierung,
+Multipart-Grenzen und erweiterte Dateinamen. `MailContent` wählt eine
+Körperalternative, ordnet CID-Ressourcen zu und erhält Anhänge unter eigenen
+sicheren Namen. `MailBodyConverter` nutzt die gemeinsame sichere
+HTML-Schlussstrecke ohne Zugriff auf lokale Nachbardateien. Kopfzeilen werden
+vollständig als Tabelle ausgegeben; das vorhandene Metadatenmodell erhält
+Betreff, Absender und Datum. GUI und CLI verwenden denselben Adapter.
+
 Jeder Adapter liefert neben Markdown und Assets ein `DocumentMetadata`, soweit
 sein Format Titel, Autor oder Daten kennt (`docProps/core.xml`, `meta.xml`,
 RTF-`\info`, PDF-Info-Wörterbuch, EPUB-OPF, FB2-`title-info`, HTML-Kopf; DOC,

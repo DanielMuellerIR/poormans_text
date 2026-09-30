@@ -46,8 +46,10 @@ binary_directory="$(swift build "${build_arguments[@]}" --show-bin-path)"
 "$script_directory/build_icon.sh"
 
 if [ "$build_configuration" = "release" ]; then
-    lipo "$binary_directory/PoorMansTextApp" -verify_arch arm64 x86_64
-    lipo "$binary_directory/poormans-text" -verify_arch arm64 x86_64
+    lipo "$binary_directory/PoorMansTextApp" -verify_arch arm64
+    lipo "$binary_directory/PoorMansTextApp" -verify_arch x86_64
+    lipo "$binary_directory/poormans-text" -verify_arch arm64
+    lipo "$binary_directory/poormans-text" -verify_arch x86_64
 fi
 
 # Das Bundle ist ein vollständig generiertes Artefakt unter .build. Ein alter

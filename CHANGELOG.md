@@ -2,7 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 0.11.0 — 2026-09-30
+
+- Import EML and Apple Mail EMLX messages through the shared engine, with
+  visible header tables, decoded text/HTML bodies, related inline images and
+  byte-preserved attachments in safe, unique output paths. Nested MIME,
+  transfer encodings, header words and extended file-name parameters are
+  bounded and validated; malformed or encrypted bodies fail explicitly.
+- Register mail files for the app and file service, and support the same
+  metadata, temporary output and Textbundle options as the CLI.
+
 
 - Read an HTML charset only from a real `meta` tag or leading XML declaration;
   examples in comments and scripts no longer override the document encoding.

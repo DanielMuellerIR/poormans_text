@@ -13,7 +13,7 @@
 Poor Man's Text converts RTF, RTFD, DOCX (including DOCM and DOTX/DOTM), ODT,
 legacy Word (`.doc`), ODS, XLSX (including XLSM and XLTX/XLTM), XLS, CSV and
 TSV, PPTX/PPTM/POTX and ODP presentations, IPYNB notebooks, OpenDocument master (`.odm`), PDF, HTML and Safari web archives, EPUB,
-LaTeX, DocBook, Org, MediaWiki, Textile, reStructuredText, FictionBook, and
+LaTeX, DocBook, Org, MediaWiki, Textile, reStructuredText, FictionBook, EML and Apple Mail (`.emlx`), and
 PNG, JPEG, HEIC, TIFF, GIF, BMP, or WebP images into folders containing
 Markdown and any separately stored image assets.
 
@@ -50,6 +50,26 @@ extension, but it is not part of standard GFM and does not retain the exact
 color value. RTF color information cannot be retained by the image-safe import
 path; the converter keeps the text and returns a warning instead.
 
+## Email import
+
+EML and Apple Mail `.emlx` files use the same importer. All message headers
+appear in a Markdown table before the body. MIME alternatives produce one
+body, preferring the last supported representation; related inline images are
+resolved from the mail itself. HTML tables become text blocks so that nested
+layout tables retain their text. Attachments retain their bytes under
+`attachments/`, with safe, unique file names and links in the Markdown.
+Embedded messages and attached MIME containers are retained as attachments.
+Remote images are kept as links and are never downloaded; references to local
+files outside the message are not loaded. Encrypted message bodies and malformed
+MIME are rejected with a diagnostic. The reader limits a source to 64 MiB,
+headers to 256 KiB, MIME parts to 1,024, nesting to 32 and cumulative parsed
+part bytes to 128 MiB. Apple Mail's trailing property list is not imported.
+
+The default is the visible header table. `--frontmatter` remains an explicit
+option for title, sender and date metadata; it does not replace the table.
+Email conversion requires Pandoc, and also supports temporary output and
+Textbundle, with attachments moved to `assets/` in a Textbundle.
+
 ## Requirements
 
 - macOS 13 or newer
@@ -75,7 +95,7 @@ Download the DMG and its `.sha256` file from the
 directory, verify the download before opening it:
 
 ```sh
-shasum -a 256 -c Poor-Mans-Text-0.10.2.dmg.sha256
+shasum -a 256 -c Poor-Mans-Text-0.11.0.dmg.sha256
 ```
 
 Open the DMG and drag Poor Man's Text to Applications. The app is signed with
@@ -214,6 +234,7 @@ mediawiki   .wiki .mediawiki                                  file     pandoc   
 textile     .textile                                          file     pandoc           available
 rst         .rst                                              file     pandoc           available
 fb2         .fb2                                              file     pandoc           available
+eml         .eml .emlx                                        file     pandoc           available
 ```
 
 Without Pandoc, the word-processing, ODM, HTML, e-book, and text-markup lines
@@ -454,7 +475,7 @@ and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compa
 their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current version is 0.10.2.
+The current version is 0.11.0.
 
 ## License
 

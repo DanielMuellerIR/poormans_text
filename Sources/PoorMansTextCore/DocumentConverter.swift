@@ -17,6 +17,7 @@ public struct DocumentConverter: Sendable {
             NotebookAdapter(),
             DelimitedTextAdapter(),
             PandocTextAdapter(),
+            MailAdapter(),
         ])
     }
 

@@ -43,8 +43,8 @@
 "Pandoc for word-processing, HTML, e-book, and text-markup formats" = "Pandoc for word-processing, HTML, e-book, and text-markup formats";
 "Converted" = "Converted";
 "Failed" = "Failed";
-"No image assets" = "No image assets";
-"1 image asset" = "1 image asset";
+"No asset files" = "No asset files";
+"1 asset file" = "1 asset file";
 "1 line, ready to paste" = "1 line, ready to paste";
 "Open Documents…" = "Open Documents…";
 "Check for Updates…" = "Check for Updates…";
@@ -72,7 +72,7 @@
 "%d lines, ready to paste" = "%d lines, ready to paste";
 "%d documents converted" = "%d documents converted";
 "%d of %d documents converted" = "%d of %d documents converted";
-"%d image assets" = "%d image assets";
+"%d asset files" = "%d asset files";
 "Input does not exist: %@" = "Input does not exist: %@";
 "Unsupported input format: %@" = "Unsupported input format: %@";
 "Invalid %@ input at %@: %@" = "Invalid %@ input at %@: %@";

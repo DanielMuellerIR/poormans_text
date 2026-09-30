@@ -80,6 +80,8 @@ struct PandocTextAdapter: DocumentConversionAdapter {
             return .noMatch
         }
         let fileExtension = inputURL.pathExtension.lowercased()
+        // HTML im Mailkörper ist keine eigenständige HTML-Quelle, auch bei defekten Mailheadern.
+        if ["eml", "emlx"].contains(fileExtension) { return .noMatch }
         let byExtension = Self.kinds.first { $0.extensions.contains(fileExtension) }
 
         // EPUB ist ein ZIP: der Paketweg entscheidet, nicht der Textkopf.

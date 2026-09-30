@@ -46,11 +46,12 @@ enum ConversionPostprocessor {
                 markdown = MarkdownLinkTargetRewriter.replacing(in: markdown, from: asset, to: newPath)
                 newAssets.append(newPath)
             }
-            // Den leeren `images/`-Ordner nicht im Bundle lassen.
-            let imagesDirectory = stagedOutput.appendingPathComponent("images", isDirectory: true)
-            if let remaining = try? fileManager.contentsOfDirectory(atPath: imagesDirectory.path),
-               remaining.isEmpty {
-                try fileManager.removeItem(at: imagesDirectory)
+            // Nach dem Verschieben der Assets keine leeren Adapterordner im Bundle lassen.
+            for directoryName in ["images", "attachments"] {
+                let directory = stagedOutput.appendingPathComponent(directoryName, isDirectory: true)
+                if let remaining = try? fileManager.contentsOfDirectory(atPath: directory.path), remaining.isEmpty {
+                    try fileManager.removeItem(at: directory)
+                }
             }
 
             try fileManager.removeItem(at: oldMarkdownURL)

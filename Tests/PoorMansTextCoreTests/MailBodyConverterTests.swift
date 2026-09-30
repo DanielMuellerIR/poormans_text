@@ -77,4 +77,24 @@ final class MailBodyConverterTests: XCTestCase {
         XCTAssertEqual(roundtrip.status, 0)
         XCTAssertEqual(try String(contentsOf: plainURL, encoding: .utf8).trimmingCharacters(in: .newlines), text)
     }
+
+    func testNestedMailLayoutTablesKeepEveryCellText() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let work = root.appendingPathComponent("work")
+        let output = root.appendingPathComponent("result")
+        try FileManager.default.createDirectory(at: work, withIntermediateDirectories: false)
+        try FileManager.default.createDirectory(at: output, withIntermediateDirectories: false)
+        let html = "<table><tr><td><p>FIRST_CELL</p><table><tr><td><p>INNER_CELL</p></td><td><p>SECOND_INNER</p></td></tr></table></td><td>LAST_CELL</td></tr></table>"
+        let part = try MIMEMessage.read(Data(("Subject: layout\nContent-Type: text/html\n\n" + html).utf8))
+        let context = AdapterConversionContext(inputURL: root.appendingPathComponent("layout.eml"), format: .eml,
+            workDirectory: work, stagedOutputDirectory: output, options: ConversionOptions())
+        let result = try MailBodyConverter.convert(part, context: context)
+        let markdown = try String(contentsOf: output.appendingPathComponent(result.markdownRelativePath), encoding: .utf8)
+        for marker in ["FIRST_CELL", "INNER_CELL", "SECOND_INNER", "LAST_CELL"] {
+            XCTAssertEqual(markdown.components(separatedBy: marker).count - 1, 1)
+        }
+        XCTAssertTrue(result.warnings.contains(.htmlStructureSimplified))
+    }
 }

@@ -209,3 +209,45 @@ Zählungen anhand der konkreten Quellen bleiben eine zusätzliche Prüfung; rein
 Hashgleichheit beweist keinen vollständigen Import. Nach 120 Sekunden fordert
 es Abbruch an und wartet fünf Sekunden, bevor es eine weiterhin laufende CLI
 beendet. Vorhandene oder unvollständige Messserien bleiben zur Prüfung erhalten.
+
+## Gemeinsame Tabellenbudgets und Bild-Snapshot (0.15.0)
+
+Die Tabellenstufen wurden mit 100.000, 200.000 und 1.000.000 Zeilen zu je
+zehn kurzen Textwerten geprüft, als CSV und ODS mit wiederholten Zeilen.
+Zusätzlich wurden XLSX-Blätter mit 100, 200 und 1.000 Zeilen zu je 10.000
+Spalten geprüft; nur die letzte Spalte enthielt Text, die übrigen Zellen
+wurden vom Leser ergänzt. Unabhängige Zeilen-/Wertzählungen beziehungsweise
+gezählte Markdown-Zellplätze stimmen bei allen Stufen; Quellen bleiben gleich.
+Daraus folgt die gemeinsame Grenze von einer Million Zeilen je Blatt und
+zehn Millionen gerenderten Zellen über alle Blätter, inklusive Leerzellen.
+
+Ein lokaler Release-Lauf auf Apple M5 ergab für die größte Stufe:
+
+| Eingabe | Zeilen | Gerenderte Zellen | CLI-Lauf | Maximaler RSS |
+| --- | ---: | ---: | ---: | ---: |
+| CSV, kurze Textwerte | 1.000.000 | 10.000.000 | 9,727 s | 1.516,72 MiB |
+| ODS, wiederholte Zeilen | 1.000.000 | 10.000.000 | 8,739 s | 180,25 MiB |
+| XLSX, letzte Spalte gefüllt | 1.000 | 10.000.000 | 4,283 s | 936,91 MiB |
+
+Die CSV-/ODS-Ausgaben umfassen etwa 52 MB. RSS wurde über `wait4` am gesamten
+CLI-Prozess gemessen; Nachzählung und Quellenhashes gehören nicht zur Laufzeit.
+Einzelmessungen mit lokalem Cache, teilweise gleichzeitig laufenden Messblöcken,
+sind keine Zusage für kalte Datenträger oder andere Zelltexte. XML-, Text-,
+Link-Scan- und 128-MiB-Ausgabebudgets bleiben zusätzliche Grenzen; eine Datei
+kann diese bereits unterhalb des Zeilen-/Zellbudgets erreichen.
+
+Für Bilder entsteht der private Snapshot aus dem gehaltenen Quelldeskriptor:
+APFS-Clone, sonst Kopieren mit 256-KiB-Puffer. ImageIO liest über den geprüften
+Snapshot-Deskriptor; eine fremde Datei wird nicht durch eigenen Code vollständig
+in `Data` kopiert oder abgebildet. Ein direkter `CGDataProvider` wurde verworfen,
+weil ImageIO bei der großen BMP sämtliche Quelldaten auf einmal anforderte.
+
+Eine erzeugte 16.384 × 16.384-BMP mit 768 MiB Pixelbereich wurde einschließlich
+OCR und Originalasset in 1,548 s bei 954,30 MiB maximalem RSS konvertiert.
+Eine 128 × 128-PNG mit auf 768 MiB aufgefüllten Zusatzdaten benötigte 7,392 s
+und 788,36 MiB. Beide Ergebnisse und Assets sind bytegleich zur 0.14.0-CLI;
+Quellen bleiben unverändert. Das ist kein harter RAM-Deckel: Decoder und Vision
+bestimmen einen Teil des Speichers. Die bestehenden Quelldatei-, Frame- und
+OCR-Pixelbudgets bleiben erhalten. Die Snapshot-Lösung schließt das Rennen und
+vermeidet einen zusätzlichen Voll-Heap, verspricht aber keine generelle Senkung
+des Speicherbedarfs der vorhandenen Systemdecoder.

@@ -281,7 +281,7 @@ enum ODSWorkbookParser {
                 flushPendingCells(parser: parser)
                 guard failure == nil,
                       currentRow!.count + builder.repeated <= SpreadsheetLimits.maximumColumns else {
-                    return fail("a spreadsheet row exceeds the column budget", parser: parser)
+                    return fail(SpreadsheetLimits.columnBudgetMessage, parser: parser)
                 }
                 currentRow!.append(contentsOf: repeatElement(.empty, count: builder.repeated))
                 expandedCellCount += builder.repeated
@@ -291,14 +291,14 @@ enum ODSWorkbookParser {
             if cell.isEmpty {
                 pendingEmptyCells += builder.repeated
                 guard currentRow!.count + pendingEmptyCells <= SpreadsheetLimits.maximumColumns else {
-                    return fail("a spreadsheet row exceeds the column budget", parser: parser)
+                    return fail(SpreadsheetLimits.columnBudgetMessage, parser: parser)
                 }
                 return
             }
             flushPendingCells(parser: parser)
             guard failure == nil else { return }
             guard currentRow!.count + builder.repeated <= SpreadsheetLimits.maximumColumns else {
-                return fail("a spreadsheet row exceeds the column budget", parser: parser)
+                return fail(SpreadsheetLimits.columnBudgetMessage, parser: parser)
             }
             currentRow!.append(contentsOf: repeatElement(cell, count: builder.repeated))
             expandedCellCount += builder.repeated
@@ -308,7 +308,7 @@ enum ODSWorkbookParser {
         private func flushPendingCells(parser: XMLParser) {
             guard pendingEmptyCells > 0 else { return }
             guard currentRow!.count + pendingEmptyCells <= SpreadsheetLimits.maximumColumns else {
-                return fail("a spreadsheet row exceeds the column budget", parser: parser)
+                return fail(SpreadsheetLimits.columnBudgetMessage, parser: parser)
             }
             currentRow!.append(contentsOf: repeatElement(.empty, count: pendingEmptyCells))
             expandedCellCount += pendingEmptyCells
@@ -334,17 +334,17 @@ enum ODSWorkbookParser {
             }
             if pendingEmptyRows > 0 {
                 guard currentRows.count + pendingEmptyRows <= SpreadsheetLimits.maximumRows else {
-                    return fail("a spreadsheet sheet exceeds the row budget", parser: parser)
+                    return fail(SpreadsheetLimits.rowBudgetMessage, parser: parser)
                 }
                 currentRows.append(contentsOf: repeatElement([], count: pendingEmptyRows))
                 pendingEmptyRows = 0
             }
             guard currentRows.count + currentRowRepeat <= SpreadsheetLimits.maximumRows else {
-                return fail("a spreadsheet sheet exceeds the row budget", parser: parser)
+                return fail(SpreadsheetLimits.rowBudgetMessage, parser: parser)
             }
             let repeatedCellCount = row.count * max(0, currentRowRepeat - 1)
             guard expandedCellCount <= SpreadsheetLimits.maximumCells - repeatedCellCount else {
-                return fail("the spreadsheet exceeds the expanded-cell budget", parser: parser)
+                return fail(SpreadsheetLimits.cellBudgetMessage, parser: parser)
             }
             currentRows.append(contentsOf: repeatElement(row, count: currentRowRepeat))
             expandedCellCount += repeatedCellCount
@@ -381,7 +381,7 @@ enum ODSWorkbookParser {
 
         private func checkCellBudget(parser: XMLParser) {
             if expandedCellCount > SpreadsheetLimits.maximumCells {
-                fail("the spreadsheet exceeds the expanded-cell budget", parser: parser)
+                fail(SpreadsheetLimits.cellBudgetMessage, parser: parser)
             }
         }
 

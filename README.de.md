@@ -112,7 +112,7 @@ DMG und zugehörige `.sha256`-Datei stehen im
 Ordner, lässt sich der Download vor dem Öffnen prüfen:
 
 ```sh
-shasum -a 256 -c Poor-Mans-Text-0.14.0.dmg.sha256
+shasum -a 256 -c Poor-Mans-Text-0.15.0.dmg.sha256
 ```
 
 Danach das DMG öffnen und Poor Man's Text in den Programme-Ordner ziehen. Die
@@ -410,7 +410,11 @@ wird. Die Endung entscheidet über das Format, weil reiner Text am Inhalt nicht
 als Tabelle erkennbar ist; `.tsv` trennt an Tabulatoren, `.csv` wählt das
 Trennzeichen, das in den ersten Zeilen am gleichmäßigsten vorkommt. Eine
 Byte-Order-Mark wählt UTF-8 oder UTF-16, Text ohne gültiges UTF-8 wird als
-Windows-1252 mit Warnung gelesen, Binärinhalt wird abgelehnt.
+Windows-1252 mit Warnung gelesen, Binärinhalt wird abgelehnt. Alle Tabellenformate
+haben dieselben Grenzen: 1.000.000 Zeilen je Blatt, 16.384 Spalten und insgesamt
+10.000.000 gerenderte Zellen über alle Blätter. Auch Leerzellen, die Zeilen auf
+dieselbe Breite auffüllen, zählen mit. Das Ausgabelimit von 128 MiB und die
+zusätzlichen Sicherheitsbudgets der Parser bleiben bestehen.
 
 HTML, Safari-Webarchive, EPUB, LaTeX, DocBook, Org, MediaWiki, Textile,
 reStructuredText und FictionBook laufen durch Pandoc im Sandbox-Modus, der
@@ -511,7 +515,7 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.14.0.
+Die aktuelle Version ist 0.15.0.
 
 ## Lizenz
 

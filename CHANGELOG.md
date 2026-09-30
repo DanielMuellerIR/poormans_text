@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.15.0 — 2026-10-01
+
+- Bind image inspection and ImageIO access to checked descriptors and private
+  snapshots. Clone directly from the held descriptor where supported, with a
+  bounded streaming fallback; source replacement or truncation cannot redirect
+  ImageIO to an unchecked object. Preserve original image assets and the existing
+  image engine, OCR pixel budgets and source-size limit.
+- Use the same table limits for CSV/TSV, ODS, XLSX and XLS: 1,000,000 rows per
+  sheet, 16,384 columns and 10,000,000 cells across all sheets. Count empty cells
+  added for rectangular rendering and report the same limits in app and CLI.
+  Keep the 128 MiB output limit and one-million-cell hyperlink scan budget.
+- Show complete conversion errors in the app instead of cutting off the budget
+  reason after a long source path.
+
 ## 0.14.0 — 2026-09-30
 
 - Inspect foreign ZIP document packages through bounded reads from the same

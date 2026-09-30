@@ -123,9 +123,9 @@ struct DelimitedTextAdapter: DocumentConversionAdapter {
 enum DelimitedTextLimits {
     static let maximumSourceBytes = 256 * 1_024 * 1_024
     static let inspectionBytes = 65_536
-    static let maximumRows = 1_000_000
-    static let maximumCells = 5_000_000
-    static let maximumColumns = 16_384
+    static let maximumRows = SpreadsheetLimits.maximumRows
+    static let maximumCells = SpreadsheetLimits.maximumCells
+    static let maximumColumns = SpreadsheetLimits.maximumColumns
 }
 
 /// Bestimmt die Kodierung: BOM zuerst, sonst strenges UTF-8, sonst Windows-1252
@@ -247,23 +247,23 @@ enum DelimitedTextParser {
         var iterator = text.unicodeScalars.makeIterator()
 
         func finishField() throws {
+            guard row.count < DelimitedTextLimits.maximumColumns else {
+                throw DelimitedTextError(SpreadsheetLimits.columnBudgetMessage)
+            }
+            guard cellCount < DelimitedTextLimits.maximumCells else {
+                throw DelimitedTextError(SpreadsheetLimits.cellBudgetMessage)
+            }
             row.append(field.isEmpty ? .empty : SpreadsheetCell(value: .string(field), displayText: field, formula: nil))
             field = ""
             cellCount += 1
-            guard row.count <= DelimitedTextLimits.maximumColumns else {
-                throw DelimitedTextError("the file exceeds \(DelimitedTextLimits.maximumColumns) columns")
-            }
-            guard cellCount <= DelimitedTextLimits.maximumCells else {
-                throw DelimitedTextError("the file exceeds \(DelimitedTextLimits.maximumCells) cells")
-            }
         }
         func finishRow() throws {
+            guard rows.count < DelimitedTextLimits.maximumRows else {
+                throw DelimitedTextError(SpreadsheetLimits.rowBudgetMessage)
+            }
             try finishField()
             rows.append(row)
             row = []
-            guard rows.count <= DelimitedTextLimits.maximumRows else {
-                throw DelimitedTextError("the file exceeds \(DelimitedTextLimits.maximumRows) rows")
-            }
         }
         var lookahead: Unicode.Scalar? = iterator.next()
         var cancellationCounter = 0

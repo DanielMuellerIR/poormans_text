@@ -138,7 +138,7 @@ enum XLSXWorkbookParser {
                     sharedStrings: sharedStrings,
                     maximumCells: SpreadsheetLimits.maximumCells - expandedCellCount,
                     maximumTextBytes: SpreadsheetLimits.maximumOutputBytes - materializedTextBytes,
-                    maximumHyperlinkScans: SpreadsheetLimits.maximumCells - hyperlinkScannedCells,
+                    maximumHyperlinkScans: SpreadsheetLimits.maximumHyperlinkScans - hyperlinkScannedCells,
                     hyperlinkTargets: hyperlinkTargets
                 )
             }
@@ -661,8 +661,10 @@ enum XLSXWorkbookParser {
                 if elementName == "row" {
                     let rowNumber = Int(xlsxAttribute("r", in: attributeDict) ?? "")
                         ?? rows.count + 1
-                    guard rowNumber > 0, rowNumber <= SpreadsheetLimits.maximumRows,
-                          rowNumber >= rows.count + 1 else {
+                    guard rowNumber <= SpreadsheetLimits.maximumRows else {
+                        return fail(SpreadsheetLimits.rowBudgetMessage, parser: parser)
+                    }
+                    guard rowNumber > 0, rowNumber >= rows.count + 1 else {
                         return fail("an XLSX row index is invalid or exceeds the budget", parser: parser)
                     }
                     // Übersprungene Zeilen werden als leere Zeilen angelegt und
@@ -673,7 +675,7 @@ enum XLSXWorkbookParser {
                     let skippedRows = rowNumber - rows.count - 1
                     if skippedRows > 0 {
                         guard expandedCellCount <= maximumCells - skippedRows else {
-                            return fail("the XLSX sheet exceeds the expanded-cell budget", parser: parser)
+                            return fail(SpreadsheetLimits.cellBudgetMessage, parser: parser)
                         }
                         expandedCellCount += skippedRows
                     }
@@ -692,7 +694,7 @@ enum XLSXWorkbookParser {
                         column = row.count
                     }
                     guard let column, column < SpreadsheetLimits.maximumColumns else {
-                        return fail("an XLSX cell reference exceeds the column budget", parser: parser)
+                        return fail(SpreadsheetLimits.columnBudgetMessage, parser: parser)
                     }
                     currentCell = CellBuilder(
                         column: column,
@@ -787,7 +789,7 @@ enum XLSXWorkbookParser {
                     rows.append(trimmed(row))
                     currentRow = nil
                     guard rows.count <= SpreadsheetLimits.maximumRows else {
-                        return fail("the XLSX sheet exceeds the row budget", parser: parser)
+                        return fail(SpreadsheetLimits.rowBudgetMessage, parser: parser)
                     }
                 }
             }
@@ -798,7 +800,7 @@ enum XLSXWorkbookParser {
                 let cellsToAppend = builder.column - currentRow!.count + 1
                 guard cellsToAppend > 0,
                       expandedCellCount <= maximumCells - cellsToAppend else {
-                    return fail("the XLSX sheet exceeds the expanded-cell budget", parser: parser)
+                    return fail(SpreadsheetLimits.cellBudgetMessage, parser: parser)
                 }
                 while currentRow!.count < builder.column { currentRow!.append(.empty) }
                 guard currentRow!.count == builder.column else {
@@ -824,10 +826,10 @@ enum XLSXWorkbookParser {
             ) throws {
                 let range = try cellRange(reference)
                 guard range.lastRow < SpreadsheetLimits.maximumRows else {
-                    throw ParserError("an XLSX hyperlink exceeds the row budget")
+                    throw ParserError(SpreadsheetLimits.rowBudgetMessage)
                 }
                 guard range.lastColumn < SpreadsheetLimits.maximumColumns else {
-                    throw ParserError("an XLSX hyperlink exceeds the column budget")
+                    throw ParserError(SpreadsheetLimits.columnBudgetMessage)
                 }
 
                 // Jeder Hyperlink läuft seinen Bereich zweimal ab: einmal zum
@@ -841,8 +843,8 @@ enum XLSXWorkbookParser {
                 // die Sheet-XML darf bis 16 MiB groß sein.
                 //
                 // Deshalb ein gemeinsames Budget über alle Hyperlinks, in
-                // derselben Größenordnung wie das Zellbudget: Wer Einzelzellen
-                // verlinkt, merkt nichts davon.
+                // weiterhin höchstens eine Million Zellprüfungen. Das größere
+                // Ausgabebudget darf die Arbeit für wiederholte Bereiche nicht erhöhen.
                 //
                 // Das Budget gilt für die GANZE Arbeitsmappe, nicht je Blatt.
                 // Ein Blattbudget hätte eine Arbeitsmappe mit den erlaubten 256
@@ -855,7 +857,7 @@ enum XLSXWorkbookParser {
                 // sprengt, bleibt ein Zellbudget-Fall — die Meldung dazu ändert
                 // sich nicht.
                 guard scannedColumns <= SpreadsheetLimits.maximumCells / max(1, scannedRows) else {
-                    throw ParserError("the XLSX sheet exceeds the expanded-cell budget")
+                    throw ParserError(SpreadsheetLimits.cellBudgetMessage)
                 }
                 // Neu ist allein die SUMME: Nach dieser Schranke passt das
                 // Produkt sicher in den Zähler.
@@ -873,7 +875,7 @@ enum XLSXWorkbookParser {
                             : 0
                         addedCells += max(0, range.lastColumn + 1 - accountedWidth)
                         guard expandedCellCount <= maximumCells - addedCells else {
-                            throw ParserError("the XLSX sheet exceeds the expanded-cell budget")
+                            throw ParserError(SpreadsheetLimits.cellBudgetMessage)
                         }
                         for columnIndex in range.firstColumn...range.lastColumn
                         where !rows.indices.contains(rowIndex)

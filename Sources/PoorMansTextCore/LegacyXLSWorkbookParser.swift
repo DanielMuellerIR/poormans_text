@@ -105,7 +105,7 @@ enum LegacyXLSWorkbookParser {
                     before: endOffset,
                     sharedStrings: sharedStrings,
                     maximumCells: SpreadsheetLimits.maximumCells - expandedCellCount,
-                    maximumHyperlinkScans: SpreadsheetLimits.maximumCells - hyperlinkScannedCellCount
+                    maximumHyperlinkScans: SpreadsheetLimits.maximumHyperlinkScans - hyperlinkScannedCellCount
                 )
                 expandedCellCount += parsed.expandedCellCount
                 hyperlinkScannedCellCount += parsed.hyperlinkScannedCellCount
@@ -413,7 +413,7 @@ enum LegacyXLSWorkbookParser {
                 }
                 cellBudget += maximumColumn + 1
                 guard cellBudget <= maximumCells else {
-                    throw ParserError("the XLS sheet exceeds the expanded-cell budget")
+                    throw ParserError(SpreadsheetLimits.cellBudgetMessage)
                 }
                 var row = [SpreadsheetCell](repeating: .empty, count: maximumColumn + 1)
                 for (column, cell) in sparse { row[column] = cell }
@@ -501,7 +501,7 @@ enum LegacyXLSWorkbookParser {
             let rows = hyperlink.range.lastRow - hyperlink.range.firstRow + 1
             let columns = hyperlink.range.lastColumn - hyperlink.range.firstColumn + 1
             guard rows > 0, columns > 0,
-                  columns <= SpreadsheetLimits.maximumCells / rows else {
+                  columns <= SpreadsheetLimits.maximumHyperlinkScans / rows else {
                 throw ParserError("the XLS hyperlinks exceed the scan budget")
             }
             let scannedCells = rows * columns

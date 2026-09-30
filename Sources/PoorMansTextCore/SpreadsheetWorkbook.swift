@@ -54,20 +54,41 @@ struct SpreadsheetWorkbook: Equatable, Sendable {
     var hasUnsupportedObjects = false
 }
 
-/// Die Grenzen aller drei Arbeitsmappen-Leser.
-///
-/// XLSX, ODS und XLS lesen dasselbe Modell und standen vorher mit drei
-/// getrennten, wortgleichen Kopien nebeneinander — eine Grenze zu ändern hätte
-/// die Leser auseinanderlaufen lassen (Review-Fund 2026-09-10).
+/// Gemeinsame Grenzen für CSV/TSV und alle Arbeitsmappen-Leser sowie den Renderer.
 enum SpreadsheetLimits {
     /// Genug für große reale Tabellen, aber klein genug, damit wiederverwendete
     /// Zelltexte keine praktisch unbegrenzte Markdown-Ausgabe erzeugen können.
     static let maximumOutputBytes = 128 * 1_024 * 1_024
     static let maximumSheets = 256
-    static let maximumRows = 100_000
+    static let maximumRows = 1_000_000
     static let maximumColumns = 16_384
-    static let maximumCells = 1_000_000
+    static let maximumCells = 10_000_000
     static let maximumSharedStrings = 1_000_000
+    static let maximumHyperlinkScans = 1_000_000
+
+    static let rowBudgetMessage = "the table exceeds the row budget of \(maximumRows) rows per sheet"
+    static let cellBudgetMessage = "the tables exceed the expanded-cell budget of \(maximumCells) cells across all sheets, including empty cells filled for rendering"
+    static let columnBudgetMessage = "the table exceeds the column budget of \(maximumColumns) columns"
+
+    /// Der Renderer füllt jede Zeile auf die breiteste Zeile des Blattes auf.
+    /// Auch diese leeren Ausgabezellen kosten Arbeit und zählen formatunabhängig.
+    static func validate(_ workbook: SpreadsheetWorkbook) throws {
+        guard workbook.sheets.count <= maximumSheets else {
+            throw SpreadsheetRenderError("the workbook exceeds the sheet budget of \(maximumSheets) sheets")
+        }
+        var remainingCells = maximumCells
+        for sheet in workbook.sheets {
+            try ConversionExecution.check()
+            guard sheet.rows.count <= maximumRows else { throw SpreadsheetRenderError(rowBudgetMessage) }
+            let columns = sheet.rows.reduce(0) { max($0, $1.count) }
+            guard columns <= maximumColumns else { throw SpreadsheetRenderError(columnBudgetMessage) }
+            let width = sheet.rows.isEmpty ? 0 : max(1, columns)
+            guard width == 0 || sheet.rows.count <= remainingCells / width else {
+                throw SpreadsheetRenderError(cellBudgetMessage)
+            }
+            remainingCells -= sheet.rows.count * width
+        }
+    }
 }
 
 /// Entscheidet, ob ein Linkziel aus einer Quelldatei ins Ergebnis darf.
@@ -134,6 +155,7 @@ enum SpreadsheetMarkdownRenderer {
         style: SpreadsheetRendering,
         maximumOutputBytes: Int = SpreadsheetLimits.maximumOutputBytes
     ) throws -> String {
+        try SpreadsheetLimits.validate(workbook)
         var output = BoundedSpreadsheetOutput(maximumBytes: maximumOutputBytes)
         try output.append(
             "# \(MarkdownEscaping.heading(sourceURL.deletingPathExtension().lastPathComponent))"

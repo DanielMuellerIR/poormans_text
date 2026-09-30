@@ -237,3 +237,17 @@ sowie Zeilengrenzen in Tracebacks bei weiterhin verbundenen Quelltextfragmenten.
 PDFs mit gleichem digitalen Kopf und Bild, einmal mit direkten und einmal mit
 geerbten Ressourcen. Beide müssen die automatische OCR auslösen. Alle drei
 Dokumenttypen werden zusätzlich auf unveränderte Quelldateien geprüft.
+
+## Bild-Deskriptor und gemeinsame Tabellenbudgets
+
+`VerifiedImageSourceTests` prüft Pfadaustausch gegen reguläre Datei/FIFO,
+nicht reguläre Quellen, Größenüberschreitung, Kürzung/Wachstum und gleich große
+Änderungen. ImageIO sieht einen eigenen Snapshot aus dem gehaltenen Deskriptor,
+auf APFS per Clone und sonst über den begrenzten Staging-Puffer. Tests prüfen
+beide Kopierwege sowie die Deskriptorfreigabe. `ImageAdapterTests` ergänzt echte
+PNG-/TIFF-Fixtures, OCR, Verkleinerung und bytegleiche Originalassets.
+
+`SpreadsheetBudgetTests` prüft die gemeinsamen Grenzen bei und über der
+gewählten Zeilen-/Zell-/Spaltengrenze, über mehrere Blätter, mit aufgefüllten
+Leerzellen und in beiden Rendering-Stilen. Parserprüfungen bleiben frühzeitig
+aktiv; Link-Scan-, XML-, Text- und Ausgabebudgets sind zusätzliche Grenzen.

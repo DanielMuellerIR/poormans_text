@@ -76,30 +76,6 @@ Offen bleibt auf der Seite des Hosts:
   Fortschrittscallbacks statt CLI-Ausgabe benötigt. Die CLI bietet bereits
   `--progress` und Abbruch über SIGINT/SIGTERM; deren Nutzung entscheidet der Host.
 
-## Offene Härtung aus der CodeQA-Kampagne (Stand 2026-09-10)
-
-Ein Punkt außerhalb des ZIP-Tors ist belegt, aber bewusst nicht umgesetzt,
-weil er eine Entwurfsentscheidung braucht:
-
-- **Geprüfter Deskriptor für Bilder.** `ImageAdapter.imageProbe` beschreibt den
-  Pfad mit `resourceValues` und öffnet ihn danach ein zweites Mal über
-  `CGImageSourceCreateWithURL`. Für PDF wurde genau dieses Muster bereits durch
-  einen gemeinsamen Deskriptor ersetzt. Bei Bildern hieße das, die Datei
-  vollständig in den Speicher zu lesen (`CGImageSourceCreateWithData`), was
-  `kCGImageSourceShouldCache: false` bewusst vermeidet. Die zentrale
-  `S_IFREG`-Prüfung in `DocumentConverter.detectInput` weist eine untergeschobene
-  FIFO heute schon ab; offen bleibt nur das schmale Fenster dazwischen.
-
-## Offene Punkte der Tabellenleser (Stand 2026-09-10)
-
-Belegt, aber bewusst nicht in der Kampagne umgesetzt:
-
-- **Zwei Zeilenbudgets für dasselbe Modell.** CSV/TSV erlauben 1 000 000 Zeilen
-  und 5 000 000 Zellen, die drei Arbeitsmappen-Leser 100 000 und 1 000 000 —
-  beide Wege enden im selben Renderer. Eine Tabelle mit 150 000 Zeilen wird
-  also als CSV angenommen und als ODS abgelehnt. Welche Zahl gelten soll, ist
-  eine Produktentscheidung.
-
 ## Technische Referenzen
 
 - [Apple Vision](https://developer.apple.com/documentation/vision) — lokale

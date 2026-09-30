@@ -376,6 +376,7 @@ struct ContentView: View {
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
                 .textSelection(.enabled)
+                .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: 430)
             HStack {
                 Button("Choose Document…") {

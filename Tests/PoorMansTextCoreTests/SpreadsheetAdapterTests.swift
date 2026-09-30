@@ -293,12 +293,12 @@ final class SpreadsheetAdapterTests: XCTestCase {
     /// Zellbudgets: Dieselbe Mappe, die knapp unter dem Budget liegt, kippt
     /// mit der Lücke darüber.
     func testXLSXRowGapsCountAgainstTheExpandedCellBudget() throws {
-        let wideRows = (1...55).map { #"<row r="\#($0)"><c r="XFD\#($0)"><v>1</v></c></row>"# }.joined()
+        let wideRows = (1...((SpreadsheetLimits.maximumCells - SpreadsheetLimits.maximumRows) / 16_384 + 1)).map { #"<row r="\#($0)"><c r="XFD\#($0)"><v>1</v></c></row>"# }.joined()
         func sheet(withGap: Bool) -> String {
             """
             <?xml version="1.0" encoding="UTF-8"?>
             <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
-              <sheetData>\(wideRows)\(withGap ? #"<row r="100000"/>"# : "")</sheetData>
+              <sheetData>\(wideRows)\(withGap ? "<row r=\"\(SpreadsheetLimits.maximumRows)\"/>" : "")</sheetData>
             </worksheet>
             """
         }
@@ -390,7 +390,7 @@ final class SpreadsheetAdapterTests: XCTestCase {
     }
 
     func testXLSXExpandedCellBudgetRejectsManySparseRows() throws {
-        let rows = (1...31).map {
+        let rows = (1...(SpreadsheetLimits.maximumCells / (2 * 16_384) + 1)).map {
             #"<row r="\#($0)"><c r="XFD\#($0)"><v>1</v></c></row>"#
         }.joined()
         let oversizedSheet = """
@@ -659,9 +659,9 @@ final class SpreadsheetAdapterTests: XCTestCase {
 
     func testXLSXHyperlinkDisplayHonorsRowColumnAndCellBudgets() throws {
         let cases = [
-            ("Row", "A100001", "an XLSX hyperlink exceeds the row budget"),
-            ("Column", "XFE1", "an XLSX hyperlink exceeds the column budget"),
-            ("Cells", "A1:XFD100000", "the XLSX sheet exceeds the expanded-cell budget"),
+            ("Row", "A\(SpreadsheetLimits.maximumRows + 1)", SpreadsheetLimits.rowBudgetMessage),
+            ("Column", "XFE1", SpreadsheetLimits.columnBudgetMessage),
+            ("Cells", "A1:XFD\(SpreadsheetLimits.maximumRows)", SpreadsheetLimits.cellBudgetMessage),
         ]
         for (name, reference, expectedMessage) in cases {
             let sheet = """
@@ -1231,7 +1231,7 @@ final class SpreadsheetAdapterTests: XCTestCase {
     /// auf das Budget zu kürzen wäre Inhaltsverlust.
     func testARepeatedRowWithContentBeyondTheBudgetIsStillRejected() {
         XCTAssertThrowsError(try ODSWorkbookParser.parse(odsSheet("""
-        <table:table-row table:number-rows-repeated="200000"><table:table-cell office:value-type="string"><text:p>X</text:p></table:table-cell></table:table-row>
+        <table:table-row table:number-rows-repeated="\(SpreadsheetLimits.maximumRows + 1)"><table:table-cell office:value-type="string"><text:p>X</text:p></table:table-cell></table:table-row>
         """))) { error in
             XCTAssertTrue(error.localizedDescription.contains("row budget"), error.localizedDescription)
         }
@@ -1242,7 +1242,7 @@ final class SpreadsheetAdapterTests: XCTestCase {
     func testAnEmptyRowGapBeyondTheBudgetBetweenContentIsRejected() {
         XCTAssertThrowsError(try ODSWorkbookParser.parse(odsSheet("""
         <table:table-row><table:table-cell office:value-type="string"><text:p>A</text:p></table:table-cell></table:table-row>
-        <table:table-row table:number-rows-repeated="200000"><table:table-cell/></table:table-row>
+        <table:table-row table:number-rows-repeated="\(SpreadsheetLimits.maximumRows + 1)"><table:table-cell/></table:table-row>
         <table:table-row><table:table-cell office:value-type="string"><text:p>B</text:p></table:table-cell></table:table-row>
         """))) { error in
             XCTAssertTrue(error.localizedDescription.contains("row budget"), error.localizedDescription)

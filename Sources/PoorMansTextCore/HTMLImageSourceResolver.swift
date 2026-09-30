@@ -250,6 +250,10 @@ enum HTMLImageSourceResolver {
             return nil
         }
         var keys = [reference]
+        if reference.lowercased().hasPrefix("cid:"),
+           let identifier = String(reference.dropFirst(4)).removingPercentEncoding {
+            keys.append("cid:" + identifier)
+        }
         if let url = URL(string: reference), url.scheme != nil {
             keys.append(url.absoluteString)
         } else if let baseURL, let resolved = URL(string: reference, relativeTo: baseURL)?.absoluteURL {

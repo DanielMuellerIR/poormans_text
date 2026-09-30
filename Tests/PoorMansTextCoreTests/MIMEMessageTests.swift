@@ -99,4 +99,13 @@ final class MIMEMessageTests: XCTestCase {
         }
         XCTAssertThrowsError(try MIMEMessage.read(Data(source.utf8)))
     }
+
+    func testEmptyMultipartBodyKeepsItsHeaderSeparator() throws {
+        for newline in ["\n", "\r\n"] {
+            let source = ["Content-Type: multipart/mixed; boundary=x", "", "--x", "Content-Type: text/plain", "", "--x--"].joined(separator: newline)
+            let mail = try MIMEMessage.read(Data(source.utf8))
+            XCTAssertEqual(mail.children.count, 1)
+            XCTAssertTrue(mail.children[0].body.isEmpty)
+        }
+    }
 }

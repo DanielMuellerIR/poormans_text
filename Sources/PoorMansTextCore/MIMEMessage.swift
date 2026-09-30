@@ -35,7 +35,7 @@ enum MIMEMessage {
         func text() throws -> String {
             let charset = parameters["charset"] ?? "us-ascii"
             guard let encoding = String.Encoding(ianaCharSetName: charset),
-                  let text = String(data: body, encoding: encoding) else {
+                  let text = String(data: body, encoding: encoding), !text.contains("\0") else {
                 throw Failure(reason: "the mail text cannot be decoded using charset \(charset)")
             }
             return text
@@ -61,10 +61,10 @@ enum MIMEMessage {
         }
         var count = 0
         var parsedBytes = 0
-        return try parse(message, depth: 0, count: &count, parsedBytes: &parsedBytes)
+        return try parse(message, defaultMediaType: "text/plain", depth: 0, count: &count, parsedBytes: &parsedBytes)
     }
 
-    private static func parse(_ data: Data, depth: Int, count: inout Int, parsedBytes: inout Int) throws -> Part {
+    private static func parse(_ data: Data, defaultMediaType: String, depth: Int, count: inout Int, parsedBytes: inout Int) throws -> Part {
         try ConversionExecution.check()
         count += 1
         parsedBytes += data.count
@@ -76,7 +76,7 @@ enum MIMEMessage {
         for name in ["content-type", "content-transfer-encoding", "content-disposition"] {
             guard headers.filter({ $0.name == name }).count <= 1 else { throw Failure(reason: "duplicate MIME control header: \(name)") }
         }
-        let contentType = try parameterized(header("content-type") ?? "text/plain")
+        let contentType = try parameterized(header("content-type") ?? defaultMediaType)
         let disposition = try parameterized(header("content-disposition") ?? "")
         let body = try decodeTransfer(rawBody, encoding: header("content-transfer-encoding") ?? "7bit")
         var children = [Part]()
@@ -86,7 +86,8 @@ enum MIMEMessage {
                 throw Failure(reason: "the multipart boundary is invalid or missing")
             }
             for child in try multipart(body, boundary: boundary) {
-                children.append(try parse(child, depth: depth + 1, count: &count, parsedBytes: &parsedBytes))
+                children.append(try parse(child, defaultMediaType: contentType.0 == "multipart/digest" ? "message/rfc822" : "text/plain",
+                                          depth: depth + 1, count: &count, parsedBytes: &parsedBytes))
             }
         }
         return Part(headers: headers, mediaType: contentType.0, parameters: contentType.1,
@@ -153,6 +154,14 @@ enum MIMEMessage {
                 // Die Zeilenendung unmittelbar vor dem Delimiter gehört zum Delimiter (RFC 2046).
                 if partEnd > partStart, bytes[partEnd - 1] == 10 { partEnd -= 1 }
                 if partEnd > partStart, bytes[partEnd - 1] == 13 { partEnd -= 1 }
+                // Bei einem leeren Körper darf die gemeinsame CRLF die Header-Leerzeile nicht entfernen.
+                let headerPrefix = Data(bytes[partStart..<min(start, partStart + maximumHeaderBytes + 4)])
+                let separators = [Data([13, 10, 13, 10]), Data([10, 10])]
+                    .compactMap { headerPrefix.range(of: $0) }
+                let separator = separators.min { $0.lowerBound < $1.lowerBound }
+                if separator?.upperBound == start - partStart || headerPrefix == Data([10]) || headerPrefix == Data([13, 10]) {
+                    partEnd = start
+                }
                 guard parts.count < maximumParts else { throw Failure(reason: "the MIME part limit was exceeded") }
                 parts.append(Data(bytes[partStart..<partEnd]))
             }

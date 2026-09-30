@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.13.0 — 2026-09-30
+
+- Infer PDF headings from document font sizes and reconstruct simple closed-grid
+  tables, including empty cells and multiline values, using the existing PDFKit
+  engine. Source text remains escaped; source files remain untouched.
+- Keep label/value associations when PDFKit spaces span a table gutter. Use
+  paragraph continuation as an additional signal for two-column reading order;
+  unresolved layouts retain row order with a visible, page-specific warning.
+- Preserve the legacy extraction for comparison. Borderless tables, complex
+  grids and font substitutions remain document-dependent limitations.
+
 ## 0.12.0 — 2026-09-30
 
 - Import Outlook MSG mail without Office through a bounded OLE/property reader

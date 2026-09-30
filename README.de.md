@@ -112,7 +112,7 @@ DMG und zugehörige `.sha256`-Datei stehen im
 Ordner, lässt sich der Download vor dem Öffnen prüfen:
 
 ```sh
-shasum -a 256 -c Poor-Mans-Text-0.12.0.dmg.sha256
+shasum -a 256 -c Poor-Mans-Text-0.13.0.dmg.sha256
 ```
 
 Danach das DMG öffnen und Poor Man's Text in den Programme-Ordner ziehen. Die
@@ -477,7 +477,7 @@ Erwartbare Verluste oder Annäherungen:
 - mehrere unterschiedliche Linkziele in einer Tabellenzelle; das erste Ziel und
   der gesamte sichtbare Text bleiben, das weitere Ziel wird als Warnung gemeldet
 - ODM-Abschnittsgrenzen und Masterdokumentverhalten nach dem Zusammenführen
-- Komplexes PDF-Seitenlayout, Tabellen sowie genaue
+- Komplexes PDF-Seitenlayout, Tabellen ohne rekonstruierbares Gitter sowie genaue
   Textpositionen; lokale OCR kann Erkennungsfehler enthalten und braucht Prüfung
 - OCR-Lesereihenfolge und genaues Layout von Bildern; das erhaltene Originalbild
   bleibt die maßgebliche Quelle zur Prüfung
@@ -511,7 +511,7 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.12.0.
+Die aktuelle Version ist 0.13.0.
 
 ## Lizenz
 
@@ -535,7 +535,9 @@ einzige Netzwerkzugriff ist die Update-Suche. Einzelheiten stehen in
 `--pdf-ocr auto|always|off` steuert lokale OCR; die Automatik erkennt auch
 Scanbilder unter digitalen Kopfzeilen. `--ocr-language de,en` wählt lokal von
 Vision unterstützte Sprachen für PDF- und Bildimporte. `--pdf-layout auto|legacy`
-wählt zweispaltige Textordnung oder die bisherige Extraktion zum Vergleich.
+wählt Überschriften aus Schriftgrößen, einfache Gittertabellen und zweispaltige
+Textordnung oder die bisherige Extraktion zum Vergleich. Mehrdeutig ausgerichteter
+Text behält die Zeilenordnung und erhält eine sichtbare Warnung.
 `--pdf-remove-headers-footers` entfernt wiederkehrenden Text am Seitenrand;
 `--pdf-dehyphenate` verbindet auf Wunsch vorsichtig kleingeschriebene Wortteile.
 Die App merkt sich diese Einstellungen. Digitaler Quelltext bleibt erhalten,

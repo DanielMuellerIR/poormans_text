@@ -1,9 +1,13 @@
 import Foundation
 import PDFKit
+import AppKit
 
 struct PDFTextLine {
     let text: String
     let bounds: CGRect
+    var fontSize: CGFloat? = nil
+    var isBold: Bool = false
+    var sourceLine: Int = 0
 }
 
 /// Positionsbezogene Textverarbeitung. Sie entfernt keine Wörter: Ein unsicherer
@@ -18,15 +22,18 @@ enum PDFTextLayout {
               !text.unicodeScalars.contains(where: { (0x590...0x8FF).contains($0.value) || (0xFB1D...0xFEFF).contains($0.value) }) else {
             return fallback()
         }
+        let attributed = page.selection(for: NSRange(location: 0, length: text.utf16.count))?.attributedString
+        let fontTextMatches = attributed?.string == text
         var glyphs: [PDFTextLine] = []
         var offset = 0
         var lineReference: CGRect?
+        var sourceLine = 0
         for character in text {
             if offset & 4095 == 0 { try ConversionExecution.check() }
             let value = String(character)
             let length = value.utf16.count
             defer { offset += length }
-            if value == "\n" || value == "\r" { lineReference = nil; continue }
+            if value == "\n" || value == "\r" || value == "\r\n" { lineReference = nil; sourceLine += 1; continue }
             // characterBounds verwendet andere Indizes für synthetische Zeilenwechsel.
             // PDFSelection bindet den NSString-Bereich an denselben Quelltext.
             guard let selection = page.selection(for: NSRange(location: offset, length: length)), selection.string == value else { return fallback() }
@@ -38,7 +45,11 @@ enum PDFTextLayout {
                 return fallback()
             }
             if !value.trimmingCharacters(in: .whitespaces).isEmpty { lineReference = bounds }
-            glyphs.append(PDFTextLine(text: value, bounds: bounds))
+            let font = fontTextMatches ? attributed?.attribute(.font, at: offset, effectiveRange: nil) as? NSFont : nil
+            let size = font?.pointSize
+            glyphs.append(PDFTextLine(text: value, bounds: bounds,
+                fontSize: size.flatMap { $0.isFinite && $0 > 0 ? $0 : nil },
+                isBold: font.map { NSFontManager.shared.traits(of: $0).contains(.boldFontMask) } ?? false, sourceLine: sourceLine))
         }
         let sorted = glyphs.sorted { $0.bounds.midY == $1.bounds.midY ? $0.bounds.minX < $1.bounds.minX : $0.bounds.midY > $1.bounds.midY }
         var bands: [[PDFTextLine]] = []
@@ -49,23 +60,44 @@ enum PDFTextLayout {
             } else { bands.append([glyph]) }
         }
         var lines: [PDFTextLine] = []
-        for band in bands {
+        // PDFKit-Zeilen bleiben getrennt, auch wenn benachbarte Spalten leicht
+        // versetzte Grundlinien haben und deshalb in dasselbe Höhenband fallen.
+        let sourceBands = bands.flatMap { band in
+            Dictionary(grouping: band, by: \.sourceLine).values.sorted {
+                let left = $0.map { $0.bounds.minX }.min() ?? 0
+                let right = $1.map { $0.bounds.minX }.min() ?? 0
+                return left == right ? ($0.first?.sourceLine ?? 0) < ($1.first?.sourceLine ?? 0) : left < right
+            }
+        }
+        for band in sourceBands {
             let glyphs = band.sorted { $0.bounds.minX < $1.bounds.minX }
             var text = ""
             var bounds = CGRect.null
+            var sizes = Set<CGFloat>()
+            var allBold = true
             func finish() {
                 let value = text.trimmingCharacters(in: .whitespacesAndNewlines)
-                if !value.isEmpty { lines.append(PDFTextLine(text: value, bounds: bounds)) }
+                if !value.isEmpty { lines.append(PDFTextLine(text: value, bounds: bounds, fontSize: sizes.count == 1 && sizes.first != 0 ? sizes.first : nil, isBold: allBold)) }
                 text = ""
                 bounds = .null
+                sizes = []
+                allBold = true
             }
             for glyph in glyphs {
+                // Ein synthetisches Leerzeichen kann bis zur nächsten Zelle
+                // reichen. Nur sichtbare Zeichen bestimmen die horizontale Lücke.
+                if glyph.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    text += glyph.text
+                    continue
+                }
                 if !bounds.isNull {
                     let gap = glyph.bounds.minX - bounds.maxX
                     if gap > max(12, glyph.bounds.height * 1.5) { finish() }
                 }
                 text += glyph.text
                 bounds = bounds.union(glyph.bounds)
+                if let size = glyph.fontSize { sizes.insert(size) } else { sizes.insert(0) }
+                allBold = allBold && glyph.isBold
             }
             finish()
         }
@@ -80,14 +112,37 @@ enum PDFTextLayout {
         return lines
     }
 
+    static func rowOrdered(_ lines: [PDFTextLine]) -> [PDFTextLine] {
+        lines.sorted { $0.bounds.midY == $1.bounds.midY ? $0.bounds.minX < $1.bounds.minX : $0.bounds.midY > $1.bounds.midY }
+    }
+
+    static func hasAmbiguousColumns(_ lines: [PDFTextLine], pageBounds: CGRect, evidence: [PDFTextLine]? = nil) -> Bool {
+        let source = evidence ?? lines
+        let groups = columnGroups(source, pageBounds: pageBounds)
+        let left = groups.left
+        let right = groups.right
+        guard left.count >= 2, right.count >= 2 else { return false }
+        func hasContinuation(_ column: [PDFTextLine]) -> Bool {
+            let sorted = rowOrdered(column)
+            return zip(sorted, sorted.dropFirst()).contains { previous, next in
+                guard let first = next.text.first, first.isLowercase,
+                      let last = previous.text.last, !".!?:;".contains(last) else { return false }
+                return previous.bounds.minY - next.bounds.maxY < max(previous.bounds.height, next.bounds.height) * 2
+                    && abs(previous.bounds.minX - next.bounds.minX) < 20
+            }
+        }
+        // Zeilenfortsetzungen sind ein zusätzliches Textsignal. Zwei geometrisch
+        // gleiche Listen bleiben mehrdeutig, auch bei vielen ausgerichteten Zeilen.
+        return !(hasContinuation(left) && hasContinuation(right))
+    }
+
     static func ordered(_ lines: [PDFTextLine], pageBounds: CGRect) -> [PDFTextLine] {
         let sorted = lines.sorted { $0.bounds.midY == $1.bounds.midY ? $0.bounds.minX < $1.bounds.minX : $0.bounds.midY > $1.bounds.midY }
-        let middle = pageBounds.midX
-        let gap = pageBounds.width * 0.015
-        let left = sorted.filter { $0.bounds.maxX < middle - gap }
-        let right = sorted.filter { $0.bounds.minX > middle + gap }
+        let groups = columnGroups(sorted, pageBounds: pageBounds)
+        let left = groups.left
+        let right = groups.right
         guard left.count >= 2, right.count >= 2 else { return sorted }
-        let spanning = sorted.filter { $0.bounds.maxX >= middle - gap && $0.bounds.minX <= middle + gap }
+        let spanning = groups.spanning
         var output: [PDFTextLine] = []
         var remainingLeft = left
         var remainingRight = right
@@ -99,6 +154,16 @@ enum PDFTextLayout {
             output.append(separator)
         }
         return output + remainingLeft + remainingRight
+    }
+
+    private static func columnGroups(_ lines: [PDFTextLine], pageBounds: CGRect) -> (left: [PDFTextLine], right: [PDFTextLine], spanning: [PDFTextLine]) {
+        let right = lines.filter { $0.bounds.minX > pageBounds.midX }
+        guard let rightStart = right.map({ $0.bounds.minX }).min() else { return ([], [], lines) }
+        // Die echte rechte Textkante bestimmt die Gasse. Im Jura-Handbuch
+        // reicht die linke Spalte über die geometrische Seitenmitte hinaus.
+        let left = lines.filter { $0.bounds.minX <= pageBounds.midX && $0.bounds.maxX <= rightStart }
+        let spanning = lines.filter { $0.bounds.minX <= pageBounds.midX && $0.bounds.maxX > rightStart }
+        return (left, right, spanning)
     }
 
     /// Wiederkehrend heißt: an mindestens zwei und 60 Prozent der Seiten in

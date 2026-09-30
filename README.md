@@ -105,7 +105,7 @@ Download the DMG and its `.sha256` file from the
 directory, verify the download before opening it:
 
 ```sh
-shasum -a 256 -c Poor-Mans-Text-0.12.0.dmg.sha256
+shasum -a 256 -c Poor-Mans-Text-0.13.0.dmg.sha256
 ```
 
 Open the DMG and drag Poor Man's Text to Applications. The app is signed with
@@ -454,7 +454,7 @@ Expected losses or approximations:
 - multiple different hyperlink targets in one spreadsheet cell; the first target
   and all visible text stay, while the additional target is reported as a warning
 - ODM section boundaries and master-document behavior after flattening
-- complex PDF page layout, tables, and exact text placement;
+- complex PDF page layout, tables without a recoverable grid, and exact text placement;
   local OCR can contain recognition errors and needs review
 - image OCR reading order and exact layout; the retained original image remains
   the authoritative source for review
@@ -486,7 +486,7 @@ and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compa
 their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current version is 0.12.0.
+The current version is 0.13.0.
 
 ## License
 
@@ -510,7 +510,9 @@ support information is in [SUPPORT.md](SUPPORT.md).
 `--pdf-ocr auto|always|off` selects local OCR; automatic mode also recognizes
 scan images below digital headers. `--ocr-language de,en` sets shared PDF/image
 languages supported by the local Vision installation. `--pdf-layout auto|legacy`
-selects two-column ordering or the previous extraction for comparison.
+selects font-based headings, simple ruled tables and two-column ordering,
+or the previous extraction for comparison. Ambiguous aligned text retains row
+order and gets a visible warning.
 `--pdf-remove-headers-footers` removes repeated text at page margins;
 `--pdf-dehyphenate` optionally joins conservative lowercase word breaks.
 The app remembers these settings. Original embedded text remains present when

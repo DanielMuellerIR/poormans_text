@@ -100,7 +100,7 @@ struct PDFAdapter: DocumentConversionAdapter {
 
         let markdown: String
         do {
-            markdown = try renderedMarkdown(from: extracted.pages, sourceURL: context.inputURL)
+            markdown = try renderedMarkdown(from: extracted.pages, sourceURL: context.inputURL, isStructured: extracted.isStructured)
         } catch {
             throw ConversionError.invalidInput(
                 context.inputURL,
@@ -268,16 +268,27 @@ struct PDFAdapter: DocumentConversionAdapter {
         // Die Aufbereitung aller Seiten lief bisher ohne jede Abbruchprüfung.
         // Bei einem tausendseitigen PDF wurde ein Abbruch erst danach wirksam
         // (Review-Fund 2026-09-10).
+        let bodyFont = PDFStructuredLayout.bodyFont(in: pages)
+        let headingSizes = Set(pages.flatMap { $0 }.compactMap { line -> CGFloat? in
+            guard let bodyFont, let size = line.fontSize, size > bodyFont else { return nil }
+            return size
+        }).sorted(by: >)
         let textPages = try pages.indices.map { index -> String in
             try ConversionExecution.check()
-            return ExtractedText.normalized(PDFTextLayout.text(PDFTextLayout.ordered(pages[index], pageBounds: bounds[index]), hardHyphens: options.pdfDehyphenate))
+            guard let page = document.page(at: index) else { throw PDFAdapterError("the PDF page is unreadable") }
+            let rendered = PDFStructuredLayout.render(pages[index], page: page, bodyFont: bodyFont,
+                headingSizes: headingSizes, hardHyphens: options.pdfDehyphenate)
+            if rendered.ambiguous {
+                diagnostics.append(ConversionWarning(code: "pdf.layoutAmbiguous", message: "Aligned text may be a table or parallel columns; row order was retained.", location: ConversionLocation(page: index + 1)))
+            }
+            return rendered.markdown
         }
         for index in textPages.indices where textPages[index].isEmpty {
             diagnostics.append(ConversionWarning.pdfPageTextUnavailable.at(ConversionLocation(page: index + 1)))
         }
         try ConversionExecution.report(unit: .page, completed: document.pageCount, total: document.pageCount)
         return PDFExtraction(pages: textPages, usedOCR: !plans.isEmpty, hadOCRFailure: failed,
-            hasPageWithoutText: textPages.contains { $0.isEmpty }, diagnostics: diagnostics)
+            hasPageWithoutText: textPages.contains { $0.isEmpty }, diagnostics: diagnostics, isStructured: true)
     }
 
     private func extractLegacyText(from document: PDFDocument, options: ConversionOptions) throws -> PDFExtraction {
@@ -415,7 +426,7 @@ struct PDFAdapter: DocumentConversionAdapter {
         return try VisionTextRecognizer.recognize(in: image, languages: languages)
     }
 
-    private func renderedMarkdown(from pages: [String], sourceURL: URL) throws -> String {
+    private func renderedMarkdown(from pages: [String], sourceURL: URL, isStructured: Bool) throws -> String {
         var markdown = ""
         var markdownBytes = 0
         try appendMarkdown(
@@ -426,7 +437,7 @@ struct PDFAdapter: DocumentConversionAdapter {
         for (index, text) in pages.enumerated() {
             let content = text.isEmpty
                 ? "_No text could be extracted from this page._"
-                : MarkdownEscaping.literalBlock(text)
+                : (isStructured ? text : MarkdownEscaping.literalBlock(text))
             try appendMarkdown(
                 "\n\n## Page \(index + 1)\n\n\(content)",
                 to: &markdown,
@@ -457,6 +468,7 @@ struct PDFAdapter: DocumentConversionAdapter {
         let hadOCRFailure: Bool
         let hasPageWithoutText: Bool
         var diagnostics: [ConversionWarning] = []
+        var isStructured: Bool = false
     }
 
     private struct OCRPlan {

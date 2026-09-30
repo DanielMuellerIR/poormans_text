@@ -42,7 +42,7 @@ Options:
       --image-ocr on|off  Add local OCR text for images (default) or preserve only the image asset.
       --pdf-ocr auto|always|off  Choose local PDF OCR (default: auto).
       --ocr-language CODES Comma-separated local OCR languages, e.g. de,en.
-      --pdf-layout auto|legacy  Detect columns or keep the previous extraction.
+      --pdf-layout auto|legacy  Reconstruct PDF structure or keep the previous extraction.
       --pdf-remove-headers-footers  Remove repeated text at page margins.
       --pdf-dehyphenate    Join conservative lowercase word breaks.
       --frontmatter       Start the Markdown with a YAML header (title, author, dates) from the source.

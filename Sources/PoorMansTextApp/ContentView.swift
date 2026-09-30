@@ -419,7 +419,7 @@ struct ContentView: View {
                 }
                 TextField("OCR languages (empty: automatic; e.g. de,en)", text: $model.ocrLanguageCodes)
                 Picker("PDF text order", selection: $model.pdfLayout) {
-                    Text("Detect columns").tag(PDFLayout.automatic)
+                    Text("Automatic layout").tag(PDFLayout.automatic)
                     Text("Legacy extraction").tag(PDFLayout.legacy)
                 }
                 Toggle("Remove repeated PDF headers and footers", isOn: $model.pdfRemoveHeadersFooters)

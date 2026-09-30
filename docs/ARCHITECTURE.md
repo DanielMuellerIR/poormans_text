@@ -340,9 +340,14 @@ atomaren Veröffentlichungsschritt. Der Markdown-Rewriter wurde nicht verändert
 
 ### PDF-Textordnung und Diagnosen
 
+`PDFTableGeometry` liest begrenzt lokale PDF-Pfade und liefert geschlossene
+Gitter als zusätzlichen Tabellenbeleg. `PDFStructuredLayout` ordnet Text in
+Zellen ein, maskiert die Werte, erzeugt Überschriften und nennt ungelöste
+Spaltenmehrdeutigkeit. Der Legacy-Pfad bleibt zum Vergleich unverändert.
+
 `PDFAdapter` koordiniert die verifizierte PDF-Kopie, Seitenbudgets und OCR.
 `PDFImageResources` durchsucht begrenzt lokale Bild-/Formressourcen als Hinweis
-auf gemischte Seiten. `PDFTextLayout` rekonstruiert geprüfte Textpositionen,
+auf gemischte Seiten. `PDFTextLayout` rekonstruiert geprüfte Textpositionen und Schriftgrößen,
 ordnet zwei Spalten und bereinigt auf Wunsch wiederkehrende Ränder und
 Worttrennungen. Bei unsicherer Geometrie bleibt der gesamte Originaltext.
 `OCRLanguageSelection` validiert gemeinsam für PDF und Bilder gegen die lokal

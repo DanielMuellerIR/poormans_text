@@ -37,11 +37,6 @@ in die Zwischenablage) sind umgesetzt; offen bleibt:
   Architektur. Erst angehen, wenn der Aufwand den Nutzen gegenüber „Shell-Skript
   ausführen“ mit `poormans-text --json` in Kurzbefehle rechtfertigt.
 
-### Etappe 7 — Qualität des PDF-Imports
-
-- Überschriften aus Schriftgrößen ableiten und einfache Tabellen aus Zeilen-
-  und Spaltenlagen rekonstruieren.
-
 ### Etappe 8 — App-Bedienung
 
 - Direkte Auswahl von Fastra als Ziel-App (Markdown lässt sich bereits in der
@@ -83,19 +78,9 @@ Offen bleibt auf der Seite des Hosts:
 
 ## Offene Härtung aus der CodeQA-Kampagne (Stand 2026-09-10)
 
-Zwei Punkte außerhalb des ZIP-Tors sind belegt, aber bewusst nicht umgesetzt,
-weil sie eine Entwurfsentscheidung brauchen:
+Ein Punkt außerhalb des ZIP-Tors ist belegt, aber bewusst nicht umgesetzt,
+weil er eine Entwurfsentscheidung braucht:
 
-- **Spaltenerkennung gegen Tabellenzeilen.** `PDFTextLayout.ordered` liest zwei
-  Gruppen links und rechts der Seitenmitte als zwei Spalten und gibt erst alle
-  linken, dann alle rechten Zeilen aus. Für ein echtes Zweispaltenlayout ist das
-  richtig; für Tabellen- oder Inhaltsverzeichniszeilen („Kapitel eins … 5") wäre
-  es falsch, weil die Zuordnung Beschriftung↔Zahl verloren ginge. Auf
-  Funktionsebene ist das reproduziert; über ein echtes PDF konnte es bisher
-  niemand auslösen, weil `PDFTextLayout.lines` solche Zeilen nicht auftrennt.
-  Beide Fälle sind geometrisch nicht sicher zu unterscheiden — nötig wäre ein
-  zusätzliches Merkmal (Zeilendichte je Spalte, Punktführung, Spaltenbreite),
-  nicht eine weitere Schwelle.
 - **Geprüfter Deskriptor für Bilder.** `ImageAdapter.imageProbe` beschreibt den
   Pfad mit `resourceValues` und öffnet ihn danach ein zweites Mal über
   `CGImageSourceCreateWithURL`. Für PDF wurde genau dieses Muster bereits durch

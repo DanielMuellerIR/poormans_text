@@ -141,7 +141,7 @@ extension ConversionWarning {
 
     static let pdfLayoutNotPreserved = ConversionWarning(
         code: "pdf.layoutNotPreserved",
-        message: "PDF page layout, columns, tables, headers, and footers are not represented in the generated Markdown."
+        message: "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
     )
 
     static let pdfOCRApplied = ConversionWarning(

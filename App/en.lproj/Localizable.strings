@@ -111,7 +111,7 @@
 "Off" = "Off";
 "OCR languages (empty: automatic; e.g. de,en)" = "OCR languages (empty: automatic; e.g. de,en)";
 "PDF text order" = "PDF text order";
-"Detect columns" = "Detect columns";
+"Automatic layout" = "Automatic layout";
 "Legacy extraction" = "Legacy extraction";
 "Remove repeated PDF headers and footers" = "Remove repeated PDF headers and footers";
 "Join conservative PDF word breaks" = "Join conservative PDF word breaks";

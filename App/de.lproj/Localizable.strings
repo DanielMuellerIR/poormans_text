@@ -111,7 +111,7 @@
 "Off" = "Aus";
 "OCR languages (empty: automatic; e.g. de,en)" = "OCR-Sprachen (leer: automatisch; z. B. de,en)";
 "PDF text order" = "PDF-Textreihenfolge";
-"Detect columns" = "Spalten erkennen";
+"Automatic layout" = "Automatisches Layout";
 "Legacy extraction" = "Bisherige Textextraktion";
 "Remove repeated PDF headers and footers" = "Wiederkehrende PDF-Kopf- und Fußzeilen entfernen";
 "Join conservative PDF word breaks" = "Eindeutige PDF-Worttrennungen verbinden";

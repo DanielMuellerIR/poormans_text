@@ -701,6 +701,20 @@ enum MarkdownLinkTargetRewriter {
             } else if character == "]", bracketDepth > 0 {
                 bracketDepth -= 1
                 let openingParenthesis = line.index(after: index)
+                if openingParenthesis < line.endIndex, line[openingParenthesis] == ":",
+                   let definitionStart = line[..<index].firstIndex(of: "["),
+                   line[..<definitionStart].allSatisfy({ $0 == " " || $0 == "\t" }),
+                   let target = destination(in: line, from: line.index(after: openingParenthesis)) {
+                    let original = String(line[target.range])
+                    targetObserver?(original)
+                    let mapped = mapping[original] ?? original.removingPercentEncoding.flatMap { mapping[$0].map(percentEncodedPath) }
+                    if let mapped {
+                        result += line[index..<target.range.lowerBound]
+                        result += mapped
+                        index = target.range.upperBound
+                        continue
+                    }
+                }
                 if openingParenthesis < line.endIndex,
                    line[openingParenthesis] == "(",
                    let replacement = rewrittenTarget(

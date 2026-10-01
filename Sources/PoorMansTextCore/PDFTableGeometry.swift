@@ -22,7 +22,12 @@ enum PDFTableGeometry {
         CGPDFOperatorTableSetCallback(table, "l", { s, p in PDFTableGeometry.reader(p).line(s) })
         CGPDFOperatorTableSetCallback(table, "re", { s, p in PDFTableGeometry.reader(p).rectangle(s) })
         CGPDFOperatorTableSetCallback(table, "h", { _, p in PDFTableGeometry.reader(p).close() })
-        for name in ["S", "s", "B", "B*", "b", "b*"] { CGPDFOperatorTableSetCallback(table, name, { _, p in PDFTableGeometry.reader(p).paint(stroke: true) }) }
+        for name in ["S", "B", "B*"] { CGPDFOperatorTableSetCallback(table, name, { _, p in PDFTableGeometry.reader(p).paint(stroke: true) }) }
+        for name in ["s", "b", "b*"] { CGPDFOperatorTableSetCallback(table, name, { _, p in
+            let reader = PDFTableGeometry.reader(p)
+            reader.close()
+            reader.paint(stroke: true)
+        }) }
         for name in ["f", "F", "f*"] { CGPDFOperatorTableSetCallback(table, name, { _, p in PDFTableGeometry.reader(p).paint(stroke: false) }) }
         CGPDFOperatorTableSetCallback(table, "n", { _, p in PDFTableGeometry.reader(p).clear() })
         for name in ["c", "v", "y"] { CGPDFOperatorTableSetCallback(table, name, { _, p in PDFTableGeometry.reader(p).curved = true }) }
@@ -43,7 +48,10 @@ enum PDFTableGeometry {
             }.sorted { $0.midY > $1.midY }
             guard rows.count >= 3 else { continue }
             let grid = Grid(columns: columns.map(\.midX), rows: rows.map(\.midY))
-            if !result.contains(where: { $0.bounds.contains(grid.bounds) }) { result.append(grid) }
+            if !result.contains(where: { $0.bounds.contains(grid.bounds) }) {
+                result.removeAll { grid.bounds.contains($0.bounds) }
+                result.append(grid)
+            }
         }
         return result
     }
@@ -109,6 +117,7 @@ enum PDFTableGeometry {
         func rectangle(_ scanner: CGPDFScannerRef?) {
             guard let n = numbers(scanner, count: 4) else { return }
             paths.append([CGPoint(x:n[0],y:n[1]), CGPoint(x:n[0]+n[2],y:n[1]), CGPoint(x:n[0]+n[2],y:n[1]+n[3]), CGPoint(x:n[0],y:n[1]+n[3])].map { $0.applying(matrix) })
+            close()
         }
         func close() { if tick(), let first = paths.last?.first { paths[paths.count-1].append(first) } }
         func clear() { paths = []; curved = false }

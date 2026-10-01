@@ -63,17 +63,38 @@ enum MailContent {
         return result
     }
 
-    static func select(_ part: MIMEMessage.Part) throws -> Selection {
+    static func select(_ part: MIMEMessage.Part, asBody: Bool = false) throws -> Selection {
         try ConversionExecution.check()
-        let attached = part.disposition == "attachment" || part.filename != nil
+        let encrypted = part.mediaType == "multipart/encrypted"
+            || (["application/pkcs7-mime", "application/x-pkcs7-mime"].contains(part.mediaType)
+                && part.parameters["smime-type"]?.lowercased() == "enveloped-data")
+        if encrypted && (asBody || part.disposition != "attachment") {
+            throw MIMEMessage.Failure(reason: "encrypted mail cannot be converted without decryption")
+        }
+        let attached = !asBody && (part.disposition == "attachment" || part.filename != nil)
         if attached || (part.children.isEmpty && !["text/plain", "text/html"].contains(part.mediaType)) {
             return try attachment(part)
         }
         if part.children.isEmpty {
             return Selection(bodies: [Body(text: try part.text(), isHTML: part.mediaType == "text/html")])
         }
-        if part.mediaType == "multipart/encrypted" {
-            throw MIMEMessage.Failure(reason: "encrypted mail cannot be converted without decryption")
+        if part.mediaType == "multipart/related" {
+            let start = part.parameters["start"].map(contentID)
+            let rootIndex: Int
+            if let start {
+                guard let index = part.children.firstIndex(where: { $0.header("content-id").map(contentID) == start }) else {
+                    throw MIMEMessage.Failure(reason: "the related mail root is missing")
+                }
+                rootIndex = index
+            } else { rootIndex = 0 }
+            var result = Selection()
+            for (index, child) in part.children.enumerated() {
+                let selection = index == rootIndex ? try select(child, asBody: true) : try attachment(child)
+                result.bodies += selection.bodies
+                result.attachments += selection.attachments
+                result.warnings += selection.warnings
+            }
+            return result
         }
         let children = try part.children.map { child -> Selection in
             do { return try select(child) }
@@ -94,28 +115,6 @@ enum MailContent {
             return chosen
         }
         var result = Selection()
-        if part.mediaType == "multipart/related" {
-            let start = part.parameters["start"].map(contentID)
-            let rootIndex: Int
-            if let start {
-                guard let index = part.children.firstIndex(where: { $0.header("content-id").map(contentID) == start }) else {
-                    throw MIMEMessage.Failure(reason: "the related mail root is missing")
-                }
-                rootIndex = index
-            } else { rootIndex = 0 }
-            for (index, child) in children.enumerated() {
-                if index == rootIndex { result.bodies += child.bodies }
-                else if !child.bodies.isEmpty {
-                    // Ein verwandter Textteil ist eine Ressource, kein zweiter Nachrichtenkörper.
-                    let resource = try attachment(part.children[index])
-                    result.attachments += resource.attachments
-                    result.warnings += resource.warnings
-                }
-                result.attachments += child.attachments
-                result.warnings += child.warnings
-            }
-            return result
-        }
         for child in children {
             result.bodies += child.bodies
             result.attachments += child.attachments

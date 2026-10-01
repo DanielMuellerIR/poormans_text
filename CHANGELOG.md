@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.15.1 — 2026-10-01
+
+- Preserve named inline roots in related email messages and save related text
+  resources without decoding them as message bodies.
+- Reject encrypted S/MIME message bodies with an explicit diagnostic.
+- Recognize complete PDF table grids independent of drawing order and preserve
+  all edges of rectangle and implicitly closed path operators.
+- Read HTML charset declarations from actual attributes.
+- Rewrite notebook attachment reference definitions and batch Textbundle asset
+  rewrites with cancellation checks.
+
 ## 0.15.0 — 2026-10-01
 
 - Bind image inspection and ImageIO access to checked descriptors and private

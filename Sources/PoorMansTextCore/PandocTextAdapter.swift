@@ -383,7 +383,20 @@ struct PandocTextAdapter: DocumentConversionAdapter {
             range: NSRange(location: 0, length: (markup as NSString).length)
         ) {
             let tag = (markup as NSString).substring(with: match.range)
-            if let charset = first(#"\bcharset\s*=\s*["']?\s*([A-Za-z0-9._:-]+)"#, in: tag) {
+            guard let attributes = try? NSRegularExpression(
+                pattern: #"\s+([^\s=/>]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))"#
+            ) else { continue }
+            var values = [String: String]()
+            let source = tag as NSString
+            for attribute in attributes.matches(in: tag, range: NSRange(location: 0, length: source.length)) {
+                let name = source.substring(with: attribute.range(at: 1)).lowercased()
+                let valueRange = (2...4).map { attribute.range(at: $0) }.first { $0.location != NSNotFound }!
+                if values[name] == nil { values[name] = source.substring(with: valueRange) }
+            }
+            if let charset = values["charset"], !charset.isEmpty { return charset }
+            if values["http-equiv"]?.lowercased() == "content-type",
+               let content = values["content"],
+               let charset = first(#"(?:^|;)\s*charset\s*=\s*["']?\s*([A-Za-z0-9._:-]+)"#, in: content) {
                 return charset
             }
         }

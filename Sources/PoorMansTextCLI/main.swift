@@ -18,7 +18,11 @@ private var parsedArguments = ParsedArguments()
 
 do {
     _ = signalSources
-    try parseArguments(Array(CommandLine.arguments.dropFirst()), into: &parsedArguments)
+    let rawArguments = Array(CommandLine.arguments.dropFirst())
+    // Der wertbewusste Vorabscan legt den Ausgabemodus fest, bevor der Parser
+    // an einem früheren Argument scheitern kann.
+    parsedArguments.json = requestsJSONOutput(rawArguments)
+    try parseArguments(rawArguments, into: &parsedArguments)
     let arguments = parsedArguments
 
     if arguments.showHelp {
@@ -70,6 +74,11 @@ do {
         if arguments.outputLayout == .textbundle {
             throw CLIArgumentError.standardOutputConflict("cannot be combined with --textbundle")
         }
+        // Wie im Katalogmodus: Eine wirkungslose Angabe ist ein Aufruffehler,
+        // kein stilles Schlucken (Roadmap-Punkt, 2026-09-10).
+        if arguments.setsJobs {
+            throw CLIArgumentError.standardOutputConflict("cannot be combined with --jobs")
+        }
         if arguments.inputURLs.count > 1 || enumerator.isSearchableDirectory(firstInputURL) {
             throw CLIArgumentError.standardOutputConflict("takes exactly one document, not several or a folder")
         }
@@ -109,6 +118,9 @@ do {
 } catch {
     let message = error.localizedDescription
 
+    // `json` stammt aus dem Vorabscan und gilt deshalb auch für einen Fehler
+    // VOR `--json`; `--pandoc --json` und `-- --json` bleiben Text, weil der
+    // Scan Werte und Eingaben genauso überspringt wie der Parser.
     if parsedArguments.json {
         writeJSON(JSONResponse.failure(message))
     } else {

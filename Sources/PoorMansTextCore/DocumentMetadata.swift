@@ -77,18 +77,40 @@ public struct DocumentMetadata: Codable, Equatable, Sendable {
         return formatter.string(from: date)
     }
 
+    /// Die Schleife läuft über Unicode-Skalare, NICHT über `Character`: In Swift
+    /// ist ein CRLF-Paar EIN `Character`, das weder auf `"\n"` noch auf `"\r"`
+    /// passt. Über `Character` blieb ein CRLF im Titel eines fremden Dokuments
+    /// deshalb komplett unmaskiert stehen und konnte den YAML-Kopf aufbrechen
+    /// (Review-Fund 2026-09-10).
+    ///
+    /// Maskiert werden alle Zeichen, die ein YAML- oder Markdown-Leser als
+    /// Zeilenende versteht: CR, LF, NEL (U+0085), LS (U+2028), PS (U+2029) —
+    /// dazu jedes weitere Steuerzeichen, damit kein NUL in die Datei gerät.
     static func yamlString(_ value: String) -> String {
         var escaped = ""
-        for character in value {
-            switch character {
+        for scalar in value.unicodeScalars {
+            switch scalar {
             case "\"": escaped += "\\\""
             case "\\": escaped += "\\\\"
             case "\n": escaped += "\\n"
+            case "\r": escaped += "\\r"
             case "\t": escaped += "\\t"
-            default: escaped.append(character)
+            default:
+                if isYAMLControl(scalar) {
+                    escaped += String(format: "\\u%04X", scalar.value)
+                } else {
+                    escaped.unicodeScalars.append(scalar)
+                }
             }
         }
         return "\"\(escaped)\""
+    }
+
+    /// C0- und C1-Steuerzeichen sowie die beiden Unicode-Zeilentrenner.
+    private static func isYAMLControl(_ scalar: Unicode.Scalar) -> Bool {
+        scalar.value < 0x20 || scalar.value == 0x7F
+            || (0x80...0x9F).contains(scalar.value)
+            || scalar.value == 0x2028 || scalar.value == 0x2029
     }
 
     /// Whitespace kürzen; ein Wert, der danach leer ist, existiert nicht.
@@ -165,9 +187,7 @@ enum PackageMetadataParser {
 
     static func parse(_ xml: Data) -> DocumentMetadata {
         let delegate = Delegate()
-        let parser = XMLParser(data: xml)
-        parser.shouldProcessNamespaces = true
-        parser.delegate = delegate
+        let parser = ImportXMLParser.make(xml, delegate: delegate)
         // Ein kaputtes Metadaten-XML ist kein Grund, das Dokument abzulehnen:
         // Dann gibt es eben keine Angaben.
         _ = parser.parse()
@@ -180,6 +200,18 @@ enum PackageMetadataParser {
         private var values = [String: String]()
         private var keywords = [String]()
 
+        /// Ein leeres Element zählt nicht als vorhandener Wert. Sonst belegte
+        /// ein `<dc:creator/>` den Schlüssel mit `""`, und der Rückfallschlüssel
+        /// `meta:initial-creator` kam in `result()` nie zum Zug — das Dokument
+        /// nannte seinen Autor, der Frontmatter blieb ohne
+        /// (Review-Fund 2026-09-10).
+        private func store(_ key: String, _ value: String) {
+            guard DocumentMetadata.cleaned(value) != nil else {
+                return
+            }
+            values[key] = value
+        }
+
         func result() -> DocumentMetadata {
             var allKeywords = keywords
             if let combined = values["keywords"] {
@@ -191,9 +223,21 @@ enum PackageMetadataParser {
                 subject: values["subject"],
                 description: values["description"],
                 keywords: allKeywords,
-                created: (values["created"] ?? values["creation-date"]).flatMap(DocumentMetadata.parseDate),
-                modified: (values["modified"] ?? values["date"]).flatMap(DocumentMetadata.parseDate)
+                created: firstDate("created", "creation-date"),
+                modified: firstDate("modified", "date")
             )
+        }
+
+        /// Der erste Schlüssel, der ein LESBARES Datum trägt. Ein `??` auf den
+        /// Rohwerten hätte beim ersten, unlesbaren Wert aufgehört und den
+        /// zweiten Schlüssel nie versucht.
+        private func firstDate(_ keys: String...) -> Date? {
+            for key in keys {
+                if let date = values[key].flatMap(DocumentMetadata.parseDate) {
+                    return date
+                }
+            }
+            return nil
         }
 
         func parser(
@@ -210,6 +254,17 @@ enum PackageMetadataParser {
 
         func parser(_ parser: XMLParser, foundCharacters string: String) {
             if ConversionExecution.isCancelled { parser.abortParsing(); return }
+            text += string
+        }
+
+        /// Ohne diesen Weg fiel ein `<dc:title><![CDATA[Bericht]]></dc:title>`
+        /// still auf den leeren Wert zurück: `foundCharacters` meldet CDATA
+        /// nicht (Review-Fund 2026-09-10).
+        func parser(_ parser: XMLParser, foundCDATA CDATABlock: Data) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
+            guard let string = String(data: CDATABlock, encoding: .utf8) else {
+                return
+            }
             text += string
         }
 
@@ -232,20 +287,189 @@ enum PackageMetadataParser {
                 // ist der erste der Verfasser der letzten Änderung, und der
                 // eigentliche Autor steht in `meta:initial-creator`.
                 if values[current.name] == nil {
-                    values[current.name] = value
+                    store(current.name, value)
                 }
             case (PackageMetadataParser.dublinCore, "date"):
-                values["date"] = value
+                store("date", value)
             case (PackageMetadataParser.dcTerms, "created"), (PackageMetadataParser.dcTerms, "modified"):
-                values[current.name] = value
+                store(current.name, value)
             case (PackageMetadataParser.coreProperties, "keywords"):
-                values["keywords"] = value
+                store("keywords", value)
             case (PackageMetadataParser.odfMeta, "initial-creator"), (PackageMetadataParser.odfMeta, "creation-date"):
-                values[current.name] = value
+                store(current.name, value)
             case (PackageMetadataParser.odfMeta, "keyword"):
                 if let keyword = DocumentMetadata.cleaned(value) {
                     keywords.append(keyword)
                 }
+            default:
+                break
+            }
+        }
+    }
+}
+
+/// Liest die Metadaten eines EPUB: `META-INF/container.xml` nennt die
+/// OPF-Datei, deren `<metadata>` Dublin Core trägt — dieselben Elemente wie
+/// `meta.xml`, deshalb derselbe Parser. `dc:date` ist im OPF das
+/// Veröffentlichungsdatum und wird als Erstelldatum geführt. Vorher lieferte
+/// EPUB nie Metadaten, `--frontmatter` warnte trotz `dc:title` im Buch
+/// (Roadmap-Punkt, 2026-09-10). Fehlt etwas oder ist es unlesbar, gibt es
+/// keine Angaben — nie einen Fehler.
+enum EPUBMetadataReader {
+    static let containerNamespace = "urn:oasis:names:tc:opendocument:xmlns:container"
+
+    static func read(fromPackageAt url: URL) -> DocumentMetadata {
+        guard let reader = try? ZIPArchiveInspector.inspectionSnapshot(at: url),
+              let container = try? reader.dataIfPresent(named: "META-INF/container.xml"),
+              let rootFile = rootFilePath(in: container),
+              let opf = try? reader.dataIfPresent(named: rootFile) else {
+            return DocumentMetadata()
+        }
+        let parsed = PackageMetadataParser.parse(opf)
+        return DocumentMetadata(
+            title: parsed.title,
+            author: parsed.author,
+            subject: parsed.subject,
+            description: parsed.description,
+            keywords: parsed.keywords,
+            created: parsed.modified,
+            modified: nil
+        )
+    }
+
+    /// Der `full-path` des ersten `<rootfile>`, relativ zur Paketwurzel.
+    static func rootFilePath(in containerXML: Data) -> String? {
+        let delegate = ContainerDelegate()
+        let parser = ImportXMLParser.make(containerXML, delegate: delegate)
+        _ = parser.parse()
+        guard let path = delegate.path else { return nil }
+        return path.hasPrefix("/") ? String(path.dropFirst()) : path
+    }
+
+    private final class ContainerDelegate: NSObject, XMLParserDelegate {
+        var path: String?
+
+        func parser(
+            _ parser: XMLParser,
+            didStartElement elementName: String,
+            namespaceURI: String?,
+            qualifiedName: String?,
+            attributes: [String: String]
+        ) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
+            guard path == nil, elementName == "rootfile",
+                  namespaceURI == EPUBMetadataReader.containerNamespace,
+                  let fullPath = attributes["full-path"], !fullPath.isEmpty else {
+                return
+            }
+            path = fullPath
+        }
+    }
+}
+
+/// Liest `<description><title-info>` eines FictionBook: Buchtitel, erster
+/// Autor (Vor-, Zweit- und Nachname, sonst Spitzname), Genres als
+/// Schlüsselwörter, Annotation als Beschreibung, `date` als Erstelldatum —
+/// bevorzugt aus dem maschinenlesbaren Attribut `value`. `document-info`
+/// beschreibt die Datei, nicht das Buch, und zählt nicht. Vorher lieferte FB2
+/// nie Metadaten (Roadmap-Punkt, 2026-09-10).
+enum FB2MetadataParser {
+    static let namespace = "http://www.gribuser.ru/xml/fictionbook/2.0"
+
+    static func parse(_ xml: Data) -> DocumentMetadata {
+        let delegate = Delegate()
+        let parser = ImportXMLParser.make(xml, delegate: delegate)
+        // Ein defekter Kopf ist kein Grund, das Buch abzulehnen; das
+        // entscheidet Pandoc beim Lesen des Textes.
+        _ = parser.parse()
+        return delegate.result()
+    }
+
+    private final class Delegate: NSObject, XMLParserDelegate {
+        /// Elementnamen im FB2-Namensraum von der Wurzel bis zum aktuellen.
+        private var path = [String]()
+        private var text = ""
+        private var title: String?
+        private var nameParts = [String]()
+        private var nickname: String?
+        private var authorsSeen = 0
+        private var genres = [String]()
+        private var annotation = ""
+        private var date: String?
+
+        private var inTitleInfo: Bool {
+            path.count >= 3 && path[1] == "description" && path[2] == "title-info"
+        }
+        private var inFirstAuthor: Bool {
+            inTitleInfo && authorsSeen == 0 && path.contains("author")
+        }
+
+        func result() -> DocumentMetadata {
+            let name = nameParts.joined(separator: " ")
+            return DocumentMetadata(
+                title: title,
+                author: DocumentMetadata.cleaned(name) ?? nickname,
+                description: annotation,
+                keywords: genres,
+                created: date.flatMap(DocumentMetadata.parseDate)
+            )
+        }
+
+        func parser(
+            _ parser: XMLParser,
+            didStartElement elementName: String,
+            namespaceURI: String?,
+            qualifiedName: String?,
+            attributes: [String: String]
+        ) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
+            guard namespaceURI == FB2MetadataParser.namespace else { return }
+            path.append(elementName)
+            text = ""
+            if inTitleInfo, elementName == "date", date == nil,
+               let value = attributes["value"], DocumentMetadata.cleaned(value) != nil {
+                date = value
+            }
+        }
+
+        func parser(_ parser: XMLParser, foundCharacters string: String) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
+            text += string
+            if inTitleInfo, path.contains("annotation") { annotation += string }
+        }
+
+        func parser(_ parser: XMLParser, foundCDATA CDATABlock: Data) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
+            guard let string = String(data: CDATABlock, encoding: .utf8) else { return }
+            text += string
+            if inTitleInfo, path.contains("annotation") { annotation += string }
+        }
+
+        func parser(
+            _ parser: XMLParser,
+            didEndElement elementName: String,
+            namespaceURI: String?,
+            qualifiedName: String?
+        ) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
+            guard namespaceURI == FB2MetadataParser.namespace, path.last == elementName else { return }
+            defer { path.removeLast() }
+            guard inTitleInfo else { return }
+            switch elementName {
+            case "book-title":
+                if title == nil { title = text }
+            case "first-name", "middle-name", "last-name":
+                if inFirstAuthor, let part = DocumentMetadata.cleaned(text) { nameParts.append(part) }
+            case "nickname":
+                if inFirstAuthor, nickname == nil { nickname = text }
+            case "author":
+                authorsSeen += 1
+            case "genre":
+                if let genre = DocumentMetadata.cleaned(text) { genres.append(genre) }
+            case "p" where path.contains("annotation"):
+                annotation += " "
+            case "date":
+                if date == nil { date = text }
             default:
                 break
             }
@@ -551,7 +775,18 @@ enum RTFInfoParser {
             components[keyPath: keyPath] = number
             found = true
         }
-        guard found, components.year != nil, components.month != nil, components.day != nil else {
+        // `Calendar.date(from:)` rechnet Unsinn still weiter, statt `nil` zu
+        // liefern: `\yr0\mo0\dy0` (schreiben Generatoren für „Zeitpunkt
+        // unbekannt") ergäbe den 30.11. des Jahres 2, `\mo99` rollte acht Jahre
+        // vor. Solche Werte gehören nicht in den Frontmatter, also werden sie
+        // vorher abgewiesen (Review-Fund 2026-09-10).
+        guard found,
+              let year = components.year, (1601...9999).contains(year),
+              let month = components.month, (1...12).contains(month),
+              let day = components.day, (1...31).contains(day),
+              (0...23).contains(components.hour ?? 0),
+              (0...59).contains(components.minute ?? 0),
+              (0...60).contains(components.second ?? 0) else {
             return nil
         }
         return components.date

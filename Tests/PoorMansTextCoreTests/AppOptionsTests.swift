@@ -184,6 +184,45 @@ final class AppOptionsTests: XCTestCase {
         XCTAssertEqual(message, "Die Ausgabe existiert bereits und wird nicht überschrieben: /tmp/keep")
     }
 
+    /// Die Fehler der Installationswege und des Rich-Text-Dienstes gingen als
+    /// `localizedDescription` — also englisch — in die deutsche Oberfläche
+    /// (Roadmap-Punkt, 2026-09-10). Jetzt laufen sie über dieselbe Abbildung.
+    func testGermanMessagesCoverInstallationAndClipboardErrors() throws {
+        let repo = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        let bundle = try XCTUnwrap(Bundle(url: repo.appendingPathComponent("App/de.lproj")))
+        XCTAssertEqual(
+            AppErrorMessage.describe(PandocInstaller.InstallError.timedOut, bundle: bundle),
+            "Homebrew hat die Pandoc-Installation nicht innerhalb von 15 Minuten abgeschlossen."
+        )
+        XCTAssertEqual(
+            AppErrorMessage.describe(PandocInstaller.InstallError.processFailed("Error: bottle unavailable"), bundle: bundle),
+            "Homebrew konnte Pandoc nicht installieren: Error: bottle unavailable"
+        )
+        XCTAssertEqual(
+            AppErrorMessage.describe(CLIInstaller.InstallError.verificationFailed, bundle: bundle),
+            "Das Kommandozeilenwerkzeug wurde installiert, konnte aber nicht überprüft werden."
+        )
+        XCTAssertEqual(
+            AppErrorMessage.describe(RichTextClipboard.ClipboardError.noRichText, bundle: bundle),
+            "Die Auswahl enthält keinen Rich Text. Formatierten Text in einer App auswählen, die RTF liefert."
+        )
+    }
+
+    /// Beide Sprachdateien müssen dieselben Schlüssel tragen; ein Schlüssel nur
+    /// in einer Datei ist entweder verwaist oder unübersetzt.
+    func testBothLocalizationsCarryTheSameKeys() throws {
+        let repo = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        func keys(_ language: String) throws -> Set<String> {
+            let url = repo.appendingPathComponent("App/\(language).lproj/Localizable.strings")
+            let table = try XCTUnwrap(NSDictionary(contentsOf: url) as? [String: String], url.path)
+            return Set(table.keys)
+        }
+        let english = try keys("en")
+        let german = try keys("de")
+        XCTAssertEqual(english.subtracting(german), [], "nur in en.lproj")
+        XCTAssertEqual(german.subtracting(english), [], "nur in de.lproj")
+    }
+
     func testBoundedPreviewAndFIFORejection() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
@@ -219,6 +258,40 @@ final class AppOptionsTests: XCTestCase {
         while model.isConverting && Date() < deadline { try await Task.sleep(for: .milliseconds(20)) }
         XCTAssertFalse(model.isConverting)
     }
+
+    // MARK: - Review-Funde 2026-09-10
+
+    /// `convert(_:)` löschte die Zielvorgaben, bevor es sie las. Damit blieb
+    /// „Anderen Namen oder Zielordner wählen…" nach einem Aufzählungsfehler
+    /// ohne Wirkung, und `retryFailed(only:)` versuchte trotz Filter alles.
+    @MainActor
+    func testRetryingASingleEnumerationFailureKeepsItsChosenDestination() async throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("PMTRetry-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        // Zwei leere Ordner: beide scheitern an der Aufzählung.
+        let first = root.appendingPathComponent("eins", isDirectory: true)
+        let second = root.appendingPathComponent("zwei", isDirectory: true)
+        for url in [first, second] {
+            try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        }
+
+        let model = AppModel()
+        model.convert([first, second])
+        try await Task.sleep(nanoseconds: 300_000_000)
+        XCTAssertEqual(Set(model.failedEnumerationInputs), [first, second])
+
+        // Genau eine Eingabe erneut versuchen, mit einer gesetzten Zielvorgabe.
+        model.destinationOverrides[first.path] = root.appendingPathComponent("ziel", isDirectory: true)
+        model.retryFailed(only: first)
+        try await Task.sleep(nanoseconds: 300_000_000)
+
+        XCTAssertEqual(model.destinationOverrides[first.path]?.lastPathComponent, "ziel",
+                       "die Vorgabe darf nicht gelöscht werden")
+        XCTAssertEqual(model.failedEnumerationInputs, [first],
+                       "nur die gefilterte Eingabe wurde erneut versucht")
+    }
 }
 
 extension UserDefaults {
@@ -233,4 +306,5 @@ private final class VolatileAppTestDefaults: UserDefaults, @unchecked Sendable {
     override func object(forKey key: String) -> Any? { values[key] }
     override func string(forKey key: String) -> String? { values[key] as? String }
     override func bool(forKey key: String) -> Bool { values[key] as? Bool ?? false }
+
 }

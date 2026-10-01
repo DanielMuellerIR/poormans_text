@@ -99,6 +99,30 @@ final class AppModelBatchTests: XCTestCase {
         XCTFail("The empty folder did not fail within five seconds.")
     }
 
+    /// Dateien aus Dock oder Doppelklick treffen auf eine laufende Umwandlung:
+    /// Der Weg meldet die Ablehnung im Fenster, statt zu schweigen, und der
+    /// nächste angenommene Auftrag räumt die Meldung wieder weg.
+    @MainActor
+    func testOpeningDocumentsWhileBusyIsReportedInTheWindow() async throws {
+        let first = try copyImage(to: "A.png")
+        let second = try copyImage(to: "B.png")
+        let model = AppModel(defaults: .isolatedForAppTest())
+        model.imageTextRecognition = .disabled
+
+        XCTAssertTrue(model.openDocuments([first, second]))
+        XCTAssertTrue(model.isConverting)
+        XCTAssertFalse(model.openDocuments([first]), "Das Öffnen wurde trotz laufender Umwandlung angenommen.")
+        XCTAssertEqual(model.openRejectionMessage, "Poor Man's Text is busy with another conversion.")
+
+        let items = try await awaitBatch(model)
+        XCTAssertEqual(items.map { $0.input.lastPathComponent }, ["A.png", "B.png"])
+        XCTAssertEqual(model.openRejectionMessage, "Poor Man's Text is busy with another conversion.",
+            "Die Meldung bleibt stehen, bis ein neuer Auftrag angenommen wird.")
+
+        model.reset()
+        XCTAssertNil(model.openRejectionMessage)
+    }
+
     @MainActor
     func testDroppingSeveralProvidersConvertsAllOfThem() async throws {
         let first = try copyImage(to: "A.png")
@@ -141,6 +165,61 @@ final class AppModelBatchTests: XCTestCase {
             }
         }
         XCTFail("The single conversion did not finish within five seconds.")
+    }
+
+    /// Der gemerkte Zielordner geht als Zielwurzel an den Stapel, genau wie
+    /// `--output` in der CLI. Zeigt er auf eine Datei, scheitert der ganze Lauf
+    /// mit derselben Meldung wie dort; vorher bekam jede Eingabe einen rohen
+    /// Dateisystemfehler (Roadmap-Punkt, 2026-09-10).
+    @MainActor
+    func testADestinationThatIsAFileFailsLikeTheCLI() async throws {
+        let first = try copyImage(to: "Eins.png")
+        let second = try copyImage(to: "Zwei.png")
+        let fileAsDestination = root.appendingPathComponent("Ziel")
+        try Data("not a folder".utf8).write(to: fileAsDestination)
+        let model = AppModel(defaults: .isolatedForAppTest())
+        model.imageTextRecognition = .disabled
+        model.destinationFolder = fileAsDestination
+
+        model.convert([first, second])
+
+        let items = try await awaitBatch(model)
+        XCTAssertEqual(items.count, 2)
+        for item in items {
+            guard case .failed(let message) = item.outcome else { return XCTFail("\(item.input.lastPathComponent) succeeded") }
+            XCTAssertTrue(message.hasPrefix("Output already exists"), message)
+        }
+        XCTAssertEqual(try Data(contentsOf: fileAsDestination), Data("not a folder".utf8))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("Eins-markdown").path))
+    }
+
+    /// Ein gelöschter Zielordner wird wie in der CLI genau eine Ebene tief neu
+    /// angelegt; fehlt auch sein Elternordner, endet der Lauf mit „parent
+    /// directory does not exist", statt die Pfadkette still anzulegen.
+    @MainActor
+    func testAMissingDestinationIsRecreatedOneLevelDeepLikeTheCLI() async throws {
+        let first = try copyImage(to: "Bild.png")
+        let second = try copyImage(to: "Foto.png")
+        let model = AppModel(defaults: .isolatedForAppTest())
+        model.imageTextRecognition = .disabled
+
+        model.destinationFolder = root.appendingPathComponent("fehlt/Ergebnis")
+        model.convert([first, second])
+        let failed = try await awaitBatch(model)
+        XCTAssertEqual(failed.count, 2)
+        for item in failed {
+            guard case .failed(let message) = item.outcome else { return XCTFail("\(item.input.lastPathComponent) succeeded") }
+            XCTAssertTrue(message.hasPrefix("The output parent directory does not exist"), message)
+        }
+        XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("fehlt").path))
+
+        model.reset()
+        model.destinationFolder = root.appendingPathComponent("Ergebnis")
+        model.convert([first, second])
+        let items = try await awaitBatch(model)
+        XCTAssertEqual(items.map { $0.result != nil }, [true, true])
+        XCTAssertTrue(FileManager.default.fileExists(atPath: root.appendingPathComponent("Ergebnis/Bild-markdown/Bild.md").path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: root.appendingPathComponent("Ergebnis/Foto-markdown/Foto.md").path))
     }
 
     @MainActor

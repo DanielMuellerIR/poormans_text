@@ -7,7 +7,13 @@ struct HTMLRewriteResult: Sendable {
 }
 
 enum HTMLImageRewriter {
-    private static let imageSourcePattern = #"(<img\b[^>]*\bsrc\s*=\s*[\"'])([^\"']+)([\"'])"#
+    /// Wie in `HTMLImageSourceResolver`: Ein `>` INNERHALB eines
+    /// Anführungszeichenpaars beendet das Tag nicht. Mit `[^>]*` fand dieser
+    /// Ausdruck das `src` hinter einem Alt-Text wie `"Breite > Höhe"` nicht
+    /// mehr, und das bereits geprüfte Bild blieb unter `external/` liegen statt
+    /// im Ergebnisordner zu landen (Review-Fund 2026-09-10).
+    private static let imageSourcePattern =
+        #"(<img\b(?:[^>\"']|\"[^\"]*\"|'[^']*')*?\bsrc\s*=\s*[\"'])([^\"']+)([\"'])"#
 
     static func rewrite(
         html: String,
@@ -95,7 +101,11 @@ enum HTMLImageRewriter {
                     "internal image-name mapping is missing"
                 )
             }
-            let replacement = "images/" + percentEncodePathComponent(outputName)
+            // Dieselbe Regel wie beim Umschreiben: Der Link-Rewriter muss den
+            // hier geschriebenen Pfad später wiederfinden. Stand die
+            // Kodierregel an zwei Stellen, verfehlte er die Links still, sobald
+            // eine der beiden sich änderte (Review-Fund 2026-09-10).
+            let replacement = MarkdownLinkTargetRewriter.percentEncodedPath("images/" + outputName)
             rewrittenHTML.replaceCharacters(in: match.range(at: 2), with: replacement)
         }
 
@@ -160,9 +170,4 @@ enum HTMLImageRewriter {
         return fileExtension.isEmpty ? stem : "\(stem).\(fileExtension)"
     }
 
-    private static func percentEncodePathComponent(_ component: String) -> String {
-        var allowed = CharacterSet.alphanumerics
-        allowed.insert(charactersIn: "-._~")
-        return component.addingPercentEncoding(withAllowedCharacters: allowed) ?? component
-    }
 }

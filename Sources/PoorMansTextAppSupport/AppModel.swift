@@ -85,6 +85,7 @@ public final class AppModel: ObservableObject {
         let token = ConversionCancellationToken()
         activeCancellation = token
         cancellationRequested = false
+        openRejectionMessage = nil
         conversionProgress = nil
         runningJobs = []
         batchSequence = 0
@@ -132,11 +133,20 @@ public final class AppModel: ObservableObject {
     @Published public var destinationFolder: URL? { didSet { savePreferences() } }
     @Published public var selectedInput: String?
     @Published public private(set) var actionMessage: String?
+    /// Warum die zuletzt über Dock, Doppelklick oder `open -a` übergebenen
+    /// Dateien nicht angenommen wurden. Drop meldet `false` (Cursor), der
+    /// Dienst meldet Text an das rufende Programm — dieser Weg hatte bisher
+    /// keinen Kanal und schwieg (Roadmap-Punkt, 2026-09-10). Der nächste
+    /// angenommene Auftrag löscht die Meldung wieder.
+    @Published public private(set) var openRejectionMessage: String?
     @Published public private(set) var preview: MarkdownPreview?
     private let defaults: UserDefaults
     private var loadingPreferences = true
-    private var destinationOverrides: [String: URL] = [:]
-    private var failedEnumerationInputs: [URL] = []
+    /// Nicht `private`: Der Test belegt damit, dass ein Wiederholen die gewählte
+    /// Zielvorgabe behält und den `only:`-Filter achtet — beides ging vorher
+    /// verloren (Review-Fund 2026-09-10).
+    var destinationOverrides: [String: URL] = [:]
+    var failedEnumerationInputs: [URL] = []
     private var relativeDirectories: [String: [String]] = [:]
 
     public var conversionOptions: ConversionOptions {
@@ -165,6 +175,12 @@ public final class AppModel: ObservableObject {
     }
     /// Wahr, solange die App Pandoc über Homebrew nachinstalliert.
     @Published public private(set) var isInstallingPandoc = false
+    /// Wahr, sobald der Nutzer die laufende Installation abgebrochen hat und
+    /// Homebrew noch beendet wird; der Abbruchknopf sperrt sich damit.
+    @Published public private(set) var isCancellingPandocInstallation = false
+    /// Der Token der laufenden Installation. Er gehört dem Modell, damit
+    /// `cancelPandocInstallation` Homebrew von der Oberfläche aus beenden kann.
+    private var pandocInstallation: ConversionCancellationToken?
 
     public var isConverting: Bool {
         switch state {
@@ -229,8 +245,18 @@ public final class AppModel: ObservableObject {
 
     /// Alle Teilaufträge laufen durch dieselbe Core-Planung wie CLI-Batches.
     /// Ein Retry ersetzt nur seine Slots; Erfolge und übrige Fehler bleiben stehen.
+    ///
+    /// `outputRoot` ist der gemerkte Zielordner. Er geht wie `--output` in der
+    /// CLI als Zielwurzel an den Stapel: Der prüft sie vor dem ersten Worker
+    /// gegen alle Quellen, legt sie höchstens eine Ebene tief an und meldet
+    /// eine Datei an dieser Stelle als „output already exists", einen fehlenden
+    /// Elternordner als „output parent directory does not exist". Vorher
+    /// übergab die App keine Wurzel, legte einen gelöschten Zielordner samt
+    /// Pfadkette still neu an und zeigte bei einer Datei je Eingabe einen rohen
+    /// Dateisystemfehler — gleiche Option, zwei Verhalten (Roadmap-Punkt,
+    /// 2026-09-10).
     private func executeBatch(_ requests: [ConversionRequest], original: [BatchItem], slots: [Int], jobs: Int,
-                              cancellation: ConversionCancellationToken) async -> [BatchItem] {
+                              outputRoot: URL?, cancellation: ConversionCancellationToken) async -> [BatchItem] {
         let attempted = Set(slots)
         batchDisplayItems = Dictionary(uniqueKeysWithValues: original.enumerated().filter { !attempted.contains($0.offset) }.map { ($0.offset, $0.element) })
         let baseCompleted = original.count - slots.count
@@ -252,8 +278,10 @@ public final class AppModel: ObservableObject {
         var updated = original
         do {
             let protectedInputs = original.map(\.input)
+            let outputRoots = outputRoot.map { [$0] } ?? []
             let results = try await Task.detached(priority: .userInitiated) {
-                try BatchConverter().convert(requests, jobs: jobs, protecting: protectedInputs, cancellation: cancellation, progress: handler)
+                try BatchConverter().convert(requests, jobs: jobs, outputRoots: outputRoots, protecting: protectedInputs,
+                    cancellation: cancellation, progress: handler)
             }.value
             for result in results { updated[slots[result.index]] = Self.batchItem(result) }
         } catch {
@@ -331,7 +359,13 @@ public final class AppModel: ObservableObject {
     public func retryFailed(only input: URL? = nil) {
         guard acceptsNewDocuments else { return }
         if !failedEnumerationInputs.isEmpty {
-            convert(failedEnumerationInputs)
+            // Der Filter galt hier nicht: Ein „nur dieses eine noch einmal"
+            // versuchte alle gescheiterten Eingaben erneut
+            // (Review-Fund 2026-09-10).
+            let retry = input.map { url in failedEnumerationInputs.filter { $0 == url } }
+                ?? failedEnumerationInputs
+            guard !retry.isEmpty else { return }
+            convert(retry, keepingDestinationOverrides: true)
             return
         }
         if case .batchFinished(let items) = state {
@@ -342,10 +376,12 @@ public final class AppModel: ObservableObject {
             state = .convertingBatch(BatchProgress(finished: items.filter { $0.result != nil }, current: first.input, total: items.count))
             let cancellation = beginConversion()
             let jobs = batchParallelism
+            let outputRoot = destinationFolder
             let slots = retry.compactMap { item in items.firstIndex { $0.id == item.id } }
             conversionTask = Task {
                 defer { finishConversion(cancellation) }
-                let updated = await executeBatch(requests, original: items, slots: slots, jobs: jobs, cancellation: cancellation)
+                let updated = await executeBatch(requests, original: items, slots: slots, jobs: jobs,
+                    outputRoot: outputRoot, cancellation: cancellation)
                 state = .batchFinished(updated)
             }
         } else if let first = failedInputs.first { convertSingle(first, isRetry: true) }
@@ -396,7 +432,13 @@ public final class AppModel: ObservableObject {
     /// Wandelt mehrere Pfade nacheinander um; Ordner werden dabei nach denselben
     /// Regeln wie in der CLI durchsucht. Genau eine Datei nimmt weiterhin den
     /// Einzelweg mit seiner gewohnten Ergebnisansicht.
-    public func convert(_ inputURLs: [URL]) {
+    /// - Parameter keepingDestinationOverrides: `true` für einen erneuten
+    ///   Versuch. Eine NEUE Auswahl beginnt ohne die Zielvorgaben des letzten
+    ///   Laufs; ein Wiederholen muss sie dagegen behalten, sonst löschte
+    ///   `convert` genau die Vorgabe, die `chooseAlternativeDestination` gerade
+    ///   gesetzt hat, und „Anderen Namen oder Zielordner wählen…" blieb ohne
+    ///   Wirkung (Review-Fund 2026-09-10).
+    public func convert(_ inputURLs: [URL], keepingDestinationOverrides: Bool = false) {
         guard acceptsNewDocuments, let first = inputURLs.first else {
             return
         }
@@ -406,7 +448,7 @@ public final class AppModel: ObservableObject {
             return
         }
 
-        destinationOverrides = [:]
+        if !keepingDestinationOverrides { destinationOverrides = [:] }
         relativeDirectories = [:]
         failedEnumerationInputs = []
         state = .convertingBatch(BatchProgress(finished: [], current: first, total: inputURLs.count))
@@ -438,7 +480,8 @@ public final class AppModel: ObservableObject {
                 return ConversionRequest(inputURL: input.url, destination: destination.map(ConversionDestination.directory) ?? .adjacentToInput, options: options)
             }
             let original = inputs.map { BatchItem(input: $0.url, outcome: .failed(AppErrorMessage.describe(ConversionError.cancelled))) }
-            let finished = await executeBatch(requests, original: original, slots: Array(original.indices), jobs: jobs, cancellation: cancellation)
+            let finished = await executeBatch(requests, original: original, slots: Array(original.indices), jobs: jobs,
+                outputRoot: outputRoot, cancellation: cancellation)
             selectedInput = finished.first(where: { $0.result != nil })?.id
             state = .batchFinished(finished)
         }
@@ -481,6 +524,23 @@ public final class AppModel: ObservableObject {
                 continuation.resume(returning: (object as? NSURL).map { $0 as URL })
             }
         }
+    }
+
+    /// Nimmt Dateien an, die macOS der App zum Öffnen übergibt (Dock,
+    /// Doppelklick, `open -a`). Ist die App beschäftigt, bleibt der Auftrag
+    /// unbearbeitet und das Fenster sagt warum; der Rückgabewert ist derselbe
+    /// wie bei `acceptDrop`.
+    @discardableResult
+    public func openDocuments(_ urls: [URL]) -> Bool {
+        guard acceptsNewDocuments else {
+            openRejectionMessage = isInstallingPandoc
+                ? NSLocalizedString("Files are accepted again once the installation has finished.", comment: "")
+                : NSLocalizedString("Poor Man's Text is busy with another conversion.", comment: "")
+            return false
+        }
+        openRejectionMessage = nil
+        convert(urls)
+        return true
     }
 
     /// Der Einstieg der App: Öffnen-Dialog anzeigen und die Auswahl umwandeln.
@@ -533,25 +593,51 @@ public final class AppModel: ObservableObject {
     /// durchgeführt hat. Ein zweiter, paralleler Aufruf läuft in die Sperre und
     /// meldet `false`: Er darf keinen Erfolg anzeigen, während der erste
     /// Homebrew-Lauf noch läuft oder später scheitert.
+    ///
+    /// Die Installation bekommt wie eine Umwandlung einen Abbruch-Token und ein
+    /// Zeitlimit (`PandocInstaller.installationTimeout`). Vorher lief
+    /// `brew install` ohne beides: Hing Homebrew, blieb die Sperre bis zum
+    /// Neustart der App bestehen (Roadmap-Punkt, 2026-09-10). Ein Abbruch
+    /// durch den Nutzer ist kein Fehler und endet wie der parallele Aufruf mit
+    /// `false`: Es wurde nichts installiert, aber auch nichts ist schiefgegangen.
     @discardableResult
     public func installPandoc(
         brewExecutable: URL,
-        using install: @escaping @Sendable (URL) async throws -> Void = {
-            try PandocInstaller.installPandoc(brewExecutable: $0)
+        using install: @escaping @Sendable (URL, ConversionCancellationToken) async throws -> Void = {
+            try PandocInstaller.installPandoc(brewExecutable: $0, cancellation: $1)
         }
     ) async throws -> Bool {
         guard !isInstallingPandoc else {
             return false
         }
+        let cancellation = ConversionCancellationToken()
+        pandocInstallation = cancellation
         isInstallingPandoc = true
-        defer { isInstallingPandoc = false }
+        isCancellingPandocInstallation = false
+        defer {
+            isInstallingPandoc = false
+            isCancellingPandocInstallation = false
+            pandocInstallation = nil
+        }
 
         // Wie die Dateikonvertierung läuft der Homebrew-Aufruf außerhalb des
         // Main Actors; `brew install` kann mehrere Minuten dauern.
-        try await Task.detached(priority: .userInitiated) {
-            try await install(brewExecutable)
-        }.value
+        do {
+            try await Task.detached(priority: .userInitiated) {
+                try await install(brewExecutable, cancellation)
+            }.value
+        } catch PandocInstaller.InstallError.cancelled {
+            return false
+        }
         return true
+    }
+
+    /// Beendet die laufende Homebrew-Installation. Ohne laufende Installation
+    /// passiert nichts.
+    public func cancelPandocInstallation() {
+        guard isInstallingPandoc, let pandocInstallation else { return }
+        isCancellingPandocInstallation = true
+        pandocInstallation.cancel()
     }
 
     /// Zeigt das Ergebnis im Finder: die Markdown-Datei eines Einzellaufs oder
@@ -595,7 +681,10 @@ public final class AppModel: ObservableObject {
                 // „copied" eine Falschmeldung.
                 outputPasteboard.clearContents()
                 guard outputPasteboard.setString(outcome.markdown, forType: .string) else {
-                    state = .failed(input: nil, message: "The Markdown could not be placed on the clipboard.")
+                    state = .failed(
+                        input: nil,
+                        message: NSLocalizedString("The Markdown could not be placed on the clipboard.", comment: "")
+                    )
                     return
                 }
                 state = .copiedToClipboard(outcome)
@@ -611,6 +700,7 @@ public final class AppModel: ObservableObject {
         }
         preview = nil
         actionMessage = nil
+        openRejectionMessage = nil
         selectedInput = nil
         destinationOverrides = [:]
         relativeDirectories = [:]

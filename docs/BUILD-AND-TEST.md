@@ -215,6 +215,13 @@ Exit 124 und eine dennoch gelungene nachfolgende CSV-Eingabe.
 Symlink-Austausch, die Vollprüfung auch ungelesener Medieneinträge und das
 Aufräumen kurzlebiger Leser. Die vorhandenen ZIP-, XLS-, XLSX-, ODS- und
 ODM-Tests bleiben unveränderte Verhaltensprüfungen der Sicherheitsgrenzen.
+`ZIPBoundedInspectionTests` prüft zusätzlich widersprüchliche Schlussblöcke
+gegen die tatsächlichen Sichten von Python und Info-ZIP, reguläre Zusatzblöcke,
+Lücken, Deflate-Restbytes sowie die Deskriptorbindung nach Quellaustausch und
+Kürzung. `scripts/benchmark_zip_detection.py` vergleicht die isolierte Erkennung
+mit einer Git-Basis an identischen temporären ODT-Paketen und kontrolliert
+Metadaten sowie Quellenhashes. Große Nutzlasten werden dabei nicht entpackt;
+die vollständige Inhaltsprüfung bleibt Aufgabe des Konvertierungswegs.
 Für eine reproduzierbare Release-Messung mit vollständigem Inhaltsvergleich
 siehe [PERFORMANCE.md](PERFORMANCE.md) und `scripts/benchmark_packages.py`.
 
@@ -230,3 +237,17 @@ sowie Zeilengrenzen in Tracebacks bei weiterhin verbundenen Quelltextfragmenten.
 PDFs mit gleichem digitalen Kopf und Bild, einmal mit direkten und einmal mit
 geerbten Ressourcen. Beide müssen die automatische OCR auslösen. Alle drei
 Dokumenttypen werden zusätzlich auf unveränderte Quelldateien geprüft.
+
+## Bild-Deskriptor und gemeinsame Tabellenbudgets
+
+`VerifiedImageSourceTests` prüft Pfadaustausch gegen reguläre Datei/FIFO,
+nicht reguläre Quellen, Größenüberschreitung, Kürzung/Wachstum und gleich große
+Änderungen. ImageIO sieht einen eigenen Snapshot aus dem gehaltenen Deskriptor,
+auf APFS per Clone und sonst über den begrenzten Staging-Puffer. Tests prüfen
+beide Kopierwege sowie die Deskriptorfreigabe. `ImageAdapterTests` ergänzt echte
+PNG-/TIFF-Fixtures, OCR, Verkleinerung und bytegleiche Originalassets.
+
+`SpreadsheetBudgetTests` prüft die gemeinsamen Grenzen bei und über der
+gewählten Zeilen-/Zell-/Spaltengrenze, über mehrere Blätter, mit aufgefüllten
+Leerzellen und in beiden Rendering-Stilen. Parserprüfungen bleiben frühzeitig
+aktiv; Link-Scan-, XML-, Text- und Ausgabebudgets sind zusätzliche Grenzen.

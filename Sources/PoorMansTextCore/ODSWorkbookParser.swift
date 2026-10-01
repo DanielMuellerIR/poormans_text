@@ -3,11 +3,7 @@ import Foundation
 enum ODSWorkbookParser {
     static func parse(_ xml: Data) throws -> SpreadsheetWorkbook {
         let delegate = ContentDelegate()
-        let parser = XMLParser(data: xml)
-        parser.delegate = delegate
-        parser.shouldProcessNamespaces = true
-        parser.shouldReportNamespacePrefixes = true
-        parser.shouldResolveExternalEntities = false
+        let parser = ImportXMLParser.make(xml, delegate: delegate)
         let parsedSuccessfully = parser.parse()
         try ConversionExecution.check()
         guard parsedSuccessfully, delegate.failure == nil else {
@@ -103,7 +99,7 @@ enum ODSWorkbookParser {
                     workbook.hasUnsupportedObjects = true
                     return
                 }
-                guard workbook.sheets.count < Limits.maximumSheets else {
+                guard workbook.sheets.count < SpreadsheetLimits.maximumSheets else {
                     return fail("the workbook contains too many sheets", parser: parser)
                 }
                 tableDepth = 1
@@ -121,7 +117,7 @@ enum ODSWorkbookParser {
                 pendingEmptyCells = 0
                 currentRowRepeat = positiveRepeat(
                     attribute("number-rows-repeated", in: attributeDict),
-                    maximum: Limits.maximumRows,
+                    maximum: SpreadsheetLimits.maximumRows,
                     parser: parser
                 )
                 return
@@ -132,17 +128,17 @@ enum ODSWorkbookParser {
                 guard currentRow != nil else { return }
                 let repeated = positiveRepeat(
                     attribute("number-columns-repeated", in: attributeDict),
-                    maximum: Limits.maximumColumns,
+                    maximum: SpreadsheetLimits.maximumColumns,
                     parser: parser
                 )
                 let columnSpan = positiveRepeat(
                     attribute("number-columns-spanned", in: attributeDict),
-                    maximum: Limits.maximumColumns,
+                    maximum: SpreadsheetLimits.maximumColumns,
                     parser: parser
                 )
                 let rowSpan = positiveRepeat(
                     attribute("number-rows-spanned", in: attributeDict),
-                    maximum: Limits.maximumRows,
+                    maximum: SpreadsheetLimits.maximumRows,
                     parser: parser
                 )
                 if columnSpan > 1 || rowSpan > 1 {
@@ -205,7 +201,7 @@ enum ODSWorkbookParser {
             } else if namespaceURI == Namespaces.text, elementName == "s", capturesCellText {
                 let count = min(
                     Int(attribute("c", in: attributeDict) ?? "1") ?? 1,
-                    Limits.maximumColumns
+                    SpreadsheetLimits.maximumColumns
                 )
                 currentCell?.text.append(String(repeating: " ", count: max(1, count)))
             }
@@ -284,8 +280,8 @@ enum ODSWorkbookParser {
             if builder.isCovered {
                 flushPendingCells(parser: parser)
                 guard failure == nil,
-                      currentRow!.count + builder.repeated <= Limits.maximumColumns else {
-                    return fail("a spreadsheet row exceeds the column budget", parser: parser)
+                      currentRow!.count + builder.repeated <= SpreadsheetLimits.maximumColumns else {
+                    return fail(SpreadsheetLimits.columnBudgetMessage, parser: parser)
                 }
                 currentRow!.append(contentsOf: repeatElement(.empty, count: builder.repeated))
                 expandedCellCount += builder.repeated
@@ -294,15 +290,15 @@ enum ODSWorkbookParser {
             }
             if cell.isEmpty {
                 pendingEmptyCells += builder.repeated
-                guard currentRow!.count + pendingEmptyCells <= Limits.maximumColumns else {
-                    return fail("a spreadsheet row exceeds the column budget", parser: parser)
+                guard currentRow!.count + pendingEmptyCells <= SpreadsheetLimits.maximumColumns else {
+                    return fail(SpreadsheetLimits.columnBudgetMessage, parser: parser)
                 }
                 return
             }
             flushPendingCells(parser: parser)
             guard failure == nil else { return }
-            guard currentRow!.count + builder.repeated <= Limits.maximumColumns else {
-                return fail("a spreadsheet row exceeds the column budget", parser: parser)
+            guard currentRow!.count + builder.repeated <= SpreadsheetLimits.maximumColumns else {
+                return fail(SpreadsheetLimits.columnBudgetMessage, parser: parser)
             }
             currentRow!.append(contentsOf: repeatElement(cell, count: builder.repeated))
             expandedCellCount += builder.repeated
@@ -311,8 +307,8 @@ enum ODSWorkbookParser {
 
         private func flushPendingCells(parser: XMLParser) {
             guard pendingEmptyCells > 0 else { return }
-            guard currentRow!.count + pendingEmptyCells <= Limits.maximumColumns else {
-                return fail("a spreadsheet row exceeds the column budget", parser: parser)
+            guard currentRow!.count + pendingEmptyCells <= SpreadsheetLimits.maximumColumns else {
+                return fail(SpreadsheetLimits.columnBudgetMessage, parser: parser)
             }
             currentRow!.append(contentsOf: repeatElement(.empty, count: pendingEmptyCells))
             expandedCellCount += pendingEmptyCells
@@ -326,25 +322,29 @@ enum ODSWorkbookParser {
             // Ausgedehnte leere Randzellen werden absichtlich nicht materialisiert.
             pendingEmptyCells = 0
             if row.isEmpty {
-                pendingEmptyRows += currentRowRepeat
-                guard pendingEmptyRows <= Limits.maximumRows else {
-                    return fail("a spreadsheet sheet exceeds the row budget", parser: parser)
-                }
+                // Leere Zeilen sammeln sich nur an; sie kosten erst etwas, wenn
+                // eine gefüllte Zeile folgt und sie dafür materialisiert werden
+                // müssen. Am Blattende fallen sie ersatzlos weg. Der Zähler
+                // sättigt deshalb eine Stufe über dem Budget, damit die Prüfung
+                // unten weiterhin greift.
+                pendingEmptyRows = min(
+                    pendingEmptyRows + currentRowRepeat, SpreadsheetLimits.maximumRows + 1
+                )
                 return
             }
             if pendingEmptyRows > 0 {
-                guard currentRows.count + pendingEmptyRows <= Limits.maximumRows else {
-                    return fail("a spreadsheet sheet exceeds the row budget", parser: parser)
+                guard currentRows.count + pendingEmptyRows <= SpreadsheetLimits.maximumRows else {
+                    return fail(SpreadsheetLimits.rowBudgetMessage, parser: parser)
                 }
                 currentRows.append(contentsOf: repeatElement([], count: pendingEmptyRows))
                 pendingEmptyRows = 0
             }
-            guard currentRows.count + currentRowRepeat <= Limits.maximumRows else {
-                return fail("a spreadsheet sheet exceeds the row budget", parser: parser)
+            guard currentRows.count + currentRowRepeat <= SpreadsheetLimits.maximumRows else {
+                return fail(SpreadsheetLimits.rowBudgetMessage, parser: parser)
             }
             let repeatedCellCount = row.count * max(0, currentRowRepeat - 1)
-            guard expandedCellCount <= Limits.maximumCells - repeatedCellCount else {
-                return fail("the spreadsheet exceeds the expanded-cell budget", parser: parser)
+            guard expandedCellCount <= SpreadsheetLimits.maximumCells - repeatedCellCount else {
+                return fail(SpreadsheetLimits.cellBudgetMessage, parser: parser)
             }
             currentRows.append(contentsOf: repeatElement(row, count: currentRowRepeat))
             expandedCellCount += repeatedCellCount
@@ -356,16 +356,32 @@ enum ODSWorkbookParser {
             parser: XMLParser
         ) -> Int {
             guard let text else { return 1 }
-            guard let value = Int(text), value > 0, value <= maximum else {
+            // Die DEKLARIERTE Wiederholung darf das Budget übersteigen, ohne die
+            // Datei abzuweisen: LibreOffice schreibt am Ende eines formatierten
+            // Blattes eine LEERE Zeile mit `number-rows-repeated="1048575"`, die
+            // nie materialisiert wird. Entschieden wird deshalb erst beim
+            // Materialisieren — eine leere Wiederholung fällt am Blattende weg,
+            // eine mit Inhalt läuft weiterhin in das Zeilen- beziehungsweise
+            // Zellbudget. Geklemmt wird hier NICHT, sonst würde eine zu große
+            // Wiederholung mit Inhalt still gekürzt statt abgelehnt
+            // (Review-Fund 2026-09-10).
+            guard let value = Int(text), value > 0, value <= Self.maximumDeclaredRepeat else {
                 fail("a repeated row or column count exceeds its budget", parser: parser)
                 return 1
             }
+            _ = maximum
             return value
         }
 
+        /// Obergrenze für die reine Zahl im Attribut. Sie hält die Additionen
+        /// mit `pendingEmptyRows` weit von einem Überlauf entfernt und liegt
+        /// über allem, was ein Tabellenprogramm je schreibt (ODF erlaubt
+        /// 2^20 Zeilen, Excel 2^20).
+        private static let maximumDeclaredRepeat = 1 << 31
+
         private func checkCellBudget(parser: XMLParser) {
-            if expandedCellCount > Limits.maximumCells {
-                fail("the spreadsheet exceeds the expanded-cell budget", parser: parser)
+            if expandedCellCount > SpreadsheetLimits.maximumCells {
+                fail(SpreadsheetLimits.cellBudgetMessage, parser: parser)
             }
         }
 
@@ -401,13 +417,6 @@ enum ODSWorkbookParser {
                 linkTarget: linkTarget
             )
         }
-    }
-
-    private enum Limits {
-        static let maximumSheets = 256
-        static let maximumRows = 100_000
-        static let maximumColumns = 16_384
-        static let maximumCells = 1_000_000
     }
 
     private enum Namespaces {

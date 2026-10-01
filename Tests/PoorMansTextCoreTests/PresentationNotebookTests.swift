@@ -115,6 +115,22 @@ final class PresentationNotebookTests: XCTestCase {
         XCTAssertEqual(try Data(contentsOf: source), bytes)
     }
 
+    func testNotebookResourceBudgetIgnoresFencedCodeExamples() throws {
+        let examples = (0...4_096).map { "![example](missing-\($0).png)" }.joined(separator: "\n")
+        let source = root.appendingPathComponent("code-examples.ipynb")
+        let cell = "```markdown\n\(examples)\n```\n![real](missing.png)"
+        let bytes = try JSONSerialization.data(
+            withJSONObject: ["nbformat": 4, "cells": [["cell_type": "markdown", "source": cell]]]
+        )
+        try bytes.write(to: source)
+
+        let result = try DocumentConverter().convert(ConversionRequest(inputURL: source))
+        let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+        XCTAssertEqual(markdown.components(separatedBy: "#unavailable-resource").count - 1, 1)
+        XCTAssertTrue(markdown.contains("![example](missing-4096.png)"), markdown)
+        XCTAssertEqual(try Data(contentsOf: source), bytes)
+    }
+
     func testODPNumberedNestedListsAndNotes() throws {
         let xml = """
         <office:document-content xmlns:office="\(PresentationImport.office)" xmlns:draw="\(PresentationImport.draw)" xmlns:text="\(PresentationImport.text)" xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0" xmlns:presentation="\(PresentationImport.presentationODF)">
@@ -230,6 +246,59 @@ final class PresentationNotebookTests: XCTestCase {
         XCTAssertEqual(result.diagnostics.filter { $0.code == "presentation.hyperlinkFlattened" }.count, 2)
         XCTAssertTrue(result.diagnostics.contains { $0.code == "presentation.nestedTableFlattened" && $0.location?.page == 1 })
     }
+    /// Ein Bild im Absatz (`text:p` > `draw:frame` > `draw:image`) fiel ohne
+    /// Diagnose weg, weil der Leser den Absatz mit seinem Text beantwortete.
+    func testODPImageInsideAParagraphIsKept() throws {
+        let xml = odpDocument("<text:p>Vorher<draw:frame><draw:image xlink:href=\"Pictures/p.png\"/></draw:frame></text:p><text:p><draw:frame><draw:image xlink:href=\"Pictures/p.png\"/></draw:frame></text:p>")
+        let source = root.appendingPathComponent("inline-image.odp")
+        try ZIPFixtureBuilder.archive(entries: [
+            entry("mimetype", "application/vnd.oasis.opendocument.presentation"), entry("content.xml", xml),
+            .init(name: "Pictures/p.png", content: try png),
+        ]).write(to: source)
+
+        let result = try DocumentConverter().convert(ConversionRequest(inputURL: source))
+        let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+
+        XCTAssertEqual(result.assets.count, 1)
+        XCTAssertTrue(markdown.contains("Vorher\n\n![Slide image](images/image1.png)"), markdown)
+        XCTAssertEqual(markdown.components(separatedBy: "![Slide image](images/image1.png)").count - 1, 2, markdown)
+        XCTAssertFalse(result.diagnostics.contains { $0.code == "presentation.imageUnavailable" })
+    }
+
+    /// Dasselbe Bild mit drei Verweisen wird einmal aus dem Paket gelesen;
+    /// vorher holte der Leser den Eintrag je `a:blip` erneut und hashte ihn neu.
+    func testAnImageReferencedSeveralTimesIsReadFromThePackageOnce() throws {
+        var entries = try pptxEntries()
+        let p = PresentationImport.presentation, a = PresentationImport.drawing, r = PresentationImport.relations
+        entries.removeAll { $0.name == "ppt/slides/slide1.xml" }
+        entries.append(entry("ppt/slides/slide1.xml", "<p:sld xmlns:p=\"\(p)\" xmlns:a=\"\(a)\" xmlns:r=\"\(r)\"><p:cSld><p:spTree><p:pic><a:blip r:embed=\"picture\"/></p:pic><p:pic><a:blip r:embed=\"picture\"/></p:pic><p:pic><a:blip r:embed=\"picture\"/></p:pic></p:spTree></p:cSld></p:sld>"))
+        entries.append(entry("ppt/slides/_rels/slide1.xml.rels", "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"picture\" Type=\"\(r)/image\" Target=\"../media/picture.png\"/></Relationships>"))
+        let source = root.appendingPathComponent("repeated.pptx")
+        try ZIPFixtureBuilder.archive(entries: entries).write(to: source)
+        let output = root.appendingPathComponent("repeated-output", isDirectory: true)
+        try FileManager.default.createDirectory(at: output, withIntermediateDirectories: true)
+
+        let reader = CountingReader(base: try ZIPArchiveInspector.inspectionSnapshot(at: source))
+        let importer = PresentationImport(reader: reader, output: output)
+        let markdown = try importer.convert(format: .pptx, title: "Wiederholt")
+
+        XCTAssertEqual(reader.reads["ppt/media/picture.png"], 1)
+        XCTAssertEqual(importer.media.paths, ["images/image1.png"])
+        XCTAssertEqual(markdown.components(separatedBy: "![Slide image](images/image1.png)").count - 1, 5, markdown)
+    }
+
+    /// Zählt, wie oft jeder Paketeintrag gelesen wird.
+    private final class CountingReader: ZIPPackageReading {
+        let base: any ZIPPackageReading
+        var reads: [String: Int] = [:]
+        init(base: any ZIPPackageReading) { self.base = base }
+        var entryNames: Set<String> { base.entryNames }
+        func data(named name: String) throws -> Data {
+            reads[name, default: 0] += 1
+            return try base.data(named: name)
+        }
+    }
+
     private func odpDocument(_ body: String) -> String {
         "<office:document-content xmlns:office=\"\(PresentationImport.office)\" xmlns:draw=\"\(PresentationImport.draw)\" xmlns:text=\"\(PresentationImport.text)\" xmlns:table=\"\(PresentationImport.table)\" xmlns:xlink=\"\(PresentationImport.xlink)\"><office:body><office:presentation><draw:page>\(body)</draw:page></office:presentation></office:body></office:document-content>"
     }
@@ -265,4 +334,73 @@ final class PresentationNotebookTests: XCTestCase {
             XCTAssertThrowsError(try ImportPackagePath.resolve(target, relativeTo: "ppt/slide.xml"), target)
         }
     }
+    // MARK: - Review-Funde 2026-09-10
+
+    private func notebook(_ cells: [[String: Any]]) throws -> URL {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("PMTNotebook-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        let url = root.appendingPathComponent("Buch.ipynb")
+        let json: [String: Any] = ["cells": cells, "metadata": [:], "nbformat": 4, "nbformat_minor": 5]
+        try JSONSerialization.data(withJSONObject: json).write(to: url)
+        return url
+    }
+
+    private static let tinyPNGBase64 =
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg=="
+
+    /// Ein Verweis der QUELLE auf einen von uns vergebenen Asset-Namen zeigte
+    /// still auf den Anhang einer ANDEREN Zelle — je nach Zellenreihenfolge
+    /// einmal so und einmal als fehlend gemeldet.
+    func testAReferenceToAnotherCellsAssetNameIsReportedInEitherCellOrder() throws {
+        let withAttachment: [String: Any] = [
+            "cell_type": "markdown", "metadata": [:],
+            "source": ["![a](attachment:x.png)\n"],
+            "attachments": ["x.png": ["image/png": Self.tinyPNGBase64]],
+        ]
+        let borrowing: [String: Any] = [
+            "cell_type": "markdown", "metadata": [:],
+            "source": ["![b](images/image1.png)\n"],
+        ]
+
+        for cells in [[withAttachment, borrowing], [borrowing, withAttachment]] {
+            let url = try notebook(cells)
+            defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+            let result = try DocumentConverter().convert(ConversionRequest(inputURL: url))
+            let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+
+            XCTAssertTrue(markdown.contains("![b](#unavailable-resource)"), markdown)
+            XCTAssertTrue(markdown.contains("![a](images/image1.png)"), markdown)
+            XCTAssertTrue(result.diagnostics.contains { $0.code == "notebook.resourceUnavailable" })
+        }
+    }
+
+    /// Alle Anhänge einer Zelle werden ersetzt, auch viele. Die Ersetzung läuft
+    /// seit dem 2026-09-10 in EINEM Durchlauf statt einmal je Anhang; die
+    /// Beschleunigung selbst ist gemessen (20 000 Anhänge: über zehn Minuten
+    /// und nicht abbrechbar gegen 1,6 Sekunden) und steht bewusst nicht als
+    /// Zeitzusicherung hier — ein Zeitvergleich im Test wäre auf einer
+    /// ausgelasteten Maschine unzuverlässig und träfe die quadratische Kurve
+    /// erst bei einer Größe, die die Suite spürbar verlangsamt.
+    func testEveryAttachmentOfACellIsRewritten() throws {
+        let count = 200
+        var attachments = [String: Any]()
+        var source = [String]()
+        for index in 0..<count {
+            attachments["a\(index).png"] = ["image/png": Self.tinyPNGBase64]
+            source.append("![\(index)](attachment:a\(index).png)\n")
+        }
+        let url = try notebook([[
+            "cell_type": "markdown", "metadata": [:], "source": source, "attachments": attachments,
+        ]])
+        defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+
+        let result = try DocumentConverter().convert(ConversionRequest(inputURL: url))
+        let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+
+        XCTAssertFalse(markdown.contains("attachment:"), "kein Anhangsverweis bleibt stehen")
+        XCTAssertFalse(markdown.contains("#unavailable-resource"), markdown)
+        XCTAssertEqual(result.assets.count, 1, "gleiche Bytes ergeben eine Datei")
+    }
+
 }

@@ -42,7 +42,10 @@ enum LegacyXLSWorkbookParser {
             && stream.legacyUInt16(at: 6) == 0x0005
     }
 
-    private enum BIFFParser {
+    /// Nicht `private`: Tests prüfen `setCell` und `CellBudget` direkt, weil
+    /// ein BIFF-Fixture mit einer Million Zellen den OLE-Schreiber der Tests
+    /// sprengen würde.
+    enum BIFFParser {
         static func parse(_ data: Data) throws -> SpreadsheetWorkbook {
             // Die Workbook-Globals enden am ersten EOF-Record (0x000A). BOF,
             // FilePass, SST und alle BOUNDSHEET-Records liegen davor, die
@@ -78,7 +81,7 @@ enum LegacyXLSWorkbookParser {
             guard !bounds.isEmpty else {
                 throw ParserError("the XLS workbook contains no worksheets")
             }
-            guard bounds.count <= Limits.maximumSheets else {
+            guard bounds.count <= SpreadsheetLimits.maximumSheets else {
                 throw ParserError("the XLS workbook contains too many sheets")
             }
             // Auch Chart-, Makro- und andere BIFF-Unterstreams begrenzen das
@@ -101,8 +104,8 @@ enum LegacyXLSWorkbookParser {
                     at: bound.offset,
                     before: endOffset,
                     sharedStrings: sharedStrings,
-                    maximumCells: Limits.maximumCells - expandedCellCount,
-                    maximumHyperlinkScans: Limits.maximumCells - hyperlinkScannedCellCount
+                    maximumCells: SpreadsheetLimits.maximumCells - expandedCellCount,
+                    maximumHyperlinkScans: SpreadsheetLimits.maximumHyperlinkScans - hyperlinkScannedCellCount
                 )
                 expandedCellCount += parsed.expandedCellCount
                 hyperlinkScannedCellCount += parsed.hyperlinkScannedCellCount
@@ -171,7 +174,7 @@ enum LegacyXLSWorkbookParser {
             var cursor = SegmentedCursor(segments: segments)
             _ = try cursor.readUInt32()
             let uniqueCount = Int(try cursor.readUInt32())
-            guard uniqueCount <= Limits.maximumSharedStrings else {
+            guard uniqueCount <= SpreadsheetLimits.maximumSharedStrings else {
                 throw ParserError("the XLS shared-string table exceeds the supported limit")
             }
             var strings = [String]()
@@ -205,6 +208,12 @@ enum LegacyXLSWorkbookParser {
                 throw ParserError("an XLS worksheet has no EOF before the next sheet")
             }
             var cells = [Int: [Int: SpreadsheetCell]]()
+            // Zählt die tatsächlich gesetzten Zellen: Die dünne Struktur wuchs
+            // vorher ungebremst, und `maximumCells` griff erst beim Verdichten
+            // — ein Blatt mit Millionen Zellrecords belegte den Speicher
+            // längst vorher (Roadmap-Punkt, 2026-09-10). Die dünne Zahl ist
+            // nie größer als die verdichtete, die Prüfung also nie strenger.
+            var budget = CellBudget(maximum: maximumCells)
             var hasMerges = false
             var hasFormulaWithoutResult = false
             var hasUnsupportedObjects = false
@@ -226,7 +235,8 @@ enum LegacyXLSWorkbookParser {
                         .init(value: .string(sharedStrings[index]), displayText: sharedStrings[index], formula: nil),
                         row: Int(record.payload.legacyUInt16(at: 0)),
                         column: Int(record.payload.legacyUInt16(at: 2)),
-                        in: &cells
+                        in: &cells,
+                        budget: &budget
                     )
                 case 0x0203: // NUMBER
                     guard record.payload.count >= 14 else { throw ParserError("an XLS number cell is invalid") }
@@ -236,7 +246,8 @@ enum LegacyXLSWorkbookParser {
                         .init(value: .number(text), displayText: text, formula: nil),
                         row: Int(record.payload.legacyUInt16(at: 0)),
                         column: Int(record.payload.legacyUInt16(at: 2)),
-                        in: &cells
+                        in: &cells,
+                        budget: &budget
                     )
                 case 0x027E: // RK
                     guard record.payload.count >= 10 else { throw ParserError("an XLS RK cell is invalid") }
@@ -245,10 +256,11 @@ enum LegacyXLSWorkbookParser {
                         .init(value: .number(text), displayText: text, formula: nil),
                         row: Int(record.payload.legacyUInt16(at: 0)),
                         column: Int(record.payload.legacyUInt16(at: 2)),
-                        in: &cells
+                        in: &cells,
+                        budget: &budget
                     )
                 case 0x00BD: // MULRK
-                    try parseMultipleRK(record.payload, into: &cells)
+                    try parseMultipleRK(record.payload, into: &cells, budget: &budget)
                 case 0x0205: // BOOLERR
                     guard record.payload.count >= 8 else { throw ParserError("an XLS boolean cell is invalid") }
                     let isError = record.payload[7] != 0
@@ -261,7 +273,8 @@ enum LegacyXLSWorkbookParser {
                         ),
                         row: Int(record.payload.legacyUInt16(at: 0)),
                         column: Int(record.payload.legacyUInt16(at: 2)),
-                        in: &cells
+                        in: &cells,
+                        budget: &budget
                     )
                 case 0x0006: // FORMULA
                     guard record.payload.count >= 14 else { throw ParserError("an XLS formula cell is invalid") }
@@ -276,20 +289,22 @@ enum LegacyXLSWorkbookParser {
                             let value = record.payload[8] != 0
                             try setCell(
                                 .init(value: .boolean(value), displayText: value ? "TRUE" : "FALSE", formula: formulaMarker),
-                                row: row, column: column, in: &cells
+                                row: row, column: column, in: &cells,
+                        budget: &budget
                             )
                         case 2:
                             try setCell(
                                 .init(value: .string("#ERROR"), displayText: "#ERROR", formula: formulaMarker),
-                                row: row, column: column, in: &cells
+                                row: row, column: column, in: &cells,
+                        budget: &budget
                             )
                         default:
                             hasFormulaWithoutResult = true
-                            try setCell(.init(value: .empty, displayText: "", formula: formulaMarker), row: row, column: column, in: &cells)
+                            try setCell(.init(value: .empty, displayText: "", formula: formulaMarker), row: row, column: column, in: &cells, budget: &budget)
                         }
                     } else {
                         let text = format(record.payload.legacyDouble(at: 6))
-                        try setCell(.init(value: .number(text), displayText: text, formula: formulaMarker), row: row, column: column, in: &cells)
+                        try setCell(.init(value: .number(text), displayText: text, formula: formulaMarker), row: row, column: column, in: &cells, budget: &budget)
                     }
                 case 0x0207: // STRING result after FORMULA
                     if let pending = pendingStringFormula {
@@ -298,7 +313,8 @@ enum LegacyXLSWorkbookParser {
                             .init(value: .string(text), displayText: text, formula: pending.formula),
                             row: pending.row,
                             column: pending.column,
-                            in: &cells
+                            in: &cells,
+                        budget: &budget
                         )
                         pendingStringFormula = nil
                     }
@@ -326,7 +342,8 @@ enum LegacyXLSWorkbookParser {
                     .init(value: .empty, displayText: "", formula: pendingStringFormula.formula),
                     row: pendingStringFormula.row,
                     column: pendingStringFormula.column,
-                    in: &cells
+                    in: &cells,
+                        budget: &budget
                 )
             }
             for hyperlink in hyperlinks {
@@ -349,15 +366,34 @@ enum LegacyXLSWorkbookParser {
             )
         }
 
-        private static func setCell(
+        /// Das Zellbudget eines Blattes, gemessen an den gesetzten Zellen.
+        struct CellBudget {
+            private(set) var count = 0
+            let maximum: Int
+
+            init(maximum: Int) { self.maximum = maximum }
+
+            mutating func countNewCell() throws {
+                guard count < maximum else {
+                    throw ParserError("the XLS sheet exceeds the cell budget")
+                }
+                count += 1
+            }
+        }
+
+        static func setCell(
             _ cell: SpreadsheetCell,
             row: Int,
             column: Int,
-            in cells: inout [Int: [Int: SpreadsheetCell]]
+            in cells: inout [Int: [Int: SpreadsheetCell]],
+            budget: inout CellBudget
         ) throws {
-            guard row >= 0, row < Limits.maximumRows,
-                  column >= 0, column < Limits.maximumColumns else {
+            guard row >= 0, row < SpreadsheetLimits.maximumRows,
+                  column >= 0, column < SpreadsheetLimits.maximumColumns else {
                 throw ParserError("an XLS cell lies outside the supported row or column budget")
+            }
+            if cells[row]?[column] == nil {
+                try budget.countNewCell()
             }
             cells[row, default: [:]][column] = cell
         }
@@ -377,7 +413,7 @@ enum LegacyXLSWorkbookParser {
                 }
                 cellBudget += maximumColumn + 1
                 guard cellBudget <= maximumCells else {
-                    throw ParserError("the XLS sheet exceeds the expanded-cell budget")
+                    throw ParserError(SpreadsheetLimits.cellBudgetMessage)
                 }
                 var row = [SpreadsheetCell](repeating: .empty, count: maximumColumn + 1)
                 for (column, cell) in sparse { row[column] = cell }
@@ -465,7 +501,7 @@ enum LegacyXLSWorkbookParser {
             let rows = hyperlink.range.lastRow - hyperlink.range.firstRow + 1
             let columns = hyperlink.range.lastColumn - hyperlink.range.firstColumn + 1
             guard rows > 0, columns > 0,
-                  columns <= Limits.maximumCells / rows else {
+                  columns <= SpreadsheetLimits.maximumHyperlinkScans / rows else {
                 throw ParserError("the XLS hyperlinks exceed the scan budget")
             }
             let scannedCells = rows * columns
@@ -503,7 +539,8 @@ enum LegacyXLSWorkbookParser {
 
         private static func parseMultipleRK(
             _ payload: Data,
-            into cells: inout [Int: [Int: SpreadsheetCell]]
+            into cells: inout [Int: [Int: SpreadsheetCell]],
+            budget: inout CellBudget
         ) throws {
             guard payload.count >= 12, (payload.count - 6) % 6 == 0 else {
                 throw ParserError("an XLS multiple-number record is invalid")
@@ -521,7 +558,8 @@ enum LegacyXLSWorkbookParser {
                     .init(value: .number(text), displayText: text, formula: nil),
                     row: row,
                     column: firstColumn + index,
-                    in: &cells
+                    in: &cells,
+                        budget: &budget
                 )
             }
         }
@@ -567,7 +605,15 @@ enum LegacyXLSWorkbookParser {
                 }
                 return String(decoding: units, as: UTF16.self)
             }
-            return String(data: data, encoding: .isoLatin1)
+            // Windows-1252, nicht ISO-8859-1: Excel schreibt in den komprimierten
+            // BIFF8-Strings die typografischen Zeichen des Windows-Zeichensatzes.
+            // Als Latin-1 gelesen wurde aus dem Apostroph 0x92 das
+            // C1-Steuerzeichen U+0092, aus 0x80 statt des Eurozeichens U+0080
+            // — beide landeten roh im Markdown. Die Hyperlink-Pfade derselben
+            // Datei wurden 137 Zeilen tiefer längst richtig gelesen
+            // (Review-Fund 2026-09-10).
+            return String(data: data, encoding: .windowsCP1252)
+                ?? String(data: data, encoding: .isoLatin1)
                 ?? String(decoding: data, as: UTF8.self)
         }
 
@@ -595,7 +641,7 @@ enum LegacyXLSWorkbookParser {
                 firstColumn = Int(try cursor.readUInt16())
                 lastColumn = Int(try cursor.readUInt16())
                 guard firstRow <= lastRow, firstColumn <= lastColumn,
-                      lastRow < Limits.maximumRows, lastColumn < Limits.maximumColumns else {
+                      lastRow < SpreadsheetLimits.maximumRows, lastColumn < SpreadsheetLimits.maximumColumns else {
                     throw ParserError("an XLS hyperlink lies outside the supported row or column budget")
                 }
             }
@@ -820,13 +866,6 @@ enum LegacyXLSWorkbookParser {
             }
         }
 
-        private enum Limits {
-            static let maximumSheets = 256
-            static let maximumRows = 100_000
-            static let maximumColumns = 16_384
-            static let maximumCells = 1_000_000
-            static let maximumSharedStrings = 1_000_000
-        }
     }
 
     private struct ParserError: LocalizedError {

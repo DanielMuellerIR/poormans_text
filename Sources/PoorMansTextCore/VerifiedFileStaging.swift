@@ -68,46 +68,60 @@ enum VerifiedFileStaging {
             describedAs: subject,
             followSourceSymlink: followSourceSymlink
         ) { source, _ in
-            let destinationDescriptor = open(
-                destinationURL.path,
-                O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW,
-                0o600
-            )
-            guard destinationDescriptor >= 0 else {
-                throw StagingError(.destination, "the staging file could not be created")
-            }
-            var succeeded = false
-            defer {
-                close(destinationDescriptor)
-                if !succeeded {
-                    try? FileManager.default.removeItem(at: destinationURL)
-                }
-            }
-
-            let copiedBytes = try source.readChunks(
-                maximumBytes: maximumBytes,
-                chunkSize: chunkSize,
-                budgetExceeded: {
-                    StagingError(.source, "\(subject) exceeds the supported size limit")
-                }
-            ) { chunk in
-                guard var position = chunk.baseAddress else { return true }
-                var remaining = chunk.count
-                while remaining > 0 {
-                    let written = write(destinationDescriptor, position, remaining)
-                    guard written > 0 else {
-                        if written < 0, errno == EINTR { continue }
-                        throw StagingError(.destination, "the staging file could not be written")
-                    }
-                    position += written
-                    remaining -= written
-                }
-                return true
-            }
-
-            succeeded = true
-            return copiedBytes
+            try stage(from: source, to: destinationURL, maximumBytes: maximumBytes, describedAs: subject)
         }
+    }
+
+    /// Für bereits gehaltene Quellen darf das Staging den Pfad nicht erneut öffnen.
+    @discardableResult
+    static func stage(
+        from source: VerifiedFile,
+        to destinationURL: URL,
+        maximumBytes: Int,
+        describedAs subject: String
+    ) throws -> Int {
+        guard source.isRegularFile, source.info.st_size <= Int64(maximumBytes) else {
+            throw StagingError(.source, "\(subject) is not a regular file within the supported size limit")
+        }
+        let destinationDescriptor = open(
+            destinationURL.path,
+            O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW,
+            0o600
+        )
+        guard destinationDescriptor >= 0 else {
+            throw StagingError(.destination, "the staging file could not be created")
+        }
+        var succeeded = false
+        defer {
+            close(destinationDescriptor)
+            if !succeeded {
+                try? FileManager.default.removeItem(at: destinationURL)
+            }
+        }
+
+        let copiedBytes = try source.readChunks(
+            maximumBytes: maximumBytes,
+            chunkSize: chunkSize,
+            budgetExceeded: {
+                StagingError(.source, "\(subject) exceeds the supported size limit")
+            }
+        ) { chunk in
+            guard var position = chunk.baseAddress else { return true }
+            var remaining = chunk.count
+            while remaining > 0 {
+                let written = write(destinationDescriptor, position, remaining)
+                guard written > 0 else {
+                    if written < 0, errno == EINTR { continue }
+                    throw StagingError(.destination, "the staging file could not be written")
+                }
+                position += written
+                remaining -= written
+            }
+            return true
+        }
+
+        succeeded = true
+        return copiedBytes
     }
 
     /// Legt eine private, begrenzte Arbeitskopie an und entfernt sie nach dem

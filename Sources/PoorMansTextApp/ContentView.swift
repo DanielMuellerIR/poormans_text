@@ -145,6 +145,15 @@ struct ContentView: View {
     private var dropArea: some View {
         VStack(spacing: 18) {
             stateContent
+            // Dateien aus Dock oder Doppelklick, die wegen laufender Arbeit
+            // nicht angenommen wurden: sichtbar in jedem Zustand, nicht nur
+            // bei einem Ergebnis.
+            if let message = model.openRejectionMessage {
+                Label(message, systemImage: "exclamationmark.triangle.fill")
+                    .font(.callout)
+                    .foregroundStyle(.orange)
+                    .multilineTextAlignment(.center)
+            }
             if model.isConverting {
                 if let progress = model.conversionProgress {
                     if let completed = progress.completed, let total = progress.total, let unit = progress.unit {
@@ -196,6 +205,12 @@ struct ContentView: View {
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: 390)
+                // Derselbe Weg wie beim Abbruch einer Umwandlung: Der Knopf
+                // fordert den Abbruch an und sperrt sich, bis Homebrew weg ist.
+                Button(model.isCancellingPandocInstallation ? "Cancelling…" : "Cancel Installation") {
+                    model.cancelPandocInstallation()
+                }
+                .disabled(model.isCancellingPandocInstallation)
             } else {
                 Image(systemName: "arrow.down.doc.fill")
                     .font(.system(size: 45, weight: .medium))
@@ -361,6 +376,7 @@ struct ContentView: View {
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
                 .textSelection(.enabled)
+                .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: 430)
             HStack {
                 Button("Choose Document…") {
@@ -404,7 +420,7 @@ struct ContentView: View {
                 }
                 TextField("OCR languages (empty: automatic; e.g. de,en)", text: $model.ocrLanguageCodes)
                 Picker("PDF text order", selection: $model.pdfLayout) {
-                    Text("Detect columns").tag(PDFLayout.automatic)
+                    Text("Automatic layout").tag(PDFLayout.automatic)
                     Text("Legacy extraction").tag(PDFLayout.legacy)
                 }
                 Toggle("Remove repeated PDF headers and footers", isOn: $model.pdfRemoveHeadersFooters)
@@ -531,11 +547,11 @@ struct ContentView: View {
     private func assetSummary(_ result: ConversionResult) -> String {
         switch result.assets.count {
         case 0:
-            NSLocalizedString("No image assets", comment: "")
+            NSLocalizedString("No asset files", comment: "")
         case 1:
-            NSLocalizedString("1 image asset", comment: "")
+            NSLocalizedString("1 asset file", comment: "")
         default:
-            String(format: NSLocalizedString("%d image assets", comment: ""), result.assets.count)
+            String(format: NSLocalizedString("%d asset files", comment: ""), result.assets.count)
         }
     }
 
@@ -561,7 +577,7 @@ struct ContentView: View {
                     showsPandocInstallSuccess = true
                 }
             } catch {
-                pandocInstallError = error.localizedDescription
+                pandocInstallError = AppErrorMessage.describe(error)
             }
         }
     }
@@ -603,7 +619,7 @@ struct ContentView: View {
                     try CLIInstaller.install(sourceURL: sourceURL, targetURL: targetURL)
                 }.value
             } catch {
-                cliInstallError = error.localizedDescription
+                cliInstallError = AppErrorMessage.describe(error)
             }
         }
     }

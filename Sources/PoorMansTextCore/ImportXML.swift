@@ -35,11 +35,7 @@ final class ImportXML {
     static func parse(_ data: Data) throws -> ImportXML {
         guard data.count <= 16 * 1_024 * 1_024 else { throw ImportFailure("XML exceeds the 16 MiB entry limit") }
         let delegate = Delegate()
-        let parser = XMLParser(data: data)
-        parser.shouldProcessNamespaces = true
-        parser.shouldReportNamespacePrefixes = true
-        parser.shouldResolveExternalEntities = false
-        parser.delegate = delegate
+        let parser = ImportXMLParser.make(data, delegate: delegate)
         let success = parser.parse()
         try ConversionExecution.check()
         guard success, delegate.failure == nil, let root = delegate.root else {
@@ -53,13 +49,23 @@ final class ImportXML {
         var namespaces: [String: [String]] = [:]
         var nodes = 0
         var textBytes = 0
+        var attributeCount = 0
         var failure: Error?
         func parser(_ parser: XMLParser, didStartMappingPrefix prefix: String, toURI namespaceURI: String) { namespaces[prefix, default: []].append(namespaceURI) }
         func parser(_ parser: XMLParser, didEndMappingPrefix prefix: String) { _ = namespaces[prefix]?.popLast() }
         func parser(_ parser: XMLParser, didStartElement name: String, namespaceURI: String?, qualifiedName: String?, attributes: [String: String]) {
             if ConversionExecution.isCancelled { parser.abortParsing(); return }
             nodes += 1
-            guard nodes <= 200_000, stack.count < 128 else { failure = ImportFailure("XML exceeds node/depth limits"); parser.abortParsing(); return }
+            // Auch Attribute zählen: Ein EINZIGES Element mit Millionen
+            // Attributen war bisher ein Knoten, belegte aber zwei große
+            // Wörterbücher und lief unabbrechbar durch die Erweiterungsschleife
+            // (Review-Fund 2026-09-10).
+            attributeCount += attributes.count
+            guard nodes <= 200_000, attributeCount <= 200_000, stack.count < 128 else {
+                failure = ImportFailure("XML exceeds node/attribute/depth limits")
+                parser.abortParsing()
+                return
+            }
             var expanded: [String: String] = [:]
             for (key, value) in attributes {
                 let parts = key.split(separator: ":", maxSplits: 1)

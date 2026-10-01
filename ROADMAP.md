@@ -9,7 +9,7 @@ temporäre Veröffentlichung sind vorhanden. RTF, RTFD, DOCX/DOCM/DOTX/DOTM,
 ODT, DOC, ODS, XLSX/XLSM/XLTX/XLTM, XLS, CSV/TSV, ODM, PDF, PPTX/PPTM/POTX,
 ODP, IPYNB, HTML, Webarchive,
 EPUB, LaTeX, DocBook, Org, MediaWiki, Textile, reStructuredText, FictionBook
-sowie PNG, JPEG, HEIC, TIFF, GIF, BMP und WebP sind implementiert. Ihre Importwege stehen in
+sowie EML/Apple Mail und PNG, JPEG, HEIC, TIFF, GIF, BMP und WebP sind implementiert. Ihre Importwege stehen in
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Etappenplan (Stand 2026-09-05)
@@ -36,17 +36,6 @@ in die Zwischenablage) sind umgesetzt; offen bleibt:
   Protokollliste je Übersetzungseinheit und ein eigener Prozessor-Aufruf pro
   Architektur. Erst angehen, wenn der Aufwand den Nutzen gegenüber „Shell-Skript
   ausführen“ mit `poormans-text --json` in Kurzbefehle rechtfertigt.
-
-### Etappe 6 — E-Mail
-
-- EML und `.emlx` (Apple Mail): Kopfzeilen als Tabelle oder Frontmatter, der
-  HTML- oder Textkörper durch den Rewriter, Anhänge nach `attachments/`.
-- MSG (Outlook) über den eigenständigen OLE-Containerleser.
-
-### Etappe 7 — Qualität des PDF-Imports
-
-- Überschriften aus Schriftgrößen ableiten und einfache Tabellen aus Zeilen-
-  und Spaltenlagen rekonstruieren.
 
 ### Etappe 8 — App-Bedienung
 

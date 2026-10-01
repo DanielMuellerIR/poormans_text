@@ -63,23 +63,43 @@ struct VerifiedFile {
         )
     }
 
+    /// Hält denselben geprüften Deskriptor für bedarfsgerechte spätere Zugriffe
+    /// offen. Die letzte Referenz schließt ihn, auch nach einem Parserfehler.
+    final class Owned {
+        let file: VerifiedFile
+        fileprivate init(file: VerifiedFile) { self.file = file }
+        deinit { close(file.descriptor) }
+    }
+
+    static func openRetained(at url: URL, failure: @escaping (Failure) -> Error) throws -> Owned {
+        try openRetained(at: url, flags: O_RDONLY | O_NONBLOCK, failure: failure)
+    }
+
     private static func open<T>(
         at url: URL,
         flags: Int32,
         failure: @escaping (Failure) -> Error,
         body: (VerifiedFile) throws -> T
     ) throws -> T {
+        let owned = try openRetained(at: url, flags: flags, failure: failure)
+        return try withExtendedLifetime(owned) { try body(owned.file) }
+    }
+
+    private static func openRetained(
+        at url: URL,
+        flags: Int32,
+        failure: @escaping (Failure) -> Error
+    ) throws -> Owned {
         let descriptor = Darwin.open(url.path, flags)
         guard descriptor >= 0 else {
             throw failure(.couldNotOpen(String(cString: strerror(errno))))
         }
-        defer { close(descriptor) }
-
         var info = stat()
         guard fstat(descriptor, &info) == 0 else {
+            close(descriptor)
             throw failure(.couldNotInspect)
         }
-        return try body(VerifiedFile(descriptor: descriptor, info: info, failure: failure))
+        return Owned(file: VerifiedFile(descriptor: descriptor, info: info, failure: failure))
     }
 
     var isRegularFile: Bool {

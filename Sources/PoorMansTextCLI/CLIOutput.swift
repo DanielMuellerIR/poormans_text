@@ -254,7 +254,7 @@ enum CLIExitCode: Int32 {
 func exitCode(for error: Error) -> CLIExitCode {
     if let enumerationError = error as? InputEnumerationError {
         switch enumerationError {
-        case .inputDoesNotExist, .noSupportedDocuments:
+        case .inputDoesNotExist, .noSupportedDocuments, .earlierResult:
             return .noInput
         case .fileSystemFailure:
             return .inputOutput

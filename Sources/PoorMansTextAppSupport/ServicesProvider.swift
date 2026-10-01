@@ -28,11 +28,11 @@ public final class ServicesProvider: NSObject {
             forClasses: [NSURL.self],
             options: [.urlReadingFileURLsOnly: true]
         ) as? [URL], !urls.isEmpty else {
-            error.pointee = "The service received no files."
+            error.pointee = NSLocalizedString("The service received no files.", comment: "") as NSString
             return
         }
         guard model.acceptsNewDocuments else {
-            error.pointee = "Poor Man's Text is busy with another conversion."
+            error.pointee = NSLocalizedString("Poor Man's Text is busy with another conversion.", comment: "") as NSString
             return
         }
         NSApp?.activate(ignoringOtherApps: true)
@@ -46,11 +46,11 @@ public final class ServicesProvider: NSObject {
         error: AutoreleasingUnsafeMutablePointer<NSString?>
     ) {
         guard let source = RichTextClipboard.Source(pasteboard: pasteboard) else {
-            error.pointee = RichTextClipboard.ClipboardError.noRichText.localizedDescription as NSString
+            error.pointee = AppErrorMessage.describe(RichTextClipboard.ClipboardError.noRichText) as NSString
             return
         }
         guard model.acceptsNewDocuments else {
-            error.pointee = "Poor Man's Text is busy with another conversion."
+            error.pointee = NSLocalizedString("Poor Man's Text is busy with another conversion.", comment: "") as NSString
             return
         }
         NSApp?.activate(ignoringOtherApps: true)

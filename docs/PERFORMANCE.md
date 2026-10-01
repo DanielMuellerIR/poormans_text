@@ -1,4 +1,54 @@
-# Paketverarbeitung: Messung 2026-09-05
+# Speicher und Laufzeit der Paketverarbeitung
+
+## ZIP-Erkennung: Messung 2026-09-30
+
+`scripts/benchmark_zip_detection.py` baut zwei optimierte reine Kernprobes:
+Git-Basis `270e1b9` und aktuellen Quellstand. Unveränderliche Quellkopien und
+SHA-256-Manifeste ordnen beide Messprobes ihren Quellen zu. Keine App wird gestartet.
+
+Die drei gültigen temporären ODT-Pakete enthalten denselben `mimetype`, dieselbe
+Dokument-XML und einen unkomprimierten Zusatzeintrag aus Nullbytes. Die Nutzlast
+wird als Sparse-Datei erzeugt; ihre CRC ist korrekt und Info-ZIP prüfte den
+größten Fall erfolgreich vollständig. Gemessen wird ausschließlich die
+Erkennung mit Namensindex und Lesen der beiden Metadateneinträge. Die vollständige
+Prüfung aller Medien vor der Konvertierung bleibt erhalten und ist nicht Teil
+dieser Messung. Metadaten und Namenslisten sind vor/nachher bytegleich; alle
+Quellenhashes bleiben unverändert.
+
+Umgebung: Apple M5, arm64, macOS 26.6.2, Swift 6.4. Drei abwechselnde Läufe je
+Probe und Eingabe, ohne parallel laufende Projektbuilds oder Tests. Zeit ist
+der Median innerhalb des Erkennungsprobes, Speicher der größte Prozess-RSS
+(`maximum resident set size` von `/usr/bin/time -l`).
+
+| Zusätzliche Nutzlast | Erkennung vorher | Erkennung nachher | Spitzen-RSS vorher | Spitzen-RSS nachher |
+| --- | ---: | ---: | ---: | ---: |
+| 1MiB | 0.676 ms | 0.782 ms | 10.47 MiB | 9.56 MiB |
+| 256MiB | 18.859 ms | 0.803 ms | 265.47 MiB | 9.56 MiB |
+| 768MiB | 52.158 ms | 0.744 ms | 777.47 MiB | 9.56 MiB |
+
+Beim 768-MiB-Fall fällt der Spitzen-RSS um 98,77 %. Die Mediengröße erhöht den
+Erkennungsspeicher in dieser Matrix nicht mehr. Das kleine Paket zeigt einen
+zusätzlichen Prüfaufwand von etwa 0,106 ms; ein allgemeiner Laufzeitgewinn ist
+nicht zugesagt. Die Gesamtprozesszeiten einschließlich Start lagen im Median
+bei 9,34/8,84 ms, 28,77/9,84 ms und 64,57/8,46 ms (vorher/nachher).
+
+Der Reader hält einen 64-KiB-Lesepuffer, den höchstens 65.557 Byte langen
+Schlussbereich, den Namensindex und angeforderte, jeweils bereits auf 16 MiB
+begrenzte Metadaten. Der Index wächst weiterhin mit Zahl und Länge der Namen;
+dies ist keine Zusage eines konstanten Gesamtspeichers für beliebige Verzeichnisse.
+Sparse-Nullnutzlast und diese isolierte Erkennung erlauben keine allgemeine
+Aussage über kalte Datenträger oder den RSS einer vollständigen Konvertierung.
+
+Wiederholen, mit einem neuen temporären Ordner:
+
+```sh
+python3 scripts/benchmark_zip_detection.py --baseline 270e1b9 --root /tmp/zip-detection-new-run
+```
+
+`benchmark.json` enthält Einzelwerte, Quellenmanifeste und Datei-/Ergebnishashes.
+Der Ablauf schreibt weder in den Git-Index noch in vorhandene Ausgabeordner.
+
+## Paketverarbeitung: Messung 2026-09-05
 
 `scripts/benchmark_packages.py` erzeugt drei lokale Testfälle und prüft bei jedem
 Lauf sämtliche eindeutigen Textmarken, Bilddateien und Quellenhashes. Die Messung
@@ -12,7 +62,7 @@ Textzellen (384.000 Zellen). Die DOCX-Datei wurde von Pandoc erzeugt und enthäl
 64 unterschiedliche PNG-Bilder mit insgesamt etwa 50 MB. Der dritte Fall sind
 200 kleine CSV-Dateien. PNG-Pixel werden mit festem Zufallsstartwert erzeugt.
 
-## Vergleich unmittelbar vor und nach der Paketänderung
+### Vergleich unmittelbar vor und nach der Paketänderung
 
 Basis ist `503904c`, also **nach** der Fortschritts-/Abbruchimplementierung.
 Beide CLIs wurden separat aus ihrem Quellstand als Release gebaut und auf
@@ -48,7 +98,7 @@ Snapshot mit Archiv- und gelesenen Eintragsprüfungen. Der Konvertierungsweg pr�
 seine selbst erzeugte Arbeitskopie weiterhin vollständig, einschließlich CRC
 und Größen aller Medien.
 
-## Frühere Gesamtbaseline
+### Frühere Gesamtbaseline
 
 `ad476f4` liegt vor der Fortschritts-/Abbrucharbeit und ist deshalb kein isolierter
 Vergleich für die Paketänderung. Sie bleibt zur Einordnung dokumentiert:
@@ -61,7 +111,7 @@ Vergleich für die Paketänderung. Sie bleibt zur Einordnung dokumentiert:
 
 Auch mit dieser Gesamtbaseline stimmen sämtliche Ausgabedatei-Hashes überein.
 
-## Wiederholen
+### Wiederholen
 
 ```sh
 swift build -c release --product poormans-text
@@ -82,7 +132,7 @@ Zeiten, Speicherwerten und allen Ausgabehashes. Jeder Messlauf hat eine eigene
 Abbruch an. Eine fehlgeschlagene oder teilweise vorhandene Serie bleibt zur
 Prüfung erhalten und wird beim nächsten Aufruf mit demselben Namen abgelehnt.
 
-## Begrenzte Batch-Parallelität
+### Begrenzte Batch-Parallelität
 
 Die abschließende Release-CLI wurde mit denselben Eingaben und Optionen jeweils
 mit `--jobs 1` und `--jobs 2` gemessen, drei Läufe je Einstellung. Währenddessen
@@ -125,7 +175,7 @@ Separate echte CLI-Proben bestätigen die feste Kollisionsreihenfolge mit einem
 langsamen XLSX und einem schnellen CSV, den Quellpaketschutz vor dem ersten
 Schreiben sowie SIGINT nach einem fertigen CSV bei noch laufendem XLSX.
 
-### Batch-Messung wiederholen
+#### Batch-Messung wiederholen
 
 Eine neue Fixture-Ablage erzeugen und darin zweite Kopien unter neuen Namen
 anlegen; bestehende Dateien werden dabei nicht überschrieben:
@@ -159,3 +209,45 @@ Zählungen anhand der konkreten Quellen bleiben eine zusätzliche Prüfung; rein
 Hashgleichheit beweist keinen vollständigen Import. Nach 120 Sekunden fordert
 es Abbruch an und wartet fünf Sekunden, bevor es eine weiterhin laufende CLI
 beendet. Vorhandene oder unvollständige Messserien bleiben zur Prüfung erhalten.
+
+## Gemeinsame Tabellenbudgets und Bild-Snapshot (0.15.0)
+
+Die Tabellenstufen wurden mit 100.000, 200.000 und 1.000.000 Zeilen zu je
+zehn kurzen Textwerten geprüft, als CSV und ODS mit wiederholten Zeilen.
+Zusätzlich wurden XLSX-Blätter mit 100, 200 und 1.000 Zeilen zu je 10.000
+Spalten geprüft; nur die letzte Spalte enthielt Text, die übrigen Zellen
+wurden vom Leser ergänzt. Unabhängige Zeilen-/Wertzählungen beziehungsweise
+gezählte Markdown-Zellplätze stimmen bei allen Stufen; Quellen bleiben gleich.
+Daraus folgt die gemeinsame Grenze von einer Million Zeilen je Blatt und
+zehn Millionen gerenderten Zellen über alle Blätter, inklusive Leerzellen.
+
+Ein lokaler Release-Lauf auf Apple M5 ergab für die größte Stufe:
+
+| Eingabe | Zeilen | Gerenderte Zellen | CLI-Lauf | Maximaler RSS |
+| --- | ---: | ---: | ---: | ---: |
+| CSV, kurze Textwerte | 1.000.000 | 10.000.000 | 9,727 s | 1.516,72 MiB |
+| ODS, wiederholte Zeilen | 1.000.000 | 10.000.000 | 8,739 s | 180,25 MiB |
+| XLSX, letzte Spalte gefüllt | 1.000 | 10.000.000 | 4,283 s | 936,91 MiB |
+
+Die CSV-/ODS-Ausgaben umfassen etwa 52 MB. RSS wurde über `wait4` am gesamten
+CLI-Prozess gemessen; Nachzählung und Quellenhashes gehören nicht zur Laufzeit.
+Einzelmessungen mit lokalem Cache, teilweise gleichzeitig laufenden Messblöcken,
+sind keine Zusage für kalte Datenträger oder andere Zelltexte. XML-, Text-,
+Link-Scan- und 128-MiB-Ausgabebudgets bleiben zusätzliche Grenzen; eine Datei
+kann diese bereits unterhalb des Zeilen-/Zellbudgets erreichen.
+
+Für Bilder entsteht der private Snapshot aus dem gehaltenen Quelldeskriptor:
+APFS-Clone, sonst Kopieren mit 256-KiB-Puffer. ImageIO liest über den geprüften
+Snapshot-Deskriptor; eine fremde Datei wird nicht durch eigenen Code vollständig
+in `Data` kopiert oder abgebildet. Ein direkter `CGDataProvider` wurde verworfen,
+weil ImageIO bei der großen BMP sämtliche Quelldaten auf einmal anforderte.
+
+Eine erzeugte 16.384 × 16.384-BMP mit 768 MiB Pixelbereich wurde einschließlich
+OCR und Originalasset in 1,548 s bei 954,30 MiB maximalem RSS konvertiert.
+Eine 128 × 128-PNG mit auf 768 MiB aufgefüllten Zusatzdaten benötigte 7,392 s
+und 788,36 MiB. Beide Ergebnisse und Assets sind bytegleich zur 0.14.0-CLI;
+Quellen bleiben unverändert. Das ist kein harter RAM-Deckel: Decoder und Vision
+bestimmen einen Teil des Speichers. Die bestehenden Quelldatei-, Frame- und
+OCR-Pixelbudgets bleiben erhalten. Die Snapshot-Lösung schließt das Rennen und
+vermeidet einen zusätzlichen Voll-Heap, verspricht aber keine generelle Senkung
+des Speicherbedarfs der vorhandenen Systemdecoder.

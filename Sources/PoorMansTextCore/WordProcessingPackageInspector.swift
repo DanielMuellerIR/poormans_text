@@ -56,23 +56,39 @@ enum WordProcessingPackageInspector {
         let entryNames = reader.entryNames
 
         if entryNames.contains("[Content_Types].xml"),
-           entryNames.contains("word/document.xml") {
+           let mainPart = try mainDocumentPart(reader: reader, entryNames: entryNames) {
             let packageKind = try WordprocessingContentTypesParser.packageKind(
-                in: try reader.data(named: "[Content_Types].xml")
+                in: try reader.data(named: "[Content_Types].xml"),
+                mainPart: mainPart
             )
             let document = try WordprocessingContentParser.inspect(
-                try reader.data(named: "word/document.xml")
+                try reader.data(named: mainPart)
             )
             guard document.hasDocumentRoot else {
-                throw InspectionError("word/document.xml has no valid WordprocessingML document root")
+                throw InspectionError("\(mainPart) has no valid WordprocessingML document root")
             }
-            let commentDefinitions = entryNames.contains("word/comments.xml")
-                ? try WordprocessingContentParser.inspect(
-                    try reader.data(named: "word/comments.xml")
-                ).containsCommentDefinitions
-                : false
+            // Kommentare, Fuß- und Endnoten liegen neben dem Hauptteil; bei
+            // `word/document2.xml` also weiter unter `word/`.
+            let partDirectory = (mainPart as NSString).deletingLastPathComponent
+            func siblingPart(_ name: String) -> String {
+                partDirectory.isEmpty ? name : "\(partDirectory)/\(name)"
+            }
+            let commentDefinitions = try reader.dataIfPresent(named: siblingPart("comments.xml"))
+                .map { try WordprocessingContentParser.inspect($0).containsCommentDefinitions }
+                ?? false
             let comments = document.containsCommentAnchors || commentDefinitions
-            let changes = document.containsTrackedChanges
+            // Fuß- und Endnoten gehören zum selben Dokument: Pandoc liest sie
+            // mit und wendet `--track-changes=accept` auch dort an. Wurde nur
+            // dort etwas nachverfolgt, nahm die Umwandlung die Änderung still
+            // an — ohne die Warnung, für die es sie gibt
+            // (Review-Fund 2026-09-10).
+            var changes = document.containsTrackedChanges
+            for name in [siblingPart("footnotes.xml"), siblingPart("endnotes.xml")] where !changes {
+                guard let xml = try reader.dataIfPresent(named: name) else {
+                    continue
+                }
+                changes = try WordprocessingContentParser.inspect(xml).containsTrackedChanges
+            }
             let externalImages = try entryNames.sorted()
                 .filter { $0.hasSuffix(".rels") }
                 .flatMap { name -> [String] in
@@ -95,16 +111,45 @@ enum WordProcessingPackageInspector {
             .trimmingCharacters(in: .whitespacesAndNewlines)
             == "application/vnd.oasis.opendocument.text" {
             let parsed = try ODTContentParser.inspect(try reader.data(named: "content.xml"))
+            // Ein `draw:image` mit externem Ziel kann auch in `styles.xml`
+            // stehen (Kopf-/Fußzeilen, Master-Pages). Pandoc gibt diese
+            // Inhalte heute nicht aus; die Prüfung auf entfernte Ziele gilt
+            // trotzdem für das ganze Paket (Roadmap-Punkt, 2026-09-10).
+            let styleImages = try reader.dataIfPresent(named: "styles.xml")
+                .map { try ODTContentParser.inspect($0).externalImageReferences } ?? []
             return WordProcessingPackageInspection(
                 format: .odt,
                 packageKind: nil,
                 containsComments: parsed.containsAnnotations,
                 containsTrackedChanges: parsed.containsTrackedChanges,
-                unsafeImageReferences: parsed.externalImageReferences.sorted()
+                unsafeImageReferences: (parsed.externalImageReferences + styleImages).sorted()
             )
         }
 
         return nil
+    }
+
+    /// Der Hauptteil eines OOXML-Pakets laut OPC: das Ziel der
+    /// `officeDocument`-Beziehung in `_rels/.rels`. So löst auch Pandoc auf;
+    /// ein von Word repariertes Dokument trägt etwa `word/document2.xml` und
+    /// wurde vorher abgelehnt (Roadmap-Punkt, 2026-09-10). Ohne `_rels/.rels`
+    /// gilt weiterhin `word/document.xml`. Fehlt das Ziel im Paket, ist es
+    /// kein lesbares Word-Dokument (`nil`). Ob der Teil wirklich
+    /// WordprocessingML ist, entscheiden danach Content-Type und Wurzelelement.
+    private static func mainDocumentPart(
+        reader: any ZIPPackageReading,
+        entryNames: Set<String>
+    ) throws -> String? {
+        guard let rootRelationships = try reader.dataIfPresent(named: "_rels/.rels") else {
+            return entryNames.contains("word/document.xml") ? "word/document.xml" : nil
+        }
+        guard let target = try OfficeDocumentRelationshipParser.target(in: rootRelationships) else {
+            return nil
+        }
+        // OPC erlaubt Ziele mit und ohne führenden Schrägstrich, immer
+        // relativ zur Paketwurzel.
+        let partName = target.hasPrefix("/") ? String(target.dropFirst()) : target
+        return entryNames.contains(partName) ? partName : nil
     }
 
     private struct InspectionError: LocalizedError {
@@ -114,23 +159,10 @@ enum WordProcessingPackageInspector {
     }
 }
 
-/// Startet einen XML-Lauf mit Namensraumverarbeitung.
-///
-/// Ohne sie liefert `XMLParser` den Elementnamen samt Präfix (`r:Relationship`),
-/// und ein Paket mit einem anderen — aber völlig gültigen — Präfix rutscht an
-/// jeder Namensprüfung vorbei. Mit ihr ist `elementName` der lokale Name.
-///
-/// Attributnamen behalten ihr Präfix auch dann. Damit ein Delegate es auflösen
-/// kann, meldet `shouldReportNamespacePrefixes` zusätzlich jede
-/// Präfix-Deklaration; ohne dieses Flag ruft `XMLParser` die zugehörigen
-/// Delegate-Methoden gar nicht erst auf. In die Attributliste geraten die
-/// `xmlns`-Deklarationen dadurch nicht.
+/// Startet einen XML-Lauf und wirft, wenn das Paket-XML defekt ist. Die
+/// Einstellungen des Parsers stehen in `ImportXMLParser`.
 private func parseXML(_ xml: Data, with delegate: XMLParserDelegate) throws {
-    let parser = XMLParser(data: xml)
-    parser.delegate = delegate
-    parser.shouldProcessNamespaces = true
-    parser.shouldReportNamespacePrefixes = true
-    parser.shouldResolveExternalEntities = false
+    let parser = ImportXMLParser.make(xml, delegate: delegate)
     let parsedSuccessfully = parser.parse()
     try ConversionExecution.check()
     guard parsedSuccessfully else {
@@ -162,8 +194,57 @@ private enum InspectedNamespaces {
     ]
 }
 
+/// Das Ziel der `officeDocument`-Beziehung aus `_rels/.rels`; `nil`, wenn es
+/// keine gibt. Mehrere solche Beziehungen sind kein gültiges Paket.
+private enum OfficeDocumentRelationshipParser {
+    static func target(in xml: Data) throws -> String? {
+        let delegate = RelationshipDelegate()
+        try parseXML(xml, with: delegate)
+        guard delegate.targets.count <= 1 else {
+            throw RelationshipError("_rels/.rels declares more than one officeDocument relationship")
+        }
+        return delegate.targets.first
+    }
+
+    private final class RelationshipDelegate: NSObject, XMLParserDelegate {
+        var targets = [String]()
+
+        func parser(
+            _ parser: XMLParser,
+            didStartElement elementName: String,
+            namespaceURI: String?,
+            qualifiedName qName: String?,
+            attributes attributeDict: [String: String] = [:]
+        ) {
+            if ConversionExecution.isCancelled { parser.abortParsing(); return }
+            guard elementName == "Relationship",
+                  namespaceURI == "http://schemas.openxmlformats.org/package/2006/relationships",
+                  attributeValue(localName: "TargetMode", in: attributeDict)?.lowercased()
+                    != "external",
+                  attributeValue(localName: "Type", in: attributeDict)?
+                    .lowercased().hasSuffix("/officedocument") == true,
+                  let target = attributeValue(localName: "Target", in: attributeDict) else {
+                return
+            }
+            targets.append(target)
+        }
+    }
+
+    private struct RelationshipError: LocalizedError {
+        let reason: String
+        init(_ reason: String) { self.reason = reason }
+        var errorDescription: String? { reason }
+    }
+}
+
 private enum ExternalImageRelationshipParser {
     static func targets(in xml: Data) throws -> [String] {
+        // Ein leerer Beziehungsteil kann kein externes Ziel verbergen und
+        // gilt deshalb als leer, nicht als defekt. Ein nicht leerer, aber
+        // unlesbarer Teil bleibt ein Ablehnungsgrund — auch bei Teilen, die
+        // Pandoc nie liest: Sonst wäre die Prüfung auf externe Bildziele an
+        // genau dieser Stelle blind (Entscheidung, Roadmap-Punkt 2026-09-10).
+        guard !xml.isEmpty else { return [] }
         let delegate = RelationshipDelegate()
         try parseXML(xml, with: delegate)
         return delegate.targets
@@ -198,8 +279,8 @@ private enum ExternalImageRelationshipParser {
 /// DOCX behandelt, und ein beliebiges ZIP mit `word/document.xml` reicht nicht
 /// mehr als Formaterkennung aus.
 private enum WordprocessingContentTypesParser {
-    static func packageKind(in xml: Data) throws -> WordProcessingPackageKind {
-        let delegate = ContentTypesDelegate()
+    static func packageKind(in xml: Data, mainPart: String) throws -> WordProcessingPackageKind {
+        let delegate = ContentTypesDelegate(mainPart: mainPart)
         try parseXML(xml, with: delegate)
         guard delegate.hasValidRoot else {
             throw ContentTypeError("[Content_Types].xml has no valid Types root")
@@ -207,7 +288,7 @@ private enum WordprocessingContentTypesParser {
         guard delegate.mainContentTypes.count == 1,
               let contentType = delegate.mainContentTypes.first else {
             throw ContentTypeError(
-                "[Content_Types].xml must declare exactly one content type for word/document.xml"
+                "[Content_Types].xml must declare exactly one content type for \(mainPart)"
             )
         }
 
@@ -222,7 +303,7 @@ private enum WordprocessingContentTypesParser {
             .macroEnabledTemplate
         default:
             throw ContentTypeError(
-                "word/document.xml has an unsupported main content type: \(contentType)"
+                "\(mainPart) has an unsupported main content type: \(contentType)"
             )
         }
     }
@@ -231,6 +312,11 @@ private enum WordprocessingContentTypesParser {
         var hasValidRoot = false
         var mainContentTypes = Set<String>()
         private var sawRoot = false
+        private let mainPartName: String
+
+        init(mainPart: String) {
+            mainPartName = "/" + mainPart
+        }
 
         func parser(
             _ parser: XMLParser,
@@ -249,7 +335,7 @@ private enum WordprocessingContentTypesParser {
                   elementName == "Override",
                   let partName = attributeValue(localName: "PartName", in: attributeDict),
                   "/" + partName.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-                    == "/word/document.xml",
+                    == mainPartName,
                   let contentType = attributeValue(
                     localName: "ContentType",
                     in: attributeDict
@@ -335,7 +421,13 @@ private enum WordprocessingContentParser {
                 containsCommentAnchors = true
             case "comment":
                 containsCommentDefinitions = true
-            case "ins", "del", "moveFrom", "moveTo":
+            // Auch reine Formatänderungen sind nachverfolgte Änderungen: Wurde
+            // mit eingeschalteter Verfolgung nur formatiert, fehlte die Warnung
+            // ganz (Review-Fund 2026-09-10).
+            case "ins", "del", "moveFrom", "moveTo",
+                 "rPrChange", "pPrChange", "sectPrChange", "numberingChange",
+                 "tblPrChange", "trPrChange", "tcPrChange", "tblGridChange",
+                 "cellIns", "cellDel", "cellMerge":
                 containsTrackedChanges = true
             default:
                 break

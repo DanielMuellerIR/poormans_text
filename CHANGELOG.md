@@ -2,6 +2,238 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.15.1 — 2026-10-01
+
+- Preserve named inline roots in related email messages and save related text
+  resources without decoding them as message bodies.
+- Reject encrypted S/MIME message bodies with an explicit diagnostic.
+- Recognize complete PDF table grids independent of drawing order and preserve
+  all edges of rectangle and implicitly closed path operators.
+- Read HTML charset declarations from actual attributes.
+- Rewrite notebook attachment reference definitions and batch Textbundle asset
+  rewrites with cancellation checks.
+
+## 0.15.0 — 2026-10-01
+
+- Bind image inspection and ImageIO access to checked descriptors and private
+  snapshots. Clone directly from the held descriptor where supported, with a
+  bounded streaming fallback; source replacement or truncation cannot redirect
+  ImageIO to an unchecked object. Preserve original image assets and the existing
+  image engine, OCR pixel budgets and source-size limit.
+- Use the same table limits for CSV/TSV, ODS, XLSX and XLS: 1,000,000 rows per
+  sheet, 16,384 columns and 10,000,000 cells across all sheets. Count empty cells
+  added for rectangular rendering and report the same limits in app and CLI.
+  Keep the 128 MiB output limit and one-million-cell hyperlink scan budget.
+- Show complete conversion errors in the app instead of cutting off the budget
+  reason after a long source path.
+
+## 0.14.0 — 2026-09-30
+
+- Inspect foreign ZIP document packages through bounded reads from the same
+  checked file descriptor, retaining the existing archive, entry and metadata
+  budgets. Detection no longer copies the entire archive into the heap.
+- Reject conflicting end-record directory views, unexplained gaps, overlapping
+  local entries and padding after a Deflate stream. Preserve recognized digital
+  signature and archive-extra-data records and signed or unsigned data descriptors.
+- Keep full size and CRC verification on the private conversion copy. ZIP64 and
+  encrypted document packages remain unsupported.
+
+## 0.13.0 — 2026-09-30
+
+- Infer PDF headings from document font sizes and reconstruct simple closed-grid
+  tables, including empty cells and multiline values, using the existing PDFKit
+  engine. Source text remains escaped; source files remain untouched.
+- Keep label/value associations when PDFKit spaces span a table gutter. Use
+  paragraph continuation as an additional signal for two-column reading order;
+  unresolved layouts retain row order with a visible, page-specific warning.
+- Preserve the legacy extraction for comparison. Borderless tables, complex
+  grids and font substitutions remain document-dependent limitations.
+
+## 0.12.0 — 2026-09-30
+
+- Import Outlook MSG mail without Office through a bounded OLE/property reader
+  and the shared mail engine. Preserve Unicode text, HTML and compressed RTF,
+  inline images, safe byte-preserved attachments and standalone embedded MSG
+  attachments. Keep the visible header table in both app and CLI.
+- Normalize native MSG RTF Unicode fallbacks in the temporary Pandoc input,
+  preserving the character after each escape and leaving source bytes untouched.
+- Register MSG for opening, dropping and the file service. Reject broken
+  containers, unsupported Outlook items and external attachment methods.
+
+## 0.11.0 — 2026-09-30
+
+- Import EML and Apple Mail EMLX messages through the shared engine, with
+  visible header tables, decoded text/HTML bodies, related inline images and
+  byte-preserved attachments in safe, unique output paths. Nested MIME,
+  transfer encodings, header words and extended file-name parameters are
+  bounded and validated; malformed or encrypted bodies fail explicitly.
+- Register mail files for the app and file service, and support the same
+  metadata, temporary output and Textbundle options as the CLI.
+
+
+- Read an HTML charset only from a real `meta` tag or leading XML declaration;
+  examples in comments and scripts no longer override the document encoding.
+- Inspect and rewrite notebook Markdown resources in linear passes, with
+  cancellation checks, while fenced code examples no longer consume the target
+  budget.
+- Compare CSV delimiters and line ends as Unicode scalars. A comma followed by
+  a combining mark formed a different grapheme and did not split the field.
+- Keep an ODP image that sits inside a paragraph (`draw:frame` within
+  `text:p`); the reader stopped at the paragraph text and dropped the image
+  without a warning. A presentation image referenced many times is unpacked,
+  decoded, and hashed once instead of once per reference.
+- Skip phonetic reading hints (`<rPh>`) in XLSX shared and inline strings; a
+  Japanese workbook read `日本ニホン` where the cell says `日本`.
+- Count memory before it is spent in the spreadsheet readers: a BIFF sheet
+  stops at the cell budget while its records are still being collected, an
+  XLSX row index that skips rows charges the skipped rows to the expanded-cell
+  budget, and CSV delimiter sniffing splits only the first twenty lines instead
+  of the whole file.
+- Read metadata from EPUB and FictionBook sources: the OPF named by
+  `META-INF/container.xml` (Dublin Core, `dc:date` as the creation date) and
+  the `title-info` block (book title, first author, genres, annotation, date).
+  `--frontmatter` previously always reported that no metadata was available.
+- Honor the charset an HTML file declares before assuming Windows-1252. A page
+  in windows-1251 or shift_jis was read as mojibake with the generic encoding
+  warning; UTF-8 still comes first, and the warning now only appears when
+  nothing was declared or the declaration does not decode.
+- Drop an oversized local image referenced by an HTML page like any other
+  unusable reference, with the alt text kept, instead of ending the whole
+  conversion with a file-system error. Write a web archive subresource once,
+  however many `<img>` tags reference it.
+- Resolve the main part of a Word package through the `officeDocument`
+  relationship in `_rels/.rels`, the way OPC defines it and Pandoc reads it. A
+  document repaired by Word carries `word/document2.xml` and was rejected as
+  missing its package entries. Comments, footnotes, and endnotes are looked up
+  next to the resolved part. An empty `.rels` part no longer rejects the whole
+  document; a malformed one still does, because it could hide an external image
+  target. ODT packages are now also checked for external images in `styles.xml`.
+- Report an argument error as JSON whenever `--json` appears anywhere among the
+  options, not only when it precedes the faulty argument. A value-aware scan
+  decides the output mode before parsing; `--pandoc --json` still names a tool
+  path and `-- --json` still names an input. The parser now reads every option
+  that takes a value through one shared list instead of its own branch.
+- Reject `--stdout` together with `--jobs` as a usage error, the way the
+  catalog mode already rejects options that cannot take effect; the parallelism
+  was silently ignored. The help and the README now say that text mode prints
+  one path per line and that a path containing a line break spans two lines,
+  so parsing scripts should use `--json`.
+- Translate the messages of the side paths: the image notice of the rich-text
+  service, both installation dialogs, and the errors the rich-text service
+  reports to the calling app now go through the app's central message mapping
+  instead of reaching the German window in English. The orphaned
+  "Converting %lld of %lld" key is gone from both language files.
+- Report files opened through the Dock, a double-click, or `open -a` while the
+  app is busy. That path silently dropped them; the window now says why they
+  were not accepted, and ⌘O is disabled during the Pandoc installation instead
+  of opening a dialog whose selection went nowhere.
+- Hand the app's destination folder to the batch as its output root, the way
+  `--output` reaches the CLI. A destination pointing at a file now fails with
+  "output already exists" instead of a raw file-system error per input, and a
+  deleted destination is recreated one level deep at most; a missing parent
+  fails before any conversion starts instead of being created silently.
+- Give the Homebrew installation of Pandoc a cancel button, a 15-minute limit,
+  and no standard input. It ran through its own process starter without any of
+  the three, so a Homebrew waiting for a password or a confirmation kept the
+  drop zone, ⌘O, Dock opening, and both services locked until the app was
+  restarted. The app now starts Homebrew and `osascript` through the same
+  process runner as the conversion tools.
+- Escape carriage returns, NUL, and the Unicode line separators in the YAML
+  frontmatter. A CRLF pair is a single Swift `Character` and slipped through the
+  previous escaping, so a foreign document title could close the header and
+  append its own Markdown.
+- Rewrite percent-encoded asset links when building a Textbundle. Image names
+  containing characters outside `A-Za-z0-9-._~` kept pointing at the removed
+  `images/` folder, which lost the image without a warning.
+- Reject an output directory named `*.textbundle` unless `--textbundle` is set.
+  Such a folder looked like a package to Finder but carried neither `info.json`
+  nor `text.md`, and later folder runs skipped it as a previous result.
+- Read metadata that an empty sibling element used to hide: an empty
+  `dc:creator` no longer blocks `meta:initial-creator`, an unreadable
+  `dcterms:created` falls back to `meta:creation-date`, and a CDATA title is
+  read. Implausible RTF creation timestamps no longer become a date.
+- Accept a cancellation token and a process timeout in `inspect` and
+  `detectFormat`. Format detection starts `textutil` for DOC files and
+  previously ran without any limit a caller could reach.
+- Compare the checksum and both sizes of every local ZIP header against the
+  central directory, the three fields that were the only ones left unchecked.
+  A streaming unpacker reads the local length, so a package could hand it a
+  stream that neither the unpack budget nor the checksum had ever seen. Entries
+  with a data descriptor may still leave those fields empty, as LibreOffice
+  writes them.
+- Check the local header of directory entries too. They skipped the only place
+  that looks at a local header at all, so theirs could declare a different name
+  and an arbitrary payload.
+- Reject an end record whose two entry counts disagree, and a ZIP64 locator that
+  carries no sentinel values. Both let another unpacker read a different set of
+  entries than the one this package gate verified.
+- Refuse a result folder that is named directly as an input. The rule that skips
+  `Name-markdown` and `Name.textbundle` applied only while searching, so naming
+  such a folder — or dropping it onto the app — converted the images of the
+  earlier run again and nested the result inside the old output folder.
+- Keep the destination chosen through "Choose Another Name or Destination…"
+  when retrying, and retry only the input that was asked for. The retry path
+  cleared the override it had just been given and ignored the filter, so the
+  choice had no effect.
+- Localize the clipboard and service messages that were shown in English to
+  German users, and report the command-line installer's own error in English
+  instead of a German sentence inside an English message.
+- Refuse an empty path argument instead of reading it as the working directory.
+  `poormans-text "$FILE"` with an unset variable converted the whole working
+  directory tree, and `--output ""` wrote there without a word.
+- Report an out-of-range or unparsable `--timeout` as an invalid option rather
+  than a missing value.
+- Rewrite every attachment reference of a notebook cell in a single pass. Doing
+  it once per attachment was quadratic: a 2.6 MB notebook with 20,000
+  attachments ran for over ten minutes and ignored cancellation. The same file
+  now converts in under two seconds.
+- Report a notebook Markdown reference that points at an asset name this
+  conversion generated for another cell. It used to be left in place, silently
+  showing a foreign image, and the result depended on the cell order.
+- Count attributes against the XML import limits, and read the notes parts of a
+  slide in relationship order so repeated runs produce the same output.
+- Report tracked changes that live only in footnotes or endnotes, and tracked
+  formatting changes such as `rPrChange`. Pandoc accepts those changes during
+  the conversion, so leaving them unreported dropped exactly the warning that
+  exists for it.
+- Copy a referenced image only after verifying that the copy really is an
+  image, and name it after the verified type. The extension came from the
+  foreign reference, so `<img src="page.html">` placed that HTML file into the
+  result folder and linked it as an image; opening it fetched exactly the remote
+  resources the core never fetches. The same now applies to web-archive
+  subresources, which may claim `image/png` and contain something else.
+- Keep reading an `<img>` tag past a `>` inside a quoted attribute. An alt text
+  like `"width > height"` ended the tag early, so a valid local image was lost
+  and the rest of the tag appeared as literal text in the Markdown.
+- Find images whose file name contains `#` or `?`. Both were treated as URL
+  separators and cut the name short, in encoded and unencoded references alike.
+- Fail instead of producing an empty document when the staged HTML copy cannot
+  be read.
+- Read compressed BIFF8 strings as Windows-1252 instead of ISO-8859-1. Every
+  western XLS with typographic quotes, an en dash, or a euro sign carried raw
+  control characters into the Markdown; the hyperlink paths in the same file
+  were already decoded correctly.
+- Accept a spreadsheet whose trailing empty row declares a repeat beyond the
+  row budget. LibreOffice ends a formatted sheet with
+  `number-rows-repeated="1048575"`, and such rows are never materialised, so
+  refusing the whole file was wrong. A repeat that carries content is still
+  refused rather than silently truncated.
+- Reject a UTF-16 delimited text file that contains NUL, like the other two
+  decoding paths already did.
+- Render PDF pages upright for OCR with `--pdf-layout legacy`. The legacy path
+  flipped the page before handing it to Vision, which reads with an upright
+  orientation, so its result was mirrored nonsense — reported as a successful
+  OCR run. `HELLO OCR WORLD` came back as `НЕГГО ОСЬ MOBD`.
+- Compare the recognized text, not its uncertainty note, when dropping OCR lines
+  that duplicate embedded PDF text. A line below the confidence threshold could
+  never match, so the same sentence appeared twice.
+- Check for cancellation while preparing the extracted PDF text. A long document
+  finished its whole text assembly before a cancellation took effect.
+- Drop stale batch progress events in the CLI. The batch assigns the sequence
+  number under its lock but calls the handler after releasing it, so the file
+  counter could run backwards with `--jobs 2` and higher. The app already
+  filtered these events.
+
 ## 0.10.2 — 2026-09-08
 
 - Select one supported PowerPoint compatibility representation, or its fallback,

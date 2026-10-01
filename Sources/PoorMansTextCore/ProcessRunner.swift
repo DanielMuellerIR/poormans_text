@@ -1,14 +1,19 @@
 import Foundation
 import Darwin
 
-struct ProcessResult: Sendable {
-    let status: Int32
-    let standardOutput: String
-    let standardError: String
+package struct ProcessResult: Sendable {
+    package let status: Int32
+    package let standardOutput: String
+    package let standardError: String
 }
 
-enum ProcessRunner {
-    static func run(
+/// Startet ein Hilfsprogramm mit Zeitlimit, Abbruch-Token und Ausgabegrenze.
+/// `package`-sichtbar, weil auch die App ihre Hilfsprozesse (Homebrew,
+/// osascript) über genau diesen Weg laufen lässt: Ein zweiter Prozessstarter
+/// ohne Zeitlimit und Abbruch hatte die App bei hängendem Homebrew dauerhaft
+/// gesperrt (Roadmap-Punkt, 2026-09-10). Öffentliche API bleibt das nicht.
+package enum ProcessRunner {
+    package static func run(
         executable: URL,
         arguments: [String],
         currentDirectory: URL,

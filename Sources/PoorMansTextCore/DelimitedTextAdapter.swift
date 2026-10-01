@@ -97,8 +97,6 @@ struct DelimitedTextAdapter: DocumentConversionAdapter {
             )
         }
 
-        let markdownName = context.inputURL.deletingPathExtension().lastPathComponent + ".md"
-        let markdownURL = context.stagedOutputDirectory.appendingPathComponent(markdownName)
         let markdown: String
         do {
             markdown = try SpreadsheetMarkdownRenderer.render(
@@ -113,11 +111,7 @@ struct DelimitedTextAdapter: DocumentConversionAdapter {
                 reason: error.localizedDescription
             )
         }
-        do {
-            try Data(markdown.utf8).write(to: markdownURL, options: .atomic)
-        } catch {
-            throw ConversionError.fileSystemFailure(error.localizedDescription)
-        }
+        let markdownName = try context.writeMarkdown(markdown)
         return StagedConversionResult(
             markdownRelativePath: markdownName,
             assetRelativePaths: [],
@@ -129,9 +123,9 @@ struct DelimitedTextAdapter: DocumentConversionAdapter {
 enum DelimitedTextLimits {
     static let maximumSourceBytes = 256 * 1_024 * 1_024
     static let inspectionBytes = 65_536
-    static let maximumRows = 1_000_000
-    static let maximumCells = 5_000_000
-    static let maximumColumns = 16_384
+    static let maximumRows = SpreadsheetLimits.maximumRows
+    static let maximumCells = SpreadsheetLimits.maximumCells
+    static let maximumColumns = SpreadsheetLimits.maximumColumns
 }
 
 /// Bestimmt die Kodierung: BOM zuerst, sonst strenges UTF-8, sonst Windows-1252
@@ -191,6 +185,13 @@ enum DelimitedTextDecoder {
         guard let text = String(data: even, encoding: encoding) else {
             throw DelimitedTextError("the file has a UTF-16 byte-order mark but invalid UTF-16 text")
         }
+        // Dieselbe Regel wie in den beiden anderen Zweigen: Ein NUL-Zeichen
+        // heißt Binärdatei. Ohne diese Prüfung galt dieselbe Datei je nach
+        // Stückliste einmal als Binärdatei und einmal als Text, und das NUL
+        // landete im Markdown (Review-Fund 2026-09-10).
+        guard !text.unicodeScalars.contains(where: { $0.value == 0 }) else {
+            throw DelimitedTextError("the file contains binary data, not delimited text")
+        }
         return Decoded(text: text, assumedEncoding: false)
     }
 }
@@ -203,7 +204,11 @@ enum DelimitedTextParser {
     /// Wählt das Trennzeichen, das in den ersten Zeilen am gleichmäßigsten
     /// vorkommt. Ohne Treffer bleibt das Komma, die Datei wird dann einspaltig.
     static func sniffDelimiter(in text: String) -> Character {
-        let lines = text.split(omittingEmptySubsequences: true, whereSeparator: \.isNewline).prefix(20)
+        // `maxSplits` hält nach 20 Trennungen an; der Rest der Datei bleibt
+        // ein einziger, nicht kopierter Teilstring und fällt mit `prefix`
+        // weg. Vorher zerlegte die Suche die ganze Datei in Zeilen, um
+        // zwanzig anzusehen (Roadmap-Punkt, 2026-09-10).
+        let lines = text.split(maxSplits: 20, omittingEmptySubsequences: true, whereSeparator: \.isNewline).prefix(20)
         guard !lines.isEmpty else {
             return ","
         }
@@ -224,41 +229,50 @@ enum DelimitedTextParser {
         return best?.delimiter ?? ","
     }
 
+    /// Arbeitet auf Unicode-Skalaren, nicht auf Graphemen: Ein Komma, dem ein
+    /// Kombinationszeichen folgt, ist als `Character` ein anderes Zeichen und
+    /// trennte vorher nicht — dieselbe Klasse, die im Frontmatter-Escaping
+    /// schon behoben war (Roadmap-Punkt, 2026-09-10). RFC 4180 kennt nur
+    /// Code-Einheiten. CR+LF sind hier zwei Skalare und beenden die Zeile
+    /// gemeinsam; in einem Anführungsfeld bleiben sie unverändert im Text.
     static func parse(_ text: String, delimiter: Character) throws -> [[SpreadsheetCell]] {
+        guard delimiter.unicodeScalars.count == 1, let separator = delimiter.unicodeScalars.first else {
+            throw DelimitedTextError("the delimiter must be a single Unicode scalar")
+        }
         var rows = [[SpreadsheetCell]]()
         var row = [SpreadsheetCell]()
         var field = ""
         var inQuotes = false
         var cellCount = 0
-        var iterator = text.makeIterator()
+        var iterator = text.unicodeScalars.makeIterator()
 
         func finishField() throws {
+            guard row.count < DelimitedTextLimits.maximumColumns else {
+                throw DelimitedTextError(SpreadsheetLimits.columnBudgetMessage)
+            }
+            guard cellCount < DelimitedTextLimits.maximumCells else {
+                throw DelimitedTextError(SpreadsheetLimits.cellBudgetMessage)
+            }
             row.append(field.isEmpty ? .empty : SpreadsheetCell(value: .string(field), displayText: field, formula: nil))
             field = ""
             cellCount += 1
-            guard row.count <= DelimitedTextLimits.maximumColumns else {
-                throw DelimitedTextError("the file exceeds \(DelimitedTextLimits.maximumColumns) columns")
-            }
-            guard cellCount <= DelimitedTextLimits.maximumCells else {
-                throw DelimitedTextError("the file exceeds \(DelimitedTextLimits.maximumCells) cells")
-            }
         }
         func finishRow() throws {
+            guard rows.count < DelimitedTextLimits.maximumRows else {
+                throw DelimitedTextError(SpreadsheetLimits.rowBudgetMessage)
+            }
             try finishField()
             rows.append(row)
             row = []
-            guard rows.count <= DelimitedTextLimits.maximumRows else {
-                throw DelimitedTextError("the file exceeds \(DelimitedTextLimits.maximumRows) rows")
-            }
         }
-        var lookahead: Character? = iterator.next()
+        var lookahead: Unicode.Scalar? = iterator.next()
         var cancellationCounter = 0
-        while let character = lookahead {
+        while let scalar = lookahead {
             cancellationCounter += 1
             if cancellationCounter & 4095 == 0 { try ConversionExecution.check() }
             lookahead = iterator.next()
             if inQuotes {
-                if character == "\"" {
+                if scalar == "\"" {
                     if lookahead == "\"" {
                         field.append("\"")
                         lookahead = iterator.next()
@@ -266,21 +280,23 @@ enum DelimitedTextParser {
                         inQuotes = false
                     }
                 } else {
-                    field.append(character)
+                    field.unicodeScalars.append(scalar)
                 }
                 continue
             }
-            switch character {
+            switch scalar {
             case "\"" where field.isEmpty:
                 inQuotes = true
-            case delimiter:
+            case separator:
                 try finishField()
-            case "\r\n", "\r", "\n":
-                // Swift fasst CR+LF zu einem Zeichen zusammen; alle drei Formen
-                // beenden die Zeile.
+            case "\r":
+                // CR allein oder CR+LF: beide beenden die Zeile einmal.
+                if lookahead == "\n" { lookahead = iterator.next() }
+                try finishRow()
+            case "\n":
                 try finishRow()
             default:
-                field.append(character)
+                field.unicodeScalars.append(scalar)
             }
         }
         // Ein am Dateiende noch offenes Anführungsfeld ist ein Syntaxfehler;

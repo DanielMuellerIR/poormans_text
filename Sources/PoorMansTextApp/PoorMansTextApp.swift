@@ -17,7 +17,7 @@ struct PoorMansTextDesktopApp: App {
                 .onAppear {
                     let model = model
                     openedDocuments.handler = { urls in
-                        model.convert(urls)
+                        model.openDocuments(urls)
                     }
                     if services == nil {
                         let provider = ServicesProvider(model: model)
@@ -42,7 +42,10 @@ struct PoorMansTextDesktopApp: App {
                     model.chooseDocument()
                 }
                 .keyboardShortcut("o")
-                .disabled(model.isConverting)
+                // Dieselbe Sperre wie Drop-Zone und Knopf: Während der
+                // Pandoc-Installation war ⌘O aktiv, aber wirkungslos
+                // (Roadmap-Punkt, 2026-09-10).
+                .disabled(!model.acceptsNewDocuments)
             }
         }
     }

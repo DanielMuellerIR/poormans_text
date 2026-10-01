@@ -1,4 +1,5 @@
 import Foundation
+import ImageIO
 
 /// Bereitet die Bildverweise fremder HTML-Quellen für `HTMLImageRewriter` vor.
 ///
@@ -32,7 +33,11 @@ enum HTMLImageSourceResolver {
         let mimeType: String
     }
 
-    private static let imageTagPattern = #"<img\b[^>]*>"#
+    /// Ein `>` INNERHALB eines Anführungszeichenpaars beendet das Tag nicht.
+    /// Mit `[^>]*` endete `<img alt="Breite > Höhe" src="bild.png">` schon nach
+    /// dem Alt-Text: Das echte Bild ging verloren, und der Rest des Tags stand
+    /// wörtlich im Markdown (Review-Fund 2026-09-10).
+    private static let imageTagPattern = #"<img\b(?:[^>"']|"[^"]*"|'[^']*')*>"#
     // Attributwerte in doppelten, einfachen oder gar keinen Anführungszeichen;
     // ein unquoted Wert endet am nächsten Leerraum oder Tag-Zeichen (HTML-Spec).
     private static let sourcePattern = #"\bsrc\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))"#
@@ -95,14 +100,30 @@ enum HTMLImageSourceResolver {
             // der Platte. Ein lokal gesichertes Archiv trägt `file:`-Adressen;
             // die dürfen hier nachgeschlagen, aber nie als Pfad geöffnet werden.
             if let (key, subresource) = archivedSubresource(for: trimmed, baseURL: baseURL, in: subresources) {
-                localCount += 1
-                let localPath = try writeLocalCopy(
-                    subresource.data,
-                    preferredName: URL(string: key)?.lastPathComponent ?? key,
-                    mimeType: subresource.mimeType,
-                    index: localCount,
-                    workDirectory: workDirectory
-                )
+                // Dieselbe Nebenressource einmal schreiben, nicht je Verweis:
+                // Ein 200-mal verwendetes Spacer-GIF ergab 200 identische
+                // Dateien (Roadmap-Punkt, 2026-09-10). Die Tabelle teilt sich
+                // den Schlüsselraum mit lokalen Dateien; Adressen und Pfade
+                // kollidieren nicht.
+                let localPath: String
+                if let known = localNames[key] {
+                    localPath = known
+                } else {
+                    localCount += 1
+                    guard let written = try writeLocalCopy(
+                        subresource.data,
+                        preferredName: URL(string: key)?.lastPathComponent ?? key,
+                        mimeType: subresource.mimeType,
+                        index: localCount,
+                        workDirectory: workDirectory
+                    ) else {
+                        output += escaped(alt)
+                        missing += 1
+                        continue
+                    }
+                    localPath = written
+                    localNames[key] = written
+                }
                 output += replacingSource(in: tag, sourceRange: sourceMatch.range, with: localPath)
                 continue
             }
@@ -136,8 +157,15 @@ enum HTMLImageSourceResolver {
                     localPath = known
                 } else {
                     localCount += 1
-                    localPath = try copyLocalImage(local, index: localCount, workDirectory: workDirectory, fileManager: fileManager)
-                    localNames[local.path] = localPath
+                    guard let copied = try copyLocalImage(
+                        local, index: localCount, workDirectory: workDirectory, fileManager: fileManager
+                    ) else {
+                        output += escaped(alt)
+                        missing += 1
+                        continue
+                    }
+                    localPath = copied
+                    localNames[local.path] = copied
                 }
                 output += replacingSource(in: tag, sourceRange: sourceMatch.range, with: localPath)
                 continue
@@ -222,6 +250,10 @@ enum HTMLImageSourceResolver {
             return nil
         }
         var keys = [reference]
+        if reference.lowercased().hasPrefix("cid:"),
+           let identifier = String(reference.dropFirst(4)).removingPercentEncoding {
+            keys.append("cid:" + identifier)
+        }
         if let url = URL(string: reference), url.scheme != nil {
             keys.append(url.absoluteString)
         } else if let baseURL, let resolved = URL(string: reference, relativeTo: baseURL)?.absoluteURL {
@@ -240,10 +272,24 @@ enum HTMLImageSourceResolver {
     /// Prüfung folgt keinem Symlink mehr: `resolved` ist bereits aufgelöst, und
     /// eine FIFO, ein Gerät oder ein Socket an dieser Stelle ist kein Bild.
     private static func fileInside(_ directory: URL, relativePath: String, fileManager: FileManager) -> URL? {
-        var path = relativePath.removingPercentEncoding ?? relativePath
-        if let query = path.firstIndex(where: { $0 == "?" || $0 == "#" }) {
-            path = String(path[..<query])
+        // `?` und `#` trennen im URL-Text die Query beziehungsweise das
+        // Fragment ab — im DATEINAMEN sind beide erlaubt. Deshalb erst der
+        // vollständige Name, und nur wenn es den nicht gibt, der abgetrennte:
+        // `Skizze #1.png` wurde vorher auf `Skizze ` gekürzt und galt als
+        // fehlend, egal ob der Verweis kodiert war oder nicht
+        // (Review-Fund 2026-09-10).
+        let full = relativePath.removingPercentEncoding ?? relativePath
+        if let found = candidate(in: directory, path: full, fileManager: fileManager) {
+            return found
         }
+        guard let separator = relativePath.firstIndex(where: { $0 == "?" || $0 == "#" }) else {
+            return nil
+        }
+        let trimmed = String(relativePath[..<separator])
+        return candidate(in: directory, path: trimmed.removingPercentEncoding ?? trimmed, fileManager: fileManager)
+    }
+
+    private static func candidate(in directory: URL, path: String, fileManager: FileManager) -> URL? {
         guard !path.isEmpty, !path.hasPrefix("/"), !path.contains("\\") else {
             return nil
         }
@@ -268,43 +314,77 @@ enum HTMLImageSourceResolver {
     /// dem Objekt, das es liest, und folgt keinem Symlink: Ein Austausch der
     /// Datei zwischen `fileInside` und dem Kopieren kann so weder die
     /// 256-MiB-Grenze noch die Bindung an den Quellordner umgehen.
-    private static func copyLocalImage(_ source: URL, index: Int, workDirectory: URL, fileManager: FileManager) throws -> String {
-        let fileExtension = source.pathExtension.lowercased()
-        let name = String(format: "local%02d", index) + (fileExtension.isEmpty ? "" : ".\(fileExtension)")
+    ///
+    /// Ein Mangel der QUELLE — zu groß, keine reguläre Datei, nicht lesbar —
+    /// macht nur diesen Verweis zum fehlenden Bild (`nil`), wie jeden anderen
+    /// unbrauchbaren Verweis auch. Vorher brach ein 300-MiB-Bild neben der
+    /// Quelle die gesamte Umwandlung als Dateisystemfehler ab (Roadmap-Punkt,
+    /// 2026-09-10). Nur ein Fehler beim Schreiben der Kopie bleibt ein
+    /// Dateisystemfehler.
+    private static func copyLocalImage(_ source: URL, index: Int, workDirectory: URL, fileManager: FileManager) throws -> String? {
         let directory = workDirectory.appendingPathComponent("external", isDirectory: true)
         do {
             try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
         } catch {
             throw ConversionError.fileSystemFailure(error.localizedDescription)
         }
+        let staged = directory.appendingPathComponent(String(format: "local%02d.candidate", index))
         do {
             _ = try VerifiedFileStaging.stage(
                 from: source,
-                to: directory.appendingPathComponent(name),
+                to: staged,
                 maximumBytes: maximumLocalImageBytes,
                 describedAs: "a referenced image",
                 followSourceSymlink: false
             )
+        } catch let error as VerifiedFileStaging.StagingError where error.kind == .source {
+            try? fileManager.removeItem(at: staged)
+            return nil
         } catch let error as VerifiedFileStaging.StagingError {
             throw ConversionError.fileSystemFailure(error.reason)
         }
-        return "external/\(name)"
+        return try publishVerifiedImage(staged, as: String(format: "local%02d", index), fileManager: fileManager)
     }
 
-    private static func writeLocalCopy(_ data: Data, preferredName: String, mimeType: String, index: Int, workDirectory: URL) throws -> String {
-        var fileExtension = URL(fileURLWithPath: preferredName).pathExtension.lowercased()
-        if fileExtension.isEmpty {
-            fileExtension = extensionForMIMEType(mimeType) ?? ""
+    /// Prüft die KOPIE auf einen bekannten Bildtyp und benennt sie nach diesem
+    /// Typ. Die Endung stammte vorher aus dem fremden Verweis: Ein
+    /// `<img src="seite.html">` landete dadurch als `images/image01.html` im
+    /// Ergebnisordner und wurde im Markdown verlinkt — geöffnet lud diese Datei
+    /// dann genau die entfernten Ressourcen nach, die der Kern nie lädt
+    /// (Review-Fund 2026-09-10). Ist es kein Bild, verschwindet die Kopie und
+    /// der Verweis zählt als fehlend.
+    private static func publishVerifiedImage(
+        _ staged: URL, as stem: String, fileManager: FileManager
+    ) throws -> String? {
+        guard let source = CGImageSourceCreateWithURL(staged as CFURL, [kCGImageSourceShouldCache: false] as CFDictionary),
+              let typeIdentifier = CGImageSourceGetType(source) as String?,
+              let format = ImageFileFormat(typeIdentifier: typeIdentifier) else {
+            try? fileManager.removeItem(at: staged)
+            return nil
         }
-        let name = String(format: "resource%02d", index) + (fileExtension.isEmpty ? "" : ".\(fileExtension)")
-        let directory = workDirectory.appendingPathComponent("external", isDirectory: true)
+        let name = stem + "." + format.fileExtension
         do {
-            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-            try data.write(to: directory.appendingPathComponent(name), options: .atomic)
+            try fileManager.moveItem(at: staged, to: staged.deletingLastPathComponent().appendingPathComponent(name))
         } catch {
             throw ConversionError.fileSystemFailure(error.localizedDescription)
         }
         return "external/\(name)"
+    }
+
+    private static func writeLocalCopy(_ data: Data, preferredName: String, mimeType: String, index: Int, workDirectory: URL) throws -> String? {
+        _ = (preferredName, mimeType)
+        let directory = workDirectory.appendingPathComponent("external", isDirectory: true)
+        let staged = directory.appendingPathComponent(String(format: "resource%02d.candidate", index))
+        do {
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            try data.write(to: staged, options: .atomic)
+        } catch {
+            throw ConversionError.fileSystemFailure(error.localizedDescription)
+        }
+        // Auch hier entscheidet der Inhalt, nicht der Name: Eine Nebenressource
+        // eines Webarchivs darf `WebResourceMIMEType: image/png` behaupten und
+        // unter `…/evil.html` liegen.
+        return try publishVerifiedImage(staged, as: String(format: "resource%02d", index), fileManager: .default)
     }
 
     /// `data:image/png;base64,…` in eine Datei; andere Daten-URIs fallen weg.

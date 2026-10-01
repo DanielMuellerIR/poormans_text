@@ -13,7 +13,7 @@
 Poor Man's Text converts RTF, RTFD, DOCX (including DOCM and DOTX/DOTM), ODT,
 legacy Word (`.doc`), ODS, XLSX (including XLSM and XLTX/XLTM), XLS, CSV and
 TSV, PPTX/PPTM/POTX and ODP presentations, IPYNB notebooks, OpenDocument master (`.odm`), PDF, HTML and Safari web archives, EPUB,
-LaTeX, DocBook, Org, MediaWiki, Textile, reStructuredText, FictionBook, and
+LaTeX, DocBook, Org, MediaWiki, Textile, reStructuredText, FictionBook, EML, Apple Mail (`.emlx`), Outlook (`.msg`), and
 PNG, JPEG, HEIC, TIFF, GIF, BMP, or WebP images into folders containing
 Markdown and any separately stored image assets.
 
@@ -50,6 +50,36 @@ extension, but it is not part of standard GFM and does not retain the exact
 color value. RTF color information cannot be retained by the image-safe import
 path; the converter keeps the text and returns a warning instead.
 
+## Email import
+
+EML and Apple Mail `.emlx` files use the same importer. All message headers
+appear in a Markdown table before the body. MIME alternatives produce one
+body, preferring the last supported representation; related inline images are
+resolved from the mail itself. HTML tables become text blocks so that nested
+layout tables retain their text. Attachments retain their bytes under
+`attachments/`, with safe, unique file names and links in the Markdown.
+Embedded messages and attached MIME containers are retained as attachments.
+Remote images are kept as links and are never downloaded; references to local
+files outside the message are not loaded. Encrypted message bodies and malformed
+MIME are rejected with a diagnostic. The reader limits a source to 64 MiB,
+headers to 256 KiB, MIME parts to 1,024, nesting to 32 and cumulative parsed
+part bytes to 128 MiB. Apple Mail's trailing property list is not imported.
+
+Outlook `.msg` files use an independent OLE reader and the same mail engine;
+Office is not required. Unicode and legacy text, HTML, and compressed RTF bodies
+are supported, including HTML encapsulated in RTF. Inline images resolve from
+attachments. Embedded messages are exported as standalone `.msg` attachments,
+with their property streams retained. The source limit is 64 MiB; the reader
+also bounds OLE entries to 100,000, storage depth to 32, recipients to 2,048,
+attachments to 1,024, expanded RTF to 64 MiB and attachment bytes to 128 MiB.
+Broken containers, encrypted messages, non-mail Outlook items and unsupported
+attachment methods are rejected. External attachment references are never opened.
+
+The default is the visible header table. `--frontmatter` remains an explicit
+option for title, sender and date metadata; it does not replace the table.
+Email conversion requires Pandoc, and also supports temporary output and
+Textbundle, with attachments moved to `assets/` in a Textbundle.
+
 ## Requirements
 
 - macOS 13 or newer
@@ -64,7 +94,9 @@ through `--pandoc PATH`.
 
 While Pandoc is missing, the app offers at every launch to install it through
 Homebrew, or points to the official installation help when Homebrew is absent.
-The offer stops once Pandoc exists or after choosing "Don't Ask Again".
+The offer stops once Pandoc exists or after choosing "Don't Ask Again". The
+installation can be cancelled from the window and ends on its own after 15
+minutes; Homebrew never waits for keyboard input.
 
 ## Download
 
@@ -73,7 +105,7 @@ Download the DMG and its `.sha256` file from the
 directory, verify the download before opening it:
 
 ```sh
-shasum -a 256 -c Poor-Mans-Text-0.10.2.dmg.sha256
+shasum -a 256 -c Poor-Mans-Text-0.15.1.dmg.sha256
 ```
 
 Open the DMG and drag Poor Man's Text to Applications. The app is signed with
@@ -144,21 +176,28 @@ nothing is overwritten.
 `--frontmatter` starts the Markdown with a YAML header built from the source:
 title, author, subject, description, keywords, and creation and modification
 dates, read from OOXML core properties (DOCX, XLSX), OpenDocument `meta.xml`
-(ODT, ODS, ODM), the RTF `\info` group (RTF, RTFD), or the PDF information
-dictionary. Every value is quoted, dates are ISO 8601 in UTC. A source without
+(ODT, ODS, ODM), the RTF `\info` group (RTF, RTFD), the PDF information
+dictionary, the OPF metadata of an EPUB, the `title-info` of a FictionBook, or
+the `<title>` and `<meta>` tags of HTML and web archives. Every value is
+quoted, dates are ISO 8601 in UTC. A source without
 any of these gets a warning instead of an empty header. The same fields appear
 as `metadata` in every `--json` answer, whether or not the header was written.
 
 `--textbundle` writes `Report.textbundle` instead of `Report-markdown`: the
 Markdown is `text.md`, images live in `assets/`, and `info.json` identifies the
 bundle, so Bear, iA Writer, and Ulysses open it directly. With `--output`, the
-name has to end in `.textbundle`. Folder searches skip existing bundles.
+name has to end in `.textbundle` — and a name ending in `.textbundle` is only
+accepted together with `--textbundle`, so no folder can claim the extension
+without carrying the bundle files. Folder searches skip existing bundles.
 
 `--stdout` converts exactly one document in a temporary place, prints the
 Markdown to standard output, and removes the temporary result. Diagnostics go
 to standard error. Image assets are not kept and are reported; their links stay
 in the text. It cannot be combined with `--json`, `--output`, `--textbundle`,
-several inputs, or a folder.
+`--jobs`, several inputs, or a folder.
+
+Text mode prints one result path per line. A path that itself contains a line
+break spans two lines, so scripts that parse the output should use `--json`.
 
 Exit codes follow conventional `sysexits` values: `64` for usage errors, `65`
 for invalid input data, `66` for a missing input, `69` when Pandoc is not
@@ -205,6 +244,8 @@ mediawiki   .wiki .mediawiki                                  file     pandoc   
 textile     .textile                                          file     pandoc           available
 rst         .rst                                              file     pandoc           available
 fb2         .fb2                                              file     pandoc           available
+eml         .eml .emlx                                        file     pandoc           available
+msg         .msg                                              file     pandoc           available
 ```
 
 Without Pandoc, the word-processing, ODM, HTML, e-book, and text-markup lines
@@ -347,7 +388,10 @@ extension selects the format, because plain text cannot be recognized as a
 table by content; `.tsv` splits on tabs and `.csv` picks the separator that is
 most consistent across the first lines. A byte-order mark selects UTF-8 or
 UTF-16, text that is not valid UTF-8 is read as Windows-1252 with a warning,
-and binary content is rejected.
+and binary content is rejected. All table formats share a limit of
+1,000,000 rows per sheet, 16,384 columns and 10,000,000 rendered cells across
+all sheets. Empty cells added to make rows equally wide count too. The existing
+128 MiB output limit and parser-specific safety budgets remain in effect.
 
 HTML, Safari web archives, EPUB, LaTeX, DocBook, Org, MediaWiki, Textile,
 reStructuredText, and FictionBook go through Pandoc in sandbox mode, which
@@ -413,7 +457,7 @@ Expected losses or approximations:
 - multiple different hyperlink targets in one spreadsheet cell; the first target
   and all visible text stay, while the additional target is reported as a warning
 - ODM section boundaries and master-document behavior after flattening
-- complex PDF page layout, tables, and exact text placement;
+- complex PDF page layout, tables without a recoverable grid, and exact text placement;
   local OCR can contain recognition errors and needs review
 - image OCR reading order and exact layout; the retained original image remains
   the authoritative source for review
@@ -445,7 +489,7 @@ and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compa
 their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current version is 0.10.2.
+The current version is 0.15.1.
 
 ## License
 
@@ -469,7 +513,9 @@ support information is in [SUPPORT.md](SUPPORT.md).
 `--pdf-ocr auto|always|off` selects local OCR; automatic mode also recognizes
 scan images below digital headers. `--ocr-language de,en` sets shared PDF/image
 languages supported by the local Vision installation. `--pdf-layout auto|legacy`
-selects two-column ordering or the previous extraction for comparison.
+selects font-based headings, simple ruled tables and two-column ordering,
+or the previous extraction for comparison. Ambiguous aligned text retains row
+order and gets a visible warning.
 `--pdf-remove-headers-footers` removes repeated text at page margins;
 `--pdf-dehyphenate` optionally joins conservative lowercase word breaks.
 The app remembers these settings. Original embedded text remains present when

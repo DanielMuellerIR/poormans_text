@@ -54,6 +54,9 @@ public enum CLIInstaller {
             throw InstallError.targetUnavailable
         }
 
+        // Die Meldung im Skript ist bewusst ENGLISCH: Sie wandert als Ursache
+        // in die Fehlermeldung der App. Vorher stand dort ein deutscher Satz
+        // mitten in einer englischen Meldung (Review-Fund 2026-09-10).
         let script = #"""
         on run argv
             set sourcePath to item 1 of argv
@@ -65,7 +68,7 @@ public enum CLIInstaller {
             set quotedDirectory to quoted form of targetDirectory
             set shellCommand to "set -eu; " & ¬
                 "if [ -e " & quotedTarget & " ] || [ -L " & quotedTarget & " ]; then " & ¬
-                "echo 'Das CLI-Ziel ist inzwischen belegt.' >&2; exit 73; fi; " & ¬
+                "echo 'the command-line target is already in use' >&2; exit 73; fi; " & ¬
                 "/bin/mkdir -p " & quotedDirectory & "; " & ¬
                 "/bin/ln -s " & quotedSource & " " & quotedTarget
             if useAdministratorPrivileges is "true" then
@@ -76,9 +79,11 @@ public enum CLIInstaller {
         end run
         """#
 
-        // CapturedProcess leert die Fehler-Pipe, bevor es auf das Prozessende
-        // wartet — sonst könnte ein gesprächiges osascript am vollen
-        // Pipe-Puffer hängen bleiben, während wir auf es warten.
+        // CapturedProcess schreibt die Fehlerausgabe in eine Datei statt in
+        // eine Pipe — sonst könnte ein gesprächiges osascript am vollen
+        // Pipe-Puffer hängen bleiben, während wir auf es warten. Kein
+        // Zeitlimit: Die Passwortabfrage ist ein Systemdialog, den der Nutzer
+        // selbst beendet.
         let result: (status: Int32, standardError: String)
         do {
             result = try CapturedProcess.run(
@@ -105,7 +110,9 @@ public enum CLIInstaller {
         }
     }
 
-    private enum InstallError: LocalizedError {
+    /// Nicht `private`: `AppErrorMessage` bildet die Fälle auf die übersetzten
+    /// Meldungen der Oberfläche ab.
+    enum InstallError: LocalizedError {
         case processFailed(String)
         case targetUnavailable
         case verificationFailed

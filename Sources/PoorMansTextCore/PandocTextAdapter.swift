@@ -80,6 +80,8 @@ struct PandocTextAdapter: DocumentConversionAdapter {
             return .noMatch
         }
         let fileExtension = inputURL.pathExtension.lowercased()
+        // HTML im Mailkörper ist keine eigenständige HTML-Quelle, auch bei defekten Mailheadern.
+        if ["eml", "emlx", "msg"].contains(fileExtension) { return .noMatch }
         let byExtension = Self.kinds.first { $0.extensions.contains(fileExtension) }
 
         // EPUB ist ein ZIP: der Paketweg entscheidet, nicht der Textkopf.
@@ -189,8 +191,27 @@ struct PandocTextAdapter: DocumentConversionAdapter {
 
         case .signatureAlone where context.format == .html:
             let staged = try Self.stageFile(context, named: "verified-source.html", maximumBytes: Self.maximumTextBytes)
-            let data = (try? Data(contentsOf: staged, options: [.mappedIfSafe])) ?? Data()
+            // Ein Lesefehler der eigenen Arbeitskopie ist ein Fehler, kein
+            // leeres Dokument: Mit `?? Data()` „gelang" die Umwandlung vorher
+            // mit leerem Markdown (Review-Fund 2026-09-10).
+            let data: Data
+            do {
+                data = try Data(contentsOf: staged, options: [.mappedIfSafe])
+            } catch {
+                throw ConversionError.fileSystemFailure(error.localizedDescription)
+            }
+            // UTF-8 zuerst: Viele Seiten deklarieren einen Latin-1-Zeichensatz
+            // und liefern trotzdem UTF-8, und gültiges UTF-8 ist so gut wie nie
+            // Zufall. Danach der deklarierte Zeichensatz (`<meta charset>`,
+            // `http-equiv`, XML-Deklaration), wie ihn der Webarchiv-Weg längst
+            // nutzt; vorher fiel der Rückfall direkt auf Windows-1252, und eine
+            // Seite in windows-1251 oder shift_jis wurde vollständig Mojibake
+            // (Roadmap-Punkt, 2026-09-10). Erst zuletzt die Annahme mit Warnung.
             if let text = String(data: data, encoding: .utf8) {
+                html = text
+            } else if let charset = Self.declaredCharset(in: data),
+                      let encoding = String.Encoding(ianaCharSetName: charset),
+                      let text = String(data: data, encoding: encoding) {
                 html = text
             } else if let text = String(data: data, encoding: .windowsCP1252) {
                 html = text
@@ -212,6 +233,7 @@ struct PandocTextAdapter: DocumentConversionAdapter {
             } catch {
                 throw ConversionError.invalidInput(context.inputURL, format: context.format, reason: error.localizedDescription)
             }
+            metadata = EPUBMetadataReader.read(fromPackageAt: staged)
             html = try Self.pandocHTML(from: staged, reader: kind.reader, context: context, pandocExecutable: pandocExecutable)
             baseDirectory = nil
 
@@ -219,6 +241,9 @@ struct PandocTextAdapter: DocumentConversionAdapter {
             let staged = try Self.stageFile(context, named: "verified-source.\(context.inputURL.pathExtension.lowercased())", maximumBytes: Self.maximumTextBytes)
             guard let data = try? Data(contentsOf: staged, options: [.mappedIfSafe]), String(data: data, encoding: .utf8) != nil else {
                 throw ConversionError.invalidInput(context.inputURL, format: context.format, reason: "the file is not valid UTF-8 text")
+            }
+            if context.format == .fb2 {
+                metadata = FB2MetadataParser.parse(data)
             }
             html = try Self.pandocHTML(from: staged, reader: kind.reader, context: context, pandocExecutable: pandocExecutable)
         }
@@ -311,6 +336,71 @@ struct PandocTextAdapter: DocumentConversionAdapter {
         } catch {
             throw ConversionError.fileSystemFailure("conversion produced no readable HTML: \(error.localizedDescription)")
         }
+    }
+
+    /// Der im Dateikopf deklarierte Zeichensatz: `<meta charset="…">`,
+    /// `<meta http-equiv="Content-Type" content="…; charset=…">` oder die
+    /// `encoding` einer XML-Deklaration. Gelesen werden nur die ersten 4 KiB,
+    /// byteweise als Latin-1, damit die Suche selbst keine Kodierung braucht.
+    static func declaredCharset(in data: Data) -> String? {
+        let head = String(data: data.prefix(4096), encoding: .isoLatin1) ?? ""
+        func first(_ pattern: String, in text: String) -> String? {
+            guard let expression = try? NSRegularExpression(
+                pattern: pattern,
+                options: [.caseInsensitive, .dotMatchesLineSeparators]
+            ),
+                  let match = expression.firstMatch(
+                    in: text,
+                    range: NSRange(location: 0, length: (text as NSString).length)
+                  ),
+                  match.numberOfRanges > 1 else {
+                return nil
+            }
+            return (text as NSString).substring(with: match.range(at: 1))
+        }
+        if let xml = first(#"^\s*<\?xml\b[^>]*\bencoding\s*=\s*["']([^"']+)["']"#, in: head) {
+            return xml
+        }
+
+        // Kommentare sowie Script-/Style-Inhalte sind Text und keine echten
+        // Meta-Tags. Auch ein nicht geschlossener Block reicht bis zum Ende.
+        var markup = head.replacingOccurrences(
+            of: #"(?is)<!--.*?(?:-->|$)"#,
+            with: "",
+            options: .regularExpression
+        )
+        markup = markup.replacingOccurrences(
+            of: #"(?is)<(script|style)\b[^>]*>.*?(?:</\1\s*>|$)"#,
+            with: "",
+            options: .regularExpression
+        )
+        guard let metaExpression = try? NSRegularExpression(
+            pattern: #"<meta\b[^>]*>"#,
+            options: [.caseInsensitive]
+        ) else { return nil }
+        for match in metaExpression.matches(
+            in: markup,
+            range: NSRange(location: 0, length: (markup as NSString).length)
+        ) {
+            let tag = (markup as NSString).substring(with: match.range)
+            guard let attributes = try? NSRegularExpression(
+                pattern: #"\s+([^\s=/>]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))"#
+            ) else { continue }
+            var values = [String: String]()
+            let source = tag as NSString
+            for attribute in attributes.matches(in: tag, range: NSRange(location: 0, length: source.length)) {
+                let name = source.substring(with: attribute.range(at: 1)).lowercased()
+                let valueRange = (2...4).map { attribute.range(at: $0) }.first { $0.location != NSNotFound }!
+                if values[name] == nil { values[name] = source.substring(with: valueRange) }
+            }
+            if let charset = values["charset"], !charset.isEmpty { return charset }
+            if values["http-equiv"]?.lowercased() == "content-type",
+               let content = values["content"],
+               let charset = first(#"(?:^|;)\s*charset\s*=\s*["']?\s*([A-Za-z0-9._:-]+)"#, in: content) {
+                return charset
+            }
+        }
+        return nil
     }
 
     /// `<title>` und `<meta name="author">` aus dem HTML-Kopf.

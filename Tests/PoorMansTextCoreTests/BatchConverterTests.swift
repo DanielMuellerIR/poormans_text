@@ -148,6 +148,124 @@ final class BatchConverterTests: XCTestCase {
             guard case ConversionError.unsupportedInput = error else { return XCTFail("\(error)") }
         }
     }
+
+    /// Die Reservierung kannte bisher nur den Test mit ZWEIMAL demselben Ziel.
+    /// Damit blieben beide Präfixzweige und die Schreibweisen-Normalisierung
+    /// ungeprüft — ein verschachteltes Ziel oder eines, das sich nur in der
+    /// Groß-/Kleinschreibung unterscheidet, hätte still durchgehen können
+    /// (Review-Fund 2026-09-10).
+    func testNestedAndCaseOnlyDifferentOutputsAreReserved() throws {
+        let first = try source("aussen"), second = try source("innen"), third = try source("gross")
+        let state = Activity()
+        let converter = BatchConverter(converter: DocumentConverter(adapters: [BatchTestAdapter { context in
+            state.enter(context.inputURL.lastPathComponent)
+            state.leave(context.inputURL.lastPathComponent)
+        }]))
+        let output = root.appendingPathComponent("Ziel")
+        let results = try converter.convert([
+            ConversionRequest(inputURL: first, destination: .directory(output)),
+            ConversionRequest(inputURL: second, destination: .directory(output.appendingPathComponent("Unter"))),
+            ConversionRequest(inputURL: third, destination: .directory(root.appendingPathComponent("ZIEL"))),
+        ], jobs: 1)
+
+        XCTAssertNoThrow(try results[0].outcome.get())
+        for index in [1, 2] {
+            XCTAssertThrowsError(try results[index].outcome.get()) { error in
+                guard case ConversionError.outputAlreadyExists = error else { return XCTFail("\(error)") }
+            }
+        }
+        XCTAssertEqual(state.started, [first.lastPathComponent])
+    }
+
+    /// `prepareParent` prüft vor jedem Dokument alle Quellschnappschüsse neu.
+    /// Kein Test hatte diese Prüfung je ausgelöst.
+    func testASourceRepointedAfterPlanningIsRejected() throws {
+        let first = try source("erste"), decoy = try source("koeder")
+        let link = root.appendingPathComponent("verweis.batch")
+        try FileManager.default.createSymbolicLink(at: link, withDestinationURL: first)
+        let converter = BatchConverter(converter: DocumentConverter(adapters: [BatchTestAdapter { context in
+            guard context.inputURL == first else { return }
+            // Während das erste Dokument läuft, zeigt der Verweis plötzlich woandershin.
+            try? FileManager.default.removeItem(at: link)
+            try FileManager.default.createSymbolicLink(at: link, withDestinationURL: decoy)
+        }]))
+        let results = try converter.convert(
+            [ConversionRequest(inputURL: first), ConversionRequest(inputURL: link)], jobs: 1
+        )
+
+        XCTAssertNoThrow(try results[0].outcome.get())
+        XCTAssertThrowsError(try results[1].outcome.get()) { error in
+            guard case ConversionError.fileSystemFailure(let reason) = error else {
+                return XCTFail("\(error)")
+            }
+            // Genau die Planungsschicht muss greifen, nicht erst die
+            // Schwesterprüfung im Konverter ("the batch source changed …").
+            XCTAssertEqual(reason, "a batch source changed after output planning")
+        }
+        // Der untergeschobene Köder wurde nicht angefasst.
+        XCTAssertEqual(try Data(contentsOf: decoy), Data("koeder".utf8))
+    }
+
+    /// Ein gemeinsamer Zielordner, der schon als DATEI existiert, muss den
+    /// ganzen Lauf abweisen, bevor irgendein Worker startet.
+    func testAnOutputRootThatIsAlreadyAFileRejectsTheWholeRun() throws {
+        let first = try source("eins")
+        let rootFile = root.appendingPathComponent("Ergebnis")
+        try Data("belegt".utf8).write(to: rootFile)
+        let state = Activity()
+        let converter = BatchConverter(converter: DocumentConverter(adapters: [BatchTestAdapter { context in
+            state.enter(context.inputURL.lastPathComponent)
+            state.leave(context.inputURL.lastPathComponent)
+        }]))
+
+        XCTAssertThrowsError(
+            try converter.convert(
+                [ConversionRequest(inputURL: first, destination: .directory(rootFile.appendingPathComponent("a")))],
+                outputRoots: [rootFile]
+            )
+        ) { error in
+            guard case ConversionError.outputAlreadyExists = error else { return XCTFail("\(error)") }
+        }
+        XCTAssertEqual(state.started, [])
+        XCTAssertEqual(try Data(contentsOf: rootFile), Data("belegt".utf8))
+    }
+
+    /// Der Fortschritt läuft auf Worker-Threads. Bisher las kein Test `sequence`,
+    /// `running` oder `documentProgress`, die Sperren im Zustand waren also nie
+    /// über ihre Zusicherungen geprüft.
+    func testBatchProgressStaysConsistentAcrossWorkers() throws {
+        let sources = try (0..<3).map { try source("dok\($0)") }
+        let rendezvous = DispatchSemaphore(value: 0)
+        let release = DispatchSemaphore(value: 0)
+        let converter = BatchConverter(converter: DocumentConverter(adapters: [BatchTestAdapter { context in
+            guard context.inputURL != sources[2] else { return }
+            rendezvous.signal()
+            _ = release.wait(timeout: .now() + 2)
+        }]))
+        let events = EventLog()
+        DispatchQueue.global().async {
+            // Erst weiterlaufen lassen, wenn wirklich zwei Worker gleichzeitig stehen.
+            _ = rendezvous.wait(timeout: .now() + 2)
+            _ = rendezvous.wait(timeout: .now() + 2)
+            release.signal()
+            release.signal()
+        }
+        let results = try converter.convert(
+            sources.map { ConversionRequest(inputURL: $0) },
+            jobs: 2,
+            progress: { events.append($0) }
+        )
+
+        XCTAssertEqual(results.count, 3)
+        let sequences = events.all.map(\.sequence)
+        XCTAssertEqual(sequences, Array(1...sequences.count), "Sequenz lückenlos und aufsteigend")
+        XCTAssertEqual(events.all.filter { $0.result != nil }.count, 3)
+        XCTAssertTrue(events.all.contains { $0.running.count == 2 }, "zwei Worker gleichzeitig sichtbar")
+        for event in events.all {
+            XCTAssertEqual(event.running, event.running.sorted())
+            XCTAssertLessThanOrEqual(event.completed, event.total)
+        }
+    }
 }
 
 private struct BatchTestAdapter: DocumentConversionAdapter {
@@ -172,4 +290,12 @@ private final class Activity: @unchecked Sendable {
     var finished: [String] { lock.withLock { ends } }
     func enter(_ name: String) { lock.withLock { starts.append(name); active += 1; peak = max(peak, active) } }
     func leave(_ name: String) { lock.withLock { ends.append(name); active -= 1 } }
+}
+
+/// Sammelt Batch-Ereignisse threadsicher; der Callback läuft auf Worker-Threads.
+private final class EventLog: @unchecked Sendable {
+    private let lock = NSLock()
+    private var events: [BatchConversionProgress] = []
+    var all: [BatchConversionProgress] { lock.withLock { events } }
+    func append(_ event: BatchConversionProgress) { lock.withLock { events.append(event) } }
 }

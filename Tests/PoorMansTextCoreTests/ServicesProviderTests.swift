@@ -109,6 +109,44 @@ final class ServicesProviderTests: XCTestCase {
         XCTAssertFalse(model.isConverting)
     }
 
+    /// Die Anhangnamen eines Flat-RTFD gehen beim Auspacken als
+    /// Pfadbestandteile in den Arbeitsordner. Ein Name mit `../` lässt sich
+    /// über AppKit gar nicht erzeugen (`preferredFilename` bricht ab), und ein
+    /// byteweise nachträglich eingesetzter Name wird von
+    /// `NSAttributedString(rtfd:)` beim Lesen verworfen. Der Dienst meldet
+    /// dann unlesbaren Rich Text, und nichts wird geschrieben — belegt statt
+    /// nur notiert (Roadmap-Punkt, 2026-09-10).
+    func testAFlatRTFDWithAnEscapingAttachmentNameIsRefusedBeforeAnythingIsWritten() throws {
+        let png = try Data(contentsOf: Bundle.module.resourceURL!.appendingPathComponent("Fixtures/WordProcessing/fixture.png"))
+        let wrapper = FileWrapper(regularFileWithContents: png)
+        wrapper.preferredFilename = "escape.png"
+        let text = NSMutableAttributedString(string: "Hallo ")
+        text.append(NSAttributedString(attachment: NSTextAttachment(fileWrapper: wrapper)))
+        var flat = try XCTUnwrap(text.rtfd(
+            from: NSRange(location: 0, length: text.length),
+            documentAttributes: [.documentType: NSAttributedString.DocumentType.rtfd]
+        ))
+        // Gleich langer Name, damit die Serialisierung sonst gültig bleibt.
+        let needle = Data("escape.png".utf8), replacement = Data("../esc.png".utf8)
+        var patched = 0
+        var searchStart = flat.startIndex
+        while let range = flat.range(of: needle, in: searchStart..<flat.endIndex) {
+            flat.replaceSubrange(range, with: replacement)
+            patched += 1
+            searchStart = range.upperBound
+        }
+        XCTAssertGreaterThan(patched, 0, "Der Anhangname steht nicht im Flat-RTFD.")
+
+        let temporary = FileManager.default.temporaryDirectory
+        let before = Set(try FileManager.default.contentsOfDirectory(atPath: temporary.path))
+        XCTAssertThrowsError(try RichTextClipboard.convert(.init(kind: .flatRTFD, data: flat))) { error in
+            XCTAssertTrue(error.localizedDescription.contains("could not be read"), error.localizedDescription)
+        }
+        let after = Set(try FileManager.default.contentsOfDirectory(atPath: temporary.path))
+        XCTAssertFalse(after.contains("esc.png"))
+        XCTAssertEqual(after.subtracting(before).filter { !$0.hasPrefix("PoorMansText") }, [], "Es wurde etwas außerhalb des Arbeitsordners geschrieben.")
+    }
+
     @MainActor
     func testRTFDImagesAreReportedAsLeftOut() throws {
         let fixture = try FixtureFactory.createRichRTFD(in: root)

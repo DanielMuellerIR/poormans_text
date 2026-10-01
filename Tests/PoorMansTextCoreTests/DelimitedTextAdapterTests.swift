@@ -90,6 +90,16 @@ final class DelimitedTextAdapterTests: XCTestCase {
         }
     }
 
+    /// Ein Komma mit folgendem Kombinationszeichen ist als Graphem ein anderes
+    /// Zeichen; der Parser trennte dort nicht. Auf Skalaren trennt es, und das
+    /// Kombinationszeichen beginnt das nächste Feld. CR+LF bleibt ein
+    /// Zeilenende, in Anführungszeichen bleibt es Text.
+    func testDelimitersAreComparedAsUnicodeScalars() throws {
+        let rows = try DelimitedTextParser.parse("a,\u{0301}b\r\nc,\"x\r\ny\"\rd\n", delimiter: ",")
+        XCTAssertEqual(rows.map { $0.map(\.displayText) }, [["a", "\u{0301}b"], ["c", "x\r\ny"], ["d"]])
+        XCTAssertThrowsError(try DelimitedTextParser.parse("a", delimiter: "\u{0301}\u{0301}"))
+    }
+
     func testDelimiterSniffingPrefersTheConsistentSeparator() {
         XCTAssertEqual(DelimitedTextParser.sniffDelimiter(in: "a;b;c\n1;2;3\n"), ";")
         XCTAssertEqual(DelimitedTextParser.sniffDelimiter(in: "a,b\n1,2\n"), ",")
@@ -97,6 +107,11 @@ final class DelimitedTextAdapterTests: XCTestCase {
         // Kommas im Text, Semikolons als Struktur: das gleichmäßige Zeichen gewinnt.
         XCTAssertEqual(DelimitedTextParser.sniffDelimiter(in: "Name;Ort\nMüller, A.;Köln\nB;C, D, E\n"), ";")
         XCTAssertEqual(DelimitedTextParser.sniffDelimiter(in: "nur text\nohne trenner\n"), ",")
+        // Nur die ersten zwanzig Zeilen zählen; der Rest der Datei wird nicht
+        // mehr zerlegt und darf das Ergebnis nicht ändern.
+        let head = String(repeating: "a;b;c\n", count: 20)
+        XCTAssertEqual(DelimitedTextParser.sniffDelimiter(in: head), ";")
+        XCTAssertEqual(DelimitedTextParser.sniffDelimiter(in: head + String(repeating: "x,y,z\n", count: 100)), ";")
     }
 
     func testTheLastLineWithoutANewlineCountsAndAnEmptyFileHasNoRows() throws {

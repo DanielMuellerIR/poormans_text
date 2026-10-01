@@ -98,11 +98,9 @@ struct PDFAdapter: DocumentConversionAdapter {
             )
         }
 
-        let markdownName = context.inputURL.deletingPathExtension().lastPathComponent + ".md"
-        let markdownURL = context.stagedOutputDirectory.appendingPathComponent(markdownName)
         let markdown: String
         do {
-            markdown = try renderedMarkdown(from: extracted.pages, sourceURL: context.inputURL)
+            markdown = try renderedMarkdown(from: extracted.pages, sourceURL: context.inputURL, isStructured: extracted.isStructured)
         } catch {
             throw ConversionError.invalidInput(
                 context.inputURL,
@@ -110,11 +108,7 @@ struct PDFAdapter: DocumentConversionAdapter {
                 reason: error.localizedDescription
             )
         }
-        do {
-            try Data(markdown.utf8).write(to: markdownURL, options: .atomic)
-        } catch {
-            throw ConversionError.fileSystemFailure(error.localizedDescription)
-        }
+        let markdownName = try context.writeMarkdown(markdown)
 
         var warnings = [ConversionWarning.pdfLayoutNotPreserved]
         if extracted.usedOCR {
@@ -221,7 +215,7 @@ struct PDFAdapter: DocumentConversionAdapter {
         for index in 0..<document.pageCount {
             try ConversionExecution.report(unit: .page, completed: index, total: document.pageCount)
             guard let page = document.page(at: index) else { throw PDFAdapterError("the PDF page \(index + 1) is unreadable") }
-            let text = normalizedText(page.string ?? "")
+            let text = ExtractedText.normalized(page.string ?? "")
             try accountText(text, totalBytes: &sourceBytes)
             let box = page.bounds(for: .mediaBox)
             let lines = try PDFTextLayout.lines(on: page)
@@ -251,7 +245,7 @@ struct PDFAdapter: DocumentConversionAdapter {
                     let rectangle = CGRect(x: box.minX + line.bounds.minX * box.width, y: box.minY + line.bounds.minY * box.height,
                         width: line.bounds.width * box.width, height: line.bounds.height * box.height)
                     // Nur räumlich gleiche, textgleiche OCR-Dubletten verwerfen.
-                    let key = line.text.trimmingCharacters(in: .whitespacesAndNewlines)
+                    let key = line.recognized.trimmingCharacters(in: .whitespacesAndNewlines)
                     if original.contains(where: { $0.text.trimmingCharacters(in: .whitespacesAndNewlines) == key && $0.bounds.intersects(rectangle) }) { continue }
                     try accountText(line.text, totalBytes: &sourceBytes)
                     pages[plan.index].append(PDFTextLine(text: line.text, bounds: rectangle))
@@ -264,21 +258,37 @@ struct PDFAdapter: DocumentConversionAdapter {
             }
         }
         if options.pdfRemoveHeadersFooters {
+            try ConversionExecution.check()
             let filtered = PDFTextLayout.removingRepeatedMargins(pages, bounds: bounds)
             for index in pages.indices where filtered[index].count != pages[index].count {
                 diagnostics.append(ConversionWarning(code: "pdf.repeatedMarginRemoved", message: "Repeated text at the page margin was removed by request.", location: ConversionLocation(page: index + 1)))
             }
             pages = filtered
         }
-        let textPages = pages.indices.map { index in
-            normalizedText(PDFTextLayout.text(PDFTextLayout.ordered(pages[index], pageBounds: bounds[index]), hardHyphens: options.pdfDehyphenate))
+        // Die Aufbereitung aller Seiten lief bisher ohne jede Abbruchprüfung.
+        // Bei einem tausendseitigen PDF wurde ein Abbruch erst danach wirksam
+        // (Review-Fund 2026-09-10).
+        let bodyFont = PDFStructuredLayout.bodyFont(in: pages)
+        let headingSizes = Set(pages.flatMap { $0 }.compactMap { line -> CGFloat? in
+            guard let bodyFont, let size = line.fontSize, size > bodyFont else { return nil }
+            return size
+        }).sorted(by: >)
+        let textPages = try pages.indices.map { index -> String in
+            try ConversionExecution.check()
+            guard let page = document.page(at: index) else { throw PDFAdapterError("the PDF page is unreadable") }
+            let rendered = PDFStructuredLayout.render(pages[index], page: page, bodyFont: bodyFont,
+                headingSizes: headingSizes, hardHyphens: options.pdfDehyphenate)
+            if rendered.ambiguous {
+                diagnostics.append(ConversionWarning(code: "pdf.layoutAmbiguous", message: "Aligned text may be a table or parallel columns; row order was retained.", location: ConversionLocation(page: index + 1)))
+            }
+            return rendered.markdown
         }
         for index in textPages.indices where textPages[index].isEmpty {
             diagnostics.append(ConversionWarning.pdfPageTextUnavailable.at(ConversionLocation(page: index + 1)))
         }
         try ConversionExecution.report(unit: .page, completed: document.pageCount, total: document.pageCount)
         return PDFExtraction(pages: textPages, usedOCR: !plans.isEmpty, hadOCRFailure: failed,
-            hasPageWithoutText: textPages.contains { $0.isEmpty }, diagnostics: diagnostics)
+            hasPageWithoutText: textPages.contains { $0.isEmpty }, diagnostics: diagnostics, isStructured: true)
     }
 
     private func extractLegacyText(from document: PDFDocument, options: ConversionOptions) throws -> PDFExtraction {
@@ -291,7 +301,7 @@ struct PDFAdapter: DocumentConversionAdapter {
             guard let page = document.page(at: pageIndex) else {
                 throw PDFAdapterError("the PDF page \(pageIndex + 1) is unreadable")
             }
-            let extractedText = normalizedText(page.string ?? "")
+            let extractedText = ExtractedText.normalized(page.string ?? "")
             if options.pdfTextRecognition == .disabled || (options.pdfTextRecognition == .automatic && extractedText.count >= PDFImportLimits.minimumEmbeddedTextCharacters) {
                 try accountText(extractedText, totalBytes: &extractedTextBytes)
                 pages.append(extractedText)
@@ -319,7 +329,7 @@ struct PDFAdapter: DocumentConversionAdapter {
             try ConversionExecution.report(unit: .page, completed: plan.index, total: document.pageCount)
             let recognizedText: String
             do {
-                recognizedText = try recognizeText(in: plan.page, dimensions: plan.dimensions, languages: options.ocrLanguages, legacyOrientation: true).text
+                recognizedText = try recognizeText(in: plan.page, dimensions: plan.dimensions, languages: options.ocrLanguages).text
             } catch {
                 try ConversionExecution.check()
                 hadOCRFailure = true
@@ -384,7 +394,7 @@ struct PDFAdapter: DocumentConversionAdapter {
         return RasterDimensions(bounds: bounds, scale: scale, width: width, height: height)
     }
 
-    private func recognizeText(in page: PDFPage, dimensions: RasterDimensions, languages: [String], legacyOrientation: Bool = false) throws -> VisionTextRecognition {
+    private func recognizeText(in page: PDFPage, dimensions: RasterDimensions, languages: [String]) throws -> VisionTextRecognition {
         try ConversionExecution.check()
         let colorSpace = CGColorSpaceCreateDeviceRGB()
         guard let context = CGContext(
@@ -400,10 +410,12 @@ struct PDFAdapter: DocumentConversionAdapter {
         }
         context.setFillColor(red: 1, green: 1, blue: 1, alpha: 1)
         context.fill(CGRect(x: 0, y: 0, width: dimensions.width, height: dimensions.height))
-        if legacyOrientation {
-            context.translateBy(x: 0, y: CGFloat(dimensions.height))
-            context.scaleBy(x: dimensions.scale, y: -dimensions.scale)
-        } else { context.scaleBy(x: dimensions.scale, y: dimensions.scale) }
+        // NICHT spiegeln: Ein CGBitmapContext hat die y-Achse bereits nach oben,
+        // und Vision bekommt das Bild mit `orientation: .up`. Der Legacy-Weg
+        // kippte die Seite und die Erkennung las gespiegelten Unsinn
+        // („HELLO OCR WORLD" wurde zu „НЕГГО ОСЬ MOBD"), ohne Fehler und ohne
+        // Warnung (Review-Fund 2026-09-10).
+        context.scaleBy(x: dimensions.scale, y: dimensions.scale)
         context.translateBy(x: -dimensions.bounds.minX, y: -dimensions.bounds.minY)
         page.draw(with: .mediaBox, to: context)
         guard let image = context.makeImage() else {
@@ -414,7 +426,7 @@ struct PDFAdapter: DocumentConversionAdapter {
         return try VisionTextRecognizer.recognize(in: image, languages: languages)
     }
 
-    private func renderedMarkdown(from pages: [String], sourceURL: URL) throws -> String {
+    private func renderedMarkdown(from pages: [String], sourceURL: URL, isStructured: Bool) throws -> String {
         var markdown = ""
         var markdownBytes = 0
         try appendMarkdown(
@@ -425,7 +437,7 @@ struct PDFAdapter: DocumentConversionAdapter {
         for (index, text) in pages.enumerated() {
             let content = text.isEmpty
                 ? "_No text could be extracted from this page._"
-                : MarkdownEscaping.literalBlock(text)
+                : (isStructured ? text : MarkdownEscaping.literalBlock(text))
             try appendMarkdown(
                 "\n\n## Page \(index + 1)\n\n\(content)",
                 to: &markdown,
@@ -449,15 +461,6 @@ struct PDFAdapter: DocumentConversionAdapter {
         markdown += text
     }
 
-    private func normalizedText(_ text: String) -> String {
-        let unified = text.replacingOccurrences(of: "\r\n", with: "\n")
-            .replacingOccurrences(of: "\r", with: "\n")
-        let safeScalars = unified.unicodeScalars.filter {
-            $0.value == 0x0A || $0.value == 0x09 || $0.value >= 0x20 && $0.value != 0x7F
-        }
-        return String(String.UnicodeScalarView(safeScalars))
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-    }
 
     private struct PDFExtraction {
         let pages: [String]
@@ -465,6 +468,7 @@ struct PDFAdapter: DocumentConversionAdapter {
         let hadOCRFailure: Bool
         let hasPageWithoutText: Bool
         var diagnostics: [ConversionWarning] = []
+        var isStructured: Bool = false
     }
 
     private struct OCRPlan {

@@ -74,8 +74,10 @@ for app in "$root_app" "$installed_app"; do
         exit 65
     }
     "$script_directory/verify_bundle.sh" "$app" --notarized
-    lipo "$app/Contents/MacOS/PoorMansTextApp" -verify_arch arm64 x86_64
-    lipo "$app/Contents/Resources/poormans-text" -verify_arch arm64 x86_64
+    lipo "$app/Contents/MacOS/PoorMansTextApp" -verify_arch arm64
+    lipo "$app/Contents/MacOS/PoorMansTextApp" -verify_arch x86_64
+    lipo "$app/Contents/Resources/poormans-text" -verify_arch arm64
+    lipo "$app/Contents/Resources/poormans-text" -verify_arch x86_64
     [ "$(code_directory_hash "$app")" = "$root_app_hash" ] || {
         echo "CodeDirectory-Hash stimmt nicht mit der Release-App überein: $app" >&2
         echo "Alle Artefakte müssen aus einem Lauf stammen: ./install.sh --with-dmg" >&2

@@ -38,10 +38,10 @@ enum VisionTextRecognizer {
             let text = isUncertain
                 ? "[OCR uncertain: \(candidate.string)]"
                 : candidate.string
-            return OCRLine(text: text, bounds: observation.boundingBox)
+            return OCRLine(text: text, recognized: candidate.string, bounds: observation.boundingBox)
         }
         let ordered = readingOrder(lines)
-        return VisionTextRecognition(text: normalizedText(ordered.map(\.text).joined(separator: "\n")), lines: ordered)
+        return VisionTextRecognition(text: ExtractedText.normalized(ordered.map(\.text).joined(separator: "\n")), lines: ordered)
     }
 
     /// Leserichtung: erst oben nach unten in Baender, dann in jedem Band links
@@ -94,22 +94,26 @@ enum VisionTextRecognizer {
         }
     }
 
-    private static func normalizedText(_ text: String) -> String {
-        let unified = text.replacingOccurrences(of: "\r\n", with: "\n")
-            .replacingOccurrences(of: "\r", with: "\n")
-        let safeScalars = unified.unicodeScalars.filter {
-            $0.value == 0x0A || $0.value == 0x09 || $0.value >= 0x20 && $0.value != 0x7F
-        }
-        return String(String.UnicodeScalarView(safeScalars))
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-    }
 
     private static let minimumTextHeight: Float = 0.008
     private static let minimumConfidence: Float = 0.55
     private static let lineGroupingTolerance: CGFloat = 0.015
 
     struct OCRLine: Sendable {
+        /// Wie die Zeile im Markdown steht — bei geringer Konfidenz mit dem
+        /// Hinweis in Klammern.
         let text: String
+        /// Was Vision tatsächlich gelesen hat, ohne Hinweis. Der
+        /// Dublettenvergleich braucht diesen Wert: Mit dem dekorierten Text
+        /// traf er eine unsichere Zeile nie, und derselbe Satz stand danach
+        /// zweimal im Markdown (Review-Fund 2026-09-10).
+        let recognized: String
         let bounds: CGRect
+
+        init(text: String, recognized: String? = nil, bounds: CGRect) {
+            self.text = text
+            self.recognized = recognized ?? text
+            self.bounds = bounds
+        }
     }
 }

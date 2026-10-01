@@ -122,20 +122,9 @@ struct ImageAdapter: DocumentConversionAdapter {
     }
 
     private func imageProbe(at url: URL) throws -> ImageProbe {
-        let values: URLResourceValues
-        do {
-            values = try url.resourceValues(forKeys: [.fileSizeKey, .isRegularFileKey])
-        } catch {
-            throw ImageAdapterError(error.localizedDescription)
-        }
-        guard values.isRegularFile == true else {
-            throw ImageAdapterError("the image source is not a regular file")
-        }
-        guard let size = values.fileSize, size <= ImageImportLimits.maximumSourceBytes else {
-            throw ImageAdapterError("the image source exceeds the supported size limit")
-        }
-        guard let source = imageSource(at: url),
-              let typeIdentifier = CGImageSourceGetType(source) as String?,
+        let verified = try VerifiedImageSource(at: url)
+        let source = verified.source
+        guard let typeIdentifier = CGImageSourceGetType(source) as String?,
               let fileFormat = ImageFileFormat(typeIdentifier: typeIdentifier) else {
             throw ImageAdapterError("the image format is unsupported or unreadable")
         }
@@ -146,13 +135,13 @@ struct ImageAdapter: DocumentConversionAdapter {
         guard frameCount <= ImageImportLimits.maximumFrames else {
             throw ImageAdapterError("the image exceeds the supported frame limit")
         }
+        try verified.validateUnchanged()
         return ImageProbe(fileFormat: fileFormat, frameCount: frameCount)
     }
 
     private func recognizeText(at sourceURL: URL, frameCount: Int, languages: [String]) throws -> ImageExtraction {
-        guard let source = imageSource(at: sourceURL) else {
-            throw ImageAdapterError("the verified image source is unreadable")
-        }
+        let verified = try VerifiedImageSource(at: sourceURL)
+        let source = verified.source
 
         // Jeder Frame bekommt seinen Anteil am gemeinsamen Budget, höchstens
         // aber die Frame-Grenze. Ein zu großes Bild wird für die Erkennung
@@ -203,6 +192,7 @@ struct ImageAdapter: DocumentConversionAdapter {
             }
         }
         try ConversionExecution.report(unit: .frame, completed: frameCount, total: frameCount)
+        try verified.validateUnchanged()
         return ImageExtraction(
             frames: pages,
             hadOCRFailure: hadOCRFailure,
@@ -345,10 +335,6 @@ struct ImageAdapter: DocumentConversionAdapter {
         return (name.isEmpty ? "Image" : name) + ".md"
     }
 
-    private func imageSource(at url: URL) -> CGImageSource? {
-        CGImageSourceCreateWithURL(url as CFURL, imageOptions())
-    }
-
     private func imageOptions() -> CFDictionary {
         [kCGImageSourceShouldCache: false] as CFDictionary
     }
@@ -413,7 +399,9 @@ enum ImageOCRBudget {
     }
 }
 
-private enum ImageFileFormat {
+/// Nicht `private`: Der HTML-Bildleser prüft mit demselben Typkatalog, ob eine
+/// als Bild verwiesene Datei wirklich ein Bild ist (Review-Fund 2026-09-10).
+enum ImageFileFormat {
     case png
     case jpeg
     case heic
@@ -456,7 +444,7 @@ private enum ImageFileFormat {
     }
 }
 
-private enum ImageImportLimits {
+enum ImageImportLimits {
     static let maximumSourceBytes = 1_073_741_824
     static let maximumFrames = 1_000
     static let maximumPixelsPerFrame = 16_000_000
@@ -464,7 +452,7 @@ private enum ImageImportLimits {
     static let maximumMarkdownBytes = 128 * 1_024 * 1_024
 }
 
-private struct ImageAdapterError: LocalizedError {
+struct ImageAdapterError: LocalizedError {
     let reason: String
 
     init(_ reason: String) {

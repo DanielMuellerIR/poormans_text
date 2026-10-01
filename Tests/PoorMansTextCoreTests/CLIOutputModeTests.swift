@@ -69,6 +69,10 @@ final class CLIOutputModeTests: XCTestCase {
         for arguments in [
             ["--stdout", "--output", root.appendingPathComponent("out").path, image.path],
             ["--stdout", "--textbundle", image.path],
+            // Wirkungslos, deshalb wie im Katalogmodus ein Aufruffehler
+            // (Roadmap-Punkt, 2026-09-10).
+            ["--stdout", "--jobs", "2", image.path],
+            ["--stdout", "--jobs=4", image.path],
             ["--stdout", image.path, second.path],
             ["--stdout", folder.path],
             ["--formats", "--stdout"],
@@ -134,7 +138,10 @@ final class CLIOutputModeTests: XCTestCase {
         return target
     }
 
-    private func runCLI(_ arguments: [String]) throws -> (status: Int32, standardOutput: String, standardError: String) {
+    private func runCLI(
+        _ arguments: [String],
+        currentDirectory: URL? = nil
+    ) throws -> (status: Int32, standardOutput: String, standardError: String) {
         let executable = Bundle(for: Self.self).bundleURL
             .deletingLastPathComponent()
             .appendingPathComponent("poormans-text")
@@ -143,6 +150,7 @@ final class CLIOutputModeTests: XCTestCase {
         let process = Process()
         process.executableURL = executable
         process.arguments = arguments
+        process.currentDirectoryURL = currentDirectory
         let standardOutput = Pipe()
         let standardError = Pipe()
         process.standardOutput = standardOutput
@@ -164,4 +172,57 @@ final class CLIOutputModeTests: XCTestCase {
             JSONSerialization.jsonObject(with: Data(string.utf8)) as? [String: Any]
         )
     }
+    /// `URL(fileURLWithPath: "")` ergibt das Arbeitsverzeichnis. Damit wandelte
+    /// `poormans-text "$FILE"` mit leerer Variable den GANZEN Arbeitsordner
+    /// rekursiv um, und `--output ""` schrieb kommentarlos dorthin — beides
+    /// ohne Rückfrage und ohne Fehler (Review-Fund 2026-09-10).
+    func testAnEmptyPathArgumentIsAUsageErrorInsteadOfTheWorkingDirectory() throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("PMTCLIEmpty-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let nested = root.appendingPathComponent("unter", isDirectory: true)
+        try FileManager.default.createDirectory(at: nested, withIntermediateDirectories: true)
+        for url in [root.appendingPathComponent("a.png"), nested.appendingPathComponent("b.png")] {
+            try Self.pngBytes.write(to: url)
+        }
+
+        for arguments in [[""], ["a.png", "--output", ""], ["a.png", "--pandoc", ""]] {
+            let result = try runCLI(arguments, currentDirectory: root)
+            XCTAssertEqual(result.status, 64, "\(arguments): \(result.standardError)")
+            XCTAssertTrue(result.standardError.contains("empty"), result.standardError)
+        }
+
+        let created = try FileManager.default
+            .subpathsOfDirectory(atPath: root.path)
+            .filter { $0.hasSuffix("-markdown") }
+        XCTAssertEqual(created, [], "kein Ergebnisordner darf entstanden sein")
+    }
+
+    /// Bereichs- und Formatfehler des Zeitlimits meldeten sich als fehlender
+    /// Wert: „Missing value for --timeout requires positive finite seconds."
+    func testAnInvalidTimeoutReportsTheRangeInsteadOfAMissingValue() throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("PMTCLIEmpty-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        try Self.pngBytes.write(to: root.appendingPathComponent("a.png"))
+
+        for value in ["abc", "0", "-1"] {
+            let result = try runCLI(["a.png", "--timeout", value], currentDirectory: root)
+            XCTAssertEqual(result.status, 64, result.standardError)
+            XCTAssertFalse(result.standardError.contains("Missing value"), result.standardError)
+            XCTAssertTrue(result.standardError.contains("positive finite seconds"), result.standardError)
+        }
+    }
+
+    private static let pngBytes = Data([
+        0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D,
+        0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+        0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4, 0x89, 0x00, 0x00, 0x00,
+        0x0A, 0x49, 0x44, 0x41, 0x54, 0x78, 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00,
+        0x05, 0x00, 0x01, 0x0D, 0x0A, 0x2D, 0xB4, 0x00, 0x00, 0x00, 0x00, 0x49,
+        0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82,
+    ])
+
 }

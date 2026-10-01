@@ -15,7 +15,7 @@ alte Word-Dateien (`.doc`), ODS, XLSX (einschließlich XLSM und XLTX/XLTM), XLS,
 CSV und TSV, PPTX/PPTM/POTX- und ODP-Präsentationen, IPYNB-Notebooks,
 OpenDocument-Masterdokumente (`.odm`), PDFs, HTML und
 Safari-Webarchive, EPUB, LaTeX, DocBook, Org, MediaWiki, Textile,
-reStructuredText, FictionBook sowie PNG-, JPEG-, HEIC-, TIFF-, GIF-, BMP- und
+reStructuredText, FictionBook, EML, Apple Mail (`.emlx`) und Outlook (`.msg`) sowie PNG-, JPEG-, HEIC-, TIFF-, GIF-, BMP- und
 WebP-Bilder in Ordner mit Markdown und gegebenenfalls separat gespeicherten
 Bildern um.
 
@@ -55,6 +55,38 @@ GFM-Standard; der konkrete Farbwert bleibt dabei nicht erhalten. Im bildsicheren
 RTF-Import lassen sich Farbinformationen nicht erhalten; der Text bleibt erhalten
 und der Konverter meldet den Verlust als Warnung.
 
+## E-Mail-Import
+
+EML und Apple-Mail-Dateien (`.emlx`) verwenden denselben Import. Alle
+Nachrichtenkopfzeilen stehen als Markdown-Tabelle vor dem Körper. Bei
+MIME-Alternativen wird ein Körper ausgegeben, bevorzugt die letzte unterstützte
+Darstellung. HTML-Tabellen werden in Textblöcke umgewandelt, damit auch
+verschachtelte Layouttabellen keinen Text verlieren. Verwandte Inlinebilder werden aus der Mail aufgelöst. Anhänge
+bleiben bytegetreu unter `attachments/`, mit sicheren, eindeutigen Dateinamen
+und Links im Markdown. Eingebettete Nachrichten und angehängte MIME-Container
+bleiben als Anhänge erhalten. Entfernte Bilder bleiben Links und werden nie
+geladen; Verweise auf lokale Dateien außerhalb der Mail werden nicht geöffnet.
+Verschlüsselte Nachrichtkörper und defektes MIME werden mit einer Diagnose
+abgelehnt. Grenzen: 64 MiB Quelldatei, 256 KiB Kopfzeilen, 1.024 MIME-Teile,
+32 Verschachtelungsebenen und 128 MiB kumulativ gelesene Teilbytes. Die
+nachgestellte Apple-Mail-Property-List wird nicht importiert.
+
+Outlook-Dateien (`.msg`) verwenden einen eigenständigen OLE-Leser und dieselbe
+Mail-Engine; Office wird nicht benötigt. Unicode- und ältere Textkodierungen,
+HTML sowie komprimierte RTF-Körper einschließlich darin eingebettetem HTML
+werden unterstützt. Inlinebilder stammen aus den Anhängen. Eingebettete Mails
+werden als eigenständige MSG-Anhänge mit erhaltenen Propertystreams exportiert.
+Die Quelle darf höchstens 64 MiB groß sein; zusätzlich gelten 100.000 OLE-Einträge,
+32 Speicherebenen, 2.048 Empfänger, 1.024 Anhänge, 64 MiB entpacktes RTF und
+128 MiB Anhangsdaten als Grenzen. Defekte Container, verschlüsselte Mails,
+andere Outlook-Objekte und nicht unterstützte Anhangsmethoden werden abgewiesen.
+Externe Anhangsverweise werden nie geöffnet.
+
+Standard ist die sichtbare Kopfzeilentabelle. `--frontmatter` bleibt eine
+bewusst wählbare Option für Titel, Absender und Datum; sie ersetzt die Tabelle
+nicht. Der Mailimport braucht Pandoc und unterstützt auch temporäre Ausgaben
+und Textbundle; dort liegen Anhänge unter `assets/`.
+
 ## Voraussetzungen
 
 - macOS 13 oder neuer
@@ -69,7 +101,9 @@ den üblichen Homebrew-Verzeichnissen und danach über `PATH`. Dem CLI kann mit
 Solange Pandoc fehlt, bietet die App bei jedem Start an, es über Homebrew zu
 installieren; ohne Homebrew verweist sie auf die offizielle
 Installationsanleitung. Das Angebot endet, sobald Pandoc vorhanden ist oder
-„Don't Ask Again" gewählt wurde.
+„Don't Ask Again" gewählt wurde. Die Installation lässt sich im Fenster
+abbrechen und endet von selbst nach 15 Minuten; Homebrew wartet nie auf eine
+Tastatureingabe.
 
 ## Download
 
@@ -78,7 +112,7 @@ DMG und zugehörige `.sha256`-Datei stehen im
 Ordner, lässt sich der Download vor dem Öffnen prüfen:
 
 ```sh
-shasum -a 256 -c Poor-Mans-Text-0.10.2.dmg.sha256
+shasum -a 256 -c Poor-Mans-Text-0.15.1.dmg.sha256
 ```
 
 Danach das DMG öffnen und Poor Man's Text in den Programme-Ordner ziehen. Die
@@ -151,7 +185,9 @@ Kollision am Ausgabeziel gemeldet, und nichts wird überschrieben.
 Titel, Autor, Thema, Beschreibung, Schlüsselwörter sowie Erstell- und
 Änderungsdatum, gelesen aus den OOXML-Kerneigenschaften (DOCX, XLSX), der
 OpenDocument-Datei `meta.xml` (ODT, ODS, ODM), der RTF-Gruppe `\info` (RTF,
-RTFD) oder dem PDF-Informationswörterbuch. Jeder Wert steht in
+RTFD), dem PDF-Informationswörterbuch, den OPF-Metadaten eines EPUB, der
+`title-info` eines FictionBook oder `<title>` und `<meta>` von HTML und
+Webarchiven. Jeder Wert steht in
 Anführungszeichen, Daten sind ISO 8601 in UTC. Eine Quelle ohne solche Angaben
 bekommt eine Warnung statt eines leeren Kopfs. Dieselben Felder stehen als
 `metadata` in jeder `--json`-Antwort, auch ohne den Schalter.
@@ -159,15 +195,21 @@ bekommt eine Warnung statt eines leeren Kopfs. Dieselben Felder stehen als
 `--textbundle` schreibt `Bericht.textbundle` statt `Bericht-markdown`: Das
 Markdown heißt `text.md`, Bilder liegen unter `assets/`, und `info.json`
 kennzeichnet das Paket, sodass Bear, iA Writer und Ulysses es direkt öffnen.
-Mit `--output` muss der Name auf `.textbundle` enden. Die Ordnersuche übergeht
+Mit `--output` muss der Name auf `.textbundle` enden — und ein Name auf
+`.textbundle` wird nur zusammen mit `--textbundle` angenommen, damit kein Ordner
+die Endung führt, ohne die Bundle-Dateien zu enthalten. Die Ordnersuche übergeht
 vorhandene Bundles.
 
 `--stdout` wandelt genau ein Dokument an einem temporären Ort um, gibt das
 Markdown auf der Standardausgabe aus und entfernt das temporäre Ergebnis.
 Diagnosen gehen an die Standardfehlerausgabe. Bilder werden nicht behalten und
 gemeldet; ihre Verweise bleiben im Text. Der Schalter lässt sich nicht mit
-`--json`, `--output`, `--textbundle`, mehreren Eingaben oder einem Ordner
-kombinieren.
+`--json`, `--output`, `--textbundle`, `--jobs`, mehreren Eingaben oder einem
+Ordner kombinieren.
+
+Der Textmodus gibt je Ergebnis einen Pfad pro Zeile aus. Ein Pfad, der selbst
+einen Zeilenumbruch enthält, belegt zwei Zeilen; Skripte, die die Ausgabe
+auswerten, nehmen deshalb `--json`.
 
 Die Exit-Codes folgen den üblichen `sysexits`-Werten: `64` für Aufruffehler,
 `65` für ungültige Eingabedaten, `66` für eine fehlende Eingabe, `69` für ein
@@ -215,6 +257,8 @@ mediawiki   .wiki .mediawiki                                  file     pandoc   
 textile     .textile                                          file     pandoc           available
 rst         .rst                                              file     pandoc           available
 fb2         .fb2                                              file     pandoc           available
+eml         .eml .emlx                                        file     pandoc           available
+msg         .msg                                              file     pandoc           available
 ```
 
 Fehlt Pandoc, steht bei Textdokumenten, ODM, HTML, E-Books und den
@@ -366,7 +410,11 @@ wird. Die Endung entscheidet über das Format, weil reiner Text am Inhalt nicht
 als Tabelle erkennbar ist; `.tsv` trennt an Tabulatoren, `.csv` wählt das
 Trennzeichen, das in den ersten Zeilen am gleichmäßigsten vorkommt. Eine
 Byte-Order-Mark wählt UTF-8 oder UTF-16, Text ohne gültiges UTF-8 wird als
-Windows-1252 mit Warnung gelesen, Binärinhalt wird abgelehnt.
+Windows-1252 mit Warnung gelesen, Binärinhalt wird abgelehnt. Alle Tabellenformate
+haben dieselben Grenzen: 1.000.000 Zeilen je Blatt, 16.384 Spalten und insgesamt
+10.000.000 gerenderte Zellen über alle Blätter. Auch Leerzellen, die Zeilen auf
+dieselbe Breite auffüllen, zählen mit. Das Ausgabelimit von 128 MiB und die
+zusätzlichen Sicherheitsbudgets der Parser bleiben bestehen.
 
 HTML, Safari-Webarchive, EPUB, LaTeX, DocBook, Org, MediaWiki, Textile,
 reStructuredText und FictionBook laufen durch Pandoc im Sandbox-Modus, der
@@ -433,7 +481,7 @@ Erwartbare Verluste oder Annäherungen:
 - mehrere unterschiedliche Linkziele in einer Tabellenzelle; das erste Ziel und
   der gesamte sichtbare Text bleiben, das weitere Ziel wird als Warnung gemeldet
 - ODM-Abschnittsgrenzen und Masterdokumentverhalten nach dem Zusammenführen
-- Komplexes PDF-Seitenlayout, Tabellen sowie genaue
+- Komplexes PDF-Seitenlayout, Tabellen ohne rekonstruierbares Gitter sowie genaue
   Textpositionen; lokale OCR kann Erkennungsfehler enthalten und braucht Prüfung
 - OCR-Lesereihenfolge und genaues Layout von Bildern; das erhaltene Originalbild
   bleibt die maßgebliche Quelle zur Prüfung
@@ -467,7 +515,7 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.10.2.
+Die aktuelle Version ist 0.15.1.
 
 ## Lizenz
 
@@ -491,7 +539,9 @@ einzige Netzwerkzugriff ist die Update-Suche. Einzelheiten stehen in
 `--pdf-ocr auto|always|off` steuert lokale OCR; die Automatik erkennt auch
 Scanbilder unter digitalen Kopfzeilen. `--ocr-language de,en` wählt lokal von
 Vision unterstützte Sprachen für PDF- und Bildimporte. `--pdf-layout auto|legacy`
-wählt zweispaltige Textordnung oder die bisherige Extraktion zum Vergleich.
+wählt Überschriften aus Schriftgrößen, einfache Gittertabellen und zweispaltige
+Textordnung oder die bisherige Extraktion zum Vergleich. Mehrdeutig ausgerichteter
+Text behält die Zeilenordnung und erhält eine sichtbare Warnung.
 `--pdf-remove-headers-footers` entfernt wiederkehrenden Text am Seitenrand;
 `--pdf-dehyphenate` verbindet auf Wunsch vorsichtig kleingeschriebene Wortteile.
 Die App merkt sich diese Einstellungen. Digitaler Quelltext bleibt erhalten,

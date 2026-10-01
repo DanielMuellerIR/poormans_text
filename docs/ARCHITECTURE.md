@@ -96,9 +96,33 @@ Links, fehlende Bilder zu ihrem Alt-Text; Webarchive liefern ihre Bilder als
 Nebenressourcen (`WebArchiveReader`). Pandoc läuft mit `--sandbox`, sodass etwa
 `\input` in LaTeX keine fremden Dateien liest.
 
+`MailAdapter` erkennt EML und Apple-Mail-EMLX an den Nachrichtenkopfzeilen und
+liest die begrenzte Quelle über einen geprüften Deskriptor. `MIMEMessage`
+beachtet Apple Mails Bytezählung, Headerfaltung, Transfer- und Zeichencodierung,
+Multipart-Grenzen und erweiterte Dateinamen. `MailContent` wählt eine
+Körperalternative, ordnet CID-Ressourcen zu und erhält Anhänge unter eigenen
+sicheren Namen. `MailBodyConverter` nutzt die gemeinsame sichere
+HTML-Schlussstrecke ohne Zugriff auf lokale Nachbardateien. Kopfzeilen werden
+vollständig als Tabelle ausgegeben; das vorhandene Metadatenmodell erhält
+Betreff, Absender und Datum. GUI und CLI verwenden denselben Adapter.
+
+`MSGAdapter` erkennt Outlook-Mail in OLE-Containern. `MSGProperties` liest
+Propertytabellen mit objektabhängigen Headern und prüft Strings, Codepages und
+Wertlängen. `MSGMessage` bildet Kopfzeilen, Körper und Anhänge auf dieselbe
+Mail-Engine ab. `MSGCompressedRTF` prüft und entpackt LZFu/MELA;
+`MSGRTFHTML` liest das darin gekapselte HTML und normalisiert bei nativem RTF
+Unicode-Fallbacks auf `uc0`, weil Pandoc sonst ein folgendes Literal verschluckt.
+Normales RTF geht über Pandoc in
+einem eigenen temporären Ressourcenordner, ohne Quelldateinachbarn einzubeziehen.
+`MSGEmbeddedWriter` baut für eingebettete Nachrichten eigenständige OLE-Dateien
+mit bytegleichen Wertstreams und der gemeinsamen Named-Property-Zuordnung.
+Empfänger, Anhänge, Streams, Verschachtelung und entpackte Daten bleiben begrenzt;
+externe Anhangsmethoden werden abgewiesen. Office wird nicht geladen.
+
 Jeder Adapter liefert neben Markdown und Assets ein `DocumentMetadata`, soweit
 sein Format Titel, Autor oder Daten kennt (`docProps/core.xml`, `meta.xml`,
-RTF-`\info`, PDF-Info-Wörterbuch; DOC, XLS, IPYNB und Bilder liefern nichts).
+RTF-`\info`, PDF-Info-Wörterbuch, EPUB-OPF, FB2-`title-info`, HTML-Kopf; DOC,
+XLS, IPYNB und Bilder liefern nichts).
 `ConversionPostprocessor` übernimmt die Nachbearbeitung im Staging-Bereich:
 `ConversionOptions.frontmatter` stellt den YAML-Kopf voran,
 `ConversionOptions.outputLayout == .textbundle` baut das Ergebnis in
@@ -276,9 +300,20 @@ Word-/ODT-Formatwissen und seine XML-Delegates. Beide Paketwege implementieren
 `ZIPPackageReading`: einen Eintrag lesen, vorhandene Namen abfragen oder gezielt
 mehrere Einträge lesen. Entpackte XML-Dateien werden nicht global gespeichert.
 
-Für die Erkennung liest `ZIPInspectionSnapshot` die fremde Quelle über einen
-geprüften Deskriptor in einen nichtgemappten Datensnapshot. Es gelten weiterhin
-Archivbudgets und die Größen-/CRC-Prüfung jedes tatsächlich gelesenen Eintrags.
+Für die Erkennung hält `ZIPInspectionSnapshot` denselben geöffneten und mit
+`fstat` geprüften Deskriptor bis zum Ende seiner Nutzung. Schlussblock,
+Zentralverzeichnis und angeforderte Einträge werden bedarfsgerecht mit `pread`
+gelesen: höchstens 65.557 Bytes Schlussbereich, ein 64-KiB-Lesepuffer und die
+bereits begrenzten Metadateneinträge. Der Namensindex wächst mit den vorhandenen,
+weiterhin auf 10.000 begrenzten Einträgen; die Mediennutzlast wird nicht gehalten.
+Es gelten weiterhin Archivbudgets und die Größen-/CRC-Prüfung jedes tatsächlich
+gelesenen Eintrags. Fremde Dateien werden weder vollständig kopiert noch gemappt.
+Widersprüchliche Schlussblöcke, überlappende Einträge, ungeklärte Lücken und
+Deflate-Restbytes führen zum Abbruch. Reguläre digitale Signatur- und
+Archive-Extra-Data-Blöcke werden anhand ihrer Längen erkannt. Die bestehende
+Ablehnung von ZIP64 und verschlüsselten Paketen bleibt erhalten; ein
+Entschlüsselungsheader macht ein verschlüsseltes Zentralverzeichnis nicht zu
+einem unterstützten Klartextpaket.
 Eine vollständige Medienprüfung bei jedem Erkennungsversuch brachte im Benchmark
 keinen Vorteil und wurde nicht zur Voraussetzung der Formaterkennung gemacht.
 
@@ -316,9 +351,14 @@ atomaren Veröffentlichungsschritt. Der Markdown-Rewriter wurde nicht verändert
 
 ### PDF-Textordnung und Diagnosen
 
+`PDFTableGeometry` liest begrenzt lokale PDF-Pfade und liefert geschlossene
+Gitter als zusätzlichen Tabellenbeleg. `PDFStructuredLayout` ordnet Text in
+Zellen ein, maskiert die Werte, erzeugt Überschriften und nennt ungelöste
+Spaltenmehrdeutigkeit. Der Legacy-Pfad bleibt zum Vergleich unverändert.
+
 `PDFAdapter` koordiniert die verifizierte PDF-Kopie, Seitenbudgets und OCR.
 `PDFImageResources` durchsucht begrenzt lokale Bild-/Formressourcen als Hinweis
-auf gemischte Seiten. `PDFTextLayout` rekonstruiert geprüfte Textpositionen,
+auf gemischte Seiten. `PDFTextLayout` rekonstruiert geprüfte Textpositionen und Schriftgrößen,
 ordnet zwei Spalten und bereinigt auf Wunsch wiederkehrende Ränder und
 Worttrennungen. Bei unsicherer Geometrie bleibt der gesamte Originaltext.
 `OCRLanguageSelection` validiert gemeinsam für PDF und Bilder gegen die lokal

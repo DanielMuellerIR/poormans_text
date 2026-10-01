@@ -6,7 +6,12 @@ import Foundation
 /// Eingabe beim Durchsuchen stammt. Ein direkt benannter Pfad hat einen leeren
 /// Wert. Ein Aufrufer, der alle Ergebnisse in einen gemeinsamen Zielordner
 /// legt, spiegelt damit die Ordnerstruktur und vermeidet Namenskollisionen
-/// zwischen `a/Bericht.docx` und `b/Bericht.docx`.
+/// zwischen `a/Bericht.docx` und `b/Bericht.docx` INNERHALB eines
+/// durchsuchten Ordners. Werden `a` und `b` dagegen als zwei getrennte
+/// Argumente genannt, ist der Wert für beide leer: Zwei gleichnamige Dokumente
+/// zielen dann auf denselben Ordner, und die Reservierung im `BatchConverter`
+/// weist das zweite mit „Ausgabe existiert bereits" ab
+/// (Review-Fund 2026-09-10).
 public struct EnumeratedInput: Equatable, Sendable {
     public let url: URL
     public let relativeDirectory: [String]
@@ -21,6 +26,8 @@ public struct EnumeratedInput: Equatable, Sendable {
 public enum InputEnumerationError: LocalizedError, Equatable, Sendable {
     case inputDoesNotExist(URL)
     case noSupportedDocuments(URL)
+    /// Der genannte Ordner ist selbst das Ergebnis einer früheren Umwandlung.
+    case earlierResult(URL)
     case fileSystemFailure(URL, String)
 
     public var errorDescription: String? {
@@ -29,6 +36,8 @@ public enum InputEnumerationError: LocalizedError, Equatable, Sendable {
             return "Input does not exist: \(url.path)"
         case .noSupportedDocuments(let url):
             return "The folder contains no supported documents: \(url.path)"
+        case .earlierResult(let url):
+            return "The folder is the result of an earlier conversion: \(url.path)"
         case .fileSystemFailure(let url, let message):
             return "Could not read the folder \(url.path): \(message)"
         }
@@ -75,6 +84,15 @@ public struct InputEnumerator: Sendable {
         self.init(descriptors: converter.supportedFormatDescriptors)
     }
 
+    /// Trägt der Ordner den Namen, den eine frühere Umwandlung erzeugt hat?
+    /// Dieselbe Regel gilt beim Durchsuchen und für einen direkt genannten
+    /// Ordner — sonst wandelt ein zweiter Lauf die Bilder des ersten erneut um
+    /// und legt das Ergebnis IN den alten Ergebnisordner (Review-Fund 2026-09-10).
+    static func isEarlierResult(_ url: URL) -> Bool {
+        url.lastPathComponent.hasSuffix(outputDirectorySuffix)
+            || url.pathExtension.lowercased() == textbundleExtension
+    }
+
     /// Ist der Pfad ein Ordner, der durchsucht werden muss? `false` für Dateien
     /// und für Ordnerpakete, die als ein Dokument gelten. Ein fehlender Pfad
     /// gilt hier ebenfalls als `false`; der Fehler kommt später aus `enumerate`.
@@ -117,6 +135,9 @@ public struct InputEnumerator: Sendable {
                 continue
             }
 
+            guard !Self.isEarlierResult(root) else {
+                throw InputEnumerationError.earlierResult(root)
+            }
             let found = try search(root, cancellation: cancellation)
             guard !found.isEmpty else {
                 throw InputEnumerationError.noSupportedDocuments(root)
@@ -171,8 +192,7 @@ public struct InputEnumerator: Sendable {
                 if isPackage(entry) {
                     enumerator.skipDescendants()
                     found.append(makeInput(entry, rootComponents: rootComponents))
-                } else if entry.lastPathComponent.hasSuffix(Self.outputDirectorySuffix)
-                    || entry.pathExtension.lowercased() == Self.textbundleExtension {
+                } else if Self.isEarlierResult(entry) {
                     enumerator.skipDescendants()
                 }
                 continue

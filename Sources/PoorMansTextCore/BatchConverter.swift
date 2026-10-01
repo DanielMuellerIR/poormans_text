@@ -7,7 +7,14 @@ public struct BatchConversionResult: Sendable {
 }
 
 /// Index und Sequenz erlauben UI-Adaptern, parallel eintreffende Meldungen
-/// eindeutig einem Dokument zuzuordnen. Der Callback läuft auf Worker-Threads.
+/// eindeutig einem Dokument zuzuordnen.
+///
+/// Der Callback läuft auf Worker-Threads, und zwar auf bis zu vier ZUGLEICH.
+/// `sequence` wird unter der Sperre vergeben, der Callback aber erst danach
+/// gerufen — die Zustellreihenfolge entspricht deshalb NICHT der Reihenfolge
+/// der Sequenznummern. Ein Adapter, der einen Zähler anzeigt, muss ein
+/// Ereignis mit kleinerer `sequence` als das zuletzt gezeigte verwerfen, sonst
+/// läuft die Anzeige gelegentlich rückwärts (Review-Fund 2026-09-10).
 public struct BatchConversionProgress: Sendable {
     public let sequence: Int
     public let index: Int

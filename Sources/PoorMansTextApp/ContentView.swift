@@ -444,6 +444,7 @@ struct ContentView: View {
         if model.selectedResult != nil {
             HStack {
                 Button("Open Markdown") { model.openResult() }
+                Button("Open in Fastra") { model.openResultInFastra() }
                 Button("Copy Markdown") { model.copyMarkdown() }
                 Button("Text Preview") { model.loadPreview() }
             }

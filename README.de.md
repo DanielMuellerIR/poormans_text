@@ -28,6 +28,8 @@ Die Konvertierung ist bewusst verlustbehaftet. Markdown kann Dokumentstruktur,
 Links, einfache Hervorhebungen, Listen und Bilder bewahren, aber nicht jede
 Schrift, Anordnung oder TextKit-spezifische Eigenschaft.
 
+Nach der Konvertierung öffnet **In Fastra öffnen** das Markdown direkt in Fastra. **Markdown öffnen** verwendet die Standard-App. Fastra muss installiert sein.
+
 ## Ausgabe
 
 Die Konvertierung einer unterstützten Eingabe erzeugt einen neuen Nachbarordner,
@@ -112,7 +114,7 @@ DMG und zugehörige `.sha256`-Datei stehen im
 Ordner, lässt sich der Download vor dem Öffnen prüfen:
 
 ```sh
-shasum -a 256 -c Poor-Mans-Text-0.15.1.dmg.sha256
+shasum -a 256 -c Poor-Mans-Text-0.16.0.dmg.sha256
 ```
 
 Danach das DMG öffnen und Poor Man's Text in den Programme-Ordner ziehen. Die
@@ -515,7 +517,7 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.15.1.
+Die aktuelle Version ist 0.16.0.
 
 ## Lizenz
 

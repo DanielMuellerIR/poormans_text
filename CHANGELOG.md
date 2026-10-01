@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.16.0 — 2026-10-01
+
+- Open converted Markdown directly in Fastra from the result actions, alongside
+  the default application. Report missing Fastra installations and open failures.
+
 ## 0.15.1 — 2026-10-01
 
 - Preserve named inline roots in related email messages and save related text

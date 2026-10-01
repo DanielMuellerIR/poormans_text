@@ -330,9 +330,26 @@ public final class AppModel: ObservableObject {
 
     public func openResult() {
         guard let result = selectedResult else { return }
+        actionMessage = nil
         if !NSWorkspace.shared.open(result.markdownFile) {
             actionMessage = NSLocalizedString("The Markdown file could not be opened.", comment: "")
         }
+    }
+
+    public func openResultInFastra() {
+        guard let result = selectedResult else { return }
+        actionMessage = nil
+        guard let application = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "de.dm0.fastra") else {
+            actionMessage = NSLocalizedString("Fastra is not installed. Install Fastra or use Open Markdown.", comment: "")
+            return
+        }
+        NSWorkspace.shared.open([result.markdownFile], withApplicationAt: application,
+            configuration: NSWorkspace.OpenConfiguration()) { [weak self] _, error in
+                guard error != nil else { return }
+                Task { @MainActor in
+                    self?.actionMessage = NSLocalizedString("The Markdown file could not be opened in Fastra.", comment: "")
+                }
+            }
     }
 
     public func loadPreview() {

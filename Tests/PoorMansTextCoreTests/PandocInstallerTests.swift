@@ -129,8 +129,10 @@ final class PandocInstallerTests: XCTestCase {
         """)
 
         let started = Date()
+        // Auch der Shell-Start zählt zum Zeitlimit. Die Attrappe braucht unter
+        // macOS genügend Startzeit, damit ihre PID vor dem Abbruch vorliegt.
         XCTAssertThrowsError(
-            try PandocInstaller.installPandoc(brewExecutable: brew, timeout: 0.3) { true }
+            try PandocInstaller.installPandoc(brewExecutable: brew, timeout: 2) { true }
         ) { error in
             XCTAssertEqual(error as? PandocInstaller.InstallError, .timedOut)
         }

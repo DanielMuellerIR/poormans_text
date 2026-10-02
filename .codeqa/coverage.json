@@ -458,18 +458,19 @@
     {
       "id": "app-support",
       "last_run": {
-        "campaign_id": "20261002-timeboxed-review",
-        "mode": "timeboxed",
-        "completed_at": "2026-10-02T16:55:56+02:00",
-        "observed_head": "48b6c46eaee6f91b8d8d709ff11a97a4ea7c0919",
-        "content_sha256": "388eef30977a64914c67a8309f0f52bd5c28726a95b3ddce941d899f1e2dd7c6",
+        "campaign_id": "20261002-release-0.16.2",
+        "mode": "release-validation",
+        "completed_at": "2026-10-02T17:49:40+02:00",
+        "observed_head": "5f01c3308b45dbb634ecb67b83d2fb70d908f2e0",
+        "content_sha256": "8bd54fe7c1717a9ea20e06bf0b0bc432e96819712961813104184f6d91a5704c",
         "file_count": 23,
-        "review": "full",
+        "review": "delta-plus-boundaries",
         "outcome": "improved",
-        "summary": "App-/Support-Grenzen geprüft; Zielordner bei Einzeldatei-Wiederholung erhalten und Temp-Test von Fremdaktivität entkoppelt.",
+        "summary": "Release-Nachprüfung: Homebrew-Timeout-Test berücksichtigt Shell-Startzeit unter Last; Zeitlimitfehler und Prozessbeendigung weiter geprüft. Signierter App-Start und echte Konvertierung auf zweitem Mac bestanden.",
         "tests": [
-          "swift test: 656 total, 647 passed, 9 skipped, 0 failed",
-          "./build.sh debug; verify_bundle.sh: passed"
+          "swift test im identischen öffentlichen Produktstand: 656 total, 647 passed, 9 skipped, 0 failed",
+          "GitHub CI: beide Läufe erfolgreich",
+          "Notarisierter App-Start und Konvertierung auf zweitem Mac erfolgreich"
         ],
         "test_source_review": "Risikoorientiert; geänderte Tests und direkte Grenzverträge gelesen, keine vollständige Lesebehauptung für sämtliche Testquellen."
       },
@@ -1217,6 +1218,33 @@
         "Keine interaktive GUI-Prüfung",
         "Kein notarisiertes Universal-Release oder DMG-Lauf"
       ]
+    }
+  ],
+  "release_validations": [
+    {
+      "id": "20261002-release-0.16.2",
+      "completed_at": "2026-10-02T17:49:40+02:00",
+      "version": "0.16.2",
+      "bundle_version": 29,
+      "public_commit": "25a8dd2d27c55577fdeb7593a916126dd87b2854",
+      "release_url": "https://github.com/DanielMuellerIR/poormans_text/releases/tag/v0.16.2",
+      "report": ".codeqa/reviews/2026-10-02.md",
+      "tests_total": 656,
+      "tests_passed": 647,
+      "tests_skipped": 9,
+      "tests_failed": 0,
+      "real_document_formats": 9,
+      "notarized_app_and_dmg": true,
+      "universal_hashes_match": true,
+      "draft_download_byte_exact": true,
+      "second_mac_app_conversion": true,
+      "live_archive_signature_valid": true,
+      "isolated_sparkle_update": "0.16.0 -> 0.16.2; subsequent app restart and conversion passed",
+      "ci_runs": [
+        37027887760,
+        37027888649
+      ],
+      "appcast_run": 37028928243
     }
   ]
 }

@@ -375,7 +375,7 @@ struct PandocTextAdapter: DocumentConversionAdapter {
             options: .regularExpression
         )
         guard let metaExpression = try? NSRegularExpression(
-            pattern: #"<meta\b[^>]*>"#,
+            pattern: #"<meta\b(?:[^\"'>]|\"[^\"]*\"|'[^']*')*>"#,
             options: [.caseInsensitive]
         ) else { return nil }
         for match in metaExpression.matches(

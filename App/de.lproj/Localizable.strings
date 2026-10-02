@@ -136,3 +136,6 @@
 "The command-line tool could not be installed: %@" = "Das Kommandozeilenwerkzeug konnte nicht installiert werden: %@";
 "The command-line target is unavailable or already belongs to another program." = "Das Kommandozeilenziel ist nicht verfügbar oder gehört bereits einem anderen Programm.";
 "The command-line tool was installed but could not be verified." = "Das Kommandozeilenwerkzeug wurde installiert, konnte aber nicht überprüft werden.";
+"Open in Fastra" = "In Fastra öffnen";
+"Fastra is not installed. Install Fastra or use Open Markdown." = "Fastra ist nicht installiert. Installiere Fastra oder nutze „Markdown öffnen“.";
+"The Markdown file could not be opened in Fastra." = "Die Markdown-Datei konnte nicht in Fastra geöffnet werden.";

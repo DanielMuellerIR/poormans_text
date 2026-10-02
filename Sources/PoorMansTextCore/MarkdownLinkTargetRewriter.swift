@@ -48,7 +48,10 @@ enum MarkdownLinkTargetRewriter {
         var inlineBlockEnd: String.Index?
         let backtickIndex = BacktickRunIndex(markdown)
 
-        for line in markdown.split(separator: "\n", omittingEmptySubsequences: false) {
+        let lines = markdown.split(separator: "\n", omittingEmptySubsequences: false)
+        var consumedLine: Int?
+        for (lineNumber, line) in lines.enumerated() {
+            if consumedLine == lineNumber { continue }
             try check?()
             let text = String(line)
             if let fence = fencedCode,
@@ -114,6 +117,43 @@ enum MarkdownLinkTargetRewriter {
                     result += "\n"
                 }
                 continue
+            }
+            if !context.isIndentedCode, inlineCodeTicks == nil,
+               !paragraphWasOpen || context.startsNewInlineBlock || markdownContainerChanged,
+               let definition = referenceDefinition(in: context.fenceCandidate) {
+                var targetText = context.fenceCandidate
+                var targetLine = text
+                var target = definition.target
+                var continuationContainers = containers
+                if target == nil, definition.needsContinuation, lineNumber + 1 < lines.count {
+                    let nextText = String(lines[lineNumber + 1])
+                    let nextContext = lineContext(nextText, containers: &continuationContainers)
+                    if continuationContainers.quoteDepth == containers.quoteDepth,
+                       continuationContainers.listContentIndents == containers.listContentIndents {
+                        target = referenceDestination(in: nextContext.fenceCandidate, from: nextContext.fenceCandidate.startIndex)
+                        if target != nil {
+                            targetText = nextContext.fenceCandidate
+                            targetLine = nextText
+                        }
+                    }
+                }
+                if let target, let contentRange = targetLine.range(of: targetText, options: .backwards) {
+                    let start = targetLine.index(contentRange.lowerBound, offsetBy: targetText.distance(from: targetText.startIndex, to: target.lowerBound))
+                    let end = targetLine.index(start, offsetBy: targetText.distance(from: target.lowerBound, to: target.upperBound))
+                    let original = String(targetText[target])
+                    targetObserver?(original)
+                    let mapped = mapping[original] ?? original.removingPercentEncoding.flatMap { mapping[$0].map(percentEncodedPath) }
+                    if targetLine != text {
+                        result += text + "\n"
+                        consumedLine = lineNumber + 1
+                        containers = continuationContainers
+                    }
+                    result += String(targetLine[..<start]) + (mapped ?? original) + String(targetLine[end...])
+                    containers.canStartIndentedCode = true
+                    inlineBlockEnd = nil
+                    if (consumedLine == lineNumber + 1 ? lines[lineNumber + 1] : line).endIndex != markdown.endIndex { result += "\n" }
+                    continue
+                }
             }
             if context.isBlank || context.startsNewInlineBlock
                 || openingFence(context.fenceCandidate) != nil {
@@ -701,20 +741,6 @@ enum MarkdownLinkTargetRewriter {
             } else if character == "]", bracketDepth > 0 {
                 bracketDepth -= 1
                 let openingParenthesis = line.index(after: index)
-                if openingParenthesis < line.endIndex, line[openingParenthesis] == ":",
-                   let definitionStart = line[..<index].firstIndex(of: "["),
-                   line[..<definitionStart].allSatisfy({ $0 == " " || $0 == "\t" }),
-                   let target = destination(in: line, from: line.index(after: openingParenthesis)) {
-                    let original = String(line[target.range])
-                    targetObserver?(original)
-                    let mapped = mapping[original] ?? original.removingPercentEncoding.flatMap { mapping[$0].map(percentEncodedPath) }
-                    if let mapped {
-                        result += line[index..<target.range.lowerBound]
-                        result += mapped
-                        index = target.range.upperBound
-                        continue
-                    }
-                }
                 if openingParenthesis < line.endIndex,
                    line[openingParenthesis] == "(",
                    let replacement = rewrittenTarget(
@@ -758,6 +784,45 @@ enum MarkdownLinkTargetRewriter {
         )
         if exceeded { throw ImportFailure("notebook cell exceeds \(maximum) Markdown resource targets") }
         return targets
+    }
+
+    private static func referenceDefinition(in text: String) -> (target: Range<String.Index>?, needsContinuation: Bool)? {
+        let indent = leadingIndentation(in: text[...])
+        guard indent.columns <= 3, indent.end < text.endIndex, text[indent.end] == "[" else { return nil }
+        var cursor = text.index(after: indent.end)
+        let labelStart = cursor
+        while cursor < text.endIndex, text[cursor] != "]" {
+            if text[cursor] == "[" { return nil }
+            if text[cursor] == "\\" { cursor = text.index(after: cursor); if cursor == text.endIndex { return nil } }
+            cursor = text.index(after: cursor)
+        }
+        guard cursor < text.endIndex, text.distance(from: labelStart, to: cursor) <= 999,
+              !text[labelStart..<cursor].trimmingCharacters(in: .whitespaces).isEmpty else { return nil }
+        cursor = text.index(after: cursor)
+        guard cursor < text.endIndex, text[cursor] == ":" else { return nil }
+        cursor = text.index(after: cursor)
+        let continuation = text[cursor...].trimmingCharacters(in: .whitespaces).isEmpty
+        return (referenceDestination(in: text, from: cursor), continuation)
+    }
+
+    private static func referenceDestination(in text: String, from start: String.Index) -> Range<String.Index>? {
+        guard let target = destination(in: text, from: start) else { return nil }
+        var end = target.range.upperBound
+        if target.usesAngles { end = text.index(after: end) }
+        if end == text.endIndex { return target.range }
+        guard text[end].isWhitespace else { return nil }
+        let tail = text[end...].trimmingCharacters(in: .whitespaces)
+        if tail.isEmpty { return target.range }
+        guard let opener = tail.first, let closer = ["\"": "\"", "'": "'", "(": ")"][String(opener)],
+              tail.count >= 2, tail.last.map(String.init) == closer else { return nil }
+        let body = tail.dropFirst().dropLast()
+        var escaped = false
+        for character in body {
+            if escaped { escaped = false; continue }
+            if character == "\\" { escaped = true; continue }
+            if String(character) == closer || (opener == "(" && character == "(") { return nil }
+        }
+        return escaped ? nil : target.range
     }
 
     private static func destination(

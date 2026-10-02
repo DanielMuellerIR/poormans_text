@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.16.1 — 2026-10-02
+
+- Preserve notebook attachment references in blockquotes and with continued destinations.
+- Leave paragraph text and malformed reference definitions unchanged.
+- Read HTML charset declarations after quoted greater-than characters.
+
+## 0.16.0 — 2026-10-01
+
+- Open converted Markdown directly in Fastra from the result actions, alongside
+  the default application. Report missing Fastra installations and open failures.
+
 ## 0.15.1 — 2026-10-01
 
 - Preserve named inline roots in related email messages and save related text

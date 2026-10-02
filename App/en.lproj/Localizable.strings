@@ -136,3 +136,6 @@
 "The command-line tool could not be installed: %@" = "The command-line tool could not be installed: %@";
 "The command-line target is unavailable or already belongs to another program." = "The command-line target is unavailable or already belongs to another program.";
 "The command-line tool was installed but could not be verified." = "The command-line tool was installed but could not be verified.";
+"Open in Fastra" = "Open in Fastra";
+"Fastra is not installed. Install Fastra or use Open Markdown." = "Fastra is not installed. Install Fastra or use Open Markdown.";
+"The Markdown file could not be opened in Fastra." = "The Markdown file could not be opened in Fastra.";

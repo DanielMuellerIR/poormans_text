@@ -39,8 +39,6 @@ in die Zwischenablage) sind umgesetzt; offen bleibt:
 
 ### Etappe 8 — App-Bedienung
 
-- Direkte Auswahl von Fastra als Ziel-App (Markdown lässt sich bereits in der
-  zugeordneten Standard-App öffnen).
 - Homebrew-Cask neben dem DMG.
 
 ### Nicht geplant

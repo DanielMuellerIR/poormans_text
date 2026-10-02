@@ -57,6 +57,13 @@ final class ReviewOctoberTests: XCTestCase {
         XCTAssertTrue(rewritten.contains("[example]: ignored.png"))
     }
 
+    func testReferenceDefinitionsCannotInterruptParagraphsOrCarryInvalidTitles() throws {
+        for source in ["ordinary text\n[id]: attachment:pic.png", "[id]: attachment:pic.png stray words", "[id]: <attachment:pic.png>suffix", "[id]: attachment:pic.png \"unfinished"] {
+            XCTAssertEqual(try MarkdownLinkTargetRewriter.resourceCandidates(in: source, maximum: 10, checking: {}), [])
+            XCTAssertEqual(MarkdownLinkTargetRewriter.replacing(in: source, mapping: ["attachment:pic.png": "image.png"]), source)
+        }
+    }
+
     func testLiteralPDFRectanglesAndLineOrderProduceSameCompleteGrid() throws {
         let ascending = [400,420,440,460].map { "40 \($0) m 240 \($0) l S" }.joined(separator: "\n")
         let descending = [460,440,420,400].map { "40 \($0) m 240 \($0) l S" }.joined(separator: "\n")
@@ -76,7 +83,7 @@ final class ReviewOctoberTests: XCTestCase {
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: root) }
         let png = try Data(contentsOf: URL(fileURLWithPath: #filePath).deletingLastPathComponent().appendingPathComponent("Fixtures/WordProcessing/fixture.png"))
-        for (index, source) in ["![image](attachment:pic.png)", "![image][id]\n\n[id]: attachment:pic.png"].enumerated() {
+        for (index, source) in ["![image](attachment:pic.png)", "![image][id]\n\n[id]: attachment:pic.png", "> ![image][id]\n>\n> [id]: attachment:pic.png", "![image][id]\n\n[id]:\n  attachment:pic.png"].enumerated() {
             let notebook: [String: Any] = ["nbformat": 4, "nbformat_minor": 5, "metadata": [:], "cells": [
                 ["cell_type": "markdown", "metadata": [:], "source": source,
                  "attachments": ["pic.png": ["image/png": png.base64EncodedString()]]]

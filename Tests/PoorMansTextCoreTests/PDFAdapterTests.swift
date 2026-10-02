@@ -20,6 +20,26 @@ final class PDFAdapterTests: XCTestCase {
         try? FileManager.default.removeItem(at: temporaryDirectory)
     }
 
+    func testOCRRasterUsesTheAvailablePixelsWithoutCrossingTheBudget() throws {
+        for (index, side) in [1000.0, 2000.0, 2000.5, 4000.0].enumerated() {
+            let source = temporaryDirectory.appendingPathComponent("raster-\(index).pdf")
+            var bounds = CGRect(x: 0, y: 0, width: side, height: side)
+            let consumer = try XCTUnwrap(CGDataConsumer(url: source as CFURL))
+            let context = try XCTUnwrap(CGContext(consumer: consumer, mediaBox: &bounds, nil))
+            context.beginPDFPage(nil)
+            context.endPDFPage()
+            context.closePDF()
+            let bytes = try Data(contentsOf: source)
+            let document = try XCTUnwrap(PDFDocument(url: source))
+            let page = try XCTUnwrap(document.page(at: 0))
+            let dimensions = try PDFAdapter().rasterDimensions(for: page)
+            XCTAssertEqual(dimensions.width, side == 1000 ? 2000 : 4000)
+            XCTAssertEqual(dimensions.height, side == 1000 ? 2000 : 4000)
+            XCTAssertLessThanOrEqual(dimensions.pixelCount, 16_000_000)
+            XCTAssertEqual(try Data(contentsOf: source), bytes)
+        }
+    }
+
     func testConvertsARealTwoPagePDFAndKeepsTheSourceBytes() throws {
         let sourceURL = temporaryDirectory.appendingPathComponent("Reference.pdf")
         try createPDF(

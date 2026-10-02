@@ -19,7 +19,7 @@ final class ProductInfoTests: XCTestCase {
         )
 
         XCTAssertEqual(plist["CFBundleShortVersionString"] as? String, ProductInfo.version)
-        XCTAssertEqual(plist["CFBundleVersion"] as? String, "28")
+        XCTAssertEqual(plist["CFBundleVersion"] as? String, "29")
         XCTAssertEqual(plist["CFBundleIconFile"] as? String, "AppIcon")
         XCTAssertEqual(plist["NSHumanReadableCopyright"] as? String, "© 2026 Daniel Müller")
         let documentTypes = try XCTUnwrap(plist["CFBundleDocumentTypes"] as? [[String: Any]])

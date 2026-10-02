@@ -33,15 +33,6 @@ enum HTMLImageSourceResolver {
         let mimeType: String
     }
 
-    /// Ein `>` INNERHALB eines Anführungszeichenpaars beendet das Tag nicht.
-    /// Mit `[^>]*` endete `<img alt="Breite > Höhe" src="bild.png">` schon nach
-    /// dem Alt-Text: Das echte Bild ging verloren, und der Rest des Tags stand
-    /// wörtlich im Markdown (Review-Fund 2026-09-10).
-    private static let imageTagPattern = #"<img\b(?:[^>"']|"[^"]*"|'[^']*')*>"#
-    // Attributwerte in doppelten, einfachen oder gar keinen Anführungszeichen;
-    // ein unquoted Wert endet am nächsten Leerraum oder Tag-Zeichen (HTML-Spec).
-    private static let sourcePattern = #"\bsrc\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))"#
-    private static let altPattern = #"\balt\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))"#
     /// Nur diese Schemata bleiben als Link im Markdown; alles andere (`javascript:`,
     /// `file:`, unbekannte Schemata) ist kein Bild und fällt weg.
     private static let linkableSchemes: Set<String> = ["http", "https", "ftp", "ftps"]
@@ -56,9 +47,6 @@ enum HTMLImageSourceResolver {
         workDirectory: URL,
         fileManager: FileManager = .default
     ) throws -> Resolution {
-        let tagExpression = try NSRegularExpression(pattern: imageTagPattern, options: [.caseInsensitive])
-        let sourceExpression = try NSRegularExpression(pattern: sourcePattern, options: [.caseInsensitive])
-        let altExpression = try NSRegularExpression(pattern: altPattern, options: [.caseInsensitive])
         let nsHTML = html as NSString
         var output = ""
         var cursor = 0
@@ -68,20 +56,24 @@ enum HTMLImageSourceResolver {
         var localCount = 0
         var localNames = [String: String]()
 
-        for match in tagExpression.matches(in: html, range: NSRange(location: 0, length: nsHTML.length)) {
+        for match in try HTMLImageAttributes.imageTags(in: html) {
             try ConversionExecution.check()
             output += nsHTML.substring(with: NSRange(location: cursor, length: match.range.location - cursor))
             cursor = match.range.location + match.range.length
             let tag = nsHTML.substring(with: match.range)
-            let alt = firstGroup(altExpression, in: tag) ?? ""
-            guard let sourceMatch = sourceExpression.firstMatch(in: tag, range: NSRange(location: 0, length: (tag as NSString).length)),
-                  let reference = groupValue(sourceMatch, in: tag) else {
+            let attributes = try HTMLImageAttributes.read(in: tag)
+            // Zeichenreferenzen aus dem Attribut bleiben HTML-Zeichenreferenzen;
+            // nur echte Tag-Zeichen maskieren, sonst wird `&amp;` doppelt kodiert.
+            let alt = (attributes["alt"]?.value ?? "")
+                .replacingOccurrences(of: "<", with: "&lt;")
+                .replacingOccurrences(of: ">", with: "&gt;")
+            guard let sourceMatch = attributes["src"] else {
                 // Ein `<img>` ohne `src` zeigt nichts; sein Alt-Text bleibt.
-                output += escaped(alt)
+                output += alt
                 missing += 1
                 continue
             }
-            let trimmed = reference.trimmingCharacters(in: .whitespacesAndNewlines)
+            let trimmed = sourceMatch.value.trimmingCharacters(in: .whitespacesAndNewlines)
                 .replacingOccurrences(of: "&amp;", with: "&")
 
             if trimmed.lowercased().hasPrefix("data:") {
@@ -89,7 +81,7 @@ enum HTMLImageSourceResolver {
                     embedded += 1
                     output += replacingSource(in: tag, sourceRange: sourceMatch.range, with: localPath)
                 } else {
-                    output += escaped(alt)
+                    output += alt
                     missing += 1
                 }
                 continue
@@ -117,7 +109,7 @@ enum HTMLImageSourceResolver {
                         index: localCount,
                         workDirectory: workDirectory
                     ) else {
-                        output += escaped(alt)
+                        output += alt
                         missing += 1
                         continue
                     }
@@ -131,14 +123,14 @@ enum HTMLImageSourceResolver {
             // Entfernte Adresse mit erlaubtem Schema: bleibt als Link erhalten.
             if let absolute = absoluteURL(trimmed, relativeTo: baseURL) {
                 remote += 1
-                output += "<a href=\"\(escaped(absolute.absoluteString))\">\(escaped(alt.isEmpty ? absolute.absoluteString : alt))</a>"
+                output += "<a href=\"\(escaped(absolute.absoluteString))\">\(alt.isEmpty ? escaped(absolute.absoluteString) : alt)</a>"
                 continue
             }
 
             if trimmed.lowercased().hasPrefix("file:") || URL(string: trimmed)?.scheme != nil {
                 // `file:`-URLs und unbekannte Schemata sind kein lokaler Pfad
                 // unterhalb der Quelle; sie fallen weg.
-                output += escaped(alt)
+                output += alt
                 missing += 1
                 continue
             }
@@ -160,7 +152,7 @@ enum HTMLImageSourceResolver {
                     guard let copied = try copyLocalImage(
                         local, index: localCount, workDirectory: workDirectory, fileManager: fileManager
                     ) else {
-                        output += escaped(alt)
+                        output += alt
                         missing += 1
                         continue
                     }
@@ -171,7 +163,7 @@ enum HTMLImageSourceResolver {
                 continue
             }
 
-            output += escaped(alt)
+            output += alt
             missing += 1
         }
         output += nsHTML.substring(from: cursor)
@@ -184,23 +176,6 @@ enum HTMLImageSourceResolver {
     }
 
     // MARK: - Hilfsfunktionen
-
-    private static func firstGroup(_ expression: NSRegularExpression, in text: String) -> String? {
-        guard let match = expression.firstMatch(in: text, range: NSRange(location: 0, length: (text as NSString).length)) else {
-            return nil
-        }
-        return groupValue(match, in: text)
-    }
-
-    private static func groupValue(_ match: NSTextCheckingResult, in text: String) -> String? {
-        for group in 1..<match.numberOfRanges {
-            let range = match.range(at: group)
-            if range.location != NSNotFound {
-                return (text as NSString).substring(with: range)
-            }
-        }
-        return nil
-    }
 
     /// Ersetzt nur den Wert von `src` innerhalb des Tags.
     private static func replacingSource(in tag: String, sourceRange: NSRange, with localPath: String) -> String {

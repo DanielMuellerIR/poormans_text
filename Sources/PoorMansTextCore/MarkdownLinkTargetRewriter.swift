@@ -4,6 +4,34 @@ import Foundation
 /// unangetastet. Ein bloßes Suchen nach `](ziel)` kann denselben Text in einem
 /// Code-Span, einem Codeblock oder hinter einem Escape treffen.
 enum MarkdownLinkTargetRewriter {
+    /// Die Normalisierung muss Code in denselben Listen- und Zitatcontainern
+    /// schützen wie die Linkersetzung. Ein Fence endet auch am Containerende.
+    static func codeLines(in lines: [String]) -> [Bool] {
+        var containers = MarkdownContainerState()
+        var fencedCode: MarkdownFenceState?
+        return lines.map { line in
+            if let fence = fencedCode, let candidate = fenceContent(in: line, fence: fence) {
+                if isClosingFence(candidate, fence: (fence.marker, fence.count)) { fencedCode = nil }
+                containers.canStartIndentedCode = true
+                return true
+            }
+            fencedCode = nil
+            let context = lineContext(line, containers: &containers)
+            if context.isIndentedCode {
+                containers.canStartIndentedCode = true
+                return true
+            }
+            if let fence = openingFence(context.fenceCandidate) {
+                fencedCode = MarkdownFenceState(marker: fence.marker, count: fence.count,
+                    quoteDepth: containers.quoteDepth, listContentIndent: containers.listContentIndents.last)
+                containers.canStartIndentedCode = true
+                return true
+            }
+            containers.canStartIndentedCode = context.isBlank || !context.allowsParagraphContinuation
+            return false
+        }
+    }
+
     static func replacing(in markdown: String, from oldPath: String, to newPath: String) -> String {
         replacing(in: markdown, mapping: [oldPath: newPath])
     }

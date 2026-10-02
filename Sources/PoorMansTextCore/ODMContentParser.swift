@@ -6,13 +6,13 @@ enum ODMContentItem: Equatable {
 }
 
 enum ODMContentParser {
-    static func parse(_ xml: Data) throws -> [ODMContentItem] {
-        let delegate = Delegate()
+    static func parse(_ xml: Data, maximumTextBytes: Int = 128 * 1_024 * 1_024) throws -> [ODMContentItem] {
+        let delegate = Delegate(maximumTextBytes: maximumTextBytes)
         let parser = ImportXMLParser.make(xml, delegate: delegate)
         let parsedSuccessfully = parser.parse()
         try ConversionExecution.check()
-        guard parsedSuccessfully else {
-            throw parser.parserError ?? CocoaError(.fileReadCorruptFile)
+        guard parsedSuccessfully, delegate.failure == nil else {
+            throw delegate.failure ?? parser.parserError ?? CocoaError(.fileReadCorruptFile)
         }
         guard !delegate.items.isEmpty else {
             throw ParserError("the ODM content contains no text or linked sections")
@@ -22,6 +22,13 @@ enum ODMContentParser {
 
     private final class Delegate: NSObject, XMLParserDelegate {
         var items = [ODMContentItem]()
+        var failure: Error?
+        private let maximumTextBytes: Int
+        private var textBytes = 0
+
+        init(maximumTextBytes: Int) {
+            self.maximumTextBytes = max(0, maximumTextBytes)
+        }
         private var sections = [SectionBuilder]()
         /// Absätze können ineinander liegen: Eine ODF-Notiz mitten in einem
         /// Absatz enthält selbst wieder `text:p`. Mit nur einem Builder würde
@@ -84,32 +91,43 @@ enum ODMContentParser {
                 // Markdown kennt den harten Umbruch als zwei Leerzeichen vor dem
                 // Zeilenende; ein nacktes "\n" wäre nur ein weicher Umbruch und
                 // ginge beim Rendern verloren.
-                appendToOpenParagraph("  \n")
+                appendToOpenParagraph("  \n", parser: parser)
             } else if namespaceURI == Namespaces.text, elementName == "tab", !texts.isEmpty {
-                appendToOpenParagraph(ODMText.literalTab)
+                appendToOpenParagraph(ODMText.literalTab, parser: parser)
             } else if namespaceURI == Namespaces.text, elementName == "s", !texts.isEmpty {
-                let count = min(1_000, max(1, Int(prefixes.attributeValue(
+                guard let count = Int(prefixes.attributeValue(
                     localName: "c",
                     namespaceURI: Namespaces.text,
                     in: attributeDict
-                ) ?? "1") ?? 1))
+                ) ?? "1"), count > 0,
+                      count <= (maximumTextBytes - textBytes) / ODMText.literalSpace.utf8.count else {
+                    failure = ParserError("an explicit space count exceeds the ODM text budget or is invalid")
+                    parser.abortParsing()
+                    return
+                }
                 // Diese Leerzeichen stehen ausdrücklich im Dokument. Sie werden
                 // als Platzhalter gesammelt, damit das Trimmen am Absatzende nur
                 // den Leerraum der XML-Formatierung entfernt.
-                appendToOpenParagraph(String(repeating: ODMText.literalSpace, count: count))
+                appendToOpenParagraph(String(repeating: ODMText.literalSpace, count: count), parser: parser)
             }
         }
 
         func parser(_ parser: XMLParser, foundCharacters string: String) {
             if ConversionExecution.isCancelled { parser.abortParsing(); return }
-            appendToOpenParagraph(string)
+            appendToOpenParagraph(string, parser: parser)
         }
 
-        private func appendToOpenParagraph(_ string: String) {
-            guard !texts.isEmpty else { return }
+        func parser(_ parser: XMLParser, foundCDATA CDATABlock: Data) {
+            self.parser(parser, foundCharacters: String(decoding: CDATABlock, as: UTF8.self))
+        }
+
+        private func appendToOpenParagraph(_ string: String, parser: XMLParser) {
+            guard failure == nil, !texts.isEmpty else { return }
             let index = texts.count - 1
+            let needsBoundary = texts[index].needsSemanticBoundary && needsSpace(between: texts[index].value, and: string)
+            guard reserveTextBytes(string.utf8.count + (needsBoundary ? ODMText.literalSpace.utf8.count : 0), parser: parser) else { return }
             if texts[index].needsSemanticBoundary {
-                if needsSpace(between: texts[index].value, and: string) {
+                if needsBoundary {
                     texts[index].value.append(ODMText.literalSpace)
                 }
                 texts[index].needsSemanticBoundary = false
@@ -117,12 +135,23 @@ enum ODMContentParser {
             texts[index].value.append(string)
         }
 
-        private func appendNestedParagraph(_ raw: String) {
-            guard !texts.isEmpty else { return }
+        private func reserveTextBytes(_ count: Int, parser: XMLParser) -> Bool {
+            guard count <= maximumTextBytes - textBytes else {
+                failure = ParserError("the ODM text exceeds its materialized-text budget")
+                parser.abortParsing()
+                return false
+            }
+            textBytes += count
+            return true
+        }
+
+        private func appendNestedParagraph(_ raw: String, parser: XMLParser) {
+            guard failure == nil, !texts.isEmpty else { return }
             let value = raw.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !value.isEmpty else { return }
             let index = texts.count - 1
             if needsSpace(between: texts[index].value, and: value) {
+                guard reserveTextBytes(ODMText.literalSpace.utf8.count, parser: parser) else { return }
                 // Zwei semantische ODF-Absätze dürfen auch dann nicht zu einem
                 // Wort verschmelzen, wenn die XML-Datei zwischen ihren Tags
                 // keinerlei Formatierungsleerraum enthält.
@@ -195,7 +224,7 @@ enum ODMContentParser {
                     // Ein Absatz in einer Notiz gehört an genau diese Stelle des
                     // noch offenen Elternabsatzes. Erst den äußeren Absatz als
                     // Ganzes zu maskieren verhindert außerdem doppelte Escapes.
-                    appendNestedParagraph(text.value)
+                    appendNestedParagraph(text.value, parser: parser)
                     return
                 }
                 let value = ODMText.markdown(from: text.value)

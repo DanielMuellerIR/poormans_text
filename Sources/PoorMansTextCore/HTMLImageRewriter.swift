@@ -7,14 +7,6 @@ struct HTMLRewriteResult: Sendable {
 }
 
 enum HTMLImageRewriter {
-    /// Wie in `HTMLImageSourceResolver`: Ein `>` INNERHALB eines
-    /// Anführungszeichenpaars beendet das Tag nicht. Mit `[^>]*` fand dieser
-    /// Ausdruck das `src` hinter einem Alt-Text wie `"Breite > Höhe"` nicht
-    /// mehr, und das bereits geprüfte Bild blieb unter `external/` liegen statt
-    /// im Ergebnisordner zu landen (Review-Fund 2026-09-10).
-    private static let imageSourcePattern =
-        #"(<img\b(?:[^>\"']|\"[^\"]*\"|'[^']*')*?\bsrc\s*=\s*[\"'])([^\"']+)([\"'])"#
-
     static func rewrite(
         html: String,
         resourceDirectory: URL,
@@ -23,12 +15,15 @@ enum HTMLImageRewriter {
         inputURL: URL? = nil,
         format: InputFormat? = nil
     ) throws -> HTMLRewriteResult {
-        let expression = try NSRegularExpression(
-            pattern: imageSourcePattern,
-            options: [.caseInsensitive]
-        )
-        let fullRange = NSRange(html.startIndex..<html.endIndex, in: html)
-        let matches = expression.matches(in: html, range: fullRange)
+        let sourceHTML = html as NSString
+        var matches = [NSRange]()
+        for tagMatch in try HTMLImageAttributes.imageTags(in: html) {
+            let tag = sourceHTML.substring(with: tagMatch.range)
+            if let source = try HTMLImageAttributes.read(in: tag)["src"] {
+                matches.append(NSRange(location: tagMatch.range.location + source.valueRange.location,
+                    length: source.valueRange.length))
+            }
+        }
         let rewrittenHTML = NSMutableString(string: html)
         var outputNameBySource = [String: String]()
         var copiedAssetNames = [String]()
@@ -48,7 +43,7 @@ enum HTMLImageRewriter {
         // Deshalb werden unterschiedliche Bilder in Dokumentreihenfolge stabil
         // als image01, image02 usw. benannt; die Dateiendung bleibt erhalten.
         for match in matches {
-            let encodedReference = (html as NSString).substring(with: match.range(at: 2))
+            let encodedReference = (html as NSString).substring(with: match)
             let sourceURL = try safeResourceURL(
                 from: encodedReference,
                 resourceDirectory: resourceDirectory
@@ -91,7 +86,7 @@ enum HTMLImageRewriter {
         // Von hinten ersetzen, damit die NSRanges der vorherigen Treffer trotz
         // unterschiedlich langer neuer Namen gültig bleiben.
         for match in matches.reversed() {
-            let encodedReference = (html as NSString).substring(with: match.range(at: 2))
+            let encodedReference = (html as NSString).substring(with: match)
             let sourceURL = try safeResourceURL(
                 from: encodedReference,
                 resourceDirectory: resourceDirectory
@@ -106,7 +101,7 @@ enum HTMLImageRewriter {
             // Kodierregel an zwei Stellen, verfehlte er die Links still, sobald
             // eine der beiden sich änderte (Review-Fund 2026-09-10).
             let replacement = MarkdownLinkTargetRewriter.percentEncodedPath("images/" + outputName)
-            rewrittenHTML.replaceCharacters(in: match.range(at: 2), with: replacement)
+            rewrittenHTML.replaceCharacters(in: match, with: replacement)
         }
 
         return HTMLRewriteResult(

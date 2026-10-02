@@ -605,16 +605,10 @@ enum LegacyXLSWorkbookParser {
                 }
                 return String(decoding: units, as: UTF16.self)
             }
-            // Windows-1252, nicht ISO-8859-1: Excel schreibt in den komprimierten
-            // BIFF8-Strings die typografischen Zeichen des Windows-Zeichensatzes.
-            // Als Latin-1 gelesen wurde aus dem Apostroph 0x92 das
-            // C1-Steuerzeichen U+0092, aus 0x80 statt des Eurozeichens U+0080
-            // — beide landeten roh im Markdown. Die Hyperlink-Pfade derselben
-            // Datei wurden 137 Zeilen tiefer längst richtig gelesen
-            // (Review-Fund 2026-09-10).
-            return String(data: data, encoding: .windowsCP1252)
-                ?? String(data: data, encoding: .isoLatin1)
-                ?? String(decoding: data, as: UTF8.self)
+            // BIFF8 fHighByte=0 speichert Unicode-Lowbytes mit Highbyte null,
+            // keine ANSI-Codepage (MS-XLS 2.5.293). Euro und typografische
+            // Zeichen benötigen die breite Darstellung.
+            return String(decoding: data.map(UInt16.init), as: UTF16.self)
         }
 
         private struct Record {

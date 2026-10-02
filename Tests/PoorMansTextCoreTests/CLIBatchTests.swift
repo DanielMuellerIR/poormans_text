@@ -152,6 +152,27 @@ final class CLIBatchTests: XCTestCase {
         XCTAssertTrue(result.standardError.hasSuffix("Error: 1 of 2 inputs failed.\n"), result.standardError)
     }
 
+    func testParallelProgressNeverMovesTheCompletedCountBackwards() throws {
+        let sources = try (0..<16).map { index in
+            let source = root.appendingPathComponent("input-\(index).csv")
+            try Data("Name,Value\nAlpha,42\n".utf8).write(to: source)
+            return source
+        }
+        let executable = Bundle(for: Self.self).bundleURL.deletingLastPathComponent().appendingPathComponent("poormans-text")
+        let result = try ProcessRunner.run(executable: executable,
+            arguments: ["--jobs=4", "--progress", "--json"] + sources.map(\.path),
+            currentDirectory: root, captureStandardOutput: true, timeout: 15)
+        XCTAssertEqual(result.status, 0, result.standardError)
+        let pattern = try NSRegularExpression(pattern: #"; files (\d+)/16, running"#)
+        let output = result.standardError as NSString
+        let counts = pattern.matches(in: result.standardError, range: NSRange(location: 0, length: output.length))
+            .compactMap { Int(output.substring(with: $0.range(at: 1))) }
+        XCTAssertFalse(counts.isEmpty)
+        XCTAssertEqual(counts, counts.sorted())
+        XCTAssertEqual(counts.last, 16)
+        XCTAssertEqual(try XCTUnwrap(decodeJSON(result.standardOutput)["results"] as? [[String: Any]]).count, 16)
+    }
+
     @discardableResult
     private func copyImage(to relativePath: String) throws -> URL {
         let target = root.appendingPathComponent(relativePath)

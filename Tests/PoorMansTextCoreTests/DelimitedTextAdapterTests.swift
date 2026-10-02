@@ -100,18 +100,39 @@ final class DelimitedTextAdapterTests: XCTestCase {
         XCTAssertThrowsError(try DelimitedTextParser.parse("a", delimiter: "\u{0301}\u{0301}"))
     }
 
-    func testDelimiterSniffingPrefersTheConsistentSeparator() {
-        XCTAssertEqual(DelimitedTextParser.sniffDelimiter(in: "a;b;c\n1;2;3\n"), ";")
-        XCTAssertEqual(DelimitedTextParser.sniffDelimiter(in: "a,b\n1,2\n"), ",")
-        XCTAssertEqual(DelimitedTextParser.sniffDelimiter(in: "a|b\n1|2\n"), "|")
+    func testDelimiterSniffingPrefersTheConsistentSeparator() throws {
+        XCTAssertEqual(try DelimitedTextParser.sniffDelimiter(in: "a;b;c\n1;2;3\n"), ";")
+        XCTAssertEqual(try DelimitedTextParser.sniffDelimiter(in: "a,b\n1,2\n"), ",")
+        XCTAssertEqual(try DelimitedTextParser.sniffDelimiter(in: "a|b\n1|2\n"), "|")
         // Kommas im Text, Semikolons als Struktur: das gleichmäßige Zeichen gewinnt.
-        XCTAssertEqual(DelimitedTextParser.sniffDelimiter(in: "Name;Ort\nMüller, A.;Köln\nB;C, D, E\n"), ";")
-        XCTAssertEqual(DelimitedTextParser.sniffDelimiter(in: "nur text\nohne trenner\n"), ",")
-        // Nur die ersten zwanzig Zeilen zählen; der Rest der Datei wird nicht
+        XCTAssertEqual(try DelimitedTextParser.sniffDelimiter(in: "Name;Ort\nMüller, A.;Köln\nB;C, D, E\n"), ";")
+        XCTAssertEqual(try DelimitedTextParser.sniffDelimiter(in: "nur text\nohne trenner\n"), ",")
+        // Nur die ersten zwanzig Datensätze zählen; der Rest der Datei wird nicht
         // mehr zerlegt und darf das Ergebnis nicht ändern.
         let head = String(repeating: "a;b;c\n", count: 20)
-        XCTAssertEqual(DelimitedTextParser.sniffDelimiter(in: head), ";")
-        XCTAssertEqual(DelimitedTextParser.sniffDelimiter(in: head + String(repeating: "x,y,z\n", count: 100)), ";")
+        XCTAssertEqual(try DelimitedTextParser.sniffDelimiter(in: head), ";")
+        XCTAssertEqual(try DelimitedTextParser.sniffDelimiter(in: head + String(repeating: "x,y,z\n", count: 100)), ";")
+    }
+
+    func testQuotedSeparatorsAndNewlinesDoNotChangeCSVColumns() throws {
+        let csv = "\"a,b,c\";d\n\"e,f,g\";\"h\ni\"\n"
+        XCTAssertEqual(try DelimitedTextParser.sniffDelimiter(in: csv), ";")
+        XCTAssertEqual(try DelimitedTextParser.sniffDelimiter(in: "a;\u{0301}b\nc;\u{0301}d\n"), ";")
+        let source = root.appendingPathComponent("quoted.csv")
+        let bytes = Data(csv.utf8)
+        try bytes.write(to: source)
+        let result = try DocumentConverter().convert(ConversionRequest(inputURL: source))
+        let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+        XCTAssertTrue(markdown.contains("| a,b,c | d |"), markdown)
+        XCTAssertTrue(markdown.contains("| e,f,g | h<br>i |"), markdown)
+        XCTAssertEqual(markdown.components(separatedBy: "\n").filter { $0.hasPrefix("|") }.count, 3)
+        XCTAssertEqual(try Data(contentsOf: source), bytes)
+    }
+
+    func testFinalQuotedEmptyCellIsARecord() throws {
+        XCTAssertEqual(try DelimitedTextParser.parse("\"\"", delimiter: ",").map { $0.map(\.displayText) }, [[""]])
+        XCTAssertEqual(try DelimitedTextParser.parse("x\n\"\"", delimiter: ",").map { $0.map(\.displayText) }, [["x"], [""]])
+        XCTAssertEqual(try DelimitedTextParser.parse("\"\"\n", delimiter: ",").count, 1)
     }
 
     func testTheLastLineWithoutANewlineCountsAndAnEmptyFileHasNoRows() throws {

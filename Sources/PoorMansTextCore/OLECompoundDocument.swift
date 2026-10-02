@@ -4,7 +4,10 @@ import Foundation
 struct OLECompoundDocument {
     static let signature: [UInt8] = [0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1]
     static func hasSignature(_ data: Data) -> Bool { Array(data.prefix(signature.count)) == signature }
-    private enum Limits { static let maximumStreamSize = 1_073_741_824 }
+    private enum Limits {
+        static let maximumStreamSize = 1_073_741_824
+        static let maximumDirectoryEntries = 100_000
+    }
     private struct ParserError: LocalizedError {
         let reason: String
         init(_ reason: String) { self.reason = reason }
@@ -48,13 +51,16 @@ struct OLECompoundDocument {
 
         let sectorCount = (data.count - sectorSize) / sectorSize
         let fatSectorCount = Int(data.legacyUInt32(at: 44))
+        let difatCount = Int(data.legacyUInt32(at: 72))
+        guard fatSectorCount <= sectorCount, difatCount <= sectorCount - fatSectorCount else {
+            throw ParserError("the OLE FAT/DIFAT sector counts exceed the file size")
+        }
         var fatSectorIDs = [UInt32]()
         for index in 0..<109 {
             let id = data.legacyUInt32(at: 76 + index * 4)
             if id != Constants.freeSector { fatSectorIDs.append(id) }
         }
         var difatSector = data.legacyUInt32(at: 68)
-        let difatCount = Int(data.legacyUInt32(at: 72))
         var seenDIFAT = Set<UInt32>()
         for _ in 0..<difatCount {
             try ConversionExecution.check()
@@ -72,6 +78,12 @@ struct OLECompoundDocument {
             throw ParserError("the OLE FAT sector list is incomplete")
         }
         fatSectorIDs = Array(fatSectorIDs.prefix(fatSectorCount))
+        var seenFAT = Set<UInt32>()
+        for id in fatSectorIDs {
+            guard id < UInt32(sectorCount), seenFAT.insert(id).inserted, !seenDIFAT.contains(id) else {
+                throw ParserError("the OLE FAT sector list contains an invalid or repeated sector")
+            }
+        }
         var parsedFAT = [UInt32]()
         for id in fatSectorIDs {
             try ConversionExecution.check()
@@ -91,13 +103,15 @@ struct OLECompoundDocument {
             size: nil,
             data: data,
             sectorSize: sectorSize,
-            fat: parsedFAT
+            fat: parsedFAT,
+            maximumBytes: Limits.maximumDirectoryEntries * 128
         )
         guard directoryData.count >= 128 else {
             throw ParserError("the OLE directory stream is truncated")
         }
         var parsedEntries = [DirectoryEntry]()
         for offset in stride(from: 0, through: max(0, directoryData.count - 128), by: 128) {
+            try ConversionExecution.check()
             let nameByteCount = Int(directoryData.legacyUInt16(at: offset + 64))
             guard nameByteCount == 0
                     || nameByteCount >= 2 && nameByteCount <= 64 && nameByteCount % 2 == 0 else {
@@ -176,8 +190,7 @@ struct OLECompoundDocument {
     // DOC/XLS behalten ihren bisherigen Zugriff. MSG muss gleichnamige Properties
     // verschiedener Objekte unterscheiden und prüft dafür den gesamten Speicherbaum.
     func storageTree() throws -> StorageTree {
-        guard entries.count <= 100_000,
-              let root = entries.first, root.id == 0, root.type == 5,
+        guard let root = entries.first, root.id == 0, root.type == 5,
               root.leftSibling == Constants.freeSector,
               root.rightSibling == Constants.freeSector,
               entries.filter({ $0.type == 5 }).count == 1 else {
@@ -267,7 +280,8 @@ struct OLECompoundDocument {
         size: Int?,
         data: Data,
         sectorSize: Int,
-        fat: [UInt32]
+        fat: [UInt32],
+        maximumBytes: Int = Limits.maximumStreamSize
     ) throws -> Data {
         var result = Data()
         var current = start
@@ -277,10 +291,12 @@ struct OLECompoundDocument {
             guard current < UInt32(fat.count), seen.insert(current).inserted else {
                 throw ParserError("an OLE sector chain is invalid")
             }
-            result.append(try sector(current, in: data, sectorSize: sectorSize))
-            if result.count > Limits.maximumStreamSize {
+            // Die Verzeichnisgrenze muss bereits beim Lesen greifen, bevor
+            // aus dem Stream weitere Strings und Verzeichniseinträge entstehen.
+            guard sectorSize <= maximumBytes - result.count else {
                 throw ParserError("an OLE stream exceeds the supported size limit")
             }
+            result.append(try sector(current, in: data, sectorSize: sectorSize))
             current = fat[Int(current)]
             if current == Constants.freeSector || current == Constants.fatSector
                 || current == Constants.difatSector {

@@ -49,10 +49,9 @@ func convertBatch(_ inputs: [EnumeratedInput], arguments: ParsedArguments, optio
             // gelegentlich rückwärts. Die App filtert längst so
             // (AppModel.batchSequence), die CLI tat es nicht
             // (Review-Fund 2026-09-10).
-            guard CLIProgressOutput.accepts(event.sequence) else { return }
             let value = event.documentProgress
             let detail = value?.unit.map { " \($0.rawValue) \(value?.completed ?? 0)/\(value?.total ?? 0)" } ?? ""
-            CLIProgressOutput.write("Progress: \(event.inputURL.lastPathComponent): \(value?.phase.rawValue ?? "batch")\(detail); files \(event.completed)/\(event.total), running \(event.running.count)\n")
+            CLIProgressOutput.write("Progress: \(event.inputURL.lastPathComponent): \(value?.phase.rawValue ?? "batch")\(detail); files \(event.completed)/\(event.total), running \(event.running.count)\n", sequence: event.sequence)
             }
         } else { handler = nil }
         let results = try BatchConverter().convert(requests, jobs: arguments.jobs,
@@ -90,12 +89,13 @@ private enum CLIProgressOutput {
     static let lock = NSLock()
     nonisolated(unsafe) private static var lastSequence = 0
     static func write(_ message: String) { lock.withLock { FileHandle.standardError.write(Data(message.utf8)) } }
-    /// Verwirft ein Ereignis, das nach einem neueren eintrifft.
-    static func accepts(_ sequence: Int) -> Bool {
+    /// Prüfung und Ausgabe müssen dieselbe Sperre halten. Sonst kann ein
+    /// bereits angenommenes älteres Ereignis erst nach dem neueren schreiben.
+    static func write(_ message: String, sequence: Int) {
         lock.withLock {
-            guard sequence > lastSequence else { return false }
+            guard sequence > lastSequence else { return }
             lastSequence = sequence
-            return true
+            FileHandle.standardError.write(Data(message.utf8))
         }
     }
 }
@@ -107,4 +107,3 @@ func progressHandler(_ arguments: ParsedArguments, input: URL) -> ConversionProg
         FileHandle.standardError.write(Data("Progress: \(input.lastPathComponent): \(value.phase.rawValue)\(detail)\n".utf8))
     }
 }
-

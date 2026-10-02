@@ -83,7 +83,7 @@ struct DelimitedTextAdapter: DocumentConversionAdapter {
             // den ersten Zeilen bestimmt, weil deutsche Exporte meist `;` nutzen.
             let delimiter: Character = context.inputURL.pathExtension.lowercased() == "tsv"
                 ? "\t"
-                : DelimitedTextParser.sniffDelimiter(in: decoded.text)
+                : try DelimitedTextParser.sniffDelimiter(in: decoded.text)
             let rows = try DelimitedTextParser.parse(decoded.text, delimiter: delimiter)
             let sheetName = context.inputURL.deletingPathExtension().lastPathComponent
             workbook = SpreadsheetWorkbook(sheets: [SpreadsheetSheet(name: sheetName, rows: rows)])
@@ -203,23 +203,57 @@ enum DelimitedTextParser {
 
     /// Wählt das Trennzeichen, das in den ersten Zeilen am gleichmäßigsten
     /// vorkommt. Ohne Treffer bleibt das Komma, die Datei wird dann einspaltig.
-    static func sniffDelimiter(in text: String) -> Character {
-        // `maxSplits` hält nach 20 Trennungen an; der Rest der Datei bleibt
-        // ein einziger, nicht kopierter Teilstring und fällt mit `prefix`
-        // weg. Vorher zerlegte die Suche die ganze Datei in Zeilen, um
-        // zwanzig anzusehen (Roadmap-Punkt, 2026-09-10).
-        let lines = text.split(maxSplits: 20, omittingEmptySubsequences: true, whereSeparator: \.isNewline).prefix(20)
-        guard !lines.isEmpty else {
-            return ","
-        }
+    static func sniffDelimiter(in text: String) throws -> Character {
+        try ConversionExecution.check()
         var best: (delimiter: Character, count: Int)?
         for delimiter in candidateDelimiters {
-            let counts = lines.map { line in line.filter { $0 == delimiter }.count }
+            let separator = delimiter.unicodeScalars.first!
+            var counts = [Int]()
+            var count = 0
+            var inQuotes = false
+            var fieldStarted = false
+            var recordStarted = false
+            var iterator = text.unicodeScalars.makeIterator()
+            var lookahead = iterator.next()
+            var scanned = 0
+            // Nur logische Datensätze zählen: Trennzeichen und Zeilenumbrüche
+            // in einem zitierten Feld gehören zum Inhalt. Skalare entsprechen
+            // derselben Trennzeichenregel wie im eigentlichen Parser.
+            while let scalar = lookahead, counts.count < 20 {
+                scanned += 1
+                if scanned & 4095 == 0 { try ConversionExecution.check() }
+                lookahead = iterator.next()
+                if inQuotes {
+                    if scalar == "\"" {
+                        if lookahead == "\"" { lookahead = iterator.next() }
+                        else { inQuotes = false }
+                    }
+                    continue
+                }
+                if scalar == "\r" || scalar == "\n" {
+                    if scalar == "\r", lookahead == "\n" { lookahead = iterator.next() }
+                    if recordStarted { counts.append(count) }
+                    count = 0
+                    fieldStarted = false
+                    recordStarted = false
+                } else {
+                    recordStarted = true
+                    if scalar == separator {
+                        count += 1
+                        fieldStarted = false
+                    } else if scalar == "\"", !fieldStarted {
+                        inQuotes = true
+                        fieldStarted = true
+                    } else {
+                        fieldStarted = true
+                    }
+                }
+            }
+            if recordStarted, counts.count < 20 { counts.append(count) }
             guard let first = counts.first, first > 0 else {
                 continue
             }
-            // Gleich viele Trennzeichen je Zeile ist das stärkste Zeichen;
-            // ein Feld mit Zeilenumbruch stört das nur selten.
+            // Gleich viele Trennzeichen je Datensatz ist das stärkste Zeichen.
             let consistent = counts.allSatisfy { $0 == first }
             let score = consistent ? first * 1_000 : counts.min() ?? 0
             if best == nil || score > best!.count {
@@ -243,6 +277,7 @@ enum DelimitedTextParser {
         var row = [SpreadsheetCell]()
         var field = ""
         var inQuotes = false
+        var recordStarted = false
         var cellCount = 0
         var iterator = text.unicodeScalars.makeIterator()
 
@@ -264,6 +299,7 @@ enum DelimitedTextParser {
             try finishField()
             rows.append(row)
             row = []
+            recordStarted = false
         }
         var lookahead: Unicode.Scalar? = iterator.next()
         var cancellationCounter = 0
@@ -287,7 +323,9 @@ enum DelimitedTextParser {
             switch scalar {
             case "\"" where field.isEmpty:
                 inQuotes = true
+                recordStarted = true
             case separator:
+                recordStarted = true
                 try finishField()
             case "\r":
                 // CR allein oder CR+LF: beide beenden die Zeile einmal.
@@ -296,6 +334,7 @@ enum DelimitedTextParser {
             case "\n":
                 try finishRow()
             default:
+                recordStarted = true
                 field.unicodeScalars.append(scalar)
             }
         }
@@ -305,7 +344,7 @@ enum DelimitedTextParser {
             throw DelimitedTextError("the file ends inside a quoted field")
         }
         // Die letzte Zeile ohne Zeilenende zählt; eine leere Datei ergibt keine Zeile.
-        if !field.isEmpty || !row.isEmpty {
+        if recordStarted {
             try finishRow()
         }
         return rows

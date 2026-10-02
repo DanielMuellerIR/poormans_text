@@ -24,6 +24,27 @@ final class PandocTextAdapterTests: XCTestCase {
 
     // MARK: - HTML
 
+    func testImageAttributesAndAltEntitiesSurviveRealConversion() throws {
+        try requirePandoc()
+        let png = try pngFixture()
+        try png.write(to: root.appendingPathComponent("valid.png"))
+        let html = #"<html><body><img data-src="missing.png" alt='example src="decoy.png"' src="valid.png"><p><img src="missing.png" alt="A &amp; B &quot;Q&quot; &#x43; &lt;tag&gt;"></p><p><img src="https://example.com/a.png" alt="D &amp; E"></p></body></html>"#
+        let source = root.appendingPathComponent("attributes.html")
+        let bytes = Data(html.utf8)
+        try bytes.write(to: source)
+        let result = try DocumentConverter().convert(ConversionRequest(inputURL: source))
+        XCTAssertEqual(result.assets.count, 1)
+        if let asset = result.assets.first { XCTAssertEqual(try Data(contentsOf: asset), png) }
+        let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+        XCTAssertTrue(markdown.contains("images/image01.png"), markdown)
+        XCTAssertTrue(markdown.contains("A & B"), markdown)
+        XCTAssertTrue(markdown.contains("[D & E](https://example.com/a.png)"), markdown)
+        XCTAssertFalse(markdown.contains("&amp;"), markdown)
+        XCTAssertFalse(markdown.contains("&quot;"), markdown)
+        XCTAssertFalse(markdown.contains("&#x43;"), markdown)
+        XCTAssertEqual(try Data(contentsOf: source), bytes)
+    }
+
     func testHTMLKeepsLocalImagesTurnsRemoteImagesIntoLinksAndExtractsEmbeddedOnes() throws {
         try requirePandoc()
         let pngData = try pngFixture()

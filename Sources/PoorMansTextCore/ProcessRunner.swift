@@ -73,22 +73,50 @@ package enum ProcessRunner {
 
         let process = Process()
 
-        process.executableURL = executable
-        process.arguments = arguments
+        var isDirectory: ObjCBool = false
+        guard fileManager.fileExists(atPath: executable.path, isDirectory: &isDirectory),
+              !isDirectory.boolValue, fileManager.isExecutableFile(atPath: executable.path) else {
+            throw CocoaError(.fileReadNoPermission)
+        }
+        // Der Gruppenleiter bleibt bis zur Identitätsprüfung am Pipe-Eingang
+        // stehen. Ein sofort endendes Werkzeug könnte sonst schon vor getpgid
+        // verschwinden und seine Kindprozesse unüberwacht zurücklassen.
+        let startup = Pipe()
+        defer {
+            try? startup.fileHandleForReading.close()
+            try? startup.fileHandleForWriting.close()
+        }
+        process.executableURL = URL(fileURLWithPath: "/bin/sh")
+        process.arguments = ["-c", "IFS= read -r startup || exit 125\nexec \"$@\" < /dev/null", "poormans-text-tool", executable.path] + arguments
         process.currentDirectoryURL = currentDirectory
-        process.standardInput = FileHandle.nullDevice
+        process.standardInput = startup
         process.standardOutput = outputHandle ?? FileHandle.nullDevice
         process.standardError = errorHandle
 
         try process.run()
         let processID = process.processIdentifier
+        try? startup.fileHandleForReading.close()
         // Foundation legt auf macOS eine eigene Prozessgruppe an. Nur eine
         // tatsächlich getrennte Gruppe benutzen, niemals die Gruppe des Hosts.
         let ownsGroup = getpgid(processID) == processID && processID != getpgrp()
-        let signalTarget = ownsGroup ? -processID : processID
+        guard ownsGroup else {
+            try? startup.fileHandleForWriting.close()
+            process.waitUntilExit()
+            throw ConversionError.fileSystemFailure("the conversion tool could not establish its own process group")
+        }
+        let signalTarget = -processID
+        do {
+            try token.checkCancellation()
+            try startup.fileHandleForWriting.write(contentsOf: Data([0x0A]))
+            try startup.fileHandleForWriting.close()
+        } catch {
+            kill(signalTarget, SIGKILL)
+            process.waitUntilExit()
+            throw error
+        }
         let started = ProcessInfo.processInfo.systemUptime
         var terminationStarted: TimeInterval?
-        while process.isRunning || (terminationStarted != nil && ownsGroup && kill(signalTarget, 0) == 0) {
+        while process.isRunning || (ownsGroup && kill(signalTarget, 0) == 0) {
             let now = ProcessInfo.processInfo.systemUptime
             if let timeout, now - started >= timeout { token.stop(.processTimedOut) }
             // Die Kindprozesse schreiben in Dateien statt Pipes. Das verhindert
@@ -99,11 +127,13 @@ package enum ProcessRunner {
                     token.stop(.fileSystemFailure("the conversion tool exceeded its output limit"))
                 }
             }
-            if token.isCancelled {
+            // Auch nach erfolgreichem Ende des Hauptprozesses dürfen Kinder
+            // keine Capture-Deskriptoren offenhalten und weiterarbeiten.
+            if token.isCancelled || !process.isRunning {
                 if let terminationStarted {
                     if now - terminationStarted >= terminationGrace {
-                        // Nur den noch laufenden, von diesem Aufruf gestarteten
-                        // Prozess treffen; Foundation erntet ihn anschließend.
+                        // Die eigene Prozessgruppe beenden; Foundation erntet
+                        // anschließend deren Hauptprozess.
                         kill(signalTarget, SIGKILL)
                         break
                     }

@@ -168,7 +168,8 @@ enum ZIPFixtureBuilder {
         extraSheetDeclarations: String = "",
         extraWorkbookRelationships: String = "",
         extraEntries: [Entry] = [],
-        workbookOverride: String? = nil
+        workbookOverride: String? = nil,
+        sharedStringsOverride: String? = nil
     ) throws -> Data {
         let contentTypes = """
         <?xml version="1.0" encoding="UTF-8"?>
@@ -210,7 +211,7 @@ enum ZIPFixtureBuilder {
           \(extraWorkbookRelationships)
         </Relationships>
         """
-        let sharedStrings = """
+        let sharedStrings = sharedStringsOverride ?? """
         <?xml version="1.0" encoding="UTF-8"?>
         <sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="8" uniqueCount="8">
           <si><t>Product</t></si><si><t>Units</t></si><si><t>Äpfel</t></si>

@@ -11,6 +11,21 @@ final class PresentationNotebookTests: XCTestCase {
     override func tearDownWithError() throws { try? FileManager.default.removeItem(at: root) }
     private var png: Data { get throws { try Data(contentsOf: URL(fileURLWithPath: #filePath).deletingLastPathComponent().appendingPathComponent("Fixtures/WordProcessing/fixture.png")) } }
     private func entry(_ name: String, _ text: String) -> ZIPFixtureBuilder.Entry { .init(name: name, content: Data(text.utf8)) }
+    func testPowerPointTableHyperlinkReportsLostTargetAndKeepsItsText() throws {
+        var entries = try pptxEntries()
+        let index = try XCTUnwrap(entries.firstIndex { $0.name == "ppt/slides/slide10.xml" })
+        let xml = String(decoding: entries[index].content, as: UTF8.self)
+            .replacingOccurrences(of: "<a:t>TABLETOKEN</a:t>", with: "<a:rPr><a:hlinkClick r:id=\"link\"/></a:rPr><a:t>TABLETOKEN</a:t>")
+        entries[index] = entry(entries[index].name, xml)
+        let source = root.appendingPathComponent("table-link.pptx")
+        let bytes = try ZIPFixtureBuilder.archive(entries: entries)
+        try bytes.write(to: source)
+        let result = try DocumentConverter().convert(ConversionRequest(inputURL: source))
+        XCTAssertTrue(result.diagnostics.contains { $0.code == "presentation.hyperlinkFlattened" })
+        let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+        XCTAssertEqual(markdown.components(separatedBy: "TABLETOKEN").count - 1, 1)
+        XCTAssertEqual(try Data(contentsOf: source), bytes)
+    }
     private func pptxEntries() throws -> [ZIPFixtureBuilder.Entry] {
         let p = PresentationImport.presentation, a = PresentationImport.drawing, r = PresentationImport.relations
         let rel = "http://schemas.openxmlformats.org/package/2006/relationships"

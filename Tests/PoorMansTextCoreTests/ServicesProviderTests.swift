@@ -119,7 +119,8 @@ final class ServicesProviderTests: XCTestCase {
     func testAFlatRTFDWithAnEscapingAttachmentNameIsRefusedBeforeAnythingIsWritten() throws {
         let png = try Data(contentsOf: Bundle.module.resourceURL!.appendingPathComponent("Fixtures/WordProcessing/fixture.png"))
         let wrapper = FileWrapper(regularFileWithContents: png)
-        wrapper.preferredFilename = "escape.png"
+        let name = UUID().uuidString
+        wrapper.preferredFilename = name + ".png"
         let text = NSMutableAttributedString(string: "Hallo ")
         text.append(NSAttributedString(attachment: NSTextAttachment(fileWrapper: wrapper)))
         var flat = try XCTUnwrap(text.rtfd(
@@ -127,7 +128,8 @@ final class ServicesProviderTests: XCTestCase {
             documentAttributes: [.documentType: NSAttributedString.DocumentType.rtfd]
         ))
         // Gleich langer Name, damit die Serialisierung sonst gültig bleibt.
-        let needle = Data("escape.png".utf8), replacement = Data("../esc.png".utf8)
+        let escapedName = String(name.dropFirst(3)) + ".png"
+        let needle = Data((name + ".png").utf8), replacement = Data(("../" + escapedName).utf8)
         var patched = 0
         var searchStart = flat.startIndex
         while let range = flat.range(of: needle, in: searchStart..<flat.endIndex) {
@@ -138,13 +140,12 @@ final class ServicesProviderTests: XCTestCase {
         XCTAssertGreaterThan(patched, 0, "Der Anhangname steht nicht im Flat-RTFD.")
 
         let temporary = FileManager.default.temporaryDirectory
-        let before = Set(try FileManager.default.contentsOfDirectory(atPath: temporary.path))
         XCTAssertThrowsError(try RichTextClipboard.convert(.init(kind: .flatRTFD, data: flat))) { error in
             XCTAssertTrue(error.localizedDescription.contains("could not be read"), error.localizedDescription)
         }
-        let after = Set(try FileManager.default.contentsOfDirectory(atPath: temporary.path))
-        XCTAssertFalse(after.contains("esc.png"))
-        XCTAssertEqual(after.subtracting(before).filter { !$0.hasPrefix("PoorMansText") }, [], "Es wurde etwas außerhalb des Arbeitsordners geschrieben.")
+        // Den Angriffsdateinamen prüfen. Andere Programme können gleichzeitig
+        // legitime Dateien im gemeinsam genutzten Temp-Verzeichnis erzeugen.
+        XCTAssertFalse(FileManager.default.fileExists(atPath: temporary.appendingPathComponent(escapedName).path))
     }
 
     @MainActor

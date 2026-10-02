@@ -48,6 +48,15 @@ final class HTMLImageRewriterTests: XCTestCase {
         )
     }
 
+    func testOnlyRealSourceAttributesAreRewritten() throws {
+        try Data([1, 2, 3]).write(to: temporaryDirectory.appendingPathComponent("valid.png"))
+        let html = #"<img data-src="missing.png" alt='example src="decoy.png"' src=valid.png>"#
+        let result = try HTMLImageRewriter.rewrite(html: html, resourceDirectory: temporaryDirectory,
+            imageDirectory: temporaryDirectory.appendingPathComponent("images"), fileManager: .default)
+        XCTAssertEqual(result.assetNames, ["image01.png"])
+        XCTAssertEqual(result.html, #"<img data-src="missing.png" alt='example src="decoy.png"' src=images/image01.png>"#)
+    }
+
     func testReplacesGeneratedCollisionPrefixesWithSequentialNamesInDocumentOrder() throws {
         let firstName = "1__#$!@%!#__Pasted Graphic 5.PNG"
         let secondName = "ordinary photo.jpg"

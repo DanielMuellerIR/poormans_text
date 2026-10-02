@@ -2,6 +2,13 @@ import XCTest
 @testable import PoorMansTextCore
 
 final class MarkdownNormalizerTests: XCTestCase {
+    func testQuotedAndListedCodeKeepsLiteralBackslashes() {
+        for code in [">     echo foo\\\n", "> ```sh\n> echo foo\\\n> ```\n", "- ```sh\n  echo foo\\\n  ```\n", "> - ```sh\n>   echo foo\\\n>   ```\n"] {
+            XCTAssertEqual(MarkdownNormalizer.normalize(code), code)
+        }
+        let source = "> ```\n> echo foo\\\n\ntext\\\n"
+        XCTAssertEqual(MarkdownNormalizer.normalize(source), "> ```\n> echo foo\\\n\ntext\n")
+    }
     func testUsesTwoSpacesForPandocHardBreaksAndRemovesEmptyEmphasis() {
         let markdown = "Text\\\ncontinued\n\n****\\\n\nNext\n"
 

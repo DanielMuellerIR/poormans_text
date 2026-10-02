@@ -110,11 +110,7 @@ app="$mount_root/Poor Man's Text.app"
 script_directory="$(cd "$(dirname "$0")" && pwd)"
 "$script_directory/verify_bundle.sh" "$app" "$mode"
 
-code_directory_hash() {
-    local target="$1"
-    codesign -d --verbose=4 "$target" 2>&1 \
-        | awk -F= '/^CDHash=/ && !found { print $2; found = 1 }'
-}
+source "$script_directory/code_directory_hash.sh"
 
 if [ -n "$expected_app" ]; then
     for relative_path in "" "/Contents/Resources/poormans-text"; do

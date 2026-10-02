@@ -53,11 +53,7 @@ source_version="$(sed -n 's/.*static let version = "\([^"]*\)".*/\1/p' \
 # signieren und notarisieren zweimal; die Kopien tragen dann verschiedene
 # CodeDirectory-Hashes und dieser Vergleich scheitert zu Recht. Ein vollständiges
 # Release entsteht deshalb mit `./install.sh --with-dmg`.
-code_directory_hash() {
-    local target="$1"
-    codesign -d --verbose=4 "$target" 2>&1 \
-        | awk -F= '/^CDHash=/ && !found { print $2; found = 1 }'
-}
+source "$script_directory/code_directory_hash.sh"
 
 root_app_hash="$(code_directory_hash "$root_app")"
 root_cli_hash="$(code_directory_hash "$root_app/Contents/Resources/poormans-text")"

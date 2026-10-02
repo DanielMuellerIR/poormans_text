@@ -177,6 +177,29 @@ final class AppOptionsTests: XCTestCase {
         XCTAssertTrue(items.allSatisfy { $0.result != nil })
     }
 
+    @MainActor
+    func testRetryingOneFileAfterEnumerationFailureKeepsTheAlternativeDestination() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let source = root.appendingPathComponent("first.csv")
+        let missing = root.appendingPathComponent("missing.csv")
+        let bytes = Data("Name,Value\nAlpha,42\n".utf8)
+        try bytes.write(to: source)
+        let model = AppModel(defaults: .isolatedForAppTest())
+        model.convert([source, missing])
+        try await wait(model)
+        guard case .failed = model.state else { return XCTFail("Expected enumeration failure") }
+        let alternative = root.appendingPathComponent("chosen-result")
+        model.destinationOverrides[source.path] = alternative
+        model.retryFailed(only: source)
+        try await wait(model)
+        guard case .succeeded(let result) = model.state else { return XCTFail("Expected single result") }
+        XCTAssertEqual(result.outputDirectory.standardizedFileURL, alternative.standardizedFileURL)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("first-markdown").path))
+        XCTAssertEqual(try Data(contentsOf: source), bytes)
+    }
+
     func testGermanCollisionMessagePreservesPath() throws {
         let repo = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
         let bundle = try XCTUnwrap(Bundle(url: repo.appendingPathComponent("App/de.lproj")))

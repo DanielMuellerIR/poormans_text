@@ -29,54 +29,8 @@ enum MarkdownNormalizer {
         return keepsFinalNewline ? result + "\n" : result
     }
 
-    /// Markiert jede Zeile, die zu einem Code-Block gehört: eingezäunte Blöcke,
-    /// eingerückte Blöcke und die Leerzeilen innerhalb eines eingerückten Blocks.
-    ///
-    /// Eingerückt heißt hier „vier Spalten jenseits des offenen Listenpunkts".
-    /// Ohne diese Buchhaltung wäre jeder tiefer eingerückte Listeneintrag
-    /// fälschlich Code. Pandoc schreibt einen Code-Block ohne Sprachangabe immer
-    /// eingerückt — auch im GFM-Dialekt —, deshalb ist dieser Fall der Regelfall
-    /// und nicht die Ausnahme.
     private static func markCodeLines(_ lines: [String]) -> [Bool] {
-        var isCode = [Bool](repeating: false, count: lines.count)
-        var fence: Fence?
-        var itemIndents = [Int]()
-
-        for (index, line) in lines.enumerated() {
-            if let currentFence = fence {
-                isCode[index] = true
-                if isClosingFence(line, matching: currentFence) {
-                    fence = nil
-                }
-                continue
-            }
-
-            // Eine Leerzeile beendet keinen Listenpunkt.
-            if isBlank(line) {
-                continue
-            }
-
-            let indent = indentWidth(of: line)
-            while let openItem = itemIndents.last, indent < openItem {
-                itemIndents.removeLast()
-            }
-            let container = itemIndents.last ?? 0
-
-            if indent >= container + 4 {
-                isCode[index] = true
-                continue
-            }
-
-            if let delimiter = openingFence(in: line) {
-                isCode[index] = true
-                fence = delimiter
-                continue
-            }
-
-            if let contentIndent = listItemContentIndent(of: line, indent: indent) {
-                itemIndents.append(contentIndent)
-            }
-        }
+        var isCode = MarkdownLinkTargetRewriter.codeLines(in: lines)
 
         // Eine Leerzeile mitten in einem eingerückten Code-Block ist selbst noch
         // Code. Sie wird ja nicht eingerückt geschrieben und ist oben deshalb als
@@ -262,58 +216,12 @@ enum MarkdownNormalizer {
         String(line.prefix(while: { $0 == " " || $0 == "\t" }))
     }
 
-    private static func openingFence(in line: String) -> Fence? {
-        guard let trimmed = fenceCandidate(in: line),
-              let character = trimmed.first,
-              character == "`" || character == "~" else {
-            return nil
-        }
-        let length = trimmed.prefix(while: { $0 == character }).count
-        guard length >= 3 else {
-            return nil
-        }
-        let remainder = trimmed.dropFirst(length)
-        guard character != "`" || !remainder.contains("`") else {
-            return nil
-        }
-        return Fence(character: character, length: length)
-    }
-
-    private static func isClosingFence(_ line: String, matching fence: Fence) -> Bool {
-        guard let trimmed = fenceCandidate(in: line),
-              trimmed.first == fence.character else {
-            return false
-        }
-        let length = trimmed.prefix(while: { $0 == fence.character }).count
-        guard length >= fence.length else {
-            return false
-        }
-        return trimmed.dropFirst(length).allSatisfy { $0 == " " || $0 == "\t" }
-    }
-
-    /// CommonMark erlaubt vor einem Fence höchstens drei Leerzeichen, aber keinen Tab.
-    private static func fenceCandidate(in line: String) -> Substring? {
-        let indentation = line.prefix(while: { $0 == " " }).count
-        guard indentation <= 3 else {
-            return nil
-        }
-        let trimmed = line.dropFirst(indentation)
-        guard let character = trimmed.first, character == "`" || character == "~" else {
-            return nil
-        }
-        return trimmed
-    }
-
     private static let markerWhitespace: CharacterSet = {
         var whitespace = CharacterSet.whitespaces
         whitespace.insert(charactersIn: "\u{00A0}")
         return whitespace
     }()
 
-    private struct Fence {
-        let character: Character
-        let length: Int
-    }
 }
 
 private extension String {

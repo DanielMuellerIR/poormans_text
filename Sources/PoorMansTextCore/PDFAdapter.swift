@@ -361,7 +361,7 @@ struct PDFAdapter: DocumentConversionAdapter {
         totalBytes += byteCount
     }
 
-    private func rasterDimensions(for page: PDFPage) throws -> RasterDimensions {
+    func rasterDimensions(for page: PDFPage) throws -> RasterDimensions {
         let bounds = page.bounds(for: .mediaBox)
         guard bounds.width.isFinite, bounds.height.isFinite,
               bounds.minX.isFinite, bounds.minY.isFinite,
@@ -373,10 +373,28 @@ struct PDFAdapter: DocumentConversionAdapter {
         guard fullResolutionPixels.isFinite, fullResolutionPixels > 0 else {
             throw PDFAdapterError("a PDF page exceeds the OCR pixel budget")
         }
-        let scale = min(
-            PDFImportLimits.ocrScale,
-            sqrt(Double(PDFImportLimits.maximumPixelsPerPage) / fullResolutionPixels)
-        )
+        // Das Budget gilt für die aufgerundeten Rastermaße. Die größte
+        // zulässige lange Kante suchen, ohne die Zielauflösung doppelt in
+        // die Flächenrechnung einzubeziehen oder beim Runden zu überschreiten.
+        let longestEdge = max(bounds.width, bounds.height)
+        var lower = 1
+        var upper = Int(min(CGFloat(PDFImportLimits.maximumRasterDimension),
+            ceil(longestEdge * PDFImportLimits.ocrScale)))
+        while lower < upper {
+            let edge = lower + (upper - lower + 1) / 2
+            let candidateScale = min(PDFImportLimits.ocrScale, CGFloat(edge) / longestEdge)
+            let width = ceil(bounds.width * candidateScale)
+            let height = ceil(bounds.height * candidateScale)
+            if width > 0, height > 0,
+               width <= CGFloat(PDFImportLimits.maximumRasterDimension),
+               height <= CGFloat(PDFImportLimits.maximumRasterDimension),
+               width <= CGFloat(PDFImportLimits.maximumPixelsPerPage) / height {
+                lower = edge
+            } else {
+                upper = edge - 1
+            }
+        }
+        let scale = min(PDFImportLimits.ocrScale, CGFloat(lower) / longestEdge)
         let renderedWidth = ceil(bounds.width * scale)
         let renderedHeight = ceil(bounds.height * scale)
         guard scale.isFinite, scale > 0,
@@ -477,7 +495,7 @@ struct PDFAdapter: DocumentConversionAdapter {
         let dimensions: RasterDimensions
     }
 
-    private struct RasterDimensions {
+    struct RasterDimensions {
         let bounds: CGRect
         let scale: CGFloat
         let width: Int

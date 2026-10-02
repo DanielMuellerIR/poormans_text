@@ -258,7 +258,7 @@ final class BatchConverterTests: XCTestCase {
 
         XCTAssertEqual(results.count, 3)
         let sequences = events.all.map(\.sequence)
-        XCTAssertEqual(sequences, Array(1...sequences.count), "Sequenz lückenlos und aufsteigend")
+        XCTAssertEqual(sequences.sorted(), Array(1...sequences.count), "Sequenz eindeutig und lückenlos; Zustellung darf parallel erfolgen")
         XCTAssertEqual(events.all.filter { $0.result != nil }.count, 3)
         XCTAssertTrue(events.all.contains { $0.running.count == 2 }, "zwei Worker gleichzeitig sichtbar")
         for event in events.all {

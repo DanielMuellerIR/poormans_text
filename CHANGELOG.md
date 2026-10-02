@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.16.2 — 2026-10-02
+
+- Detect CSV separators outside quoted fields and retain an empty quoted final row.
+- Preserve CDATA text in ODS, XLSX and ODM, explicit ODS/ODM spaces and compressed
+  BIFF8 Unicode characters. Bound expanded OpenDocument text before allocating it.
+- Resolve HTML image sources from exact attributes, preserve alt-text character
+  references and protect code inside Markdown lists and blockquotes.
+- Reject repeated or overlapping OLE allocation-table sectors and oversized
+  directory streams before expansion.
+- Use the available PDF OCR pixel budget and report flattened hyperlinks in
+  PowerPoint tables.
+- Establish tool process groups before execution and clean up background children
+  when their main process exits. Keep parallel CLI progress ordered.
+- Preserve an alternative output destination when retrying one file after a
+  failed folder/input enumeration.
+- Compare both architectures when verifying universal release bundles and correct
+  tests that assumed ordered parallel callbacks or exclusive use of shared temp storage.
+
 ## 0.16.1 — 2026-10-02
 
 - Preserve notebook attachment references in blockquotes and with continued destinations.

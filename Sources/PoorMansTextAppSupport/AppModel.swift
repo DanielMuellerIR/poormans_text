@@ -461,7 +461,8 @@ public final class AppModel: ObservableObject {
         }
         let enumerator = InputEnumerator()
         if inputURLs.count == 1, !enumerator.isSearchableDirectory(first) {
-            convert(first)
+            failedEnumerationInputs = []
+            convertSingle(first, isRetry: keepingDestinationOverrides)
             return
         }
 

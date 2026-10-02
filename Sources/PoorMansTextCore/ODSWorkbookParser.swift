@@ -1,8 +1,8 @@
 import Foundation
 
 enum ODSWorkbookParser {
-    static func parse(_ xml: Data) throws -> SpreadsheetWorkbook {
-        let delegate = ContentDelegate()
+    static func parse(_ xml: Data, maximumTextBytes: Int = SpreadsheetLimits.maximumOutputBytes) throws -> SpreadsheetWorkbook {
+        let delegate = ContentDelegate(maximumTextBytes: maximumTextBytes)
         let parser = ImportXMLParser.make(xml, delegate: delegate)
         let parsedSuccessfully = parser.parse()
         try ConversionExecution.check()
@@ -18,6 +18,12 @@ enum ODSWorkbookParser {
     private final class ContentDelegate: NSObject, XMLParserDelegate {
         var workbook = SpreadsheetWorkbook(sheets: [])
         var failure: Error?
+        private let maximumTextBytes: Int
+        private var textBytes = 0
+
+        init(maximumTextBytes: Int) {
+            self.maximumTextBytes = max(0, maximumTextBytes)
+        }
 
         private func locate(_ warning: ConversionWarning) {
             guard workbook.locatedDiagnostics.count < 256 else { return }
@@ -162,7 +168,7 @@ enum ODSWorkbookParser {
 
             if namespaceURI == Namespaces.text, elementName == "p", currentCell != nil {
                 if paragraphCount > 0 {
-                    currentCell?.text.append("\n")
+                    appendText("\n", parser: parser)
                 }
                 paragraphCount += 1
                 capturesCellText = true
@@ -195,15 +201,20 @@ enum ODSWorkbookParser {
                 }
             }
             if namespaceURI == Namespaces.text, elementName == "line-break", capturesCellText {
-                currentCell?.text.append("\n")
+                appendText("\n", parser: parser)
             } else if namespaceURI == Namespaces.text, elementName == "tab", capturesCellText {
-                currentCell?.text.append("\t")
+                appendText("\t", parser: parser)
             } else if namespaceURI == Namespaces.text, elementName == "s", capturesCellText {
-                let count = min(
-                    Int(attribute("c", in: attributeDict) ?? "1") ?? 1,
-                    SpreadsheetLimits.maximumColumns
-                )
-                currentCell?.text.append(String(repeating: " ", count: max(1, count)))
+                guard let count = Int(attribute("c", in: attributeDict) ?? "1"), count > 0 else {
+                    return fail("an explicit space count is invalid", parser: parser)
+                }
+                // Vor der Expansion prüfen: Wenige XML-Bytes können sonst
+                // beliebig viel Zelltext erzeugen. Die Spaltenzahl begrenzt
+                // keine Zeichenfolge und darf deren Inhalt nicht kürzen.
+                guard count <= maximumTextBytes - textBytes else {
+                    return fail("the spreadsheet exceeds the materialized-text budget", parser: parser)
+                }
+                appendText(String(repeating: " ", count: count), parser: parser)
             }
 
             if namespaceURI == Namespaces.drawing || namespaceURI == Namespaces.chart
@@ -215,8 +226,22 @@ enum ODSWorkbookParser {
         func parser(_ parser: XMLParser, foundCharacters string: String) {
             if ConversionExecution.isCancelled { parser.abortParsing(); return }
             if tableDepth == 1, capturesCellText {
-                currentCell?.text.append(string)
+                appendText(string, parser: parser)
             }
+        }
+
+        func parser(_ parser: XMLParser, foundCDATA CDATABlock: Data) {
+            self.parser(parser, foundCharacters: String(decoding: CDATABlock, as: UTF8.self))
+        }
+
+        private func appendText(_ string: String, parser: XMLParser) {
+            guard failure == nil, currentCell != nil else { return }
+            let count = string.utf8.count
+            guard count <= maximumTextBytes - textBytes else {
+                return fail("the spreadsheet exceeds the materialized-text budget", parser: parser)
+            }
+            textBytes += count
+            currentCell?.text.append(string)
         }
 
         func parser(

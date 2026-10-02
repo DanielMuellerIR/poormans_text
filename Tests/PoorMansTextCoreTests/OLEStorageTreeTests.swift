@@ -52,6 +52,56 @@ final class OLEStorageTreeTests: XCTestCase {
         XCTAssertThrowsError(try tree.stream(at: ["Body"]))
     }
 
+    func testRejectsRepeatedFATSectorsBeforeExpandingTheTable() throws {
+        var bytes = fixture()
+        put32(2, at: 44, in: &bytes)
+        put32(17, at: 80, in: &bytes)
+        XCTAssertThrowsError(try OLECompoundDocument(data: bytes)) { error in
+            XCTAssertTrue(error.localizedDescription.contains("FAT"), error.localizedDescription)
+        }
+    }
+
+    func testRejectsFATAndDIFATSectorOverlap() throws {
+        var bytes = fixture()
+        put32(17, at: 68, in: &bytes)
+        put32(1, at: 72, in: &bytes)
+        XCTAssertThrowsError(try OLECompoundDocument(data: bytes)) { error in
+            XCTAssertTrue(error.localizedDescription.contains("FAT"), error.localizedDescription)
+        }
+    }
+
+    func testBoundsDirectoryStorageBeforeParsingEntries() throws {
+        XCTAssertEqual(try OLECompoundDocument(data: directoryFixture(sectors: 3125)).entryNames, ["Root Entry"])
+        let bytes = directoryFixture(sectors: 3126)
+        let source = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".ole")
+        try bytes.write(to: source, options: .withoutOverwriting)
+        defer { try? FileManager.default.removeItem(at: source) }
+        XCTAssertThrowsError(try OLECompoundDocument(data: Data(contentsOf: source)))
+        XCTAssertEqual(try Data(contentsOf: source), bytes)
+    }
+
+    private func directoryFixture(sectors: Int) -> Data {
+        let sectorSize = 4096
+        let fatSectors = 4
+        var bytes = Data(repeating: 0, count: (1 + sectors + fatSectors) * sectorSize)
+        bytes.replaceSubrange(0..<512, with: fixture().prefix(512))
+        put16(4, at: 26, in: &bytes)
+        put16(12, at: 30, in: &bytes)
+        put32(UInt32(sectors), at: 40, in: &bytes)
+        put32(UInt32(fatSectors), at: 44, in: &bytes)
+        put32(0, at: 48, in: &bytes)
+        for index in 0..<fatSectors { put32(UInt32(sectors + index), at: 76 + index * 4, in: &bytes) }
+        bytes.replaceSubrange(sectorSize..<(sectorSize + 128), with: fixture()[(17 * 512)..<(17 * 512 + 128)])
+        put32(.max, at: sectorSize + 76, in: &bytes)
+        let fatOffset = (1 + sectors) * sectorSize
+        bytes.replaceSubrange(fatOffset..<bytes.count, with: Data(repeating: 0xFF, count: fatSectors * sectorSize))
+        for index in 0..<sectors {
+            put32(index + 1 == sectors ? 0xFFFF_FFFE : UInt32(index + 1), at: fatOffset + index * 4, in: &bytes)
+        }
+        for index in 0..<fatSectors { put32(0xFFFF_FFFD, at: fatOffset + (sectors + index) * 4, in: &bytes) }
+        return bytes
+    }
+
     // Der unabhängige Referenzleser liefert jeden Stream als Bytes. Der Test
     // prüft auch alle Anhangs-/Unterobjekt-Streams, nicht nur sichtbaren Text.
     func testExternalMSGStreamsMatchIndependentReference() throws {

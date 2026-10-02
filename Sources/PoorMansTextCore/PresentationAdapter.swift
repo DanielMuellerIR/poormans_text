@@ -190,6 +190,9 @@ final class PresentationImport {
             return [.paragraph(text, level: level, ordered: properties?.elements("buAutoNum", namespace: Self.drawing).isEmpty == false)]
         }
         if node.name == "tbl", node.namespace == Self.drawing {
+            if !node.descendants("hlinkClick", namespace: Self.drawing).isEmpty {
+                diagnostics.add("presentation.hyperlinkFlattened", "A text hyperlink was preserved as visible text only.", page: page)
+            }
             let rows = node.elements("tr", namespace: Self.drawing).map { row in row.elements("tc", namespace: Self.drawing).map { $0.descendants("p", namespace: Self.drawing).map(drawingText).joined(separator: "\n") } }
             if node.descendants("tc", namespace: Self.drawing).contains(where: { $0.attribute("gridSpan") != nil || $0.attribute("rowSpan") != nil }) { diagnostics.add("presentation.tableMergesFlattened", "Merged table cells were flattened.", page: page) }
             return [.table(rows)]

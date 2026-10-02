@@ -512,6 +512,10 @@ enum XLSXWorkbookParser {
                 if capturesText { current?.append(string) }
             }
 
+            func parser(_ parser: XMLParser, foundCDATA CDATABlock: Data) {
+                self.parser(parser, foundCharacters: String(decoding: CDATABlock, as: UTF8.self))
+            }
+
             func parser(
                 _ parser: XMLParser,
                 didEndElement elementName: String,
@@ -768,6 +772,10 @@ enum XLSXWorkbookParser {
                 case .inlineText: currentCell?.inlineText.append(string)
                 case nil: break
                 }
+            }
+
+            func parser(_ parser: XMLParser, foundCDATA CDATABlock: Data) {
+                self.parser(parser, foundCharacters: String(decoding: CDATABlock, as: UTF8.self))
             }
 
             func parser(

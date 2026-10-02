@@ -123,21 +123,19 @@ final class LegacyXLSBoundaryTests: XCTestCase {
         XCTAssertTrue(markdown.contains("[1](https://example.com/a_%28b%29)"), markdown)
     }
 
-    /// Komprimierte BIFF8-Zeichenketten sind Windows-1252, nicht ISO-8859-1.
-    /// Als Latin-1 gelesen wurde aus dem typografischen Apostroph 0x92 das
-    /// Steuerzeichen U+0092 und aus 0x80 nicht das Eurozeichen — beide landeten
-    /// roh im Markdown (Review-Fund 2026-09-10).
-    func testCompressedSharedStringsUseTheWindowsCodePage() throws {
-        // „Anna’s 5 € – Test": Apostroph 0x92, Euro 0x80, Halbgeviertstrich 0x96.
-        let bytes: [UInt8] = Array("Anna".utf8) + [0x92] + Array("s 5 ".utf8)
-            + [0x80] + Array(" ".utf8) + [0x96] + Array(" Test".utf8)
+    func testCompressedSharedStringsKeepTheirUnicodeLowBytes() throws {
+        let bytes: [UInt8] = [0x80, 0x92, 0xC4, 0xFF]
         let document = SyntheticXLSFixture.workbook(missingFirstSheetEOF: false, sharedStringBytes: bytes)
-
         let workbook = try LegacyXLSWorkbookParser.parse(document)
-        let cell = workbook.sheets.first?.rows.last?.first
+        XCTAssertEqual(workbook.sheets.first?.rows.last?.first?.displayText, "\u{0080}\u{0092}Äÿ")
+    }
 
-        XCTAssertEqual(cell?.displayText, "Anna\u{2019}s 5 \u{20AC} \u{2013} Test")
-        XCTAssertFalse(try XCTUnwrap(cell?.displayText).unicodeScalars.contains { $0.value < 0x20 || (0x80...0x9F).contains($0.value) })
+    func testWideSharedStringsPreserveEuroAndTypographicCharacters() throws {
+        let text = "Anna’s 5 € – Test"
+        let bytes = text.utf16.flatMap { [UInt8(truncatingIfNeeded: $0), UInt8(truncatingIfNeeded: $0 >> 8)] }
+        let document = SyntheticXLSFixture.workbook(missingFirstSheetEOF: false,
+            sharedStringBytes: bytes, sharedStringIsWide: true)
+        XCTAssertEqual(try LegacyXLSWorkbookParser.parse(document).sheets.first?.rows.last?.first?.displayText, text)
     }
 
     /// Ein HLINK-Record kann jedes Ziel tragen. Ein ausführbares Schema wird
@@ -194,7 +192,8 @@ private enum SyntheticXLSFixture {
         missingFirstSheetEOF: Bool,
         interveningChart: Bool = false,
         firstHyperlinkTarget: String? = nil,
-        sharedStringBytes: [UInt8]? = nil
+        sharedStringBytes: [UInt8]? = nil,
+        sharedStringIsWide: Bool = false
     ) -> Data {
         let firstSheet = sheet(
             column: 0,
@@ -210,7 +209,8 @@ private enum SyntheticXLSFixture {
             firstOffset: 0,
             chartOffset: interveningChart ? 0 : nil,
             secondOffset: 0,
-            sharedStringBytes: sharedStringBytes
+            sharedStringBytes: sharedStringBytes,
+            sharedStringIsWide: sharedStringIsWide
         )
         let firstOffset = placeholderGlobals.count
         let chartOffset = interveningChart ? firstOffset + firstSheet.count : nil
@@ -219,7 +219,8 @@ private enum SyntheticXLSFixture {
             firstOffset: firstOffset,
             chartOffset: chartOffset,
             secondOffset: secondOffset,
-            sharedStringBytes: sharedStringBytes
+            sharedStringBytes: sharedStringBytes,
+            sharedStringIsWide: sharedStringIsWide
         )
         stream.append(firstSheet)
         stream.append(chartSheet)
@@ -279,16 +280,17 @@ private enum SyntheticXLSFixture {
         firstOffset: Int,
         chartOffset: Int?,
         secondOffset: Int,
-        sharedStringBytes: [UInt8]? = nil
+        sharedStringBytes: [UInt8]? = nil,
+        sharedStringIsWide: Bool = false
     ) -> Data {
         var result = record(0x0809, payload: bof(type: 0x0005))
         if let sharedStringBytes {
-            // SST mit genau einer komprimierten (8-Bit-)Zeichenkette.
+            // SST mit genau einer Zeichenkette.
             var sst = Data()
             sst.appendUInt32(1)                              // Gesamtzahl
             sst.appendUInt32(1)                              // eindeutige Zahl
-            sst.appendUInt16(UInt16(sharedStringBytes.count))  // Zeichenzahl
-            sst.append(0)                                    // grbit: 8-Bit, keine Runs
+            sst.appendUInt16(UInt16(sharedStringBytes.count / (sharedStringIsWide ? 2 : 1)))  // Zeichenzahl
+            sst.append(sharedStringIsWide ? 1 : 0)             // fHighByte, keine Runs
             sst.append(contentsOf: sharedStringBytes)
             result.append(record(0x00FC, payload: sst))
         }

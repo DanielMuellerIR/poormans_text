@@ -79,7 +79,7 @@ enum MarkdownLinkTargetRewriter {
         let lines = markdown.split(separator: "\n", omittingEmptySubsequences: false)
         var consumedLine: Int?
         for (lineNumber, line) in lines.enumerated() {
-            if consumedLine == lineNumber { continue }
+            if let consumedLine, lineNumber <= consumedLine { continue }
             try check?()
             let text = String(line)
             if let fence = fencedCode,
@@ -147,39 +147,64 @@ enum MarkdownLinkTargetRewriter {
                 continue
             }
             if !context.isIndentedCode, inlineCodeTicks == nil,
-               !paragraphWasOpen || context.startsNewInlineBlock || markdownContainerChanged,
-               let definition = referenceDefinition(in: context.fenceCandidate) {
-                var targetText = context.fenceCandidate
-                var targetLine = text
-                var target = definition.target
+               !paragraphWasOpen || context.startsNewInlineBlock || markdownContainerChanged {
+                var definitionText = context.fenceCandidate
+                var definitionLines = [text]
+                var contentLines = [context.fenceCandidate]
                 var continuationContainers = containers
-                if target == nil, definition.needsContinuation, lineNumber + 1 < lines.count {
-                    let nextText = String(lines[lineNumber + 1])
+                var definition = referenceDefinition(in: definitionText)
+                while definition?.needsContinuation == true,
+                      lineNumber + definitionLines.count < lines.count {
+                    try check?()
+                    let nextText = String(lines[lineNumber + definitionLines.count])
                     let nextContext = lineContext(nextText, containers: &continuationContainers)
-                    if continuationContainers.quoteDepth == containers.quoteDepth,
-                       continuationContainers.listContentIndents == containers.listContentIndents {
-                        target = referenceDestination(in: nextContext.fenceCandidate, from: nextContext.fenceCandidate.startIndex)
-                        if target != nil {
-                            targetText = nextContext.fenceCandidate
-                            targetLine = nextText
+                    guard !nextContext.isBlank,
+                          continuationContainers.quoteDepth == containers.quoteDepth,
+                          continuationContainers.listContentIndents == containers.listContentIndents else { break }
+                    definitionLines.append(nextText)
+                    contentLines.append(nextContext.fenceCandidate)
+                    definitionText += "\n" + nextContext.fenceCandidate
+                    if let delimiter = definition?.delimiter {
+                        // Lange Titel nur am möglichen Ende erneut parsen; sonst
+                        // würde jede Fortsetzungszeile den gesamten Titel lesen.
+                        var escaped = false
+                        let hasBoundary = nextContext.fenceCandidate.contains { character in
+                            if escaped { escaped = false; return false }
+                            if character == "\\" { escaped = true; return false }
+                            return character == delimiter || (delimiter == "]" && character == "[")
+                                || (delimiter == ")" && character == "(")
+                        }
+                        if !hasBoundary {
+                            if delimiter == "]", definitionText.count > 1_003 { break }
+                            continue
                         }
                     }
+                    definition = referenceDefinition(in: definitionText)
                 }
-                if let target, let contentRange = targetLine.range(of: targetText, options: .backwards) {
-                    let start = targetLine.index(contentRange.lowerBound, offsetBy: targetText.distance(from: targetText.startIndex, to: target.lowerBound))
-                    let end = targetLine.index(start, offsetBy: targetText.distance(from: target.lowerBound, to: target.upperBound))
-                    let original = String(targetText[target])
-                    targetObserver?(original)
-                    let mapped = mapping[original] ?? original.removingPercentEncoding.flatMap { mapping[$0].map(percentEncodedPath) }
-                    if targetLine != text {
-                        result += text + "\n"
-                        consumedLine = lineNumber + 1
-                        containers = continuationContainers
+                if let target = definition?.target {
+                    let original = String(definitionText[target])
+                    let decoded = decodedTarget(original)
+                    targetObserver?(decoded)
+                    let mapped = mappedTarget(original, mapping: mapping)
+                    let offset = definitionText.distance(from: definitionText.startIndex, to: target.lowerBound)
+                    var lineOffset = 0
+                    for index in contentLines.indices {
+                        let content = contentLines[index]
+                        if offset >= lineOffset, offset < lineOffset + content.count,
+                           let contentRange = definitionLines[index].range(of: content, options: .backwards) {
+                            let start = definitionLines[index].index(contentRange.lowerBound, offsetBy: offset - lineOffset)
+                            let end = definitionLines[index].index(start, offsetBy: original.count)
+                            definitionLines[index].replaceSubrange(start..<end, with: mapped ?? original)
+                            break
+                        }
+                        lineOffset += content.count + 1
                     }
-                    result += String(targetLine[..<start]) + (mapped ?? original) + String(targetLine[end...])
+                    result += definitionLines.joined(separator: "\n")
+                    consumedLine = lineNumber + definitionLines.count - 1
+                    containers = continuationContainers
                     containers.canStartIndentedCode = true
                     inlineBlockEnd = nil
-                    if (consumedLine == lineNumber + 1 ? lines[lineNumber + 1] : line).endIndex != markdown.endIndex { result += "\n" }
+                    if lines[consumedLine!].endIndex != markdown.endIndex { result += "\n" }
                     continue
                 }
             }
@@ -351,7 +376,7 @@ enum MarkdownLinkTargetRewriter {
                     ? line.range(of: marker, options: .caseInsensitive) != nil
                     : line.contains(marker)
             case .blank:
-                return line.trimmingCharacters(in: .whitespaces).isEmpty
+                return line.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             }
         }
     }
@@ -814,7 +839,7 @@ enum MarkdownLinkTargetRewriter {
         return targets
     }
 
-    private static func referenceDefinition(in text: String) -> (target: Range<String.Index>?, needsContinuation: Bool)? {
+    private static func referenceDefinition(in text: String) -> (target: Range<String.Index>?, needsContinuation: Bool, delimiter: Character?)? {
         let indent = leadingIndentation(in: text[...])
         guard indent.columns <= 3, indent.end < text.endIndex, text[indent.end] == "[" else { return nil }
         var cursor = text.index(after: indent.end)
@@ -824,13 +849,27 @@ enum MarkdownLinkTargetRewriter {
             if text[cursor] == "\\" { cursor = text.index(after: cursor); if cursor == text.endIndex { return nil } }
             cursor = text.index(after: cursor)
         }
-        guard cursor < text.endIndex, text.distance(from: labelStart, to: cursor) <= 999,
-              !text[labelStart..<cursor].trimmingCharacters(in: .whitespaces).isEmpty else { return nil }
+        guard text.distance(from: labelStart, to: cursor) <= 999 else { return nil }
+        if cursor == text.endIndex { return (nil, true, "]") }
+        guard !text[labelStart..<cursor].trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
         cursor = text.index(after: cursor)
         guard cursor < text.endIndex, text[cursor] == ":" else { return nil }
         cursor = text.index(after: cursor)
-        let continuation = text[cursor...].trimmingCharacters(in: .whitespaces).isEmpty
-        return (referenceDestination(in: text, from: cursor), continuation)
+        if let target = referenceDestination(in: text, from: cursor) { return (target, false, nil) }
+        if text[cursor...].trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return (nil, true, nil) }
+        guard let target = destination(in: text, from: cursor) else { return nil }
+        var tailStart = target.range.upperBound
+        if target.usesAngles { tailStart = text.index(after: tailStart) }
+        let tail = text[tailStart...].trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let opener = tail.first, ["\"", "'", "("].contains(String(opener)) else { return nil }
+        let closer: Character = opener == "(" ? ")" : opener
+        var escaped = false
+        for character in tail.dropFirst() {
+            if escaped { escaped = false; continue }
+            if character == "\\" { escaped = true; continue }
+            if character == closer || (opener == "(" && character == "(") { return nil }
+        }
+        return (nil, true, closer)
     }
 
     private static func referenceDestination(in text: String, from start: String.Index) -> Range<String.Index>? {
@@ -839,7 +878,7 @@ enum MarkdownLinkTargetRewriter {
         if target.usesAngles { end = text.index(after: end) }
         if end == text.endIndex { return target.range }
         guard text[end].isWhitespace else { return nil }
-        let tail = text[end...].trimmingCharacters(in: .whitespaces)
+        let tail = text[end...].trimmingCharacters(in: .whitespacesAndNewlines)
         if tail.isEmpty { return target.range }
         guard let opener = tail.first, let closer = ["\"": "\"", "'": "'", "(": ")"][String(opener)],
               tail.count >= 2, tail.last.map(String.init) == closer else { return nil }
@@ -857,7 +896,7 @@ enum MarkdownLinkTargetRewriter {
         in text: String, from start: String.Index
     ) -> (range: Range<String.Index>, usesAngles: Bool)? {
         var index = start
-        while index < text.endIndex, text[index] == " " || text[index] == "\t" { index = text.index(after: index) }
+        while index < text.endIndex, text[index].isWhitespace { index = text.index(after: index) }
         let angles = index < text.endIndex && text[index] == "<"
         if angles { index = text.index(after: index) }
         let pathStart = index
@@ -904,30 +943,56 @@ enum MarkdownLinkTargetRewriter {
             return nil
         }
         let target = String(line[destination.range])
-        targetObserver?(target)
-        // `oldPath` und `newPath` sind Dateinamen auf der Platte. Im Markdown
-        // steht das Ziel dagegen prozentkodiert, sobald der Name ein Zeichen
-        // außerhalb von `A-Za-z0-9-._~` enthält — `HTMLImageRewriter` schreibt
-        // es so. Ein reiner Textvergleich verfehlte diese Links, und ein
-        // Textbundle verschob dann das Bild nach `assets/`, ohne den Link
-        // mitzunehmen: das Bild war still weg (Review-Fund 2026-09-10).
-        let replacement: String
-        if let mapped = mapping[target] {
-            replacement = mapped
-        } else if let decoded = target.removingPercentEncoding, let mapped = mapping[decoded] {
-            replacement = percentEncodedPath(mapped)
-        } else {
-            return nil
-        }
         let pathStart = destination.range.lowerBound
         let pathEnd = destination.range.upperBound
-        let usesAngles = destination.usesAngles
-        guard let linkEnd = inlineLinkEnd(
-            in: line,
-            afterPath: pathEnd,
-            usesAngles: usesAngles
-        ) else { return nil }
+        guard let linkEnd = inlineLinkEnd(in: line, afterPath: pathEnd, usesAngles: destination.usesAngles) else { return nil }
+        targetObserver?(decodedTarget(target))
+        guard let replacement = mappedTarget(target, mapping: mapping) else { return nil }
         return (pathStart, replacement, pathEnd, linkEnd)
+    }
+
+    private static func mappedTarget(_ target: String, mapping: [String: String]) -> String? {
+        if let mapped = mapping[target] { return mapped }
+        let decoded = decodedTarget(target)
+        if let mapped = mapping[decoded] { return mapped.hasPrefix("#") ? mapped : percentEncodedPath(mapped) }
+        return decoded.removingPercentEncoding.flatMap { mapping[$0].map(percentEncodedPath) }
+    }
+
+    /// Escapes und Zeichenreferenzen gehören zur Markdown-Syntax, nicht zum Dateinamen.
+    private static func decodedTarget(_ target: String) -> String {
+        var output = ""
+        var index = target.startIndex
+        while index < target.endIndex {
+            let character = target[index]
+            let next = target.index(after: index)
+            if character == "\\", next < target.endIndex, target[next].isASCII,
+               target[next].isPunctuation || target[next].isSymbol {
+                output.append(target[next])
+                index = target.index(after: next)
+                continue
+            }
+            if character == "&", let end = target[next...].prefix(33).firstIndex(of: ";") {
+                let name = String(target[next..<end])
+                var value = MarkdownCharacterReferences.named[name]
+                if name.hasPrefix("#") {
+                    let hex = name.hasPrefix("#x") || name.hasPrefix("#X")
+                    let digits = String(name.dropFirst(hex ? 2 : 1))
+                    if !digits.isEmpty, digits.count <= (hex ? 6 : 7),
+                       digits.allSatisfy({ hex ? $0.isHexDigit : $0.isASCII && $0.isNumber }),
+                       let number = UInt32(digits, radix: hex ? 16 : 10) {
+                        value = UnicodeScalar(number).flatMap { $0.value == 0 ? nil : String($0) } ?? "\u{FFFD}"
+                    }
+                }
+                if let value {
+                    output += value
+                    index = target.index(after: end)
+                    continue
+                }
+            }
+            output.append(character)
+            index = next
+        }
+        return output
     }
 
     /// Kodiert jeden Pfadbestandteil einzeln, damit die Trennstriche `/`

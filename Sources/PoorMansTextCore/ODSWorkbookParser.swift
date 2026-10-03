@@ -41,7 +41,9 @@ enum ODSWorkbookParser {
         private var pendingEmptyCells = 0
         private var pendingEmptyRows = 0
         private var currentCell: CellBuilder?
-        private var capturesCellText = false
+        private var paragraphDepth = 0
+        private var annotationDepth: Int?
+        private var capturesCellText: Bool { paragraphDepth > 0 && annotationDepth == nil }
         private var paragraphCount = 0
         private var expandedCellCount = 0
         private var tableDepth = 0
@@ -98,6 +100,12 @@ enum ODSWorkbookParser {
                 return
             }
             guard spreadsheetDepth != nil else { return }
+            if annotationDepth != nil { return }
+            if namespaceURI == Namespaces.office, elementName == "annotation" {
+                workbook.hasUnsupportedObjects = true
+                annotationDepth = elementStack.count
+                return
+            }
 
             if namespaceURI == Namespaces.table, elementName == "table" {
                 guard currentSheetName == nil else {
@@ -109,7 +117,7 @@ enum ODSWorkbookParser {
                     return fail("the workbook contains too many sheets", parser: parser)
                 }
                 tableDepth = 1
-                currentSheetName = attribute("name", in: attributeDict)
+                currentSheetName = attribute("name", namespace: Namespaces.table, in: attributeDict)
                     ?? "Sheet \(workbook.sheets.count + 1)"
                 currentRows = []
                 pendingEmptyRows = 0
@@ -122,7 +130,7 @@ enum ODSWorkbookParser {
                 currentRow = []
                 pendingEmptyCells = 0
                 currentRowRepeat = positiveRepeat(
-                    attribute("number-rows-repeated", in: attributeDict),
+                    attribute("number-rows-repeated", namespace: Namespaces.table, in: attributeDict),
                     maximum: SpreadsheetLimits.maximumRows,
                     parser: parser
                 )
@@ -133,17 +141,17 @@ enum ODSWorkbookParser {
                elementName == "table-cell" || elementName == "covered-table-cell" {
                 guard currentRow != nil else { return }
                 let repeated = positiveRepeat(
-                    attribute("number-columns-repeated", in: attributeDict),
+                    attribute("number-columns-repeated", namespace: Namespaces.table, in: attributeDict),
                     maximum: SpreadsheetLimits.maximumColumns,
                     parser: parser
                 )
                 let columnSpan = positiveRepeat(
-                    attribute("number-columns-spanned", in: attributeDict),
+                    attribute("number-columns-spanned", namespace: Namespaces.table, in: attributeDict),
                     maximum: SpreadsheetLimits.maximumColumns,
                     parser: parser
                 )
                 let rowSpan = positiveRepeat(
-                    attribute("number-rows-spanned", in: attributeDict),
+                    attribute("number-rows-spanned", namespace: Namespaces.table, in: attributeDict),
                     maximum: SpreadsheetLimits.maximumRows,
                     parser: parser
                 )
@@ -154,15 +162,16 @@ enum ODSWorkbookParser {
                 currentCell = CellBuilder(
                     repeated: repeated,
                     isCovered: elementName == "covered-table-cell",
-                    valueType: attribute("value-type", in: attributeDict),
-                    rawValue: attribute("value", in: attributeDict)
-                        ?? attribute("string-value", in: attributeDict)
-                        ?? attribute("date-value", in: attributeDict)
-                        ?? attribute("time-value", in: attributeDict)
-                        ?? attribute("boolean-value", in: attributeDict),
-                    formula: attribute("formula", in: attributeDict)
+                    valueType: attribute("value-type", namespace: Namespaces.office, in: attributeDict),
+                    rawValue: attribute("value", namespace: Namespaces.office, in: attributeDict)
+                        ?? attribute("string-value", namespace: Namespaces.office, in: attributeDict)
+                        ?? attribute("date-value", namespace: Namespaces.office, in: attributeDict)
+                        ?? attribute("time-value", namespace: Namespaces.office, in: attributeDict)
+                        ?? attribute("boolean-value", namespace: Namespaces.office, in: attributeDict),
+                    formula: attribute("formula", namespace: Namespaces.table, in: attributeDict)
                 )
                 paragraphCount = 0
+                paragraphDepth = 0
                 return
             }
 
@@ -171,7 +180,7 @@ enum ODSWorkbookParser {
                     appendText("\n", parser: parser)
                 }
                 paragraphCount += 1
-                capturesCellText = true
+                paragraphDepth += 1
                 return
             }
             if namespaceURI == Namespaces.text, elementName == "a", capturesCellText {
@@ -205,7 +214,7 @@ enum ODSWorkbookParser {
             } else if namespaceURI == Namespaces.text, elementName == "tab", capturesCellText {
                 appendText("\t", parser: parser)
             } else if namespaceURI == Namespaces.text, elementName == "s", capturesCellText {
-                guard let count = Int(attribute("c", in: attributeDict) ?? "1"), count > 0 else {
+                guard let count = Int(attribute("c", namespace: Namespaces.text, in: attributeDict) ?? "1"), count > 0 else {
                     return fail("an explicit space count is invalid", parser: parser)
                 }
                 // Vor der Expansion prüfen: Wenige XML-Bytes können sonst
@@ -217,8 +226,7 @@ enum ODSWorkbookParser {
                 appendText(String(repeating: " ", count: count), parser: parser)
             }
 
-            if namespaceURI == Namespaces.drawing || namespaceURI == Namespaces.chart
-                || namespaceURI == Namespaces.office && elementName == "annotation" {
+            if namespaceURI == Namespaces.drawing || namespaceURI == Namespaces.chart {
                 workbook.hasUnsupportedObjects = true
             }
         }
@@ -258,6 +266,10 @@ enum ODSWorkbookParser {
                 }
             }
             guard failure == nil else { return }
+            if let annotationDepth {
+                if annotationDepth == elementStack.count { self.annotationDepth = nil }
+                return
+            }
             if namespaceURI == Namespaces.office,
                elementName == "spreadsheet",
                spreadsheetDepth == elementStack.count {
@@ -281,7 +293,7 @@ enum ODSWorkbookParser {
             }
             guard tableDepth == 1 else { return }
             if namespaceURI == Namespaces.text, elementName == "p" {
-                capturesCellText = false
+                paragraphDepth = max(0, paragraphDepth - 1)
                 return
             }
             if namespaceURI == Namespaces.table,
@@ -293,6 +305,10 @@ enum ODSWorkbookParser {
                 finishRow(parser: parser)
                 return
             }
+        }
+
+        private func attribute(_ name: String, namespace: String, in attributes: [String: String]) -> String? {
+            namespacePrefixes.attributeValue(localName: name, namespaceURI: namespace, in: attributes)
         }
 
         private func finishCell(parser: XMLParser) {
@@ -458,8 +474,4 @@ enum ODSWorkbookParser {
         init(_ reason: String) { self.reason = reason }
         var errorDescription: String? { reason }
     }
-}
-
-private func attribute(_ localName: String, in attributes: [String: String]) -> String? {
-    attributes[localName] ?? attributes.first { $0.key.hasSuffix(":" + localName) }?.value
 }

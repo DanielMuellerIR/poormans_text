@@ -181,7 +181,16 @@ enum DelimitedTextDecoder {
         guard bytes.count % 2 == 0 || truncated else {
             throw DelimitedTextError("the file has a UTF-16 byte-order mark but ends in half a character")
         }
-        let even = bytes.count % 2 == 0 ? Data(bytes) : Data(bytes.dropLast())
+        var even = bytes.count % 2 == 0 ? Data(bytes) : Data(bytes.dropLast())
+        if truncated, even.count >= 2 {
+            let last = even.count - 2
+            let unit = encoding == .utf16LittleEndian
+                ? UInt16(even[last]) | UInt16(even[last + 1]) << 8
+                : UInt16(even[last]) << 8 | UInt16(even[last + 1])
+            // Das Prüffenster darf auch zwischen den beiden Codeunits eines
+            // Surrogatpaars enden; nur dessen unvollständigen Anfang entfernen.
+            if (0xd800...0xdbff).contains(unit) { even.removeLast(2) }
+        }
         guard let text = String(data: even, encoding: encoding) else {
             throw DelimitedTextError("the file has a UTF-16 byte-order mark but invalid UTF-16 text")
         }

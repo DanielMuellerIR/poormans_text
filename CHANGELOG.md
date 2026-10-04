@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.16.4 — 2026-10-04
+
+- Validate embedded HTML images and extracted package media by their actual
+  raster content before publishing them as assets.
+- Preserve literal Markdown punctuation, entities and plain email body text;
+  rewrite multiline inline image links without changing their containers or titles.
+- Preserve UTF-16 surrogate pairs at CSV inspection and XLS continuation boundaries.
+  Read XLS workbook streams only from the compound document root.
+- Keep images inside OpenDocument presentation table cells and charge empty
+  spreadsheet rows against expansion limits before materializing them.
+- Preserve cancellation and timeout diagnostics during format detection and
+  prevent Pandoc installation from overlapping an active GUI conversion.
+
 ## 0.16.3 — 2026-10-03
 
 - Preserve notebook and Textbundle image targets in multiline Markdown reference

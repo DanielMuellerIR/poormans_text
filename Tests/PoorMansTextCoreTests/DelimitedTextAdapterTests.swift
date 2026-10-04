@@ -6,6 +6,20 @@ import XCTest
 /// Endung entscheidet über die Erkennung, der Inhalt über Trennzeichen,
 /// Kodierung und Gültigkeit.
 final class DelimitedTextAdapterTests: XCTestCase {
+    func testUTF16SurrogateAtInspectionBoundarySurvivesRealConversion() throws {
+        let text = String(repeating: "a", count: 32_766) + "😀,ENDTOKEN\n"
+        for (index, encoding) in [String.Encoding.utf16LittleEndian, .utf16BigEndian].enumerated() {
+            let source = root.appendingPathComponent("utf16-\(index).csv")
+            let bom = encoding == .utf16LittleEndian ? Data([0xff, 0xfe]) : Data([0xfe, 0xff])
+            let bytes = bom + (try XCTUnwrap(text.data(using: encoding)))
+            try bytes.write(to: source)
+            let result = try DocumentConverter().convert(ConversionRequest(inputURL: source))
+            let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+            XCTAssertTrue(markdown.contains(String(repeating: "a", count: 32_766) + "😀"))
+            XCTAssertEqual(markdown.components(separatedBy: "ENDTOKEN").count - 1, 1)
+            XCTAssertEqual(try Data(contentsOf: source), bytes)
+        }
+    }
     private var root: URL!
 
     override func setUpWithError() throws {

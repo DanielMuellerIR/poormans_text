@@ -4,6 +4,44 @@ import XCTest
 @testable import PoorMansTextCore
 
 final class ReviewOctoberTests: XCTestCase {
+    func testMultilineInlineLinksPreserveContainersAndFollowingText() throws {
+        let target = "attachment:pic.png"
+        let sources = [
+            "![x](\nattachment:pic.png\n) tail [y](attachment:pic.png)",
+            "![x](attachment:pic.png\n\"title `literal`\") tail [y](attachment:pic.png)",
+            "> ![x](\n> attachment:pic.png\n> ) tail [y](attachment:pic.png)",
+            "- ![x](\n  attachment:pic.png\n  \"title\") tail [y](attachment:pic.png)",
+            "![x](attachment:pic.png )",
+            "> - ![x](\n>   attachment:pic.png\n>   \"Titel\n>   fortgesetzt\") tail [y](attachment:pic.png)",
+            "[web](https://example.test\n\"Title`literal\") ![x](attachment:pic.png)"
+        ]
+        for source in sources {
+            XCTAssertEqual(try MarkdownLinkTargetRewriter.resourceCandidates(in: source, maximum: 2, checking: {}), source.hasPrefix("[web]") ? [target, "https://example.test"] : [target])
+            XCTAssertEqual(MarkdownLinkTargetRewriter.replacing(in: source, mapping: [target: "images/pic.png"]),
+                           source.replacingOccurrences(of: target, with: "images/pic.png"))
+        }
+        for source in ["`![x](\nattachment:pic.png\n)`", "![x](\n\nattachment:pic.png\n)", "![x](\n# heading\nattachment:pic.png)", "```\n![x](\nattachment:pic.png\n)\n```"] {
+            XCTAssertEqual(try MarkdownLinkTargetRewriter.resourceCandidates(in: source, maximum: 1, checking: {}), [])
+            XCTAssertEqual(MarkdownLinkTargetRewriter.replacing(in: source, mapping: [target: "images/pic.png"]), source)
+        }
+    }
+    func testLongInlineBlockChecksCancellationDuringBothScans() throws {
+        let source = String(repeating: "a", count: 100_000) + " ![x](attachment:pic.png)"
+        for threshold in [10, 150] {
+            var checks = 0
+            XCTAssertThrowsError(try MarkdownLinkTargetRewriter.resourceCandidates(in: source, maximum: 1, checking: {
+                checks += 1
+                if checks == threshold { throw ConversionError.cancelled }
+            })) { error in
+                guard case ConversionError.cancelled = error else { return XCTFail("Unexpected error: \(error)") }
+            }
+            XCTAssertEqual(checks, threshold)
+        }
+        let ticks = String(repeating: "`literal` ", count: 20_000) + "![x](attachment:pic.png)"
+        XCTAssertEqual(MarkdownLinkTargetRewriter.replacing(in: ticks, mapping: ["attachment:pic.png": "images/pic.png"]),
+                       ticks.replacingOccurrences(of: "attachment:pic.png", with: "images/pic.png"))
+    }
+
     func testNamedRelatedRootAndUndecodableResource() throws {
         for start in ["", "; start=\"<root>\""] {
             let source = """
@@ -134,7 +172,7 @@ final class ReviewOctoberTests: XCTestCase {
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: root) }
         let png = try Data(contentsOf: URL(fileURLWithPath: #filePath).deletingLastPathComponent().appendingPathComponent("Fixtures/WordProcessing/fixture.png"))
-        for (index, source) in ["![image](attachment:pic.png)", "![image][id]\n\n[id]: attachment:pic.png", "> ![image][id]\n>\n> [id]: attachment:pic.png", "![image][id]\n\n[id]:\n  attachment:pic.png", "![x][id]\n\n[id]: attachment:pic.png \"first\nsecond\"", "![x][long label]\n\n[long\nlabel]: attachment:pic.png", #"![x](attachment:a\(b\).png)"#, "![x](attachment:a&lpar;b&rpar;.png)", (0..<4_097).map { "[x](missing\($0).png" }.joined(separator: "\n") + "\n\n![image](attachment:pic.png)"].enumerated() {
+        for (index, source) in ["![image](attachment:pic.png)", "![image](\nattachment:pic.png\n)", "> - ![image](\n>   attachment:pic.png\n>   \"title\n>   continued\")", "![image][id]\n\n[id]: attachment:pic.png", "> ![image][id]\n>\n> [id]: attachment:pic.png", "![image][id]\n\n[id]:\n  attachment:pic.png", "![x][id]\n\n[id]: attachment:pic.png \"first\nsecond\"", "![x][long label]\n\n[long\nlabel]: attachment:pic.png", #"![x](attachment:a\(b\).png)"#, "![x](attachment:a&lpar;b&rpar;.png)", (0..<4_097).map { "[x](missing\($0).png" }.joined(separator: "\n") + "\n\n![image](attachment:pic.png)"].enumerated() {
             let notebook: [String: Any] = ["nbformat": 4, "nbformat_minor": 5, "metadata": [:], "cells": [
                 ["cell_type": "markdown", "metadata": [:], "source": source,
                  "attachments": ["pic.png": ["image/png": png.base64EncodedString()], "a(b).png": ["image/png": png.base64EncodedString()]]]

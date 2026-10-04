@@ -6,6 +6,11 @@ import XCTest
 /// Quelldokument daran gehindert wird, im Ergebnis neue Markdown-Struktur zu
 /// bilden. PDF-Seitentext, OCR-Text und Abschnittsnamen laufen hier durch.
 final class MarkdownEscapingTests: XCTestCase {
+    func testEntitiesStrikethroughAndParenthesizedListsStayLiteral() {
+        XCTAssertEqual(MarkdownEscaping.literalBlock("&copy; ~~wichtig~~\n1) Inhalt"),
+                       "\\&copy; \\~\\~wichtig\\~\\~\n1\\) Inhalt")
+        XCTAssertEqual(MarkdownEscaping.heading("~~Titel~~"), "\\~\\~Titel\\~\\~")
+    }
     func testSetextUnderlinesCannotTurnATextLineIntoAHeading() {
         let escaped = MarkdownEscaping.literalBlock("Titel\n=====\nText")
 
@@ -15,7 +20,7 @@ final class MarkdownEscapingTests: XCTestCase {
     func testTildeFencesCannotOpenACodeBlock() {
         let escaped = MarkdownEscaping.literalBlock("~~~\nnoch Text")
 
-        XCTAssertEqual(escaped, "\\~~~\nnoch Text")
+        XCTAssertEqual(escaped, "\\~\\~\\~\nnoch Text")
     }
 
     func testOrdinaryTextStaysUntouched() {

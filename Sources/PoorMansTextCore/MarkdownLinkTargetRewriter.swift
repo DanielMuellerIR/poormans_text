@@ -70,11 +70,7 @@ enum MarkdownLinkTargetRewriter {
         var result = ""
         var fencedCode: MarkdownFenceState?
         var htmlBlock: MarkdownHTMLBlockState?
-        var inlineCodeTicks: Int?
-        var bracketDepth = 0
         var containers = MarkdownContainerState()
-        var inlineBlockEnd: String.Index?
-        let backtickIndex = BacktickRunIndex(markdown)
 
         let lines = markdown.split(separator: "\n", omittingEmptySubsequences: false)
         var consumedLine: Int?
@@ -103,9 +99,6 @@ enum MarkdownLinkTargetRewriter {
                 if activeHTMLBlock.ends(in: htmlCandidate) {
                     htmlBlock = nil
                 }
-                inlineCodeTicks = nil
-                bracketDepth = 0
-                inlineBlockEnd = nil
                 containers.canStartIndentedCode = true
                 if line.endIndex != markdown[...].endIndex {
                     result += "\n"
@@ -137,16 +130,13 @@ enum MarkdownLinkTargetRewriter {
                 if !state.ends(in: context.fenceCandidate) {
                     htmlBlock = state
                 }
-                inlineCodeTicks = nil
-                bracketDepth = 0
-                inlineBlockEnd = nil
                 containers.canStartIndentedCode = true
                 if line.endIndex != markdown[...].endIndex {
                     result += "\n"
                 }
                 continue
             }
-            if !context.isIndentedCode, inlineCodeTicks == nil,
+            if !context.isIndentedCode,
                !paragraphWasOpen || context.startsNewInlineBlock || markdownContainerChanged {
                 var definitionText = context.fenceCandidate
                 var definitionLines = [text]
@@ -203,25 +193,14 @@ enum MarkdownLinkTargetRewriter {
                     consumedLine = lineNumber + definitionLines.count - 1
                     containers = continuationContainers
                     containers.canStartIndentedCode = true
-                    inlineBlockEnd = nil
-                    if lines[consumedLine!].endIndex != markdown.endIndex { result += "\n" }
+                        if lines[consumedLine!].endIndex != markdown.endIndex { result += "\n" }
                     continue
                 }
-            }
-            if context.isBlank || context.startsNewInlineBlock
-                || openingFence(context.fenceCandidate) != nil {
-                // Inline-Konstrukte enden an der Markdown-Blockgrenze. Ein
-                // Backtick in einem späteren Block darf daher weder einen
-                // Code-Span schließen noch einen offenen Linktext fortsetzen.
-                inlineCodeTicks = nil
-                bracketDepth = 0
-                inlineBlockEnd = nil
             }
             if context.isIndentedCode {
                 result += text
                 containers.canStartIndentedCode = true
-            } else if inlineCodeTicks == nil,
-                      let fence = openingFence(context.fenceCandidate) {
+            } else if let fence = openingFence(context.fenceCandidate) {
                 result += text
                 fencedCode = MarkdownFenceState(
                     marker: fence.marker,
@@ -231,31 +210,16 @@ enum MarkdownLinkTargetRewriter {
                 )
                 containers.canStartIndentedCode = true
             } else {
-                var lookaheadContainers = containers
-                lookaheadContainers.canStartIndentedCode = context.isBlank
-                    || !context.allowsParagraphContinuation
-                if inlineBlockEnd == nil {
-                    inlineBlockEnd = context.allowsParagraphContinuation
-                        ? followingInlineBlockEnd(
-                            after: line,
-                            in: markdown,
-                            containers: lookaheadContainers
-                        )
-                        : line.endIndex
-                }
-                result += rewriteInline(
-                    text,
-                    in: markdown,
-                    sourceLineStart: line.startIndex,
-                    inlineBlockEnd: inlineBlockEnd ?? line.endIndex,
-                    backtickIndex: backtickIndex,
-                    mapping: mapping,
-                    targetObserver: targetObserver,
-                    inlineCodeTicks: &inlineCodeTicks,
-                    bracketDepth: &bracketDepth
+                let rewritten = try rewriteInlineBlock(
+                    lines, startingAt: lineNumber, in: markdown,
+                    firstContext: context, containers: containers,
+                    mapping: mapping, targetObserver: targetObserver, check: check
                 )
-                containers.canStartIndentedCode = context.isBlank
-                    || !context.allowsParagraphContinuation
+                result += rewritten.text
+                consumedLine = rewritten.lastLine
+                containers = rewritten.containers
+                if lines[rewritten.lastLine].endIndex != markdown.endIndex { result += "\n" }
+                continue
             }
             if line.endIndex != markdown[...].endIndex {
                 result += "\n"
@@ -264,46 +228,75 @@ enum MarkdownLinkTargetRewriter {
         return result
     }
 
-    /// Liefert nur den Rest des aktuellen Absatzes. Code-Spans dürfen zwar
-    /// weiche Zeilenumbrüche enthalten, aber keine Markdown-Blockgrenze wie
-    /// Leerzeile, Überschrift, Liste, Zitatwechsel oder Fence überqueren.
-    private static func followingInlineBlockEnd(
-        after line: Substring,
-        in markdown: String,
-        containers: MarkdownContainerState
-    ) -> String.Index {
-        let following = markdown[line.endIndex...]
-        guard !following.isEmpty else { return following.endIndex }
-
-        var lookaheadContainers = containers
-        var lineStart = following.startIndex
-        if following[lineStart] == "\n" {
-            lineStart = following.index(after: lineStart)
-        }
-        while lineStart < following.endIndex {
-            let lineEnd = following[lineStart...].firstIndex(of: "\n")
-                ?? following.endIndex
-            let candidate = following[lineStart..<lineEnd]
-            let previousQuoteDepth = lookaheadContainers.quoteDepth
-            let previousListContentIndents = lookaheadContainers.listContentIndents
-            let context = lineContext(String(candidate), containers: &lookaheadContainers)
-            let markdownContainerChanged = previousQuoteDepth != lookaheadContainers.quoteDepth
-                || previousListContentIndents != lookaheadContainers.listContentIndents
-            let openingHTML = openingHTMLBlock(context.fenceCandidate)
-            let interruptsWithHTML = !context.isIndentedCode
-                && (openingHTML?.canInterruptParagraph == true
-                    || (openingHTML != nil && markdownContainerChanged))
-            if context.isBlank || context.startsNewInlineBlock
-                || openingFence(context.fenceCandidate) != nil
-                || interruptsWithHTML {
-                return lineStart
+    /// Ein Inlineblock wird einmal ohne Container-Präfixe gescannt. Nur die
+    /// Zielbereiche werden anschließend im Original ersetzt; Zitatmarker,
+    /// Einzüge, Umbrüche und Titel bleiben dadurch bytegleich erhalten.
+    private static func rewriteInlineBlock(
+        _ lines: [Substring], startingAt firstLine: Int, in markdown: String,
+        firstContext: MarkdownLineContext, containers initialContainers: MarkdownContainerState,
+        mapping: [String: String], targetObserver: ((String) -> Void)?, check: (() throws -> Void)?
+    ) throws -> (text: String, lastLine: Int, containers: MarkdownContainerState) {
+        var contents = [firstContext.fenceCandidate]
+        var originalStarts = [lines[firstLine].index(lines[firstLine].endIndex, offsetBy: -firstContext.fenceCandidate.count)]
+        var containers = initialContainers
+        containers.canStartIndentedCode = firstContext.isBlank || !firstContext.allowsParagraphContinuation
+        var lastLine = firstLine
+        if firstContext.allowsParagraphContinuation {
+            while lastLine + 1 < lines.count {
+                try check?()
+                let next = lines[lastLine + 1]
+                var nextContainers = containers
+                let context = lineContext(String(next), containers: &nextContainers)
+                let changed = containers.quoteDepth != nextContainers.quoteDepth
+                    || containers.listContentIndents != nextContainers.listContentIndents
+                let html = openingHTMLBlock(context.fenceCandidate)
+                let interruptsWithHTML = !context.isIndentedCode
+                    && (html?.canInterruptParagraph == true || (html != nil && changed))
+                if context.isBlank || context.startsNewInlineBlock
+                    || openingFence(context.fenceCandidate) != nil || interruptsWithHTML { break }
+                contents.append(context.fenceCandidate)
+                originalStarts.append(next.index(next.endIndex, offsetBy: -context.fenceCandidate.count))
+                nextContainers.canStartIndentedCode = context.isBlank || !context.allowsParagraphContinuation
+                containers = nextContainers
+                lastLine += 1
+                if !context.allowsParagraphContinuation { break }
             }
-            lookaheadContainers.canStartIndentedCode = context.isBlank
-                || !context.allowsParagraphContinuation
-            guard lineEnd < following.endIndex else { break }
-            lineStart = following.index(after: lineEnd)
         }
-        return following.endIndex
+        let logical = contents.joined(separator: "\n")
+        let segments = logical.split(separator: "\n", omittingEmptySubsequences: false)
+        var segment = 0
+        var logicalCursor = logical.startIndex
+        var originalCursor = originalStarts[0]
+        var edits: [(range: Range<String.Index>, replacement: String)] = []
+        var ticks: Int?
+        var brackets = 0
+        _ = try rewriteInline(
+            logical, inlineBlockEnd: logical.endIndex,
+            backtickIndex: try BacktickRunIndex(logical, check: check), mapping: mapping, targetObserver: targetObserver,
+            replacementObserver: { range, replacement in
+                while segment + 1 < segments.count, range.lowerBound >= segments[segment].endIndex {
+                    segment += 1
+                    logicalCursor = segments[segment].startIndex
+                    originalCursor = originalStarts[segment]
+                }
+                guard range.lowerBound >= logicalCursor, range.upperBound <= segments[segment].endIndex else { return }
+                let start = markdown.index(originalCursor, offsetBy: logical.distance(from: logicalCursor, to: range.lowerBound))
+                let end = markdown.index(start, offsetBy: logical.distance(from: range.lowerBound, to: range.upperBound))
+                edits.append((start..<end, replacement))
+                logicalCursor = range.upperBound
+                originalCursor = end
+            }, check: check, inlineCodeTicks: &ticks, bracketDepth: &brackets
+        )
+        var output = ""
+        var cursor = lines[firstLine].startIndex
+        for edit in edits {
+            try check?()
+            output += markdown[cursor..<edit.range.lowerBound]
+            output += edit.replacement
+            cursor = edit.range.upperBound
+        }
+        output += markdown[cursor..<lines[lastLine].endIndex]
+        return (output, lastLine, containers)
     }
 
     /// Indexiert jeden Backtick-Lauf einmal. Eine binäre Suche beantwortet
@@ -312,10 +305,12 @@ enum MarkdownLinkTargetRewriter {
     private struct BacktickRunIndex {
         private let startsByLength: [Int: [String.Index]]
 
-        init(_ markdown: String) {
+        init(_ markdown: String, check: (() throws -> Void)?) throws {
             var starts = [Int: [String.Index]]()
             var index = markdown.startIndex
+            var scanned = 0
             while index < markdown.endIndex {
+                if scanned % 1_024 == 0 { try check?() }; scanned += 1
                 guard markdown[index] == "`" else {
                     index = markdown.index(after: index)
                     continue
@@ -726,18 +721,20 @@ enum MarkdownLinkTargetRewriter {
 
     private static func rewriteInline(
         _ line: String,
-        in markdown: String,
-        sourceLineStart: String.Index,
         inlineBlockEnd: String.Index,
         backtickIndex: BacktickRunIndex,
         mapping: [String: String],
         targetObserver: ((String) -> Void)?,
+        replacementObserver: ((Range<String.Index>, String) -> Void)?,
+        check: (() throws -> Void)?,
         inlineCodeTicks: inout Int?,
         bracketDepth: inout Int
-    ) -> String {
+    ) throws -> String {
         var result = ""
         var index = line.startIndex
+        var scanned = 0
         while index < line.endIndex {
+            if scanned % 1_024 == 0 { try check?() }; scanned += 1
             let character = line[index]
             if let closingTickCount = inlineCodeTicks {
                 // Backslashes haben in einem Code-Span keine Escape-Funktion.
@@ -775,13 +772,9 @@ enum MarkdownLinkTargetRewriter {
                 // Ein Backtick-Run ohne gleich langen Abschluss ist laut GFM
                 // nur Literaltext. Dann bleibt der Inline-Scanner aktiv und
                 // kann echte Links hinter diesem Run weiter umschreiben.
-                let absoluteRunEnd = markdown.index(
-                    sourceLineStart,
-                    offsetBy: line.distance(from: line.startIndex, to: runEnd)
-                )
                 if backtickIndex.hasRun(
                     ofLength: count,
-                    after: absoluteRunEnd,
+                    after: runEnd,
                     before: inlineBlockEnd
                 ) {
                     inlineCodeTicks = count
@@ -803,6 +796,9 @@ enum MarkdownLinkTargetRewriter {
                     targetObserver: targetObserver
                    ) {
                     result += line[index..<replacement.end]
+                    if replacement.text != line[replacement.end..<replacement.originalPathEnd] {
+                        replacementObserver?(replacement.end..<replacement.originalPathEnd, replacement.text)
+                    }
                     result += replacement.text
                     result += line[replacement.originalPathEnd..<replacement.resumeAt]
                     index = replacement.resumeAt
@@ -947,7 +943,7 @@ enum MarkdownLinkTargetRewriter {
         let pathEnd = destination.range.upperBound
         guard let linkEnd = inlineLinkEnd(in: line, afterPath: pathEnd, usesAngles: destination.usesAngles) else { return nil }
         targetObserver?(decodedTarget(target))
-        guard let replacement = mappedTarget(target, mapping: mapping) else { return nil }
+        let replacement = mappedTarget(target, mapping: mapping) ?? target
         return (pathStart, replacement, pathEnd, linkEnd)
     }
 
@@ -1033,6 +1029,7 @@ enum MarkdownLinkTargetRewriter {
             index = line.index(after: index)
         }
         guard hadWhitespace, index < line.endIndex else { return nil }
+        if line[index] == ")" { return line.index(after: index) }
 
         let opener = line[index]
         let closer: Character

@@ -117,9 +117,17 @@ public struct DocumentConverter: Sendable {
         _ cancellation: ConversionCancellationToken?,
         _ processTimeout: TimeInterval?,
         _ body: () throws -> T
-    ) rethrows -> T {
+    ) throws -> T {
         if ConversionExecution.current != nil, cancellation == nil, processTimeout == nil {
-            return try body()
+            do {
+                try ConversionExecution.check()
+                let result = try body()
+                try ConversionExecution.check()
+                return result
+            } catch {
+                try ConversionExecution.check()
+                throw error
+            }
         }
         let inherited = ConversionExecution.current
         let context = ConversionExecution.Context(
@@ -130,7 +138,17 @@ public struct DocumentConverter: Sendable {
             protectedInputs: inherited?.protectedInputs ?? [],
             plannedSources: inherited?.plannedSources ?? [:]
         )
-        return try ConversionExecution.$current.withValue(context) { try body() }
+        return try ConversionExecution.$current.withValue(context) {
+            do {
+                try context.cancellation.checkCancellation()
+                let result = try body()
+                try context.cancellation.checkCancellation()
+                return result
+            } catch {
+                try context.cancellation.checkCancellation()
+                throw error
+            }
+        }
     }
 
     public func convert(

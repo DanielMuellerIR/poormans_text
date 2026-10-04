@@ -24,6 +24,65 @@ final class PandocTextAdapterTests: XCTestCase {
 
     // MARK: - HTML
 
+    func testExtractedPackageMediaUsesTheSameImageValidation() throws {
+        let work = root.appendingPathComponent("extracted")
+        try FileManager.default.createDirectory(at: work, withIntermediateDirectories: false)
+        try Data("<html><script>alert(1)</script></html>".utf8).write(to: work.appendingPathComponent("evil.html"))
+        let png = try pngFixture()
+        try png.write(to: work.appendingPathComponent("misnamed.jpg"))
+        let resolution = try HTMLImageSourceResolver.resolve(
+            html: #"<img src="evil.html" alt="BAD"><img src="misnamed.jpg" alt="GOOD">"#,
+            baseDirectory: nil, baseURL: nil, subresources: [:], workDirectory: work)
+        XCTAssertEqual(resolution.missingImagesDropped, 1)
+        XCTAssertFalse(resolution.html.contains("evil.html"), resolution.html)
+        XCTAssertTrue(resolution.html.contains(".png"), resolution.html)
+        XCTAssertEqual(try Data(contentsOf: work.appendingPathComponent("misnamed.jpg")), png)
+    }
+
+    func testExtractedImageCannotCollideWithItsCopyName() throws {
+        let work = root.appendingPathComponent("collision")
+        let external = work.appendingPathComponent("external")
+        try FileManager.default.createDirectory(at: external, withIntermediateDirectories: true)
+        let png = try pngFixture()
+        let original = external.appendingPathComponent("local01.png")
+        try png.write(to: original)
+        let resolution = try HTMLImageSourceResolver.resolve(
+            html: #"<img src="external/local01.png">"#,
+            baseDirectory: nil, baseURL: nil, subresources: [:], workDirectory: work)
+        XCTAssertEqual(resolution.missingImagesDropped, 0)
+        XCTAssertTrue(resolution.html.contains("external/local01-"), resolution.html)
+        XCTAssertEqual(try Data(contentsOf: original), png)
+        let copies = try FileManager.default.contentsOfDirectory(at: external, includingPropertiesForKeys: nil)
+        XCTAssertEqual(copies.count, 2)
+        for copy in copies { XCTAssertEqual(try Data(contentsOf: copy), png) }
+    }
+
+    func testEmbeddedImagesAreValidatedByContentInRealConversion() throws {
+        try requirePandoc()
+        let png = try pngFixture()
+        let svg = Data(#"<svg xmlns="http://www.w3.org/2000/svg"><image href="https://example.invalid/remote.png"/><script>alert(1)</script></svg>"#.utf8)
+        let html = """
+        <html><body><p>START</p>
+        <img src="data:image/png;base64,\(Data("hello".utf8).base64EncodedString())" alt="NOTIMAGE">
+        <img src="data:image/svg+xml;base64,\(svg.base64EncodedString())" alt="UNSAFEVECTOR">
+        <img src="data:image/jpeg;base64,\(png.base64EncodedString())" alt="VALIDPNG">
+        <p>END</p></body></html>
+        """
+        let source = root.appendingPathComponent("embedded.html")
+        let original = Data(html.utf8)
+        try original.write(to: source)
+        let result = try DocumentConverter().convert(ConversionRequest(inputURL: source))
+        XCTAssertEqual(result.assets.map(\.pathExtension), ["png"])
+        if let asset = result.assets.first { XCTAssertEqual(try Data(contentsOf: asset), png) }
+        XCTAssertTrue(result.diagnostics.contains(.missingImagesDropped(2)), result.warnings.joined(separator: "\n"))
+        let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+        for token in ["START", "NOTIMAGE", "UNSAFEVECTOR", "VALIDPNG", "END"] {
+            XCTAssertEqual(markdown.components(separatedBy: token).count - 1, 1, markdown)
+        }
+        XCTAssertFalse(markdown.contains(".svg"), markdown)
+        XCTAssertEqual(try Data(contentsOf: source), original)
+    }
+
     func testImageAttributesAndAltEntitiesSurviveRealConversion() throws {
         try requirePandoc()
         let png = try pngFixture()

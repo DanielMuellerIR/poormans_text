@@ -280,6 +280,26 @@ final class PresentationNotebookTests: XCTestCase {
         XCTAssertFalse(result.diagnostics.contains { $0.code == "presentation.imageUnavailable" })
     }
 
+    func testODPTableCellImagesAndTextSurviveRealConversion() throws {
+        let body = """
+        <table:table><table:table-row table:number-rows-repeated="2"><table:table-cell table:number-columns-repeated="3"><text:p>CELLTOKEN<draw:frame><draw:image xlink:href="Pictures/p.png"/></draw:frame></text:p></table:table-cell></table:table-row></table:table>
+        """
+        let image = try png
+        let original = try ZIPFixtureBuilder.archive(entries: [
+            entry("mimetype", "application/vnd.oasis.opendocument.presentation"), entry("content.xml", odpDocument(body)),
+            .init(name: "Pictures/p.png", content: image)
+        ])
+        let source = root.appendingPathComponent("table-image.odp")
+        try original.write(to: source)
+        let result = try DocumentConverter().convert(ConversionRequest(inputURL: source))
+        XCTAssertEqual(result.assets.count, 1)
+        if let asset = result.assets.first { XCTAssertEqual(try Data(contentsOf: asset), image) }
+        let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+        XCTAssertEqual(markdown.components(separatedBy: "CELLTOKEN").count - 1, 6, markdown)
+        XCTAssertEqual(markdown.components(separatedBy: "![Slide image]").count - 1, 6, markdown)
+        XCTAssertEqual(try Data(contentsOf: source), original)
+    }
+
     /// Dasselbe Bild mit drei Verweisen wird einmal aus dem Paket gelesen;
     /// vorher holte der Leser den Eintrag je `a:blip` erneut und hashte ihn neu.
     func testAnImageReferencedSeveralTimesIsReadFromThePackageOnce() throws {

@@ -60,13 +60,13 @@ final class MailBodyConverterTests: XCTestCase {
         let output = root.appendingPathComponent("result")
         try FileManager.default.createDirectory(at: work, withIntermediateDirectories: false)
         try FileManager.default.createDirectory(at: output, withIntermediateDirectories: false)
-        let text = "# literal heading\n<script>VISIBLE_LITERAL</script>\n![image](file:///private.png)"
+        let text = "# literal heading\n<script>VISIBLE_LITERAL</script>\n![image](file:///private.png)\n- literal\n____\nweiter\n\n    *INDENTED*\n    <tag>"
         let part = try MIMEMessage.read(Data(("Subject: plain\nContent-Type: text/plain; charset=utf-8\n\n" + text).utf8))
         let context = AdapterConversionContext(inputURL: root.appendingPathComponent("plain.eml"), format: InputFormat(rawValue: "eml"),
             workDirectory: work, stagedOutputDirectory: output, options: ConversionOptions())
         let result = try MailBodyConverter.convert(part, context: context)
         let markdown = try String(contentsOf: output.appendingPathComponent(result.markdownRelativePath), encoding: .utf8)
-        XCTAssertTrue(markdown.contains("VISIBLE_LITERAL"))
+        XCTAssertTrue(markdown.contains("VISIBLE\\_LITERAL"))
         XCTAssertFalse(markdown.hasPrefix("# literal heading"))
         XCTAssertFalse(markdown.contains("<script>"))
         XCTAssertTrue(result.assetRelativePaths.isEmpty)

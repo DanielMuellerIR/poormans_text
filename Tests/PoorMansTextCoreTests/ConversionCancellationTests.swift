@@ -5,6 +5,28 @@ import XCTest
 @testable import PoorMansTextAppSupport
 
 final class ConversionCancellationTests: XCTestCase {
+    func testDetectionPreservesCancellationAndTimeoutAfterAdapterTranslation() throws {
+        let source = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".doc")
+        let bytes = try MSGEmbeddedWriter.compound([["WordDocument"]: Data(repeating: 0, count: 4096)])
+        try bytes.write(to: source)
+        defer { try? FileManager.default.removeItem(at: source) }
+        for reason in [ConversionError.processTimedOut, .cancelled] {
+            let adapter = LegacyWordAdapter(inspectWord: { _ in
+                ConversionExecution.current!.cancellation.stop(reason)
+                throw reason
+            })
+            let converter = DocumentConverter(adapters: [adapter])
+            for operation in [{ _ = try converter.inspect(source) }, { _ = try converter.detectFormat(at: source) }] {
+                XCTAssertThrowsError(try operation()) { error in
+                    switch (reason, error) {
+                    case (.processTimedOut, ConversionError.processTimedOut), (.cancelled, ConversionError.cancelled): break
+                    default: XCTFail("Wrong detection error: \(error)")
+                    }
+                }
+            }
+        }
+        XCTAssertEqual(try Data(contentsOf: source), bytes)
+    }
     private var root: URL!
     override func setUpWithError() throws {
         root = FileManager.default.temporaryDirectory.appendingPathComponent("Cancellation-\(UUID())")

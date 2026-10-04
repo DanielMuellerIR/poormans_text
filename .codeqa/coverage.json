@@ -1,28 +1,28 @@
 {
   "architecture": {
-    "campaign_id": "20261002-timeboxed-review",
+    "campaign_id": "20261004-timeboxed-review",
     "fit": "passt",
-    "observed_head": "48b6c46eaee6f91b8d8d709ff11a97a4ea7c0919",
+    "observed_head": "5b98b665ea37d74c7d0dcebbff3ff6f8013443fc",
     "paradigm": "Schichtenmodell mit Adapter-Registry (Kern-Orchestrator + Format-Adapter, dünne CLI/GUI-Frontends)",
-    "recommendation": "Kein Paradigmenwechsel nötig. HTML-Bildattribute, Markdown-Codecontainer und Release-Hashvergleich wurden an ihren bestehenden gemeinsamen Grenzen vereinheitlicht.",
-    "recorded_at": "2026-10-02T16:55:56+02:00",
-    "summary": "Schichtenmodell mit Formatadaptern und gemeinsamen sicheren Datei-/Prozessgrenzen. SwiftUI bleibt im App-Target; CLI und AppModel verwenden den wiederverwendbaren Konvertierungskern."
+    "recommendation": "Kein Paradigmenwechsel nötig. Gemeinsame Bildvalidierung, Markdown-Maskierung und Abbruchkontexte an ihren bestehenden Modulgrenzen verwenden.",
+    "recorded_at": "2026-10-04T17:10:23+02:00",
+    "summary": "Schichtenmodell mit Formatadaptern und gemeinsamen sicheren Datei-/Prozessgrenzen. SwiftUI bleibt im App-Target; CLI und AppModel verwenden den Konvertierungskern."
   },
   "areas": [
     {
       "id": "converter-engine",
       "last_run": {
-        "campaign_id": "20261002-timeboxed-review",
+        "campaign_id": "20261004-timeboxed-review",
         "mode": "timeboxed",
-        "completed_at": "2026-10-02T16:55:56+02:00",
-        "observed_head": "48b6c46eaee6f91b8d8d709ff11a97a4ea7c0919",
-        "content_sha256": "ed54150ec2f2dfc3dea7ec0c691f8ed084953c0d1ae535eefc22ddca901e024c",
+        "completed_at": "2026-10-04T17:10:23+02:00",
+        "observed_head": "5b98b665ea37d74c7d0dcebbff3ff6f8013443fc",
+        "content_sha256": "d4862eb6e7b02ed085e89fb0a7ce842583e1085bef7d53caf195a09c6290bb54",
         "file_count": 34,
         "review": "full",
         "outcome": "improved",
-        "summary": "Prozessgruppen vor Ausführung sicher feststellen und nach Ende des Hauptprozesses aufräumen; Version 0.16.2.",
+        "summary": "Erkennungs-Abbruch und Timeout nach Adapterfehlern erhalten; Produktversion 0.16.4.",
         "tests": [
-          "swift test: 656 total, 647 passed, 9 skipped, 0 failed",
+          "swift test: 675 total, 666 passed, 9 skipped, 0 failed",
           "./build.sh debug; verify_bundle.sh: passed"
         ],
         "test_source_review": "Risikoorientiert; geänderte Tests und direkte Grenzverträge gelesen, keine vollständige Lesebehauptung für sämtliche Testquellen."
@@ -71,17 +71,17 @@
     {
       "id": "zip-gate",
       "last_run": {
-        "campaign_id": "20261002-timeboxed-review",
+        "campaign_id": "20261004-timeboxed-review",
         "mode": "timeboxed",
-        "completed_at": "2026-10-02T16:55:56+02:00",
-        "observed_head": "48b6c46eaee6f91b8d8d709ff11a97a4ea7c0919",
+        "completed_at": "2026-10-04T17:10:23+02:00",
+        "observed_head": "5b98b665ea37d74c7d0dcebbff3ff6f8013443fc",
         "content_sha256": "3754de954f0235c325f01f86b9ae4b1624880e5ebec1dadf9bb4f39df84dad59",
         "file_count": 5,
         "review": "full",
-        "outcome": "improved",
-        "summary": "ZIP-Grenzen und Paketzugriffe geprüft; Fixture-Builder um kontrollierbare XLSX-Shared-Strings erweitert.",
+        "outcome": "reviewed-clean",
+        "summary": "Archivgrenzen, private Snapshots und Paketpfade gelesen; kein weiterer bestätigter Befund.",
         "tests": [
-          "swift test: 656 total, 647 passed, 9 skipped, 0 failed",
+          "swift test: 675 total, 666 passed, 9 skipped, 0 failed",
           "./build.sh debug; verify_bundle.sh: passed"
         ],
         "test_source_review": "Risikoorientiert; geänderte Tests und direkte Grenzverträge gelesen, keine vollständige Lesebehauptung für sämtliche Testquellen."
@@ -101,17 +101,17 @@
     {
       "id": "batch-orchestration",
       "last_run": {
-        "campaign_id": "20261002-timeboxed-review",
+        "campaign_id": "20261004-timeboxed-review",
         "mode": "timeboxed",
-        "completed_at": "2026-10-02T16:55:56+02:00",
-        "observed_head": "48b6c46eaee6f91b8d8d709ff11a97a4ea7c0919",
+        "completed_at": "2026-10-04T17:10:23+02:00",
+        "observed_head": "5b98b665ea37d74c7d0dcebbff3ff6f8013443fc",
         "content_sha256": "bf04e708d591a1cc3b99fb8a072c75e41f17a6506698ace173e3ee8c18710301",
         "file_count": 7,
         "review": "full",
-        "outcome": "improved",
-        "summary": "Batch-Planung und Abbruch geprüft; unzulässige Zustellreihenfolge im Test korrigiert und echte CLI-Fortschrittsregression ergänzt.",
+        "outcome": "reviewed-clean",
+        "summary": "Batch-Planung, atomare Veröffentlichung und Abbruchpfade gelesen; kein weiterer bestätigter Befund.",
         "tests": [
-          "swift test: 656 total, 647 passed, 9 skipped, 0 failed",
+          "swift test: 675 total, 666 passed, 9 skipped, 0 failed",
           "./build.sh debug; verify_bundle.sh: passed"
         ],
         "test_source_review": "Risikoorientiert; geänderte Tests und direkte Grenzverträge gelesen, keine vollständige Lesebehauptung für sämtliche Testquellen."
@@ -133,17 +133,17 @@
     {
       "id": "media-import",
       "last_run": {
-        "campaign_id": "20261002-timeboxed-review",
+        "campaign_id": "20261004-timeboxed-review",
         "mode": "timeboxed",
-        "completed_at": "2026-10-02T16:55:56+02:00",
-        "observed_head": "48b6c46eaee6f91b8d8d709ff11a97a4ea7c0919",
+        "completed_at": "2026-10-04T17:10:23+02:00",
+        "observed_head": "5b98b665ea37d74c7d0dcebbff3ff6f8013443fc",
         "content_sha256": "e5e166febcb7e483387a7e71e4388451526754bc037fa352d5b32d293cb616f1",
         "file_count": 16,
         "review": "full",
-        "outcome": "improved",
-        "summary": "PDF-/Bild-/OCR-Pfade geprüft; OCR-Raster nutzt das zulässige Pixelbudget ohne Rundungsüberschreitung.",
+        "outcome": "reviewed-clean",
+        "summary": "PDF-, Bild- und OCR-Pfade samt Raster- und Textgrenzen gelesen; kein weiterer bestätigter Befund.",
         "tests": [
-          "swift test: 656 total, 647 passed, 9 skipped, 0 failed",
+          "swift test: 675 total, 666 passed, 9 skipped, 0 failed",
           "./build.sh debug; verify_bundle.sh: passed"
         ],
         "test_source_review": "Risikoorientiert; geänderte Tests und direkte Grenzverträge gelesen, keine vollständige Lesebehauptung für sämtliche Testquellen."
@@ -174,17 +174,17 @@
     {
       "id": "spreadsheet-import",
       "last_run": {
-        "campaign_id": "20261002-timeboxed-review",
+        "campaign_id": "20261004-timeboxed-review",
         "mode": "timeboxed",
-        "completed_at": "2026-10-02T16:55:56+02:00",
-        "observed_head": "48b6c46eaee6f91b8d8d709ff11a97a4ea7c0919",
-        "content_sha256": "d70055b5888f51b9bedb09320a4bb37a55c281ea6ff4ddf856492b6912041bf4",
+        "completed_at": "2026-10-04T17:10:23+02:00",
+        "observed_head": "5b98b665ea37d74c7d0dcebbff3ff6f8013443fc",
+        "content_sha256": "7b6841ab8d70e2ab3ff71de5a50a6d7898faefab10b883395898c506e3256ceb",
         "file_count": 15,
         "review": "full",
         "outcome": "improved",
-        "summary": "CSV-Erkennung/Leerzeilen, BIFF8-Zeichendekodierung, XML-CDATAs und ODS-Textbudget korrigiert.",
+        "summary": "UTF-16-Grenzen in CSV und XLS, Wurzelbindung des XLS-Workbooks und leere XLS/XLSX-Zeilen im gemeinsamen Expansionsbudget korrigiert.",
         "tests": [
-          "swift test: 656 total, 647 passed, 9 skipped, 0 failed",
+          "swift test: 675 total, 666 passed, 9 skipped, 0 failed",
           "./build.sh debug; verify_bundle.sh: passed"
         ],
         "test_source_review": "Risikoorientiert; geänderte Tests und direkte Grenzverträge gelesen, keine vollständige Lesebehauptung für sämtliche Testquellen."
@@ -212,17 +212,17 @@
     {
       "id": "odm-master",
       "last_run": {
-        "campaign_id": "20261002-timeboxed-review",
+        "campaign_id": "20261004-timeboxed-review",
         "mode": "timeboxed",
-        "completed_at": "2026-10-02T16:55:56+02:00",
-        "observed_head": "48b6c46eaee6f91b8d8d709ff11a97a4ea7c0919",
-        "content_sha256": "c7491686f686f89ba632d100a3a37f010d2cfb4c0fad37c0e3677f5ea613be3a",
+        "completed_at": "2026-10-04T17:10:23+02:00",
+        "observed_head": "5b98b665ea37d74c7d0dcebbff3ff6f8013443fc",
+        "content_sha256": "3cd03897b4c7a871cbf264ed0511974fa6051b96e13ef4eb5a1334026fe12012",
         "file_count": 4,
         "review": "full",
-        "outcome": "improved",
-        "summary": "ODM-Leerzeichen und CDATA erhalten; Markdown-Codecontainer für die Normalisierung wiederverwendet.",
+        "outcome": "reviewed-clean",
+        "summary": "Master-Verknüpfungen und Text-/Paketgrenzen gelesen; kein weiterer bestätigter Befund.",
         "tests": [
-          "swift test: 656 total, 647 passed, 9 skipped, 0 failed",
+          "swift test: 675 total, 666 passed, 9 skipped, 0 failed",
           "./build.sh debug; verify_bundle.sh: passed"
         ],
         "test_source_review": "Risikoorientiert; geänderte Tests und direkte Grenzverträge gelesen, keine vollständige Lesebehauptung für sämtliche Testquellen."
@@ -241,17 +241,17 @@
     {
       "id": "pandoc-text",
       "last_run": {
-        "campaign_id": "20261002-timeboxed-review",
+        "campaign_id": "20261004-timeboxed-review",
         "mode": "timeboxed",
-        "completed_at": "2026-10-02T16:55:56+02:00",
-        "observed_head": "48b6c46eaee6f91b8d8d709ff11a97a4ea7c0919",
-        "content_sha256": "7d69a2e34dc4059d4659bce17bea561a631eba85c595d1c2cd5feeddb411dee2",
+        "completed_at": "2026-10-04T17:10:23+02:00",
+        "observed_head": "5b98b665ea37d74c7d0dcebbff3ff6f8013443fc",
+        "content_sha256": "5e4cdeb50d2cc30d3c23597bfaca63810c8fdee0e53efacb89c25c9b93ce448e",
         "file_count": 6,
         "review": "full",
         "outcome": "improved",
-        "summary": "Exakte HTML-Bildattribute gemeinsam lesen und Alt-Text-Zeichenreferenzen erhalten.",
+        "summary": "Eingebettete und extrahierte Medien durch gemeinsame Raster-Inhaltsprüfung führen; Paketdateien vor Namenskollisionen schützen.",
         "tests": [
-          "swift test: 656 total, 647 passed, 9 skipped, 0 failed",
+          "swift test: 675 total, 666 passed, 9 skipped, 0 failed",
           "./build.sh debug; verify_bundle.sh: passed"
         ],
         "test_source_review": "Risikoorientiert; geänderte Tests und direkte Grenzverträge gelesen, keine vollständige Lesebehauptung für sämtliche Testquellen."
@@ -283,17 +283,17 @@
       "risk": "high",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20261002-timeboxed-review",
+        "campaign_id": "20261004-timeboxed-review",
         "mode": "timeboxed",
-        "completed_at": "2026-10-02T16:55:56+02:00",
-        "observed_head": "48b6c46eaee6f91b8d8d709ff11a97a4ea7c0919",
-        "content_sha256": "d0b7ae5cc2f04dd2c2666dd974b60876197898096b0997978890214844cf1538",
+        "completed_at": "2026-10-04T17:10:23+02:00",
+        "observed_head": "5b98b665ea37d74c7d0dcebbff3ff6f8013443fc",
+        "content_sha256": "3a2d466264e40d40fb066b657ee55f42d8279ec4c0e3bf8bcc6e9b4e5d6e485d",
         "file_count": 5,
         "review": "full",
         "outcome": "improved",
-        "summary": "PPTX-Tabellen melden abgeflachte Hyperlinks; Präsentations-/Notebook-Grenzen geprüft.",
+        "summary": "ODP-Zellbilder samt Wiederholungen erhalten; mehrzeilige Notebook-Inlineziele in echten Dokumenten geprüft.",
         "tests": [
-          "swift test: 656 total, 647 passed, 9 skipped, 0 failed",
+          "swift test: 675 total, 666 passed, 9 skipped, 0 failed",
           "./build.sh debug; verify_bundle.sh: passed"
         ],
         "test_source_review": "Risikoorientiert; geänderte Tests und direkte Grenzverträge gelesen, keine vollständige Lesebehauptung für sämtliche Testquellen."
@@ -302,17 +302,17 @@
     {
       "id": "xml-shared-infra",
       "last_run": {
-        "campaign_id": "20261002-timeboxed-review",
+        "campaign_id": "20261004-timeboxed-review",
         "mode": "timeboxed",
-        "completed_at": "2026-10-02T16:55:56+02:00",
-        "observed_head": "48b6c46eaee6f91b8d8d709ff11a97a4ea7c0919",
+        "completed_at": "2026-10-04T17:10:23+02:00",
+        "observed_head": "5b98b665ea37d74c7d0dcebbff3ff6f8013443fc",
         "content_sha256": "4f1bc6b480805b4e51eb223c73a387ed46474a06524f7b21eeb5ee481fa78407",
         "file_count": 5,
         "review": "full",
-        "outcome": "improved",
-        "summary": "XML-Parserkonfiguration geprüft; erzeugte ODS-/ODM-/XLSX-Pakete belegen CDATA-Erhalt und Textbudgets.",
+        "outcome": "reviewed-clean",
+        "summary": "XML-Parserkonfiguration, Namespaces und gemeinsame Importstrukturen gelesen; kein weiterer bestätigter Befund.",
         "tests": [
-          "swift test: 656 total, 647 passed, 9 skipped, 0 failed",
+          "swift test: 675 total, 666 passed, 9 skipped, 0 failed",
           "./build.sh debug; verify_bundle.sh: passed"
         ],
         "test_source_review": "Risikoorientiert; geänderte Tests und direkte Grenzverträge gelesen, keine vollständige Lesebehauptung für sämtliche Testquellen."
@@ -342,17 +342,17 @@
       "risk": "high",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20261002-timeboxed-review",
+        "campaign_id": "20261004-timeboxed-review",
         "mode": "timeboxed",
-        "completed_at": "2026-10-02T16:55:56+02:00",
-        "observed_head": "48b6c46eaee6f91b8d8d709ff11a97a4ea7c0919",
-        "content_sha256": "cab9f5a2d44f8263652d8b11652f14b8a95378b110b0c8fe625a38484265a404",
+        "completed_at": "2026-10-04T17:10:23+02:00",
+        "observed_head": "5b98b665ea37d74c7d0dcebbff3ff6f8013443fc",
+        "content_sha256": "3a990fe895d1c510bf3a94aa7d8a9a3ccbe66f6cbbf0f726c1ca535a492a11a6",
         "file_count": 4,
         "review": "full",
-        "outcome": "improved",
-        "summary": "OLE-FAT-Sektoren vor Expansion auf Eindeutigkeit/Überlappung prüfen; Verzeichnisbytes vor Einlesen begrenzen.",
+        "outcome": "reviewed-clean",
+        "summary": "OLE-Verzeichnis-/Sektorgrenzen und Speicherbaum gelesen; XLS bindet jetzt an den bereits vorhandenen validierten Wurzelbaum.",
         "tests": [
-          "swift test: 656 total, 647 passed, 9 skipped, 0 failed",
+          "swift test: 675 total, 666 passed, 9 skipped, 0 failed",
           "./build.sh debug; verify_bundle.sh: passed"
         ],
         "test_source_review": "Risikoorientiert; geänderte Tests und direkte Grenzverträge gelesen, keine vollständige Lesebehauptung für sämtliche Testquellen."
@@ -379,17 +379,17 @@
       "risk": "medium",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20261002-timeboxed-review",
+        "campaign_id": "20261004-timeboxed-review",
         "mode": "timeboxed",
-        "completed_at": "2026-10-02T16:55:56+02:00",
-        "observed_head": "48b6c46eaee6f91b8d8d709ff11a97a4ea7c0919",
+        "completed_at": "2026-10-04T17:10:23+02:00",
+        "observed_head": "5b98b665ea37d74c7d0dcebbff3ff6f8013443fc",
         "content_sha256": "ee5a2f6ea89f0570413ad82c2cc4b8c507ffcafc2200eda88f0df1b0837c4457",
         "file_count": 28,
         "review": "full",
-        "outcome": "improved",
-        "summary": "Word-/RTF-Konvertierung geprüft; HTML-Bildersetzung auf denselben Attributleser wie die Quellenprüfung umgestellt.",
+        "outcome": "reviewed-clean",
+        "summary": "DOCX-, ODT-, DOC-, RTF- und RTFD-Pfade gelesen; kein weiterer bestätigter Befund.",
         "tests": [
-          "swift test: 656 total, 647 passed, 9 skipped, 0 failed",
+          "swift test: 675 total, 666 passed, 9 skipped, 0 failed",
           "./build.sh debug; verify_bundle.sh: passed"
         ],
         "test_source_review": "Risikoorientiert; geänderte Tests und direkte Grenzverträge gelesen, keine vollständige Lesebehauptung für sämtliche Testquellen."
@@ -398,17 +398,17 @@
     {
       "id": "markdown-postprocess",
       "last_run": {
-        "campaign_id": "20261002-timeboxed-review",
+        "campaign_id": "20261004-timeboxed-review",
         "mode": "timeboxed",
-        "completed_at": "2026-10-02T16:55:56+02:00",
-        "observed_head": "48b6c46eaee6f91b8d8d709ff11a97a4ea7c0919",
-        "content_sha256": "560d4c4c8436c992b8b099901a59811170c8f39eba1162f0cbb5621e0892ba99",
-        "file_count": 6,
+        "completed_at": "2026-10-04T17:10:23+02:00",
+        "observed_head": "5b98b665ea37d74c7d0dcebbff3ff6f8013443fc",
+        "content_sha256": "c5d3175416aadbe2c43233f749e8b32bacf74c36f3f4c762333c43bae7dd4ae0",
+        "file_count": 7,
         "review": "full",
         "outcome": "improved",
-        "summary": "Code in Listen/Blockquotes vor Normalisierung schützen; gemeinsame Containererkennung verwenden.",
+        "summary": "Literale Entitäten, Tilden, Listenmarker und Einrückung erhalten; gemeinsame Maskierung nachgeprüft.",
         "tests": [
-          "swift test: 656 total, 647 passed, 9 skipped, 0 failed",
+          "swift test: 675 total, 666 passed, 9 skipped, 0 failed",
           "./build.sh debug; verify_bundle.sh: passed"
         ],
         "test_source_review": "Risikoorientiert; geänderte Tests und direkte Grenzverträge gelesen, keine vollständige Lesebehauptung für sämtliche Testquellen."
@@ -419,7 +419,8 @@
         "Tests/PoorMansTextCoreTests/MarkdownNormalizerTests.swift",
         "Tests/PoorMansTextCoreTests/ColoredTextMarkerTests.swift",
         "Sources/PoorMansTextCore/MarkdownEscaping.swift",
-        "Tests/PoorMansTextCoreTests/MarkdownEscapingTests.swift"
+        "Tests/PoorMansTextCoreTests/MarkdownEscapingTests.swift",
+        "Sources/PoorMansTextCore/MarkdownCharacterReferences.swift"
       ],
       "priority": 5,
       "reason": "Markdown-Rewriter mit AGENTS-Invariante zu Inline-Code und Fences",
@@ -429,17 +430,17 @@
     {
       "id": "cli",
       "last_run": {
-        "campaign_id": "20261002-timeboxed-review",
+        "campaign_id": "20261004-timeboxed-review",
         "mode": "timeboxed",
-        "completed_at": "2026-10-02T16:55:56+02:00",
-        "observed_head": "48b6c46eaee6f91b8d8d709ff11a97a4ea7c0919",
+        "completed_at": "2026-10-04T17:10:23+02:00",
+        "observed_head": "5b98b665ea37d74c7d0dcebbff3ff6f8013443fc",
         "content_sha256": "bbb5554dbdd33bbbc0686a777c7968d2b729ef14210a140a2fa448df6624c93b",
         "file_count": 7,
         "review": "full",
-        "outcome": "improved",
-        "summary": "Fortschrittssequenzprüfung und Ausgabe atomar unter derselben Sperre.",
+        "outcome": "reviewed-clean",
+        "summary": "Argumente, Ausgabe, Fortschritt und gemeinsame Konvertierungsgrenzen gelesen; kein weiterer bestätigter Befund.",
         "tests": [
-          "swift test: 656 total, 647 passed, 9 skipped, 0 failed",
+          "swift test: 675 total, 666 passed, 9 skipped, 0 failed",
           "./build.sh debug; verify_bundle.sh: passed"
         ],
         "test_source_review": "Risikoorientiert; geänderte Tests und direkte Grenzverträge gelesen, keine vollständige Lesebehauptung für sämtliche Testquellen."
@@ -458,19 +459,18 @@
     {
       "id": "app-support",
       "last_run": {
-        "campaign_id": "20261002-release-0.16.2",
-        "mode": "release-validation",
-        "completed_at": "2026-10-02T17:49:40+02:00",
-        "observed_head": "5f01c3308b45dbb634ecb67b83d2fb70d908f2e0",
-        "content_sha256": "8bd54fe7c1717a9ea20e06bf0b0bc432e96819712961813104184f6d91a5704c",
+        "campaign_id": "20261004-timeboxed-review",
+        "mode": "timeboxed",
+        "completed_at": "2026-10-04T17:10:23+02:00",
+        "observed_head": "5b98b665ea37d74c7d0dcebbff3ff6f8013443fc",
+        "content_sha256": "1fdef4fc3462738bb013483734da890d2dbd481eed87b4bd84ff5a617ea2cf25",
         "file_count": 23,
-        "review": "delta-plus-boundaries",
+        "review": "full",
         "outcome": "improved",
-        "summary": "Release-Nachprüfung: Homebrew-Timeout-Test berücksichtigt Shell-Startzeit unter Last; Zeitlimitfehler und Prozessbeendigung weiter geprüft. Signierter App-Start und echte Konvertierung auf zweitem Mac bestanden.",
+        "summary": "Pandoc-Installation und laufende Konvertierung schließen sich über dieselbe Zustandsfreigabe aus.",
         "tests": [
-          "swift test im identischen öffentlichen Produktstand: 656 total, 647 passed, 9 skipped, 0 failed",
-          "GitHub CI: beide Läufe erfolgreich",
-          "Notarisierter App-Start und Konvertierung auf zweitem Mac erfolgreich"
+          "swift test: 675 total, 666 passed, 9 skipped, 0 failed",
+          "./build.sh debug; verify_bundle.sh: passed"
         ],
         "test_source_review": "Risikoorientiert; geänderte Tests und direkte Grenzverträge gelesen, keine vollständige Lesebehauptung für sämtliche Testquellen."
       },
@@ -495,17 +495,17 @@
     {
       "id": "build-scripts",
       "last_run": {
-        "campaign_id": "20261002-timeboxed-review",
+        "campaign_id": "20261004-timeboxed-review",
         "mode": "timeboxed",
-        "completed_at": "2026-10-02T16:55:56+02:00",
-        "observed_head": "48b6c46eaee6f91b8d8d709ff11a97a4ea7c0919",
+        "completed_at": "2026-10-04T17:10:23+02:00",
+        "observed_head": "5b98b665ea37d74c7d0dcebbff3ff6f8013443fc",
         "content_sha256": "d0aca5d1dbcbac6a0aa1b091fa5ae7cd1e2d51e591e792d315a871850809fafe",
         "file_count": 24,
         "review": "full",
-        "outcome": "improved",
-        "summary": "Build-/Installations-/Release-Skripte geprüft; arm64 und x86_64 beim CodeDirectory-Vergleich erfassen.",
+        "outcome": "reviewed-clean",
+        "summary": "Alle 16 Shell- und drei Python-Skripte gelesen; Syntax, lokaler Debug-Build und Bundle-Prüfung erfolgreich.",
         "tests": [
-          "swift test: 656 total, 647 passed, 9 skipped, 0 failed",
+          "swift test: 675 total, 666 passed, 9 skipped, 0 failed",
           "./build.sh debug; verify_bundle.sh: passed"
         ],
         "test_source_review": "Risikoorientiert; geänderte Tests und direkte Grenzverträge gelesen, keine vollständige Lesebehauptung für sämtliche Testquellen."
@@ -529,17 +529,17 @@
     {
       "id": "ci-workflows",
       "last_run": {
-        "campaign_id": "20261002-timeboxed-review",
+        "campaign_id": "20261004-timeboxed-review",
         "mode": "timeboxed",
-        "completed_at": "2026-10-02T16:55:56+02:00",
-        "observed_head": "48b6c46eaee6f91b8d8d709ff11a97a4ea7c0919",
+        "completed_at": "2026-10-04T17:10:23+02:00",
+        "observed_head": "5b98b665ea37d74c7d0dcebbff3ff6f8013443fc",
         "content_sha256": "9f02c5effc751cb225662772ab6ede4f3fb9e6dafc2e4e38e6d8bcc7a5e8c4cd",
         "file_count": 2,
         "review": "full",
         "outcome": "reviewed-clean",
-        "summary": "Beide Workflows und Paket-/Signaturgrenzen gelesen; kein weiterer bestätigter Befund.",
+        "summary": "Beide CI-Workflows, Paket-Pinning und öffentliche Distributionsgrenzen gelesen; kein weiterer bestätigter Befund.",
         "tests": [
-          "swift test: 656 total, 647 passed, 9 skipped, 0 failed",
+          "swift test: 675 total, 666 passed, 9 skipped, 0 failed",
           "./build.sh debug; verify_bundle.sh: passed"
         ],
         "test_source_review": "Risikoorientiert; geänderte Tests und direkte Grenzverträge gelesen, keine vollständige Lesebehauptung für sämtliche Testquellen."
@@ -582,17 +582,17 @@
       "reason": "Mail-/MSG-Container, Textauswahl und Anhangserhalt mit gemeinsamen sicheren Konvertierungsgrenzen",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20261002-timeboxed-review",
+        "campaign_id": "20261004-timeboxed-review",
         "mode": "timeboxed",
-        "completed_at": "2026-10-02T16:55:56+02:00",
-        "observed_head": "48b6c46eaee6f91b8d8d709ff11a97a4ea7c0919",
-        "content_sha256": "2ad969fabe73c1a1026bb9c72c4cda05ee8f50e0615072fe4e7456835b49e7b7",
+        "completed_at": "2026-10-04T17:10:23+02:00",
+        "observed_head": "5b98b665ea37d74c7d0dcebbff3ff6f8013443fc",
+        "content_sha256": "7cf06b04c9781fd84251a3249deb85fe60da616c774aac04aba327114a55324c",
         "file_count": 20,
         "review": "full",
-        "outcome": "reviewed-clean",
-        "summary": "Alle eigenen Mail-/MSG-/MIME-Quellen gelesen; kein zusätzlicher bestätigter Befund. Externe Referenzkorpora fehlen.",
+        "outcome": "improved",
+        "summary": "Klartextkörper nach HTML/Pandoc-Normalisierung als maskiertes Markdown einsetzen; vollständiger Plaintext-Roundtrip geprüft.",
         "tests": [
-          "swift test: 656 total, 647 passed, 9 skipped, 0 failed",
+          "swift test: 675 total, 666 passed, 9 skipped, 0 failed",
           "./build.sh debug; verify_bundle.sh: passed"
         ],
         "test_source_review": "Risikoorientiert; geänderte Tests und direkte Grenzverträge gelesen, keine vollständige Lesebehauptung für sämtliche Testquellen."
@@ -1217,6 +1217,36 @@
         "Neun externe Referenzkorpus-/PDF-Matrix-Tests übersprungen",
         "Keine interaktive GUI-Prüfung",
         "Kein notarisiertes Universal-Release oder DMG-Lauf"
+      ]
+    },
+    {
+      "id": "20261004-timeboxed-review",
+      "mode": "timeboxed",
+      "status": "complete",
+      "time_budget_seconds": 3600,
+      "started_at": "2026-10-04T16:30:25+02:00",
+      "finished_at": "2026-10-04T17:10:23+02:00",
+      "elapsed_seconds": 2398,
+      "baseline_head": "035f763",
+      "observed_head": "5b98b665ea37d74c7d0dcebbff3ff6f8013443fc",
+      "report": ".codeqa/reviews/2026-10-04.md",
+      "scope": "Alle 87 eigenen Swift-Produktdateien und Build-/CI-Code; Testquellen risikoorientiert, komplette verfügbare Testsuite ausgeführt.",
+      "verification": {
+        "tests_total": 675,
+        "tests_passed": 666,
+        "tests_skipped": 9,
+        "tests_failed": 0,
+        "build": "./build.sh debug: passed",
+        "bundle": "scripts/verify_bundle.sh: passed",
+        "shell_syntax_files": 16,
+        "python_syntax_files": 3
+      },
+      "confirmed_findings_fixed": 13,
+      "open_confirmed_findings": 0,
+      "limitations": [
+        "Neun externe Referenzkorpus-/PDF-Matrix-Tests übersprungen",
+        "Keine interaktive oder visuelle GUI-Prüfung",
+        "Keine Notarisierung, Installation oder DMG-Prüfung"
       ]
     }
   ],

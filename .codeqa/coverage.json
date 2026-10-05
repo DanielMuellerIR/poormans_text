@@ -1275,6 +1275,36 @@
         37027888649
       ],
       "appcast_run": 37028928243
+    },
+    {
+      "id": "20261005-release-0.16.4",
+      "completed_at": "2026-10-05T09:37:08+02:00",
+      "version": "0.16.4",
+      "bundle_version": 31,
+      "public_commit": "c212cde782247aed8f3de42868f9582f29af0ed3",
+      "release_url": "https://github.com/DanielMuellerIR/poormans_text/releases/tag/v0.16.4",
+      "report": ".codeqa/reviews/2026-10-04.md",
+      "tests_total": 675,
+      "tests_passed": 666,
+      "tests_skipped": 9,
+      "tests_failed": 0,
+      "real_document_formats": 9,
+      "real_document_fixture_conversions": 10,
+      "known_limitations": [
+        "Pandoc 3.9.0.2 RTF reader replaces some supplementary Unicode characters; direct Pandoc reproduction and ROADMAP entry. RTFD fixture retains emoji and PNG."
+      ],
+      "notarized_app_and_dmg": true,
+      "universal_hashes_match": true,
+      "draft_download_byte_exact": true,
+      "second_mac_app_conversion": true,
+      "live_feed_signature_valid": true,
+      "live_archive_signature_valid": true,
+      "isolated_sparkle_update": "0.16.2 -> 0.16.4; subsequent app restart and conversion passed",
+      "ci_runs": [
+        37277545124,
+        37277546894
+      ],
+      "appcast_run": 37278252721
     }
   ]
 }

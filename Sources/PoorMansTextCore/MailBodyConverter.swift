@@ -10,6 +10,7 @@ enum MailBodyConverter {
                         resourceDirectory: URL? = nil) throws -> StagedConversionResult {
         let resources = try MailContent.subresources(selection.attachments)
         var warnings = selection.warnings
+        var literalBodies: [(marker: String, markdown: String)] = []
         let html = try selection.bodies.map { body in
             if body.isHTML {
                 let flattened = try flattenTables(body.text)
@@ -20,7 +21,12 @@ enum MailBodyConverter {
                 return flattened.html
             }
             let normalized = body.text.replacingOccurrences(of: "\r\n", with: "\n").replacingOccurrences(of: "\r", with: "\n")
-            return "<p>" + escapedHTML(normalized).replacingOccurrences(of: "\n", with: "<br>\n") + "</p>"
+            // Pandoc und die Rich-Text-Normalisierung können Listenmarker nach
+            // harten Umbrüchen wieder als Struktur ausgeben. Wörtliche Körper
+            // erst nach dieser Strecke als maskiertes Markdown einsetzen.
+            let marker = "PMTPlainBody" + UUID().uuidString.replacingOccurrences(of: "-", with: "")
+            literalBodies.append((marker, MarkdownEscaping.literalBlock(normalized).replacingOccurrences(of: "\n", with: "  \n")))
+            return "<p>" + marker + "</p>"
         }.joined(separator: "\n<hr>\n")
         let resolution = try HTMLImageSourceResolver.resolve(html: html, baseDirectory: resourceDirectory, baseURL: nil,
                                                              subresources: resources, workDirectory: context.workDirectory)
@@ -31,6 +37,19 @@ enum MailBodyConverter {
             format: context.format, resourceDirectory: context.workDirectory,
             stagedOutputDirectory: context.stagedOutputDirectory,
             pandocExecutable: PandocTool.resolve(context.options.pandocExecutable))
+        if !literalBodies.isEmpty {
+            let url = context.stagedOutputDirectory.appendingPathComponent(converted.markdownRelativePath)
+            do {
+                var markdown = try String(contentsOf: url, encoding: .utf8)
+                for body in literalBodies {
+                    guard markdown.contains(body.marker) else {
+                        throw ConversionError.fileSystemFailure("the converted mail body is missing its plain-text placeholder")
+                    }
+                    markdown = markdown.replacingOccurrences(of: body.marker, with: body.markdown)
+                }
+                try Data(markdown.utf8).write(to: url, options: .atomic)
+            } catch { throw ConversionError.fileSystemFailure(error.localizedDescription) }
+        }
         let attachments = try MailContent.stageAttachments(selection.attachments, in: context.stagedOutputDirectory)
         if !attachments.isEmpty {
             let url = context.stagedOutputDirectory.appendingPathComponent(converted.markdownRelativePath)
@@ -45,13 +64,6 @@ enum MailBodyConverter {
         }
         return StagedConversionResult(markdownRelativePath: converted.markdownRelativePath,
             assetRelativePaths: converted.assetRelativePaths + attachments.map(\.relativePath), warnings: warnings)
-    }
-
-    private static func escapedHTML(_ text: String) -> String {
-        text.replacingOccurrences(of: "&", with: "&amp;")
-            .replacingOccurrences(of: "<", with: "&lt;")
-            .replacingOccurrences(of: ">", with: "&gt;")
-            .replacingOccurrences(of: "\"", with: "&quot;")
     }
 
     private static func flattenTables(_ html: String) throws -> (html: String, changed: Bool) {

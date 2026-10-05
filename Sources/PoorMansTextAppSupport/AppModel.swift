@@ -625,7 +625,7 @@ public final class AppModel: ObservableObject {
             try PandocInstaller.installPandoc(brewExecutable: $0, cancellation: $1)
         }
     ) async throws -> Bool {
-        guard !isInstallingPandoc else {
+        guard acceptsNewDocuments else {
             return false
         }
         let cancellation = ConversionCancellationToken()

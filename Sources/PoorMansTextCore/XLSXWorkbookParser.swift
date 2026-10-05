@@ -33,11 +33,11 @@ enum OOXMLSpreadsheetKind: Equatable, Sendable {
 }
 
 enum XLSXWorkbookParser {
-    static func parse(packageAt url: URL) throws -> SpreadsheetWorkbook {
-        try parse(reader: ZIPArchiveInspector.inspectionSnapshot(at: url))
+    static func parse(packageAt url: URL, maximumCells: Int = SpreadsheetLimits.maximumCells) throws -> SpreadsheetWorkbook {
+        try parse(reader: ZIPArchiveInspector.inspectionSnapshot(at: url), maximumCells: maximumCells)
     }
 
-    static func parse(reader: any ZIPPackageReading) throws -> SpreadsheetWorkbook {
+    static func parse(reader: any ZIPPackageReading, maximumCells: Int = SpreadsheetLimits.maximumCells) throws -> SpreadsheetWorkbook {
         let metadata = try reader.contents(
             entryNames: [
                 "[Content_Types].xml",
@@ -136,7 +136,7 @@ enum XLSXWorkbookParser {
                 return try WorksheetParser.parse(
                     xml,
                     sharedStrings: sharedStrings,
-                    maximumCells: SpreadsheetLimits.maximumCells - expandedCellCount,
+                    maximumCells: maximumCells - expandedCellCount,
                     maximumTextBytes: SpreadsheetLimits.maximumOutputBytes - materializedTextBytes,
                     maximumHyperlinkScans: SpreadsheetLimits.maximumHyperlinkScans - hyperlinkScannedCells,
                     hyperlinkTargets: hyperlinkTargets
@@ -685,7 +685,7 @@ enum XLSXWorkbookParser {
                     }
                     while rows.count + 1 < rowNumber {
                         rows.append([])
-                        accountedRowWidths.append(0)
+                        accountedRowWidths.append(1)
                     }
                     currentRow = []
                 } else if elementName == "c", let row = currentRow {
@@ -793,7 +793,13 @@ enum XLSXWorkbookParser {
                 } else if elementName == "c" {
                     finishCell(parser: parser)
                 } else if elementName == "row", let row = currentRow {
-                    accountedRowWidths.append(row.count)
+                    if row.isEmpty {
+                        guard expandedCellCount < maximumCells else {
+                            return fail(SpreadsheetLimits.cellBudgetMessage, parser: parser)
+                        }
+                        expandedCellCount += 1
+                    }
+                    accountedRowWidths.append(max(1, row.count))
                     rows.append(trimmed(row))
                     currentRow = nil
                     guard rows.count <= SpreadsheetLimits.maximumRows else {
@@ -875,7 +881,9 @@ enum XLSXWorkbookParser {
                 }
 
                 if let display, !display.isEmpty {
-                    var addedCells = 0
+                    // Leere Zeilen vor dem Linkbereich kosten wie <row r=…>
+                    // eine Einheit, bevor ihre Arrays materialisiert werden.
+                    var addedCells = max(0, range.firstRow - rows.count)
                     var cellsToFill = 0
                     for rowIndex in range.firstRow...range.lastRow {
                         let accountedWidth = accountedRowWidths.indices.contains(rowIndex)
@@ -895,8 +903,8 @@ enum XLSXWorkbookParser {
                     try accountMaterializedText(display, repetitions: cellsToFill)
 
                     while rows.count <= range.lastRow {
+                        accountedRowWidths.append(rows.count < range.firstRow ? 1 : 0)
                         rows.append([])
-                        accountedRowWidths.append(0)
                     }
                     for rowIndex in range.firstRow...range.lastRow {
                         if rows[rowIndex].count <= range.lastColumn {

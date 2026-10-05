@@ -4,6 +4,44 @@ import XCTest
 @testable import PoorMansTextCore
 
 final class ReviewOctoberTests: XCTestCase {
+    func testMultilineInlineLinksPreserveContainersAndFollowingText() throws {
+        let target = "attachment:pic.png"
+        let sources = [
+            "![x](\nattachment:pic.png\n) tail [y](attachment:pic.png)",
+            "![x](attachment:pic.png\n\"title `literal`\") tail [y](attachment:pic.png)",
+            "> ![x](\n> attachment:pic.png\n> ) tail [y](attachment:pic.png)",
+            "- ![x](\n  attachment:pic.png\n  \"title\") tail [y](attachment:pic.png)",
+            "![x](attachment:pic.png )",
+            "> - ![x](\n>   attachment:pic.png\n>   \"Titel\n>   fortgesetzt\") tail [y](attachment:pic.png)",
+            "[web](https://example.test\n\"Title`literal\") ![x](attachment:pic.png)"
+        ]
+        for source in sources {
+            XCTAssertEqual(try MarkdownLinkTargetRewriter.resourceCandidates(in: source, maximum: 2, checking: {}), source.hasPrefix("[web]") ? [target, "https://example.test"] : [target])
+            XCTAssertEqual(MarkdownLinkTargetRewriter.replacing(in: source, mapping: [target: "images/pic.png"]),
+                           source.replacingOccurrences(of: target, with: "images/pic.png"))
+        }
+        for source in ["`![x](\nattachment:pic.png\n)`", "![x](\n\nattachment:pic.png\n)", "![x](\n# heading\nattachment:pic.png)", "```\n![x](\nattachment:pic.png\n)\n```"] {
+            XCTAssertEqual(try MarkdownLinkTargetRewriter.resourceCandidates(in: source, maximum: 1, checking: {}), [])
+            XCTAssertEqual(MarkdownLinkTargetRewriter.replacing(in: source, mapping: [target: "images/pic.png"]), source)
+        }
+    }
+    func testLongInlineBlockChecksCancellationDuringBothScans() throws {
+        let source = String(repeating: "a", count: 100_000) + " ![x](attachment:pic.png)"
+        for threshold in [10, 150] {
+            var checks = 0
+            XCTAssertThrowsError(try MarkdownLinkTargetRewriter.resourceCandidates(in: source, maximum: 1, checking: {
+                checks += 1
+                if checks == threshold { throw ConversionError.cancelled }
+            })) { error in
+                guard case ConversionError.cancelled = error else { return XCTFail("Unexpected error: \(error)") }
+            }
+            XCTAssertEqual(checks, threshold)
+        }
+        let ticks = String(repeating: "`literal` ", count: 20_000) + "![x](attachment:pic.png)"
+        XCTAssertEqual(MarkdownLinkTargetRewriter.replacing(in: ticks, mapping: ["attachment:pic.png": "images/pic.png"]),
+                       ticks.replacingOccurrences(of: "attachment:pic.png", with: "images/pic.png"))
+    }
+
     func testNamedRelatedRootAndUndecodableResource() throws {
         for start in ["", "; start=\"<root>\""] {
             let source = """
@@ -64,6 +102,57 @@ final class ReviewOctoberTests: XCTestCase {
         }
     }
 
+    func testMultilineReferenceDefinitionsPreserveTheirSourceRanges() throws {
+        for source in [
+            "![x][id]\n\n[id]: attachment:pic.png \"first\nsecond\"",
+            "![x][long label]\n\n[long\nlabel]: attachment:pic.png",
+            "![x][id]\n\n[id]:\n    attachment:pic.png",
+            "![x][id]\n\n[id]: attachment:pic.png \"first\n    second\"",
+            "> ![x][long label]\n>\n> [long\n> label]:\n>   attachment:pic.png \"first\n> second\""
+        ] {
+            XCTAssertEqual(try MarkdownLinkTargetRewriter.resourceCandidates(in: source, maximum: 1, checking: {}), ["attachment:pic.png"])
+            XCTAssertEqual(MarkdownLinkTargetRewriter.replacing(in: source, mapping: ["attachment:pic.png": "images/pic.png"]),
+                           source.replacingOccurrences(of: "attachment:pic.png", with: "images/pic.png"))
+        }
+    }
+
+    func testMarkdownEscapesAndCharacterReferencesResolveBeforeMapping() throws {
+        for target in [#"attachment:a\(b\).png"#, "attachment:a&#40;b&#x29;.png", "attachment:a&lpar;b&rpar;.png"] {
+            let source = "![x](\(target))\n\n[id]: \(target)"
+            XCTAssertEqual(try MarkdownLinkTargetRewriter.resourceCandidates(in: source, maximum: 1, checking: {}), ["attachment:a(b).png"])
+            let rewritten = MarkdownLinkTargetRewriter.replacing(in: source, mapping: ["attachment:a(b).png": "images/pic.png"])
+            XCTAssertEqual(rewritten, "![x](images/pic.png)\n\n[id]: images/pic.png")
+        }
+    }
+
+    func testUnfinishedLiteralLinksDoNotConsumeTheResourceBudget() throws {
+        let literal = (0..<4_097).map { "[x](missing\($0).png" }.joined(separator: "\n")
+        XCTAssertEqual(try MarkdownLinkTargetRewriter.resourceCandidates(in: literal, maximum: 1, checking: {}), [])
+        XCTAssertEqual(try MarkdownLinkTargetRewriter.resourceCandidates(in: literal + "\n\n![x](real.png)", maximum: 1, checking: {}), ["real.png"])
+        XCTAssertEqual(MarkdownLinkTargetRewriter.replacing(in: literal, mapping: ["missing0.png": "changed.png"]), literal)
+    }
+
+    func testODSAnnotationPreservesSurroundingCellTextAndNamespaceAttributes() throws {
+        let xml = """
+        <o:document-content xmlns:o="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
+         xmlns:t="urn:oasis:names:tc:opendocument:xmlns:table:1.0"
+         xmlns:x="urn:oasis:names:tc:opendocument:xmlns:text:1.0" xmlns:other="urn:extension">
+        <o:body><o:spreadsheet><t:table other:name="Wrong" t:name="Correct"><t:table-row other:number-rows-repeated="8" t:number-rows-repeated="1">
+        <t:table-cell other:value-type="boolean" o:value-type="string" other:number-columns-repeated="5" t:number-columns-repeated="1">
+        <x:p>before<o:annotation><x:p>NOTE</x:p></o:annotation>after<x:s other:c="1" x:c="20"/>end</x:p><x:p>next</x:p>
+        </t:table-cell><t:table-cell o:value-type="float" other:value="999" o:value="42" t:formula="of:=6*7" other:formula="wrong"/>
+        </t:table-row></t:table></o:spreadsheet></o:body></o:document-content>
+        """
+        let workbook = try ODSWorkbookParser.parse(Data(xml.utf8))
+        XCTAssertEqual(workbook.sheets.map(\.name), ["Correct"])
+        XCTAssertEqual(workbook.sheets[0].rows.count, 1)
+        XCTAssertEqual(workbook.sheets[0].rows[0].count, 2)
+        XCTAssertEqual(workbook.sheets[0].rows[0][0].displayText, "beforeafter" + String(repeating: " ", count: 20) + "end\nnext")
+        XCTAssertEqual(workbook.sheets[0].rows[0][1].displayText, "42")
+        XCTAssertEqual(workbook.sheets[0].rows[0][1].formula, "of:=6*7")
+        XCTAssertTrue(workbook.hasUnsupportedObjects)
+    }
+
     func testLiteralPDFRectanglesAndLineOrderProduceSameCompleteGrid() throws {
         let ascending = [400,420,440,460].map { "40 \($0) m 240 \($0) l S" }.joined(separator: "\n")
         let descending = [460,440,420,400].map { "40 \($0) m 240 \($0) l S" }.joined(separator: "\n")
@@ -83,17 +172,19 @@ final class ReviewOctoberTests: XCTestCase {
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: root) }
         let png = try Data(contentsOf: URL(fileURLWithPath: #filePath).deletingLastPathComponent().appendingPathComponent("Fixtures/WordProcessing/fixture.png"))
-        for (index, source) in ["![image](attachment:pic.png)", "![image][id]\n\n[id]: attachment:pic.png", "> ![image][id]\n>\n> [id]: attachment:pic.png", "![image][id]\n\n[id]:\n  attachment:pic.png"].enumerated() {
+        for (index, source) in ["![image](attachment:pic.png)", "![image](\nattachment:pic.png\n)", "> - ![image](\n>   attachment:pic.png\n>   \"title\n>   continued\")", "![image][id]\n\n[id]: attachment:pic.png", "> ![image][id]\n>\n> [id]: attachment:pic.png", "![image][id]\n\n[id]:\n  attachment:pic.png", "![x][id]\n\n[id]: attachment:pic.png \"first\nsecond\"", "![x][long label]\n\n[long\nlabel]: attachment:pic.png", #"![x](attachment:a\(b\).png)"#, "![x](attachment:a&lpar;b&rpar;.png)", (0..<4_097).map { "[x](missing\($0).png" }.joined(separator: "\n") + "\n\n![image](attachment:pic.png)"].enumerated() {
             let notebook: [String: Any] = ["nbformat": 4, "nbformat_minor": 5, "metadata": [:], "cells": [
                 ["cell_type": "markdown", "metadata": [:], "source": source,
-                 "attachments": ["pic.png": ["image/png": png.base64EncodedString()]]]
+                 "attachments": ["pic.png": ["image/png": png.base64EncodedString()], "a(b).png": ["image/png": png.base64EncodedString()]]]
             ]]
             let input = root.appendingPathComponent("cell\(index).ipynb")
             try JSONSerialization.data(withJSONObject: notebook).write(to: input)
+            let originalBytes = try Data(contentsOf: input)
             let result = try DocumentConverter().convert(ConversionRequest(inputURL: input))
             let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
             XCTAssertFalse(markdown.contains("attachment:"), markdown)
             XCTAssertEqual(result.assets.count, 1)
+            XCTAssertEqual(try Data(contentsOf: input), originalBytes)
             XCTAssertEqual(try Data(contentsOf: result.assets[0]), png)
             XCTAssertTrue(result.warnings.isEmpty, result.warnings.joined(separator: "\n"))
         }

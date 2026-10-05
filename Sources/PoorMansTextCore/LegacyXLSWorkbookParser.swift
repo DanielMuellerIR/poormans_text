@@ -3,8 +3,9 @@ import Foundation
 enum LegacyXLSWorkbookParser {
     static func parse(_ data: Data) throws -> SpreadsheetWorkbook {
         let compound = try OLECompoundDocument(data: data)
-        guard let workbookStream = try compound.stream(named: "Workbook")
-            ?? compound.stream(named: "Book") else {
+        let tree = try compound.storageTree()
+        guard let workbookStream = try tree.stream(at: ["Workbook"])
+            ?? tree.stream(at: ["Book"]) else {
             throw ParserError("the OLE compound document contains no Excel workbook stream")
         }
         var workbook = try BIFFParser.parse(workbookStream)
@@ -27,13 +28,14 @@ enum LegacyXLSWorkbookParser {
     }
 
     static func looksLikeXLS(_ data: Data) -> Bool {
-        guard let compound = try? OLECompoundDocument(data: data) else {
+        guard let compound = try? OLECompoundDocument(data: data),
+              let tree = try? compound.storageTree() else {
             return false
         }
         let candidate: Data?
         do {
-            candidate = try compound.stream(named: "Workbook")
-                ?? compound.stream(named: "Book")
+            candidate = try tree.stream(at: ["Workbook"])
+                ?? tree.stream(at: ["Book"])
         } catch {
             return false
         }
@@ -398,16 +400,23 @@ enum LegacyXLSWorkbookParser {
             cells[row, default: [:]][column] = cell
         }
 
-        private static func denseRows(
+        static func denseRows(
             _ cells: [Int: [Int: SpreadsheetCell]],
             maximumCells: Int
         ) throws -> (rows: [[SpreadsheetCell]], expandedCellCount: Int) {
             guard let maximumRow = cells.keys.max() else { return ([], 0) }
+            guard maximumRow < maximumCells else {
+                throw ParserError(SpreadsheetLimits.cellBudgetMessage)
+            }
             var cellBudget = 0
             var rows = [[SpreadsheetCell]]()
             rows.reserveCapacity(maximumRow + 1)
             for rowIndex in 0...maximumRow {
                 guard let sparse = cells[rowIndex], let maximumColumn = sparse.keys.max() else {
+                    cellBudget += 1
+                    guard cellBudget <= maximumCells else {
+                        throw ParserError(SpreadsheetLimits.cellBudgetMessage)
+                    }
                     rows.append([])
                     continue
                 }
@@ -813,9 +822,10 @@ enum LegacyXLSWorkbookParser {
                 let richRunCount = flags & 0x8 != 0 ? Int(try readUInt16()) : 0
                 let extensionSize = flags & 0x4 != 0 ? Int(try readUInt32()) : 0
                 var remaining = characterCount
-                var result = ""
+                var units = [UInt16]()
+                units.reserveCapacity(characterCount)
                 while remaining > 0 {
-                try ConversionExecution.check()
+                    try ConversionExecution.check()
                     if offset == segments[segmentIndex].count {
                         try moveToNextSegment()
                         wide = try readRawByte() & 0x1 != 0
@@ -828,12 +838,20 @@ enum LegacyXLSWorkbookParser {
                     let count = min(remaining, available)
                     let byteCount = count * bytesPerCharacter
                     let chunk = segments[segmentIndex].subdata(in: offset..<(offset + byteCount))
-                    result += BIFFParser.decodeCharacters(chunk, wide: wide)
+                    if wide {
+                        units += stride(from: 0, to: chunk.count, by: 2).map {
+                            UInt16(chunk[$0]) | UInt16(chunk[$0 + 1]) << 8
+                        }
+                    } else {
+                        units += chunk.map(UInt16.init)
+                    }
                     offset += byteCount
                     remaining -= count
                 }
                 try skipRaw(richRunCount * 4 + extensionSize)
-                return result
+                // CONTINUE darf zwischen den beiden UTF-16-Einheiten eines
+                // Surrogatpaars liegen; erst die vollständige Zeichenkette dekodieren.
+                return String(decoding: units, as: UTF16.self)
             }
 
             private mutating func readRawByte() throws -> UInt8 {

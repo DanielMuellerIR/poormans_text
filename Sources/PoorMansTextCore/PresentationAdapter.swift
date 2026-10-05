@@ -252,9 +252,11 @@ final class PresentationImport {
         }
         if node.namespace == Self.table, node.name == "table" {
             var rows: [[String]] = []
+            var images: [PresentationBlock] = []
             var expandedBytes = 0
             for row in tableRows(node) {
                 var cells: [String] = []
+                var rowImages: [PresentationBlock] = []
                 var rowBytes = 3
                 for cell in row.children where cell.namespace == Self.table && ["table-cell", "covered-table-cell"].contains(cell.name) {
                     let count = try repeatCount(cell.attribute("number-columns-repeated", namespace: Self.table), maximum: 256)
@@ -262,12 +264,20 @@ final class PresentationImport {
                     if text.isEmpty { text = cell.attribute("string-value", namespace: Self.office) ?? cell.attribute("value", namespace: Self.office) ?? cell.attribute("date-value", namespace: Self.office) ?? cell.attribute("boolean-value", namespace: Self.office) ?? cell.attribute("time-value", namespace: Self.office) ?? "" }
                     // UTF-8-Zeichen können beim Maskieren höchstens verdoppeln;
                     // ein Zeilenwechsel wird zu vier Bytes (<br>).
-                    let cellBytes = text.utf8.count * 4 + 3
+                    let cellImages = try cell.descendants("image", namespace: Self.draw).flatMap {
+                        try odpBlocks($0, level: level, listStyle: listStyle)
+                    }
+                    let imageBytes = cellImages.reduce(0) { bytes, block in
+                        if case .image(let path, let alt) = block { return bytes + path.utf8.count + alt.utf8.count * 2 + 10 }
+                        return bytes
+                    }
+                    let cellBytes = text.utf8.count * 4 + 3 + imageBytes
                     guard cellBytes <= (128 * 1_024 * 1_024 - rowBytes) / count else { throw ImportFailure("expanded presentation table exceeds its output budget") }
                     rowBytes += cellBytes * count
                     if !cell.descendants("table", namespace: Self.table).isEmpty { diagnostics.add("presentation.nestedTableFlattened", "A nested table was flattened into cell text.", page: page) }
                     guard cells.count <= 256 - count else { throw ImportFailure("presentation table exceeds 256 columns") }
                     cells += Array(repeating: text, count: count)
+                    for _ in 0..<count { rowImages += cellImages }
                     if cell.attribute("number-columns-spanned", namespace: Self.table) != nil || cell.attribute("number-rows-spanned", namespace: Self.table) != nil { diagnostics.add("presentation.tableMergesFlattened", "Merged table cells were flattened.", page: page) }
                 }
                 let count = try repeatCount(row.attribute("number-rows-repeated", namespace: Self.table), maximum: 1_000)
@@ -275,8 +285,9 @@ final class PresentationImport {
                 guard rowBytes <= (128 * 1_024 * 1_024 - expandedBytes) / count else { throw ImportFailure("expanded presentation table exceeds its output budget") }
                 expandedBytes += rowBytes * count
                 rows += Array(repeating: cells, count: count)
+                for _ in 0..<count { images += rowImages }
             }
-            return [.table(rows)]
+            return [.table(rows)] + images
         }
         if node.namespace == Self.draw, node.name == "image" {
             guard let target = node.attribute("href", namespace: Self.xlink) else { diagnostics.add("presentation.imageUnavailable", "An image has no local reference.", page: page); return [] }

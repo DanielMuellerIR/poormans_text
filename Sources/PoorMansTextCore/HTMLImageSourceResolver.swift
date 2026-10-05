@@ -135,10 +135,23 @@ enum HTMLImageSourceResolver {
                 continue
             }
 
-            // Von Pandoc bereits in den Arbeitsordner extrahierte Medien bleiben.
+            // Auch extrahierte Paketmedien sind fremde Daten; ein sicherer Pfad
+            // allein macht eine HTML- oder SVG-Datei noch nicht zu einem Bild.
             if let inWork = fileInside(workDirectory, relativePath: trimmed, fileManager: fileManager) {
-                _ = inWork
-                output += tag
+                let localPath: String
+                if let known = localNames[inWork.path] {
+                    localPath = known
+                } else {
+                    localCount += 1
+                    guard let copied = try copyLocalImage(inWork, index: localCount, workDirectory: workDirectory, fileManager: fileManager) else {
+                        output += alt
+                        missing += 1
+                        continue
+                    }
+                    localPath = copied
+                    localNames[inWork.path] = copied
+                }
+                output += replacingSource(in: tag, sourceRange: sourceMatch.range, with: localPath)
                 continue
             }
 
@@ -303,7 +316,7 @@ enum HTMLImageSourceResolver {
         } catch {
             throw ConversionError.fileSystemFailure(error.localizedDescription)
         }
-        let staged = directory.appendingPathComponent(String(format: "local%02d.candidate", index))
+        let staged = directory.appendingPathComponent(UUID().uuidString + ".candidate")
         do {
             _ = try VerifiedFileStaging.stage(
                 from: source,
@@ -337,7 +350,13 @@ enum HTMLImageSourceResolver {
             try? fileManager.removeItem(at: staged)
             return nil
         }
-        let name = stem + "." + format.fileExtension
+        let directory = staged.deletingLastPathComponent()
+        var name = stem + "." + format.fileExtension
+        // Paketmedien können bereits unter demselben generierten Namen liegen.
+        // Die geprüfte Kopie darf diese fremde Datei weder ersetzen noch blockieren.
+        if fileManager.fileExists(atPath: directory.appendingPathComponent(name).path) {
+            name = stem + "-" + UUID().uuidString + "." + format.fileExtension
+        }
         do {
             try fileManager.moveItem(at: staged, to: staged.deletingLastPathComponent().appendingPathComponent(name))
         } catch {
@@ -349,7 +368,7 @@ enum HTMLImageSourceResolver {
     private static func writeLocalCopy(_ data: Data, preferredName: String, mimeType: String, index: Int, workDirectory: URL) throws -> String? {
         _ = (preferredName, mimeType)
         let directory = workDirectory.appendingPathComponent("external", isDirectory: true)
-        let staged = directory.appendingPathComponent(String(format: "resource%02d.candidate", index))
+        let staged = directory.appendingPathComponent(UUID().uuidString + ".candidate")
         do {
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
             try data.write(to: staged, options: .atomic)
@@ -370,7 +389,7 @@ enum HTMLImageSourceResolver {
         let header = reference[reference.index(reference.startIndex, offsetBy: 5)..<comma].lowercased()
         let parts = header.split(separator: ";").map(String.init)
         guard let mime = parts.first, mime.hasPrefix("image/"), parts.contains("base64"),
-              let fileExtension = extensionForMIMEType(mime) else {
+              extensionForMIMEType(mime) != nil else {
             return nil
         }
         let payload = String(reference[reference.index(after: comma)...])
@@ -381,15 +400,17 @@ enum HTMLImageSourceResolver {
               !data.isEmpty, data.count <= maximumEmbeddedImageBytes else {
             return nil
         }
-        let name = String(format: "embedded%02d.%@", index, fileExtension)
-        let directory = workDirectory.appendingPathComponent("embedded", isDirectory: true)
+        let directory = workDirectory.appendingPathComponent("external", isDirectory: true)
+        let staged = directory.appendingPathComponent(UUID().uuidString + ".candidate")
         do {
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-            try data.write(to: directory.appendingPathComponent(name), options: .atomic)
+            try data.write(to: staged, options: .atomic)
         } catch {
             throw ConversionError.fileSystemFailure(error.localizedDescription)
         }
-        return "embedded/\(name)"
+        // Auch eingebettete Quellen können ihren MIME-Typ falsch angeben oder
+        // aktive SVG-Inhalte tragen. Dieselbe Inhaltsprüfung wie für lokale Bilder.
+        return try publishVerifiedImage(staged, as: String(format: "embedded%02d", index), fileManager: .default)
     }
 
     static func extensionForMIMEType(_ mimeType: String) -> String? {

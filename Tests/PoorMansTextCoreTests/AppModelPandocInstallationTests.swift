@@ -9,6 +9,29 @@ import XCTest
 /// „Installing Pandoc…" anzeigt.
 final class AppModelPandocInstallationTests: XCTestCase {
     @MainActor
+    func testInstallationCannotStartDuringARealConversion() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let input = root.appendingPathComponent("source.csv")
+        let original = Data("name,value\nTOKEN,42\n".utf8)
+        try original.write(to: input)
+        let model = AppModel(defaults: .isolatedForAppTest())
+        model.convert(input)
+        XCTAssertTrue(model.isConverting)
+        let counter = InstallationCounter()
+        let performed = try await model.installPandoc(brewExecutable: Self.brewExecutable) { _, _ in
+            await counter.increment()
+        }
+        XCTAssertFalse(performed)
+        let runs = await counter.count
+        XCTAssertEqual(runs, 0)
+        try await waitUntil("die Umwandlung beendet ist") { !model.isConverting }
+        guard case .succeeded(let result) = model.state else { return XCTFail("Conversion failed") }
+        XCTAssertTrue(try String(contentsOf: result.markdownFile, encoding: .utf8).contains("TOKEN"))
+        XCTAssertEqual(try Data(contentsOf: input), original)
+    }
+    @MainActor
     func testEveryEntryPointIsBlockedWhilePandocIsInstalling() async throws {
         let model = AppModel(defaults: .isolatedForAppTest())
         let gate = InstallationGate()

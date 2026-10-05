@@ -3,6 +3,29 @@ import XCTest
 @testable import PoorMansTextCore
 
 final class LegacyXLSBoundaryTests: XCTestCase {
+    func testAnEmbeddedWorkbookDoesNotMakeTheOuterDocumentAnXLS() throws {
+        let bytes = SyntheticXLSFixture.workbook(missingFirstSheetEOF: false)
+        let stream = try XCTUnwrap(OLECompoundDocument(data: bytes).stream(named: "Workbook"))
+        let embeddedOnly = try MSGEmbeddedWriter.compound([["Embedded", "Workbook"]: stream])
+        XCTAssertFalse(LegacyXLSWorkbookParser.looksLikeXLS(embeddedOnly))
+        XCTAssertThrowsError(try LegacyXLSWorkbookParser.parse(embeddedOnly))
+    }
+    func testSharedStringSurrogatePairSurvivesAContinueBoundary() throws {
+        func record(_ identifier: UInt16, _ payload: [UInt8]) -> Data {
+            Data([UInt8(identifier & 0xff), UInt8(identifier >> 8), UInt8(payload.count & 0xff), UInt8(payload.count >> 8)] + payload)
+        }
+        let globals = record(0x0809, [0, 6, 5, 0])
+            + record(0x00fc, [1, 0, 0, 0, 1, 0, 0, 0, 2, 0, 1, 0x3d, 0xd8])
+            + record(0x003c, [1, 0, 0xde])
+            + record(0x0085, [49, 0, 0, 0, 0, 0, 1, 0, 0x53])
+            + record(0x000a, [])
+        let sheet = record(0x0809, [0, 6, 0x10, 0])
+            + record(0x00fd, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+            + record(0x000a, [])
+        let workbook = try LegacyXLSWorkbookParser.BIFFParser.parse(globals + sheet)
+        XCTAssertEqual(workbook.sheets.count, 1)
+        XCTAssertEqual(workbook.sheets[0].rows[0][0].displayText, "😀")
+    }
     func testWorkbookDetectionAndConversionDoNotInvokeWordInspection() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(
             "PoorMansTextXLSDetection-\(UUID().uuidString)", isDirectory: true
@@ -262,6 +285,7 @@ private enum SyntheticXLSFixture {
             at: 128,
             in: &directory
         )
+        directory.setUInt32(1, at: 76)
 
         var fat = Data(repeating: 0xFF, count: 512)
         for sector in 0..<7 { fat.setUInt32(UInt32(sector + 1), at: sector * 4) }
@@ -410,6 +434,9 @@ private enum SyntheticXLSFixture {
         directory.replaceSubrange(offset..<(offset + nameBytes.count), with: nameBytes)
         directory.setUInt16(UInt16(nameBytes.count), at: offset + 64)
         directory[offset + 66] = type
+        directory.setUInt32(0xFFFF_FFFF, at: offset + 68)
+        directory.setUInt32(0xFFFF_FFFF, at: offset + 72)
+        directory.setUInt32(0xFFFF_FFFF, at: offset + 76)
         directory.setUInt32(startSector, at: offset + 116)
         directory.setUInt32(size, at: offset + 120)
     }

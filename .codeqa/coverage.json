@@ -1,68 +1,32 @@
 {
-  "schema_version": 2,
-  "project": "poormans_text",
-  "campaign": {
-    "id": "20260830T110351547281+0200",
-    "token_budget": 3000000,
-    "status": "complete",
-    "started_at": "2026-08-30T11:03:51+02:00",
-    "finished_at": "2026-08-30T11:09:08+02:00",
-    "finish_reason": "all-current"
-  },
-  "campaign_history": [
-    {
-      "id": "20260815T125412077498+0200",
-      "token_budget": 750000,
-      "status": "complete",
-      "started_at": "2026-08-15T12:54:12+02:00",
-      "tokens_spent": 243441,
-      "finished_at": "2026-08-15T13:14:26+02:00",
-      "finish_reason": "all-current"
-    },
-    {
-      "id": "20260819T180037868197+0200",
-      "token_budget": 3000000,
-      "status": "complete",
-      "started_at": "2026-08-19T18:00:37+02:00",
-      "tokens_spent": 502792,
-      "finished_at": "2026-08-19T18:47:44+02:00",
-      "finish_reason": "all-current"
-    },
-    {
-      "id": "20260829T180733149979+0200",
-      "token_budget": 3000000,
-      "status": "complete",
-      "started_at": "2026-08-29T18:07:33+02:00",
-      "tokens_spent": 414170,
-      "finished_at": "2026-08-29T18:49:21+02:00",
-      "finish_reason": "all-current"
-    },
-    {
-      "id": "20260829T194626345032+0200",
-      "token_budget": 2564411,
-      "status": "complete",
-      "started_at": "2026-08-29T19:46:26+02:00",
-      "tokens_spent": 60000,
-      "finished_at": "2026-08-29T19:52:04+02:00",
-      "finish_reason": "all-current"
-    }
-  ],
-  "scope": {
-    "paths": [
-      "Sources",
-      "Tests",
-      "scripts",
-      "build.sh",
-      "install.sh",
-      "release.sh",
-      "Package.swift",
-      ".github/workflows"
-    ],
-    "exclusions": []
+  "architecture": {
+    "campaign_id": "20261004-timeboxed-review",
+    "fit": "passt",
+    "observed_head": "5b98b665ea37d74c7d0dcebbff3ff6f8013443fc",
+    "paradigm": "Schichtenmodell mit Adapter-Registry (Kern-Orchestrator + Format-Adapter, dünne CLI/GUI-Frontends)",
+    "recommendation": "Kein Paradigmenwechsel nötig. Gemeinsame Bildvalidierung, Markdown-Maskierung und Abbruchkontexte an ihren bestehenden Modulgrenzen verwenden.",
+    "recorded_at": "2026-10-04T17:10:23+02:00",
+    "summary": "Schichtenmodell mit Formatadaptern und gemeinsamen sicheren Datei-/Prozessgrenzen. SwiftUI bleibt im App-Target; CLI und AppModel verwenden den Konvertierungskern."
   },
   "areas": [
     {
       "id": "converter-engine",
+      "last_run": {
+        "campaign_id": "20261004-timeboxed-review",
+        "mode": "timeboxed",
+        "completed_at": "2026-10-04T17:10:23+02:00",
+        "observed_head": "5b98b665ea37d74c7d0dcebbff3ff6f8013443fc",
+        "content_sha256": "d4862eb6e7b02ed085e89fb0a7ce842583e1085bef7d53caf195a09c6290bb54",
+        "file_count": 34,
+        "review": "full",
+        "outcome": "improved",
+        "summary": "Erkennungs-Abbruch und Timeout nach Adapterfehlern erhalten; Produktversion 0.16.4.",
+        "tests": [
+          "swift test: 675 total, 666 passed, 9 skipped, 0 failed",
+          "./build.sh debug; verify_bundle.sh: passed"
+        ],
+        "test_source_review": "Risikoorientiert; geänderte Tests und direkte Grenzverträge gelesen, keine vollständige Lesebehauptung für sämtliche Testquellen."
+      },
       "paths": [
         "Sources/PoorMansTextCore/DocumentConverter.swift",
         "Sources/PoorMansTextCore/ConversionRequest.swift",
@@ -89,80 +53,142 @@
         "Tests/PoorMansTextCoreTests/ReviewFixes20260829Tests.swift",
         "Sources/PoorMansTextCore/VerifiedFile.swift",
         "Sources/PoorMansTextCore/VerifiedDirectoryStaging.swift",
-        "Tests/PoorMansTextCoreTests/ReviewFixes20260830Tests.swift"
+        "Tests/PoorMansTextCoreTests/ReviewFixes20260830Tests.swift",
+        "Sources/PoorMansTextCore/ConversionControl.swift",
+        "Sources/PoorMansTextCore/ConversionPostprocessor.swift",
+        "Sources/PoorMansTextCore/DocumentMetadata.swift",
+        "Tests/PoorMansTextCoreTests/DocumentMetadataTests.swift",
+        "Tests/PoorMansTextCoreTests/ConversionCancellationTests.swift",
+        "Tests/PoorMansTextCoreTests/ReviewFixes20260903Tests.swift",
+        "Tests/PoorMansTextCoreTests/ReviewFixes20260910Tests.swift",
+        "Tests/PoorMansTextCoreTests/ReviewOctoberTests.swift"
       ],
-      "risk": "high",
       "priority": 1,
       "reason": "Orchestrator: Adapterwahl, atomare Veröffentlichung, Kollisionsschutz — breite Aufrufwirkung",
-      "state": "completed",
-      "last_run": {
-        "campaign_id": "20260830T110351547281+0200",
-        "completed_at": "2026-08-30T11:06:15+02:00",
-        "observed_head": "c68c961d97fc1cb7e161151a62e21c052c9a856e",
-        "content_sha256": "42b95e6e386b872ae13a121f39001618ab68b0e59572b6dd1c401995fb0c69ab",
-        "file_count": 26,
-        "review": "delta-plus-boundaries",
-        "outcome": "reviewed-clean",
-        "summary": "Delta und direkte Adaptergrenzen geprüft: deskriptorgebundene Datei-/RTFD-Snapshots erzwingen Regulärdatei, Symlink-, Größen-, Eintrags- und Schreibgrenzen; die zentrale Warnungs- und Versionsänderung ist konsistent. Keine zusätzliche Verbesserung erforderlich.",
-        "tests": [
-          "swift test --filter 'ReviewFixes20260830Tests|DocumentConverterTests|ProductInfoTests|SymbolicLinkInputTests': 54 Tests, 0 Fehler"
-        ]
-      }
+      "risk": "high",
+      "state": "completed"
     },
     {
       "id": "zip-gate",
+      "last_run": {
+        "campaign_id": "20261004-timeboxed-review",
+        "mode": "timeboxed",
+        "completed_at": "2026-10-04T17:10:23+02:00",
+        "observed_head": "5b98b665ea37d74c7d0dcebbff3ff6f8013443fc",
+        "content_sha256": "3754de954f0235c325f01f86b9ae4b1624880e5ebec1dadf9bb4f39df84dad59",
+        "file_count": 5,
+        "review": "full",
+        "outcome": "reviewed-clean",
+        "summary": "Archivgrenzen, private Snapshots und Paketpfade gelesen; kein weiterer bestätigter Befund.",
+        "tests": [
+          "swift test: 675 total, 666 passed, 9 skipped, 0 failed",
+          "./build.sh debug; verify_bundle.sh: passed"
+        ],
+        "test_source_review": "Risikoorientiert; geänderte Tests und direkte Grenzverträge gelesen, keine vollständige Lesebehauptung für sämtliche Testquellen."
+      },
       "paths": [
         "Sources/PoorMansTextCore/ZIPArchiveInspector.swift",
         "Tests/PoorMansTextCoreTests/ZIPArchiveVerificationTests.swift",
-        "Tests/PoorMansTextCoreTests/ZIPFixtureBuilder.swift"
+        "Tests/PoorMansTextCoreTests/ZIPFixtureBuilder.swift",
+        "Tests/PoorMansTextCoreTests/ZIPPackageReaderTests.swift",
+        "Tests/PoorMansTextCoreTests/ZIPBoundedInspectionTests.swift"
       ],
-      "risk": "critical",
       "priority": 1,
       "reason": "Zentrales Paket-Gate: Traversal, Symlinks, Größenbudgets — sicherheitskritisch für alle ZIP-Formate",
-      "state": "completed",
+      "risk": "critical",
+      "state": "completed"
+    },
+    {
+      "id": "batch-orchestration",
       "last_run": {
-        "campaign_id": "20260830T110351547281+0200",
-        "completed_at": "2026-08-30T11:06:34+02:00",
-        "observed_head": "c68c961d97fc1cb7e161151a62e21c052c9a856e",
-        "content_sha256": "2291e6791fd3ee423d5d9a550c44c4cdad04f4bd383ff7c7de4463a3ffa2641a",
-        "file_count": 3,
-        "review": "delta-plus-boundaries",
+        "campaign_id": "20261004-timeboxed-review",
+        "mode": "timeboxed",
+        "completed_at": "2026-10-04T17:10:23+02:00",
+        "observed_head": "5b98b665ea37d74c7d0dcebbff3ff6f8013443fc",
+        "content_sha256": "bf04e708d591a1cc3b99fb8a072c75e41f17a6506698ace173e3ee8c18710301",
+        "file_count": 7,
+        "review": "full",
         "outcome": "reviewed-clean",
-        "summary": "Delta und Datenpfad bis zu Metadatenverbrauchern geprüft: komprimierte Metadatengröße und Stored-Konsistenz werden vor dem Slice begrenzt; Deskriptorfehler bleiben Ein-/Ausgabefehler. Keine zusätzliche Verbesserung erforderlich.",
+        "summary": "Batch-Planung, atomare Veröffentlichung und Abbruchpfade gelesen; kein weiterer bestätigter Befund.",
         "tests": [
-          "swift test --filter 'ZIPArchiveVerificationTests|ReviewFixes20260830Tests.testCompressedZIPMetadataIsBoundedBeforeItsInputSlice': 11 Tests, 0 Fehler"
-        ]
-      }
+          "swift test: 675 total, 666 passed, 9 skipped, 0 failed",
+          "./build.sh debug; verify_bundle.sh: passed"
+        ],
+        "test_source_review": "Risikoorientiert; geänderte Tests und direkte Grenzverträge gelesen, keine vollständige Lesebehauptung für sämtliche Testquellen."
+      },
+      "paths": [
+        "Sources/PoorMansTextCore/BatchConverter.swift",
+        "Sources/PoorMansTextCore/InputEnumerator.swift",
+        "Tests/PoorMansTextCoreTests/BatchConverterTests.swift",
+        "Tests/PoorMansTextCoreTests/InputEnumeratorTests.swift",
+        "Tests/PoorMansTextCoreTests/CLIBatchTests.swift",
+        "Tests/PoorMansTextCoreTests/AppModelBatchTests.swift",
+        "Tests/PoorMansTextCoreTests/CLICancellationTests.swift"
+      ],
+      "priority": 2,
+      "reason": "Parallele Stapelverarbeitung mit gemeinsamem Quellschutz und kooperativem Abbruch: Datenintegrität und breite Aufrufwirkung",
+      "risk": "high",
+      "state": "completed"
     },
     {
       "id": "media-import",
+      "last_run": {
+        "campaign_id": "20261004-timeboxed-review",
+        "mode": "timeboxed",
+        "completed_at": "2026-10-04T17:10:23+02:00",
+        "observed_head": "5b98b665ea37d74c7d0dcebbff3ff6f8013443fc",
+        "content_sha256": "e5e166febcb7e483387a7e71e4388451526754bc037fa352d5b32d293cb616f1",
+        "file_count": 16,
+        "review": "full",
+        "outcome": "reviewed-clean",
+        "summary": "PDF-, Bild- und OCR-Pfade samt Raster- und Textgrenzen gelesen; kein weiterer bestätigter Befund.",
+        "tests": [
+          "swift test: 675 total, 666 passed, 9 skipped, 0 failed",
+          "./build.sh debug; verify_bundle.sh: passed"
+        ],
+        "test_source_review": "Risikoorientiert; geänderte Tests und direkte Grenzverträge gelesen, keine vollständige Lesebehauptung für sämtliche Testquellen."
+      },
       "paths": [
         "Sources/PoorMansTextCore/PDFAdapter.swift",
         "Sources/PoorMansTextCore/ImageAdapter.swift",
         "Sources/PoorMansTextCore/VisionTextRecognizer.swift",
         "Tests/PoorMansTextCoreTests/PDFAdapterTests.swift",
-        "Tests/PoorMansTextCoreTests/ImageAdapterTests.swift"
+        "Tests/PoorMansTextCoreTests/ImageAdapterTests.swift",
+        "Sources/PoorMansTextCore/OCRConcurrencyGate.swift",
+        "Sources/PoorMansTextCore/OCRLanguageSelection.swift",
+        "Sources/PoorMansTextCore/PDFImageResources.swift",
+        "Sources/PoorMansTextCore/PDFTextLayout.swift",
+        "Tests/PoorMansTextCoreTests/PDFQualityTests.swift",
+        "Sources/PoorMansTextCore/ExtractedText.swift",
+        "Sources/PoorMansTextCore/PDFStructuredLayout.swift",
+        "Sources/PoorMansTextCore/PDFTableGeometry.swift",
+        "Sources/PoorMansTextCore/VerifiedImageSource.swift",
+        "Tests/PoorMansTextCoreTests/PDFStructureTests.swift",
+        "Tests/PoorMansTextCoreTests/VerifiedImageSourceTests.swift"
       ],
-      "risk": "high",
       "priority": 2,
       "reason": "Neu zugewachsener PDF-/Bild-Import mit lokaler Vision-OCR; nie CodeQA-geprüft, arbeitet mit Speicherbudgets und Fremddateien",
-      "state": "completed",
-      "last_run": {
-        "campaign_id": "20260830T110351547281+0200",
-        "completed_at": "2026-08-30T11:07:11+02:00",
-        "observed_head": "c68c961d97fc1cb7e161151a62e21c052c9a856e",
-        "content_sha256": "6e8fe45de286e697eaac8627e8d6b1cc3bfb1ecdb1654cf85df2200ea4fbadb0",
-        "file_count": 5,
-        "review": "delta-plus-boundaries",
-        "outcome": "reviewed-clean",
-        "summary": "PDF- und Bild-Delta samt Staging-, Decoder-, OCR- und Warnungsgrenzen geprüft: PDFKit erhält nur private Snapshots; Bildflächenbudget berücksichtigt Mindestkanten und validiert Decoderergebnis; OCR-Rückfalltext bleibt erhalten. Keine zusätzliche Verbesserung erforderlich.",
-        "tests": [
-          "swift test --filter 'PDFAdapterTests|ImageAdapterTests|ReviewFixes20260830Tests.testNarrowImageBudgetAccountsForTheOnePixelMinimumEdge|ReviewFixes20260830Tests.testPDFFailureWarningAllowsForPreservedFallbackText': 18 Tests, 0 Fehler"
-        ]
-      }
+      "risk": "high",
+      "state": "completed"
     },
     {
       "id": "spreadsheet-import",
+      "last_run": {
+        "campaign_id": "20261004-timeboxed-review",
+        "mode": "timeboxed",
+        "completed_at": "2026-10-04T17:10:23+02:00",
+        "observed_head": "5b98b665ea37d74c7d0dcebbff3ff6f8013443fc",
+        "content_sha256": "7b6841ab8d70e2ab3ff71de5a50a6d7898faefab10b883395898c506e3256ceb",
+        "file_count": 15,
+        "review": "full",
+        "outcome": "improved",
+        "summary": "UTF-16-Grenzen in CSV und XLS, Wurzelbindung des XLS-Workbooks und leere XLS/XLSX-Zeilen im gemeinsamen Expansionsbudget korrigiert.",
+        "tests": [
+          "swift test: 675 total, 666 passed, 9 skipped, 0 failed",
+          "./build.sh debug; verify_bundle.sh: passed"
+        ],
+        "test_source_review": "Risikoorientiert; geänderte Tests und direkte Grenzverträge gelesen, keine vollständige Lesebehauptung für sämtliche Testquellen."
+      },
       "paths": [
         "Sources/PoorMansTextCore/SpreadsheetAdapter.swift",
         "Sources/PoorMansTextCore/SpreadsheetWorkbook.swift",
@@ -173,75 +199,163 @@
         "Tests/PoorMansTextCoreTests/SpreadsheetFeasibilityTests.swift",
         "Tests/PoorMansTextCoreTests/LegacyXLSBoundaryTests.swift",
         "Tests/PoorMansTextCoreTests/Fixtures/Spreadsheets",
-        "Tests/PoorMansTextCoreTests/SpreadsheetLinkTargetTests.swift"
+        "Tests/PoorMansTextCoreTests/SpreadsheetLinkTargetTests.swift",
+        "Sources/PoorMansTextCore/DelimitedTextAdapter.swift",
+        "Tests/PoorMansTextCoreTests/DelimitedTextAdapterTests.swift",
+        "Tests/PoorMansTextCoreTests/SpreadsheetBudgetTests.swift"
       ],
-      "risk": "high",
       "priority": 2,
       "reason": "Drei native Binär-/XML-Parser, Datenintegrität, größter Codeblock",
-      "state": "completed",
-      "last_run": {
-        "campaign_id": "20260830T110351547281+0200",
-        "completed_at": "2026-08-30T11:07:38+02:00",
-        "observed_head": "c68c961d97fc1cb7e161151a62e21c052c9a856e",
-        "content_sha256": "8a4822cf8036eb4b655e0d4de44c01901c2e745be1b9d296350dc16af5fa8c29",
-        "file_count": 12,
-        "review": "delta-plus-boundaries",
-        "outcome": "reviewed-clean",
-        "summary": "Renderer-Delta und XLS/XLSX/ODS-Linkgrenzen geprüft: Dateiname, Blattname und Literalzellen können keine Markdown-Ressourcen erzeugen; Linkschemata bleiben allowlist-gebunden und Ziele syntaktisch gekapselt. Keine zusätzliche Verbesserung erforderlich.",
-        "tests": [
-          "swift test --filter 'SpreadsheetAdapterTests|SpreadsheetFeasibilityTests|LegacyXLSBoundaryTests|SpreadsheetLinkTargetTests|ReviewFixes20260830Tests.testSpreadsheetNamesAndLiteralCellsCannotCreateMarkdownResources': 48 Tests, 0 Fehler"
-        ]
-      }
+      "risk": "high",
+      "state": "completed"
     },
     {
       "id": "odm-master",
+      "last_run": {
+        "campaign_id": "20261004-timeboxed-review",
+        "mode": "timeboxed",
+        "completed_at": "2026-10-04T17:10:23+02:00",
+        "observed_head": "5b98b665ea37d74c7d0dcebbff3ff6f8013443fc",
+        "content_sha256": "3cd03897b4c7a871cbf264ed0511974fa6051b96e13ef4eb5a1334026fe12012",
+        "file_count": 4,
+        "review": "full",
+        "outcome": "reviewed-clean",
+        "summary": "Master-Verknüpfungen und Text-/Paketgrenzen gelesen; kein weiterer bestätigter Befund.",
+        "tests": [
+          "swift test: 675 total, 666 passed, 9 skipped, 0 failed",
+          "./build.sh debug; verify_bundle.sh: passed"
+        ],
+        "test_source_review": "Risikoorientiert; geänderte Tests und direkte Grenzverträge gelesen, keine vollständige Lesebehauptung für sämtliche Testquellen."
+      },
       "paths": [
         "Sources/PoorMansTextCore/OpenDocumentMasterAdapter.swift",
         "Sources/PoorMansTextCore/ODMContentParser.swift",
         "Tests/PoorMansTextCoreTests/OpenDocumentMasterAdapterTests.swift",
         "Sources/PoorMansTextCore/MarkdownLinkTargetRewriter.swift"
       ],
-      "risk": "high",
       "priority": 3,
       "reason": "Pfadauflösung lokaler Teildokumente: Pfadfluchten, Symlinks",
+      "risk": "high",
+      "state": "completed"
+    },
+    {
+      "id": "pandoc-text",
+      "last_run": {
+        "campaign_id": "20261004-timeboxed-review",
+        "mode": "timeboxed",
+        "completed_at": "2026-10-04T17:10:23+02:00",
+        "observed_head": "5b98b665ea37d74c7d0dcebbff3ff6f8013443fc",
+        "content_sha256": "5e4cdeb50d2cc30d3c23597bfaca63810c8fdee0e53efacb89c25c9b93ce448e",
+        "file_count": 6,
+        "review": "full",
+        "outcome": "improved",
+        "summary": "Eingebettete und extrahierte Medien durch gemeinsame Raster-Inhaltsprüfung führen; Paketdateien vor Namenskollisionen schützen.",
+        "tests": [
+          "swift test: 675 total, 666 passed, 9 skipped, 0 failed",
+          "./build.sh debug; verify_bundle.sh: passed"
+        ],
+        "test_source_review": "Risikoorientiert; geänderte Tests und direkte Grenzverträge gelesen, keine vollständige Lesebehauptung für sämtliche Testquellen."
+      },
+      "paths": [
+        "Sources/PoorMansTextCore/PandocTextAdapter.swift",
+        "Sources/PoorMansTextCore/WebArchiveReader.swift",
+        "Sources/PoorMansTextCore/HTMLImageSourceResolver.swift",
+        "Tests/PoorMansTextCoreTests/PandocTextAdapterTests.swift",
+        "Tests/PoorMansTextCoreTests/Stage4FormatTests.swift",
+        "Sources/PoorMansTextCore/HTMLImageAttributes.swift"
+      ],
+      "priority": 3,
+      "reason": "Fremde HTML-/Webarchiv-/EPUB-Quellen mit externen Verweisen; Grenze zu entfernten Ressourcen ist sicherheitsrelevant",
+      "risk": "high",
+      "state": "completed"
+    },
+    {
+      "id": "presentation-notebook",
+      "paths": [
+        "Sources/PoorMansTextCore/PresentationAdapter.swift",
+        "Sources/PoorMansTextCore/PresentationDocument.swift",
+        "Sources/PoorMansTextCore/NotebookAdapter.swift",
+        "Sources/PoorMansTextCore/ImportXML.swift",
+        "Tests/PoorMansTextCoreTests/PresentationNotebookTests.swift"
+      ],
+      "priority": 3,
+      "reason": "Neu hinzugekommene native Leser für PPTX/ODP und Jupyter-Notebooks samt eigenem XML-Parser; noch nie per CodeQA geprüft",
+      "risk": "high",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20260830T110351547281+0200",
-        "completed_at": "2026-08-30T11:07:53+02:00",
-        "observed_head": "c68c961d97fc1cb7e161151a62e21c052c9a856e",
-        "content_sha256": "eeaa7808c9c57c4e9852410aa5b90d48e5f4c9c20496d38be1759dea98555632",
-        "file_count": 4,
-        "review": "delta-plus-boundaries",
-        "outcome": "reviewed-clean",
-        "summary": "Markdown-Link-Rewriter vollständig gegen GFM-Container, Code-Spans/Fences, Linktitel und HTML-Blocktypen sowie den ODM-Aufrufer geprüft. Der einmalige Backtick-Index beseitigt den quadratischen Lookahead; Containergrenzen bleiben erhalten. Keine zusätzliche Verbesserung erforderlich.",
+        "campaign_id": "20261004-timeboxed-review",
+        "mode": "timeboxed",
+        "completed_at": "2026-10-04T17:10:23+02:00",
+        "observed_head": "5b98b665ea37d74c7d0dcebbff3ff6f8013443fc",
+        "content_sha256": "3a2d466264e40d40fb066b657ee55f42d8279ec4c0e3bf8bcc6e9b4e5d6e485d",
+        "file_count": 5,
+        "review": "full",
+        "outcome": "improved",
+        "summary": "ODP-Zellbilder samt Wiederholungen erhalten; mehrzeilige Notebook-Inlineziele in echten Dokumenten geprüft.",
         "tests": [
-          "swift test --filter 'OpenDocumentMasterAdapterTests|ReviewFixes20260830Tests': 54 Tests, 0 Fehler"
-        ]
+          "swift test: 675 total, 666 passed, 9 skipped, 0 failed",
+          "./build.sh debug; verify_bundle.sh: passed"
+        ],
+        "test_source_review": "Risikoorientiert; geänderte Tests und direkte Grenzverträge gelesen, keine vollständige Lesebehauptung für sämtliche Testquellen."
       }
     },
     {
       "id": "xml-shared-infra",
+      "last_run": {
+        "campaign_id": "20261004-timeboxed-review",
+        "mode": "timeboxed",
+        "completed_at": "2026-10-04T17:10:23+02:00",
+        "observed_head": "5b98b665ea37d74c7d0dcebbff3ff6f8013443fc",
+        "content_sha256": "4f1bc6b480805b4e51eb223c73a387ed46474a06524f7b21eeb5ee481fa78407",
+        "file_count": 5,
+        "review": "full",
+        "outcome": "reviewed-clean",
+        "summary": "XML-Parserkonfiguration, Namespaces und gemeinsame Importstrukturen gelesen; kein weiterer bestätigter Befund.",
+        "tests": [
+          "swift test: 675 total, 666 passed, 9 skipped, 0 failed",
+          "./build.sh debug; verify_bundle.sh: passed"
+        ],
+        "test_source_review": "Risikoorientiert; geänderte Tests und direkte Grenzverträge gelesen, keine vollständige Lesebehauptung für sämtliche Testquellen."
+      },
       "paths": [
         "Sources/PoorMansTextCore/NamespacePrefixTracker.swift",
-        "Tests/PoorMansTextCoreTests/NamespacePrefixTrackerTests.swift"
+        "Tests/PoorMansTextCoreTests/NamespacePrefixTrackerTests.swift",
+        "Sources/PoorMansTextCore/ImportXMLParser.swift",
+        "Tests/PoorMansTextCoreTests/ImportXMLParserTests.swift",
+        "Tests/PoorMansTextCoreTests/XMLTextContentTests.swift"
       ],
-      "risk": "medium",
       "priority": 3,
       "reason": "Gemeinsame XML-Namensraum-Hilfsklasse, aus der Konsolidierung des Querschnitts-Funds entstanden; von ZIP-Inspector und XLSX-Parser genutzt",
+      "risk": "medium",
+      "state": "completed"
+    },
+    {
+      "id": "binary-containers",
+      "paths": [
+        "Sources/PoorMansTextCore/OLECompoundDocument.swift",
+        "Sources/PoorMansTextCore/BinaryDataReading.swift",
+        "Tests/PoorMansTextCoreTests/BinaryDataReadingTests.swift",
+        "Tests/PoorMansTextCoreTests/OLEStorageTreeTests.swift"
+      ],
+      "priority": 4,
+      "reason": "Sektor- und Kettenlogik fremder OLE-Container; von LegacyWord und LegacyXLS gemeinsam genutzt, Fehler dort sind Speicher-/Endlosschleifenrisiken",
+      "risk": "high",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20260819T180037868197+0200",
-        "completed_at": "2026-08-19T18:38:15+02:00",
-        "observed_head": "05549094c359d484ab33c60cf4c8a8f2f0fdf39d",
-        "content_sha256": "422799b8f32d91faf71343c8b64b732e03c68c3a958a99a9e0721e89233ccddd",
-        "file_count": 2,
+        "campaign_id": "20261004-timeboxed-review",
+        "mode": "timeboxed",
+        "completed_at": "2026-10-04T17:10:23+02:00",
+        "observed_head": "5b98b665ea37d74c7d0dcebbff3ff6f8013443fc",
+        "content_sha256": "3a990fe895d1c510bf3a94aa7d8a9a3ccbe66f6cbbf0f726c1ca535a492a11a6",
+        "file_count": 4,
         "review": "full",
-        "outcome": "improved",
-        "summary": "Vollreview der Klasse samt aller drei Aufrufer: Präfix-Stapel korrekt, vollständiger statt Suffix-Vergleich des lokalen Namens, unpräfigierte Attribute zählen richtigerweise nie. Ein Fund: Bei zwei Präfixen auf denselben Namensraum entschied die Dictionary-Reihenfolge und damit der Hash-Seed des Prozesses — dasselbe ODM konvertierte über 20 Läufe viermal und scheiterte sechzehnmal. Jetzt gewinnt stabil der kleinste Attributname. Der Bereich hatte keine eigenen Tests; fünf sind dazugekommen",
+        "outcome": "reviewed-clean",
+        "summary": "OLE-Verzeichnis-/Sektorgrenzen und Speicherbaum gelesen; XLS bindet jetzt an den bereits vorhandenen validierten Wurzelbaum.",
         "tests": [
-          "swift test: 235 passed, 0 failures",
-          "Messung über die CLI: vor dem Fix 4/16 wechselnd über 20 Läufe, danach 20/20 stabil"
-        ]
+          "swift test: 675 total, 666 passed, 9 skipped, 0 failed",
+          "./build.sh debug; verify_bundle.sh: passed"
+        ],
+        "test_source_review": "Risikoorientiert; geänderte Tests und direkte Grenzverträge gelesen, keine vollständige Lesebehauptung für sämtliche Testquellen."
       }
     },
     {
@@ -257,81 +371,109 @@
         "Tests/PoorMansTextCoreTests/RichTextConverterTests.swift",
         "Tests/PoorMansTextCoreTests/HTMLDocumentConverterTests.swift",
         "Tests/PoorMansTextCoreTests/HTMLImageRewriterTests.swift",
-        "Tests/PoorMansTextCoreTests/Fixtures/WordProcessing"
+        "Tests/PoorMansTextCoreTests/Fixtures/WordProcessing",
+        "Sources/PoorMansTextCore/WordProcessingPackageInspector.swift"
       ],
-      "risk": "medium",
       "priority": 4,
       "reason": "DOCX/ODT/DOC/RTF-Adapter samt HTML-Zwischenschicht und Bild-Rewriting",
+      "risk": "medium",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20260830T110351547281+0200",
-        "completed_at": "2026-08-30T11:08:16+02:00",
-        "observed_head": "c68c961d97fc1cb7e161151a62e21c052c9a856e",
-        "content_sha256": "e44ad47306e132c9ac8baa6b55ea711a8c80f0320db1fed58002b51aaecd23b2",
-        "file_count": 27,
-        "review": "delta-plus-boundaries",
+        "campaign_id": "20261004-timeboxed-review",
+        "mode": "timeboxed",
+        "completed_at": "2026-10-04T17:10:23+02:00",
+        "observed_head": "5b98b665ea37d74c7d0dcebbff3ff6f8013443fc",
+        "content_sha256": "ee5a2f6ea89f0570413ad82c2cc4b8c507ffcafc2200eda88f0df1b0837c4457",
+        "file_count": 28,
+        "review": "full",
         "outcome": "reviewed-clean",
-        "summary": "DOC-, RTF- und RTFD-Delta samt textutil/Pandoc-Grenzen geprüft: Fremdwerkzeuge arbeiten nur auf geprüften privaten Snapshots; Paketkopie begrenzt Einzeldateien, Summe, Einträge und Symlinks; Signatur und Warnungen beziehen sich auf dieselben Bytes. Keine zusätzliche Verbesserung erforderlich.",
+        "summary": "DOCX-, ODT-, DOC-, RTF- und RTFD-Pfade gelesen; kein weiterer bestätigter Befund.",
         "tests": [
-          "swift test --filter 'WordProcessingAdapterTests|WordProcessingPackageInspectionTests|RichTextConverterTests|HTMLDocumentConverterTests|HTMLImageRewriterTests|ReviewFixes20260830Tests.testLegacyWordDetectionRejectsOversizedInputBeforeTextutil|ReviewFixes20260830Tests.testRTFD': 58 Tests, 0 Fehler"
-        ]
+          "swift test: 675 total, 666 passed, 9 skipped, 0 failed",
+          "./build.sh debug; verify_bundle.sh: passed"
+        ],
+        "test_source_review": "Risikoorientiert; geänderte Tests und direkte Grenzverträge gelesen, keine vollständige Lesebehauptung für sämtliche Testquellen."
       }
     },
     {
       "id": "markdown-postprocess",
+      "last_run": {
+        "campaign_id": "20261004-timeboxed-review",
+        "mode": "timeboxed",
+        "completed_at": "2026-10-04T17:10:23+02:00",
+        "observed_head": "5b98b665ea37d74c7d0dcebbff3ff6f8013443fc",
+        "content_sha256": "c5d3175416aadbe2c43233f749e8b32bacf74c36f3f4c762333c43bae7dd4ae0",
+        "file_count": 7,
+        "review": "full",
+        "outcome": "improved",
+        "summary": "Literale Entitäten, Tilden, Listenmarker und Einrückung erhalten; gemeinsame Maskierung nachgeprüft.",
+        "tests": [
+          "swift test: 675 total, 666 passed, 9 skipped, 0 failed",
+          "./build.sh debug; verify_bundle.sh: passed"
+        ],
+        "test_source_review": "Risikoorientiert; geänderte Tests und direkte Grenzverträge gelesen, keine vollständige Lesebehauptung für sämtliche Testquellen."
+      },
       "paths": [
         "Sources/PoorMansTextCore/MarkdownNormalizer.swift",
         "Sources/PoorMansTextCore/ColoredTextMarker.swift",
         "Tests/PoorMansTextCoreTests/MarkdownNormalizerTests.swift",
         "Tests/PoorMansTextCoreTests/ColoredTextMarkerTests.swift",
         "Sources/PoorMansTextCore/MarkdownEscaping.swift",
-        "Tests/PoorMansTextCoreTests/MarkdownEscapingTests.swift"
+        "Tests/PoorMansTextCoreTests/MarkdownEscapingTests.swift",
+        "Sources/PoorMansTextCore/MarkdownCharacterReferences.swift"
       ],
-      "risk": "medium",
       "priority": 5,
       "reason": "Markdown-Rewriter mit AGENTS-Invariante zu Inline-Code und Fences",
-      "state": "completed",
-      "last_run": {
-        "campaign_id": "20260830T110351547281+0200",
-        "completed_at": "2026-08-30T11:08:36+02:00",
-        "observed_head": "c68c961d97fc1cb7e161151a62e21c052c9a856e",
-        "content_sha256": "8a3022c0a7687f3aecbf4aca97bac19b646277ae85cb06961b6be98dc29ef3b2",
-        "file_count": 6,
-        "review": "delta-plus-boundaries",
-        "outcome": "reviewed-clean",
-        "summary": "Neue Inline-Literal-Maskierung und ihre Spreadsheet-Verwendung gegen Links, Bilder, HTML, Hervorhebung, Tabellen- und Zeilengrenzen geprüft; bestehende Block-/Fence-Normalisierung bleibt unverändert. Keine zusätzliche Verbesserung erforderlich.",
-        "tests": [
-          "swift test --filter 'MarkdownNormalizerTests|ColoredTextMarkerTests|MarkdownEscapingTests|ReviewFixes20260830Tests.testSpreadsheetNamesAndLiteralCellsCannotCreateMarkdownResources': 16 Tests, 0 Fehler"
-        ]
-      }
+      "risk": "medium",
+      "state": "completed"
     },
     {
       "id": "cli",
+      "last_run": {
+        "campaign_id": "20261004-timeboxed-review",
+        "mode": "timeboxed",
+        "completed_at": "2026-10-04T17:10:23+02:00",
+        "observed_head": "5b98b665ea37d74c7d0dcebbff3ff6f8013443fc",
+        "content_sha256": "bbb5554dbdd33bbbc0686a777c7968d2b729ef14210a140a2fa448df6624c93b",
+        "file_count": 7,
+        "review": "full",
+        "outcome": "reviewed-clean",
+        "summary": "Argumente, Ausgabe, Fortschritt und gemeinsame Konvertierungsgrenzen gelesen; kein weiterer bestätigter Befund.",
+        "tests": [
+          "swift test: 675 total, 666 passed, 9 skipped, 0 failed",
+          "./build.sh debug; verify_bundle.sh: passed"
+        ],
+        "test_source_review": "Risikoorientiert; geänderte Tests und direkte Grenzverträge gelesen, keine vollständige Lesebehauptung für sämtliche Testquellen."
+      },
       "paths": [
         "Sources/PoorMansTextCLI",
         "Tests/PoorMansTextCoreTests/CLIIntegrationTests.swift",
-        "Tests/PoorMansTextCoreTests/CLITargetDirectoryTests.swift"
+        "Tests/PoorMansTextCoreTests/CLITargetDirectoryTests.swift",
+        "Tests/PoorMansTextCoreTests/CLIOutputModeTests.swift"
       ],
-      "risk": "medium",
       "priority": 6,
       "reason": "Exit-Codes, JSON-Ausgabe, Argumentparser",
-      "state": "completed",
-      "last_run": {
-        "campaign_id": "20260829T180733149979+0200",
-        "completed_at": "2026-08-29T18:39:43+02:00",
-        "observed_head": "ed67b0b2bc4a7947b554603411c27691090593ac",
-        "content_sha256": "ef9a66465166f3414384d0cf35010cb1e9d11ddaed07a6b0cff09ca500161e29",
-        "file_count": 3,
-        "review": "delta-plus-boundaries",
-        "outcome": "reviewed-clean",
-        "summary": "Delta seit 2026-08-19 geprüft: --image-ocr folgt genau dem Muster von --spreadsheet-format, samt = -Form, Fehlermeldung, Katalogmodus-Sperre und drei Integrationstests. Exit-Code-Abbildung, JSON- und Textausgabe als Grenzen mitgelesen — nichts zu vereinfachen, das den Parser nicht unübersichtlicher machen würde",
-        "tests": [
-          "swift test: 302 passed, 0 failures"
-        ]
-      }
+      "risk": "medium",
+      "state": "completed"
     },
     {
       "id": "app-support",
+      "last_run": {
+        "campaign_id": "20261004-timeboxed-review",
+        "mode": "timeboxed",
+        "completed_at": "2026-10-04T17:10:23+02:00",
+        "observed_head": "5b98b665ea37d74c7d0dcebbff3ff6f8013443fc",
+        "content_sha256": "1fdef4fc3462738bb013483734da890d2dbd481eed87b4bd84ff5a617ea2cf25",
+        "file_count": 23,
+        "review": "full",
+        "outcome": "improved",
+        "summary": "Pandoc-Installation und laufende Konvertierung schließen sich über dieselbe Zustandsfreigabe aus.",
+        "tests": [
+          "swift test: 675 total, 666 passed, 9 skipped, 0 failed",
+          "./build.sh debug; verify_bundle.sh: passed"
+        ],
+        "test_source_review": "Risikoorientiert; geänderte Tests und direkte Grenzverträge gelesen, keine vollständige Lesebehauptung für sämtliche Testquellen."
+      },
       "paths": [
         "Sources/PoorMansTextApp",
         "Sources/PoorMansTextAppSupport",
@@ -339,28 +481,35 @@
         "Tests/PoorMansTextCoreTests/AppModelPandocInstallationTests.swift",
         "Tests/PoorMansTextCoreTests/CLIInstallerTests.swift",
         "Tests/PoorMansTextCoreTests/PandocInstallerTests.swift",
-        "Tests/PoorMansTextCoreTests/UpdateControllerTests.swift"
+        "Tests/PoorMansTextCoreTests/UpdateControllerTests.swift",
+        "Tests/PoorMansTextCoreTests/AppOptionsTests.swift",
+        "Tests/PoorMansTextCoreTests/OpenedDocumentsRelayTests.swift",
+        "Tests/PoorMansTextCoreTests/ServicesProviderTests.swift",
+        "App"
       ],
-      "risk": "medium",
       "priority": 7,
       "reason": "GUI-Zustand, Installer und Sparkle-Update-Controller",
-      "state": "completed",
-      "last_run": {
-        "campaign_id": "20260829T180733149979+0200",
-        "completed_at": "2026-08-29T18:40:25+02:00",
-        "observed_head": "ed67b0b2bc4a7947b554603411c27691090593ac",
-        "content_sha256": "30051b70b2a940c43df98e71fc3187f35e51d215a13da90dd179b1520d680766",
-        "file_count": 12,
-        "review": "delta-plus-boundaries",
-        "outcome": "reviewed-clean",
-        "summary": "Delta seit 2026-08-19 geprüft: Bild-OCR-Schalter im Modell und in der Drop-Zone, angepasste Texte und Dialogtitel. Grenzen mitgelesen: Sperre gegen parallele Aufträge, Pandoc-Angebot samt dauerhafter Ablehnung über AppStorage, CLI-Installationsangebot mit Konflikt- und /Applications-Prüfung, Sparkle-Verdrahtung. Nichts zu vereinfachen, ohne Verhalten zu ändern",
-        "tests": [
-          "swift test: 302 passed, 0 failures"
-        ]
-      }
+      "risk": "medium",
+      "state": "completed"
     },
     {
       "id": "build-scripts",
+      "last_run": {
+        "campaign_id": "20261004-timeboxed-review",
+        "mode": "timeboxed",
+        "completed_at": "2026-10-04T17:10:23+02:00",
+        "observed_head": "5b98b665ea37d74c7d0dcebbff3ff6f8013443fc",
+        "content_sha256": "d0aca5d1dbcbac6a0aa1b091fa5ae7cd1e2d51e591e792d315a871850809fafe",
+        "file_count": 24,
+        "review": "full",
+        "outcome": "reviewed-clean",
+        "summary": "Alle 16 Shell- und drei Python-Skripte gelesen; Syntax, lokaler Debug-Build und Bundle-Prüfung erfolgreich.",
+        "tests": [
+          "swift test: 675 total, 666 passed, 9 skipped, 0 failed",
+          "./build.sh debug; verify_bundle.sh: passed"
+        ],
+        "test_source_review": "Risikoorientiert; geänderte Tests und direkte Grenzverträge gelesen, keine vollständige Lesebehauptung für sämtliche Testquellen."
+      },
       "paths": [
         "scripts",
         "build.sh",
@@ -369,74 +518,171 @@
         "Package.swift",
         "Tests/PoorMansTextCoreTests/InstallModeTests.swift",
         "Tests/PoorMansTextCoreTests/InstallScriptRollbackTests.swift",
-        "Tests/PoorMansTextCoreTests/ReleaseWorkflowTests.swift"
+        "Tests/PoorMansTextCoreTests/ReleaseWorkflowTests.swift",
+        "Package.resolved"
       ],
-      "risk": "low",
       "priority": 8,
       "reason": "Build-/Signatur-/Release-Skripte; stabil und durch Release-Workflow-Tests gedeckt",
-      "state": "completed",
-      "last_run": {
-        "campaign_id": "20260819T180037868197+0200",
-        "completed_at": "2026-08-19T18:45:34+02:00",
-        "observed_head": "05549094c359d484ab33c60cf4c8a8f2f0fdf39d",
-        "content_sha256": "213901705d9dc1b1acea66934fe00b425d99f643cd9011452dfcb07d4bd5a0c6",
-        "file_count": 19,
-        "review": "delta-plus-boundaries",
-        "outcome": "reviewed-clean",
-        "summary": "Delta in install_transaction.sh geprüft: Der 'rolled-back'-Arm ist jetzt genau einmal vorhanden (vorher stand er zusätzlich in einem nie erreichbaren zweiten case-Arm), und das Link-Staging bewertet zuerst den beobachtbaren Endzustand, meldet einen ln-Fehlerstatus aber weiterhin — damit kennt das Cleanup einen Link, den ein Signal zwischen symlink(2) und Exit hinterlassen hat. Alle 15 Skripte sind syntaktisch fehlerfrei (bash -n). Die zentrale Invariante aus AGENTS.md gilt nachweislich: bei --no-notarize endet der Lauf nach Build und Signatur mit exit 0, bevor /Applications berührt wird, und vor der Installation laufen stapler validate und spctl --assess über verify_bundle.sh --notarized. 21 Rollback-Tests decken die Signalfenster ab, einschließlich des Falls 'Link erstellt, Identität noch nicht zugewiesen'",
-        "tests": [
-          "swift test: 235 passed, 0 failures (darin 21 InstallScriptRollbackTests)",
-          "bash -n über alle 15 Skripte: fehlerfrei"
-        ]
-      }
+      "risk": "low",
+      "state": "completed"
     },
     {
       "id": "ci-workflows",
+      "last_run": {
+        "campaign_id": "20261004-timeboxed-review",
+        "mode": "timeboxed",
+        "completed_at": "2026-10-04T17:10:23+02:00",
+        "observed_head": "5b98b665ea37d74c7d0dcebbff3ff6f8013443fc",
+        "content_sha256": "9f02c5effc751cb225662772ab6ede4f3fb9e6dafc2e4e38e6d8bcc7a5e8c4cd",
+        "file_count": 2,
+        "review": "full",
+        "outcome": "reviewed-clean",
+        "summary": "Beide CI-Workflows, Paket-Pinning und öffentliche Distributionsgrenzen gelesen; kein weiterer bestätigter Befund.",
+        "tests": [
+          "swift test: 675 total, 666 passed, 9 skipped, 0 failed",
+          "./build.sh debug; verify_bundle.sh: passed"
+        ],
+        "test_source_review": "Risikoorientiert; geänderte Tests und direkte Grenzverträge gelesen, keine vollständige Lesebehauptung für sämtliche Testquellen."
+      },
       "paths": [
         ".github/workflows/ci.yml",
         ".github/workflows/publish-appcast.yml"
       ],
-      "risk": "medium",
       "priority": 9,
       "reason": "CI-Build/Test und signierte Appcast-Veröffentlichung; Secret-Handling sicherheitsrelevant",
+      "risk": "medium",
+      "state": "completed"
+    },
+    {
+      "id": "mail-import",
+      "paths": [
+        "Sources/PoorMansTextCore/MIMEMessage.swift",
+        "Sources/PoorMansTextCore/MSGAdapter.swift",
+        "Sources/PoorMansTextCore/MSGCompressedRTF.swift",
+        "Sources/PoorMansTextCore/MSGEmbeddedWriter.swift",
+        "Sources/PoorMansTextCore/MSGMessage.swift",
+        "Sources/PoorMansTextCore/MSGProperties.swift",
+        "Sources/PoorMansTextCore/MSGRTFHTML.swift",
+        "Sources/PoorMansTextCore/MailAdapter.swift",
+        "Sources/PoorMansTextCore/MailBodyConverter.swift",
+        "Sources/PoorMansTextCore/MailContent.swift",
+        "Tests/PoorMansTextCoreTests/MIMEMessageTests.swift",
+        "Tests/PoorMansTextCoreTests/MSGAdapterTests.swift",
+        "Tests/PoorMansTextCoreTests/MSGCompressedRTFTests.swift",
+        "Tests/PoorMansTextCoreTests/MSGEmbeddedWriterTests.swift",
+        "Tests/PoorMansTextCoreTests/MSGMessageTests.swift",
+        "Tests/PoorMansTextCoreTests/MSGPropertiesTests.swift",
+        "Tests/PoorMansTextCoreTests/MSGRTFHTMLTests.swift",
+        "Tests/PoorMansTextCoreTests/MailAdapterTests.swift",
+        "Tests/PoorMansTextCoreTests/MailBodyConverterTests.swift",
+        "Tests/PoorMansTextCoreTests/MailContentTests.swift"
+      ],
+      "priority": 2,
+      "risk": "high",
+      "reason": "Mail-/MSG-Container, Textauswahl und Anhangserhalt mit gemeinsamen sicheren Konvertierungsgrenzen",
       "state": "completed",
       "last_run": {
-        "campaign_id": "20260819T180037868197+0200",
-        "completed_at": "2026-08-19T18:46:24+02:00",
-        "observed_head": "05549094c359d484ab33c60cf4c8a8f2f0fdf39d",
-        "content_sha256": "d69c4934f804e83d49f3837974055a736b5c085525bcefbdb1ff9edbdaf412ad",
-        "file_count": 2,
-        "review": "delta-plus-boundaries",
-        "outcome": "reviewed-clean",
-        "summary": "Beide Workflows unverändert und tragfähig. publish-appcast setzt die Secret-Regeln konsequent um: Actions an Commit-SHAs gepinnt, der private Sparkle-Schlüssel steht nur im einen erzeugenden Schritt statt im Job-env, geht über stdin statt argv oder Datei, wird nach dem Kopieren aus der Umgebung entfernt, und der Feed wird per xmllint geprüft. Entwurf und Prerelease sind doppelt ausgeschlossen, der Checkout wird gegen den Tag-Commit verifiziert, und 'neuestes stabiles Release' läuft über die API statt über ein gh-Feld, das der Runner nicht kennt. Das schwächere Pinning in ci.yml ist eine vertretbare Abstufung: dieser Workflow hat keine Secrets und nur contents:read",
+        "campaign_id": "20261004-timeboxed-review",
+        "mode": "timeboxed",
+        "completed_at": "2026-10-04T17:10:23+02:00",
+        "observed_head": "5b98b665ea37d74c7d0dcebbff3ff6f8013443fc",
+        "content_sha256": "7cf06b04c9781fd84251a3249deb85fe60da616c774aac04aba327114a55324c",
+        "file_count": 20,
+        "review": "full",
+        "outcome": "improved",
+        "summary": "Klartextkörper nach HTML/Pandoc-Normalisierung als maskiertes Markdown einsetzen; vollständiger Plaintext-Roundtrip geprüft.",
         "tests": [
-          "CI-Kette entspricht dem lokal ausgeführten Stand: swift test 235 passed, build.sh release und verify_bundle.sh sind dieselben Schritte"
-        ]
+          "swift test: 675 total, 666 passed, 9 skipped, 0 failed",
+          "./build.sh debug; verify_bundle.sh: passed"
+        ],
+        "test_source_review": "Risikoorientiert; geänderte Tests und direkte Grenzverträge gelesen, keine vollständige Lesebehauptung für sämtliche Testquellen."
       }
     }
   ],
-  "architecture": {
-    "campaign_id": "20260830T110351547281+0200",
-    "recorded_at": "2026-08-30T11:04:49+02:00",
-    "observed_head": "c68c961d97fc1cb7e161151a62e21c052c9a856e",
-    "summary": "Ist-Zustand bestätigt: SwiftUI bleibt im App-Target; DocumentConverter orchestriert formatneutrale Anfragen und atomare Veröffentlichung; Formatlogik und macOS-spezifische Frameworks bleiben hinter Kern-Adaptern.",
-    "paradigm": "Schichtenmodell mit Adapter-Registry (Kern-Orchestrator + Format-Adapter, dünne CLI/GUI-Frontends)",
-    "fit": "passt",
-    "recommendation": "Kein Paradigmenwechsel nötig; lokale Verstöße weiterhin bereichsweise korrigieren."
+  "campaign": {
+    "id": "20260910T154243481221+0200",
+    "token_budget": 3000000,
+    "status": "complete",
+    "started_at": "2026-09-10T15:42:43+02:00",
+    "tokens_spent": 214147,
+    "finished_at": "2026-09-10T16:30:15+02:00",
+    "finish_reason": "all-current"
+  },
+  "campaign_history": [
+    {
+      "finish_reason": "all-current",
+      "finished_at": "2026-08-15T13:14:26+02:00",
+      "id": "20260815T125412077498+0200",
+      "started_at": "2026-08-15T12:54:12+02:00",
+      "status": "complete",
+      "token_budget": 750000,
+      "tokens_spent": 243441
+    },
+    {
+      "finish_reason": "all-current",
+      "finished_at": "2026-08-19T18:47:44+02:00",
+      "id": "20260819T180037868197+0200",
+      "started_at": "2026-08-19T18:00:37+02:00",
+      "status": "complete",
+      "token_budget": 3000000,
+      "tokens_spent": 502792
+    },
+    {
+      "finish_reason": "all-current",
+      "finished_at": "2026-08-29T18:49:21+02:00",
+      "id": "20260829T180733149979+0200",
+      "started_at": "2026-08-29T18:07:33+02:00",
+      "status": "complete",
+      "token_budget": 3000000,
+      "tokens_spent": 414170
+    },
+    {
+      "finish_reason": "all-current",
+      "finished_at": "2026-08-29T19:52:04+02:00",
+      "id": "20260829T194626345032+0200",
+      "started_at": "2026-08-29T19:46:26+02:00",
+      "status": "complete",
+      "token_budget": 2564411,
+      "tokens_spent": 60000
+    },
+    {
+      "finish_reason": "all-current",
+      "finished_at": "2026-08-30T11:09:08+02:00",
+      "id": "20260830T110351547281+0200",
+      "started_at": "2026-08-30T11:03:51+02:00",
+      "status": "complete",
+      "token_budget": 3000000
+    },
+    {
+      "id": "20260910T101608235407+0200",
+      "started_at": "2026-09-10T10:16:08+02:00",
+      "status": "complete",
+      "token_budget": 4000000,
+      "tokens_spent": 2419574,
+      "finished_at": "2026-09-10T15:23:05+02:00",
+      "finish_reason": "all-current"
+    }
+  ],
+  "project": "poormans_text",
+  "schema_version": 2,
+  "scope": {
+    "exclusions": [],
+    "paths": [
+      "Sources",
+      "Tests",
+      "scripts",
+      "build.sh",
+      "install.sh",
+      "release.sh",
+      "Package.swift",
+      ".github/workflows",
+      "App",
+      "Package.resolved"
+    ]
   },
   "themes": [
     {
-      "id": "namespace-prefix-tracker",
-      "summary": "NamespacePrefixTracker (Klasse inkl. Doku) existiert byteähnlich doppelt: privat in ZIPArchiveInspector.swift und privat in XLSXWorkbookParser.swift — als eine interne Hilfsklasse konsolidierbar",
-      "evidence": [
-        "Sources/PoorMansTextCore/ZIPArchiveInspector.swift",
-        "Sources/PoorMansTextCore/XLSXWorkbookParser.swift"
-      ],
-      "priority": 2,
-      "state": "completed",
-      "noted_at": "2026-08-15T13:04:24+02:00",
       "campaign_id": "20260815T125412077498+0200",
-      "started_at": "2026-08-15T13:07:39+02:00",
       "completed": {
         "campaign_id": "20260815T125412077498+0200",
         "completed_at": "2026-08-15T13:09:47+02:00",
@@ -445,20 +691,20 @@
         "tests": [
           "swift test: 194 passed, 0 failures"
         ]
-      }
-    },
-    {
-      "id": "symlink-input-rejected",
-      "summary": "Ein Symlink als Eingabedatei wird für alle ZIP-Formate (DOCX/ODT/ODS/XLSX/ODM) mit der sachlich falschen Meldung 'the package is not a regular file' abgelehnt, während RTF über denselben Symlink konvertiert — zwei Stellen: Archive.init prüft isRegularFile ohne den Verweis aufzulösen, VerifiedFileStaging.stage öffnet die Quelle mit O_NOFOLLOW",
+      },
       "evidence": [
         "Sources/PoorMansTextCore/ZIPArchiveInspector.swift",
-        "Sources/PoorMansTextCore/VerifiedFileStaging.swift"
+        "Sources/PoorMansTextCore/XLSXWorkbookParser.swift"
       ],
-      "priority": 1,
+      "id": "namespace-prefix-tracker",
+      "noted_at": "2026-08-15T13:04:24+02:00",
+      "priority": 2,
+      "started_at": "2026-08-15T13:07:39+02:00",
       "state": "completed",
-      "noted_at": "2026-08-19T18:04:51+02:00",
+      "summary": "NamespacePrefixTracker (Klasse inkl. Doku) existiert byteähnlich doppelt: privat in ZIPArchiveInspector.swift und privat in XLSXWorkbookParser.swift — als eine interne Hilfsklasse konsolidierbar"
+    },
+    {
       "campaign_id": "20260819T180037868197+0200",
-      "started_at": "2026-08-19T18:06:18+02:00",
       "completed": {
         "campaign_id": "20260819T180037868197+0200",
         "completed_at": "2026-08-19T18:14:04+02:00",
@@ -469,22 +715,20 @@
           "swift build -c release: erfolgreich",
           "Gegenprobe: 6 der 10 neuen Tests scheitern gegen den Stand vor dem Fix, 4 Härtungstests bleiben in beiden Ständen grün"
         ]
-      }
+      },
+      "evidence": [
+        "Sources/PoorMansTextCore/ZIPArchiveInspector.swift",
+        "Sources/PoorMansTextCore/VerifiedFileStaging.swift"
+      ],
+      "id": "symlink-input-rejected",
+      "noted_at": "2026-08-19T18:04:51+02:00",
+      "priority": 1,
+      "started_at": "2026-08-19T18:06:18+02:00",
+      "state": "completed",
+      "summary": "Ein Symlink als Eingabedatei wird für alle ZIP-Formate (DOCX/ODT/ODS/XLSX/ODM) mit der sachlich falschen Meldung 'the package is not a regular file' abgelehnt, während RTF über denselben Symlink konvertiert — zwei Stellen: Archive.init prüft isRegularFile ohne den Verweis aufzulösen, VerifiedFileStaging.stage öffnet die Quelle mit O_NOFOLLOW"
     },
     {
-      "id": "verified-descriptor-reads",
-      "summary": "Das Muster 'geprüfter Deskriptor' (open mit O_RDONLY|O_NONBLOCK, fstat am selben Deskriptor, S_IFREG-Prüfung, EINTR-feste Leseschleife) steht in drei eigenständigen Fassungen: VerifiedFileStaging (withVerifiedSource/readVerified), ZIPArchiveInspector (withOpenFile/readFully) und RichTextConverter.rtfProbe. PDFAdapter.hasPDFSignature öffnet die fremde Quelle dagegen noch mit FileHandle ohne O_NONBLOCK und prüft Regularität und Größe getrennt über resourceValues — es fehlt dort ganz. Eine gemeinsame Hilfe würde beides erledigen; die Fehlerabbildung bleibt beim Aufrufer",
-      "evidence": [
-        "Sources/PoorMansTextCore/VerifiedFileStaging.swift",
-        "Sources/PoorMansTextCore/RichTextConverter.swift",
-        "Sources/PoorMansTextCore/ZIPArchiveInspector.swift",
-        "Sources/PoorMansTextCore/PDFAdapter.swift"
-      ],
-      "priority": 3,
-      "state": "completed",
-      "noted_at": "2026-08-29T18:12:33+02:00",
       "campaign_id": "20260829T180733149979+0200",
-      "started_at": "2026-08-29T18:41:15+02:00",
       "completed": {
         "campaign_id": "20260829T180733149979+0200",
         "completed_at": "2026-08-29T18:45:56+02:00",
@@ -494,7 +738,543 @@
           "swift test: 302 passed, 0 failures",
           "perl-alarm-Messung: FileHandle(forReadingFrom:) auf eine FIFO steht nach 30 s noch im open (Exit 142)"
         ]
+      },
+      "evidence": [
+        "Sources/PoorMansTextCore/VerifiedFileStaging.swift",
+        "Sources/PoorMansTextCore/RichTextConverter.swift",
+        "Sources/PoorMansTextCore/ZIPArchiveInspector.swift",
+        "Sources/PoorMansTextCore/PDFAdapter.swift"
+      ],
+      "id": "verified-descriptor-reads",
+      "noted_at": "2026-08-29T18:12:33+02:00",
+      "priority": 3,
+      "started_at": "2026-08-29T18:41:15+02:00",
+      "state": "completed",
+      "summary": "Das Muster 'geprüfter Deskriptor' (open mit O_RDONLY|O_NONBLOCK, fstat am selben Deskriptor, S_IFREG-Prüfung, EINTR-feste Leseschleife) steht in drei eigenständigen Fassungen: VerifiedFileStaging (withVerifiedSource/readVerified), ZIPArchiveInspector (withOpenFile/readFully) und RichTextConverter.rtfProbe. PDFAdapter.hasPDFSignature öffnet die fremde Quelle dagegen noch mit FileHandle ohne O_NONBLOCK und prüft Regularität und Größe getrennt über resourceValues — es fehlt dort ganz. Eine gemeinsame Hilfe würde beides erledigen; die Fehlerabbildung bleibt beim Aufrufer"
+    },
+    {
+      "campaign_id": "20260910T101608235407+0200",
+      "completed": {
+        "campaign_id": "20260910T101608235407+0200",
+        "completed_at": "2026-09-10T11:55:10+02:00",
+        "observed_head": "c437f0aeb1554290e01d20c4666372e7be667d9d",
+        "summary": "ImportXMLParser.make setzt die drei Einstellungen jetzt einmal für alle acht Leser; die fehlende Sperre gegen externe Entitäten in PackageMetadataParser ist damit strukturell ausgeschlossen. 42 Zeilen weniger. Zwei der drei Einstellungen sind per Mutationstest festgenagelt; beim dritten hält der Test das Verhalten fest, nicht die Einstellung, und sagt das auch.",
+        "tests": [
+          "swift test: 496 passed, 0 failed (vorher 494)",
+          "Mutationstest: shouldProcessNamespaces=false und shouldReportNamespacePrefixes=false lassen Tests fehlschlagen"
+        ]
+      },
+      "evidence": [
+        "Sources/PoorMansTextCore/DocumentMetadata.swift",
+        "Sources/PoorMansTextCore/ImportXML.swift",
+        "Sources/PoorMansTextCore/ODMContentParser.swift",
+        "Sources/PoorMansTextCore/ODSWorkbookParser.swift",
+        "Sources/PoorMansTextCore/WordProcessingPackageInspector.swift",
+        "Sources/PoorMansTextCore/XLSXWorkbookParser.swift"
+      ],
+      "id": "xmlparser-konfiguration",
+      "noted_at": "2026-09-10T10:21:40+02:00",
+      "priority": 1,
+      "started_at": "2026-09-10T11:51:10+02:00",
+      "state": "completed",
+      "summary": "Acht XMLParser-Instanzen konfigurieren sich einzeln. Sieben setzen denselben Vierzeiler (shouldProcessNamespaces, shouldReportNamespacePrefixes, shouldResolveExternalEntities = false, delegate); PackageMetadataParser.parse in DocumentMetadata.swift:166 setzt shouldResolveExternalEntities nicht — Foundation stellt zwar false voreingestellt, aber die Sperre gegen externe Entitaeten haengt dort still an der Voreinstellung statt am Code. Eine gemeinsame Fabrik macht die Einstellung unvergesslich."
+    },
+    {
+      "campaign_id": "20260910T101608235407+0200",
+      "evidence": [
+        "Sources/PoorMansTextCore/SpreadsheetAdapter.swift",
+        "Sources/PoorMansTextCore/PDFAdapter.swift",
+        "Sources/PoorMansTextCore/DelimitedTextAdapter.swift",
+        "Sources/PoorMansTextCore/PresentationAdapter.swift",
+        "Sources/PoorMansTextCore/ImageAdapter.swift"
+      ],
+      "id": "markdown-datei-schreiben",
+      "noted_at": "2026-09-10T10:21:40+02:00",
+      "priority": 3,
+      "state": "completed",
+      "summary": "Derselbe Fuenfzeiler 'Markdown atomar schreiben, Fehler auf ConversionError.fileSystemFailure abbilden' steht wortgleich in SpreadsheetAdapter:244, PDFAdapter:113 und DelimitedTextAdapter:116; PresentationAdapter:48 und ImageAdapter:97 schreiben gleich, bilden den Fehler aber anders ab. Eine gemeinsame Hilfe im Adapter-Kontext wuerde Schreibweg und Fehlerabbildung vereinheitlichen.",
+      "started_at": "2026-09-10T15:19:36+02:00",
+      "completed": {
+        "campaign_id": "20260910T101608235407+0200",
+        "completed_at": "2026-09-10T15:21:32+02:00",
+        "observed_head": "10b07fdcbfd2e561b1dd5ad79535bd85005b06bc",
+        "summary": "AdapterConversionContext.writeMarkdown fasst Name, atomaren Schreibweg und Fehlerabbildung zusammen; SpreadsheetAdapter, PDFAdapter und DelimitedTextAdapter nutzen sie. ImageAdapter und PresentationAdapter bleiben bewusst außen vor, weil sie einen Schreibfehler auf ihren Formatfehler abbilden und nicht auf fileSystemFailure — das ist eine andere Bedeutung, keine Wiederholung.",
+        "tests": [
+          "swift test: 509 passed, 0 failed",
+          "CLI-Gegenprobe: CSV, TSV und ODS ergeben unverändert dieselbe Ausgabe"
+        ]
       }
+    },
+    {
+      "campaign_id": "20260910T101608235407+0200",
+      "evidence": [
+        "Sources/PoorMansTextCore/HTMLImageRewriter.swift",
+        "Sources/PoorMansTextCore/MarkdownLinkTargetRewriter.swift",
+        "Sources/PoorMansTextCore/OpenDocumentMasterAdapter.swift"
+      ],
+      "id": "asset-pfad-kodierung",
+      "noted_at": "2026-09-10T10:37:01+02:00",
+      "priority": 2,
+      "state": "completed",
+      "summary": "Die Regel 'Asset-Links prozentkodieren, erlaubt sind nur A-Za-z0-9-._~' steht jetzt an zwei Stellen: privat als percentEncodePathComponent in HTMLImageRewriter (schreibt die Links) und als percentEncodedPath in MarkdownLinkTargetRewriter (schreibt sie um). Weichen beide je auseinander, verfehlt der Rewriter die Links wieder still. Eine gemeinsame Stelle im Kern wuerde die Regel an einen Ort binden; NotebookAdapter und OpenDocumentMasterAdapter sind die weiteren Nutzer des Rewriters.",
+      "started_at": "2026-09-10T15:16:21+02:00",
+      "completed": {
+        "campaign_id": "20260910T101608235407+0200",
+        "completed_at": "2026-09-10T15:19:36+02:00",
+        "observed_head": "204cb38c850b36e1e7af8fd0a93c3b6e9a435f14",
+        "summary": "Die Kodierregel für Asset-Links liegt jetzt einmal in MarkdownLinkTargetRewriter.percentEncodedPath; HTMLImageRewriter ruft sie auf, statt sie zu wiederholen. Belegt durch Mutation: Ändert man die gemeinsame Regel, schlägt der vorhandene Rundlauftest über ein Bild mit + im Namen fehl.",
+        "tests": [
+          "swift test: 509 passed, 0 failed",
+          "Mutationstest: geänderte gemeinsame Kodierregel lässt eine Zusicherung fehlschlagen"
+        ]
+      }
+    },
+    {
+      "campaign_id": "20260910T101608235407+0200",
+      "evidence": [
+        "Sources/PoorMansTextCore/ZIPArchiveInspector.swift",
+        "Sources/PoorMansTextCore/XLSXWorkbookParser.swift",
+        "Sources/PoorMansTextCore/ODMContentParser.swift",
+        "Sources/PoorMansTextCore/VerifiedFileStaging.swift"
+      ],
+      "id": "lokale-fehlertypen",
+      "noted_at": "2026-09-10T11:36:56+02:00",
+      "priority": 4,
+      "state": "dismissed",
+      "summary": "Achtzehn private Fehlertypen im Kern haben dieselbe Gestalt: ein 'reason', ein init(_:) und errorDescription, das ihn zurueckgibt (ArchiveError, StagingError zweimal, ParserError viermal, PDFAdapterError, ImageAdapterError, MasterError, SpreadsheetError, InspectionError, ContentTypeError, WebArchiveError, DelimitedTextError, SpreadsheetRenderError). Achtung beim Konsolidieren: Die TYPEN muessen getrennt bleiben, weil Fangstellen nach Typ filtern (etwa 'catch let error as StagingError' in RichTextConverter). Zusammenfassbar ist nur die Wiederholung selbst, etwa ueber ein Protokoll mit Standardimplementierung von errorDescription; das spart rund 36 Zeilen und beruehrt 18 Dateien in vielen Bereichen. Nutzen also gering, Streubreite gross.",
+      "dismissed": {
+        "campaign_id": "20260910T101608235407+0200",
+        "dismissed_at": "2026-09-10T15:21:47+02:00",
+        "reason": "Kein lohnender Umbau. Die achtzehn Typen sehen gleich aus, sind aber fachlich verschieden: Fangstellen filtern nach Typ (etwa 'catch let error as StagingError' in RichTextConverter), sie zusammenzuziehen wäre genau das, wovor der Skill warnt. Zusammenfassbar bliebe nur die Wiederholung von errorDescription über ein Protokoll mit Standardimplementierung — rund 36 Zeilen Ersparnis, verteilt auf 18 Dateien in fast allen Bereichen. Aufwand und Streubreite stehen in keinem Verhältnis zum Nutzen; die Beschreibung des Fundes bleibt als Hinweis erhalten, falls jemand einmal ohnehin alle Fehlertypen anfasst."
+      }
+    },
+    {
+      "id": "pandoc-install-timeout",
+      "summary": "ROADMAP App: brew install pandoc läuft ohne Zeitlimit, ohne Abbruch-Token und erbt stdin; hängt Homebrew, bleibt der Installationszustand dauerhaft gesetzt und sperrt Drop-Zone, ⌘O, Dock-Öffnen und beide Dienste ohne Abbruchmöglichkeit. Die Umwandlung hat Timeout und Abbruch längst; die Installation braucht dieselbe Behandlung.",
+      "evidence": [
+        "Sources/PoorMansTextAppSupport/PandocInstaller.swift",
+        "Sources/PoorMansTextAppSupport/AppModel.swift",
+        "Sources/PoorMansTextApp/ContentView.swift"
+      ],
+      "priority": 1,
+      "state": "completed",
+      "noted_at": "2026-09-10T15:42:43+02:00",
+      "campaign_id": "20260910T154243481221+0200",
+      "started_at": "2026-09-10T15:42:59+02:00",
+      "completed": {
+        "campaign_id": "20260910T154243481221+0200",
+        "completed_at": "2026-09-10T15:49:47+02:00",
+        "observed_head": "c986fe9797a665b8989b699c7ce7ca88637b418a",
+        "summary": "Homebrew und osascript laufen über den package-sichtbaren ProcessRunner des Kerns (Zeitlimit, Abbruch-Token, Prozessgruppen-Kill, stdin=/dev/null, Dateicapture). PandocInstaller: 15-Minuten-Limit, InstallError.cancelled/timedOut; AppModel: cancelPandocInstallation + isCancellingPandocInstallation; ContentView: Abbruchknopf. Verhalten sonst unverändert.",
+        "tests": [
+          "swift test: 513 passed (4 neue: Zeitlimit beendet brew, Token-Abbruch beendet brew, keine stdin-Vererbung, App-Abbruch gibt Einstiege frei)"
+        ]
+      }
+    },
+    {
+      "id": "app-cli-target-parity",
+      "summary": "ROADMAP App: App übergibt dem Stapel keine Zielwurzel. Gelöschter gemerkter Zielordner: App legt Pfadkette neu an, CLI meldet 'output parent directory does not exist'; Zielordner ist Datei: CLI meldet 'output already exists', App je Eingabe rohen Dateisystemfehler. Gleiche Option, zwei Verhalten — gegen die Adapter-Invariante.",
+      "evidence": [
+        "Sources/PoorMansTextAppSupport/AppModel.swift",
+        "Sources/PoorMansTextCLI/CLIExecution.swift",
+        "Sources/PoorMansTextCore/BatchConverter.swift"
+      ],
+      "priority": 1,
+      "state": "completed",
+      "noted_at": "2026-09-10T15:42:43+02:00",
+      "campaign_id": "20260910T154243481221+0200",
+      "started_at": "2026-09-10T15:50:02+02:00",
+      "completed": {
+        "campaign_id": "20260910T154243481221+0200",
+        "completed_at": "2026-09-10T15:52:54+02:00",
+        "observed_head": "a5aa75e4c254fffa823ba259c787d8c7265eeb20",
+        "summary": "AppModel.executeBatch übergibt destinationFolder als outputRoots an BatchConverter; damit gelten in App und CLI dieselben Regeln (Wurzel eine Ebene tief anlegen, Datei = outputAlreadyExists, fehlender Elternordner = outputParentDoesNotExist, Wurzel gegen Quellen geprüft).",
+        "tests": [
+          "swift test: 515 passed (2 neue: Zielordner ist Datei; Zielordner gelöscht mit/ohne Elternordner)"
+        ]
+      }
+    },
+    {
+      "id": "dock-open-feedback",
+      "summary": "ROADMAP App: Über Dock/Doppelklick geöffnete Dateien melden nichts, wenn die App beschäftigt ist (Drop meldet false, Dienst meldet Text, dieser Weg schweigt); ⌘O ist während der Pandoc-Installation aktiv und wirkungslos.",
+      "evidence": [
+        "Sources/PoorMansTextAppSupport/AppModel.swift",
+        "Sources/PoorMansTextAppSupport/OpenedDocumentsRelay.swift",
+        "Sources/PoorMansTextApp/ContentView.swift"
+      ],
+      "priority": 1,
+      "state": "completed",
+      "noted_at": "2026-09-10T15:42:43+02:00",
+      "campaign_id": "20260910T154243481221+0200",
+      "started_at": "2026-09-10T15:52:54+02:00",
+      "completed": {
+        "campaign_id": "20260910T154243481221+0200",
+        "completed_at": "2026-09-10T15:55:57+02:00",
+        "observed_head": "f2ef5e180631c6b2f03dbd09a709dc7109cf95c7",
+        "summary": "AppModel.openDocuments(_:) als Einstieg für application(_:open:): bei Sperre openRejectionMessage (Installations- oder Beschäftigt-Text) statt Schweigen, in ContentView in jedem Zustand sichtbar; ⌘O auf !acceptsNewDocuments.",
+        "tests": [
+          "swift test: 516 passed (2 neue: Öffnen während Installation meldet Text; Öffnen während Batch meldet Text und Meldung bleibt bis zum nächsten Auftrag)"
+        ]
+      }
+    },
+    {
+      "id": "cli-json-position",
+      "summary": "ROADMAP CLI: --json wirkt nur, wenn es VOR dem fehlerhaften Argument steht; der Fehlerausgang liest den Parser-Teilzustand. Nötig ist ein wertbewusster Vorabscan, der '--pandoc --json' weiter als Werkzeugpfad liest (testJSONModeUsesOnlyOptionsRecognizedByParser). Dafür braucht die Auswertung eine gemeinsame Liste der Optionen mit Wert statt der if-else-Kette.",
+      "evidence": [
+        "Sources/PoorMansTextCLI/CLIArguments.swift",
+        "Sources/PoorMansTextCLI/main.swift",
+        "Tests/PoorMansTextCoreTests/CLIOutputModeTests.swift"
+      ],
+      "priority": 2,
+      "state": "completed",
+      "noted_at": "2026-09-10T15:42:43+02:00",
+      "campaign_id": "20260910T154243481221+0200",
+      "started_at": "2026-09-10T16:00:26+02:00",
+      "completed": {
+        "campaign_id": "20260910T154243481221+0200",
+        "completed_at": "2026-09-10T16:04:04+02:00",
+        "observed_head": "eabaff4f253fba21d64b6005fdd61d082a440ca5",
+        "summary": "valueOptions als einzige Liste der Optionen mit Wert; requestsJSONOutput als wertbewusster Vorabscan vor dem Parsen; parseArguments als Switch (apply(flag:)/apply(option:value:)) statt if-else-Kette; Verhalten erhalten (Inline-Werte nur bei --langen Optionen, Schalter mit =Wert unbekannt).",
+        "tests": [
+          "swift test: 519 passed (Fehler vor --json als JSON; --pandoc=--json und -- --json weiter Text; jede Wertoption verbraucht ihren Wert und meldet fehlenden Wert)"
+        ]
+      }
+    },
+    {
+      "id": "cli-stdout-jobs",
+      "summary": "ROADMAP CLI: '--stdout --jobs 4' wird stillschweigend geschluckt, während dieselbe wirkungslose Angabe im Katalogmodus ein Nutzungsfehler ist. Dazu: Textmodus ist bei Zeilenumbruch im Dateinamen nicht zeilenweise parsbar — Hilfe sagt das nicht.",
+      "evidence": [
+        "Sources/PoorMansTextCLI/CLIArguments.swift",
+        "Sources/PoorMansTextCLI/CLIOutput.swift"
+      ],
+      "priority": 2,
+      "state": "completed",
+      "noted_at": "2026-09-10T15:42:43+02:00",
+      "campaign_id": "20260910T154243481221+0200",
+      "started_at": "2026-09-10T15:57:53+02:00",
+      "completed": {
+        "campaign_id": "20260910T154243481221+0200",
+        "completed_at": "2026-09-10T16:00:26+02:00",
+        "observed_head": "18c6392037d877d76f4219fb0f02cfb070c8e206",
+        "summary": "main.swift: --stdout mit gesetztem --jobs wirft standardOutputConflict; Hilfe und README (en/de) nennen --jobs im Ausschluss und die Zeilenregel des Textmodus (Produktentscheidung: dokumentieren statt maskieren, kein Verhaltenswechsel der Ausgabe).",
+        "tests": [
+          "swift test: 518 passed (Konfliktliste um --stdout --jobs 2 und --jobs=4 erweitert)"
+        ]
+      }
+    },
+    {
+      "id": "word-officedocument-rels",
+      "summary": "ROADMAP Word: Hauptteil fest auf word/document.xml verdrahtet statt über die officeDocument-Beziehung in _rels/.rels (so löst Pandoc auf); ein repariertes Dokument mit word/document2.xml wird abgelehnt. Dazu: ein einziges defektes .rels verwirft das ganze Dokument, auch Nebenteile, die Pandoc nie liest. Und ODT prüft nur content.xml, nicht styles.xml auf externe draw:image-Verweise.",
+      "evidence": [
+        "Sources/PoorMansTextCore/WordProcessingPackageInspector.swift",
+        "Sources/PoorMansTextCore/WordProcessingPackageAdapter.swift"
+      ],
+      "priority": 2,
+      "state": "completed",
+      "noted_at": "2026-09-10T15:42:44+02:00",
+      "campaign_id": "20260910T154243481221+0200",
+      "started_at": "2026-09-10T16:04:04+02:00",
+      "completed": {
+        "campaign_id": "20260910T154243481221+0200",
+        "completed_at": "2026-09-10T16:07:33+02:00",
+        "observed_head": "757e493f48e322b0b7c9e35bd480343e44d925e7",
+        "summary": "mainDocumentPart über OfficeDocumentRelationshipParser (_rels/.rels), Fallback word/document.xml ohne .rels; ContentTypes-Parser mit mainPart-Parameter; Nebenteile neben dem Hauptteil; leerer .rels = keine Ziele, defekter bleibt Ablehnung (bewusst, Sicherheit vor Toleranz); ODT prüft styles.xml auf externe Bilder. Real geprüft: pandoc.docx mit document2.xml wandelt jetzt um.",
+        "tests": [
+          "swift test: 524 passed (5 neue: officeDocument-Auflösung inkl. /-Ziel, Pandoc-Umwandlung des reparierten Pakets, fehlendes Ziel, leerer vs. defekter .rels, styles.xml-Bild)"
+        ]
+      }
+    },
+    {
+      "id": "html-charset-and-images",
+      "summary": "ROADMAP HTML: Rückfall geht von UTF-8 direkt auf Windows-1252 ohne <meta charset>; windows-1251/shift_jis werden Mojibake. Ein zu großes Einzelbild neben der Quelle bricht die ganze Umwandlung als Dateisystemfehler ab statt wegzufallen. Webarchiv-Nebenressourcen werden je Verweis neu geschrieben (Dedup nur für Dateien neben der Quelle).",
+      "evidence": [
+        "Sources/PoorMansTextCore/PandocTextAdapter.swift",
+        "Sources/PoorMansTextCore/HTMLImageSourceResolver.swift",
+        "Sources/PoorMansTextCore/WebArchiveReader.swift"
+      ],
+      "priority": 2,
+      "state": "completed",
+      "noted_at": "2026-09-10T15:42:44+02:00",
+      "campaign_id": "20260910T154243481221+0200",
+      "started_at": "2026-09-10T16:07:33+02:00",
+      "completed": {
+        "campaign_id": "20260910T154243481221+0200",
+        "completed_at": "2026-09-10T16:14:01+02:00",
+        "observed_head": "521bcf31d305268a40a34942bc85f79432e9246b",
+        "summary": "PandocTextAdapter.declaredCharset (meta charset, http-equiv, XML encoding) zwischen UTF-8 und Windows-1252-Annahme (Produktentscheidung: UTF-8 zuerst, weil viele Seiten falsch Latin-1 deklarieren; .tex bleibt hart UTF-8); copyLocalImage: StagingError.source → nil statt fileSystemFailure; Webarchiv-Nebenressourcen über localNames dedupliziert.",
+        "tests": [
+          "swift test: 527 passed (3 neue: windows-1251 mit meta charset ohne Warnung + cp1252 ohne Deklaration mit Warnung + drei Deklarationsformen; spärliches 256-MiB+1-Bild fällt weg; Nebenressource zweimal referenziert einmal geschrieben)"
+        ]
+      }
+    },
+    {
+      "id": "epub-fb2-metadata",
+      "summary": "ROADMAP HTML-Import: EPUB und FictionBook liefern nie Metadaten; --frontmatter meldet dort immer metadataUnavailable, obwohl dc:title und dc:creator im Buch stehen.",
+      "evidence": [
+        "Sources/PoorMansTextCore/PandocTextAdapter.swift",
+        "Sources/PoorMansTextCore/DocumentMetadata.swift"
+      ],
+      "priority": 2,
+      "state": "completed",
+      "noted_at": "2026-09-10T15:42:44+02:00",
+      "campaign_id": "20260910T154243481221+0200",
+      "started_at": "2026-09-10T16:14:01+02:00",
+      "completed": {
+        "campaign_id": "20260910T154243481221+0200",
+        "completed_at": "2026-09-10T16:17:38+02:00",
+        "observed_head": "ca90371c03d082d91547aef19f165609b6df3545",
+        "summary": "EPUBMetadataReader (container.xml → OPF → PackageMetadataParser, dc:date als created) und FB2MetadataParser (title-info: book-title, erster Autor, genre, annotation, date value) in DocumentMetadata.swift; PandocTextAdapter setzt metadata für .epub und .fb2; Hilfe/README/ARCHITECTURE nennen die neuen Quellen.",
+        "tests": [
+          "swift test: 529 passed (2 neue Leser-Tests ohne Pandoc; EPUB-/FB2-Umwandlungstests prüfen Titel/Autor/Datum)"
+        ]
+      }
+    },
+    {
+      "id": "spreadsheet-memory-and-phonetics",
+      "summary": "ROADMAP Tabellen: Speicher wächst vor der Grenze (LegacyXLSWorkbookParser sammelt Zellen dünn und prüft maximumCells erst beim Verdichten; XLSX <row r=100000/> erzeugt 99 999 leere Zeilen-Arrays ohne Budget; DelimitedTextAdapter.sniffDelimiter zerlegt die ganze Datei für 20 Zeilen). Phonetische <rPh>-Lesehinweise landen im Zellwert (日本ニホン statt 日本). Zwei Zeilenbudgets für dasselbe Modell (CSV 1M/5M vs Arbeitsmappen 100k/1M).",
+      "evidence": [
+        "Sources/PoorMansTextCore/LegacyXLSWorkbookParser.swift",
+        "Sources/PoorMansTextCore/XLSXWorkbookParser.swift",
+        "Sources/PoorMansTextCore/DelimitedTextAdapter.swift",
+        "Sources/PoorMansTextCore/SpreadsheetWorkbook.swift"
+      ],
+      "priority": 2,
+      "state": "completed",
+      "noted_at": "2026-09-10T15:42:44+02:00",
+      "campaign_id": "20260910T154243481221+0200",
+      "started_at": "2026-09-10T16:17:38+02:00",
+      "completed": {
+        "campaign_id": "20260910T154243481221+0200",
+        "completed_at": "2026-09-10T16:25:15+02:00",
+        "observed_head": "d3a600ed8f5dd45872b67e1280b58b3a069d1c9c",
+        "summary": "XLSX: phoneticDepth überspringt rPh in sst und inlineStr; Zeilenlücken einer row r=… kosten je eine Einheit des Zellbudgets. XLS: CellBudget zählt neue Zellen in setCell (BIFFParser/setCell für Tests intern). CSV: sniffDelimiter mit maxSplits 20. Die zwei Zeilenbudgets (CSV 1M/5M vs Arbeitsmappen 100k/1M) bleiben als Produktentscheidung in der ROADMAP; CSV-Graphem-Trennung ist ein eigener Fund.",
+        "tests": [
+          "swift test: 532 passed (4 neue: rPh in Shared/Inline; Zeilenlücke kippt Budget; Zellbudget beim Einfügen; Sniffing ignoriert Zeilen nach 20)"
+        ]
+      }
+    },
+    {
+      "id": "presentation-images",
+      "summary": "ROADMAP Präsentationen: Ein mehrfach verwendetes Bild wird je a:blip-Verweis neu entpackt, gehasht und typisiert, obwohl die Ablage dedupliziert. ODP-Bilder in einem Absatz (draw:frame in text:p) fallen ohne Diagnose weg, weil der Leser text:p sofort mit dessen Text beantwortet.",
+      "evidence": [
+        "Sources/PoorMansTextCore/PresentationAdapter.swift",
+        "Sources/PoorMansTextCore/PresentationDocument.swift"
+      ],
+      "priority": 2,
+      "state": "completed",
+      "noted_at": "2026-09-10T15:42:44+02:00",
+      "campaign_id": "20260910T154243481221+0200",
+      "started_at": "2026-09-10T16:25:15+02:00",
+      "completed": {
+        "campaign_id": "20260910T154243481221+0200",
+        "completed_at": "2026-09-10T16:27:04+02:00",
+        "observed_head": "8f980ff2049b983a536505ad675f555c091c4198",
+        "summary": "PresentationImport.storedImages cacht abgelegte Bilder je Paketpfad (Fehlschläge nicht); odpBlocks hängt draw:image-Nachfahren eines text:p/text:h als Bildblöcke an den Absatz (leerer Absatz mit Bild → nur Bild).",
+        "tests": [
+          "swift test: 534 passed (2 neue: Bild im ODP-Absatz zweimal, ein Asset; dreifach verwiesenes PPTX-Bild einmal aus dem Paket gelesen, per zählendem ZIPPackageReading)"
+        ]
+      }
+    },
+    {
+      "id": "app-untranslated-texts",
+      "summary": "ROADMAP App: Hinweistexte von RichTextClipboard und die Fehlermeldungen der beiden Installationswege gehen ohne Übersetzung in die Oberfläche; die Installationsdialoge nehmen localizedDescription statt der zentralen Meldungsabbildung. Verwaister Schlüssel 'Converting %lld of %lld: %@…' in beiden .strings-Dateien.",
+      "evidence": [
+        "Sources/PoorMansTextAppSupport/RichTextClipboard.swift",
+        "App/en.lproj/Localizable.strings",
+        "App/de.lproj/Localizable.strings"
+      ],
+      "priority": 3,
+      "state": "completed",
+      "noted_at": "2026-09-10T15:42:44+02:00",
+      "campaign_id": "20260910T154243481221+0200",
+      "started_at": "2026-09-10T15:55:57+02:00",
+      "completed": {
+        "campaign_id": "20260910T154243481221+0200",
+        "completed_at": "2026-09-10T15:57:42+02:00",
+        "observed_head": "633629c094ec33cceb14fda82078fdebb58c650e",
+        "summary": "AppErrorMessage öffentlich und um ClipboardError, PandocInstaller.InstallError und CLIInstaller.InstallError ergänzt; ContentView-Alerts und ServicesProvider nehmen die Abbildung; RichTextClipboard-Hinweise über NSLocalizedString; 11 neue Schlüssel in en/de, verwaister Schlüssel entfernt.",
+        "tests": [
+          "swift test: 518 passed (2 neue: deutsche Meldungen der Nebenwege; gleiche Schlüsselmengen in en.lproj und de.lproj)"
+        ]
+      }
+    },
+    {
+      "id": "csv-scalar-delimiter",
+      "summary": "ROADMAP Tabellen: Der CSV-Parser vergleicht Character statt Unicode-Skalare; ein Komma mit folgendem Kombinationszeichen ist ein anderes Graphem und trennt nicht. Der Umbau berührt die gesamte Zustandsmaschine des Parsers.",
+      "evidence": [
+        "Sources/PoorMansTextCore/DelimitedTextAdapter.swift"
+      ],
+      "priority": 3,
+      "state": "completed",
+      "noted_at": "2026-09-10T15:42:44+02:00",
+      "campaign_id": "20260910T154243481221+0200",
+      "started_at": "2026-09-10T16:27:05+02:00",
+      "completed": {
+        "campaign_id": "20260910T154243481221+0200",
+        "completed_at": "2026-09-10T16:28:37+02:00",
+        "observed_head": "204c32c11b1e324d77936b4cbab9090274ce1c94",
+        "summary": "DelimitedTextParser.parse iteriert text.unicodeScalars; Trennzeichen als Unicode.Scalar, CR/CRLF/LF-Behandlung explizit; Zustandsmaschine sonst unverändert (Quotes, Budgets, Abbruchprüfung).",
+        "tests": [
+          "swift test: 535 passed (neu: Komma+Kombinationszeichen trennt, CRLF bleibt ein Zeilenende, in Quotes Text; mehrskalariges Trennzeichen abgelehnt)"
+        ]
+      }
+    },
+    {
+      "id": "rtfd-attachment-names",
+      "summary": "ROADMAP App (nicht reproduziert): Anhangnamen eines Flat-RTFD werden beim Auspacken ungeprüft als Pfadbestandteile benutzt; ein Ausbruch über ../ ließ sich nicht konstruieren, ist aber auch nicht widerlegt.",
+      "evidence": [
+        "Sources/PoorMansTextCore/RichTextConverter.swift"
+      ],
+      "priority": 3,
+      "state": "completed",
+      "noted_at": "2026-09-10T15:42:44+02:00",
+      "campaign_id": "20260910T154243481221+0200",
+      "started_at": "2026-09-10T16:28:37+02:00",
+      "completed": {
+        "campaign_id": "20260910T154243481221+0200",
+        "completed_at": "2026-09-10T16:30:03+02:00",
+        "observed_head": "e2a98dfdff3006b27ab9f254fec407328998e546",
+        "summary": "Belegt statt notiert: AppKit weist preferredFilename mit ../ beim Erzeugen ab (Abbruch) und NSAttributedString(rtfd:) verwirft ein byteweise gepatchtes Flat-RTFD beim Lesen; RichTextClipboard meldet unreadableRichText, nichts wird geschrieben. Kein Codeänderungsbedarf; Beweis als Test festgehalten, ROADMAP-Eintrag entfernt.",
+        "tests": [
+          "swift test: 536 passed (neu: gepatchtes Flat-RTFD mit ../esc.png wird abgelehnt, temporäres Verzeichnis unverändert)"
+        ]
+      }
+    },
+    {
+      "id": "zip-gate-hardening",
+      "summary": "ROADMAP ZIP-Tor: (1) ungeprüfte Bereiche der Datei — Zentralverzeichnis muss nur vor dem Schlussblock enden, nicht unmittelbar davor; Füllstoff hinter dem Deflate-Strom wird nicht geprüft (avail_in == 0 fehlt); (2) Schlussblockauswahl weicht von unzip/zipfile ab, Abweichung führt nicht zum Abbruch; (3) packageContents/inspectionSnapshot lesen die ganze Fremddatei in den Heap, bis 1 GiB, auch für den 4-Byte-mimetype-Eintrag.",
+      "evidence": [
+        "Sources/PoorMansTextCore/ZIPArchiveInspector.swift"
+      ],
+      "priority": 3,
+      "state": "dismissed",
+      "noted_at": "2026-09-10T15:42:44+02:00",
+      "campaign_id": "20260910T154243481221+0200",
+      "dismissed": {
+        "campaign_id": "20260910T154243481221+0200",
+        "dismissed_at": "2026-09-10T16:30:03+02:00",
+        "reason": "Alle drei Punkte brauchen laut ROADMAP eine Abwägung gegen reale, nicht regelkonforme Archive (Signatur-/Entschlüsselungsblöcke laut APPNOTE, Schlussblockwahl abweichend von unzip/zipfile) beziehungsweise einen streamenden Umbau der Erkennung — ein eigener Auftrag mit Korpusprüfung, kein Kampagnen-Beifang. Einträge bleiben in der ROADMAP."
+      }
+    },
+    {
+      "id": "pdf-column-vs-table",
+      "summary": "ROADMAP Härtung: PDFTextLayout.ordered liest zwei Gruppen links/rechts der Seitenmitte als Spalten; für Tabellen-/Inhaltsverzeichniszeilen ginge Beschriftung↔Zahl verloren. Über ein echtes PDF nicht auslösbar; braucht ein zusätzliches Merkmal, nicht eine weitere Schwelle.",
+      "evidence": [
+        "Sources/PoorMansTextCore/PDFTextLayout.swift"
+      ],
+      "priority": 4,
+      "state": "dismissed",
+      "noted_at": "2026-09-10T15:42:44+02:00",
+      "campaign_id": "20260910T154243481221+0200",
+      "dismissed": {
+        "campaign_id": "20260910T154243481221+0200",
+        "dismissed_at": "2026-09-10T16:30:03+02:00",
+        "reason": "Braucht ein zusätzliches Merkmal (Zeilendichte, Punktführung, Spaltenbreite) statt einer weiteren Schwelle; über ein echtes PDF nicht auslösbar. Entwurfsentscheidung, bleibt in der ROADMAP."
+      }
+    },
+    {
+      "id": "image-verified-descriptor",
+      "summary": "ROADMAP Härtung: ImageAdapter.imageProbe beschreibt den Pfad mit resourceValues und öffnet ihn danach ein zweites Mal über CGImageSourceCreateWithURL; ein gemeinsamer Deskriptor hieße CGImageSourceCreateWithData mit vollständigem Einlesen, was kCGImageSourceShouldCache: false bewusst vermeidet. S_IFREG-Prüfung in detectInput weist FIFOs schon ab; offen ist nur das schmale Fenster.",
+      "evidence": [
+        "Sources/PoorMansTextCore/ImageAdapter.swift"
+      ],
+      "priority": 4,
+      "state": "dismissed",
+      "noted_at": "2026-09-10T15:42:44+02:00",
+      "campaign_id": "20260910T154243481221+0200",
+      "dismissed": {
+        "campaign_id": "20260910T154243481221+0200",
+        "dismissed_at": "2026-09-10T16:30:03+02:00",
+        "reason": "Ein gemeinsamer Deskriptor hieße CGImageSourceCreateWithData mit vollständigem Einlesen, was kCGImageSourceShouldCache: false bewusst vermeidet; die S_IFREG-Prüfung in detectInput deckt FIFOs bereits ab. Abwägung Speicher gegen schmales Fenster ist eine Entwurfsentscheidung, bleibt in der ROADMAP."
+      }
+    }
+  ],
+  "timeboxed_reviews": [
+    {
+      "id": "20261002-timeboxed-review",
+      "mode": "timeboxed",
+      "status": "complete",
+      "time_budget_seconds": 3600,
+      "started_at": "2026-10-02T16:10:34+02:00",
+      "finished_at": "2026-10-02T16:55:56+02:00",
+      "elapsed_seconds": 2722,
+      "baseline_head": "c3ab0f3",
+      "observed_head": "48b6c46eaee6f91b8d8d709ff11a97a4ea7c0919",
+      "report": ".codeqa/reviews/2026-10-02.md",
+      "scope": "Vollständiger eigener Swift-Produktcode und Build-/CI-Code; Testquellen risikoorientiert, komplette verfügbare Testsuite ausgeführt.",
+      "verification": {
+        "tests_total": 656,
+        "tests_passed": 647,
+        "tests_skipped": 9,
+        "tests_failed": 0,
+        "build": "./build.sh debug: passed",
+        "bundle": "scripts/verify_bundle.sh: passed",
+        "shell_syntax_files": 16,
+        "python_syntax_files": 3
+      },
+      "open_confirmed_findings": 0,
+      "limitations": [
+        "Neun externe Referenzkorpus-/PDF-Matrix-Tests übersprungen",
+        "Keine interaktive GUI-Prüfung",
+        "Kein notarisiertes Universal-Release oder DMG-Lauf"
+      ]
+    },
+    {
+      "id": "20261004-timeboxed-review",
+      "mode": "timeboxed",
+      "status": "complete",
+      "time_budget_seconds": 3600,
+      "started_at": "2026-10-04T16:30:25+02:00",
+      "finished_at": "2026-10-04T17:10:23+02:00",
+      "elapsed_seconds": 2398,
+      "baseline_head": "035f763",
+      "observed_head": "5b98b665ea37d74c7d0dcebbff3ff6f8013443fc",
+      "report": ".codeqa/reviews/2026-10-04.md",
+      "scope": "Alle 87 eigenen Swift-Produktdateien und Build-/CI-Code; Testquellen risikoorientiert, komplette verfügbare Testsuite ausgeführt.",
+      "verification": {
+        "tests_total": 675,
+        "tests_passed": 666,
+        "tests_skipped": 9,
+        "tests_failed": 0,
+        "build": "./build.sh debug: passed",
+        "bundle": "scripts/verify_bundle.sh: passed",
+        "shell_syntax_files": 16,
+        "python_syntax_files": 3
+      },
+      "confirmed_findings_fixed": 13,
+      "open_confirmed_findings": 0,
+      "limitations": [
+        "Neun externe Referenzkorpus-/PDF-Matrix-Tests übersprungen",
+        "Keine interaktive oder visuelle GUI-Prüfung",
+        "Keine Notarisierung, Installation oder DMG-Prüfung"
+      ]
+    }
+  ],
+  "release_validations": [
+    {
+      "id": "20261002-release-0.16.2",
+      "completed_at": "2026-10-02T17:49:40+02:00",
+      "version": "0.16.2",
+      "bundle_version": 29,
+      "public_commit": "25a8dd2d27c55577fdeb7593a916126dd87b2854",
+      "release_url": "https://github.com/DanielMuellerIR/poormans_text/releases/tag/v0.16.2",
+      "report": ".codeqa/reviews/2026-10-02.md",
+      "tests_total": 656,
+      "tests_passed": 647,
+      "tests_skipped": 9,
+      "tests_failed": 0,
+      "real_document_formats": 9,
+      "notarized_app_and_dmg": true,
+      "universal_hashes_match": true,
+      "draft_download_byte_exact": true,
+      "second_mac_app_conversion": true,
+      "live_archive_signature_valid": true,
+      "isolated_sparkle_update": "0.16.0 -> 0.16.2; subsequent app restart and conversion passed",
+      "ci_runs": [
+        37027887760,
+        37027888649
+      ],
+      "appcast_run": 37028928243
     }
   ]
 }

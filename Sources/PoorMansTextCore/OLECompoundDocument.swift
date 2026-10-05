@@ -187,8 +187,8 @@ struct OLECompoundDocument {
         return try read(entry)
     }
 
-    // DOC/XLS behalten ihren bisherigen Zugriff. MSG muss gleichnamige Properties
-    // verschiedener Objekte unterscheiden und prüft dafür den gesamten Speicherbaum.
+    // XLS und MSG müssen gleichnamige Streams verschiedener Speicher unterscheiden.
+    // Der Baum prüft dafür auch die vollständige Verzeichnishierarchie.
     func storageTree() throws -> StorageTree {
         guard let root = entries.first, root.id == 0, root.type == 5,
               root.leftSibling == Constants.freeSector,

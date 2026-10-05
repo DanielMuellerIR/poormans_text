@@ -17,11 +17,20 @@ final class BatchConverterTests: XCTestCase {
     func testActualParallelismStableOrderAndResultsWithoutCallback() throws {
         let first = try source("slow"), second = try source("fast")
         let state = Activity()
+        let slowEntered = DispatchSemaphore(value: 0)
+        let fastFinished = DispatchSemaphore(value: 0)
         let adapter = BatchTestAdapter { context in
             state.enter(context.inputURL.lastPathComponent)
-            defer { state.leave(context.inputURL.lastPathComponent) }
-            if context.inputURL == first { Thread.sleep(forTimeInterval: 0.12) }
-            else { Thread.sleep(forTimeInterval: 0.02) }
+            defer {
+                state.leave(context.inputURL.lastPathComponent)
+                if context.inputURL == second { fastFinished.signal() }
+            }
+            if context.inputURL == first {
+                slowEntered.signal()
+                XCTAssertEqual(fastFinished.wait(timeout: .now() + 10), .success)
+            } else {
+                XCTAssertEqual(slowEntered.wait(timeout: .now() + 10), .success)
+            }
         }
         let results = try BatchConverter(converter: DocumentConverter(adapters: [adapter])).convert(
             [ConversionRequest(inputURL: first), ConversionRequest(inputURL: second)], jobs: 2)

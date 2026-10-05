@@ -58,6 +58,13 @@ exportiert, lohnt den Aufwand nicht. Wer eine Pages-/Numbers-Datei umwandeln
 will, exportiert sie in der jeweiligen Apple-App als DOCX beziehungsweise XLSX
 und nutzt den normalen Import. Keynote fällt unter dieselbe Grenze.
 
+## Bekannte Importgrenzen
+
+- RTF: Pandoc 3.9.0.2 ersetzt UTF-16-Surrogatpaare aus manchen von `textutil`
+  erzeugten Dokumenten durch Ersatzzeichen, etwa bei Emoji außerhalb der
+  Unicode-Basisebene. Der Fehler wurde am 2026-10-05 auch direkt mit Pandoc
+  reproduziert. Der RTF-Import benötigt einen Weg, der diese Zeichen erhält.
+
 ## Fastra-Integration
 
 Die Seite von Poor Man's Text ist erledigt: `poormans-text --formats [--json]`

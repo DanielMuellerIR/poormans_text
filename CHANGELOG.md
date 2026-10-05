@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.16.5 — 2026-10-05
+
+- Preserve literal multiline reference text at Markdown block boundaries and
+  consume complete reference titles before scanning subsequent image links.
+- Reject ODS workbooks that exceed the shared expansion budget through empty
+  intermediate rows before allocating those rows.
+- Reject raster images whose headers are recognizable but whose pixels cannot
+  be decoded, preserving alternative text and reporting missing images.
+- Avoid an unused text copy during Markdown resource scanning.
+
 ## 0.16.4 — 2026-10-04
 
 - Validate embedded HTML images and extracted package media by their actual

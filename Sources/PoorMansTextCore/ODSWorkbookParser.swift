@@ -377,6 +377,12 @@ enum ODSWorkbookParser {
                 guard currentRows.count + pendingEmptyRows <= SpreadsheetLimits.maximumRows else {
                     return fail(SpreadsheetLimits.rowBudgetMessage, parser: parser)
                 }
+                // Auch leere Zwischenzeilen belegen Speicher; alle Blätter
+                // teilen sich dieses Budget, bevor Zeilen angelegt werden.
+                guard expandedCellCount <= SpreadsheetLimits.maximumCells - pendingEmptyRows else {
+                    return fail(SpreadsheetLimits.cellBudgetMessage, parser: parser)
+                }
+                expandedCellCount += pendingEmptyRows
                 currentRows.append(contentsOf: repeatElement([], count: pendingEmptyRows))
                 pendingEmptyRows = 0
             }

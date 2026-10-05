@@ -149,6 +149,9 @@ enum MarkdownLinkTargetRewriter {
                     let nextText = String(lines[lineNumber + definitionLines.count])
                     let nextContext = lineContext(nextText, containers: &continuationContainers)
                     guard !nextContext.isBlank,
+                          (!nextContext.startsNewInlineBlock || nextContext.isIndentedCode),
+                          openingFence(nextContext.fenceCandidate) == nil,
+                          openingHTMLBlock(nextContext.fenceCandidate) == nil,
                           continuationContainers.quoteDepth == containers.quoteDepth,
                           continuationContainers.listContentIndents == containers.listContentIndents else { break }
                     definitionLines.append(nextText)
@@ -170,6 +173,41 @@ enum MarkdownLinkTargetRewriter {
                         }
                     }
                     definition = referenceDefinition(in: definitionText)
+                }
+                // Ein Titel auf Folgezeilen gehört zur Definition. Seine Backticks
+                // dürfen deshalb keinen Codezustand im folgenden Absatz öffnen.
+                if definition?.target != nil, lineNumber + definitionLines.count < lines.count {
+                    var titleContainers = continuationContainers
+                    var titleLines = [String]()
+                    var titleContents = [String]()
+                    var probe = definitionText
+                    while lineNumber + definitionLines.count + titleLines.count < lines.count {
+                        try check?()
+                        let next = String(lines[lineNumber + definitionLines.count + titleLines.count])
+                        let context = lineContext(next, containers: &titleContainers)
+                        guard !context.isBlank, (!context.startsNewInlineBlock || context.isIndentedCode),
+                              openingFence(context.fenceCandidate) == nil,
+                              openingHTMLBlock(context.fenceCandidate) == nil,
+                              titleContainers.quoteDepth == containers.quoteDepth,
+                              titleContainers.listContentIndents == containers.listContentIndents else { break }
+                        if titleLines.isEmpty {
+                            let title = context.fenceCandidate.trimmingCharacters(in: .whitespaces)
+                            guard let first = title.first, ["\"", "'", "("].contains(String(first)) else { break }
+                        }
+                        titleLines.append(next)
+                        titleContents.append(context.fenceCandidate)
+                        probe += "\n" + context.fenceCandidate
+                        guard let parsed = referenceDefinition(in: probe) else { break }
+                        if parsed.target != nil {
+                            definitionText = probe
+                            definition = parsed
+                            definitionLines += titleLines
+                            contentLines += titleContents
+                            continuationContainers = titleContainers
+                            break
+                        }
+                        if !parsed.needsContinuation { break }
+                    }
                 }
                 if let target = definition?.target {
                     let original = String(definitionText[target])
@@ -270,7 +308,7 @@ enum MarkdownLinkTargetRewriter {
         var edits: [(range: Range<String.Index>, replacement: String)] = []
         var ticks: Int?
         var brackets = 0
-        _ = try rewriteInline(
+        try rewriteInline(
             logical, inlineBlockEnd: logical.endIndex,
             backtickIndex: try BacktickRunIndex(logical, check: check), mapping: mapping, targetObserver: targetObserver,
             replacementObserver: { range, replacement in
@@ -729,8 +767,7 @@ enum MarkdownLinkTargetRewriter {
         check: (() throws -> Void)?,
         inlineCodeTicks: inout Int?,
         bracketDepth: inout Int
-    ) throws -> String {
-        var result = ""
+    ) throws {
         var index = line.startIndex
         var scanned = 0
         while index < line.endIndex {
@@ -745,22 +782,18 @@ enum MarkdownLinkTargetRewriter {
                     let runEnd = line[index...].firstIndex(where: { $0 != "`" })
                         ?? line.endIndex
                     let count = line.distance(from: index, to: runEnd)
-                    result += line[index..<runEnd]
                     if count == closingTickCount {
                         inlineCodeTicks = nil
                     }
                     index = runEnd
                 } else {
-                    result.append(character)
                     index = line.index(after: index)
                 }
                 continue
             }
             if character == "\\" {
-                result.append(character)
                 index = line.index(after: index)
                 if index < line.endIndex {
-                    result.append(line[index])
                     index = line.index(after: index)
                 }
                 continue
@@ -768,7 +801,6 @@ enum MarkdownLinkTargetRewriter {
             if character == "`" {
                 let runEnd = line[index...].firstIndex(where: { $0 != "`" }) ?? line.endIndex
                 let count = line.distance(from: index, to: runEnd)
-                result += line[index..<runEnd]
                 // Ein Backtick-Run ohne gleich langen Abschluss ist laut GFM
                 // nur Literaltext. Dann bleibt der Inline-Scanner aktiv und
                 // kann echte Links hinter diesem Run weiter umschreiben.
@@ -795,20 +827,15 @@ enum MarkdownLinkTargetRewriter {
                     mapping: mapping,
                     targetObserver: targetObserver
                    ) {
-                    result += line[index..<replacement.end]
                     if replacement.text != line[replacement.end..<replacement.originalPathEnd] {
                         replacementObserver?(replacement.end..<replacement.originalPathEnd, replacement.text)
                     }
-                    result += replacement.text
-                    result += line[replacement.originalPathEnd..<replacement.resumeAt]
                     index = replacement.resumeAt
                     continue
                 }
             }
-            result.append(character)
             index = line.index(after: index)
         }
-        return result
     }
 
     /// Sammelt nur Ziele echter Markdown-Links. Derselbe Scanner wie beim

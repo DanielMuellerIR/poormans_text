@@ -334,8 +334,8 @@ enum HTMLImageSourceResolver {
         return try publishVerifiedImage(staged, as: String(format: "local%02d", index), fileManager: fileManager)
     }
 
-    /// Prüft die KOPIE auf einen bekannten Bildtyp und benennt sie nach diesem
-    /// Typ. Die Endung stammte vorher aus dem fremden Verweis: Ein
+    /// Prüft Bildtyp und dekodierbaren Inhalt der KOPIE und benennt sie nach
+    /// diesem Typ. Die Endung stammte vorher aus dem fremden Verweis: Ein
     /// `<img src="seite.html">` landete dadurch als `images/image01.html` im
     /// Ergebnisordner und wurde im Markdown verlinkt — geöffnet lud diese Datei
     /// dann genau die entfernten Ressourcen nach, die der Kern nie lädt
@@ -346,7 +346,10 @@ enum HTMLImageSourceResolver {
     ) throws -> String? {
         guard let source = CGImageSourceCreateWithURL(staged as CFURL, [kCGImageSourceShouldCache: false] as CFDictionary),
               let typeIdentifier = CGImageSourceGetType(source) as String?,
-              let format = ImageFileFormat(typeIdentifier: typeIdentifier) else {
+              let format = ImageFileFormat(typeIdentifier: typeIdentifier),
+              // Ein erkannter Header genügt nicht: abgeschnittene Dateien
+              // müssen den Fehlbildpfad mit Warnung und Alternativtext nutzen.
+              CGImageSourceCreateImageAtIndex(source, 0, [kCGImageSourceShouldCache: false] as CFDictionary) != nil else {
             try? fileManager.removeItem(at: staged)
             return nil
         }

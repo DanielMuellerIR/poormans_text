@@ -151,7 +151,7 @@ enum MarkdownLinkTargetRewriter {
                     guard !nextContext.isBlank,
                           (!nextContext.startsNewInlineBlock || nextContext.isIndentedCode),
                           openingFence(nextContext.fenceCandidate) == nil,
-                          openingHTMLBlock(nextContext.fenceCandidate) == nil,
+                          openingHTMLBlock(nextContext.fenceCandidate)?.canInterruptParagraph != true,
                           continuationContainers.quoteDepth == containers.quoteDepth,
                           continuationContainers.listContentIndents == containers.listContentIndents else { break }
                     definitionLines.append(nextText)
@@ -181,22 +181,28 @@ enum MarkdownLinkTargetRewriter {
                     var titleLines = [String]()
                     var titleContents = [String]()
                     var probe = definitionText
+                    var titleDelimiter: Character?
                     while lineNumber + definitionLines.count + titleLines.count < lines.count {
                         try check?()
                         let next = String(lines[lineNumber + definitionLines.count + titleLines.count])
                         let context = lineContext(next, containers: &titleContainers)
                         guard !context.isBlank, (!context.startsNewInlineBlock || context.isIndentedCode),
                               openingFence(context.fenceCandidate) == nil,
-                              openingHTMLBlock(context.fenceCandidate) == nil,
+                              openingHTMLBlock(context.fenceCandidate)?.canInterruptParagraph != true,
                               titleContainers.quoteDepth == containers.quoteDepth,
                               titleContainers.listContentIndents == containers.listContentIndents else { break }
                         if titleLines.isEmpty {
                             let title = context.fenceCandidate.trimmingCharacters(in: .whitespaces)
                             guard let first = title.first, ["\"", "'", "("].contains(String(first)) else { break }
+                            titleDelimiter = first == "(" ? ")" : first
                         }
                         titleLines.append(next)
                         titleContents.append(context.fenceCandidate)
                         probe += "\n" + context.fenceCandidate
+                        // Erst mögliche Abschlusszeilen prüfen, damit lange Titel linear gelesen werden.
+                        if titleLines.count > 1, let delimiter = titleDelimiter,
+                           !context.fenceCandidate.contains(delimiter),
+                           !(delimiter == ")" && context.fenceCandidate.contains("(")) { continue }
                         guard let parsed = referenceDefinition(in: probe) else { break }
                         if parsed.target != nil {
                             definitionText = probe

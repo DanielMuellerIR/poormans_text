@@ -17,6 +17,27 @@ final class ReviewRegressionTests: XCTestCase {
         }
     }
 
+    func testReferenceTitlesAllowNonInterruptingHTMLAndLongContinuation() throws {
+        for separator in [" ", "\n"] {
+            let markdown = "![x][id]\n\n[id]: attachment:pic.png" + separator + "\"first\n<span>\nlast\""
+            XCTAssertEqual(try MarkdownLinkTargetRewriter.resourceCandidates(in: markdown, maximum: 10, checking: {}), ["attachment:pic.png"])
+            XCTAssertEqual(MarkdownLinkTargetRewriter.replacing(in: markdown, from: "attachment:pic.png", to: "images/p.png"),
+                           markdown.replacingOccurrences(of: "attachment:pic.png", with: "images/p.png"))
+        }
+        let markdown = "[id]: attachment:pic.png\n\"first\n" + String(repeating: "abcdefghijklmnopqrst\n", count: 8_000) + "last\"\n\n![x][id]"
+        let start = Date()
+        XCTAssertEqual(try MarkdownLinkTargetRewriter.resourceCandidates(in: markdown, maximum: 10, checking: {}), ["attachment:pic.png"])
+        XCTAssertLessThan(Date().timeIntervalSince(start), 2)
+    }
+
+    func testSpreadsheetLinkReferencesPreserveLiteralAmpersands() throws {
+        for target in ["javascript&colon;alert(1)", "java&#x73;cript&colon;alert(1)", "data&colon;text/html,a", "https://example.invalid/?a=1&b=2"] {
+            let workbook = SpreadsheetWorkbook(sheets: [.init(name: "S", rows: [[.init(value: .string("CLICKTOKEN"), displayText: "CLICKTOKEN", formula: nil, linkTarget: target)]])])
+            let markdown = try SpreadsheetMarkdownRenderer.render(workbook, sourceURL: root.appendingPathComponent("input.ods"), style: .markdownTable)
+            XCTAssertTrue(markdown.contains(target.replacingOccurrences(of: "&", with: "&amp;").replacingOccurrences(of: "(", with: "%28").replacingOccurrences(of: ")", with: "%29")), markdown)
+        }
+    }
+
     func testNotebookReferenceBlockBoundariesAndFollowingTitles() throws {
         let literal = "![x][long label]\n\n[long\n# heading\nlabel]: attachment:pic.png\n\n[long\n```\nlabel]: attachment:pic.png\n```"
         let titled = "[id]: #anchor\n\"title `\"\n![x](attachment:pic.png)\n` end"
@@ -47,6 +68,22 @@ final class ReviewRegressionTests: XCTestCase {
             let source = "[id]: #anchor\n\(title)\n![x](attachment:pic.png)\n` end"
             XCTAssertEqual(MarkdownLinkTargetRewriter.replacing(in: source, from: "attachment:pic.png", to: "images/p.png"),
                 source.replacingOccurrences(of: "![x](attachment:pic.png)", with: "![x](images/p.png)"))
+        }
+    }
+
+    func testCorruptPNGPixelPayloadIsRejectedThroughAllResourcePaths() throws {
+        // Gültige Chunk-Prüfsummen kaschieren hier absichtlich einen defekten Pixelstrom.
+        let bytes = try XCTUnwrap(Data(base64Encoded: "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAADklEQVRub3QtdmFsaWQtemxpYlp0dn0AAAAASUVORK5CYII="))
+        try bytes.write(to: root.appendingPathComponent("broken.png"))
+        for index in 0..<3 {
+            let work = root.appendingPathComponent("broken-work\(index)")
+            try FileManager.default.createDirectory(at: work, withIntermediateDirectories: true)
+            let target = index == 0 ? "data:image/png;base64,\(bytes.base64EncodedString())" : index == 1 ? "broken.png" : "https://example.invalid/broken.png"
+            let resources: [String: HTMLImageSourceResolver.Subresource] = index == 2 ? [target: .init(data: bytes, mimeType: "image/png")] : [:]
+            let result = try HTMLImageSourceResolver.resolve(html: "<img alt=\"ALTTOKEN\" src=\"\(target)\">", baseDirectory: root, baseURL: nil, subresources: resources, workDirectory: work)
+            XCTAssertEqual(result.html, "ALTTOKEN")
+            XCTAssertEqual(result.missingImagesDropped, 1)
+            XCTAssertTrue((try FileManager.default.subpathsOfDirectory(atPath: work.path)).allSatisfy { !$0.hasSuffix(".png") })
         }
     }
 

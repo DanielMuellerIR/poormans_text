@@ -132,7 +132,7 @@ struct OpenDocumentMasterAdapter: DocumentConversionAdapter {
                     index: linkedIndex,
                     context: context
                 )
-                var childMarkdown = child.markdown
+                var assetMapping = [String: String]()
                 for asset in child.assets {
                     let sourceName = asset.source.lastPathComponent
                     let targetName = String(format: "section%02d-%@", linkedIndex, sourceName)
@@ -152,13 +152,12 @@ struct OpenDocumentMasterAdapter: DocumentConversionAdapter {
                     } catch {
                         throw ConversionError.fileSystemFailure(error.localizedDescription)
                     }
-                    childMarkdown = MarkdownLinkTargetRewriter.replacing(
-                        in: childMarkdown,
-                        from: asset.relativePath,
-                        to: "images/\(targetName)"
-                    )
+                    assetMapping[asset.relativePath] = "images/\(targetName)"
                     assetRelativePaths.append("images/\(targetName)")
                 }
+                let childMarkdown = try MarkdownLinkTargetRewriter.replacing(
+                    in: child.markdown, mapping: assetMapping, checking: ConversionExecution.check
+                )
                 sections.append(childMarkdown.trimmingCharacters(in: .newlines))
                 appendUnique(child.warnings, to: &warnings)
             }

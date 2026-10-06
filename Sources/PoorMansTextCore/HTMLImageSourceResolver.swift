@@ -104,8 +104,6 @@ enum HTMLImageSourceResolver {
                     localCount += 1
                     guard let written = try writeLocalCopy(
                         subresource.data,
-                        preferredName: URL(string: key)?.lastPathComponent ?? key,
-                        mimeType: subresource.mimeType,
                         index: localCount,
                         workDirectory: workDirectory
                     ) else {
@@ -349,7 +347,13 @@ enum HTMLImageSourceResolver {
               let format = ImageFileFormat(typeIdentifier: typeIdentifier),
               // Ein erkannter Header genügt nicht: abgeschnittene Dateien
               // müssen den Fehlbildpfad mit Warnung und Alternativtext nutzen.
-              CGImageSourceCreateImageAtIndex(source, 0, [kCGImageSourceShouldCache: false] as CFDictionary) != nil else {
+              let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any],
+              let width = properties[kCGImagePropertyPixelWidth] as? Int,
+              let height = properties[kCGImagePropertyPixelHeight] as? Int,
+              width > 0, height > 0, width <= 64_000_000 / height,
+              let image = CGImageSourceCreateImageAtIndex(source, 0, [kCGImageSourceShouldCacheImmediately: true] as CFDictionary),
+              // Der Decoder muss Pixel liefern; ein lesbarer Header genügt nicht.
+              image.dataProvider?.data != nil else {
             try? fileManager.removeItem(at: staged)
             return nil
         }
@@ -368,8 +372,7 @@ enum HTMLImageSourceResolver {
         return "external/\(name)"
     }
 
-    private static func writeLocalCopy(_ data: Data, preferredName: String, mimeType: String, index: Int, workDirectory: URL) throws -> String? {
-        _ = (preferredName, mimeType)
+    private static func writeLocalCopy(_ data: Data, index: Int, workDirectory: URL) throws -> String? {
         let directory = workDirectory.appendingPathComponent("external", isDirectory: true)
         let staged = directory.appendingPathComponent(UUID().uuidString + ".candidate")
         do {

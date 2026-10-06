@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.16.6 — 2026-10-06
+
+- Preserve literal ampersands in spreadsheet link destinations so Markdown
+  character references cannot change a validated URI scheme or query.
+- Accept non-interrupting HTML tags in multiline Markdown reference titles and
+  scan long titles without repeatedly parsing their full accumulated content.
+- Materialize raster pixels within a bounded pixel budget before publishing
+  image assets; damaged compressed PNG payloads retain alternative text and
+  report missing images.
+- Rewrite all assets of each master-document section together, with cancellation
+  checks, and remove unused webarchive image-copy parameters.
+
 ## 0.16.5 — 2026-10-05
 
 - Preserve literal multiline reference text at Markdown block boundaries and

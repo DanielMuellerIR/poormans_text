@@ -65,7 +65,8 @@ def main():
                 "-swift-version", "6", "-target", architecture + "-apple-macos13.0",
                 "-sdk", sdk, "-I", str(binary_directory), "-F", str(binary_directory),
                 "-emit-const-values-path", str(constant_file),
-                "-Xfrontend", "-const-gather-protocols-list", "-Xfrontend", str(protocols),
+                # Der zusätzliche Name „…-list“ fehlt in Swift 6.3.
+                "-Xfrontend", "-const-gather-protocols-file", "-Xfrontend", str(protocols),
                 *map(str, support_sources),
             ], check=True)
             constants = [constant_file]

@@ -5,7 +5,9 @@ All notable changes to this project will be documented in this file.
 ## 0.16.7 — 2026-10-07
 
 - Add a native Shortcuts action for converting one document into a new Markdown
-  folder or Textbundle, retaining images and exposing conversion options.
+  folder or Textbundle, retaining images and exposing conversion options. The
+  action accepts a destination folder and returns the complete result’s local
+  file URL. Native CSV and RTFD/Textbundle runs were verified in Shortcuts.
 
 - Add a Homebrew Cask draft for the notarized application and bundled CLI, with
   Pandoc as a dependency. The draft has not been submitted to Homebrew.

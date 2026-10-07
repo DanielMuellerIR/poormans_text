@@ -89,7 +89,7 @@ public struct ConvertDocumentIntent: AppIntent {
         let message = result.warnings.isEmpty
             ? String(localized: "The document was converted.")
             : String(localized: "The document was converted with warnings:") + "\n" + result.warnings.joined(separator: "\n")
-        return .result(value: result.outputDirectory, dialog: IntentDialog(stringLiteral: message))
+        return .result(value: result.outputDirectory, dialog: IntentDialog("\(message)"))
     }
 }
 

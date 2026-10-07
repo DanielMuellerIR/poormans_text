@@ -12,25 +12,14 @@ EPUB, LaTeX, DocBook, Org, MediaWiki, Textile, reStructuredText, FictionBook
 sowie EML/Apple Mail und PNG, JPEG, HEIC, TIFF, GIF, BMP und WebP sind implementiert. Ihre Importwege stehen in
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-## Etappenplan (Stand 2026-09-05)
+## Etappenplan (Stand 2026-10-07)
 
 Die Etappen sind nach Nutzen je Aufwand sortiert und bauen aufeinander auf.
 Jede Etappe ist für sich releasefähig. Ein neuer Adapter meldet sich weiterhin
 nur über `supportedFormatDescriptors`; der Orchestrator bleibt unverändert.
 Was [docs/MARKITDOWN-COMPARISON.md](docs/MARKITDOWN-COMPARISON.md) vorschlägt,
-ist hier eingeordnet. Die Etappen 1 (mehrere Eingaben und Ordner), 2 (Dienste,
-bis auf App Intents), 3 (`--stdout`, `--frontmatter`, `--textbundle`) sowie 4
-(kleine Formatgewinne) und 5 (Präsentationen und Notebooks) sind umgesetzt und stehen im Changelog zu Version 0.10.0.
-
-### Etappe 2 — Systemintegration ohne Terminal
-
-Die beiden Systemdienste (Finder-Kontextmenü für Dateien, markierter Rich Text
-in die Zwischenablage) und die native Kurzbefehle-Aktion „Dokument in Markdown
-umwandeln“ sind implementiert. Der Build erzeugt und vergleicht Apples
-AppIntents-Metadaten für beide Architekturen ohne Wechsel des Buildsystems.
-
-- Die Sichtbarkeit und tatsächliche Ausführung der neuen Aktion in Kurzbefehle
-  mit dem notarisierten Release-Bundle abschließend prüfen.
+ist hier eingeordnet. Die Etappen 1 bis 5 sind umgesetzt. Ihre Änderungen
+stehen im Changelog; die native Kurzbefehle-Aktion wurde in 0.16.7 ergänzt.
 
 ### Etappe 8 — App-Bedienung
 

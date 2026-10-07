@@ -242,7 +242,7 @@ struct RichTextAdapter: DocumentConversionAdapter {
         let emptyParagraphMarker = inputKind == .rtf
             ? "POORMANSTEXTEMPTY\(UUID().uuidString.replacingOccurrences(of: "-", with: ""))"
             : nil
-        try createHTML(
+        let unicode = try createHTML(
             from: sourceURL,
             kind: inputKind,
             at: htmlURL,
@@ -260,6 +260,7 @@ struct RichTextAdapter: DocumentConversionAdapter {
                 reason: "conversion produced no readable HTML"
             )
         }
+        if let unicode { html = try unicode.restoringUnicode(in: html) }
         if let emptyParagraphMarker {
             // Pandocs RTF-Reader verwirft leere Absätze. Der Marker wird vor
             // dieser Stufe eingefügt und hier in einen sichtbaren Leerabsatz
@@ -303,7 +304,7 @@ struct RichTextAdapter: DocumentConversionAdapter {
         workDirectory: URL,
         pandocExecutable: URL,
         emptyParagraphMarker: String?
-    ) throws {
+    ) throws -> RTFUnicodeProtector? {
         if kind == .rtfd {
             let markedRTFD = workDirectory.appendingPathComponent("marked.rtfd", isDirectory: true)
             let textutilInput = try ColoredTextMarker.markedInputURL(
@@ -337,13 +338,17 @@ struct RichTextAdapter: DocumentConversionAdapter {
                 throw ConversionError.fileSystemFailure("internal RTF marker is missing")
             }
             let preparedRTF = workDirectory.appendingPathComponent("document.rtf")
+            let unicode: RTFUnicodeProtector
             do {
                 let source = try Data(contentsOf: inputURL)
+                unicode = try RTFUnicodeProtector.protect(source)
                 let prepared = preservingEmptyRTFParagraphs(
-                    in: source,
+                    in: unicode.data,
                     marker: emptyParagraphMarker
                 )
                 try prepared.write(to: preparedRTF, options: .atomic)
+            } catch let error as RTFUnicodeProtector.Failure {
+                throw ConversionError.invalidRichText(inputURL, reason: error.reason)
             } catch {
                 throw ConversionError.fileSystemFailure(error.localizedDescription)
             }
@@ -374,9 +379,11 @@ struct RichTextAdapter: DocumentConversionAdapter {
                     message: result.standardError
                 )
             }
+            return unicode
         } else {
             throw ConversionError.unsupportedInput(inputURL)
         }
+        return nil
     }
 
     /// Was der Blick in die ersten Bytes einer möglichen RTF-Datei ergeben hat.

@@ -539,8 +539,8 @@
       },
       {
         "path": "scripts/verify_bundle.sh",
-        "lines": 143,
-        "sha256": "145783dc22601dc51cf3b2688e1746db22fafd6a1c11cc5468e01147e14b5a0d"
+        "lines": 144,
+        "sha256": "87a8ca2bc6db8791e6a118ee3ba509453c54563f931bfd6e76086ec8580037ee"
       },
       {
         "path": "scripts/verify_dmg.sh",

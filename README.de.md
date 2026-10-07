@@ -318,6 +318,15 @@ Tastaturkurzbefehle › Dienste):
   trägt. Eine Auswahl, die nur RTF anbietet, braucht Pandoc wie eine
   `.rtf`-Datei.
 
+Die native Aktion **Dokument in Markdown umwandeln** steht in Kurzbefehle ab
+macOS 13 bereit. Sie erhält ein Dokument und einen Zielordner, etwa aus der Aktion
+„Ordner“. Aufgeklappt bietet sie Textbundle, Metadaten, Tabellenformat, OCR,
+PDF-Layout und das Zeitlimit für externe Werkzeuge. Zurückgegeben wird der
+vollständige Ausgabeordner einschließlich Bildern und anderen Assets. Vorhandene
+Ausgaben werden nie überschrieben. Warnungen stehen im Ergebnisdialog; für die
+entsprechenden Formate muss Pandoc installiert sein. Die Aktion öffnet die App
+nicht.
+
 Während der Konvertierung zeigt die App laufende Dateien sowie bekannte
 Seiten-, Blatt-, Folien-, Notebook-Zell- oder Bildfortschritte. „Konvertierung abbrechen“ erhält fertige
 Batch-Ergebnisse und entfernt den Arbeitsbereich des laufenden Dokuments, ohne

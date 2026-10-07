@@ -301,6 +301,14 @@ Keyboard Shortcuts › Services):
   and reported, because the clipboard carries text only. Selections that only
   offer RTF need Pandoc, like `.rtf` files.
 
+The native **Convert Document to Markdown** action is available in Shortcuts
+on macOS 13 or later. Supply one document and a destination folder (for example
+with the Folder action). Expand the action to choose Textbundle, metadata,
+spreadsheet format, OCR, PDF layout, and the external-tool timeout. The action
+returns the complete output folder, including images and other assets. It never
+overwrites an existing output. Warnings appear in its result dialog; Pandoc must
+be installed for formats that need it. The action runs without opening the app.
+
 While conversion runs, the app shows active files and known page, sheet, slide,
 notebook-cell, or image-frame progress. Cancel Conversion retains completed batch results and
 removes the current document's workspace without publishing it. Unstarted inputs

@@ -35,7 +35,7 @@ remove_exact_path() {
 }
 
 cd "$project_root"
-build_arguments=(--configuration "$build_configuration")
+build_arguments=(--build-system swiftbuild --configuration "$build_configuration")
 if [ "$build_configuration" = "release" ]; then
     build_arguments+=(--arch arm64 --arch x86_64)
 fi
@@ -64,6 +64,11 @@ cp -R "$project_root/App/en.lproj" "$project_root/App/de.lproj" "$contents_path/
 cp "$project_root/.build/icon/AppIcon.icns" "$bundled_icon"
 cp "$project_root/App/Info.plist" "$contents_path/Info.plist"
 chmod 755 "$contents_path/MacOS/PoorMansTextApp" "$bundled_cli"
+
+# Kurzbefehle liest nur die Metadaten im ausgelieferten Bundle. SwiftBuild
+# erzeugt die Konstanten; Apples Prozessor prüft beide Architekturen.
+python3 "$script_directory/build_app_intents.py" \
+    "$binary_directory" "$bundle_path" "$build_configuration"
 
 # SwiftPM linkt Sparkle, kopiert das dynamische Framework aber nicht in ein
 # selbst gebautes App-Bundle. `ditto` erhält die für Frameworks nötigen

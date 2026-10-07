@@ -13,6 +13,10 @@ derselbe Kern von CLI, eigener App und später Fastra benutzt werden kann.
   Systemdienste (`ServicesProvider`, `RichTextClipboard`). Der Rich-Text-Dienst
   schreibt die Auswahl als temporäre `.rtfd`- oder `.rtf`-Datei und nutzt den
   normalen Adapterweg mit temporärem Ziel; der Kern kennt keine Zwischenablage.
+  `ConvertDocumentIntent` ist ein weiterer dünner Adapter: Er übernimmt
+  dateibasierte Kurzbefehle-Eingaben, Optionen und Abbruch, ruft den Kern im
+  Hintergrund auf und gibt den vollständigen Ausgabeordner zurück. Die
+  Kurzbefehle-Aktion speichert keine GUI-Einstellungen.
 - `PoorMansTextCLI`: Argumente, Exit-Codes und JSON-/Textausgabe.
 
 Mehrere Eingaben löst `InputEnumerator` im Kern auf: Dateien und Pakete

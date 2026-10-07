@@ -29,6 +29,24 @@ sparkle_framework="$app/Contents/Frameworks/Sparkle.framework"
 [ -f "$bundled_sparkle_license" ] || { echo "Sparkles Lizenzdatei fehlt im Bundle." >&2; exit 66; }
 [ -f "$bundled_icon" ] || { echo "App-Icon fehlt im Bundle." >&2; exit 66; }
 
+# Die Aktion darf beim Verpacken oder Signieren nicht unbemerkt verloren gehen.
+python3 - "$app/Contents/Resources/Metadata.appintents" <<'PYTHON'
+import json
+from pathlib import Path
+import sys
+root = Path(sys.argv[1])
+try:
+    metadata = json.loads((root / "extract.actionsdata").read_text())
+    json.loads((root / "version.json").read_text())
+    action = metadata["actions"]["ConvertDocumentIntent"]
+    assert action["fullyQualifiedTypeName"] == "PoorMansTextAppSupport.ConvertDocumentIntent"
+    assert action["isDiscoverable"]
+    assert {"document", "destinationFolder"}.issubset({p["name"] for p in action["parameters"]})
+    assert any(item["actionIdentifier"] == "ConvertDocumentIntent" for item in metadata["autoShortcuts"])
+except (OSError, ValueError, KeyError, AssertionError) as error:
+    raise SystemExit("AppIntents-Metadaten fehlen oder sind ungültig: " + str(error))
+PYTHON
+
 # Ohne das Framework startet die App nicht, und ohne Updater-Programm bliebe die
 # Aktualisierung beim Austausch der App stehen.
 [ -d "$sparkle_framework" ] || { echo "Sparkle.framework fehlt im Bundle." >&2; exit 66; }

@@ -38,6 +38,24 @@ weder auf Quellzeilen zu debuggen noch ein lokaler Absturz lesbar. Der
 Veröffentlichungsweg des Update-Feeds steht in
 [SPARKLE-RELEASE.md](SPARKLE-RELEASE.md).
 
+## App-Intents-Metadaten
+
+Der App-Build verwendet ausdrücklich den SwiftBuild-Backend von SwiftPM. Er
+benötigt eine Xcode-Toolchain mit diesem Backend und
+`appintentsmetadataprocessor`. Der Compiler erzeugt `.swiftconstvalues` je
+Architektur; Release fasst sie durch Whole Module Optimization zusammen.
+`scripts/build_app_intents.py` verarbeitet diese Werte mit Apples Werkzeug,
+prüft die Konvertieraktion und vergleicht die Metadaten beider Architekturen.
+Nur die Reihenfolge der zulässigen Eingabetypen wird dabei normalisiert.
+
+`Contents/Resources/Metadata.appintents` wird vor der Signatur in das Bundle
+übernommen. `scripts/verify_bundle.sh` verlangt die Aktion, ihre beiden
+Dateiparameter und den App-Kurzbefehl. Ein Build ohne diese Metadaten bricht ab,
+statt eine in Kurzbefehle unsichtbare Aktion auszuliefern. Lokalisierungen liegen
+in `Localizable.strings` und `AppShortcuts.strings` für Englisch und Deutsch.
+Die Systemintegration muss zusätzlich mit dem notarisiert installierten Bundle
+in Kurzbefehle geprüft werden; Metadaten allein beweisen keine Ausführung.
+
 ## Schneller Developer-ID-Test
 
 ```sh

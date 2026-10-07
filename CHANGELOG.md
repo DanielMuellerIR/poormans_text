@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## 0.16.7 — 2026-10-07
 
+- Add a Homebrew Cask draft for the notarized application and bundled CLI, with
+  Pandoc as a dependency. The draft has not been submitted to Homebrew.
+
 - Preserve supplementary Unicode characters in RTF imports, including emoji
   and musical symbols. Normalize UTF-16 escapes and ANSI fallbacks only in the
   temporary Pandoc input; retain embedded images and reject malformed surrogate

@@ -39,7 +39,8 @@ in die Zwischenablage) sind umgesetzt; offen bleibt:
 
 ### Etappe 8 — App-Bedienung
 
-- Homebrew-Cask neben dem DMG.
+- Homebrew-Cask veröffentlichen oder bei Homebrew einreichen. Ein geprüfter
+  Entwurf liegt unter `packaging/homebrew/Casks/poor-mans-text.rb`.
 
 ### Nicht geplant
 

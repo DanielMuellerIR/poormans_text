@@ -15,7 +15,7 @@ derselbe Kern von CLI, eigener App und später Fastra benutzt werden kann.
   normalen Adapterweg mit temporärem Ziel; der Kern kennt keine Zwischenablage.
   `ConvertDocumentIntent` ist ein weiterer dünner Adapter: Er übernimmt
   dateibasierte Kurzbefehle-Eingaben, Optionen und Abbruch, ruft den Kern im
-  Hintergrund auf und gibt den vollständigen Ausgabeordner zurück. Die
+  Hintergrund auf und gibt die lokale Datei-URL des vollständigen Ausgabeordners zurück. Die
   Kurzbefehle-Aktion speichert keine GUI-Einstellungen.
 - `PoorMansTextCLI`: Argumente, Exit-Codes und JSON-/Textausgabe.
 

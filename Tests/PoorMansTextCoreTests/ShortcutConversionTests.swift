@@ -27,7 +27,7 @@ final class ShortcutConversionTests: XCTestCase {
         var intent = configured(document: IntentFile(fileURL: source))
         intent.spreadsheetFormat = .tsv
         let result = try await intent.perform()
-        let output = try XCTUnwrap(result.value?.fileURL)
+        let output = try XCTUnwrap(result.value)
         XCTAssertEqual(output, destination.appendingPathComponent("source-markdown", isDirectory: true))
         let markdown = try String(contentsOf: output.appendingPathComponent("source.md"), encoding: .utf8)
         XCTAssertTrue(markdown.contains("Alpha\t42"), markdown)
@@ -39,11 +39,11 @@ final class ShortcutConversionTests: XCTestCase {
         var intent = configured(document: IntentFile(data: Data("name,value\nAlpha,42\n".utf8), filename: "memory.csv", type: .commaSeparatedText))
         intent.textbundle = true
         let result = try await intent.perform()
-        let output = try XCTUnwrap(result.value?.fileURL)
+        let output = try XCTUnwrap(result.value)
         XCTAssertEqual(output.lastPathComponent, "memory.textbundle")
         XCTAssertTrue(FileManager.default.fileExists(atPath: output.appendingPathComponent("info.json").path))
         XCTAssertTrue(try String(contentsOf: output.appendingPathComponent("text.md"), encoding: .utf8).contains("Alpha"))
-        XCTAssertFalse(try XCTUnwrap(result.value).removedOnCompletion)
+        XCTAssertTrue(try XCTUnwrap(result.value).isFileURL)
     }
 
     func testTextbundleRetainsRTFDImagesAndSourceBytes() async throws {
@@ -55,7 +55,7 @@ final class ShortcutConversionTests: XCTestCase {
         var intent = configured(document: IntentFile(fileURL: fixture.packageURL))
         intent.textbundle = true
         let result = try await intent.perform()
-        let output = try XCTUnwrap(result.value?.fileURL)
+        let output = try XCTUnwrap(result.value)
         let markdown = try String(contentsOf: output.appendingPathComponent("text.md"), encoding: .utf8)
         XCTAssertEqual(markdown.components(separatedBy: "![").count - 1, 2)
         let assets = try FileManager.default.contentsOfDirectory(at: output.appendingPathComponent("assets"), includingPropertiesForKeys: nil)
@@ -66,7 +66,7 @@ final class ShortcutConversionTests: XCTestCase {
     func testExistingOutputIsNotOverwritten() async throws {
         let intent = configured(document: IntentFile(data: Data("name\nAlpha\n".utf8), filename: "memory.csv"))
         let first = try await intent.perform()
-        let output = try XCTUnwrap(first.value?.fileURL)
+        let output = try XCTUnwrap(first.value)
         let marker = output.appendingPathComponent("keep.txt")
         try Data("keep".utf8).write(to: marker)
         do { _ = try await intent.perform(); XCTFail("Expected an output collision") }

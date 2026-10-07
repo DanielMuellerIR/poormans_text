@@ -321,9 +321,9 @@ Tastaturkurzbefehle › Dienste):
 Die native Aktion **Dokument in Markdown umwandeln** steht in Kurzbefehle ab
 macOS 13 bereit. Sie erhält ein Dokument und einen Zielordner, etwa aus der Aktion
 „Ordner“. Aufgeklappt bietet sie Textbundle, Metadaten, Tabellenformat, OCR,
-PDF-Layout und das Zeitlimit für externe Werkzeuge. Zurückgegeben wird der
-vollständige Ausgabeordner einschließlich Bildern und anderen Assets. Vorhandene
-Ausgaben werden nie überschrieben. Warnungen stehen im Ergebnisdialog; für die
+PDF-Layout und das Zeitlimit für externe Werkzeuge. Zurückgegeben wird die
+lokale Datei-URL des vollständigen Ausgabeordners einschließlich Bildern und
+anderen Assets. Vorhandene Ausgaben werden nie überschrieben. Warnungen stehen im Ergebnisdialog; für die
 entsprechenden Formate muss Pandoc installiert sein. Die Aktion öffnet die App
 nicht.
 

@@ -143,7 +143,7 @@
 /* Kurzbefehle */
 "Convert Document to Markdown" = "Dokument in Markdown umwandeln";
 "Convert Document" = "Dokument umwandeln";
-"Convert one document into a new folder or Textbundle, including its images. Existing results are never overwritten. The result is the file URL of the complete output folder; conversion warnings are returned in the dialog." = "Wandelt ein Dokument einschließlich seiner Bilder in einen neuen Ordner oder ein Textbundle um. Vorhandene Ergebnisse werden nie überschrieben. Als Ergebnis wird der vollständige Ausgabeordner zurückgegeben; der Dialog enthält gegebenenfalls Warnungen.";
+"Convert one document into a new folder or Textbundle, including its images. Existing results are never overwritten. The result is the file URL of the complete output folder; conversion warnings are returned in the dialog." = "Wandelt ein Dokument einschließlich seiner Bilder in einen neuen Ordner oder ein Textbundle um. Vorhandene Ergebnisse werden nie überschrieben. Als Ergebnis wird die lokale Datei-URL des vollständigen Ausgabeordners zurückgegeben; der Dialog enthält gegebenenfalls Warnungen.";
 "Document" = "Dokument";
 "Destination Folder" = "Zielordner";
 "Include Metadata" = "Metadaten übernehmen";

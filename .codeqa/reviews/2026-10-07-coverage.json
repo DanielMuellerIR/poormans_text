@@ -423,7 +423,7 @@
       {
         "path": "Sources/PoorMansTextAppSupport/ConvertDocumentIntent.swift",
         "lines": 151,
-        "sha256": "d2613d2d7187528052765a815b3b6026fb98339ca0a12b45a2f544fc64506fa2"
+        "sha256": "7a3f3f446e5a8808d991546aefcb6f7e3c64fa66035123c13edd9c0ad66982c6"
       },
       {
         "path": "Sources/PoorMansTextAppSupport/MarkdownPreview.swift",

@@ -134,7 +134,7 @@ private enum ShortcutConversion {
                 throw ShortcutFailure(message: String(localized: "The in-memory document exceeds the 256 MiB size limit."))
             }
             let root = FileManager.default.temporaryDirectory.appendingPathComponent("PoorMansTextShortcut-\(UUID())", isDirectory: true)
-            try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
+            try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false, attributes: [.posixPermissions: 0o700])
             temporaryInput = root
             source = root.appendingPathComponent(name)
             try data.write(to: source, options: .atomic)

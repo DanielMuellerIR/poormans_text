@@ -27,7 +27,7 @@ public struct ConvertDocumentIntent: AppIntent {
     public static let openAppWhenRun = false
 
     @Parameter(title: "Document") public var document: IntentFile
-    @Parameter(title: "Destination Folder")
+    @Parameter(title: "Destination Folder", supportedTypeIdentifiers: ["public.folder"])
     public var destinationFolder: IntentFile
     @Parameter(title: "Textbundle", default: false) public var textbundle: Bool
     @Parameter(title: "Include Metadata", default: false) public var frontmatter: Bool

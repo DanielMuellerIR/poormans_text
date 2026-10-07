@@ -57,7 +57,7 @@
       {
         "path": "Sources/PoorMansTextCore/ProductInfo.swift",
         "lines": 5,
-        "sha256": "560dabbd8bcc5c7eff40f0b4f220daaa36708a2d81a038a8891b33214efb21d0"
+        "sha256": "23c298443a4c0cffc291ddcbea64cd5b6d2c380aded7f48618a9c6b4b6ef1307"
       },
       {
         "path": "Sources/PoorMansTextCore/ProcessRunner.swift",
@@ -580,7 +580,7 @@
       {
         "path": "App/Info.plist",
         "lines": 514,
-        "sha256": "7203c48a373f2dfe688ac943032f06827b2b2b8e5d84b0267bfbda81552c7e81"
+        "sha256": "3a09b1830d239f14fced58d6e18baa7f88c80a4b0e4496f3c80ba90294d933e7"
       },
       {
         "path": ".github/workflows/ci.yml",

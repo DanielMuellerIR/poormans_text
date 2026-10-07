@@ -2,9 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
-## 0.16.8 — 2026-10-07
+## 0.16.9 — 2026-10-07
 
-Version 0.16.7 was tagged but not released; this release includes its changes.
+Versions 0.16.7 and 0.16.8 were tagged but not released; this release includes
+their changes.
 
 - Generate AppIntents constants explicitly for both architectures across
   supported Xcode toolchains. Return the result folder URL and warnings as a

@@ -39,10 +39,15 @@ try:
     metadata = json.loads((root / "extract.actionsdata").read_text())
     json.loads((root / "version.json").read_text())
     action = metadata["actions"]["ConvertDocumentIntent"]
+    parameters = {parameter["name"]: parameter for parameter in action["parameters"]}
+    folder_metadata = parameters["destinationFolder"]["typeSpecificMetadata"]
+    folder_metadata = dict(zip(folder_metadata[::2], folder_metadata[1::2]))
     valid = (
         action["fullyQualifiedTypeName"] == "PoorMansTextAppSupport.ConvertDocumentIntent"
         and action["isDiscoverable"] is True
-        and {"document", "destinationFolder"}.issubset({p["name"] for p in action["parameters"]})
+        and {"document", "destinationFolder"}.issubset(parameters)
+        and folder_metadata["LNValueTypeMetadataKeyFileSupportedTypes"]["array"]["elements"]
+            == [{"string": {"wrapper": "public.folder"}}]
         and any(item["actionIdentifier"] == "ConvertDocumentIntent" for item in metadata["autoShortcuts"])
     )
     if not valid:

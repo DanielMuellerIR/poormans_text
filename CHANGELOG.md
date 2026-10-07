@@ -2,14 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
-## 0.16.11 — 2026-10-07
+## 0.16.12 — 2026-10-07
 
-Versions 0.16.7 through 0.16.10 were tagged but not released; this release includes
+Versions 0.16.7 through 0.16.11 were tagged but not released; this release includes
 their changes.
 
 - Generate AppIntents constants explicitly for both architectures across
   supported Xcode toolchains. Return the result folder URL and warnings as a
-  text list, without waiting for the system dialog presenter.
+  text list, without waiting for the system dialog presenter. Compare unordered
+  enum definitions without weakening parameter or enum-case ordering checks;
+  retain package access in checkout directories containing hyphens.
 
 - Add a native Shortcuts action for converting one document into a new Markdown
   folder or Textbundle, retaining images and exposing conversion options. The

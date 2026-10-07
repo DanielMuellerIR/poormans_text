@@ -47,7 +47,9 @@ echten AppSupport-Quellen ausdrücklich je Architektur in einem temporären
 Bereich und erzeugt dabei `.swiftconstvalues`. Dadurch hängt der Schritt nicht
 von wechselnden SwiftBuild-Nebenproduktpfaden ab. Die Protokolldatei wird mit
 `-Xfrontend -const-gather-protocols-file -Xfrontend <Datei>` übergeben; dieser
-Optionsname ist auch in Swift 6.3 vorhanden. Die Hilfsobjekte werden nicht
+Optionsname ist auch in Swift 6.3 vorhanden. Enum-Definitionen werden für den
+Vergleich nach ihrem Typnamen geordnet; Parameter und Enum-Fälle behalten ihre
+Reihenfolge. Bindestriche im Compiler-Paketnamen werden wie in SwiftPM ersetzt. Die Hilfsobjekte werden nicht
 ausgeliefert. Das Skript verarbeitet die Werte mit Apples Werkzeug,
 prüft die Konvertieraktion und vergleicht die Metadaten beider Architekturen.
 Nur die Reihenfolge der zulässigen Eingabetypen wird dabei normalisiert.

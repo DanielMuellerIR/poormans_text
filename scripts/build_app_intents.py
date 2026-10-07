@@ -15,10 +15,12 @@ def output(*arguments):
 def comparable_metadata(value):
     if isinstance(value, dict):
         result = {key: comparable_metadata(item) for key, item in value.items()}
-        # Apple liefert diese Menge zulässiger Eingabetypen in wechselnder
-        # Reihenfolge. Parameter-, Enum- und Aktionsreihenfolgen bleiben erhalten.
+        # Apple liefert Eingabetypen und Enum-Definitionen in wechselnder
+        # Reihenfolge. Parameter, Enum-Fälle und Aktionen bleiben geordnet.
         if "resolvableInputTypes" in result:
             result["resolvableInputTypes"].sort(key=lambda item: json.dumps(item, sort_keys=True))
+        if "enums" in result:
+            result["enums"].sort(key=lambda item: item["fullyQualifiedTypeName"])
         return result
     if isinstance(value, list):
         return [comparable_metadata(item) for item in value]
@@ -49,6 +51,8 @@ def main():
         protocols = root / "protocols.json"
         protocols.write_text(json.dumps(["AppIntent", "AppEnum", "AppShortcutsProvider"]))
         identity = json.loads(output("swift", "package", "show-dependencies", "--format", "json"))["identity"]
+        # SwiftPM ersetzt Bindestriche im Compiler-Paketnamen durch Unterstriche.
+        identity = identity.replace("-", "_")
         baseline = None
         first_metadata = None
         for architecture in architectures:

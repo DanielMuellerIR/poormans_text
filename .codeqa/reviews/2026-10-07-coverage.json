@@ -57,7 +57,7 @@
       {
         "path": "Sources/PoorMansTextCore/ProductInfo.swift",
         "lines": 5,
-        "sha256": "5fc7d09b2cdd02c670f1b48dae5acd0f87d2c78d680216e53e0257b861c8476a"
+        "sha256": "57edcaef92f876e52947a2ef9dc7b52ab21de5607848343ec11d489b24e575a7"
       },
       {
         "path": "Sources/PoorMansTextCore/ProcessRunner.swift",
@@ -489,8 +489,8 @@
       },
       {
         "path": "scripts/build_app_intents.py",
-        "lines": 106,
-        "sha256": "6ded7e39883c8243aca9da0e8e57959807426a0a68c12b270fc29e6c023743bf"
+        "lines": 110,
+        "sha256": "fd79229db65b4ff50e168c8f98e1ceeb3a54e52e2c0d9de53072f15936489502"
       },
       {
         "path": "scripts/build_icon.sh",
@@ -580,7 +580,7 @@
       {
         "path": "App/Info.plist",
         "lines": 514,
-        "sha256": "b9b4922b41c4ca9d39d8bfae8c4b61009fe996b0796aa66a173a1ba09dc90d82"
+        "sha256": "a9bc30fc810b70b56390712bf69d571a38c1d54a022d779840ae144dcf1c716f"
       },
       {
         "path": ".github/workflows/ci.yml",

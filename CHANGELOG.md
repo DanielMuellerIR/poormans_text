@@ -2,9 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
-## 0.16.9 — 2026-10-07
+## 0.16.10 — 2026-10-07
 
-Versions 0.16.7 and 0.16.8 were tagged but not released; this release includes
+Versions 0.16.7, 0.16.8 and 0.16.9 were tagged but not released; this release includes
 their changes.
 
 - Generate AppIntents constants explicitly for both architectures across

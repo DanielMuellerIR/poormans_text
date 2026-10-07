@@ -65,7 +65,7 @@ def main():
                 "-swift-version", "6", "-target", architecture + "-apple-macos13.0",
                 "-sdk", sdk, "-I", str(binary_directory), "-F", str(binary_directory),
                 "-emit-const-values-path", str(constant_file),
-                "-const-gather-protocols-list", str(protocols),
+                "-Xfrontend", "-const-gather-protocols-list", "-Xfrontend", str(protocols),
                 *map(str, support_sources),
             ], check=True)
             constants = [constant_file]

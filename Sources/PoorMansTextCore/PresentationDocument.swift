@@ -91,7 +91,13 @@ final class ImportMediaStore {
         guard data.count <= 16 * 1_024 * 1_024 else { throw ImportFailure("image exceeds the 16 MiB asset limit") }
         guard let source = CGImageSourceCreateWithData(data as CFData, [kCGImageSourceShouldCache: false] as CFDictionary),
               CGImageSourceGetCount(source) > 0, let type = CGImageSourceGetType(source),
-              let ext = UTType(type as String)?.preferredFilenameExtension else {
+              let ext = UTType(type as String)?.preferredFilenameExtension,
+              let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any],
+              let width = properties[kCGImagePropertyPixelWidth] as? Int,
+              let height = properties[kCGImagePropertyPixelHeight] as? Int,
+              width > 0, height > 0, width <= 64_000_000 / height,
+              let image = CGImageSourceCreateImageAtIndex(source, 0, [kCGImageSourceShouldCacheImmediately: true] as CFDictionary),
+              image.dataProvider?.data != nil else {
             throw ImportFailure("image format is not supported by the local image decoder")
         }
         let hash = SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()

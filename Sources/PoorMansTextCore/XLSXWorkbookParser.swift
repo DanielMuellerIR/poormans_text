@@ -1032,7 +1032,13 @@ enum XLSXWorkbookParser {
                         formula: formulaValue
                     )
                 case "b":
-                    let value = rawValue == "1" || rawValue.lowercased() == "true"
+                    if rawValue.isEmpty, hasFormulaElement {
+                        return SpreadsheetCell(value: .empty, displayText: "", formula: formulaValue)
+                    }
+                    guard ["0", "1", "false", "true"].contains(rawValue) else {
+                        throw ParserError("an XLSX boolean value is invalid")
+                    }
+                    let value = rawValue == "1" || rawValue == "true"
                     return SpreadsheetCell(
                         value: .boolean(value),
                         displayText: value ? "TRUE" : "FALSE",

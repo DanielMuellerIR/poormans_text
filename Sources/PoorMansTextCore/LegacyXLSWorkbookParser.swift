@@ -737,7 +737,8 @@ enum LegacyXLSWorkbookParser {
             }
 
             mutating func readFileMoniker() throws -> String {
-                _ = try readUInt16() // Anzahl vorangestellter Elternpfade
+                let parentCount = Int(try readUInt16())
+                let parents = String(repeating: "../", count: parentCount)
                 let ansiLength = Int(try readUInt32())
                 guard ansiLength > 0, ansiLength <= data.count - offset else {
                     throw ParserError("an XLS file hyperlink is invalid")
@@ -753,8 +754,8 @@ enum LegacyXLSWorkbookParser {
                 _ = try readData(count: 20) // reservierte Felder
                 let unicodeStructureLength = Int(try readUInt32())
                 if unicodeStructureLength == 0 {
-                    return String(data: ansiPath.dropLast(), encoding: .windowsCP1252)
-                        ?? String(decoding: ansiPath.dropLast(), as: UTF8.self)
+                    return parents + (String(data: ansiPath.dropLast(), encoding: .windowsCP1252)
+                        ?? String(decoding: ansiPath.dropLast(), as: UTF8.self))
                 }
                 guard unicodeStructureLength >= 6 else {
                     throw ParserError("an XLS file hyperlink has an invalid Unicode path")
@@ -769,7 +770,7 @@ enum LegacyXLSWorkbookParser {
                 let units = stride(from: 0, to: unicodePath.count, by: 2).map {
                     UInt16(unicodePath[$0]) | UInt16(unicodePath[$0 + 1]) << 8
                 }
-                return String(decoding: units, as: UTF16.self)
+                return parents + String(decoding: units, as: UTF16.self)
             }
         }
 

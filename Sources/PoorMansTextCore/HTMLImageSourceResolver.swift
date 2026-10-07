@@ -45,8 +45,11 @@ enum HTMLImageSourceResolver {
         baseURL: URL?,
         subresources: [String: Subresource],
         workDirectory: URL,
-        fileManager: FileManager = .default
+        fileManager: FileManager = .default,
+        maximumImageBytes: Int = 512 * 1_024 * 1_024,
+        maximumImageCount: Int = 1_024
     ) throws -> Resolution {
+        let budget = ImageBudget(bytes: maximumImageBytes, count: maximumImageCount)
         let nsHTML = html as NSString
         var output = ""
         var cursor = 0
@@ -73,11 +76,11 @@ enum HTMLImageSourceResolver {
                 missing += 1
                 continue
             }
-            let trimmed = sourceMatch.value.trimmingCharacters(in: .whitespacesAndNewlines)
-                .replacingOccurrences(of: "&amp;", with: "&")
+            let trimmed = try HTMLImageAttributes.decodedValue(sourceMatch.value)
+                .trimmingCharacters(in: .whitespacesAndNewlines)
 
             if trimmed.lowercased().hasPrefix("data:") {
-                if let localPath = try extractEmbeddedImage(trimmed, index: embedded + 1, workDirectory: workDirectory) {
+                if let localPath = try extractEmbeddedImage(trimmed, index: embedded + 1, workDirectory: workDirectory, budget: budget) {
                     embedded += 1
                     output += replacingSource(in: tag, sourceRange: sourceMatch.range, with: localPath)
                 } else {
@@ -105,7 +108,7 @@ enum HTMLImageSourceResolver {
                     guard let written = try writeLocalCopy(
                         subresource.data,
                         index: localCount,
-                        workDirectory: workDirectory
+                        workDirectory: workDirectory, budget: budget
                     ) else {
                         output += alt
                         missing += 1
@@ -141,7 +144,7 @@ enum HTMLImageSourceResolver {
                     localPath = known
                 } else {
                     localCount += 1
-                    guard let copied = try copyLocalImage(inWork, index: localCount, workDirectory: workDirectory, fileManager: fileManager) else {
+                    guard let copied = try copyLocalImage(inWork, index: localCount, workDirectory: workDirectory, fileManager: fileManager, budget: budget) else {
                         output += alt
                         missing += 1
                         continue
@@ -161,7 +164,7 @@ enum HTMLImageSourceResolver {
                 } else {
                     localCount += 1
                     guard let copied = try copyLocalImage(
-                        local, index: localCount, workDirectory: workDirectory, fileManager: fileManager
+                        local, index: localCount, workDirectory: workDirectory, fileManager: fileManager, budget: budget
                     ) else {
                         output += alt
                         missing += 1
@@ -184,6 +187,17 @@ enum HTMLImageSourceResolver {
             missingImagesDropped: missing,
             embeddedImagesExtracted: embedded
         )
+    }
+
+    private final class ImageBudget {
+        private var bytes: Int
+        private var count: Int
+        init(bytes: Int, count: Int) { self.bytes = max(0, bytes); self.count = max(0, count) }
+        func reserve(_ size: Int) throws {
+            guard size <= bytes, count > 0 else { throw ImportFailure("referenced images exceed the document asset budget") }
+            bytes -= size
+            count -= 1
+        }
     }
 
     // MARK: - Hilfsfunktionen
@@ -307,7 +321,7 @@ enum HTMLImageSourceResolver {
     /// Quelle die gesamte Umwandlung als Dateisystemfehler ab (Roadmap-Punkt,
     /// 2026-09-10). Nur ein Fehler beim Schreiben der Kopie bleibt ein
     /// Dateisystemfehler.
-    private static func copyLocalImage(_ source: URL, index: Int, workDirectory: URL, fileManager: FileManager) throws -> String? {
+    private static func copyLocalImage(_ source: URL, index: Int, workDirectory: URL, fileManager: FileManager, budget: ImageBudget) throws -> String? {
         let directory = workDirectory.appendingPathComponent("external", isDirectory: true)
         do {
             try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -316,13 +330,12 @@ enum HTMLImageSourceResolver {
         }
         let staged = directory.appendingPathComponent(UUID().uuidString + ".candidate")
         do {
-            _ = try VerifiedFileStaging.stage(
-                from: source,
-                to: staged,
-                maximumBytes: maximumLocalImageBytes,
-                describedAs: "a referenced image",
-                followSourceSymlink: false
-            )
+            try VerifiedFileStaging.withVerifiedSource(at: source, maximumBytes: maximumLocalImageBytes,
+                describedAs: "a referenced image", followSourceSymlink: false) { verified, _ in
+                let bytes = Int(verified.info.st_size)
+                try budget.reserve(bytes)
+                try VerifiedFileStaging.stage(from: verified, to: staged, maximumBytes: bytes, describedAs: "a referenced image")
+            }
         } catch let error as VerifiedFileStaging.StagingError where error.kind == .source {
             try? fileManager.removeItem(at: staged)
             return nil
@@ -372,7 +385,8 @@ enum HTMLImageSourceResolver {
         return "external/\(name)"
     }
 
-    private static func writeLocalCopy(_ data: Data, index: Int, workDirectory: URL) throws -> String? {
+    private static func writeLocalCopy(_ data: Data, index: Int, workDirectory: URL, budget: ImageBudget) throws -> String? {
+        try budget.reserve(data.count)
         let directory = workDirectory.appendingPathComponent("external", isDirectory: true)
         let staged = directory.appendingPathComponent(UUID().uuidString + ".candidate")
         do {
@@ -388,7 +402,7 @@ enum HTMLImageSourceResolver {
     }
 
     /// `data:image/png;base64,…` in eine Datei; andere Daten-URIs fallen weg.
-    private static func extractEmbeddedImage(_ reference: String, index: Int, workDirectory: URL) throws -> String? {
+    private static func extractEmbeddedImage(_ reference: String, index: Int, workDirectory: URL, budget: ImageBudget) throws -> String? {
         guard let comma = reference.firstIndex(of: ",") else {
             return nil
         }
@@ -406,6 +420,7 @@ enum HTMLImageSourceResolver {
               !data.isEmpty, data.count <= maximumEmbeddedImageBytes else {
             return nil
         }
+        try budget.reserve(data.count)
         let directory = workDirectory.appendingPathComponent("external", isDirectory: true)
         let staged = directory.appendingPathComponent(UUID().uuidString + ".candidate")
         do {

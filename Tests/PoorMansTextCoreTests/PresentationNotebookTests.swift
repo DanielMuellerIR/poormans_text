@@ -230,6 +230,44 @@ final class PresentationNotebookTests: XCTestCase {
         XCTAssertTrue(result.assets.isEmpty)
         XCTAssertTrue(try String(contentsOf: result.markdownFile, encoding: .utf8).contains("FIRSTTOKEN"))
     }
+    func testCorruptPixelPayloadIsDiagnosedInPresentationAndNotebook() throws {
+        let corrupt = Data(try png.prefix(33))
+        var entries = try pptxEntries().filter { $0.name != "ppt/media/picture.png" }
+        entries.append(.init(name: "ppt/media/picture.png", content: corrupt))
+        let presentation = root.appendingPathComponent("bad-pixels.pptx")
+        try ZIPFixtureBuilder.archive(entries: entries).write(to: presentation)
+        let notebook = root.appendingPathComponent("bad-pixels-notebook.ipynb")
+        try JSONSerialization.data(withJSONObject: ["nbformat": 4, "cells": [
+            ["cell_type": "code", "source": "KEEPTOKEN", "outputs": [
+                ["output_type": "display_data", "data": ["image/png": corrupt.base64EncodedString(), "text/plain": "OUTPUTTOKEN"]]
+            ]]
+        ]]).write(to: notebook)
+        for (source, code, token) in [(presentation, "presentation.imageUnavailable", "FIRSTTOKEN"),
+                                      (notebook, "notebook.imageUnavailable", "KEEPTOKEN")] {
+            let before = try Data(contentsOf: source)
+            let result = try DocumentConverter().convert(ConversionRequest(inputURL: source))
+            XCTAssertTrue(result.assets.isEmpty)
+            XCTAssertTrue(result.diagnostics.contains { $0.code == code }, "\(result.diagnostics)")
+            XCTAssertTrue(try String(contentsOf: result.markdownFile, encoding: .utf8).contains(token))
+            XCTAssertEqual(try Data(contentsOf: source), before)
+        }
+    }
+
+    func testODPTableHeadingAndNestedTextBoxAppearExactlyOnce() throws {
+        let body = """
+        <table:table><table:table-row><table:table-cell><text:h>HEADINGTOKEN</text:h>
+        <text:p>OUTERTOKEN<draw:frame><draw:text-box><text:p>INNERTOKEN</text:p></draw:text-box></draw:frame></text:p>
+        </table:table-cell></table:table-row></table:table>
+        """
+        let source = root.appendingPathComponent("table-text.odp")
+        let before = try ZIPFixtureBuilder.archive(entries: [entry("mimetype", "application/vnd.oasis.opendocument.presentation"), entry("content.xml", odpDocument(body))])
+        try before.write(to: source)
+        let result = try DocumentConverter().convert(ConversionRequest(inputURL: source))
+        let text = try String(contentsOf: result.markdownFile, encoding: .utf8)
+        for token in ["HEADINGTOKEN", "OUTERTOKEN", "INNERTOKEN"] { XCTAssertEqual(text.components(separatedBy: token).count - 1, 1, text) }
+        XCTAssertEqual(try Data(contentsOf: source), before)
+    }
+
     func testODPExpansionBudgetsFailBeforePublishing() throws {
         let cases = [
             "<table:table><table:table-row table:number-rows-repeated=\"1000\"><table:table-cell table:number-columns-repeated=\"256\"><text:p>" + String(repeating: "x", count: 1_024) + "</text:p></table:table-cell></table:table-row></table:table>",

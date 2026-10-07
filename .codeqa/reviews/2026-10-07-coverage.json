@@ -1,0 +1,597 @@
+{
+  "date": "2026-10-07",
+  "baseline": "ea9fd55",
+  "scope": "Own production sources and distribution configuration; test sources reviewed by risk.",
+  "areas": {
+    "engine": [
+      {
+        "path": "Sources/PoorMansTextCore/BatchConverter.swift",
+        "lines": 203,
+        "sha256": "b23e32f9f56e00acdd3fa6f0495c973f5a8fc7d6fc347d460c09a7dc99d9c0c7"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/ConversionControl.swift",
+        "lines": 43,
+        "sha256": "623cbff984bf00f7f105dc566f583cd6ee22f8b76cc08167bbfa9ffb27491805"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/ConversionError.swift",
+        "lines": 65,
+        "sha256": "17e1e217ef7b1d9c7c047cf48c5d74d79ea93de2ba0928cb3a9940a29e66d58b"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/ConversionRequest.swift",
+        "lines": 128,
+        "sha256": "08e47cecf160f45ae55db7a708d826348155fddd1b0e731cbf092ad2f66f95b8"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/ConversionResult.swift",
+        "lines": 50,
+        "sha256": "7fe2771729672b7e1ce1dc0e88561378f1b18802ce8913686e9e89fc54120508"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/ConversionWarning.swift",
+        "lines": 199,
+        "sha256": "b8f8fb8e9d320c3c7b66f07ce4a90d1bbff8b93cfd034f26df1f1cfc67d1157f"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/DocumentConverter.swift",
+        "lines": 641,
+        "sha256": "ecc9a681e5db08de6f5ed10a310edb57da09d7ceca477e344b65e21fa95324c0"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/InputEnumerator.swift",
+        "lines": 222,
+        "sha256": "a097e5c32467500b9b4d5237770b69be57e1fb122fc761985621bfea03937d8f"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/InputFormat.swift",
+        "lines": 78,
+        "sha256": "5857b490cd29155fa1cf450587b8909f1a3e58bb1b110ebc7be1027713aa173e"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/SupportedFormat.swift",
+        "lines": 110,
+        "sha256": "3a088e5e236234188d74d5bcec3941133b3ef8889a0db501494b441dd6fb4544"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/ProductInfo.swift",
+        "lines": 5,
+        "sha256": "58caaeaa8c43597cc4950893a131778055c0e2a47694c655893bd2be68611954"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/ProcessRunner.swift",
+        "lines": 170,
+        "sha256": "6537ffe5ee2064ef0811cac6cab481f3385a70a7f9abae5abd2a357fa78531a9"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/PandocTool.swift",
+        "lines": 49,
+        "sha256": "21aa14bf6b84e97ba122998c01c2edb5088a18c9cb250e0cd4b2097dc3cd7a1c"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/VerifiedFile.swift",
+        "lines": 172,
+        "sha256": "7d1fd8979946728446adedc8eb67bb94ac00fc01cba10a259a6c9a30a5eaf2a0"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/VerifiedFileStaging.swift",
+        "lines": 281,
+        "sha256": "586c6440037944290064b2d3291e04d8303ce4914e6df3a4f936dcd607d2081b"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/VerifiedDirectoryStaging.swift",
+        "lines": 278,
+        "sha256": "14aa3d8099330a04260a47edc28bd101d67d9b62f3e1956c91bbf89d3eac222e"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/ZIPArchiveInspector.swift",
+        "lines": 1242,
+        "sha256": "5b4241446879b45b9f85a130f82cb763440961a58075b07f5b52014f452c97fd"
+      }
+    ],
+    "rtf_html": [
+      {
+        "path": "Sources/PoorMansTextCore/ColoredTextMarker.swift",
+        "lines": 232,
+        "sha256": "ca07c3ad5f6c9974621c530de5ac76b2649e7c8d8b8921439fe32ad269797350"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/RTFUnicodeProtector.swift",
+        "lines": 159,
+        "sha256": "cc4dd8dd427757d59ba60f7cd75d350c8280f9e4219802b51cb6ae188a98f918"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/RichTextConverter.swift",
+        "lines": 630,
+        "sha256": "01a9cc28ed83e15dd3ddad52b4f59f2fc0f9cdd276f4446b26dd0566d8d0aa42"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/HTMLDocumentConverter.swift",
+        "lines": 108,
+        "sha256": "d0069ddc857f32f2ca10fc306b6b7f17a3a2997e271ffd92eb0c174252755bd3"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/HTMLImageAttributes.swift",
+        "lines": 59,
+        "sha256": "1317fcd0bba0b966c857ab59a3634a7faca78d92ee8f35f76bf99a613b62aba3"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/HTMLImageRewriter.swift",
+        "lines": 168,
+        "sha256": "cb7bde163662c009d2105ea486e50c9d7a2185a55acb9c1cd820afa1ee9df8c3"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/HTMLImageSourceResolver.swift",
+        "lines": 450,
+        "sha256": "017de2e613c403e32c6061ce197e25238dd32f043a5b366f90bf5e4368da78b9"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/WebArchiveReader.swift",
+        "lines": 92,
+        "sha256": "f9f0687ae7747798ddc4a7007145f6a376e735f9e67398c5dd854df5147fab7a"
+      }
+    ],
+    "markdown": [
+      {
+        "path": "Sources/PoorMansTextCore/MarkdownCharacterReferences.swift",
+        "lines": 2131,
+        "sha256": "6505b55e80791eee39355f23756df76684fb44febfbf98a66c92b8b26407448c"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/MarkdownEscaping.swift",
+        "lines": 74,
+        "sha256": "60d010f5f0a974268997c3c03944f25b4d1db2c39493f03569b973a1da0d47d8"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/MarkdownLinkTargetRewriter.swift",
+        "lines": 1391,
+        "sha256": "8a63dbe8238eae8f5b64e52545acb6e81b71570fc32a623e58dc1e61a627f858"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/MarkdownNormalizer.swift",
+        "lines": 231,
+        "sha256": "bbcf677e5f92f778162438e8ab6fdc525baf6c1620e442f4d629e80561d648a7"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/ConversionPostprocessor.swift",
+        "lines": 84,
+        "sha256": "e4020d9c3dad9f14d522ad7dc2829a96f155bb1f97a0df4927ba33e656152d29"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/DocumentMetadata.swift",
+        "lines": 798,
+        "sha256": "2430f4da704b16635651e49b1c09fc2f51cbd1c688202fefe39e575b34f901b9"
+      }
+    ],
+    "word_xml": [
+      {
+        "path": "Sources/PoorMansTextCore/ImportXML.swift",
+        "lines": 108,
+        "sha256": "a7188378d54f73c0aa1c5de2684a8fc021b3407125972e0e3ba3058e33c6d489"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/ImportXMLParser.swift",
+        "lines": 32,
+        "sha256": "d48d7611c56981249096698c688da3a062cc2b0934a2a87e81fe85fc671ceb7d"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/NamespacePrefixTracker.swift",
+        "lines": 54,
+        "sha256": "559352e43dcc2c0b3fefe965443ca3c672fd6afffbe9abc3bc95e7fe123d3b9d"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/LegacyWordAdapter.swift",
+        "lines": 351,
+        "sha256": "db7ce7c747163aa364719d4dcf1b2b839cf675b8073b10af66881aebc96c6c76"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/WordProcessingPackageAdapter.swift",
+        "lines": 182,
+        "sha256": "d771ad9cc39f40765c009a751eb60c940e59cd5fbc9d5233e53c241bcb91955d"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/WordProcessingPackageInspector.swift",
+        "lines": 521,
+        "sha256": "7c284fb6f24a085a0c94db858b16dedc846cdb23da6a9ca7a9d718d77f5a20db"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/OpenDocumentMasterAdapter.swift",
+        "lines": 313,
+        "sha256": "937ff32bea6eaf4a87240ff2364b41c020a3d28b664815285c0a483d183d6675"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/ODMContentParser.swift",
+        "lines": 382,
+        "sha256": "df45faa83f85c2fc7470003a5162facb7f9e338030b9052f9deb797da65ce11c"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/PandocTextAdapter.swift",
+        "lines": 447,
+        "sha256": "ac602016616b03ba28119c961c5a730ce6d8452e0daef8860b766227db042f7f"
+      }
+    ],
+    "spreadsheets": [
+      {
+        "path": "Sources/PoorMansTextCore/DelimitedTextAdapter.swift",
+        "lines": 367,
+        "sha256": "0061c89bb5524fceee6293abe700e9e0a692b187fedb7fb7cde871fab6ec8d6d"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/SpreadsheetAdapter.swift",
+        "lines": 314,
+        "sha256": "9f9bd29f36299719e836b9ae65086d587694d934a670d07ee1a6701a7f3c20b9"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/SpreadsheetWorkbook.swift",
+        "lines": 401,
+        "sha256": "f8079115bcf797a6d248e1e62ccf4b97d58cb2b76e61b6302de2755caf9dcdee"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/XLSXWorkbookParser.swift",
+        "lines": 1150,
+        "sha256": "4450839170d7625dfebe4dbce90b5bf411d3e08e368c8800a027ad735e5e8cea"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/ODSWorkbookParser.swift",
+        "lines": 483,
+        "sha256": "f88a171224f16e1690dd6a06e5b0d3ff2515a3aed42f715f153344464e682d4b"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/LegacyXLSWorkbookParser.swift",
+        "lines": 889,
+        "sha256": "c836cd8f9402f297710d625ba31136f0df68fa8f299ec7b2b0ac398e88ef0b81"
+      }
+    ],
+    "mail_ole": [
+      {
+        "path": "Sources/PoorMansTextCore/BinaryDataReading.swift",
+        "lines": 35,
+        "sha256": "dcb0f04d533a5a4785a38424b4e279216be9517095e7ea62dfff58a6446e58d5"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/OLECompoundDocument.swift",
+        "lines": 376,
+        "sha256": "2752f6392a31dfb37324f7581519c166ba8a5eca451b9caa6e1c262f4e023de7"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/MIMEMessage.swift",
+        "lines": 322,
+        "sha256": "d10136e0458674fa7647f51a404fe9cbeb2699c24c469e13b22191d631459abf"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/MSGAdapter.swift",
+        "lines": 70,
+        "sha256": "5c5d28a37928be7967784c44492b971c6a977c591961f03278af91c132379434"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/MSGCompressedRTF.swift",
+        "lines": 79,
+        "sha256": "bc8615846cbef883980320dbac41ae280ddec8852f7460f18cc70026a9f4fc55"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/MSGEmbeddedWriter.swift",
+        "lines": 199,
+        "sha256": "b30de4bcac1c6e2a966daf0583f88cd7f94da8b906d95ed2e65e77d1a7d942cb"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/MSGMessage.swift",
+        "lines": 166,
+        "sha256": "021065d16a24ee8cdb8df5410815737b1cac7aff15797e946f2edc546609ae0e"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/MSGProperties.swift",
+        "lines": 105,
+        "sha256": "e06970b37b7b7a7f4f34d61125b10519b8e3e60f071aa68091e40ca91ee6195c"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/MSGRTFHTML.swift",
+        "lines": 186,
+        "sha256": "0b49f9f59ddf54311a0c7fa1e918fcec9089a655aaf195485ccf880d7977ee6e"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/MailAdapter.swift",
+        "lines": 118,
+        "sha256": "af5ca5e391f5f4bbbb65547656b8a2159c5e3ddf6ea17823956d36d7365a7775"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/MailBodyConverter.swift",
+        "lines": 125,
+        "sha256": "d025d11847b56022fa7c4516345b24afafa69e09296c4fa42c1d51948767e87c"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/MailContent.swift",
+        "lines": 166,
+        "sha256": "5ad06ca0f2bed56fd31fb0f14cfff6eec4afe46b17495d6d99a4d0174dfa92b0"
+      }
+    ],
+    "media": [
+      {
+        "path": "Sources/PoorMansTextCore/ExtractedText.swift",
+        "lines": 22,
+        "sha256": "28336765de57103d0880bd08f31d66023b9a6f01c901a84d9b8604ce661219fd"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/ImageAdapter.swift",
+        "lines": 463,
+        "sha256": "bb295f154d416f3c6e8b124e5d5c4958a27181ab069217343d2f5511f75fe184"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/OCRConcurrencyGate.swift",
+        "lines": 26,
+        "sha256": "8d51ccd4adc0be0a280068482183cce731072b77b7b83afc838b560789b4fbb2"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/OCRLanguageSelection.swift",
+        "lines": 33,
+        "sha256": "cc656d9858c810791e0b3e4d9191ab859e9cd5eafc4ab3d9db9a731cc6b1d503"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/PDFAdapter.swift",
+        "lines": 546,
+        "sha256": "742e577a5cd380cb309c4126dafaf3aca03e4ba46d0057ed5c65044118bf9365"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/PDFImageResources.swift",
+        "lines": 70,
+        "sha256": "cb3a95915f98fe07f21af7c2840d64537b635090da520f44b3e15e96f15d2874"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/PDFStructuredLayout.swift",
+        "lines": 94,
+        "sha256": "44218d6949eeda6f4e6a3e3de07ecbcbe58b83e036e93f0620c439b3b4852b0e"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/PDFTableGeometry.swift",
+        "lines": 141,
+        "sha256": "1a5a47eeaf1ede991a9a6e1d5a931eb07a59ad50ed14ef3ad05e08bc575c60cd"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/PDFTextLayout.swift",
+        "lines": 222,
+        "sha256": "412e670e8628866985cae71f56b15e83ba9ba57226bbe5e05d6f51d6e9cbe114"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/VerifiedImageSource.swift",
+        "lines": 79,
+        "sha256": "388411b91b0e26a6328a1bd9e25bf9897ac0e7d1a2e13a62f33057f090896e95"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/VisionTextRecognizer.swift",
+        "lines": 119,
+        "sha256": "c8bc403d34016c46a82c9e408952e0cb1e66643c4f2ef6024bb8e6d2b3dcfc10"
+      }
+    ],
+    "notebook_presentation": [
+      {
+        "path": "Sources/PoorMansTextCore/NotebookAdapter.swift",
+        "lines": 202,
+        "sha256": "8c37c99ef9f8cd44976e3e9d5a4030004eded4e72762046cfafb67c00fa1c215"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/PresentationAdapter.swift",
+        "lines": 355,
+        "sha256": "19e6618a658c126929a6b6aaa4fd86c4d66bf2ac473d156e52b048e83d55a826"
+      },
+      {
+        "path": "Sources/PoorMansTextCore/PresentationDocument.swift",
+        "lines": 125,
+        "sha256": "ec96f15a76f0c23888c3b7e62f881bb87711732607ea05fc7c83d21aee4696aa"
+      }
+    ],
+    "frontends": [
+      {
+        "path": "Sources/PoorMansTextCLI/CLIArguments.swift",
+        "lines": 301,
+        "sha256": "7bb5bafd56039a0527ee420d28c466f231f9de646d0e91a6e60903507ac58876"
+      },
+      {
+        "path": "Sources/PoorMansTextCLI/CLIExecution.swift",
+        "lines": 109,
+        "sha256": "ad033253a5b7e1d350dc5ef66cc4ab182e0b396ca78eac16de35ef2d080c345b"
+      },
+      {
+        "path": "Sources/PoorMansTextCLI/CLIOutput.swift",
+        "lines": 287,
+        "sha256": "9d50d22a43584be997ecf12bc95f061023f4b310ea9c79a2b87511fd5bf3a054"
+      },
+      {
+        "path": "Sources/PoorMansTextCLI/main.swift",
+        "lines": 134,
+        "sha256": "b7f815b4a6b0af5da7a4f1ea6aa0caefce35e9f9b53b5227793da36354728c82"
+      },
+      {
+        "path": "Sources/PoorMansTextAppSupport/AppErrorMessage.swift",
+        "lines": 69,
+        "sha256": "fa8f7a8fe9efd9b65923e5917bbc6f1a9caa26e69bc063f048b7f295a3dd9605"
+      },
+      {
+        "path": "Sources/PoorMansTextAppSupport/AppModel.swift",
+        "lines": 728,
+        "sha256": "fc7d494b550224eaa42efe4769a5eb5c312907206fddf090be376d81dd496676"
+      },
+      {
+        "path": "Sources/PoorMansTextAppSupport/CLIInstaller.swift",
+        "lines": 131,
+        "sha256": "79aba639d24effb9f65c698b89744ed08aa58ef65601d17f57751ac8b79d4e29"
+      },
+      {
+        "path": "Sources/PoorMansTextAppSupport/CapturedProcess.swift",
+        "lines": 34,
+        "sha256": "644ec5a9c59d356c303b8768bc5a26fbb6aeb4077be58f4ca871ae83c217ee7e"
+      },
+      {
+        "path": "Sources/PoorMansTextAppSupport/ConvertDocumentIntent.swift",
+        "lines": 151,
+        "sha256": "d2613d2d7187528052765a815b3b6026fb98339ca0a12b45a2f544fc64506fa2"
+      },
+      {
+        "path": "Sources/PoorMansTextAppSupport/MarkdownPreview.swift",
+        "lines": 36,
+        "sha256": "fd76fb9ba7aff94697f39f099a95d1ca8e3b2df627633cfa5389a066fc14d3d7"
+      },
+      {
+        "path": "Sources/PoorMansTextAppSupport/OpenedDocumentsRelay.swift",
+        "lines": 33,
+        "sha256": "6c2285ecd89595e889c7189a4ee78188a05459f1ff751ffa675a8678fb7582e6"
+      },
+      {
+        "path": "Sources/PoorMansTextAppSupport/PandocInstaller.swift",
+        "lines": 122,
+        "sha256": "2fcf1cb599170524bf2eacf319737d9e7844ea8b2c67f380ef8e5786a21d5125"
+      },
+      {
+        "path": "Sources/PoorMansTextAppSupport/RichTextClipboard.swift",
+        "lines": 134,
+        "sha256": "ad93b505930348be638c3900c3fb633685a7202a53a6fa04e81315fde86b6838"
+      },
+      {
+        "path": "Sources/PoorMansTextAppSupport/ServicesProvider.swift",
+        "lines": 59,
+        "sha256": "5fdc8fbfab6cc793956efeed3cadd4ce1b246c3a653b95f1f1b82b4f3e1d97aa"
+      },
+      {
+        "path": "Sources/PoorMansTextAppSupport/UpdateController.swift",
+        "lines": 53,
+        "sha256": "faa5d2f811be12ba8c6b984727fa445ec24bbd6a59a9842dfd6c692c766a86fc"
+      },
+      {
+        "path": "Sources/PoorMansTextApp/ContentView.swift",
+        "lines": 627,
+        "sha256": "6a9a8c0d4aebdc739b9fb49950e7fb9e0e68cfa921f989cd98ddf34b1691eb6d"
+      },
+      {
+        "path": "Sources/PoorMansTextApp/PoorMansTextApp.swift",
+        "lines": 56,
+        "sha256": "5b40328b48e07b29d360593b439923f3651291bb4e48eaaa7ef690eec73347a7"
+      }
+    ],
+    "distribution": [
+      {
+        "path": "scripts/benchmark_batch.py",
+        "lines": 118,
+        "sha256": "90d32804c4cce2dcd2fc536f1acd54897cdf29f73efe701e20af3bad3ee7dec9"
+      },
+      {
+        "path": "scripts/benchmark_packages.py",
+        "lines": 138,
+        "sha256": "11a76ae8c15aa009c1388736d8e4801997c95ede0293727d0391bfac1b19d603"
+      },
+      {
+        "path": "scripts/benchmark_zip_detection.py",
+        "lines": 94,
+        "sha256": "a43ca6bc2e15263dfdff6dd8c9797f38710325f8b4986889bdfdd415047b04d3"
+      },
+      {
+        "path": "scripts/build_app.sh",
+        "lines": 138,
+        "sha256": "85c2a945cd2175d72e61dd4c192f4e0e6b108951585bd6e15e5bfd5f192c2b5c"
+      },
+      {
+        "path": "scripts/build_app_intents.py",
+        "lines": 93,
+        "sha256": "ae8f67199e158f58e47a395ce4b9646443261494035f0036b95d7e8a87958d78"
+      },
+      {
+        "path": "scripts/build_icon.sh",
+        "lines": 56,
+        "sha256": "c949a31b9c9936c849425fb44ed9d7a4d1871166c6a25e14431366649f78d2d3"
+      },
+      {
+        "path": "scripts/cli_target.sh",
+        "lines": 62,
+        "sha256": "625026de932498bc05340252e5a19126e33b1b8018cd32c16e71b42265ccbff7"
+      },
+      {
+        "path": "scripts/code_directory_hash.sh",
+        "lines": 14,
+        "sha256": "1c92db83ac1cd5f9d6c56a321dbf2a09536457cc75d9567974ee9f4d12f848d6"
+      },
+      {
+        "path": "scripts/create_dmg.sh",
+        "lines": 51,
+        "sha256": "fe1ff50967d73c4607ef2189bd19a33482066f164bfca7f8506ac2bde8e2c3f1"
+      },
+      {
+        "path": "scripts/install.sh",
+        "lines": 527,
+        "sha256": "86fefca8e9c04a92db5bd40b155cc56d86c79e53d3231f0ca298275b2d6583af"
+      },
+      {
+        "path": "scripts/install_modes.sh",
+        "lines": 40,
+        "sha256": "a67a14f3d65ecd239d96954b4291ff6f7013c5a6f623a47b38b2e904e9cc9001"
+      },
+      {
+        "path": "scripts/install_transaction.sh",
+        "lines": 372,
+        "sha256": "1ffcf687263f951d9985fb1d2246843ffef02df946de120c54f98ef823e19242"
+      },
+      {
+        "path": "scripts/notary_profile.sh",
+        "lines": 81,
+        "sha256": "4c00f9be95ca6be5237b5aaf9eec0811e4015e428a534a493296aafdc97f93ac"
+      },
+      {
+        "path": "scripts/sign_bundle.sh",
+        "lines": 66,
+        "sha256": "2548dc52dec415951de77d98cfecf907cb76779caa13b08491cb767189d6e3bf"
+      },
+      {
+        "path": "scripts/verify_bundle.sh",
+        "lines": 138,
+        "sha256": "bd241b681a62a47de67a3b0746edc84c1605ebf5b99ed60c6f285283b2957459"
+      },
+      {
+        "path": "scripts/verify_dmg.sh",
+        "lines": 133,
+        "sha256": "9ffc54d9b376cce4ab726d5cabc52d25f1b89961a17e86bc24dce2c626373a87"
+      },
+      {
+        "path": "scripts/verify_release.sh",
+        "lines": 116,
+        "sha256": "a5a0b61d9d1176b1bbc28a5a5e2ef27cb0f5c08746216bdb27f540b76f5fa2d3"
+      },
+      {
+        "path": "build.sh",
+        "lines": 5,
+        "sha256": "7b5c68544508abe1d6ceb16ade7296b5986ba482b4974dabce8ad7bdbbf68ad0"
+      },
+      {
+        "path": "install.sh",
+        "lines": 21,
+        "sha256": "dc805a3906fbe434ae7a2c112ae06aa9d76d9853057fdbf99a040d17b18bf751"
+      },
+      {
+        "path": "release.sh",
+        "lines": 25,
+        "sha256": "0d15df28ab608d6a3b724db6e8099ca39bdd76aa7ed57f69f7e293e00dd090d2"
+      },
+      {
+        "path": "Package.swift",
+        "lines": 66,
+        "sha256": "90efc09f4a3dacca6315c9e8e8459d2a79d1ad62a80058ebfb99cb97210b4076"
+      },
+      {
+        "path": "Package.resolved",
+        "lines": 15,
+        "sha256": "d12a71991299cf5e2d09c3d1d5e4fe54cddbacd2dad9967c6cef1d0af1d1c99b"
+      },
+      {
+        "path": "App/Info.plist",
+        "lines": 514,
+        "sha256": "3305ab3581711f15f7b4939c0238fa9684a8ba5e5b441748e4c727570fa5eb5e"
+      },
+      {
+        "path": ".github/workflows/ci.yml",
+        "lines": 39,
+        "sha256": "ce924d968e7fdc9494fa5efdf4f7eddd123b7f6aa11fb5eb482e914e30bcc5ea"
+      },
+      {
+        "path": ".github/workflows/publish-appcast.yml",
+        "lines": 149,
+        "sha256": "3e79b4ba8d65e7c43e539597d40e3af60a2608ae3156bb6b4691886fd258da7b"
+      }
+    ]
+  }
+}

@@ -21,6 +21,7 @@ struct PandocTextAdapter: DocumentConversionAdapter {
             case signatureAlone([String])
             case epub
             case webArchive
+            case fictionBook
         }
 
         let format: InputFormat
@@ -55,7 +56,7 @@ struct PandocTextAdapter: DocumentConversionAdapter {
         Kind(format: .rst, extensions: ["rst"], reader: "rst",
              detection: .textWithExtension, expectedWarnings: []),
         Kind(format: .fb2, extensions: ["fb2"], reader: "fb2",
-             detection: .textWithSignature(["<fictionbook"]), expectedWarnings: []),
+             detection: .fictionBook, expectedWarnings: []),
     ]
 
     var supportedFormatDescriptors: [SupportedFormat] {
@@ -130,6 +131,12 @@ struct PandocTextAdapter: DocumentConversionAdapter {
             switch byExtension.detection {
             case .textWithExtension:
                 return .match(AdapterInputInspection(format: byExtension.format, priority: Self.detectionPriority, expectedWarnings: byExtension.expectedWarnings))
+            case .fictionBook:
+                let probe = FictionBookRootProbe()
+                _ = ImportXMLParser.make(prefix, delegate: probe).parse()
+                return probe.matches
+                    ? .match(AdapterInputInspection(format: .fb2, priority: Self.detectionPriority, expectedWarnings: []))
+                    : .invalid(format: .fb2, priority: Self.detectionPriority, reason: "the file carries no FictionBook root element")
             case .textWithSignature(let signatures), .signatureAlone(let signatures):
                 if signatures.contains(where: { head.contains($0) }) || byExtension.format == .html {
                     return .match(AdapterInputInspection(format: byExtension.format, priority: Self.detectionPriority, expectedWarnings: byExtension.expectedWarnings))
@@ -154,6 +161,17 @@ struct PandocTextAdapter: DocumentConversionAdapter {
             }
         }
         return .noMatch
+    }
+
+    private final class FictionBookRootProbe: NSObject, XMLParserDelegate {
+        var matches = false
+
+        func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?,
+                    qualifiedName qName: String?, attributes attributeDict: [String: String]) {
+            matches = elementName == "FictionBook" && (namespaceURI == "http://www.gribuser.ru/xml/fictionbook/2.0"
+                || namespaceURI == nil || namespaceURI == "")
+            parser.abortParsing()
+        }
     }
 
     func convert(_ context: AdapterConversionContext) throws -> StagedConversionResult {

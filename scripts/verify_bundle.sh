@@ -39,11 +39,15 @@ try:
     metadata = json.loads((root / "extract.actionsdata").read_text())
     json.loads((root / "version.json").read_text())
     action = metadata["actions"]["ConvertDocumentIntent"]
-    assert action["fullyQualifiedTypeName"] == "PoorMansTextAppSupport.ConvertDocumentIntent"
-    assert action["isDiscoverable"]
-    assert {"document", "destinationFolder"}.issubset({p["name"] for p in action["parameters"]})
-    assert any(item["actionIdentifier"] == "ConvertDocumentIntent" for item in metadata["autoShortcuts"])
-except (OSError, ValueError, KeyError, AssertionError) as error:
+    valid = (
+        action["fullyQualifiedTypeName"] == "PoorMansTextAppSupport.ConvertDocumentIntent"
+        and action["isDiscoverable"] is True
+        and {"document", "destinationFolder"}.issubset({p["name"] for p in action["parameters"]})
+        and any(item["actionIdentifier"] == "ConvertDocumentIntent" for item in metadata["autoShortcuts"])
+    )
+    if not valid:
+        raise ValueError("conversion action contract does not match")
+except (OSError, ValueError, KeyError, TypeError) as error:
     raise SystemExit("AppIntents-Metadaten fehlen oder sind ungültig: " + str(error))
 PYTHON
 

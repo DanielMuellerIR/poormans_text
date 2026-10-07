@@ -3,6 +3,43 @@ import XCTest
 @testable import PoorMansTextCore
 
 final class OLEStorageTreeTests: XCTestCase {
+    func testMiniStreamsRequireAnExactTerminatedChain() throws {
+        let source = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".ole")
+        defer { try? FileManager.default.removeItem(at: source) }
+        let valid = miniFixture(next: 0xFFFF_FFFE)
+        try valid.write(to: source)
+        XCTAssertEqual(try OLECompoundDocument(data: Data(contentsOf: source)).storageTree().stream(at: ["Body"]), Data([0x41]))
+        XCTAssertEqual(try Data(contentsOf: source), valid)
+        for next: UInt32 in [0, 1, 999, .max] {
+            let malformed = miniFixture(next: next)
+            try malformed.write(to: source)
+            let tree = try OLECompoundDocument(data: Data(contentsOf: source)).storageTree()
+            XCTAssertThrowsError(try tree.stream(at: ["Body"]))
+            XCTAssertEqual(try Data(contentsOf: source), malformed)
+        }
+    }
+
+    private func miniFixture(next: UInt32) -> Data {
+        let original = fixture()
+        var bytes = Data(repeating: 0, count: 5 * 512)
+        bytes.replaceSubrange(0..<512, with: original.prefix(512))
+        put32(0, at: 48, in: &bytes)
+        put32(2, at: 60, in: &bytes)
+        put32(1, at: 64, in: &bytes)
+        put32(3, at: 76, in: &bytes)
+        bytes.replaceSubrange(512..<768, with: original[(17 * 512)..<(17 * 512 + 256)])
+        put32(1, at: 512 + 116, in: &bytes)
+        put32(64, at: 512 + 120, in: &bytes)
+        put32(.max, at: 640 + 72, in: &bytes)
+        put32(1, at: 640 + 120, in: &bytes)
+        bytes[1024] = 0x41
+        bytes.replaceSubrange(1536..<2560, with: Data(repeating: 0xFF, count: 1024))
+        put32(next, at: 1536, in: &bytes)
+        for sector in 0..<3 { put32(0xFFFF_FFFE, at: 2048 + sector * 4, in: &bytes) }
+        put32(0xFFFF_FFFD, at: 2048 + 12, in: &bytes)
+        return bytes
+    }
+
     func testSameNamedStreamsRemainInTheirOwnStorage() throws {
         let bytes = fixture()
         let source = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".msg")

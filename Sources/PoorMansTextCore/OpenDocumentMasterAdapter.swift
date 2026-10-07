@@ -46,8 +46,9 @@ struct OpenDocumentMasterAdapter: DocumentConversionAdapter {
                     )
                     : .noMatch
             }
-            let items = try ODMContentParser.parse(package.content)
-            let warnings = try inspectLinkedDocuments(items, masterURL: masterURL)
+            let content = try ODMContentParser.read(package.content)
+            var warnings = try inspectLinkedDocuments(content.items, masterURL: masterURL)
+            if content.hasTrackedChanges { appendUnique([.openDocumentChangesNotPreserved], to: &warnings) }
             return .match(
                 AdapterInputInspection(
                     format: .odm,
@@ -77,6 +78,7 @@ struct OpenDocumentMasterAdapter: DocumentConversionAdapter {
         let masterURL = context.resolvedInputURL
         let reader: ZIPPackageReader
         let items: [ODMContentItem]
+        let hasTrackedChanges: Bool
         do {
             reader = try ZIPArchiveInspector.openVerifiedPackage(
                 from: masterURL,
@@ -87,7 +89,9 @@ struct OpenDocumentMasterAdapter: DocumentConversionAdapter {
             guard package.isMaster else {
                 throw MasterError("the verified ODM package changed after inspection")
             }
-            items = try ODMContentParser.parse(package.content)
+            let content = try ODMContentParser.read(package.content)
+            items = content.items
+            hasTrackedChanges = content.hasTrackedChanges
             _ = try inspectLinkedDocuments(items, masterURL: masterURL)
         } catch let error as ConversionError {
             throw error
@@ -103,6 +107,7 @@ struct OpenDocumentMasterAdapter: DocumentConversionAdapter {
             "# \(MarkdownEscaping.heading(context.inputURL.deletingPathExtension().lastPathComponent))",
         ]
         var warnings = [ConversionWarning.openDocumentMasterFlattened]
+        if hasTrackedChanges { warnings.append(.openDocumentChangesNotPreserved) }
         var assetRelativePaths = [String]()
         var linkedIndex = 0
 

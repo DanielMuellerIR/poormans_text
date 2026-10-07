@@ -226,10 +226,15 @@ public struct DocumentConverter: Sendable {
         let workDirectory = temporaryRoot.appendingPathComponent("work", isDirectory: true)
         let stagedOutput = temporaryRoot.appendingPathComponent("result", isDirectory: true)
 
+        // Der Arbeitsbereich liegt neben dem Ziel, möglicherweise in einem
+        // gemeinsam lesbaren Ordner. Bis zur Veröffentlichung bleibt er privat.
+        guard mkdir(temporaryRoot.path, 0o700) == 0 else {
+            throw ConversionError.fileSystemFailure(String(cString: strerror(errno)))
+        }
         defer { try? fileManager.removeItem(at: temporaryRoot) }
         do {
-            try fileManager.createDirectory(at: workDirectory, withIntermediateDirectories: true)
-            try fileManager.createDirectory(at: stagedOutput, withIntermediateDirectories: true)
+            try fileManager.createDirectory(at: workDirectory, withIntermediateDirectories: false)
+            try fileManager.createDirectory(at: stagedOutput, withIntermediateDirectories: false)
         } catch {
             throw ConversionError.fileSystemFailure(error.localizedDescription)
         }

@@ -15,6 +15,16 @@ All notable changes to this project will be documented in this file.
   temporary Pandoc input; retain embedded images and reject malformed surrogate
   sequences before publishing an output folder.
 
+- Fix import edge cases in XLS/XLSX links and formulas, FictionBook namespaces,
+  OpenDocument revisions and presentation tables, RTF metadata, and PDF reading
+  order and OCR deduplication.
+- Keep Markdown examples in inline HTML and mixed list/quote containers literal;
+  avoid repeated scans of malformed nested links and retain cancellation checks.
+- Restrict unpublished conversion workspaces and bound referenced image copies;
+  decode presentation and notebook pixels before publishing image assets.
+- Register XLSX for the Finder service and keep AppIntents bundle validation
+  active under Python optimization.
+
 ## 0.16.6 — 2026-10-06
 
 - Preserve literal ampersands in spreadsheet link destinations so Markdown

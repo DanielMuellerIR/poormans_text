@@ -260,7 +260,7 @@ final class PresentationImport {
                 var rowBytes = 3
                 for cell in row.children where cell.namespace == Self.table && ["table-cell", "covered-table-cell"].contains(cell.name) {
                     let count = try repeatCount(cell.attribute("number-columns-repeated", namespace: Self.table), maximum: 256)
-                    var text = try cell.descendants("p", namespace: Self.text).map(odfText).joined(separator: "\n")
+                    var text = try tableCellParagraphs(cell).map(odfText).joined(separator: "\n")
                     if text.isEmpty { text = cell.attribute("string-value", namespace: Self.office) ?? cell.attribute("value", namespace: Self.office) ?? cell.attribute("date-value", namespace: Self.office) ?? cell.attribute("boolean-value", namespace: Self.office) ?? cell.attribute("time-value", namespace: Self.office) ?? "" }
                     // UTF-8-Zeichen können beim Maskieren höchstens verdoppeln;
                     // ein Zeilenwechsel wird zu vier Bytes (<br>).
@@ -296,6 +296,13 @@ final class PresentationImport {
         if node.namespace == Self.draw, ["object", "object-ole", "plugin", "applet"].contains(node.name) { diagnostics.add("presentation.objectNotRepresented", "An embedded \(node.name) object is not represented as Markdown.", page: page) }
         return try node.children.flatMap { try odpBlocks($0, level: level, listStyle: listStyle) }
     }
+    private func tableCellParagraphs(_ node: ImportXML) -> [ImportXML] {
+        node.children.flatMap { child in
+            if child.namespace == Self.text, child.name == "p" || child.name == "h" { return [child] }
+            return tableCellParagraphs(child)
+        }
+    }
+
     private func tableRows(_ node: ImportXML) -> [ImportXML] {
         node.children.flatMap { child -> [ImportXML] in
             guard child.namespace == Self.table else { return [] }

@@ -6,7 +6,16 @@ enum ODMContentItem: Equatable {
 }
 
 enum ODMContentParser {
+    struct Content {
+        let items: [ODMContentItem]
+        let hasTrackedChanges: Bool
+    }
+
     static func parse(_ xml: Data, maximumTextBytes: Int = 128 * 1_024 * 1_024) throws -> [ODMContentItem] {
+        try read(xml, maximumTextBytes: maximumTextBytes).items
+    }
+
+    static func read(_ xml: Data, maximumTextBytes: Int = 128 * 1_024 * 1_024) throws -> Content {
         let delegate = Delegate(maximumTextBytes: maximumTextBytes)
         let parser = ImportXMLParser.make(xml, delegate: delegate)
         let parsedSuccessfully = parser.parse()
@@ -17,12 +26,14 @@ enum ODMContentParser {
         guard !delegate.items.isEmpty else {
             throw ParserError("the ODM content contains no text or linked sections")
         }
-        return delegate.items
+        return Content(items: delegate.items, hasTrackedChanges: delegate.hasTrackedChanges)
     }
 
     private final class Delegate: NSObject, XMLParserDelegate {
         var items = [ODMContentItem]()
         var failure: Error?
+        var hasTrackedChanges = false
+        private var ignoredDepth = 0
         private let maximumTextBytes: Int
         private var textBytes = 0
 
@@ -60,6 +71,12 @@ enum ODMContentParser {
             attributes attributeDict: [String: String] = [:]
         ) {
             if ConversionExecution.isCancelled { parser.abortParsing(); return }
+            if ignoredDepth > 0 { ignoredDepth += 1; return }
+            if namespaceURI == Namespaces.text, elementName == "tracked-changes" {
+                hasTrackedChanges = true
+                ignoredDepth = 1
+                return
+            }
             if namespaceURI == Namespaces.text, elementName == "section" {
                 sections.append(
                     SectionBuilder(name: prefixes.attributeValue(
@@ -114,6 +131,7 @@ enum ODMContentParser {
 
         func parser(_ parser: XMLParser, foundCharacters string: String) {
             if ConversionExecution.isCancelled { parser.abortParsing(); return }
+            guard ignoredDepth == 0 else { return }
             appendToOpenParagraph(string, parser: parser)
         }
 
@@ -217,6 +235,7 @@ enum ODMContentParser {
             qualifiedName qName: String?
         ) {
             if ConversionExecution.isCancelled { parser.abortParsing(); return }
+            if ignoredDepth > 0 { ignoredDepth -= 1; return }
             if namespaceURI == Namespaces.text,
                (elementName == "h" || elementName == "p"),
                let text = texts.popLast() {

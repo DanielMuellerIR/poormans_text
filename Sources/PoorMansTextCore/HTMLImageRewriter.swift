@@ -115,7 +115,7 @@ enum HTMLImageRewriter {
         from reference: String,
         resourceDirectory: URL
     ) throws -> URL {
-        let decodedReference = reference.replacingOccurrences(of: "&amp;", with: "&")
+        let decodedReference = try HTMLImageAttributes.decodedValue(reference)
         let candidate: URL
 
         if let url = URL(string: decodedReference), url.scheme != nil {

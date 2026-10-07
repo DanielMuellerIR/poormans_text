@@ -236,7 +236,7 @@ enum VerifiedFileStaging {
     /// Öffnet die Quelle über `VerifiedFile` und prüft zusätzlich, was für ALLE
     /// Wege dieses Typs gilt: reguläre Datei und Größenbudget. Erst danach
     /// bekommt `body` den geprüften Deskriptor.
-    private static func withVerifiedSource<T>(
+    static func withVerifiedSource<T>(
         at sourceURL: URL,
         maximumBytes: Int,
         describedAs subject: String,

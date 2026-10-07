@@ -4,6 +4,30 @@ import Foundation
 /// eines Alt-Texts sind keine Bildquelle. Beide Bildstufen nutzen dieselben
 /// Bereiche, damit Prüfung und Ersetzung auf dasselbe Attribut zeigen.
 enum HTMLImageAttributes {
+    static func decodedValue(_ value: String) throws -> String {
+        let expression = try NSRegularExpression(pattern: #"&(?:#([0-9]+);?|#[xX]([0-9a-fA-F]+);?|([a-zA-Z][a-zA-Z0-9]{0,31});)"#)
+        let source = value as NSString
+        var pieces = [String]()
+        var cursor = 0
+        for match in expression.matches(in: value, range: NSRange(location: 0, length: source.length)) {
+            try ConversionExecution.check()
+            pieces.append(source.substring(with: NSRange(location: cursor, length: match.range.location - cursor)))
+            let replacement: String?
+            if match.range(at: 3).location != NSNotFound {
+                replacement = MarkdownCharacterReferences.named[source.substring(with: match.range(at: 3))]
+            } else {
+                let hex = match.range(at: 2).location != NSNotFound
+                let digits = source.substring(with: match.range(at: hex ? 2 : 1))
+                let scalar = UInt32(digits, radix: hex ? 16 : 10).flatMap(UnicodeScalar.init)
+                replacement = scalar.flatMap { $0.value == 0 ? nil : String($0) } ?? "\u{FFFD}"
+            }
+            pieces.append(replacement ?? source.substring(with: match.range))
+            cursor = NSMaxRange(match.range)
+        }
+        pieces.append(source.substring(from: cursor))
+        return pieces.joined()
+    }
+
     struct Attribute {
         let value: String
         let range: NSRange

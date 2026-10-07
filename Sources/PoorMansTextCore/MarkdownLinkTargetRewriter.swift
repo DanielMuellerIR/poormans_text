@@ -23,7 +23,7 @@ enum MarkdownLinkTargetRewriter {
             }
             if let fence = openingFence(context.fenceCandidate) {
                 fencedCode = MarkdownFenceState(marker: fence.marker, count: fence.count,
-                    quoteDepth: containers.quoteDepth, listContentIndent: containers.listContentIndents.last)
+                    prefixes: context.prefixes)
                 containers.canStartIndentedCode = true
                 return true
             }
@@ -124,8 +124,7 @@ enum MarkdownLinkTargetRewriter {
                 result += text
                 let state = MarkdownHTMLBlockState(
                     terminator: openingHTML.terminator,
-                    quoteDepth: containers.quoteDepth,
-                    listContentIndent: containers.listContentIndents.last
+                    prefixes: context.prefixes
                 )
                 if !state.ends(in: context.fenceCandidate) {
                     htmlBlock = state
@@ -142,7 +141,7 @@ enum MarkdownLinkTargetRewriter {
                 var definitionLines = [text]
                 var contentLines = [context.fenceCandidate]
                 var continuationContainers = containers
-                var definition = referenceDefinition(in: definitionText)
+                var definition = try referenceDefinition(in: definitionText)
                 while definition?.needsContinuation == true,
                       lineNumber + definitionLines.count < lines.count {
                     try check?()
@@ -172,7 +171,7 @@ enum MarkdownLinkTargetRewriter {
                             continue
                         }
                     }
-                    definition = referenceDefinition(in: definitionText)
+                    definition = try referenceDefinition(in: definitionText)
                 }
                 // Ein Titel auf Folgezeilen gehört zur Definition. Seine Backticks
                 // dürfen deshalb keinen Codezustand im folgenden Absatz öffnen.
@@ -203,7 +202,7 @@ enum MarkdownLinkTargetRewriter {
                         if titleLines.count > 1, let delimiter = titleDelimiter,
                            !context.fenceCandidate.contains(delimiter),
                            !(delimiter == ")" && context.fenceCandidate.contains("(")) { continue }
-                        guard let parsed = referenceDefinition(in: probe) else { break }
+                        guard let parsed = try referenceDefinition(in: probe) else { break }
                         if parsed.target != nil {
                             definitionText = probe
                             definition = parsed
@@ -249,8 +248,7 @@ enum MarkdownLinkTargetRewriter {
                 fencedCode = MarkdownFenceState(
                     marker: fence.marker,
                     count: fence.count,
-                    quoteDepth: containers.quoteDepth,
-                    listContentIndent: containers.listContentIndents.last
+                    prefixes: context.prefixes
                 )
                 containers.canStartIndentedCode = true
             } else {
@@ -389,13 +387,18 @@ enum MarkdownLinkTargetRewriter {
         var canStartIndentedCode = true
         var indentedCodeQuoteDepth: Int?
         var indentedCodeListIndent: Int?
+        var prefixes: [ContainerPrefix] = []
     }
 
     private struct MarkdownFenceState {
         let marker: Character
         let count: Int
-        let quoteDepth: Int
-        let listContentIndent: Int?
+        let prefixes: [ContainerPrefix]
+    }
+
+    private enum ContainerPrefix {
+        case quote
+        case indent(Int)
     }
 
     private struct MarkdownHTMLBlockState {
@@ -405,8 +408,7 @@ enum MarkdownLinkTargetRewriter {
         }
 
         let terminator: Terminator
-        let quoteDepth: Int
-        let listContentIndent: Int?
+        let prefixes: [ContainerPrefix]
 
         func ends(in line: String) -> Bool {
             switch terminator {
@@ -426,6 +428,7 @@ enum MarkdownLinkTargetRewriter {
         let isBlank: Bool
         let allowsParagraphContinuation: Bool
         let startsNewInlineBlock: Bool
+        var prefixes: [ContainerPrefix] = []
     }
 
     /// Bestimmt eingerückte GFM-Codeblöcke relativ zu ihren Containern. Vier
@@ -434,6 +437,70 @@ enum MarkdownLinkTargetRewriter {
     /// werden vorher entfernt; dadurch gelten dieselben Regeln auch für `>` und
     /// verschachtelte Listen in Zitaten.
     private static func lineContext(
+        _ line: String,
+        containers: inout MarkdownContainerState
+    ) -> MarkdownLineContext {
+        if containers.prefixes.contains(where: { if case .indent = $0 { return true }; return false }),
+           containers.prefixes.contains(where: { if case .quote = $0 { return true }; return false }) {
+            var start = line.startIndex
+            var matched: [ContainerPrefix] = []
+            for prefix in containers.prefixes {
+                guard let next = containerStart(in: line, from: start, prefix: prefix) else { break }
+                start = next
+                matched.append(prefix)
+            }
+            if !matched.isEmpty {
+                var nested = MarkdownContainerState()
+                nested.canStartIndentedCode = containers.canStartIndentedCode
+                nested.indentedCodeQuoteDepth = containers.indentedCodeQuoteDepth
+                nested.indentedCodeListIndent = containers.indentedCodeListIndent
+                var context = lineContext(String(line[start...]), containers: &nested)
+                context.prefixes = matched + context.prefixes
+                containers.prefixes = context.prefixes
+                return context
+            }
+        }
+        var context = baseLineContext(line, containers: &containers)
+        context.prefixes = Array(repeating: .quote, count: containers.quoteDepth)
+        if let indent = containers.listContentIndents.last { context.prefixes.append(.indent(indent)) }
+        // Listen und Zitate dürfen sich in beliebiger Reihenfolge verschachteln.
+        // Der gespeicherte Pfad verhindert, dass ein Listen-Zitat später wie
+        // ein Zitat mit nachfolgender Liste behandelt wird.
+        if !context.isIndentedCode {
+            let candidate = context.fenceCandidate
+            var start = candidate.startIndex
+            var prefixes = context.prefixes
+            var foundQuote = false
+            while start < candidate.endIndex {
+                let rest = candidate[start...]
+                let indent = leadingIndentation(in: rest)
+                guard indent.columns <= 3, indent.end < candidate.endIndex else { break }
+                if candidate[indent.end] == ">" {
+                    prefixes.append(.quote)
+                    foundQuote = true
+                    start = candidate.index(after: indent.end)
+                    if start < candidate.endIndex, candidate[start] == " " || candidate[start] == "\t" { start = candidate.index(after: start) }
+                } else if foundQuote, let marker = listMarker(in: rest, at: indent.end) {
+                    let padding = followingWhitespace(in: rest, from: marker.end, initialColumn: indent.columns + marker.width)
+                    guard padding.end == candidate.endIndex || (1...4).contains(padding.columns) else { break }
+                    prefixes.append(.indent(indent.columns + marker.width + max(1, padding.columns)))
+                    start = padding.end
+                } else { break }
+            }
+            if foundQuote {
+                let inner = String(candidate[start...])
+                context = MarkdownLineContext(fenceCandidate: inner,
+                    isIndentedCode: leadingIndentation(in: inner[...]).columns >= 4,
+                    isBlank: inner.allSatisfy(\.isWhitespace),
+                    allowsParagraphContinuation: !isATXHeading(inner),
+                    startsNewInlineBlock: context.startsNewInlineBlock, prefixes: prefixes)
+            }
+        }
+        containers.prefixes = context.prefixes
+        return context
+    }
+
+    private static func baseLineContext(
         _ line: String,
         containers: inout MarkdownContainerState
     ) -> MarkdownLineContext {
@@ -763,6 +830,34 @@ enum MarkdownLinkTargetRewriter {
         )
     }
 
+    private struct ParenthesisIndex {
+        var matchingClose: [String.Index: String.Index] = [:]
+
+        init(_ text: String, check: (() throws -> Void)?) throws {
+            var stack: [String.Index] = []
+            var cursor = text.startIndex
+            var scanned = 0
+            while cursor < text.endIndex {
+                if scanned % 1_024 == 0 { try check?() }; scanned += 1
+                let character = text[cursor]
+                if character == "\\" {
+                    let next = text.index(after: cursor)
+                    if next < text.endIndex, text[next].isASCII, text[next].isPunctuation || text[next].isSymbol {
+                        cursor = text.index(after: next)
+                        continue
+                    }
+                }
+                if character.isWhitespace { stack.removeAll(keepingCapacity: true) }
+                else if character == "(" { stack.append(cursor) }
+                else if character == ")", let opening = stack.popLast() { matchingClose[opening] = cursor }
+                cursor = text.index(after: cursor)
+            }
+        }
+    }
+
+    private static let inlineHTML = try! NSRegularExpression(pattern:
+        #"<!--[\s\S]*?-->|<\?[\s\S]*?\?>|<!\[CDATA\[[\s\S]*?\]\]>|<![A-Z][^>]*>|</[A-Za-z][A-Za-z0-9-]*\s*>|<[A-Za-z][A-Za-z0-9-]*(?:\s+[A-Za-z_:][A-Za-z0-9_.:-]*(?:\s*=\s*(?:[^\s\"'=<>`]+|'[^']*'|"[^"]*"))?)*\s*/?>"#)
+
     private static func rewriteInline(
         _ line: String,
         inlineBlockEnd: String.Index,
@@ -774,6 +869,11 @@ enum MarkdownLinkTargetRewriter {
         inlineCodeTicks: inout Int?,
         bracketDepth: inout Int
     ) throws {
+        let parentheses = try ParenthesisIndex(line, check: check)
+        let lastCommentClose = line.range(of: "-->", options: .backwards)?.lowerBound
+        let lastProcessingClose = line.range(of: "?>", options: .backwards)?.lowerBound
+        let lastCDATAClose = line.range(of: "]]>", options: .backwards)?.lowerBound
+        try check?()
         var index = line.startIndex
         var scanned = 0
         while index < line.endIndex {
@@ -820,6 +920,19 @@ enum MarkdownLinkTargetRewriter {
                 index = runEnd
                 continue
             }
+            if character == "<" {
+                let rest = line[index...]
+                let hasTerminator: Bool
+                if rest.hasPrefix("<!--") { hasTerminator = lastCommentClose.map { $0 > index } ?? false }
+                else if rest.hasPrefix("<?") { hasTerminator = lastProcessingClose.map { $0 > index } ?? false }
+                else if rest.hasPrefix("<![CDATA[") { hasTerminator = lastCDATAClose.map { $0 > index } ?? false }
+                else { hasTerminator = true }
+                if hasTerminator, let match = inlineHTML.firstMatch(in: line, options: .anchored,
+                    range: NSRange(index..<line.endIndex, in: line)), let range = Range(match.range, in: line) {
+                    index = range.upperBound
+                    continue
+                }
+            }
             if character == "[" {
                 bracketDepth += 1
             } else if character == "]", bracketDepth > 0 {
@@ -827,11 +940,11 @@ enum MarkdownLinkTargetRewriter {
                 let openingParenthesis = line.index(after: index)
                 if openingParenthesis < line.endIndex,
                    line[openingParenthesis] == "(",
-                   let replacement = rewrittenTarget(
+                   let replacement = try rewrittenTarget(
                     in: line,
                     after: openingParenthesis,
                     mapping: mapping,
-                    targetObserver: targetObserver
+                    targetObserver: targetObserver, parentheses: parentheses, check: check
                    ) {
                     if replacement.text != line[replacement.end..<replacement.originalPathEnd] {
                         replacementObserver?(replacement.end..<replacement.originalPathEnd, replacement.text)
@@ -868,7 +981,7 @@ enum MarkdownLinkTargetRewriter {
         return targets
     }
 
-    private static func referenceDefinition(in text: String) -> (target: Range<String.Index>?, needsContinuation: Bool, delimiter: Character?)? {
+    private static func referenceDefinition(in text: String) throws -> (target: Range<String.Index>?, needsContinuation: Bool, delimiter: Character?)? {
         let indent = leadingIndentation(in: text[...])
         guard indent.columns <= 3, indent.end < text.endIndex, text[indent.end] == "[" else { return nil }
         var cursor = text.index(after: indent.end)
@@ -884,9 +997,9 @@ enum MarkdownLinkTargetRewriter {
         cursor = text.index(after: cursor)
         guard cursor < text.endIndex, text[cursor] == ":" else { return nil }
         cursor = text.index(after: cursor)
-        if let target = referenceDestination(in: text, from: cursor) { return (target, false, nil) }
+        if let target = try referenceDestination(in: text, from: cursor) { return (target, false, nil) }
         if text[cursor...].trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return (nil, true, nil) }
-        guard let target = destination(in: text, from: cursor) else { return nil }
+        guard let target = try destination(in: text, from: cursor) else { return nil }
         var tailStart = target.range.upperBound
         if target.usesAngles { tailStart = text.index(after: tailStart) }
         let tail = text[tailStart...].trimmingCharacters(in: .whitespacesAndNewlines)
@@ -901,8 +1014,8 @@ enum MarkdownLinkTargetRewriter {
         return (nil, true, closer)
     }
 
-    private static func referenceDestination(in text: String, from start: String.Index) -> Range<String.Index>? {
-        guard let target = destination(in: text, from: start) else { return nil }
+    private static func referenceDestination(in text: String, from start: String.Index) throws -> Range<String.Index>? {
+        guard let target = try destination(in: text, from: start) else { return nil }
         var end = target.range.upperBound
         if target.usesAngles { end = text.index(after: end) }
         if end == text.endIndex { return target.range }
@@ -922,15 +1035,17 @@ enum MarkdownLinkTargetRewriter {
     }
 
     private static func destination(
-        in text: String, from start: String.Index
-    ) -> (range: Range<String.Index>, usesAngles: Bool)? {
+        in text: String, from start: String.Index, parentheses: ParenthesisIndex? = nil, check: (() throws -> Void)? = nil
+    ) throws -> (range: Range<String.Index>, usesAngles: Bool)? {
         var index = start
         while index < text.endIndex, text[index].isWhitespace { index = text.index(after: index) }
         let angles = index < text.endIndex && text[index] == "<"
         if angles { index = text.index(after: index) }
         let pathStart = index
         var depth = 0
+        var scanned = 0
         while index < text.endIndex {
+            if scanned % 1_024 == 0 { try check?() }; scanned += 1
             let character = text[index]
             if character == "\n" || character == "\r" { break }
             if character == "\\" {
@@ -944,7 +1059,14 @@ enum MarkdownLinkTargetRewriter {
                 if character == ">" { return (pathStart..<index, true) }
                 if character == "<" { return nil }
             } else {
-                if character == "(" { depth += 1 }
+                if character == "(" {
+                    if let parentheses {
+                        guard let closing = parentheses.matchingClose[index] else { return nil }
+                        index = text.index(after: closing)
+                        continue
+                    }
+                    depth += 1
+                }
                 if character == ")" {
                     if depth == 0 { break }
                     depth -= 1
@@ -961,20 +1083,21 @@ enum MarkdownLinkTargetRewriter {
         in line: String,
         after openingParenthesis: String.Index,
         mapping: [String: String],
-        targetObserver: ((String) -> Void)?
-    ) -> (
+        targetObserver: ((String) -> Void)?,
+        parentheses: ParenthesisIndex, check: (() throws -> Void)?
+    ) throws -> (
         end: String.Index,
         text: String,
         originalPathEnd: String.Index,
         resumeAt: String.Index
     )? {
-        guard let destination = destination(in: line, from: line.index(after: openingParenthesis)) else {
+        guard let destination = try destination(in: line, from: line.index(after: openingParenthesis), parentheses: parentheses, check: check) else {
             return nil
         }
         let target = String(line[destination.range])
         let pathStart = destination.range.lowerBound
         let pathEnd = destination.range.upperBound
-        guard let linkEnd = inlineLinkEnd(in: line, afterPath: pathEnd, usesAngles: destination.usesAngles) else { return nil }
+        guard let linkEnd = try inlineLinkEnd(in: line, afterPath: pathEnd, usesAngles: destination.usesAngles, check: check) else { return nil }
         targetObserver?(decodedTarget(target))
         let replacement = mappedTarget(target, mapping: mapping) ?? target
         return (pathStart, replacement, pathEnd, linkEnd)
@@ -1045,8 +1168,8 @@ enum MarkdownLinkTargetRewriter {
     private static func inlineLinkEnd(
         in line: String,
         afterPath pathEnd: String.Index,
-        usesAngles: Bool
-    ) -> String.Index? {
+        usesAngles: Bool, check: (() throws -> Void)?
+    ) throws -> String.Index? {
         var index = pathEnd
         if usesAngles {
             guard index < line.endIndex, line[index] == ">" else { return nil }
@@ -1074,7 +1197,9 @@ enum MarkdownLinkTargetRewriter {
         }
         index = line.index(after: index)
         var escaped = false
+        var scanned = 0
         while index < line.endIndex {
+            if scanned % 1_024 == 0 { try check?() }; scanned += 1
             let character = line[index]
             if escaped {
                 escaped = false
@@ -1100,68 +1225,40 @@ enum MarkdownLinkTargetRewriter {
         in line: String,
         fence: MarkdownFenceState
     ) -> String? {
-        var contentStart = line.startIndex
-        for _ in 0..<fence.quoteDepth {
-            var marker = contentStart
-            var spaces = 0
-            while marker < line.endIndex, line[marker] == " ", spaces < 3 {
-                spaces += 1
-                marker = line.index(after: marker)
-            }
-            guard marker < line.endIndex, line[marker] == ">" else { return nil }
-            marker = line.index(after: marker)
-            if marker < line.endIndex,
-               line[marker] == " " || line[marker] == "\t" {
-                marker = line.index(after: marker)
-            }
-            contentStart = marker
-        }
-
-        let content = line[contentStart...]
-        if content.allSatisfy(\.isWhitespace) {
-            return ""
-        }
-        guard let requiredIndent = fence.listContentIndent else {
-            return String(content)
-        }
-        let indentation = leadingIndentation(in: content)
-        guard indentation.columns >= requiredIndent else { return nil }
-        return String(content[index(after: requiredIndent, in: content)...])
+        containerContent(in: line, prefixes: fence.prefixes)
     }
 
-    /// Entfernt ausschließlich die Container-Präfixe des öffnenden HTML-
-    /// Blocks. Der verbleibende Literalinhalt läuft absichtlich NICHT durch
-    /// `lineContext`: Ein `>` oder Listenmarker darin ist HTML-Text und kein
-    /// Wechsel des Markdown-Containers.
-    private static func htmlContent(
-        in line: String,
-        block: MarkdownHTMLBlockState
-    ) -> String? {
-        var contentStart = line.startIndex
-        for _ in 0..<block.quoteDepth {
-            var marker = contentStart
+    private static func htmlContent(in line: String, block: MarkdownHTMLBlockState) -> String? {
+        containerContent(in: line, prefixes: block.prefixes)
+    }
+
+    private static func containerContent(in line: String, prefixes: [ContainerPrefix]) -> String? {
+        var start = line.startIndex
+        for prefix in prefixes {
+            if case .indent = prefix, line[start...].allSatisfy(\.isWhitespace) { return "" }
+            guard let next = containerStart(in: line, from: start, prefix: prefix) else { return nil }
+            start = next
+        }
+        return String(line[start...])
+    }
+
+    private static func containerStart(in line: String, from start: String.Index, prefix: ContainerPrefix) -> String.Index? {
+        switch prefix {
+        case .quote:
+            var marker = start
             var spaces = 0
             while marker < line.endIndex, line[marker] == " ", spaces < 3 {
-                spaces += 1
-                marker = line.index(after: marker)
+                marker = line.index(after: marker); spaces += 1
             }
             guard marker < line.endIndex, line[marker] == ">" else { return nil }
-            marker = line.index(after: marker)
-            if marker < line.endIndex,
-               line[marker] == " " || line[marker] == "\t" {
-                marker = line.index(after: marker)
-            }
-            contentStart = marker
+            var next = line.index(after: marker)
+            if next < line.endIndex, line[next] == " " || line[next] == "\t" { next = line.index(after: next) }
+            return next
+        case .indent(let columns):
+            let content = line[start...]
+            guard leadingIndentation(in: content).columns >= columns else { return nil }
+            return index(after: columns, in: content)
         }
-
-        let content = line[contentStart...]
-        if content.allSatisfy(\.isWhitespace) { return "" }
-        guard let requiredIndent = block.listContentIndent else {
-            return String(content)
-        }
-        let indentation = leadingIndentation(in: content)
-        guard indentation.columns >= requiredIndent else { return nil }
-        return String(content[index(after: requiredIndent, in: content)...])
     }
 
     private static func openingFence(_ line: String) -> (marker: Character, count: Int)? {

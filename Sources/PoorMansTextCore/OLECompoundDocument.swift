@@ -334,6 +334,9 @@ struct OLECompoundDocument {
             result.append(miniStream.subdata(in: offset..<(offset + miniSectorSize)))
             current = miniFAT[Int(current)]
         }
+        guard current == Constants.endOfChain else {
+            throw ParserError("an OLE mini-sector chain does not end at the declared stream size")
+        }
         guard result.count >= size else {
             throw ParserError("an OLE mini stream is shorter than declared")
         }

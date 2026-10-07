@@ -185,6 +185,10 @@
             <string>Viewer</string>
             <key>LSHandlerRank</key>
             <string>Alternate</string>
+            <key>LSItemContentTypes</key>
+            <array>
+                <string>org.openxmlformats.spreadsheetml.sheet</string>
+            </array>
         </dict>
         <dict>
             <key>CFBundleTypeExtensions</key>
@@ -415,6 +419,7 @@
             <string>convertFilesToMarkdown</string>
             <key>NSSendFileTypes</key>
             <array>
+                <string>org.openxmlformats.spreadsheetml.sheet</string>
                 <string>com.adobe.pdf</string>
                 <string>com.apple.rtfd</string>
                 <string>com.microsoft.excel.xls</string>

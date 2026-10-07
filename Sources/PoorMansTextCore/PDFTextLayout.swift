@@ -44,6 +44,11 @@ enum PDFTextLayout {
                abs(reference.midY - bounds.midY) > max(reference.height, bounds.height) * 0.75 {
                 return fallback()
             }
+            if let reference = lineReference,
+               !value.trimmingCharacters(in: .whitespaces).isEmpty,
+               bounds.midX < reference.midX - max(1, min(reference.width, bounds.width) * 0.25) {
+                return fallback()
+            }
             if !value.trimmingCharacters(in: .whitespaces).isEmpty { lineReference = bounds }
             let font = fontTextMatches ? attributed?.attribute(.font, at: offset, effectiveRange: nil) as? NSFont : nil
             let size = font?.pointSize

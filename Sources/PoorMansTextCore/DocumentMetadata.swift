@@ -604,6 +604,7 @@ enum RTFInfoParser {
         var result = ""
         var index = 0
         var fallbackCount = 1
+        var groupFallbacks = [Int]()
         var skipAfterUnicode = 0
         func flushBytes() {
             guard !scalars.isEmpty else {
@@ -707,6 +708,9 @@ enum RTFInfoParser {
                 continue
             }
             if byte == UInt8(ascii: "{") || byte == UInt8(ascii: "}") {
+                if byte == UInt8(ascii: "{") { groupFallbacks.append(fallbackCount) }
+                else if let parent = groupFallbacks.popLast() { fallbackCount = parent }
+                skipAfterUnicode = 0
                 index += 1
                 continue
             }

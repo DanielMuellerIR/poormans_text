@@ -169,6 +169,23 @@ final class LegacyXLSBoundaryTests: XCTestCase {
     /// zählt jede NEUE Zelle beim Einfügen gegen das Budget; Überschreiben
     /// derselben Zelle zählt nicht. Geprüft am Einfügeschritt selbst, weil ein
     /// Fixture mit einer Million Zellen den OLE-Schreiber der Tests sprengt.
+    func testFileMonikersPreserveParentDirectoryCountsForANSIAndUnicode() throws {
+        for parentCount in UInt16(0)...2 {
+            for unicode in [false, true] {
+                let path = unicode ? "folder/Grüße😀.txt" : "folder/report.txt"
+                let bytes = SyntheticXLSFixture.workbook(missingFirstSheetEOF: false,
+                    firstHyperlinkTarget: path, fileMonikerParents: parentCount, fileMonikerUnicode: unicode)
+                let source = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".xls")
+                try bytes.write(to: source)
+                defer { try? FileManager.default.removeItem(at: source) }
+                let workbook = try LegacyXLSWorkbookParser.parse(Data(contentsOf: source))
+                XCTAssertEqual(workbook.sheets.first?.rows.first?.first?.linkTarget,
+                    String(repeating: "../", count: Int(parentCount)) + path)
+                XCTAssertEqual(try Data(contentsOf: source), bytes)
+            }
+        }
+    }
+
     func testTheSparseCellBudgetCountsNewCellsWhileTheyAreInserted() throws {
         typealias Parser = LegacyXLSWorkbookParser.BIFFParser
         var cells = [Int: [Int: SpreadsheetCell]]()
@@ -215,6 +232,8 @@ private enum SyntheticXLSFixture {
         missingFirstSheetEOF: Bool,
         interveningChart: Bool = false,
         firstHyperlinkTarget: String? = nil,
+        fileMonikerParents: UInt16? = nil,
+        fileMonikerUnicode: Bool = false,
         sharedStringBytes: [UInt8]? = nil,
         sharedStringIsWide: Bool = false
     ) -> Data {
@@ -223,6 +242,7 @@ private enum SyntheticXLSFixture {
             value: 1,
             includeEOF: !missingFirstSheetEOF,
             hyperlinkTarget: firstHyperlinkTarget,
+            fileMonikerParents: fileMonikerParents, fileMonikerUnicode: fileMonikerUnicode,
             labelSharedStringIndex: sharedStringBytes == nil ? nil : 0
         )
         let chartSheet = interveningChart ? nonWorksheetSheet(type: 0x0020) : Data()
@@ -335,6 +355,7 @@ private enum SyntheticXLSFixture {
         value: Double,
         includeEOF: Bool,
         hyperlinkTarget: String? = nil,
+        fileMonikerParents: UInt16? = nil, fileMonikerUnicode: Bool = false,
         labelSharedStringIndex: UInt32? = nil
     ) -> Data {
         var result = record(0x0809, payload: bof(type: 0x0010))
@@ -347,7 +368,7 @@ private enum SyntheticXLSFixture {
         if let hyperlinkTarget {
             result.append(record(
                 0x01B8,
-                payload: hyperlink(row: 0, column: column, target: hyperlinkTarget)
+                payload: hyperlink(row: 0, column: column, target: hyperlinkTarget, parents: fileMonikerParents, unicode: fileMonikerUnicode)
             ))
         }
         if let labelSharedStringIndex {
@@ -362,7 +383,7 @@ private enum SyntheticXLSFixture {
         return result
     }
 
-    private static func hyperlink(row: UInt16, column: UInt16, target: String) -> Data {
+    private static func hyperlink(row: UInt16, column: UInt16, target: String, parents: UInt16?, unicode: Bool) -> Data {
         var payload = Data()
         payload.appendUInt16(row)
         payload.appendUInt16(row)
@@ -376,6 +397,21 @@ private enum SyntheticXLSFixture {
         ])
         payload.appendUInt32(2)
         payload.appendUInt32(0x0000_0001)
+        if let parents {
+            payload.append(contentsOf: [0x03, 0x03, 0, 0, 0, 0, 0, 0, 0xC0, 0, 0, 0, 0, 0, 0, 0x46])
+            payload.appendUInt16(parents)
+            let ansi = Data((unicode ? "folder/Grusse.txt" : target).utf8) + Data([0])
+            payload.appendUInt32(UInt32(ansi.count)); payload.append(ansi)
+            payload.appendUInt16(0xFFFF); payload.appendUInt16(0xDEAD)
+            payload.append(Data(repeating: 0, count: 20))
+            if unicode {
+                var wide = Data()
+                for unit in target.utf16 { wide.appendUInt16(unit) }
+                payload.appendUInt32(UInt32(wide.count + 6)); payload.appendUInt32(UInt32(wide.count))
+                payload.appendUInt16(3); payload.append(wide)
+            } else { payload.appendUInt32(0) }
+            return payload
+        }
         payload.append(contentsOf: [
             0xE0, 0xC9, 0xEA, 0x79, 0xF9, 0xBA, 0xCE, 0x11,
             0x8C, 0x82, 0x00, 0xAA, 0x00, 0x4B, 0xA9, 0x0B,

@@ -239,14 +239,27 @@ struct PDFAdapter: DocumentConversionAdapter {
             do {
                 let recognized = try recognizeText(in: plan.page, dimensions: plan.dimensions, languages: options.ocrLanguages)
                 let box = bounds[plan.index]
-                let original = pages[plan.index]
+                let original = pages[plan.index].flatMap { source -> [PDFTextLine] in
+                    guard source.bounds == box else { return [source] }
+                    guard let text = plan.page.string,
+                          let selection = plan.page.selection(for: NSRange(location: 0, length: text.utf16.count)) else { return [] }
+                    return selection.selectionsByLine().compactMap { selection in
+                        let bounds = selection.bounds(for: plan.page)
+                        guard let text = selection.string, !bounds.isNull, !bounds.isEmpty,
+                              bounds != box, bounds.minX.isFinite, bounds.minY.isFinite,
+                              bounds.width.isFinite, bounds.height.isFinite else { return nil }
+                        return PDFTextLine(text: text, bounds: bounds)
+                    }
+                }
                 for line in recognized.lines {
                     try ConversionExecution.check()
                     let rectangle = CGRect(x: box.minX + line.bounds.minX * box.width, y: box.minY + line.bounds.minY * box.height,
                         width: line.bounds.width * box.width, height: line.bounds.height * box.height)
                     // Nur räumlich gleiche, textgleiche OCR-Dubletten verwerfen.
                     let key = line.recognized.trimmingCharacters(in: .whitespacesAndNewlines)
-                    if original.contains(where: { $0.text.trimmingCharacters(in: .whitespacesAndNewlines) == key && $0.bounds.intersects(rectangle) }) { continue }
+                    if original.contains(where: { source in
+                        source.bounds.intersects(rectangle) && source.text.trimmingCharacters(in: .whitespacesAndNewlines) == key
+                    }) { continue }
                     try accountText(line.text, totalBytes: &sourceBytes)
                     pages[plan.index].append(PDFTextLine(text: line.text, bounds: rectangle))
                 }

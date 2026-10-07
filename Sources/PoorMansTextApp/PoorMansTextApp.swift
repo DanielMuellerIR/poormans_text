@@ -10,6 +10,10 @@ struct PoorMansTextDesktopApp: App {
     /// Referenz.
     @State private var services: ServicesProvider?
 
+    init() {
+        DocumentShortcuts.updateAppShortcutParameters()
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView()

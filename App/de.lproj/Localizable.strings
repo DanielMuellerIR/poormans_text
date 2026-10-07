@@ -139,3 +139,32 @@
 "Open in Fastra" = "In Fastra öffnen";
 "Fastra is not installed. Install Fastra or use Open Markdown." = "Fastra ist nicht installiert. Installiere Fastra oder nutze „Markdown öffnen“.";
 "The Markdown file could not be opened in Fastra." = "Die Markdown-Datei konnte nicht in Fastra geöffnet werden.";
+
+/* Kurzbefehle */
+"Convert Document to Markdown" = "Dokument in Markdown umwandeln";
+"Convert Document" = "Dokument umwandeln";
+"Convert one document into a new folder or Textbundle, including its images. Existing results are never overwritten. The result is the complete output folder; conversion warnings are returned in the dialog." = "Wandelt ein Dokument einschließlich seiner Bilder in einen neuen Ordner oder ein Textbundle um. Vorhandene Ergebnisse werden nie überschrieben. Als Ergebnis wird der vollständige Ausgabeordner zurückgegeben; der Dialog enthält gegebenenfalls Warnungen.";
+"Document" = "Dokument";
+"Destination Folder" = "Zielordner";
+"Include Metadata" = "Metadaten übernehmen";
+"Spreadsheet Format" = "Tabellenformat";
+"Spreadsheet format" = "Tabellenformat";
+"Markdown table" = "Markdown-Tabelle";
+"Recognize Text in Images" = "Text in Bildern erkennen";
+"PDF Text Recognition" = "PDF-Texterkennung";
+"PDF text recognition" = "PDF-Texterkennung";
+"OCR Languages" = "OCR-Sprachen";
+"PDF Layout" = "PDF-Layout";
+"PDF layout" = "PDF-Layout";
+"Legacy" = "Bisheriges Verfahren";
+"Remove Repeated PDF Headers and Footers" = "Wiederholte PDF-Kopf- und Fußzeilen entfernen";
+"Join Hyphenated PDF Words" = "Getrennte PDF-Wörter verbinden";
+"Tool Timeout in Seconds" = "Zeitlimit für Werkzeuge in Sekunden";
+"Convert ${document} into ${destinationFolder}" = "${document} in ${destinationFolder} umwandeln";
+"The tool timeout must be a positive number." = "Das Zeitlimit für Werkzeuge muss eine positive Zahl sein.";
+"The document was converted." = "Das Dokument wurde umgewandelt.";
+"The document was converted with warnings:" = "Das Dokument wurde mit Warnungen umgewandelt:";
+"Choose a destination folder on this Mac." = "Wähle einen Zielordner auf diesem Mac.";
+"The document must be a local file." = "Das Dokument muss eine lokale Datei sein.";
+"The document filename is invalid." = "Der Dateiname des Dokuments ist ungültig.";
+"The in-memory document exceeds the 256 MiB size limit." = "Das im Speicher übergebene Dokument überschreitet die Größenbegrenzung von 256 MiB.";

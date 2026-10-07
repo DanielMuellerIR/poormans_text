@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## 0.16.7 — 2026-10-07
 
+- Add a native Shortcuts action for converting one document into a new Markdown
+  folder or Textbundle, retaining images and exposing conversion options.
+
 - Add a Homebrew Cask draft for the notarized application and bundled CLI, with
   Pandoc as a dependency. The draft has not been submitted to Homebrew.
 

@@ -139,3 +139,32 @@
 "Open in Fastra" = "Open in Fastra";
 "Fastra is not installed. Install Fastra or use Open Markdown." = "Fastra is not installed. Install Fastra or use Open Markdown.";
 "The Markdown file could not be opened in Fastra." = "The Markdown file could not be opened in Fastra.";
+
+/* Kurzbefehle */
+"Convert Document to Markdown" = "Convert Document to Markdown";
+"Convert Document" = "Convert Document";
+"Convert one document into a new folder or Textbundle, including its images. Existing results are never overwritten. The result is the complete output folder; conversion warnings are returned in the dialog." = "Convert one document into a new folder or Textbundle, including its images. Existing results are never overwritten. The result is the complete output folder; conversion warnings are returned in the dialog.";
+"Document" = "Document";
+"Destination Folder" = "Destination Folder";
+"Include Metadata" = "Include Metadata";
+"Spreadsheet Format" = "Spreadsheet Format";
+"Spreadsheet format" = "Spreadsheet format";
+"Markdown table" = "Markdown table";
+"Recognize Text in Images" = "Recognize Text in Images";
+"PDF Text Recognition" = "PDF Text Recognition";
+"PDF text recognition" = "PDF text recognition";
+"OCR Languages" = "OCR Languages";
+"PDF Layout" = "PDF Layout";
+"PDF layout" = "PDF layout";
+"Legacy" = "Legacy";
+"Remove Repeated PDF Headers and Footers" = "Remove Repeated PDF Headers and Footers";
+"Join Hyphenated PDF Words" = "Join Hyphenated PDF Words";
+"Tool Timeout in Seconds" = "Tool Timeout in Seconds";
+"Convert ${document} into ${destinationFolder}" = "Convert ${document} into ${destinationFolder}";
+"The tool timeout must be a positive number." = "The tool timeout must be a positive number.";
+"The document was converted." = "The document was converted.";
+"The document was converted with warnings:" = "The document was converted with warnings:";
+"Choose a destination folder on this Mac." = "Choose a destination folder on this Mac.";
+"The document must be a local file." = "The document must be a local file.";
+"The document filename is invalid." = "The document filename is invalid.";
+"The in-memory document exceeds the 256 MiB size limit." = "The in-memory document exceeds the 256 MiB size limit.";

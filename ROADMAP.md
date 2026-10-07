@@ -25,17 +25,12 @@ bis auf App Intents), 3 (`--stdout`, `--frontmatter`, `--textbundle`) sowie 4
 ### Etappe 2 — Systemintegration ohne Terminal
 
 Die beiden Systemdienste (Finder-Kontextmenü für Dateien, markierter Rich Text
-in die Zwischenablage) sind umgesetzt; offen bleibt:
+in die Zwischenablage) und die native Kurzbefehle-Aktion „Dokument in Markdown
+umwandeln“ sind implementiert. Der Build erzeugt und vergleicht Apples
+AppIntents-Metadaten für beide Architekturen ohne Wechsel des Buildsystems.
 
-- Kurzbefehle-Aktion „Dokument in Markdown umwandeln“ über App Intents
-  (macOS 13+), mit denselben Optionen wie die CLI. **Blocker (2026-09-02):**
-  Kurzbefehle findet eine Aktion nur über das Bundle `Metadata.appintents`,
-  das Xcodes `appintentsmetadataprocessor` aus `.swiftconstvalues`-Dateien des
-  Compilers erzeugt. Der SwiftPM-Build in `scripts/build_app.sh` erzeugt beides
-  nicht; nötig wären `-emit-const-values-path` samt Apples
-  Protokollliste je Übersetzungseinheit und ein eigener Prozessor-Aufruf pro
-  Architektur. Erst angehen, wenn der Aufwand den Nutzen gegenüber „Shell-Skript
-  ausführen“ mit `poormans-text --json` in Kurzbefehle rechtfertigt.
+- Die Sichtbarkeit und tatsächliche Ausführung der neuen Aktion in Kurzbefehle
+  mit dem notarisierten Release-Bundle abschließend prüfen.
 
 ### Etappe 8 — App-Bedienung
 

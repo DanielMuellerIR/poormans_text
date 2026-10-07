@@ -57,7 +57,7 @@
       {
         "path": "Sources/PoorMansTextCore/ProductInfo.swift",
         "lines": 5,
-        "sha256": "58caaeaa8c43597cc4950893a131778055c0e2a47694c655893bd2be68611954"
+        "sha256": "560dabbd8bcc5c7eff40f0b4f220daaa36708a2d81a038a8891b33214efb21d0"
       },
       {
         "path": "Sources/PoorMansTextCore/ProcessRunner.swift",
@@ -422,8 +422,8 @@
       },
       {
         "path": "Sources/PoorMansTextAppSupport/ConvertDocumentIntent.swift",
-        "lines": 149,
-        "sha256": "077759e6d50a49b8e2eabb232a8eff01bbcc0e04f5d4e6bbe8f1603a81dd40de"
+        "lines": 146,
+        "sha256": "f91e5ff17f008f4fd1878420a872953d27730ac6bf89154e33ff3dfee33c70da"
       },
       {
         "path": "Sources/PoorMansTextAppSupport/MarkdownPreview.swift",
@@ -489,8 +489,8 @@
       },
       {
         "path": "scripts/build_app_intents.py",
-        "lines": 93,
-        "sha256": "ae8f67199e158f58e47a395ce4b9646443261494035f0036b95d7e8a87958d78"
+        "lines": 105,
+        "sha256": "ddedadc4e2bdbdd8940f2e54778e3282fce93c365a0df2e85bc924486835dbef"
       },
       {
         "path": "scripts/build_icon.sh",
@@ -539,8 +539,8 @@
       },
       {
         "path": "scripts/verify_bundle.sh",
-        "lines": 144,
-        "sha256": "87a8ca2bc6db8791e6a118ee3ba509453c54563f931bfd6e76086ec8580037ee"
+        "lines": 146,
+        "sha256": "2158fb6f615b1fa90abc41bf0f5709c6cf5c987e91c8bd1ef37bb70f047b350c"
       },
       {
         "path": "scripts/verify_dmg.sh",
@@ -580,7 +580,7 @@
       {
         "path": "App/Info.plist",
         "lines": 514,
-        "sha256": "3305ab3581711f15f7b4939c0238fa9684a8ba5e5b441748e4c727570fa5eb5e"
+        "sha256": "7203c48a373f2dfe688ac943032f06827b2b2b8e5d84b0267bfbda81552c7e81"
       },
       {
         "path": ".github/workflows/ci.yml",

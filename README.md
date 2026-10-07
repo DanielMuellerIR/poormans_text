@@ -107,7 +107,7 @@ Download the DMG and its `.sha256` file from the
 directory, verify the download before opening it:
 
 ```sh
-shasum -a 256 -c Poor-Mans-Text-0.16.7.dmg.sha256
+shasum -a 256 -c Poor-Mans-Text-0.16.8.dmg.sha256
 ```
 
 Open the DMG and drag Poor Man's Text to Applications. The app is signed with
@@ -305,9 +305,11 @@ The native **Convert Document to Markdown** action is available in Shortcuts
 on macOS 13 or later. Supply one document and a destination folder (for example
 with the Folder action). Expand the action to choose Textbundle, metadata,
 spreadsheet format, OCR, PDF layout, and the external-tool timeout. The action
-returns the local file URL of the complete output folder, including images and
-other assets. It never overwrites an existing output. Warnings appear in its result dialog; Pandoc must
-be installed for formats that need it. The action runs without opening the app.
+returns a text list: the local file URL of the complete output folder first,
+followed by any conversion warnings. Use Get Item from List → First Item to
+pass the folder URL to another action. Images and other assets stay together.
+Existing outputs are never overwritten. Pandoc must be installed for formats
+that need it. The action runs without opening the app.
 
 While conversion runs, the app shows active files and known page, sheet, slide,
 notebook-cell, or image-frame progress. Cancel Conversion retains completed batch results and
@@ -499,7 +501,7 @@ and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compa
 their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current version is 0.16.7.
+The current version is 0.16.8.
 
 ## License
 

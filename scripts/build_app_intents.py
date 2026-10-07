@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verarbeitet SwiftBuild-Konstanten je Architektur vor der Bundle-Signatur."""
+"""Erzeugt und verarbeitet AppIntents-Konstanten vor der Bundle-Signatur."""
 import argparse
 import json
 from pathlib import Path
@@ -37,7 +37,6 @@ def main():
     toolchain = Path(output("xcrun", "--find", "swiftc")).parent.parent
     sdk = output("xcrun", "--sdk", "macosx", "--show-sdk-path")
     xcode_version = output("xcodebuild", "-version").split("Build version ", 1)[1].strip()
-    intermediates = binary_directory.parent.parent / "Intermediates.noindex" / "PoorMansText.build" / args.configuration.capitalize() / "PoorMansTextAppSupport-t.build" / "Objects-normal"
     source = project / "Sources/PoorMansTextAppSupport/ConvertDocumentIntent.swift"
     destination = args.bundle / "Contents/Resources/Metadata.appintents"
     if destination.exists():
@@ -45,18 +44,31 @@ def main():
     with tempfile.TemporaryDirectory(prefix="appintents-", dir=project / ".build") as temporary:
         root = Path(temporary)
         sources = root / "sources.txt"
-        sources.write_text(str(source) + "\n")
+        support_sources = sorted(source.parent.glob("*.swift"))
+        sources.write_text("".join(str(path) + "\n" for path in support_sources))
+        protocols = root / "protocols.json"
+        protocols.write_text(json.dumps(["AppIntent", "AppEnum", "AppShortcutsProvider"]))
+        identity = json.loads(output("swift", "package", "show-dependencies", "--format", "json"))["identity"]
         baseline = None
         first_metadata = None
         for architecture in architectures:
             if architecture not in ("arm64", "x86_64"):
                 raise RuntimeError("Unsupported AppIntents architecture: " + architecture)
-            # Release bündelt die Konstanten durch Whole Module Optimization;
-            # Debug legt dagegen eine Datei je Swift-Quelldatei an.
-            objects = intermediates / architecture
-            constants = sorted(objects.glob("*.swiftconstvalues"))
-            if not constants:
-                raise RuntimeError("AppIntents constants are missing; build with the SwiftBuild backend: " + str(objects))
+            # SwiftBuild liefert diese Nebenprodukte nicht in jeder Toolchain.
+            # Der echte Adapter wird deshalb explizit für jede Architektur
+            # kompiliert; diese Hilfsobjekte werden niemals ausgeliefert.
+            constant_file = root / (architecture + ".swiftconstvalues")
+            subprocess.run([
+                "xcrun", "swiftc", "-c", "-whole-module-optimization",
+                "-o", str(root / (architecture + ".o")), "-parse-as-library",
+                "-module-name", "PoorMansTextAppSupport", "-package-name", identity,
+                "-swift-version", "6", "-target", architecture + "-apple-macos13.0",
+                "-sdk", sdk, "-I", str(binary_directory), "-F", str(binary_directory),
+                "-emit-const-values-path", str(constant_file),
+                "-const-gather-protocols-list", str(protocols),
+                *map(str, support_sources),
+            ], check=True)
+            constants = [constant_file]
             extracted = [item for path in constants for item in json.loads(path.read_text())]
             if not any(item.get("typeName") == "PoorMansTextAppSupport.ConvertDocumentIntent" for item in extracted):
                 raise RuntimeError("Compiler metadata does not contain the conversion intent")

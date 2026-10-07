@@ -114,7 +114,7 @@ DMG und zugehörige `.sha256`-Datei stehen im
 Ordner, lässt sich der Download vor dem Öffnen prüfen:
 
 ```sh
-shasum -a 256 -c Poor-Mans-Text-0.16.7.dmg.sha256
+shasum -a 256 -c Poor-Mans-Text-0.16.8.dmg.sha256
 ```
 
 Danach das DMG öffnen und Poor Man's Text in den Programme-Ordner ziehen. Die
@@ -321,10 +321,12 @@ Tastaturkurzbefehle › Dienste):
 Die native Aktion **Dokument in Markdown umwandeln** steht in Kurzbefehle ab
 macOS 13 bereit. Sie erhält ein Dokument und einen Zielordner, etwa aus der Aktion
 „Ordner“. Aufgeklappt bietet sie Textbundle, Metadaten, Tabellenformat, OCR,
-PDF-Layout und das Zeitlimit für externe Werkzeuge. Zurückgegeben wird die
-lokale Datei-URL des vollständigen Ausgabeordners einschließlich Bildern und
-anderen Assets. Vorhandene Ausgaben werden nie überschrieben. Warnungen stehen im Ergebnisdialog; für die
-entsprechenden Formate muss Pandoc installiert sein. Die Aktion öffnet die App
+PDF-Layout und das Zeitlimit für externe Werkzeuge. Zurückgegeben wird eine
+Textliste: zuerst die lokale Datei-URL des vollständigen Ausgabeordners, danach
+mögliche Warnungen. „Objekt aus Liste abrufen → Erstes Objekt“ übergibt die
+Ordner-URL an eine weitere Aktion. Bilder und andere Assets bleiben zusammen.
+Vorhandene Ausgaben werden nie überschrieben. Für die entsprechenden Formate
+muss Pandoc installiert sein. Die Aktion öffnet die App
 nicht.
 
 Während der Konvertierung zeigt die App laufende Dateien sowie bekannte
@@ -526,7 +528,7 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.16.7.
+Die aktuelle Version ist 0.16.8.
 
 ## Lizenz
 

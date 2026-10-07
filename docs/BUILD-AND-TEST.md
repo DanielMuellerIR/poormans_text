@@ -42,9 +42,11 @@ Veröffentlichungsweg des Update-Feeds steht in
 
 Der App-Build verwendet ausdrücklich den SwiftBuild-Backend von SwiftPM. Er
 benötigt eine Xcode-Toolchain mit diesem Backend und
-`appintentsmetadataprocessor`. Der Compiler erzeugt `.swiftconstvalues` je
-Architektur; Release fasst sie durch Whole Module Optimization zusammen.
-`scripts/build_app_intents.py` verarbeitet diese Werte mit Apples Werkzeug,
+`appintentsmetadataprocessor`. `scripts/build_app_intents.py` kompiliert die
+echten AppSupport-Quellen ausdrücklich je Architektur in einem temporären
+Bereich und erzeugt dabei `.swiftconstvalues`. Dadurch hängt der Schritt nicht
+von wechselnden SwiftBuild-Nebenproduktpfaden ab. Die Hilfsobjekte werden nicht
+ausgeliefert. Das Skript verarbeitet die Werte mit Apples Werkzeug,
 prüft die Konvertieraktion und vergleicht die Metadaten beider Architekturen.
 Nur die Reihenfolge der zulässigen Eingabetypen wird dabei normalisiert.
 

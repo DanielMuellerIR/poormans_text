@@ -2,12 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
-## 0.16.7 — 2026-10-07
+## 0.16.8 — 2026-10-07
+
+Version 0.16.7 was tagged but not released; this release includes its changes.
+
+- Generate AppIntents constants explicitly for both architectures across
+  supported Xcode toolchains. Return the result folder URL and warnings as a
+  text list, without waiting for the system dialog presenter.
 
 - Add a native Shortcuts action for converting one document into a new Markdown
   folder or Textbundle, retaining images and exposing conversion options. The
   action accepts a destination folder and returns the complete result’s local
-  file URL. Native CSV and RTFD/Textbundle runs were verified in Shortcuts.
+  file URL as the first list item. Native CSV and RTFD/Textbundle runs were verified in Shortcuts.
 
 - Add a Homebrew Cask draft for the notarized application and bundled CLI, with
   Pandoc as a dependency. The draft has not been submitted to Homebrew.

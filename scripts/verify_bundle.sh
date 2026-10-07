@@ -45,7 +45,9 @@ try:
     valid = (
         action["fullyQualifiedTypeName"] == "PoorMansTextAppSupport.ConvertDocumentIntent"
         and action["isDiscoverable"] is True
-        and action["outputType"] == {"primitive": {"wrapper": {"typeIdentifier": 11}}}
+        and action["outputFlags"] == 0
+        and action["outputType"]["array"]["wrapper"]["memberValueType"]
+            == {"primitive": {"wrapper": {"typeIdentifier": 0}}}
         and {"document", "destinationFolder"}.issubset(parameters)
         and folder_metadata["LNValueTypeMetadataKeyFileSupportedTypes"]["array"]["elements"]
             == [{"string": {"wrapper": "public.folder"}}]

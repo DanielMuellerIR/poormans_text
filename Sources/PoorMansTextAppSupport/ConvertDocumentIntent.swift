@@ -23,7 +23,7 @@ public enum ShortcutPDFLayout: String, AppEnum {
 
 public struct ConvertDocumentIntent: AppIntent {
     public static let title: LocalizedStringResource = "Convert Document to Markdown"
-    public static let description = IntentDescription("Convert one document into a new folder or Textbundle, including its images. Existing results are never overwritten. The result is the file URL of the complete output folder; conversion warnings are returned in the dialog.")
+    public static let description = IntentDescription("Convert one document into a new folder or Textbundle, including its images. Existing results are never overwritten. The result is a list: the complete output folder's file URL first, followed by any conversion warnings.")
     public static let openAppWhenRun = false
 
     @Parameter(title: "Document") public var document: IntentFile
@@ -57,7 +57,7 @@ public struct ConvertDocumentIntent: AppIntent {
 
     public init() {}
 
-    public func perform() async throws -> some IntentResult & ReturnsValue<URL> & ProvidesDialog {
+    public func perform() async throws -> some IntentResult & ReturnsValue<[String]> {
         guard toolTimeout.isFinite, toolTimeout > 0 else {
             throw ShortcutFailure(message: String(localized: "The tool timeout must be a positive number."))
         }
@@ -86,10 +86,7 @@ public struct ConvertDocumentIntent: AppIntent {
         } catch {
             throw ShortcutFailure(message: AppErrorMessage.describe(error))
         }
-        let message = result.warnings.isEmpty
-            ? String(localized: "The document was converted.")
-            : String(localized: "The document was converted with warnings:") + "\n" + result.warnings.joined(separator: "\n")
-        return .result(value: result.outputDirectory, dialog: IntentDialog("\(message)"))
+        return .result(value: [result.outputDirectory.absoluteString] + result.warnings)
     }
 }
 

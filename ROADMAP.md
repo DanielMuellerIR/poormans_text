@@ -19,7 +19,7 @@ Jede Etappe ist für sich releasefähig. Ein neuer Adapter meldet sich weiterhin
 nur über `supportedFormatDescriptors`; der Orchestrator bleibt unverändert.
 Was [docs/MARKITDOWN-COMPARISON.md](docs/MARKITDOWN-COMPARISON.md) vorschlägt,
 ist hier eingeordnet. Die Etappen 1 bis 5 sind umgesetzt. Ihre Änderungen
-stehen im Changelog; die native Kurzbefehle-Aktion wurde in 0.16.7 ergänzt.
+stehen im Changelog; die native Kurzbefehle-Aktion wurde in 0.16.8 ergänzt.
 
 ### Etappe 8 — App-Bedienung
 

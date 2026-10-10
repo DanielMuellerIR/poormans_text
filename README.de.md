@@ -389,6 +389,10 @@ Zustimmung angefordert.
 
 ## Konvertierung
 
+RTFD-Absätze, die mit einem wörtlichen `• ` beginnen, werden als kompakte
+Markdown-Listen importiert. Bestehende Listen, gewöhnliche Absätze und echte
+Leerabsätze behalten ihre Struktur; das Quelldokument bleibt unverändert.
+
 RTFD speichert den Text in `TXT.rtf` und Anhänge als separate Dateien innerhalb
 eines macOS-Pakets. Poor Man's Text lässt das macOS-Textsystem daraus HTML und
 die Anhänge erzeugen. Normales RTF speichert Bilder in der Datei; Pandoc liest
@@ -528,7 +532,7 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.16.12.
+Die aktuelle Version ist 0.16.13.
 
 ## Lizenz
 

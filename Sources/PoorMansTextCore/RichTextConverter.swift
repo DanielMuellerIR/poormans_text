@@ -306,15 +306,16 @@ struct RichTextAdapter: DocumentConversionAdapter {
         emptyParagraphMarker: String?
     ) throws -> RTFUnicodeProtector? {
         if kind == .rtfd {
-            let markedRTFD = workDirectory.appendingPathComponent("marked.rtfd", isDirectory: true)
-            let textutilInput = try ColoredTextMarker.markedInputURL(
+            let preparedRTFD = workDirectory.appendingPathComponent("marked.rtfd", isDirectory: true)
+            let textutilInput = try RTFDInputPreparation.prepare(
                 from: inputURL,
-                outputURL: markedRTFD
+                outputURL: preparedRTFD
             )
-            // Ohne Farbmarker reicht `markedInputURL` den Eingabepfad unverändert
+            // Ohne Farbmarker oder ergänzte Listenmetadaten reicht
+            // `prepare` den Eingabepfad unverändert
             // durch. Der ist hier bereits aufgelöst — der Aufrufer hat das genau
             // einmal vor dem ersten Lesen erledigt —, deshalb bekommt `textutil`
-            // denselben Pfad, den auch der Farbmarker gelesen hat.
+            // denselben Pfad, den auch die Vorbereitung gelesen hat.
             let textutilInputPath = textutilInput.path
             let result: ProcessResult
             do {

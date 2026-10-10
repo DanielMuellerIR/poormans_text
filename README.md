@@ -368,6 +368,10 @@ command-line tool and always asks before requesting administrator privileges.
 
 ## Conversion pipeline
 
+RTFD paragraphs starting with a literal `• ` are imported as compact Markdown
+lists. Existing lists, ordinary paragraphs and explicit empty paragraphs retain
+their structure; the source document is never changed.
+
 RTFD stores text in `TXT.rtf` and keeps attachments as separate files inside a
 macOS package. Poor Man's Text uses the macOS text system to create HTML and
 materialize those attachments. Standard RTF stores images inside the file;
@@ -501,7 +505,7 @@ and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compa
 their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current version is 0.16.12.
+The current version is 0.16.13.
 
 ## License
 

@@ -36,37 +36,6 @@ enum ColoredTextMarker {
         return containsChromaticBackgroundControl(in: rtf)
     }
 
-    static func markedInputURL(from inputURL: URL, outputURL: URL) throws -> URL {
-        let document: NSMutableAttributedString
-        do {
-            document = try NSMutableAttributedString(
-                url: inputURL,
-                options: [.documentType: NSAttributedString.DocumentType.rtfd],
-                documentAttributes: nil
-            )
-        } catch {
-            throw ConversionError.invalidRichText(
-                inputURL,
-                reason: "rich text could not be read: \(error.localizedDescription)"
-            )
-        }
-
-        guard insertMarkers(in: document) > 0 else {
-            return inputURL
-        }
-
-        do {
-            let wrapper = try document.fileWrapper(
-                from: NSRange(location: 0, length: document.length),
-                documentAttributes: [.documentType: NSAttributedString.DocumentType.rtfd]
-            )
-            try wrapper.write(to: outputURL, options: .atomic, originalContentsURL: nil)
-        } catch {
-            throw ConversionError.fileSystemFailure(error.localizedDescription)
-        }
-        return outputURL
-    }
-
     /// Fügt Marker rückwärts ein, damit die zuvor ermittelten NSRanges stabil bleiben.
     @discardableResult
     static func insertMarkers(in document: NSMutableAttributedString) -> Int {

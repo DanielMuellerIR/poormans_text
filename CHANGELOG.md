@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 0.16.13 — 2026-10-10
+
+- Import RTFD paragraphs beginning with a literal bullet and whitespace as
+  compact Markdown lists instead of separate paragraphs with extra blank lines.
+  Preserve inline formatting, colors, links, manual line breaks, existing
+  structured lists and explicit empty paragraphs; leave sources unchanged.
+
 - Preserve RTF surrogate pairs across ignored destinations and inherit Unicode
   fallback counts from enclosing groups when reading document metadata.
 - Bound repeated Markdown link-title scans and avoid reparsing reference titles

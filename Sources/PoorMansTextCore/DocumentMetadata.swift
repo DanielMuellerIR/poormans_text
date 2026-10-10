@@ -500,74 +500,64 @@ enum RTFInfoParser {
 
     static func parse(_ data: Data) -> DocumentMetadata {
         let bytes = [UInt8](data.prefix(searchLimit))
-        guard let infoStart = find([UInt8]("\\info".utf8), in: bytes) else {
-            return DocumentMetadata()
-        }
-        var index = infoStart + 5
-        var depth = 0
-        var groups = [(name: String, start: Int, end: Int)]()
-        var groupStack = [(name: String, start: Int)]()
+        var index = 0
+        var fallbackCount = 1
+        var groupFallbacks = [Int]()
+        var infoDepth: Int?
+        var field: (name: String, start: Int, fallbackCount: Int)?
+        var groups = [(name: String, start: Int, end: Int, fallbackCount: Int)]()
         while index < bytes.count {
             let byte = bytes[index]
-            if byte == UInt8(ascii: "\\"), index + 1 < bytes.count,
-               bytes[index + 1] == UInt8(ascii: "{") || bytes[index + 1] == UInt8(ascii: "}")
-                || bytes[index + 1] == UInt8(ascii: "\\") {
-                index += 2
-                continue
-            }
-            if byte == UInt8(ascii: "{") {
-                depth += 1
-                let nameEnd = controlWordEnd(in: bytes, from: index + 1)
-                let name = String(decoding: bytes[(index + 1)..<nameEnd], as: UTF8.self)
-                groupStack.append((name, nameEnd))
-                index += 1
-                continue
-            }
-            if byte == UInt8(ascii: "}") {
-                if depth == 0 {
-                    break
-                }
-                depth -= 1
-                if let group = groupStack.popLast(), depth == 0 {
-                    groups.append((group.name, group.start, index))
-                }
-                index += 1
-                continue
-            }
             index += 1
+            if byte == UInt8(ascii: "{") {
+                groupFallbacks.append(fallbackCount)
+                if let infoDepth, groupFallbacks.count == infoDepth + 1 {
+                    let nameEnd = controlWordEnd(in: bytes, from: index)
+                    field = (String(decoding: bytes[index..<nameEnd], as: UTF8.self), nameEnd, fallbackCount)
+                }
+            } else if byte == UInt8(ascii: "}") {
+                if let infoDepth, groupFallbacks.count == infoDepth + 1, let current = field {
+                    groups.append((current.name, current.start, index - 1, current.fallbackCount))
+                    field = nil
+                }
+                if groupFallbacks.count == infoDepth { break }
+                guard let parent = groupFallbacks.popLast() else { break }
+                fallbackCount = parent
+            } else if byte == UInt8(ascii: "\\"), index < bytes.count {
+                let start = index
+                guard isAlpha(bytes[index]) else {
+                    // Escapes sind keine Klammern oder Steuerwort-Anfänge.
+                    index += bytes[index] == UInt8(ascii: "'") ? min(3, bytes.count - index) : 1
+                    continue
+                }
+                while index < bytes.count, isAlpha(bytes[index]) { index += 1 }
+                let word = String(decoding: bytes[start..<index], as: UTF8.self)
+                let numberStart = index
+                if index < bytes.count, bytes[index] == UInt8(ascii: "-") { index += 1 }
+                while index < bytes.count, isDigit(bytes[index]) { index += 1 }
+                let number = Int(String(decoding: bytes[numberStart..<index], as: UTF8.self))
+                if index < bytes.count, bytes[index] == UInt8(ascii: " ") { index += 1 }
+                if word == "uc", let number, number >= 0 { fallbackCount = number }
+                if word == "info", infoDepth == nil { infoDepth = groupFallbacks.count }
+                if word == "bin", let number, number >= 0 { index += min(number, bytes.count - index) }
+            }
         }
 
         var metadata = DocumentMetadata()
         for group in groups {
             let body = Array(bytes[group.start..<group.end])
             switch group.name {
-            case "\\title": metadata.title = DocumentMetadata.cleaned(decodeText(body))
-            case "\\author": metadata.author = DocumentMetadata.cleaned(decodeText(body))
-            case "\\subject": metadata.subject = DocumentMetadata.cleaned(decodeText(body))
-            case "\\doccomm": metadata.description = DocumentMetadata.cleaned(decodeText(body))
-            case "\\keywords": metadata.keywords = DocumentMetadata.splitKeywords(decodeText(body))
+            case "\\title": metadata.title = DocumentMetadata.cleaned(decodeText(body, fallbackCount: group.fallbackCount))
+            case "\\author": metadata.author = DocumentMetadata.cleaned(decodeText(body, fallbackCount: group.fallbackCount))
+            case "\\subject": metadata.subject = DocumentMetadata.cleaned(decodeText(body, fallbackCount: group.fallbackCount))
+            case "\\doccomm": metadata.description = DocumentMetadata.cleaned(decodeText(body, fallbackCount: group.fallbackCount))
+            case "\\keywords": metadata.keywords = DocumentMetadata.splitKeywords(decodeText(body, fallbackCount: group.fallbackCount))
             case "\\creatim": metadata.created = decodeDate(body)
             case "\\revtim": metadata.modified = decodeDate(body)
             default: break
             }
         }
         return metadata
-    }
-
-    private static func find(_ needle: [UInt8], in haystack: [UInt8]) -> Int? {
-        guard needle.count <= haystack.count else {
-            return nil
-        }
-        for start in 0...(haystack.count - needle.count)
-        where haystack[start..<(start + needle.count)].elementsEqual(needle) {
-            // Nur das ganze Steuerwort: `\infoX` wäre ein anderes.
-            let next = start + needle.count
-            if next < haystack.count, isAlpha(haystack[next]) {
-                continue
-            }
-            return start
-        }
-        return nil
     }
 
     private static func controlWordEnd(in bytes: [UInt8], from start: Int) -> Int {
@@ -591,6 +581,7 @@ enum RTFInfoParser {
     }
 
     /// Text einer Gruppe: Steuerwörter überspringen, Escapes auflösen.
+    /// Den geerbten `\uc`-Wert aus dem Dokumentkopf als Anfangszustand übernehmen.
     ///
     /// `\uN` liefert UTF-16-Codeeinheiten, keine Unicode-Skalare: Ein Zeichen
     /// außerhalb der BMP (etwa ein Emoji) kommt als zwei `\uN` mit negativen
@@ -598,12 +589,12 @@ enum RTFInfoParser {
     /// `\ucN` legt fest, wie viele Ersatzzeichen nach jedem `\uN` zu
     /// überspringen sind (Standard 1, `\uc0` keins); vorher galt immer 1 und
     /// Surrogate gingen verloren (Review-Funde 2026-09-03).
-    static func decodeText(_ body: [UInt8]) -> String {
+    static func decodeText(_ body: [UInt8], fallbackCount inheritedFallbackCount: Int = 1) -> String {
         var scalars = [UInt8]()
         var utf16Units = [UInt16]()
         var result = ""
         var index = 0
-        var fallbackCount = 1
+        var fallbackCount = inheritedFallbackCount
         var groupFallbacks = [Int]()
         var skipAfterUnicode = 0
         func flushBytes() {

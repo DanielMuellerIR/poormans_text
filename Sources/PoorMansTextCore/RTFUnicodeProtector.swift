@@ -19,7 +19,8 @@ struct RTFUnicodeProtector {
         var result = Data()
         result.reserveCapacity(bytes.count)
         var fallbackCount = 1
-        var groupFallbacks = [Int]()
+        var groupStates = [(fallbackCount: Int, ignored: Bool)]()
+        var ignored = false
         var remainingFallback = 0
         var pending: (unit: UInt16, range: Range<Int>)?
         var unicodeCount = 0
@@ -45,17 +46,19 @@ struct RTFUnicodeProtector {
             if byte == 123 || byte == 125 {
                 remainingFallback = 0
                 if byte == 123 {
-                    guard groupFallbacks.count < 256 else { throw fail("the group nesting is too deep") }
-                    groupFallbacks.append(fallbackCount)
+                    guard groupStates.count < 256 else { throw fail("the group nesting is too deep") }
+                    groupStates.append((fallbackCount, ignored))
                 } else {
-                    guard let parent = groupFallbacks.popLast() else { throw fail("an RTF group end is unmatched") }
-                    fallbackCount = parent
+                    guard let parent = groupStates.popLast() else { throw fail("an RTF group end is unmatched") }
+                    fallbackCount = parent.fallbackCount
+                    ignored = parent.ignored
                 }
                 result.append(byte)
                 continue
             }
             if byte == 13 || byte == 10 { result.append(byte); continue }
             guard byte == 92 else {
+                if ignored { result.append(byte); continue }
                 if remainingFallback > 0 { remainingFallback -= 1; continue }
                 try requireCompletePair()
                 result.append(byte)
@@ -72,6 +75,9 @@ struct RTFUnicodeProtector {
                     }
                     index += 2
                 }
+                // Ignorierte Destinationen tragen nichts zum sichtbaren UTF-16-Strom bei.
+                if first == 42 { ignored = true }
+                if ignored { result.append(contentsOf: bytes[start..<index]); continue }
                 if remainingFallback > 0 { remainingFallback -= 1; continue }
                 if first != 13 && first != 10 { try requireCompletePair() }
                 result.append(contentsOf: bytes[start..<index])
@@ -98,6 +104,7 @@ struct RTFUnicodeProtector {
                 }
                 index += count
             }
+            if ignored { result.append(contentsOf: bytes[start..<index]); continue }
             if remainingFallback > 0, word != "u" {
                 remainingFallback -= 1
                 continue
@@ -132,7 +139,7 @@ struct RTFUnicodeProtector {
             result.append(contentsOf: bytes[start..<index])
         }
         try requireCompletePair()
-        guard groupFallbacks.isEmpty else { throw fail("an RTF group is not closed") }
+        guard groupStates.isEmpty else { throw fail("an RTF group is not closed") }
         guard result.count <= RichTextLimits.maximumSourceSize else { throw fail("the normalized input exceeds the size limit") }
         return Self(data: result, prefix: prefix)
     }

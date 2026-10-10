@@ -159,13 +159,7 @@ enum MarkdownLinkTargetRewriter {
                     if let delimiter = definition?.delimiter {
                         // Lange Titel nur am möglichen Ende erneut parsen; sonst
                         // würde jede Fortsetzungszeile den gesamten Titel lesen.
-                        var escaped = false
-                        let hasBoundary = nextContext.fenceCandidate.contains { character in
-                            if escaped { escaped = false; return false }
-                            if character == "\\" { escaped = true; return false }
-                            return character == delimiter || (delimiter == "]" && character == "[")
-                                || (delimiter == ")" && character == "(")
-                        }
+                        let hasBoundary = hasUnescapedBoundary(in: nextContext.fenceCandidate, delimiter: delimiter)
                         if !hasBoundary {
                             if delimiter == "]", definitionText.count > 1_003 { break }
                             continue
@@ -200,8 +194,7 @@ enum MarkdownLinkTargetRewriter {
                         probe += "\n" + context.fenceCandidate
                         // Erst mögliche Abschlusszeilen prüfen, damit lange Titel linear gelesen werden.
                         if titleLines.count > 1, let delimiter = titleDelimiter,
-                           !context.fenceCandidate.contains(delimiter),
-                           !(delimiter == ")" && context.fenceCandidate.contains("(")) { continue }
+                           !hasUnescapedBoundary(in: context.fenceCandidate, delimiter: delimiter) { continue }
                         guard let parsed = try referenceDefinition(in: probe) else { break }
                         if parsed.target != nil {
                             definitionText = probe
@@ -855,6 +848,48 @@ enum MarkdownLinkTargetRewriter {
         }
     }
 
+    private static func hasUnescapedBoundary(in text: String, delimiter: Character) -> Bool {
+        var escaped = false
+        for character in text {
+            if escaped { escaped = false; continue }
+            if character == "\\" { escaped = true; continue }
+            if character == delimiter || (delimiter == "]" && character == "[")
+                || (delimiter == ")" && character == "(") { return true }
+        }
+        return false
+    }
+
+    /// Auch erfolglose Titelversuche teilen sich denselben Index. Sonst liest
+    /// jeder unvollständige Link erneut den gesamten restlichen Absatz.
+    private struct TitleBoundaryIndex {
+        var boundaries: [Character: [String.Index]] = [:]
+
+        init(_ text: String, check: (() throws -> Void)?) throws {
+            var escaped = false
+            var scanned = 0
+            for index in text.indices {
+                if scanned % 1_024 == 0 { try check?() }; scanned += 1
+                let character = text[index]
+                if escaped { escaped = false; continue }
+                if character == "\\" { escaped = true; continue }
+                if character == "\"" || character == "'" || character == ")" {
+                    boundaries[character, default: []].append(index)
+                }
+            }
+        }
+
+        func firstBoundary(_ delimiter: Character, after start: String.Index) -> String.Index? {
+            guard let positions = boundaries[delimiter] else { return nil }
+            var lower = 0
+            var upper = positions.count
+            while lower < upper {
+                let middle = lower + (upper - lower) / 2
+                if positions[middle] <= start { lower = middle + 1 } else { upper = middle }
+            }
+            return lower < positions.count ? positions[lower] : nil
+        }
+    }
+
     private static let inlineHTML = try! NSRegularExpression(pattern:
         #"<!--[\s\S]*?-->|<\?[\s\S]*?\?>|<!\[CDATA\[[\s\S]*?\]\]>|<![A-Z][^>]*>|</[A-Za-z][A-Za-z0-9-]*\s*>|<[A-Za-z][A-Za-z0-9-]*(?:\s+[A-Za-z_:][A-Za-z0-9_.:-]*(?:\s*=\s*(?:[^\s\"'=<>`]+|'[^']*'|"[^"]*"))?)*\s*/?>"#)
 
@@ -870,6 +905,7 @@ enum MarkdownLinkTargetRewriter {
         bracketDepth: inout Int
     ) throws {
         let parentheses = try ParenthesisIndex(line, check: check)
+        let titles = try TitleBoundaryIndex(line, check: check)
         let lastCommentClose = line.range(of: "-->", options: .backwards)?.lowerBound
         let lastProcessingClose = line.range(of: "?>", options: .backwards)?.lowerBound
         let lastCDATAClose = line.range(of: "]]>", options: .backwards)?.lowerBound
@@ -944,7 +980,7 @@ enum MarkdownLinkTargetRewriter {
                     in: line,
                     after: openingParenthesis,
                     mapping: mapping,
-                    targetObserver: targetObserver, parentheses: parentheses, check: check
+                    targetObserver: targetObserver, parentheses: parentheses, titles: titles, check: check
                    ) {
                     if replacement.text != line[replacement.end..<replacement.originalPathEnd] {
                         replacementObserver?(replacement.end..<replacement.originalPathEnd, replacement.text)
@@ -1084,7 +1120,7 @@ enum MarkdownLinkTargetRewriter {
         after openingParenthesis: String.Index,
         mapping: [String: String],
         targetObserver: ((String) -> Void)?,
-        parentheses: ParenthesisIndex, check: (() throws -> Void)?
+        parentheses: ParenthesisIndex, titles: TitleBoundaryIndex, check: (() throws -> Void)?
     ) throws -> (
         end: String.Index,
         text: String,
@@ -1097,7 +1133,7 @@ enum MarkdownLinkTargetRewriter {
         let target = String(line[destination.range])
         let pathStart = destination.range.lowerBound
         let pathEnd = destination.range.upperBound
-        guard let linkEnd = try inlineLinkEnd(in: line, afterPath: pathEnd, usesAngles: destination.usesAngles, check: check) else { return nil }
+        guard let linkEnd = inlineLinkEnd(in: line, afterPath: pathEnd, usesAngles: destination.usesAngles, titles: titles) else { return nil }
         targetObserver?(decodedTarget(target))
         let replacement = mappedTarget(target, mapping: mapping) ?? target
         return (pathStart, replacement, pathEnd, linkEnd)
@@ -1168,8 +1204,8 @@ enum MarkdownLinkTargetRewriter {
     private static func inlineLinkEnd(
         in line: String,
         afterPath pathEnd: String.Index,
-        usesAngles: Bool, check: (() throws -> Void)?
-    ) throws -> String.Index? {
+        usesAngles: Bool, titles: TitleBoundaryIndex
+    ) -> String.Index? {
         var index = pathEnd
         if usesAngles {
             guard index < line.endIndex, line[index] == ">" else { return nil }
@@ -1195,27 +1231,11 @@ enum MarkdownLinkTargetRewriter {
         case "(": closer = ")"
         default: return nil
         }
-        index = line.index(after: index)
-        var escaped = false
-        var scanned = 0
-        while index < line.endIndex {
-            if scanned % 1_024 == 0 { try check?() }; scanned += 1
-            let character = line[index]
-            if escaped {
-                escaped = false
-            } else if character == "\\" {
-                escaped = true
-            } else if character == closer {
-                index = line.index(after: index)
-                while index < line.endIndex, line[index].isWhitespace {
-                    index = line.index(after: index)
-                }
-                guard index < line.endIndex, line[index] == ")" else { return nil }
-                return line.index(after: index)
-            }
-            index = line.index(after: index)
-        }
-        return nil
+        guard let closing = titles.firstBoundary(closer, after: index) else { return nil }
+        index = line.index(after: closing)
+        while index < line.endIndex, line[index].isWhitespace { index = line.index(after: index) }
+        guard index < line.endIndex, line[index] == ")" else { return nil }
+        return line.index(after: index)
     }
 
     /// Entfernt nur die Container-Präfixe, in denen das Fence geöffnet wurde.

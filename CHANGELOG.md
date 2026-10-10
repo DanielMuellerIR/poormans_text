@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+- Preserve RTF surrogate pairs across ignored destinations and inherit Unicode
+  fallback counts from enclosing groups when reading document metadata.
+- Bound repeated Markdown link-title scans and avoid reparsing reference titles
+  on lines containing only escaped delimiters; retain cancellation checks.
+- Resolve local HTML images whose attribute values use supported named character
+  references without a semicolon, respecting attribute boundary rules.
+
 ## 0.16.12 — 2026-10-07
 
 Versions 0.16.7 through 0.16.11 were tagged but not released; this release includes

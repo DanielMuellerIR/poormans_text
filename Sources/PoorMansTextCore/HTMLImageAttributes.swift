@@ -5,7 +5,7 @@ import Foundation
 /// Bereiche, damit Prüfung und Ersetzung auf dasselbe Attribut zeigen.
 enum HTMLImageAttributes {
     static func decodedValue(_ value: String) throws -> String {
-        let expression = try NSRegularExpression(pattern: #"&(?:#([0-9]+);?|#[xX]([0-9a-fA-F]+);?|([a-zA-Z][a-zA-Z0-9]{0,31});)"#)
+        let expression = try NSRegularExpression(pattern: #"&(?:#([0-9]+);?|#[xX]([0-9a-fA-F]+);?|([a-zA-Z][a-zA-Z0-9]{0,31})(;|(?![a-zA-Z0-9=])))"#)
         let source = value as NSString
         var pieces = [String]()
         var cursor = 0
@@ -14,7 +14,9 @@ enum HTMLImageAttributes {
             pieces.append(source.substring(with: NSRange(location: cursor, length: match.range.location - cursor)))
             let replacement: String?
             if match.range(at: 3).location != NSNotFound {
-                replacement = MarkdownCharacterReferences.named[source.substring(with: match.range(at: 3))]
+                let name = source.substring(with: match.range(at: 3))
+                let hasSemicolon = match.range(at: 4).length == 1
+                replacement = hasSemicolon || legacyNames.contains(name) ? MarkdownCharacterReferences.named[name] : nil
             } else {
                 let hex = match.range(at: 2).location != NSNotFound
                 let digits = source.substring(with: match.range(at: hex ? 2 : 1))
@@ -27,6 +29,24 @@ enum HTMLImageAttributes {
         pieces.append(source.substring(from: cursor))
         return pieces.joined()
     }
+
+    // Quelle: https://html.spec.whatwg.org/entities.json
+    // Nur diese historischen Namen dürfen im Attribut
+    // ohne Semikolon stehen; vor ASCII-Buchstaben, Ziffern oder `=` bleiben sie literal.
+    private static let legacyNames: Set<String> = [
+        "AElig", "AMP", "Aacute", "Acirc", "Agrave", "Aring", "Atilde", "Auml", "COPY",
+        "Ccedil", "ETH", "Eacute", "Ecirc", "Egrave", "Euml", "GT", "Iacute", "Icirc",
+        "Igrave", "Iuml", "LT", "Ntilde", "Oacute", "Ocirc", "Ograve", "Oslash", "Otilde",
+        "Ouml", "QUOT", "REG", "THORN", "Uacute", "Ucirc", "Ugrave", "Uuml", "Yacute",
+        "aacute", "acirc", "acute", "aelig", "agrave", "amp", "aring", "atilde", "auml",
+        "brvbar", "ccedil", "cedil", "cent", "copy", "curren", "deg", "divide", "eacute",
+        "ecirc", "egrave", "eth", "euml", "frac12", "frac14", "frac34", "gt", "iacute",
+        "icirc", "iexcl", "igrave", "iquest", "iuml", "laquo", "lt", "macr", "micro",
+        "middot", "nbsp", "not", "ntilde", "oacute", "ocirc", "ograve", "ordf", "ordm",
+        "oslash", "otilde", "ouml", "para", "plusmn", "pound", "quot", "raquo", "reg",
+        "sect", "shy", "sup1", "sup2", "sup3", "szlig", "thorn", "times", "uacute",
+        "ucirc", "ugrave", "uml", "uuml", "yacute", "yen", "yuml",
+    ]
 
     struct Attribute {
         let value: String

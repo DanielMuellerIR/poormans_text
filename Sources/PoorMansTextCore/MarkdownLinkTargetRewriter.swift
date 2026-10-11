@@ -859,26 +859,33 @@ enum MarkdownLinkTargetRewriter {
         return false
     }
 
-    /// Auch erfolglose Titelversuche teilen sich denselben Index. Sonst liest
-    /// jeder unvollständige Link erneut den gesamten restlichen Absatz.
+    /// Auch erfolglose Titelversuche teilen sich Abschluss und anschließendes
+    /// Linkende. Sonst liest jeder Versuch erneut denselben Titel oder Leerraum.
     private struct TitleBoundaryIndex {
         var boundaries: [Character: [String.Index]] = [:]
+        var linkEnds: [String.Index: String.Index] = [:]
 
         init(_ text: String, check: (() throws -> Void)?) throws {
             var escaped = false
             var scanned = 0
+            var pendingBoundary: String.Index?
             for index in text.indices {
                 if scanned % 1_024 == 0 { try check?() }; scanned += 1
                 let character = text[index]
+                if !character.isWhitespace, let boundary = pendingBoundary {
+                    if character == ")" { linkEnds[boundary] = text.index(after: index) }
+                    pendingBoundary = nil
+                }
                 if escaped { escaped = false; continue }
                 if character == "\\" { escaped = true; continue }
                 if character == "\"" || character == "'" || character == ")" {
                     boundaries[character, default: []].append(index)
+                    pendingBoundary = index
                 }
             }
         }
 
-        func firstBoundary(_ delimiter: Character, after start: String.Index) -> String.Index? {
+        func linkEnd(_ delimiter: Character, after start: String.Index) -> String.Index? {
             guard let positions = boundaries[delimiter] else { return nil }
             var lower = 0
             var upper = positions.count
@@ -886,7 +893,7 @@ enum MarkdownLinkTargetRewriter {
                 let middle = lower + (upper - lower) / 2
                 if positions[middle] <= start { lower = middle + 1 } else { upper = middle }
             }
-            return lower < positions.count ? positions[lower] : nil
+            return lower < positions.count ? linkEnds[positions[lower]] : nil
         }
     }
 
@@ -1231,11 +1238,7 @@ enum MarkdownLinkTargetRewriter {
         case "(": closer = ")"
         default: return nil
         }
-        guard let closing = titles.firstBoundary(closer, after: index) else { return nil }
-        index = line.index(after: closing)
-        while index < line.endIndex, line[index].isWhitespace { index = line.index(after: index) }
-        guard index < line.endIndex, line[index] == ")" else { return nil }
-        return line.index(after: index)
+        return titles.linkEnd(closer, after: index)
     }
 
     /// Entfernt nur die Container-Präfixe, in denen das Fence geöffnet wurde.

@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Avoid repeated whitespace scans after Markdown link titles with an invalid
+  closing tail, retaining following links and cancellation checks.
+- Preserve local HTML images whose numeric character references use historical
+  Windows-1252 mappings, in decimal and hexadecimal notation.
+
 ## 0.16.13 — 2026-10-10
 
 - Import RTFD paragraphs beginning with a literal bullet and whitespace as

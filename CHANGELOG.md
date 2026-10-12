@@ -2,7 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 0.16.14 — 2026-10-12
+
+- Import literal hyphen list markers in RTFD documents as compact Markdown
+  lists, including mixed bullet and hyphen sequences. Preserve explicit empty
+  paragraphs, manual line breaks, inline formatting, links, colors and images;
+  leave source documents unchanged.
 
 - Avoid repeated whitespace scans after Markdown link titles with an invalid
   closing tail, retaining following links and cancellation checks.

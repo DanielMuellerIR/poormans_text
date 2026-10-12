@@ -3,6 +3,36 @@ import XCTest
 @testable import PoorMansTextCore
 
 final class RTFDLiteralListTests: XCTestCase {
+    func testImportsLiteralHyphensAndBulletsWithoutInventingEmptyParagraphs() throws {
+        _ = try PandocTool.resolve(nil)
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("RTFDMixedLists-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let text = "Titel\n\t- Eins\n\t- Zwei\u{2028}Fortsetzung\n\t\t• Drei\n\t- Vier\n\n\t- Fünf\nSchluss eins\nSchluss zwei\n"
+        let document = NSMutableAttributedString(string: text, attributes: [
+            .font: NSFont.systemFont(ofSize: 14),
+        ])
+        document.addAttribute(.font, value: NSFont.boldSystemFont(ofSize: 14),
+                              range: (text as NSString).range(of: "Zwei"))
+        document.addAttribute(.link, value: URL(string: "https://example.com/three")!,
+                              range: (text as NSString).range(of: "Drei"))
+        let input = root.appendingPathComponent("Gemischt.rtfd")
+        try document.fileWrapper(from: NSRange(location: 0, length: document.length),
+                                 documentAttributes: [.documentType: NSAttributedString.DocumentType.rtfd])
+            .write(to: input, options: .atomic, originalContentsURL: nil)
+        let source = try Data(contentsOf: input.appendingPathComponent("TXT.rtf"))
+        let result = try RichTextConverter().convert(inputURL: input)
+        let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+        XCTAssertTrue(markdown.contains("- Eins\n- **Zwei**  \n  Fortsetzung\n- [Drei](https://example.com/three)\n- Vier\n"), markdown)
+        XCTAssertTrue(markdown.contains("- Vier\n  \n- Fünf"), "Ein leerer Quellabsatz muss erhalten bleiben: \(markdown)")
+        XCTAssertTrue(markdown.contains("Schluss eins\n\nSchluss zwei"), markdown)
+        for content in ["Titel", "Eins", "Zwei", "Fortsetzung", "Drei", "Vier", "Fünf", "Schluss eins", "Schluss zwei"] {
+            XCTAssertEqual(markdown.components(separatedBy: content).count - 1, 1, markdown)
+        }
+        XCTAssertEqual(try Data(contentsOf: input.appendingPathComponent("TXT.rtf")), source)
+    }
+
     func testImportsLiteralBulletsAsTightListsWithoutLosingParagraphsOrFormatting() throws {
         _ = try PandocTool.resolve(nil)
         let root = FileManager.default.temporaryDirectory
@@ -74,6 +104,13 @@ final class RTFDLiteralListTests: XCTestCase {
                                        effectiveRange: nil) as? NSParagraphStyle
         XCTAssertTrue(first?.textLists.first === second?.textLists.first)
         XCTAssertFalse(first?.textLists.first === third?.textLists.first)
+        XCTAssertEqual(RTFDLiteralListNormalizer.normalize(document), 0)
+    }
+
+    func testHyphensNeedFollowingWhitespaceAndVisibleContent() {
+        let document = NSMutableAttributedString(string: "Text - bleibt\n-ohne Abstand\n- \n-\t\n- Eins\n\t-\u{00A0}Zwei\n")
+        XCTAssertEqual(RTFDLiteralListNormalizer.normalize(document), 2)
+        XCTAssertEqual(document.string, "Text - bleibt\n-ohne Abstand\n- \n-\t\nEins\nZwei\n")
         XCTAssertEqual(RTFDLiteralListNormalizer.normalize(document), 0)
     }
 

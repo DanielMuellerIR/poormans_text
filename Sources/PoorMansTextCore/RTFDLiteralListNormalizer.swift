@@ -1,6 +1,6 @@
 import AppKit
 
-/// TextEdit-Dokumente können Aufzählungen als gewöhnliche Absätze mit „• “
+/// TextEdit-Dokumente können Aufzählungen als gewöhnliche Absätze mit „• “ oder „- “
 /// speichern. Ohne Listenmetadaten macht Pandoc daraus getrennte Textabsätze.
 enum RTFDLiteralListNormalizer {
     @discardableResult
@@ -15,7 +15,7 @@ enum RTFDLiteralListNormalizer {
             let originalStyle = document.attribute(.paragraphStyle, at: paragraph.location,
                                                    effectiveRange: nil) as? NSParagraphStyle
             guard originalStyle?.textLists.isEmpty != false,
-                  let prefix = bulletPrefix(in: text, paragraph: paragraph) else {
+                  let prefix = listPrefix(in: text, paragraph: paragraph) else {
                 currentList = nil
                 continue
             }
@@ -35,11 +35,12 @@ enum RTFDLiteralListNormalizer {
         return entries.count
     }
 
-    private static func bulletPrefix(in text: NSString, paragraph: NSRange) -> NSRange? {
+    private static func listPrefix(in text: NSString, paragraph: NSRange) -> NSRange? {
         var cursor = paragraph.location
         let end = NSMaxRange(paragraph)
         while cursor < end, isSpacing(text.character(at: cursor)) { cursor += 1 }
-        guard cursor < end, text.character(at: cursor) == 0x2022 else { return nil }
+        guard cursor < end,
+              text.character(at: cursor) == 0x2022 || text.character(at: cursor) == 0x2D else { return nil }
         cursor += 1
         let afterBullet = cursor
         while cursor < end, isSpacing(text.character(at: cursor)) { cursor += 1 }

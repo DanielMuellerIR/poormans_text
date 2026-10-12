@@ -3,7 +3,7 @@ import AppKit
 /// Gemeinsame Vorbereitung vor dem HTML-Export durch Cocoa.
 enum RTFDInputPreparation {
     /// Bereitet ausschließlich die Arbeitskopie vor: Listenmetadaten zuerst,
-    /// dann Farbmarker, damit „• “ nicht innerhalb der Hervorhebung stehen bleibt.
+    /// dann Farbmarker, damit Listenzeichen nicht innerhalb der Hervorhebung stehen bleiben.
     static func prepare(from inputURL: URL, outputURL: URL) throws -> URL {
         let document: NSMutableAttributedString
         do {

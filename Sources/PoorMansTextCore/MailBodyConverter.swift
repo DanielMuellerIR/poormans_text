@@ -21,11 +21,11 @@ enum MailBodyConverter {
                 return flattened.html
             }
             let normalized = body.text.replacingOccurrences(of: "\r\n", with: "\n").replacingOccurrences(of: "\r", with: "\n")
-            // Pandoc und die Rich-Text-Normalisierung können Listenmarker nach
-            // harten Umbrüchen wieder als Struktur ausgeben. Wörtliche Körper
-            // erst nach dieser Strecke als maskiertes Markdown einsetzen.
+            // Absatz-Leerraum geht auch bei Zeichenreferenzen im Markdown-Leser
+            // verloren. Wörtliche Körper erst nach der HTML-Schlussstrecke als
+            // Textblock einsetzen, damit Einrückung und Leerzeilen erhalten bleiben.
             let marker = "PMTPlainBody" + UUID().uuidString.replacingOccurrences(of: "-", with: "")
-            literalBodies.append((marker, MarkdownEscaping.literalBlock(normalized).replacingOccurrences(of: "\n", with: "  \n")))
+            literalBodies.append((marker, try literalBody(normalized)))
             return "<p>" + marker + "</p>"
         }.joined(separator: "\n<hr>\n")
         let resolution = try HTMLImageSourceResolver.resolve(html: html, baseDirectory: resourceDirectory, baseURL: nil,
@@ -64,6 +64,22 @@ enum MailBodyConverter {
         }
         return StagedConversionResult(markdownRelativePath: converted.markdownRelativePath,
             assetRelativePaths: converted.assetRelativePaths + attachments.map(\.relativePath), warnings: warnings)
+    }
+
+    private static func literalBody(_ text: String) throws -> String {
+        var longestRun = 0
+        var run = 0
+        for (index, byte) in text.utf8.enumerated() {
+            if index % 4096 == 0 { try ConversionExecution.check() }
+            if byte == 96 {
+                run += 1
+                longestRun = max(longestRun, run)
+            } else { run = 0 }
+        }
+        let fence = String(repeating: "`", count: max(3, longestRun + 1))
+        // Der Leser entfernt genau den Umbruch vor dem Abschluss. Ein bereits
+        // vorhandener letzter Umbruch gehört zum Mailkörper und bleibt erhalten.
+        return fence + "text\n" + text + "\n" + fence
     }
 
     private static func flattenTables(_ html: String) throws -> (html: String, changed: Bool) {

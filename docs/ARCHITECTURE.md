@@ -110,7 +110,10 @@ beachtet Apple Mails Bytezählung, Headerfaltung, Transfer- und Zeichencodierung
 Multipart-Grenzen und erweiterte Dateinamen. `MailContent` wählt eine
 Körperalternative, ordnet CID-Ressourcen zu und erhält Anhänge unter eigenen
 sicheren Namen. `MailBodyConverter` nutzt die gemeinsame sichere
-HTML-Schlussstrecke ohne Zugriff auf lokale Nachbardateien. Kopfzeilen werden
+HTML-Schlussstrecke ohne Zugriff auf lokale Nachbardateien. Klartextkörper werden
+erst danach als umschlossene Textblöcke eingesetzt; der Abschluss ist länger als
+jede Backtick-Folge im Körper. Dadurch bleiben auch Tabs, Einrückungen und
+abschließende Leerzeilen wörtlich erhalten. Kopfzeilen werden
 vollständig als Tabelle ausgegeben; das vorhandene Metadatenmodell erhält
 Betreff, Absender und Datum. GUI und CLI verwenden denselben Adapter.
 

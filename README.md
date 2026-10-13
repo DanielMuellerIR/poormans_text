@@ -56,7 +56,9 @@ path; the converter keeps the text and returns a warning instead.
 
 EML and Apple Mail `.emlx` files use the same importer. All message headers
 appear in a Markdown table before the body. MIME alternatives produce one
-body, preferring the last supported representation; related inline images are
+body, preferring the last supported representation. Plain-text bodies use fenced
+text blocks to preserve indentation, tabs, spacing and blank lines without
+interpreting their content as Markdown or HTML; related inline images are
 resolved from the mail itself. HTML tables become text blocks so that nested
 layout tables retain their text. Attachments retain their bytes under
 `attachments/`, with safe, unique file names and links in the Markdown.
@@ -505,7 +507,7 @@ and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compa
 their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current version is 0.16.15.
+The current version is 0.16.16.
 
 ## License
 

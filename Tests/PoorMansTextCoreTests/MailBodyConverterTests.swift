@@ -66,16 +66,76 @@ final class MailBodyConverterTests: XCTestCase {
             workDirectory: work, stagedOutputDirectory: output, options: ConversionOptions())
         let result = try MailBodyConverter.convert(part, context: context)
         let markdown = try String(contentsOf: output.appendingPathComponent(result.markdownRelativePath), encoding: .utf8)
-        XCTAssertTrue(markdown.contains("VISIBLE\\_LITERAL"))
-        XCTAssertFalse(markdown.hasPrefix("# literal heading"))
-        XCTAssertFalse(markdown.contains("<script>"))
         XCTAssertTrue(result.assetRelativePaths.isEmpty)
-        let plainURL = work.appendingPathComponent("roundtrip.txt")
+        let blocks = try parsedBlocks(output.appendingPathComponent(result.markdownRelativePath), work: work)
+        XCTAssertEqual(blocks.count, 1)
+        XCTAssertEqual(blocks.first?["t"] as? String, "CodeBlock")
+        let content = try XCTUnwrap(blocks.first?["c"] as? [Any])
+        XCTAssertEqual(content.last as? String, text)
+        XCTAssertTrue(markdown.contains("VISIBLE_LITERAL"))
+    }
+
+    func testPlainBodyKeepsWhitespaceAndFenceTextBesideHTMLAndAttachments() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let source = root.appendingPathComponent("literal.eml")
+        let text = "\n  two spaces\n\ttab\ninside  spaces  \n```\n``````\n~~~\n# literal\n![not an image](attachments/file.bin)\n<tag>&copy;</tag>\n\n"
+        let attachment = Data([0, 255, 13, 10])
+        let mail = """
+        From: sender@example.invalid
+        Subject: Literal whitespace
+        Content-Type: multipart/mixed; boundary=parts
+
+        --parts
+        Content-Type: text/plain; charset=utf-8
+        Content-Transfer-Encoding: base64
+
+        \(Data(text.replacingOccurrences(of: "\n", with: "\r\n").utf8).base64EncodedString())
+        --parts
+        Content-Type: text/html; charset=utf-8
+
+        <p>HTML_BODY_MARKER</p>
+        --parts
+        Content-Type: application/octet-stream
+        Content-Disposition: attachment; filename=file.bin
+        Content-Transfer-Encoding: base64
+
+        \(attachment.base64EncodedString())
+        --parts--
+        """
+        let original = Data(mail.utf8)
+        try original.write(to: source)
+        for layout in [OutputLayout.markdownFolder, .textbundle] {
+            let outputName = layout == .textbundle ? "literal.textbundle" : "literal-markdown"
+            let result = try DocumentConverter().convert(ConversionRequest(inputURL: source,
+                destination: .directory(root.appendingPathComponent(outputName)),
+                options: ConversionOptions(outputLayout: layout)))
+            let blocks = try parsedBlocks(result.markdownFile, work: root)
+            let code = blocks.filter { $0["t"] as? String == "CodeBlock" }
+            XCTAssertEqual(code.count, 1)
+            let content = try XCTUnwrap(code.first?["c"] as? [Any])
+            XCTAssertEqual(content.last as? String, text)
+            let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+            XCTAssertEqual(markdown.components(separatedBy: "HTML_BODY_MARKER").count - 1, 1)
+            XCTAssertTrue(blocks.contains { $0["t"] as? String == "Table" })
+            XCTAssertTrue(blocks.contains { $0["t"] as? String == "BulletList" })
+            XCTAssertEqual(result.assets.count, 1)
+            XCTAssertEqual(try Data(contentsOf: result.assets[0]), attachment)
+            XCTAssertEqual(try Data(contentsOf: source), original)
+        }
+    }
+
+    private func parsedBlocks(_ markdown: URL, work: URL) throws -> [[String: Any]] {
+        let jsonURL = work.appendingPathComponent(UUID().uuidString + ".json")
+        // Der Plaintext-Writer fügt bei Codeblöcken eigene Einrückung hinzu.
+        // Die Lesersicht prüft stattdessen den vollständigen unveränderten Körper.
         let roundtrip = try ProcessRunner.run(executable: PandocTool.resolve(nil),
-            arguments: ["--sandbox", "--from=gfm", "--to=plain", "--output", plainURL.path, output.appendingPathComponent(result.markdownRelativePath).path],
+            arguments: ["--sandbox", "--preserve-tabs", "--from=gfm", "--to=json", "--output", jsonURL.path, markdown.path],
             currentDirectory: work, timeout: 30)
         XCTAssertEqual(roundtrip.status, 0)
-        XCTAssertEqual(try String(contentsOf: plainURL, encoding: .utf8).trimmingCharacters(in: .newlines), text)
+        let document = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: jsonURL)) as? [String: Any])
+        return try XCTUnwrap(document["blocks"] as? [[String: Any]])
     }
 
     func testNestedMailLayoutTablesKeepEveryCellText() throws {

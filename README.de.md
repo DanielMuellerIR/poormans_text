@@ -62,7 +62,9 @@ und der Konverter meldet den Verlust als Warnung.
 EML und Apple-Mail-Dateien (`.emlx`) verwenden denselben Import. Alle
 Nachrichtenkopfzeilen stehen als Markdown-Tabelle vor dem Körper. Bei
 MIME-Alternativen wird ein Körper ausgegeben, bevorzugt die letzte unterstützte
-Darstellung. HTML-Tabellen werden in Textblöcke umgewandelt, damit auch
+Darstellung. Klartextkörper werden als geschützte Textblöcke ausgegeben. So
+bleiben Einrückungen, Tabs, Abstände und Leerzeilen erhalten, ohne den Inhalt
+als Markdown oder HTML auszulegen. HTML-Tabellen werden in Textblöcke umgewandelt, damit auch
 verschachtelte Layouttabellen keinen Text verlieren. Verwandte Inlinebilder werden aus der Mail aufgelöst. Anhänge
 bleiben bytegetreu unter `attachments/`, mit sicheren, eindeutigen Dateinamen
 und Links im Markdown. Eingebettete Nachrichten und angehängte MIME-Container
@@ -532,7 +534,7 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.16.15.
+Die aktuelle Version ist 0.16.16.
 
 ## Lizenz
 

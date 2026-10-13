@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.16.16 — 2026-10-13
+
+- Preserve plain-text email bodies in fenced text blocks, including indentation,
+  tabs, repeated spaces and blank lines. Treat embedded Markdown, HTML and code
+  fences as literal content; retain mixed HTML bodies and byte-identical attachments.
+
 ## 0.16.15 — 2026-10-13
 
 - Preserve literal text containing invalid nested parentheses in Markdown link

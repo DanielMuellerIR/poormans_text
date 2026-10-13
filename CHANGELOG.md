@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.16.15 — 2026-10-13
+
+- Preserve literal text containing invalid nested parentheses in Markdown link
+  titles during notebook import, while retaining valid escaped titles and
+  rewriting subsequent links.
+
 ## 0.16.14 — 2026-10-12
 
 - Import literal hyphen list markers in RTFD documents as compact Markdown

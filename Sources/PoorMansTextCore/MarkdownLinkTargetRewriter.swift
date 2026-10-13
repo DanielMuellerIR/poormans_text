@@ -878,7 +878,11 @@ enum MarkdownLinkTargetRewriter {
                 }
                 if escaped { escaped = false; continue }
                 if character == "\\" { escaped = true; continue }
-                if character == "\"" || character == "'" || character == ")" {
+                if character == "(" {
+                    // Ein Klammer-Titel darf vor seinem Abschluss keine weitere
+                    // unmaskierte öffnende Klammer enthalten (CommonMark 6.3).
+                    boundaries[")", default: []].append(index)
+                } else if character == "\"" || character == "'" || character == ")" {
                     boundaries[character, default: []].append(index)
                     pendingBoundary = index
                 }

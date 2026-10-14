@@ -126,6 +126,133 @@ final class MailBodyConverterTests: XCTestCase {
         }
     }
 
+    func testUnclosedHTMLCannotCaptureFollowingMIMEBodies() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let text = "# PLAIN_HEADING\n![plain image](https://example.invalid/pixel.png)\n\t  literal\n\n```\n"
+        for (index, html) in ["<blockquote><p>HTML_BEFORE</p>", "<ul><li>HTML_BEFORE", "<p>HTML_BEFORE</p><!-- unclosed"].enumerated() {
+            let mail = """
+            Subject: Isolated parts
+            Content-Type: multipart/mixed; boundary=parts
+
+            --parts
+            Content-Type: text/html; charset=utf-8
+
+            \(html)
+            --parts
+            Content-Type: text/plain; charset=utf-8
+            Content-Transfer-Encoding: base64
+
+            \(Data(text.utf8).base64EncodedString())
+            --parts
+            Content-Type: text/html; charset=utf-8
+
+            <p>HTML_AFTER</p>
+            --parts--
+            """
+            let source = root.appendingPathComponent("isolated-\(index).eml")
+            let original = Data(mail.utf8)
+            try original.write(to: source)
+            for layout in [OutputLayout.markdownFolder, .textbundle] {
+                let destination = root.appendingPathComponent("output-\(index)-\(layout.rawValue)" + (layout == .textbundle ? ".textbundle" : ""))
+                let result = try DocumentConverter().convert(ConversionRequest(inputURL: source,
+                    destination: .directory(destination), options: ConversionOptions(outputLayout: layout)))
+                let blocks = try parsedBlocks(result.markdownFile, work: root)
+                let code = blocks.filter { $0["t"] as? String == "CodeBlock" }
+                XCTAssertEqual(code.count, 1)
+                let content = try XCTUnwrap(code.first?["c"] as? [Any])
+                XCTAssertEqual(content.last as? String, text)
+                XCTAssertFalse(blocks.contains { $0["t"] as? String == "Header" })
+                let json = String(decoding: try JSONSerialization.data(withJSONObject: blocks), as: UTF8.self)
+                XCTAssertFalse(json.contains("\"Image\""))
+                let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+                for token in ["HTML_BEFORE", "HTML_AFTER", "PLAIN_HEADING"] {
+                    XCTAssertEqual(markdown.components(separatedBy: token).count - 1, 1)
+                }
+                XCTAssertEqual(try Data(contentsOf: source), original)
+            }
+        }
+    }
+
+    func testSeparateHTMLBodiesKeepImagesAndAttachmentBytes() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let image = try Data(contentsOf: URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+            .appendingPathComponent("Fixtures/WordProcessing/fixture.png"))
+        let attachment = Data([0, 255, 13, 10])
+        let mail = """
+        Subject: Image bodies
+        Content-Type: multipart/mixed; boundary=parts
+
+        --parts
+        Content-Type: text/html; charset=utf-8
+
+        <blockquote><p>FIRST_BODY</p><img src="data:image/png;base64,\(image.base64EncodedString())" alt="first">
+        --parts
+        Content-Type: text/plain; charset=utf-8
+
+        LITERAL_BODY
+        --parts
+        Content-Type: text/html; charset=utf-8
+
+        <p>LAST_BODY</p><img src="data:image/png;base64,\(image.base64EncodedString())" alt="last">
+        --parts
+        Content-Type: application/octet-stream
+        Content-Disposition: attachment; filename=file.bin
+        Content-Transfer-Encoding: base64
+
+        \(attachment.base64EncodedString())
+        --parts--
+        """
+        let source = root.appendingPathComponent("images.eml")
+        let original = Data(mail.utf8)
+        try original.write(to: source)
+        for layout in [OutputLayout.markdownFolder, .textbundle] {
+            let destination = root.appendingPathComponent(layout == .textbundle ? "images.textbundle" : "images-markdown")
+            let result = try DocumentConverter().convert(ConversionRequest(inputURL: source,
+                destination: .directory(destination), options: ConversionOptions(outputLayout: layout)))
+            XCTAssertEqual(result.assets.count, 3)
+            for asset in result.assets {
+                XCTAssertEqual(try Data(contentsOf: asset), asset.pathExtension == "png" ? image : attachment)
+            }
+            let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+            for token in ["FIRST_BODY", "LITERAL_BODY", "LAST_BODY"] {
+                XCTAssertEqual(markdown.components(separatedBy: token).count - 1, 1)
+            }
+            XCTAssertEqual(markdown.components(separatedBy: "![").count - 1, 2)
+            for asset in result.assets {
+                let relative = asset.path.replacingOccurrences(of: result.outputDirectory.path + "/", with: "")
+                XCTAssertTrue(markdown.contains("](" + relative + ")"), markdown)
+            }
+            _ = try parsedBlocks(result.markdownFile, work: root)
+            XCTAssertEqual(try Data(contentsOf: source), original)
+        }
+    }
+
+    func testSeparateHTMLResolutionsShareImageBudget() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let image = try Data(contentsOf: URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+            .appendingPathComponent("Fixtures/WordProcessing/fixture.png"))
+        let budget = HTMLImageSourceResolver.ImageBudget(bytes: image.count * 2, count: 1)
+        let html = "<img src=\"data:image/png;base64," + image.base64EncodedString() + "\">"
+        for index in 0..<2 {
+            let work = root.appendingPathComponent(String(index))
+            try FileManager.default.createDirectory(at: work, withIntermediateDirectories: false)
+            if index == 0 {
+                let result = try HTMLImageSourceResolver.resolve(html: html, baseDirectory: nil, baseURL: nil,
+                    subresources: [:], workDirectory: work, imageBudget: budget)
+                XCTAssertEqual(result.embeddedImagesExtracted, 1)
+            } else {
+                XCTAssertThrowsError(try HTMLImageSourceResolver.resolve(html: html, baseDirectory: nil, baseURL: nil,
+                    subresources: [:], workDirectory: work, imageBudget: budget))
+            }
+        }
+    }
+
     private func parsedBlocks(_ markdown: URL, work: URL) throws -> [[String: Any]] {
         let jsonURL = work.appendingPathComponent(UUID().uuidString + ".json")
         // Der Plaintext-Writer fügt bei Codeblöcken eigene Einrückung hinzu.

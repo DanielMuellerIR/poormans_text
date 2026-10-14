@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.16.17 — 2026-10-14
+
+- Isolate email MIME bodies before HTML conversion so unclosed quotes, lists and
+  comments cannot capture subsequent plain text or HTML. Preserve literal body
+  whitespace, images and attachments.
+- Preserve code examples in notebooks with LF, CRLF or CR line endings. Keep
+  original line endings when rewriting Markdown resources.
+- Leave outer link-like text unchanged when a nested inner link takes precedence;
+  retain valid image nesting and subsequent links.
+- Resolve notebook image attachments whose names contain nonbreaking spaces or
+  other non-ASCII spaces, including balanced parentheses in their destinations.
+
 ## 0.16.16 — 2026-10-13
 
 - Preserve plain-text email bodies in fenced text blocks, including indentation,

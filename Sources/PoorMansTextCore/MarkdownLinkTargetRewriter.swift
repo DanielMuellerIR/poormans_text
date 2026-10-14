@@ -72,7 +72,7 @@ enum MarkdownLinkTargetRewriter {
         var htmlBlock: MarkdownHTMLBlockState?
         var containers = MarkdownContainerState()
 
-        let lines = markdown.split(separator: "\n", omittingEmptySubsequences: false)
+        let lines = markdown.split(omittingEmptySubsequences: false) { $0 == "\n" || $0 == "\r\n" || $0 == "\r" }
         var consumedLine: Int?
         for (lineNumber, line) in lines.enumerated() {
             if let consumedLine, lineNumber <= consumedLine { continue }
@@ -86,7 +86,7 @@ enum MarkdownLinkTargetRewriter {
                 }
                 containers.canStartIndentedCode = true
                 if line.endIndex != markdown[...].endIndex {
-                    result += "\n"
+                    result += lineEnding(after: line, in: markdown)
                 }
                 continue
             }
@@ -101,7 +101,7 @@ enum MarkdownLinkTargetRewriter {
                 }
                 containers.canStartIndentedCode = true
                 if line.endIndex != markdown[...].endIndex {
-                    result += "\n"
+                    result += lineEnding(after: line, in: markdown)
                 }
                 continue
             }
@@ -131,7 +131,7 @@ enum MarkdownLinkTargetRewriter {
                 }
                 containers.canStartIndentedCode = true
                 if line.endIndex != markdown[...].endIndex {
-                    result += "\n"
+                    result += lineEnding(after: line, in: markdown)
                 }
                 continue
             }
@@ -225,11 +225,16 @@ enum MarkdownLinkTargetRewriter {
                         }
                         lineOffset += content.count + 1
                     }
-                    result += definitionLines.joined(separator: "\n")
+                    for (offset, definitionLine) in definitionLines.enumerated() {
+                        result += definitionLine
+                        if offset + 1 < definitionLines.count {
+                            result += lineEnding(after: lines[lineNumber + offset], in: markdown)
+                        }
+                    }
                     consumedLine = lineNumber + definitionLines.count - 1
                     containers = continuationContainers
                     containers.canStartIndentedCode = true
-                        if lines[consumedLine!].endIndex != markdown.endIndex { result += "\n" }
+                    result += lineEnding(after: lines[consumedLine!], in: markdown)
                     continue
                 }
             }
@@ -253,14 +258,19 @@ enum MarkdownLinkTargetRewriter {
                 result += rewritten.text
                 consumedLine = rewritten.lastLine
                 containers = rewritten.containers
-                if lines[rewritten.lastLine].endIndex != markdown.endIndex { result += "\n" }
+                result += lineEnding(after: lines[rewritten.lastLine], in: markdown)
                 continue
             }
             if line.endIndex != markdown[...].endIndex {
-                result += "\n"
+                result += lineEnding(after: line, in: markdown)
             }
         }
         return result
+    }
+
+    private static func lineEnding(after line: Substring, in markdown: String) -> Substring {
+        guard line.endIndex < markdown.endIndex else { return markdown[markdown.endIndex...] }
+        return markdown[line.endIndex..<markdown.index(after: line.endIndex)]
     }
 
     /// Ein Inlineblock wird einmal ohne Container-Präfixe gescannt. Nur die
@@ -304,7 +314,6 @@ enum MarkdownLinkTargetRewriter {
         var originalCursor = originalStarts[0]
         var edits: [(range: Range<String.Index>, replacement: String)] = []
         var ticks: Int?
-        var brackets = 0
         try rewriteInline(
             logical, inlineBlockEnd: logical.endIndex,
             backtickIndex: try BacktickRunIndex(logical, check: check), mapping: mapping, targetObserver: targetObserver,
@@ -320,7 +329,7 @@ enum MarkdownLinkTargetRewriter {
                 edits.append((start..<end, replacement))
                 logicalCursor = range.upperBound
                 originalCursor = end
-            }, check: check, inlineCodeTicks: &ticks, bracketDepth: &brackets
+            }, check: check, inlineCodeTicks: &ticks
         )
         var output = ""
         var cursor = lines[firstLine].startIndex
@@ -823,6 +832,14 @@ enum MarkdownLinkTargetRewriter {
         )
     }
 
+    private static func isLinkWhitespace(_ character: Character) -> Bool {
+        character == " " || character == "\t" || character == "\n" || character == "\r" || character == "\r\n"
+    }
+
+    private static func isDestinationBoundary(_ character: Character) -> Bool {
+        character.unicodeScalars.contains { $0.value <= 0x20 || $0.value == 0x7F }
+    }
+
     private struct ParenthesisIndex {
         var matchingClose: [String.Index: String.Index] = [:]
 
@@ -840,7 +857,7 @@ enum MarkdownLinkTargetRewriter {
                         continue
                     }
                 }
-                if character.isWhitespace { stack.removeAll(keepingCapacity: true) }
+                if isDestinationBoundary(character) { stack.removeAll(keepingCapacity: true) }
                 else if character == "(" { stack.append(cursor) }
                 else if character == ")", let opening = stack.popLast() { matchingClose[opening] = cursor }
                 cursor = text.index(after: cursor)
@@ -872,7 +889,7 @@ enum MarkdownLinkTargetRewriter {
             for index in text.indices {
                 if scanned % 1_024 == 0 { try check?() }; scanned += 1
                 let character = text[index]
-                if !character.isWhitespace, let boundary = pendingBoundary {
+                if !isLinkWhitespace(character), let boundary = pendingBoundary {
                     if character == ")" { linkEnds[boundary] = text.index(after: index) }
                     pendingBoundary = nil
                 }
@@ -912,8 +929,7 @@ enum MarkdownLinkTargetRewriter {
         targetObserver: ((String) -> Void)?,
         replacementObserver: ((Range<String.Index>, String) -> Void)?,
         check: (() throws -> Void)?,
-        inlineCodeTicks: inout Int?,
-        bracketDepth: inout Int
+        inlineCodeTicks: inout Int?
     ) throws {
         let parentheses = try ParenthesisIndex(line, check: check)
         let titles = try TitleBoundaryIndex(line, check: check)
@@ -923,6 +939,8 @@ enum MarkdownLinkTargetRewriter {
         try check?()
         var index = line.startIndex
         var scanned = 0
+        var brackets: [(isImage: Bool, generation: Int)] = []
+        var linkGeneration = 0
         while index < line.endIndex {
             if scanned % 1_024 == 0 { try check?() }; scanned += 1
             let character = line[index]
@@ -980,10 +998,21 @@ enum MarkdownLinkTargetRewriter {
                     continue
                 }
             }
+            if character == "!" {
+                let next = line.index(after: index)
+                if next < line.endIndex, line[next] == "[" {
+                    brackets.append((true, linkGeneration))
+                    index = line.index(after: next)
+                    continue
+                }
+            }
             if character == "[" {
-                bracketDepth += 1
-            } else if character == "]", bracketDepth > 0 {
-                bracketDepth -= 1
+                brackets.append((false, linkGeneration))
+            } else if character == "]", let opening = brackets.popLast() {
+                guard opening.isImage || opening.generation == linkGeneration else {
+                    index = line.index(after: index)
+                    continue
+                }
                 let openingParenthesis = line.index(after: index)
                 if openingParenthesis < line.endIndex,
                    line[openingParenthesis] == "(",
@@ -996,6 +1025,10 @@ enum MarkdownLinkTargetRewriter {
                     if replacement.text != line[replacement.end..<replacement.originalPathEnd] {
                         replacementObserver?(replacement.end..<replacement.originalPathEnd, replacement.text)
                     }
+                    // Ein Link deaktiviert frühere Linköffner, Bilder dürfen
+                    // weiterhin Links enthalten. Die Generation vermeidet einen
+                    // erneuten Stapeldurchlauf pro verschachteltem Link.
+                    if !opening.isImage { linkGeneration += 1 }
                     index = replacement.resumeAt
                     continue
                 }
@@ -1066,7 +1099,7 @@ enum MarkdownLinkTargetRewriter {
         var end = target.range.upperBound
         if target.usesAngles { end = text.index(after: end) }
         if end == text.endIndex { return target.range }
-        guard text[end].isWhitespace else { return nil }
+        guard isLinkWhitespace(text[end]) else { return nil }
         let tail = text[end...].trimmingCharacters(in: .whitespacesAndNewlines)
         if tail.isEmpty { return target.range }
         guard let opener = tail.first, let closer = ["\"": "\"", "'": "'", "(": ")"][String(opener)],
@@ -1085,7 +1118,7 @@ enum MarkdownLinkTargetRewriter {
         in text: String, from start: String.Index, parentheses: ParenthesisIndex? = nil, check: (() throws -> Void)? = nil
     ) throws -> (range: Range<String.Index>, usesAngles: Bool)? {
         var index = start
-        while index < text.endIndex, text[index].isWhitespace { index = text.index(after: index) }
+        while index < text.endIndex, isLinkWhitespace(text[index]) { index = text.index(after: index) }
         let angles = index < text.endIndex && text[index] == "<"
         if angles { index = text.index(after: index) }
         let pathStart = index
@@ -1118,7 +1151,7 @@ enum MarkdownLinkTargetRewriter {
                     if depth == 0 { break }
                     depth -= 1
                 }
-                if character.isWhitespace { break }
+                if isDestinationBoundary(character) { break }
             }
             index = text.index(after: index)
         }
@@ -1227,7 +1260,7 @@ enum MarkdownLinkTargetRewriter {
         }
 
         var hadWhitespace = false
-        while index < line.endIndex, line[index].isWhitespace {
+        while index < line.endIndex, isLinkWhitespace(line[index]) {
             hadWhitespace = true
             index = line.index(after: index)
         }

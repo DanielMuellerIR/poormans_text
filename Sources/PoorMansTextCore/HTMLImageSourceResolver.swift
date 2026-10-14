@@ -47,9 +47,10 @@ enum HTMLImageSourceResolver {
         workDirectory: URL,
         fileManager: FileManager = .default,
         maximumImageBytes: Int = 512 * 1_024 * 1_024,
-        maximumImageCount: Int = 1_024
+        maximumImageCount: Int = 1_024,
+        imageBudget: ImageBudget? = nil
     ) throws -> Resolution {
-        let budget = ImageBudget(bytes: maximumImageBytes, count: maximumImageCount)
+        let budget = imageBudget ?? ImageBudget(bytes: maximumImageBytes, count: maximumImageCount)
         let nsHTML = html as NSString
         var output = ""
         var cursor = 0
@@ -189,10 +190,14 @@ enum HTMLImageSourceResolver {
         )
     }
 
-    private final class ImageBudget {
+    // Getrennt gelesene MIME-Körper teilen weiterhin das Budget der ganzen Mail.
+    final class ImageBudget {
         private var bytes: Int
         private var count: Int
-        init(bytes: Int, count: Int) { self.bytes = max(0, bytes); self.count = max(0, count) }
+        init(bytes: Int = 512 * 1_024 * 1_024, count: Int = 1_024) {
+            self.bytes = max(0, bytes)
+            self.count = max(0, count)
+        }
         func reserve(_ size: Int) throws {
             guard size <= bytes, count > 0 else { throw ImportFailure("referenced images exceed the document asset budget") }
             bytes -= size

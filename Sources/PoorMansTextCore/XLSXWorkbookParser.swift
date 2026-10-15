@@ -60,7 +60,8 @@ enum XLSXWorkbookParser {
             throw ParserError("xl/workbook.xml has no supported XLSX main content type")
         }
 
-        let sheetDefinitions = try WorkbookParser.parse(workbookXML)
+        let workbookDefinition = try WorkbookParser.parse(workbookXML)
+        let sheetDefinitions = workbookDefinition.sheets
         guard !sheetDefinitions.isEmpty else {
             throw ParserError("xl/workbook.xml contains no sheets")
         }
@@ -68,6 +69,14 @@ enum XLSXWorkbookParser {
             throw ParserError("the workbook contains too many sheets")
         }
         let relationships = try RelationshipParser.parse(relationshipsXML)
+        let numberStyles: XLSXNumberStyles
+        if let target = relationships.styles {
+            let stylePath = try normalizedWorksheetPath(target)
+            guard let xml = try reader.dataIfPresent(named: stylePath) else {
+                throw ParserError("the XLSX styles relationship points to a missing part")
+            }
+            numberStyles = try XLSXNumberStyles(xml)
+        } else { numberStyles = XLSXNumberStyles() }
         // Ein Diagramm- oder Dialogblatt steht wie ein Arbeitsblatt in
         // `<sheets>`, hat aber keine Worksheet-Beziehung. Es wird übersprungen
         // und als nicht darstellbares Objekt gemeldet, statt die ganze
@@ -139,7 +148,9 @@ enum XLSXWorkbookParser {
                     maximumCells: maximumCells - expandedCellCount,
                     maximumTextBytes: SpreadsheetLimits.maximumOutputBytes - materializedTextBytes,
                     maximumHyperlinkScans: SpreadsheetLimits.maximumHyperlinkScans - hyperlinkScannedCells,
-                    hyperlinkTargets: hyperlinkTargets
+                    hyperlinkTargets: hyperlinkTargets,
+                    numberStyles: numberStyles,
+                    dateSystem: workbookDefinition.dateSystem
                 )
             }
             expandedCellCount += parsed.expandedCellCount
@@ -267,18 +278,26 @@ enum XLSXWorkbookParser {
         let relationshipID: String
     }
 
+    private struct WorkbookDefinition {
+        let sheets: [SheetDefinition]
+        let dateSystem: SpreadsheetDateSystem
+    }
+
     private enum WorkbookParser {
-        static func parse(_ xml: Data) throws -> [SheetDefinition] {
+        static func parse(_ xml: Data) throws -> WorkbookDefinition {
             let delegate = Delegate()
             try XLSXWorkbookParser.parse(xml, delegate: delegate)
             guard delegate.hasValidRoot, delegate.failure == nil else {
                 throw ParserError(delegate.failure ?? "xl/workbook.xml has no valid workbook root")
             }
-            return delegate.sheets
+            return WorkbookDefinition(sheets: delegate.sheets, dateSystem: delegate.dateSystem)
         }
 
         private final class Delegate: NSObject, XMLParserDelegate {
             var sheets = [SheetDefinition]()
+            var dateSystem = SpreadsheetDateSystem.excel1900
+            private var sawDateSystem = false
+            private var elements: [String] = []
             var hasValidRoot = false
             var failure: String?
             private var sawRoot = false
@@ -311,6 +330,16 @@ enum XLSXWorkbookParser {
                     hasValidRoot = elementName == "workbook"
                         && namespaceURI == Namespaces.spreadsheet
                 }
+                elements.append(namespaceURI == Namespaces.spreadsheet ? elementName : "")
+                if elements == ["workbook", "workbookPr"],
+                   let value = xlsxAttribute("date1904", in: attributeDict) {
+                    guard !sawDateSystem, ["0", "1", "true", "false"].contains(value) else {
+                        failure = "the XLSX date1904 property is invalid"
+                        return
+                    }
+                    sawDateSystem = true
+                    dateSystem = value == "1" || value == "true" ? .excel1904 : .excel1900
+                }
                 guard namespaceURI == Namespaces.spreadsheet, elementName == "sheet" else {
                     return
                 }
@@ -325,6 +354,10 @@ enum XLSXWorkbookParser {
                 }
                 sheets.append(SheetDefinition(name: name, relationshipID: relationshipID))
             }
+
+            func parser(_ parser: XMLParser, didEndElement: String, namespaceURI: String?, qualifiedName: String?) {
+                if !elements.isEmpty { elements.removeLast() }
+            }
         }
     }
 
@@ -334,6 +367,7 @@ enum XLSXWorkbookParser {
     private struct WorkbookRelationships {
         let worksheets: [String: String]
         let otherSheetIDs: Set<String>
+        let styles: String?
     }
 
     private enum RelationshipParser {
@@ -350,7 +384,8 @@ enum XLSXWorkbookParser {
             }
             return WorkbookRelationships(
                 worksheets: delegate.worksheets,
-                otherSheetIDs: delegate.otherSheetIDs
+                otherSheetIDs: delegate.otherSheetIDs,
+                styles: delegate.styles
             )
         }
 
@@ -360,6 +395,7 @@ enum XLSXWorkbookParser {
         private final class Delegate: NSObject, XMLParserDelegate {
             var worksheets = [String: String]()
             var otherSheetIDs = Set<String>()
+            var styles: String?
             var unsafeTarget: String?
             var hasValidRoot = false
             var failure: String?
@@ -383,6 +419,12 @@ enum XLSXWorkbookParser {
                       let id = xlsxAttribute("Id", in: attributeDict),
                       let target = xlsxAttribute("Target", in: attributeDict),
                       let type = xlsxAttribute("Type", in: attributeDict)?.lowercased() else {
+                    return
+                }
+                if type.hasSuffix("/styles") {
+                    guard styles == nil else { failure = "the XLSX styles relationship is duplicated"; return }
+                    if xlsxAttribute("TargetMode", in: attributeDict)?.lowercased() == "external" { unsafeTarget = target }
+                    else { styles = target }
                     return
                 }
                 if otherSheetTypes.contains(where: type.hasSuffix) {
@@ -557,14 +599,18 @@ enum XLSXWorkbookParser {
             maximumCells: Int,
             maximumTextBytes: Int,
             maximumHyperlinkScans: Int,
-            hyperlinkTargets: [String: String]
+            hyperlinkTargets: [String: String],
+            numberStyles: XLSXNumberStyles,
+            dateSystem: SpreadsheetDateSystem
         ) throws -> WorksheetInspection {
             let delegate = Delegate(
                 sharedStrings: sharedStrings,
                 maximumCells: maximumCells,
                 maximumTextBytes: maximumTextBytes,
                 maximumHyperlinkScans: maximumHyperlinkScans,
-                hyperlinkTargets: hyperlinkTargets
+                hyperlinkTargets: hyperlinkTargets,
+                numberStyles: numberStyles,
+                dateSystem: dateSystem
             )
             let parser = ImportXMLParser.make(xml, delegate: delegate)
             let parsedSuccessfully = parser.parse()
@@ -601,6 +647,12 @@ enum XLSXWorkbookParser {
             private let maximumTextBytes: Int
             private let maximumHyperlinkScans: Int
             private let hyperlinkTargets: [String: String]
+            private let numberStyles: XLSXNumberStyles
+            private let dateSystem: SpreadsheetDateSystem
+            private var rowStyle: Int?
+            private var columnStyles: [Int: Int] = [:]
+            private var columnStyleAssignments = 0
+            private var elements: [String] = []
             private var currentRow: [SpreadsheetCell]?
             private var currentCell: CellBuilder?
             private var capture: Capture?
@@ -624,13 +676,17 @@ enum XLSXWorkbookParser {
                 maximumCells: Int,
                 maximumTextBytes: Int,
                 maximumHyperlinkScans: Int,
-                hyperlinkTargets: [String: String]
+                hyperlinkTargets: [String: String],
+                numberStyles: XLSXNumberStyles,
+                dateSystem: SpreadsheetDateSystem
             ) {
                 self.sharedStrings = sharedStrings
                 self.maximumCells = maximumCells
                 self.maximumTextBytes = maximumTextBytes
                 self.maximumHyperlinkScans = maximumHyperlinkScans
                 self.hyperlinkTargets = hyperlinkTargets
+                self.numberStyles = numberStyles
+                self.dateSystem = dateSystem
             }
 
             func parser(
@@ -656,13 +712,28 @@ enum XLSXWorkbookParser {
             ) {
             if ConversionExecution.isCancelled { parser.abortParsing(); return }
                 guard failure == nil else { return }
+                elements.append(namespaceURI == Namespaces.spreadsheet ? elementName : "")
                 if !sawRoot {
                     sawRoot = true
                     hasValidRoot = elementName == "worksheet"
                         && namespaceURI == Namespaces.spreadsheet
                 }
                 guard namespaceURI == Namespaces.spreadsheet else { return }
-                if elementName == "row" {
+                if elements == ["worksheet", "cols", "col"], let style = xlsxAttribute("style", in: attributeDict) {
+                    guard let first = Int(xlsxAttribute("min", in: attributeDict) ?? ""),
+                          let last = Int(xlsxAttribute("max", in: attributeDict) ?? ""),
+                          first > 0, last >= first, last <= SpreadsheetLimits.maximumColumns,
+                          last - first + 1 <= 65_536 - columnStyleAssignments else {
+                        return fail("the XLSX column-style range is invalid or exceeds its budget", parser: parser)
+                    }
+                    columnStyleAssignments += last - first + 1
+                    for column in first...last { columnStyles[column - 1] = Int(style) ?? -1 }
+                } else if elementName == "row" {
+                    let custom = xlsxAttribute("customFormat", in: attributeDict)
+                    guard custom.map({ ["0", "1", "true", "false"].contains($0) }) ?? true else {
+                        return fail("the XLSX row customFormat property is invalid", parser: parser)
+                    }
+                    rowStyle = custom == "1" || custom == "true" ? xlsxAttribute("s", in: attributeDict).map { Int($0) ?? -1 } : nil
                     let rowNumber = Int(xlsxAttribute("r", in: attributeDict) ?? "")
                         ?? rows.count + 1
                     guard rowNumber <= SpreadsheetLimits.maximumRows else {
@@ -702,7 +773,8 @@ enum XLSXWorkbookParser {
                     }
                     currentCell = CellBuilder(
                         column: column,
-                        type: xlsxAttribute("t", in: attributeDict)
+                        type: xlsxAttribute("t", in: attributeDict),
+                        style: xlsxAttribute("s", in: attributeDict).map { Int($0) ?? -1 } ?? rowStyle ?? columnStyles[column] ?? 0
                     )
                 } else if elementName == "v", currentCell != nil {
                     capture = .value
@@ -785,6 +857,7 @@ enum XLSXWorkbookParser {
                 qualifiedName qName: String?
             ) {
             if ConversionExecution.isCancelled { parser.abortParsing(); return }
+                defer { if !elements.isEmpty { elements.removeLast() } }
                 guard namespaceURI == Namespaces.spreadsheet else { return }
                 if elementName == "rPh" {
                     phoneticDepth -= 1
@@ -821,7 +894,24 @@ enum XLSXWorkbookParser {
                     return fail("XLSX cells are not in increasing column order", parser: parser)
                 }
                 do {
-                    let cell = try builder.cell(sharedStrings: sharedStrings)
+                    let original = try builder.cell(sharedStrings: sharedStrings)
+                    let cell: SpreadsheetCell
+                    if case .number(let raw) = original.value {
+                        let formatted = numberStyles.format(raw, style: builder.style, dateSystem: dateSystem)
+                        cell = SpreadsheetCell(value: original.value, displayText: formatted.text, formula: original.formula)
+                        if let issue = formatted.issue, locatedDiagnostics.count < 256 {
+                            var column = builder.column + 1
+                            var name = ""
+                            while column > 0 { column -= 1; name = String(UnicodeScalar(65 + column % 26)!) + name; column /= 26 }
+                            locatedDiagnostics.append(ConversionWarning(
+                                code: "spreadsheet.numberFormatNotPreserved",
+                                message: formatted.text == raw
+                                    ? "Number formatting could not be preserved: \(issue). The stored value was retained."
+                                    : "Number formatting requires review: \(issue).",
+                                location: ConversionLocation(cell: "\(name)\(rows.count + 1)")
+                            ))
+                        }
+                    } else { cell = original }
                     try accountMaterializedText(cell.displayText)
                     currentRow!.append(cell)
                     expandedCellCount += cellsToAppend
@@ -1007,6 +1097,7 @@ enum XLSXWorkbookParser {
         private struct CellBuilder {
             let column: Int
             let type: String?
+            let style: Int
             var rawValue = ""
             var formula = ""
             /// Wahr, sobald ein `<f>`-Element auftauchte — auch ein leeres.
@@ -1050,6 +1141,8 @@ enum XLSXWorkbookParser {
                         displayText: rawValue,
                         formula: formulaValue
                     )
+                case "d":
+                    return SpreadsheetCell(value: .date(rawValue), displayText: rawValue, formula: formulaValue)
                 default:
                     return SpreadsheetCell(
                         value: rawValue.isEmpty ? .empty : .number(rawValue),

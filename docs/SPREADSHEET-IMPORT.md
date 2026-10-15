@@ -21,10 +21,44 @@ Blattreihenfolge, Darstellung, Größenbegrenzung und Warnungssemantik.
   URL-, Datei- und Blattziele aus HLINK-Records werden als Linkziele übernommen;
   als Altformat erhält XLS immer eine eigene Verlustwarnung.
 
-Ein Import darf höchstens 256 Blätter, 100.000 Zeilen pro Blatt, 16.384 Spalten
-und insgesamt 1.000.000 expandierte Zellen enthalten. Dasselbe Limit gilt für
-die Tabelle gemeinsamer XLSX-Texte. Überschreitungen brechen mit einer
+Ein Import darf höchstens 256 Blätter, 1.000.000 Zeilen pro Blatt, 16.384 Spalten
+und insgesamt 10.000.000 expandierte Zellen enthalten. Die Tabelle gemeinsamer
+XLSX-Texte ist auf 1.000.000 Einträge begrenzt. Überschreitungen brechen mit einer
 verständlichen Fehlermeldung ab; Inhalte werden nicht still gekürzt.
+
+## Zahlenformate in XLSX
+
+XLSX-Zellen behalten ihren gespeicherten Wert im Arbeitsmappenmodell und
+erhalten zusätzlich den anhand ihres Zahlenformats erzeugten Anzeigetext.
+Zellstyles haben Vorrang vor ausdrücklich angewendeten Zeilenstyles und
+Spaltenstyles. Vererbte Zahlenformate aus `cellStyleXfs` werden berücksichtigt.
+
+Unterstützt sind übliche feste Dezimalformate, Gruppierung, Prozent, Währung,
+führende Nullen, wissenschaftliche Schreibweise sowie Datum, Uhrzeit und
+verstrichene Zeit. Positive, negative und Nullabschnitte, einfache numerische
+Bedingungen, zitierte/escapte Literale und verbreitete explizite Gebietsschemata
+werden ausgewertet. Farben und Füllzeichen zur Zellbreitenausrichtung werden
+nicht nachgebildet. Formeln werden weiterhin nie berechnet.
+
+Ohne explizites Gebietsschema ist die Darstellung reproduzierbar mit englischen
+Monats-/Wochentagsnamen, Punkt als Dezimalzeichen und Komma zur Gruppierung.
+Eingebaute Datumsformate folgen ihrer dokumentierten OOXML-Schreibweise;
+`General` erhält den gespeicherten Text ohne breitenabhängige Kürzung.
+Ein Format wie `[$€-407]#,##0.00` verwendet dagegen deutsche Zahlentrenner.
+
+Beide Datumssysteme 1900 und 1904 werden unterstützt. Excel-Serienwert 60 im
+1900-System erscheint als `1900-02-29`, sofern das Format dies ausdrückt, und
+erhält wegen dieses fiktiven Datums eine Warnung. Nicht darstellbare Kalenderdaten
+bleiben mit Diagnose als Rohwert erhalten. Numerische Werte ohne Datumsformat
+werden nie als Datum interpretiert; explizite ISO-Datumszellen behalten ihren Text.
+
+Bruchformate, spezielle Kalendersysteme, unbekannte Gebietsschemata, verschachtelte
+Kennnummernmasken und Formate, die den Zahlenwert vollständig verbergen oder
+durch ein Literal ersetzen, werden nicht geraten. Der gespeicherte Wert bleibt
+sichtbar, und `spreadsheet.numberFormatNotPreserved` nennt Blatt und Zelle.
+Der Formatcode ist auf 1.024 Bytes und der formatierte Zelltext auf 4.096 Bytes
+begrenzt. Styledefinitionen und deren Gesamtdaten haben zusätzliche Grenzen;
+ungültige oder übergroße Stylepakete werden vor der Veröffentlichung abgewiesen.
 
 ## Gemeinsames Arbeitsmappenmodell
 

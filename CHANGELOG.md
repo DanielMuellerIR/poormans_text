@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.17.0 — 2026-10-16
+
+- Preserve common XLSX number formats for dates, times, elapsed durations,
+  percentages, currencies, scientific notation and leading zeros. Read cell,
+  row and column styles, custom format definitions and the workbook date system;
+  keep stored values and cached formula results unchanged.
+- Report unsupported number formats and invalid style references at their cell
+  locations while retaining the stored number. Preserve Excel's fictitious
+  1900-02-29 with an explicit warning; never infer dates from unformatted numbers.
+
 ## 0.16.17 — 2026-10-14
 
 - Isolate email MIME bodies before HTML conversion so unclosed quotes, lists and

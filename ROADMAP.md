@@ -12,16 +12,92 @@ EPUB, LaTeX, DocBook, Org, MediaWiki, Textile, reStructuredText, FictionBook
 sowie EML/Apple Mail und PNG, JPEG, HEIC, TIFF, GIF, BMP und WebP sind implementiert. Ihre Importwege stehen in
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-## Etappenplan (Stand 2026-10-07)
+## Geplante Erweiterungen (Stand 2026-10-16)
 
-Die Etappen sind nach Nutzen je Aufwand sortiert und bauen aufeinander auf.
-Jede Etappe ist für sich releasefähig. Ein neuer Adapter meldet sich weiterhin
-nur über `supportedFormatDescriptors`; der Orchestrator bleibt unverändert.
-Was [docs/MARKITDOWN-COMPARISON.md](docs/MARKITDOWN-COMPARISON.md) vorschlägt,
-ist hier eingeordnet. Die Etappen 1 bis 5 sind umgesetzt. Ihre Änderungen
-stehen im Changelog; die native Kurzbefehle-Aktion wurde in 0.16.9 ergänzt.
+Die nächsten Erweiterungen verbessern die inhaltliche Treue, die Prüfung der
+Ergebnisse und die Auswahl der zu importierenden Inhalte. Neue Formatadapter
+verwenden weiterhin den gemeinsamen Formatkatalog und die bestehenden
+Sicherheitsgrenzen. Konvertierungslogik bleibt im Kern; App, CLI und
+Kurzbefehle reichen die jeweils passenden Optionen weiter.
 
-### Etappe 8 — App-Bedienung
+### Tabellenwerte und Anzeigeformate
+
+- Datums-, Zeit-, Prozent- und Währungsformate sowie bedeutungstragende führende
+  Nullen aus XLSX und XLS übernehmen; ODS-Werte und ihre sichtbare Darstellung
+  nach denselben Regeln behandeln.
+- Gespeicherte Werte und Anzeigeformate unterscheiden. Nicht unterstützte
+  Zahlenformate mit einer konkreten Diagnose melden; Formeln weiterhin nicht
+  berechnen.
+
+### Ergebnisprüfung und Quellbezug
+
+- Hinweise, tatsächliche Inhaltsverluste und unsichere Erkennung unterscheiden
+  und nach Fundstellen zusammenfassen.
+- Einen optionalen Konvertierungsbericht mit Quellenidentität, Optionen,
+  Konverterversion und nachvollziehbarer Zuordnung zwischen Quelle und
+  Ergebnis anbieten. Unbekannte Fundstellen ausdrücklich als unbekannt behandeln.
+- Markdown einschließlich lokaler Bilder sicher gerendert anzeigen.
+- Zunächst bei PDFs und Bildern Quelle und Ergebnis nebeneinander prüfen und
+  bekannte Fundstellen direkt ansteuern können.
+
+### Teilbereiche auswählen
+
+- PDF-Seiten, Tabellenblätter und Zellbereiche gezielt importieren.
+- Folien und die Übernahme von Präsentationsnotizen auswählen.
+- EPUB-Kapitel in ihrer Lesereihenfolge auswählen.
+- Die Auswahl in App und CLI sowie über passende Kurzbefehle-Parameter anbieten;
+  die ausgegebenen Fundstellen behalten die Nummern und Namen der Quelle.
+
+### Strukturierte lokale Dokumenterkennung
+
+- Auf unterstützten macOS-Versionen zusätzlich Apples strukturierte
+  Dokumenterkennung für Tabellen, Listen und Absätze in Bildern und gerasterten
+  PDF-Seiten verwenden.
+- Den zusätzlichen Weg zuerst an schwierigen Dokumenten mit dem bestehenden
+  Import vergleichen. Inhaltsbestand, Zellzuordnung, Lesereihenfolge, Laufzeit
+  und Speicherbedarf entscheiden über seinen Einsatz.
+- Den bisherigen OCR-Weg für ältere Systeme und als nachvollziehbaren
+  Rückfallweg erhalten.
+
+### Kommentare, Änderungen und Links
+
+- DOCX-Kommentare zugeordnet ausgeben und zwischen angenommenen, verworfenen
+  und sichtbar markierten Änderungen wählen können.
+- Hyperlinkziele aus Präsentationen zusammen mit ihrem sichtbaren Text erhalten.
+- PDF-Hervorhebungen, Kommentare und Linkziele mit Seitenbezug übernehmen.
+
+### Konvertierungsprofile
+
+- Benannte Profile für wiederkehrende Kombinationen aus Konvertierungsoptionen
+  speichern und auswählen, etwa für deutschsprachige Scans oder Archivimporte.
+- Profile in App, CLI und Kurzbefehle nutzbar machen; explizit angegebene Optionen
+  müssen nachvollziehbar Vorrang haben.
+
+### Inhalte direkt einfügen
+
+- Kopierten Rich Text direkt in der App in Markdown umwandeln.
+- Bilder und Screenshots aus der Zwischenablage übernehmen und bei Bedarf
+  lokal mit OCR lesen.
+- Bilder und Anhänge bei dauerhaft gespeicherten Ergebnissen erhalten; bei
+  reiner Textausgabe ausgelassene Assets verständlich melden.
+
+### Mailarchive und Notizexporte
+
+- MBOX-Dateien und exportierte Apple-Mail-Postfächer in einzelne
+  Markdown-Nachrichten mit Anhängen und einer gemeinsamen Übersicht umwandeln.
+- ENEX-Exporte mit einzelnen Notizen, Tags, Metadaten, Bildern und Anhängen
+  importieren. Interne Verweise soweit anhand der Exportdaten möglich erhalten;
+  nicht auflösbare Verweise diagnostizieren.
+- Sammlungen vollständig im temporären Bereich fertigstellen und als Ganzes
+  atomar veröffentlichen. Bestehende Einzeldatei-Ausgaben bleiben kompatibel.
+
+## Mögliche spätere Erweiterung
+
+Eine Vorplanung von Stapelläufen mit Zielübersicht und früher Auflösung von
+Namenskollisionen sowie eine Warteschlange für zusätzliche Dateien können
+sinnvoll sein. Beides gehört derzeit nicht zum Umsetzungsumfang.
+
+## Weitere offene Produktarbeit
 
 - Homebrew-Cask veröffentlichen oder bei Homebrew einreichen. Ein geprüfter
   Entwurf liegt unter `packaging/homebrew/Casks/poor-mans-text.rb`.

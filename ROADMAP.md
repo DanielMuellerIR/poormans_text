@@ -22,12 +22,10 @@ Kurzbefehle reichen die jeweils passenden Optionen weiter.
 
 ### Tabellenwerte und Anzeigeformate
 
-- Datums-, Zeit-, Prozent- und Währungsformate sowie bedeutungstragende führende
-  Nullen aus XLS übernehmen; ODS-Werte und ihre sichtbare Darstellung
-  nach denselben Regeln behandeln.
-- Gespeicherte Werte und Anzeigeformate unterscheiden. Nicht unterstützte
-  Zahlenformate mit einer konkreten Diagnose melden; Formeln weiterhin nicht
-  berechnen.
+- ODS-Werte und ihre sichtbare Darstellung mit den gemeinsamen Regeln für
+  Datums-, Zeit-, Prozent- und Währungsformate sowie führende Nullen abgleichen.
+- Fehlende ODS-Anzeigetexte aus belegbaren Zahlenstyles ergänzen und nicht
+  unterstützte Formate konkret diagnostizieren; Formeln weiterhin nicht berechnen.
 
 ### Ergebnisprüfung und Quellbezug
 

@@ -5,6 +5,17 @@ enum SpreadsheetDateSystem: Sendable { case excel1900, excel1904 }
 struct SpreadsheetFormattedNumber: Sendable {
     let text: String
     let issue: String?
+
+    func warning(storedValue: String, at location: ConversionLocation) -> ConversionWarning? {
+        guard let issue else { return nil }
+        return ConversionWarning(
+            code: "spreadsheet.numberFormatNotPreserved",
+            message: text == storedValue
+                ? "Number formatting could not be preserved: \(issue). The stored value was retained."
+                : "Number formatting requires review: \(issue).",
+            location: location
+        )
+    }
 }
 
 /// Kompiliert die unterstützte Excel-Formatsyntax einmal je Style. Bei einer

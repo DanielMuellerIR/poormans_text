@@ -899,17 +899,13 @@ enum XLSXWorkbookParser {
                     if case .number(let raw) = original.value {
                         let formatted = numberStyles.format(raw, style: builder.style, dateSystem: dateSystem)
                         cell = SpreadsheetCell(value: original.value, displayText: formatted.text, formula: original.formula)
-                        if let issue = formatted.issue, locatedDiagnostics.count < 256 {
+                        if formatted.issue != nil, locatedDiagnostics.count < 256 {
                             var column = builder.column + 1
                             var name = ""
                             while column > 0 { column -= 1; name = String(UnicodeScalar(65 + column % 26)!) + name; column /= 26 }
-                            locatedDiagnostics.append(ConversionWarning(
-                                code: "spreadsheet.numberFormatNotPreserved",
-                                message: formatted.text == raw
-                                    ? "Number formatting could not be preserved: \(issue). The stored value was retained."
-                                    : "Number formatting requires review: \(issue).",
-                                location: ConversionLocation(cell: "\(name)\(rows.count + 1)")
-                            ))
+                            if let warning = formatted.warning(storedValue: raw, at: ConversionLocation(cell: "\(name)\(rows.count + 1)")) {
+                                locatedDiagnostics.append(warning)
+                            }
                         }
                     } else { cell = original }
                     try accountMaterializedText(cell.displayText)

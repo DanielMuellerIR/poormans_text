@@ -1141,9 +1141,9 @@ final class SpreadsheetAdapterTests: XCTestCase {
         markdown.split(separator: "\n").map(String.init).filter {
             $0.hasPrefix("| ") && !$0.contains("---")
         }.map {
-            $0.replacingOccurrences(of: "1,50", with: "1.5")
+            $0.replacingOccurrences(of: "1,50", with: "1.50")
                 .replacingOccurrences(of: "2,25", with: "2.25")
-                .replacingOccurrences(of: "0,40", with: "0.4")
+                .replacingOccurrences(of: "0,40", with: "0.40")
                 .replacingOccurrences(of: "41,75", with: "41.75")
                 .replacingOccurrences(of: "WAHR", with: "TRUE")
                 .replacingOccurrences(of: "FALSCH", with: "FALSE")

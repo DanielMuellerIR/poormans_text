@@ -64,6 +64,7 @@ enum LegacyXLSWorkbookParser {
                 throw ParserError("encrypted XLS workbooks are not supported")
             }
             let sharedStrings = try parseSharedStrings(records)
+            let numberStyles = try parseNumberStyles(records)
             var allBounds = [BoundSheet]()
             var hasUnsupportedObjects = false
             for record in records where record.id == 0x0085 {
@@ -107,11 +108,16 @@ enum LegacyXLSWorkbookParser {
                     before: endOffset,
                     sharedStrings: sharedStrings,
                     maximumCells: SpreadsheetLimits.maximumCells - expandedCellCount,
-                    maximumHyperlinkScans: SpreadsheetLimits.maximumHyperlinkScans - hyperlinkScannedCellCount
+                    maximumHyperlinkScans: SpreadsheetLimits.maximumHyperlinkScans - hyperlinkScannedCellCount,
+                    numberStyles: numberStyles
                 )
                 expandedCellCount += parsed.expandedCellCount
                 hyperlinkScannedCellCount += parsed.hyperlinkScannedCellCount
                 workbook.sheets.append(SpreadsheetSheet(name: bound.name, rows: parsed.rows))
+                workbook.locatedDiagnostics += parsed.diagnostics.prefix(max(0, 256 - workbook.locatedDiagnostics.count)).map {
+                    ConversionWarning(code: $0.code, message: $0.message,
+                                      location: ConversionLocation(sheet: bound.name, cell: $0.location?.cell))
+                }
                 workbook.hasFlattenedMerges = workbook.hasFlattenedMerges || parsed.hasMerges
                 workbook.hasFormulaWithoutResult = workbook.hasFormulaWithoutResult
                     || parsed.hasFormulaWithoutResult
@@ -188,13 +194,95 @@ enum LegacyXLSWorkbookParser {
             return strings
         }
 
+        private struct BIFFNumberStyles {
+            let formats: [SpreadsheetNumberFormat]
+            let dateSystem: SpreadsheetDateSystem
+
+            func cell(_ raw: String, style: Int, formula: String?, row: Int, column: Int,
+                      diagnostics: inout [ConversionWarning]) -> SpreadsheetCell {
+                let result = formats.indices.contains(style)
+                    ? formats[style].format(raw, dateSystem: dateSystem)
+                    : SpreadsheetFormattedNumber(text: raw, issue: "cell XF index \(style) has no valid definition")
+                if result.issue != nil, diagnostics.count < 256 {
+                    var remaining = column + 1
+                    var name = ""
+                    while remaining > 0 { remaining -= 1; name = String(UnicodeScalar(65 + remaining % 26)!) + name; remaining /= 26 }
+                    if let warning = result.warning(storedValue: raw, at: ConversionLocation(cell: "\(name)\(row + 1)")) {
+                        diagnostics.append(warning)
+                    }
+                }
+                return SpreadsheetCell(value: .number(raw), displayText: result.text, formula: formula)
+            }
+        }
+
+        private static func parseNumberStyles(_ records: [Record]) throws -> BIFFNumberStyles {
+            var codes: [Int: String] = [:]
+            var xfs: [(format: Int, isStyle: Bool, parent: Int, applies: Bool)] = []
+            var dateSystem = SpreadsheetDateSystem.excel1900
+            var sawDateSystem = false
+            var codeBytes = 0
+            for (index, record) in records.enumerated() {
+                try ConversionExecution.check()
+                switch record.id {
+                case 0x0022: // Date1904
+                    guard !sawDateSystem, record.payload.count == 2, record.payload.legacyUInt16(at: 0) <= 1 else {
+                        throw ParserError("the XLS date system is invalid or duplicated")
+                    }
+                    sawDateSystem = true
+                    dateSystem = record.payload.legacyUInt16(at: 0) == 1 ? .excel1904 : .excel1900
+                case 0x041E: // FORMAT, BIFF8 XLUnicodeString
+                    guard record.payload.count >= 5 else { throw ParserError("an XLS number format is truncated") }
+                    let id = Int(record.payload.legacyUInt16(at: 0))
+                    guard codes[id] == nil, codes.count < 65_536 else { throw ParserError("XLS number formats are duplicated or exceed their budget") }
+                    var segments = [Data(record.payload.dropFirst(2))]
+                    var bytes = segments[0].count
+                    guard bytes <= 16_384 else { throw ParserError("an XLS number format exceeds its record budget") }
+                    var next = index + 1
+                    while next < records.count && records[next].id == 0x003C {
+                        bytes += records[next].payload.count
+                        guard bytes <= 16_384 else { throw ParserError("an XLS number format exceeds its record budget") }
+                        segments.append(records[next].payload)
+                        next += 1
+                    }
+                    var cursor = SegmentedCursor(segments: segments)
+                    let code = try cursor.readUnicodeString(requiresValidUnicode: true)
+                    guard codeBytes <= 1_048_576 - code.utf8.count else { throw ParserError("XLS number formats exceed their text budget") }
+                    codes[id] = code
+                    codeBytes += code.utf8.count
+                case 0x00E0: // XF, BIFF8: fAtrNum in Byte 9, Bit 2
+                    guard record.payload.count == 20, xfs.count < 65_536 else { throw ParserError("an XLS XF is invalid or exceeds the style budget") }
+                    let flags = record.payload.legacyUInt16(at: 4)
+                    xfs.append((Int(record.payload.legacyUInt16(at: 2)), flags & 4 != 0,
+                                Int(flags >> 4), record.payload[9] & 4 != 0))
+                default: break
+                }
+            }
+            var compiled: [Int: SpreadsheetNumberFormat] = [:]
+            let formats = xfs.map { xf -> SpreadsheetNumberFormat in
+                let id: Int
+                if !xf.isStyle && !xf.applies {
+                    guard xfs.indices.contains(xf.parent), xfs[xf.parent].isStyle else {
+                        return SpreadsheetNumberFormat(unsupported: "the inherited XLS number style has no valid definition")
+                    }
+                    id = xfs[xf.parent].applies ? xf.format : xfs[xf.parent].format
+                } else { id = xf.format }
+                if let cached = compiled[id] { return cached }
+                let format = (codes[id] ?? SpreadsheetNumberFormat.builtInCode(id)).map { SpreadsheetNumberFormat(code: $0) }
+                    ?? SpreadsheetNumberFormat(unsupported: "number format ID \(id) has no supported definition")
+                compiled[id] = format
+                return format
+            }
+            return BIFFNumberStyles(formats: formats.isEmpty ? [SpreadsheetNumberFormat(code: "General")] : formats, dateSystem: dateSystem)
+        }
+
         private static func parseSheet(
             _ data: Data,
             at offset: Int,
             before endOffset: Int,
             sharedStrings: [String],
             maximumCells: Int,
-            maximumHyperlinkScans: Int
+            maximumHyperlinkScans: Int,
+            numberStyles: BIFFNumberStyles
         ) throws -> SheetResult {
             guard offset >= 0, offset + 8 <= endOffset, endOffset <= data.count,
                   data.legacyUInt16(at: offset) == 0x0809 else {
@@ -222,6 +310,7 @@ enum LegacyXLSWorkbookParser {
             var pendingStringFormula: (row: Int, column: Int, formula: String?)?
             var hyperlinks = [BIFFHyperlink]()
             var hyperlinkScannedCellCount = 0
+            var diagnostics: [ConversionWarning] = []
 
             for record in sheetRecords.dropFirst() {
                 try ConversionExecution.check()
@@ -245,7 +334,8 @@ enum LegacyXLSWorkbookParser {
                     let number = record.payload.legacyDouble(at: 6)
                     let text = format(number)
                     try setCell(
-                        .init(value: .number(text), displayText: text, formula: nil),
+                        numberStyles.cell(text, style: Int(record.payload.legacyUInt16(at: 4)), formula: nil,
+                                          row: Int(record.payload.legacyUInt16(at: 0)), column: Int(record.payload.legacyUInt16(at: 2)), diagnostics: &diagnostics),
                         row: Int(record.payload.legacyUInt16(at: 0)),
                         column: Int(record.payload.legacyUInt16(at: 2)),
                         in: &cells,
@@ -255,14 +345,16 @@ enum LegacyXLSWorkbookParser {
                     guard record.payload.count >= 10 else { throw ParserError("an XLS RK cell is invalid") }
                     let text = format(decodeRK(record.payload.legacyUInt32(at: 6)))
                     try setCell(
-                        .init(value: .number(text), displayText: text, formula: nil),
+                        numberStyles.cell(text, style: Int(record.payload.legacyUInt16(at: 4)), formula: nil,
+                                          row: Int(record.payload.legacyUInt16(at: 0)), column: Int(record.payload.legacyUInt16(at: 2)), diagnostics: &diagnostics),
                         row: Int(record.payload.legacyUInt16(at: 0)),
                         column: Int(record.payload.legacyUInt16(at: 2)),
                         in: &cells,
                         budget: &budget
                     )
                 case 0x00BD: // MULRK
-                    try parseMultipleRK(record.payload, into: &cells, budget: &budget)
+                    try parseMultipleRK(record.payload, into: &cells, budget: &budget,
+                                        numberStyles: numberStyles, diagnostics: &diagnostics)
                 case 0x0205: // BOOLERR
                     guard record.payload.count >= 8 else { throw ParserError("an XLS boolean cell is invalid") }
                     let isError = record.payload[7] != 0
@@ -306,7 +398,9 @@ enum LegacyXLSWorkbookParser {
                         }
                     } else {
                         let text = format(record.payload.legacyDouble(at: 6))
-                        try setCell(.init(value: .number(text), displayText: text, formula: formulaMarker), row: row, column: column, in: &cells, budget: &budget)
+                        try setCell(numberStyles.cell(text, style: Int(record.payload.legacyUInt16(at: 4)), formula: formulaMarker,
+                                                      row: row, column: column, diagnostics: &diagnostics),
+                                    row: row, column: column, in: &cells, budget: &budget)
                     }
                 case 0x0207: // STRING result after FORMULA
                     if let pending = pendingStringFormula {
@@ -364,7 +458,8 @@ enum LegacyXLSWorkbookParser {
                 hasFormulaWithoutResult: hasFormulaWithoutResult,
                 hasUnsupportedObjects: hasUnsupportedObjects,
                 expandedCellCount: dense.expandedCellCount,
-                hyperlinkScannedCellCount: hyperlinkScannedCellCount
+                hyperlinkScannedCellCount: hyperlinkScannedCellCount,
+                diagnostics: diagnostics
             )
         }
 
@@ -549,7 +644,9 @@ enum LegacyXLSWorkbookParser {
         private static func parseMultipleRK(
             _ payload: Data,
             into cells: inout [Int: [Int: SpreadsheetCell]],
-            budget: inout CellBudget
+            budget: inout CellBudget,
+            numberStyles: BIFFNumberStyles,
+            diagnostics: inout [ConversionWarning]
         ) throws {
             guard payload.count >= 12, (payload.count - 6) % 6 == 0 else {
                 throw ParserError("an XLS multiple-number record is invalid")
@@ -564,7 +661,8 @@ enum LegacyXLSWorkbookParser {
             for index in 0..<count {
                 let text = format(decodeRK(payload.legacyUInt32(at: 6 + index * 6)))
                 try setCell(
-                    .init(value: .number(text), displayText: text, formula: nil),
+                    numberStyles.cell(text, style: Int(payload.legacyUInt16(at: 4 + index * 6)), formula: nil,
+                                      row: row, column: firstColumn + index, diagnostics: &diagnostics),
                     row: row,
                     column: firstColumn + index,
                     in: &cells,
@@ -667,6 +765,7 @@ enum LegacyXLSWorkbookParser {
             let hasUnsupportedObjects: Bool
             let expandedCellCount: Int
             let hyperlinkScannedCellCount: Int
+            let diagnostics: [ConversionWarning]
         }
 
         private struct HyperlinkCursor {
@@ -816,9 +915,12 @@ enum LegacyXLSWorkbookParser {
                     | UInt32(try readRawByte()) << 24
             }
 
-            mutating func readUnicodeString() throws -> String {
+            mutating func readUnicodeString(requiresValidUnicode: Bool = false) throws -> String {
                 let characterCount = Int(try readUInt16())
                 let flags = try readRawByte()
+                guard !requiresValidUnicode || flags & 0xF2 == 0 else {
+                    throw ParserError("an XLS number format has unsupported string flags")
+                }
                 var wide = flags & 0x1 != 0
                 let richRunCount = flags & 0x8 != 0 ? Int(try readUInt16()) : 0
                 let extensionSize = flags & 0x4 != 0 ? Int(try readUInt32()) : 0
@@ -852,7 +954,11 @@ enum LegacyXLSWorkbookParser {
                 try skipRaw(richRunCount * 4 + extensionSize)
                 // CONTINUE darf zwischen den beiden UTF-16-Einheiten eines
                 // Surrogatpaars liegen; erst die vollständige Zeichenkette dekodieren.
-                return String(decoding: units, as: UTF16.self)
+                let text = String(decoding: units, as: UTF16.self)
+                guard !requiresValidUnicode || text.utf16.elementsEqual(units) else {
+                    throw ParserError("an XLS number format contains invalid UTF-16")
+                }
+                return text
             }
 
             private mutating func readRawByte() throws -> UInt8 {

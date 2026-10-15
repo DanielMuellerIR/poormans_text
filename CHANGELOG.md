@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.17.1 — 2026-10-16
+
+- Apply the shared number formatter to BIFF8 XLS cell styles, including NUMBER,
+  RK, MULRK and cached numeric formula results. Preserve custom Unicode format
+  strings, inherited number styles and both Excel date systems.
+- Diagnose unsupported formats and invalid XF references at their original cell
+  locations. Validate format definitions and continuation records before atomically
+  publishing an output; retain the general legacy-format warning separately.
+
 ## 0.17.0 — 2026-10-16
 
 - Preserve common XLSX number formats for dates, times, elapsed durations,

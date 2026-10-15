@@ -26,9 +26,9 @@ und insgesamt 10.000.000 expandierte Zellen enthalten. Die Tabelle gemeinsamer
 XLSX-Texte ist auf 1.000.000 Einträge begrenzt. Überschreitungen brechen mit einer
 verständlichen Fehlermeldung ab; Inhalte werden nicht still gekürzt.
 
-## Zahlenformate in XLSX
+## Zahlenformate in XLSX und XLS
 
-XLSX-Zellen behalten ihren gespeicherten Wert im Arbeitsmappenmodell und
+XLSX- und XLS-Zellen behalten ihren gespeicherten Wert im Arbeitsmappenmodell und
 erhalten zusätzlich den anhand ihres Zahlenformats erzeugten Anzeigetext.
 Zellstyles haben Vorrang vor ausdrücklich angewendeten Zeilenstyles und
 Spaltenstyles. Vererbte Zahlenformate aus `cellStyleXfs` werden berücksichtigt.
@@ -59,6 +59,17 @@ sichtbar, und `spreadsheet.numberFormatNotPreserved` nennt Blatt und Zelle.
 Der Formatcode ist auf 1.024 Bytes und der formatierte Zelltext auf 4.096 Bytes
 begrenzt. Styledefinitionen und deren Gesamtdaten haben zusätzliche Grenzen;
 ungültige oder übergroße Stylepakete werden vor der Veröffentlichung abgewiesen.
+
+Bei BIFF8-XLS liefern `FORMAT`-Datensätze die benutzerdefinierten Unicode-Codes
+und `XF`-Datensätze die Formatzuordnung einschließlich vererbter Zahlenstyles.
+Dieselbe Darstellung gilt für gewöhnliche Zahlen, komprimierte RK-/MULRK-Werte
+und gespeicherte numerische Formelergebnisse. `Date1904` bestimmt das Datumssystem;
+Codepage-Annahmen ersetzen nicht die Unicode-Kodierung von BIFF8-Formatstrings.
+Auch über `CONTINUE` geteilte Formatstrings werden gelesen. Doppelte,
+abgeschnittene oder ungültige Definitionen führen vor der Veröffentlichung zu
+einem Fehler. Ein nicht auflösbarer Zell-XF erhält dagegen den Rohwert mit
+zellbezogener Diagnose. Die allgemeine XLS-Verlustwarnung bleibt zusätzlich
+bestehen und beschreibt weiterhin mögliche Verluste außerhalb der Zahlendarstellung.
 
 ## Gemeinsames Arbeitsmappenmodell
 

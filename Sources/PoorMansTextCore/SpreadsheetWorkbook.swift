@@ -44,10 +44,17 @@ struct SpreadsheetCell: Equatable, Sendable {
 struct SpreadsheetSheet: Equatable, Sendable {
     let name: String
     var rows: [[SpreadsheetCell]]
+    var sourceIndex: Int? = nil
+    var visibility: SpreadsheetSheetVisibility = .visible
+    var originRow = 0
+    var originColumn = 0
+    var selectionLabel: String? = nil
 }
 
 struct SpreadsheetWorkbook: Equatable, Sendable {
     var sheets: [SpreadsheetSheet]
+    var sheetSummaries: [SpreadsheetSheetSummary] = []
+    var isSelection = false
     var packageDiagnostics = BoundedConversionDiagnostics()
     var locatedDiagnostics: [ConversionWarning] { packageDiagnostics.values }
     var omittedDiagnosticCount: Int { packageDiagnostics.omittedCount }
@@ -75,7 +82,8 @@ enum SpreadsheetLimits {
     /// Der Renderer füllt jede Zeile auf die breiteste Zeile des Blattes auf.
     /// Auch diese leeren Ausgabezellen kosten Arbeit und zählen formatunabhängig.
     static func validate(_ workbook: SpreadsheetWorkbook) throws {
-        guard workbook.sheets.count <= maximumSheets else {
+        let sheetCount = workbook.isSelection ? Set(workbook.sheets.compactMap(\.sourceIndex)).count : workbook.sheets.count
+        guard sheetCount <= maximumSheets else {
             throw SpreadsheetRenderError("the workbook exceeds the sheet budget of \(maximumSheets) sheets")
         }
         var remainingCells = maximumCells
@@ -162,18 +170,24 @@ enum SpreadsheetMarkdownRenderer {
         try output.append(
             "# \(MarkdownEscaping.heading(sourceURL.deletingPathExtension().lastPathComponent))"
         )
+        let sourceSheetCount = workbook.isSelection ? Set(workbook.sheets.compactMap(\.sourceIndex)).count : workbook.sheets.count
+        var reportedSheets = Set<Int>()
         for (index, sheet) in workbook.sheets.enumerated() {
-            try ConversionExecution.report(unit: .sheet, completed: index, total: workbook.sheets.count)
+            try ConversionExecution.check()
+            if reportedSheets.insert(sheet.sourceIndex ?? index + 1).inserted {
+                try ConversionExecution.report(unit: .sheet, completed: reportedSheets.count - 1, total: sourceSheetCount)
+            }
             try output.append("\n\n## Sheet: \(MarkdownEscaping.heading(sheet.name))\n\n")
+            if let label = sheet.selectionLabel { try output.append("### \(label)\n\n") }
             guard !sheet.rows.isEmpty else {
                 try output.append("_Empty sheet._")
                 continue
             }
             switch style {
             case .markdownTable:
-                try appendMarkdownTable(sheet.rows, sheet: sheet.name, to: &output)
+                try appendMarkdownTable(sheet.rows, sheet: sheet, to: &output)
             case .tabSeparated:
-                try appendTabSeparatedBlock(sheet.rows, sheet: sheet.name, to: &output)
+                try appendTabSeparatedBlock(sheet.rows, sheet: sheet, to: &output)
             }
         }
         try output.append("\n")
@@ -182,7 +196,7 @@ enum SpreadsheetMarkdownRenderer {
 
     private static func appendMarkdownTable(
         _ rows: [[SpreadsheetCell]],
-        sheet: String,
+        sheet: SpreadsheetSheet,
         to output: inout BoundedSpreadsheetOutput
     ) throws {
         let columnCount = max(1, rows.map(\.count).max() ?? 0)
@@ -204,7 +218,7 @@ enum SpreadsheetMarkdownRenderer {
 
     private static func appendTableRow(
         _ row: [SpreadsheetCell],
-        sheet: String,
+        sheet: SpreadsheetSheet,
         rowIndex: Int,
         columnCount: Int,
         to output: inout BoundedSpreadsheetOutput
@@ -266,7 +280,7 @@ enum SpreadsheetMarkdownRenderer {
 
     private static func appendTabSeparatedBlock(
         _ rows: [[SpreadsheetCell]],
-        sheet: String,
+        sheet: SpreadsheetSheet,
         to output: inout BoundedSpreadsheetOutput
     ) throws {
         let columnCount = max(1, rows.map(\.count).max() ?? 0)
@@ -310,11 +324,11 @@ enum SpreadsheetMarkdownRenderer {
         return escapedTSVText(text)
     }
 
-    private static func recordCell(sheet: String, row: Int, column: Int, offset: Int, length: Int) {
+    private static func recordCell(sheet: SpreadsheetSheet, row: Int, column: Int, offset: Int, length: Int) {
         guard let recording = ConversionExecution.current?.recording else { return }
-        var column = column + 1, address = ""
+        var column = column + sheet.originColumn + 1, address = ""
         while column > 0 { column -= 1; address = String(UnicodeScalar(65 + column % 26)!) + address; column /= 26 }
-        recording.record(ConversionLocation(sheet: sheet, cell: address + String(row + 1)), offset: offset, length: length)
+        recording.record(ConversionLocation(sheet: sheet.name, cell: address + String(row + sheet.originRow + 1), sheetIndex: sheet.selectionLabel == nil ? nil : sheet.sourceIndex), offset: offset, length: length)
     }
 
     private static func escapedTSVText(_ text: String) -> String {

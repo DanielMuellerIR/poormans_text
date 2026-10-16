@@ -5,6 +5,8 @@ import Foundation
 struct ODSNumberStyles {
     private var dataStyles: [String: ImportXML] = [:]
     private var cellStyles: [String: ImportXML] = [:]
+    private var tableStyles: [String: ImportXML] = [:]
+    private var defaultTableStyle: ImportXML?
     private var defaultCellStyle: ImportXML?
     private var compiled: [String: DataStyle] = [:]
 
@@ -26,13 +28,39 @@ struct ODSNumberStyles {
         for node in delegate.styles {
             if node.namespace == NS.number, let name = node.attribute("name", namespace: NS.style) {
                 dataStyles[name] = node
+            } else if node.attribute("family", namespace: NS.style) == "table" {
+                if node.name == "default-style" { defaultTableStyle = node }
+                else if let name = node.attribute("name", namespace: NS.style) { tableStyles[name] = node }
             } else if node.name == "default-style" {
                 defaultCellStyle = node
             } else if let name = node.attribute("name", namespace: NS.style) {
                 cellStyles[name] = node
             }
         }
-        guard dataStyles.count + cellStyles.count <= 65_536 else { throw ImportFailure("ODS styles exceed their count limit") }
+        guard dataStyles.count + cellStyles.count + tableStyles.count <= 65_536 else { throw ImportFailure("ODS styles exceed their count limit") }
+    }
+
+    func tableVisibility(styleName: String?, display: String?) -> SpreadsheetSheetVisibility {
+        func visibility(_ value: String) -> SpreadsheetSheetVisibility {
+            switch value { case "true", "1": .visible; case "false", "0": .hidden; default: .unknown }
+        }
+        if let display { return visibility(display) }
+        var node: ImportXML?
+        if let styleName {
+            guard let style = tableStyles[styleName] else { return .unknown }
+            node = style
+        } else { node = defaultTableStyle }
+        var seen = Set<String>()
+        while let style = node {
+            if let value = style.elements("table-properties", namespace: NS.style).first?.attribute("display", namespace: "urn:oasis:names:tc:opendocument:xmlns:table:1.0") { return visibility(value) }
+            guard let parent = style.attribute("parent-style-name", namespace: NS.style) else {
+                if style !== defaultTableStyle { node = defaultTableStyle; continue }
+                return .visible
+            }
+            guard seen.insert(parent).inserted, seen.count <= 128, let next = tableStyles[parent] else { return .unknown }
+            node = next
+        }
+        return .visible
     }
 
     mutating func format(_ raw: String, type: String?, styleName: String?, nullDate: String) -> SpreadsheetFormattedNumber {
@@ -284,7 +312,7 @@ struct ODSNumberStyles {
             guard nodes <= 200_000, attributes <= 200_000, bytes <= 1_048_576 else { return fail("ODS styles exceed their node/attribute/byte limit", parser) }
             if depth == 3 {
                 let isCell = namespaceURI == NS.style && ["style", "default-style"].contains(name)
-                    && prefixes.attributeValue(localName: "family", namespaceURI: NS.style, in: values) == "table-cell"
+                    && prefixes.attributeValue(localName: "family", namespaceURI: NS.style, in: values).map({ ["table-cell", "table"].contains($0) }) == true
                 guard namespaceURI == NS.number || isCell else { return }
             } else if stack.isEmpty { return }
             var expanded: [String: String] = [:]
@@ -305,7 +333,7 @@ struct ODSNumberStyles {
             guard !stack.isEmpty else { return }
             let node = stack.removeLast()
             if stack.isEmpty {
-                let key = node.namespace + "|" + (node.attribute("name", namespace: NS.style) ?? node.name)
+                let key = node.namespace + "|" + (node.attribute("family", namespace: NS.style) ?? "") + "|" + (node.attribute("name", namespace: NS.style) ?? node.name)
                 guard names.insert(key).inserted else { return fail("duplicate ODS style names", parser) }
                 styles.append(node)
             }

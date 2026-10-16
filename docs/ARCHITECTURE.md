@@ -484,3 +484,7 @@ bisheriger Ablauf erhalten.
 begrenzte Seitenmetadaten und deren Quellhash. Es startet weder Import noch OCR
 und veröffentlicht nichts. Größen-/Seitenlimits gelten für die ganze Quelle,
 Arbeitsbudgets für die ausgewählten Seiten. Details: [PDF-IMPORT.md](PDF-IMPORT.md).
+
+## Arbeitsmappenauswahl
+
+`SpreadsheetSelection` verbindet eine typisierte Blattauswahl mit bis zu 64 validierten A1-Rechtecken. XLSX, BIFF und ODS liefern Sichtbarkeit und ursprüngliche Blattindizes. Die vollständige Quelle bleibt an die bisherigen Parser- und Paketbudgets gebunden. Erst danach zerlegt die Auswahl ihre Rechteckvereinigung in disjunkte, begrenzte Ausgabeabschnitte; der gemeinsame Renderer erhält Zeilen-/Spaltenursprung und Quellblattindex. So werden entfernte Bereiche nicht zur großen umschließenden Tabelle expandiert. GUI-Adapter und SwiftUI sind daran nicht beteiligt. `inspectSpreadsheetContents` liefert einen hashgebundenen Überblick aus einem vollständig geprüften Snapshot ohne Ausgabeordner.

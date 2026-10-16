@@ -98,6 +98,20 @@ final class ComparisonTests: XCTestCase {
         XCTAssertEqual(ComparisonNavigation.sections(mappings, limit: 1).count, 1)
     }
 
+    func testDuplicateSheetNamesUseSourceIndexForExactAndCoarseNavigation() throws {
+        let mappings = [1, 2].map { index in
+            ConversionSourceMapping(source: .init(sheet: "Same", cell: "B3", sheetIndex: index), output: .init(file: "text.md", utf8Offset: index * 10, utf8Length: 5))
+        }
+        XCTAssertEqual(ComparisonNavigation.sections(mappings).count, 2)
+        XCTAssertTrue(try XCTUnwrap(ComparisonNavigation.target(for: .init(sheet: "Same", cell: "B3"), mappings: [mappings[0]])).exact)
+        XCTAssertNil(ComparisonNavigation.target(for: .init(sheet: "Same", cell: "B3"), mappings: mappings))
+        XCTAssertNil(ComparisonNavigation.target(for: .init(sheet: "Same", cell: "Z99"), mappings: mappings))
+        let exact = try XCTUnwrap(ComparisonNavigation.target(for: .init(sheet: "Same", cell: "B3", sheetIndex: 2), mappings: mappings))
+        XCTAssertTrue(exact.exact); XCTAssertEqual(exact.range.utf8Offset, 20)
+        let coarse = try XCTUnwrap(ComparisonNavigation.target(for: .init(sheet: "Same", cell: "Z99", sheetIndex: 1), mappings: mappings))
+        XCTAssertFalse(coarse.exact); XCTAssertEqual(coarse.range.utf8Offset, 10)
+    }
+
     func testDiagnosticsFilterMeaningAndUnknownLocationsWithoutDroppingDetails() {
         let information = ConversionWarning(code: "info", message: "Information marker", kind: .information)
         let loss = ConversionWarning(code: "loss", message: "Loss marker", location: ConversionLocation(sheet: "Budget🙂", cell: "B4"), kind: .contentLoss)

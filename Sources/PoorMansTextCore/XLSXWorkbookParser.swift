@@ -123,6 +123,7 @@ enum XLSXWorkbookParser {
         }
 
         var result = SpreadsheetWorkbook(sheets: [])
+        result.sheetSummaries = sheetDefinitions.enumerated().map { .init(index: $0.offset + 1, name: $0.element.name, visibility: $0.element.visibility, isReadable: relationships.worksheets[$0.element.relationshipID] != nil) }
         var expandedCellCount = 0
         var materializedTextBytes = 0
         var hyperlinkScannedCells = 0
@@ -156,7 +157,7 @@ enum XLSXWorkbookParser {
             expandedCellCount += parsed.expandedCellCount
             materializedTextBytes += parsed.materializedTextBytes
             hyperlinkScannedCells += parsed.hyperlinkScannedCells
-            result.sheets.append(SpreadsheetSheet(name: definition.name, rows: parsed.rows))
+            result.sheets.append(SpreadsheetSheet(name: definition.name, rows: parsed.rows, sourceIndex: sheetDefinitions.firstIndex(where: { $0.relationshipID == definition.relationshipID }).map { $0 + 1 }, visibility: definition.visibility))
             for warning in parsed.locatedDiagnostics {
                 result.packageDiagnostics.append(warning.at((warning.location ?? ConversionLocation()).merging(ConversionLocation(sheet: definition.name))))
             }
@@ -277,6 +278,7 @@ enum XLSXWorkbookParser {
     private struct SheetDefinition {
         let name: String
         let relationshipID: String
+        let visibility: SpreadsheetSheetVisibility
     }
 
     private struct WorkbookDefinition {
@@ -353,7 +355,7 @@ enum XLSXWorkbookParser {
                     failure = "an XLSX sheet declaration is incomplete"
                     return
                 }
-                sheets.append(SheetDefinition(name: name, relationshipID: relationshipID))
+                sheets.append(SheetDefinition(name: name, relationshipID: relationshipID, visibility: SpreadsheetSheetVisibility(rawValue: xlsxAttribute("state", in: attributeDict) ?? "visible") ?? .unknown))
             }
 
             func parser(_ parser: XMLParser, didEndElement: String, namespaceURI: String?, qualifiedName: String?) {

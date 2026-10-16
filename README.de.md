@@ -565,7 +565,7 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.22.1.
+Die aktuelle Version ist 0.23.0.
 
 ## Lizenz
 
@@ -583,6 +583,10 @@ der App liegt.
 Poor Man's Text verarbeitet Dokumente lokal und enthält keine Telemetrie. Der
 einzige Netzwerkzugriff ist die Update-Suche. Einzelheiten stehen in
 [PRIVACY.md](PRIVACY.md), Hinweise zum Support in [SUPPORT.md](SUPPORT.md).
+
+### Tabellenauswahl
+
+`--list-sheets --json mappe.xlsx` zeigt Quellindizes, exakte Namen und Sichtbarkeit. `--sheets visible` übernimmt sichtbare Arbeitsblätter; `--sheets 1,3-5` oder wiederholtes `--sheet-name NAME` wählt bestimmte Blätter. Wiederholtes `--cell-range B2:D8` wählt Rechtecke auf jedem gewählten Blatt. Überlappungen werden dedupliziert, entfernte Rechtecke bleiben getrennt; Berichte behalten die ursprünglichen Koordinaten. Ohne diese Optionen werden versteckte Blätter weiterhin übernommen. Grenzen, Verbundzellen und Formeln stehen unter [Tabellenauswahl](docs/SPREADSHEET-SELECTION.md).
 
 ### PDF-Text und OCR-Optionen
 

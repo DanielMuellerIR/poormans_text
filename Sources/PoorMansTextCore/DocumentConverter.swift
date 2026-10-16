@@ -126,6 +126,25 @@ public struct DocumentConverter: Sendable {
         }
     }
 
+    /// Liest die vollständig geprüfte Arbeitsmappe ohne Ausgabeordner. Die
+    /// bestehenden Importbudgets gelten auch für die Inhaltsübersicht.
+    public func inspectSpreadsheetContents(
+        _ inputURL: URL,
+        cancellation: ConversionCancellationToken? = nil,
+        processTimeout: TimeInterval? = nil
+    ) throws -> SpreadsheetContentSummary {
+        try withDetectionContext(cancellation, processTimeout) {
+            let detected = try detectInput(at: inputURL.standardizedFileURL)
+            let format = detected.inspection.format
+            guard [InputFormat.xlsx, .xls, .ods].contains(format) else { throw ConversionError.unsupportedInput(inputURL) }
+            do { return try SpreadsheetAdapter().inspectContents(at: inputURL.standardizedFileURL) }
+            catch {
+                try ConversionExecution.check()
+                throw ConversionError.invalidInput(inputURL, format: format, reason: error.localizedDescription)
+            }
+        }
+    }
+
     /// Bindet einen Kontext nur, wenn noch keiner steht. Ein Aufruf aus einer
     /// laufenden Konvertierung heraus behält damit deren Token und Zeitgrenze.
     private func withDetectionContext<T>(
@@ -218,6 +237,9 @@ public struct DocumentConverter: Sendable {
         let format = detected.inspection.format
         if request.options.pdfPages != nil, format != .pdf {
             throw ConversionError.invalidInput(inputURL, format: format, reason: "PDF page selection can only be used with a PDF input")
+        }
+        if request.options.spreadsheetSelection != nil, ![InputFormat.xlsx, .xls, .ods].contains(format) {
+            throw ConversionError.invalidInput(inputURL, format: format, reason: "spreadsheet selection can only be used with XLSX, XLS or ODS input")
         }
         let resolvedInputURL = inputURL.resolvingSymlinksInPath()
         guard resolvedInputURL == resolvedBeforeDetection else {

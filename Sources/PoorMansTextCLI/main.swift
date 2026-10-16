@@ -37,7 +37,7 @@ do {
 
     if arguments.listFormats {
         guard arguments.inputURLs.isEmpty, arguments.outputURL == nil,
-              !arguments.setsJobs, !arguments.setsPDFOptions, !arguments.setsSpreadsheetRendering, !arguments.setsImageTextRecognition,
+              !arguments.listSheets, !arguments.setsSpreadsheetSelection, !arguments.setsJobs, !arguments.setsPDFOptions, !arguments.setsSpreadsheetRendering, !arguments.setsImageTextRecognition,
               !arguments.writeToStandardOutput, !arguments.frontmatter, !arguments.sourceMapping, !arguments.conversionReport,
               arguments.outputLayout == .markdownFolder, !arguments.progress, arguments.timeout == nil else {
             throw CLIArgumentError.formatsTakesNoInput
@@ -53,6 +53,18 @@ do {
         throw CLIArgumentError.invalidConversionOption("--source-map requires --json or --report.")
     }
 
+    if arguments.listSheets {
+        guard arguments.inputURLs.count == 1, arguments.outputURL == nil, !arguments.writeToStandardOutput,
+              !arguments.setsSpreadsheetSelection, !arguments.setsSpreadsheetRendering, !arguments.setsImageTextRecognition,
+              !arguments.setsPDFOptions, !arguments.setsJobs, arguments.pandocURL == nil,
+              !arguments.frontmatter, !arguments.sourceMapping, !arguments.conversionReport, !arguments.progress, arguments.outputLayout == .markdownFolder else {
+            throw CLIArgumentError.invalidConversionOption("--list-sheets requires one workbook and cannot be combined with conversion options")
+        }
+        let summary = try DocumentConverter().inspectSpreadsheetContents(arguments.inputURLs[0], cancellation: cancellation, processTimeout: arguments.timeout)
+        if arguments.json { writeJSON(summary) }
+        else { for sheet in summary.sheets { print("\(sheet.index)\t\(sheet.visibility.rawValue)\t\(sheet.isReadable ? "worksheet" : "unsupported")\t\(sheet.name)") } }
+        exit(0)
+    }
     let options = ConversionOptions(
         pandocExecutable: arguments.pandocURL,
         spreadsheetRendering: arguments.spreadsheetRendering,
@@ -65,6 +77,7 @@ do {
         pdfRemoveHeadersFooters: arguments.pdfOptions.pdfRemoveHeadersFooters,
         pdfDehyphenate: arguments.pdfOptions.pdfDehyphenate,
         pdfPages: arguments.pdfOptions.pdfPages,
+        spreadsheetSelection: arguments.setsSpreadsheetSelection ? try SpreadsheetSelection(sheets: arguments.sheetSelection, ranges: arguments.cellRanges) : nil,
         sourceMapping: arguments.sourceMapping,
         conversionReport: arguments.conversionReport
     )

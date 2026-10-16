@@ -535,7 +535,7 @@ and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compa
 their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current version is 0.22.1.
+The current version is 0.23.0.
 
 ## License
 
@@ -553,6 +553,10 @@ subject to its own license, which ships with the app as
 Poor Man's Text processes documents locally and includes no telemetry. Its only
 network access is the update check. Details are in [PRIVACY.md](PRIVACY.md);
 support information is in [SUPPORT.md](SUPPORT.md).
+
+### Spreadsheet selection
+
+Use `--list-sheets --json workbook.xlsx` to inspect source sheet indices, exact names and visibility. `--sheets visible` imports visible worksheets; `--sheets 1,3-5` or repeated `--sheet-name NAME` selects explicit sheets. Repeated `--cell-range B2:D8` selects rectangles on every selected sheet. Overlaps are deduplicated and distant rectangles stay separate, with original source coordinates in reports. Without these options, hidden sheets remain included as before. See [spreadsheet selection](docs/SPREADSHEET-SELECTION.md) for bounds, merges and formulas.
 
 ### PDF text and OCR options
 

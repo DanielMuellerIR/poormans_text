@@ -4,6 +4,31 @@ import Foundation
 /// benutzen denselben Renderer; nur Paket- beziehungsweise OLE-Leser sind
 /// formatspezifisch.
 struct SpreadsheetAdapter: DocumentConversionAdapter {
+    func inspectContents(at inputURL: URL) throws -> SpreadsheetContentSummary {
+        try VerifiedFileStaging.withTemporaryCopy(of: inputURL.resolvingSymlinksInPath(),
+            maximumBytes: 1_073_741_824, describedAs: "the workbook source", fileExtension: inputURL.pathExtension) { snapshot in
+            let workbook: SpreadsheetWorkbook
+            if try ZIPArchiveInspector.looksLikeZIP(at: snapshot) {
+                workbook = try ZIPArchiveInspector.withVerifiedReader(at: snapshot) { reader in
+                    let metadata = try reader.contents(entryNames: ["mimetype", "content.xml", "styles.xml"])
+                    if metadata.entries["mimetype"].map({ String(decoding: $0, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines) }) == "application/vnd.oasis.opendocument.spreadsheet",
+                       let content = metadata.entries["content.xml"] {
+                        return try ODSWorkbookParser.parse(content, styles: metadata.entries["styles.xml"])
+                    }
+                    guard try XLSXWorkbookParser.spreadsheetKind(reader: reader) != nil else { throw SpreadsheetError("the input is not an XLSX, XLS or ODS workbook") }
+                    return try XLSXWorkbookParser.parse(reader: reader)
+                }
+            } else {
+                let data = try VerifiedFileStaging.contents(of: snapshot, maximumBytes: 1_073_741_824, describedAs: "the workbook source")
+                guard LegacyXLSWorkbookParser.looksLikeXLS(data) else { throw SpreadsheetError("the input is not an XLSX, XLS or ODS workbook") }
+                workbook = try LegacyXLSWorkbookParser.parse(data)
+            }
+            let fingerprint = try ConversionFileFingerprint.read(snapshot)
+            return SpreadsheetContentSummary(sourceIdentity: ConversionSourceIdentity(name: inputURL.lastPathComponent,
+                sha256: fingerprint.sha256, byteCount: fingerprint.byteCount, unavailableReason: nil), sheets: workbook.summaries)
+        }
+    }
+
     let supportedFormatDescriptors: [SupportedFormat] = [
         SupportedFormat(
             format: .ods,
@@ -157,7 +182,7 @@ struct SpreadsheetAdapter: DocumentConversionAdapter {
             throw ConversionError.unsupportedInput(context.inputURL)
         }
         let stagedInput: URL
-        let workbook: SpreadsheetWorkbook
+        var workbook: SpreadsheetWorkbook
         var xlsxKind: OOXMLSpreadsheetKind?
         var packageReader: ZIPPackageReader?
         do {
@@ -227,6 +252,7 @@ struct SpreadsheetAdapter: DocumentConversionAdapter {
 
         let markdown: String
         do {
+            if let selection = context.options.spreadsheetSelection { workbook = try workbook.selecting(selection) }
             markdown = try SpreadsheetMarkdownRenderer.render(
                 workbook,
                 sourceURL: context.inputURL,
@@ -292,10 +318,10 @@ struct SpreadsheetAdapter: DocumentConversionAdapter {
                 try ConversionExecution.check()
                 for (columnIndex, cell) in row.enumerated() where cell.formula != nil && cell.displayText.isEmpty {
                     guard detailed < 256 else { omittedFormulas += 1; continue }
-                    var column = columnIndex + 1
+                    var column = columnIndex + sheet.originColumn + 1
                     var name = ""
                     while column > 0 { column -= 1; name = String(UnicodeScalar(65 + column % 26)!) + name; column /= 26 }
-                    result.append(ConversionWarning.spreadsheetFormulaResultMissing.at(ConversionLocation(sheet: sheet.name, cell: "\(name)\(rowIndex + 1)")))
+                    result.append(ConversionWarning.spreadsheetFormulaResultMissing.at(ConversionLocation(sheet: sheet.name, cell: "\(name)\(rowIndex + sheet.originRow + 1)", sheetIndex: sheet.selectionLabel == nil ? nil : sheet.sourceIndex)))
                     detailed += 1
                 }
             }

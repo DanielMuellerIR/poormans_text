@@ -3,6 +3,57 @@ import XCTest
 @testable import PoorMansTextCore
 
 final class CLIIntegrationTests: XCTestCase {
+    func testSpreadsheetOverviewSelectionAndOriginalCoordinates() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("PMTCLIWorkbook-\(UUID())")
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let sources = try SpreadsheetSelectionFixture.create(in: root)
+        for source in sources {
+            let overview = try runCLI(["--json", "--list-sheets", source.path])
+            XCTAssertEqual(overview.status, 0, overview.standardError)
+            let summary = try JSONDecoder().decode(SpreadsheetContentSummary.self, from: Data(overview.standardOutput.utf8))
+            XCTAssertEqual(summary.sheets.map(\.index), [1, 2, 3])
+            XCTAssertEqual(summary.sheets.map(\.name), ["Visible", "Hidden", "VeryHidden"])
+            let destination = root.appendingPathComponent(source.lastPathComponent + "-selected")
+            let run = try runCLI(["--json", "--report", "--sheet-name", "Hidden", "--sheet-name", "Hidden", "--cell-range", "D2:E3", "--output", destination.path, source.path])
+            XCTAssertEqual(run.status, 0, run.standardError)
+            let response = try decodeJSON(run.standardOutput)
+            let mappings = try XCTUnwrap(response["sourceMappings"] as? [[String: Any]])
+            XCTAssertEqual(mappings.count, 4)
+            XCTAssertEqual(Set(mappings.compactMap { ($0["source"] as? [String: Any])?["sheetIndex"] as? Int }), [2])
+            XCTAssertEqual(Set(mappings.compactMap { ($0["source"] as? [String: Any])?["cell"] as? String }), ["D2", "E2", "D3", "E3"])
+            let stdout = try runCLI(["--stdout", "--sheets", "visible", "--cell-range", "D2", source.path])
+            XCTAssertEqual(stdout.status, 0, stdout.standardError)
+            XCTAssertTrue(stdout.standardOutput.contains("1204"))
+            XCTAssertFalse(stdout.standardOutput.contains("2204"))
+            XCTAssertFalse(FileManager.default.fileExists(atPath: source.deletingPathExtension().path + "-markdown"))
+        }
+    }
+
+    func testSpreadsheetSelectionRejectsInvalidSyntaxModesAndInputs() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("PMTCLIWorkbookErrors-\(UUID())")
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let source = try SpreadsheetSelectionFixture.create(in: root)[0]
+        for arguments in [["--cell-range", "B2:A1"], ["--sheets", "0"], ["--sheet-name", ""], ["--sheet-name", String(repeating: "a", count: 1_025)],
+                          ["--sheets", "all", "--sheet-name", "Hidden"], ["--sheet-name", "Hidden", "--sheets", "all"],
+                          ["--list-sheets", "--cell-range", "A1"], ["--list-sheets", "--report"]] {
+            try assertJSONFailure(arguments + ["--json", source.path], expectedStatus: 64)
+        }
+        for flag in ["--list-sheets", "--sheets", "--sheet-name", "--cell-range"] {
+            let arguments = flag == "--list-sheets" ? [flag] : [flag, flag == "--sheets" ? "all" : flag == "--sheet-name" ? "Hidden" : "A1"]
+            try assertJSONFailure(["--formats", "--json"] + arguments, expectedStatus: 64)
+        }
+        let destination = root.appendingPathComponent("never")
+        for flags in [["--sheets", "4"], ["--sheet-name", "missing"]] {
+            try assertJSONFailure(flags + ["--json", "--output", destination.path, source.path], expectedStatus: 65)
+        }
+        let csv = root.appendingPathComponent("values.csv"); try Data("Name,Value\nMarker,1\n".utf8).write(to: csv)
+        try assertJSONFailure(["--json", "--sheets", "all", "--output", destination.path, csv.path], expectedStatus: 65)
+        try assertJSONFailure(["--json", "--list-sheets", csv.path], expectedStatus: 65)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: destination.path))
+    }
+
     func testPDFPageSelectionKeepsSourceNumbersAndWorksWithStdout() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent("PMTCLISelection-\(UUID())")
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
@@ -222,7 +273,7 @@ final class CLIIntegrationTests: XCTestCase {
     func testEveryValueOptionConsumesItsValue() throws {
         let valueOptions = [
             "-o", "--output", "--pandoc", "--timeout", "--jobs", "--spreadsheet-format",
-            "--image-ocr", "--pdf-ocr", "--pdf-layout", "--ocr-language", "--pdf-pages",
+            "--image-ocr", "--pdf-ocr", "--pdf-layout", "--ocr-language", "--pdf-pages", "--sheets", "--sheet-name", "--cell-range",
         ]
         for option in valueOptions {
             let asValue = try runCLI([option, "--json"])

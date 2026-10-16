@@ -40,6 +40,7 @@ enum ODSWorkbookParser {
             workbook.packageDiagnostics.append(warning.at(ConversionLocation(sheet: currentSheetName, cell: "\(name)\(currentRows.count + pendingEmptyRows + 1)")))
         }
         private var currentSheetName: String?
+        private var currentSheetVisibility = SpreadsheetSheetVisibility.visible
         private var currentRows = [[SpreadsheetCell]]()
         private var currentRow: [SpreadsheetCell]?
         private var currentRowRepeat = 1
@@ -129,6 +130,7 @@ enum ODSWorkbookParser {
                 tableDepth = 1
                 currentSheetName = attribute("name", namespace: Namespaces.table, in: attributeDict)
                     ?? "Sheet \(workbook.sheets.count + 1)"
+                currentSheetVisibility = numberStyles.tableVisibility(styleName: attribute("style-name", namespace: Namespaces.table, in: attributeDict), display: attribute("display", namespace: Namespaces.table, in: attributeDict))
                 currentRows = []
                 pendingEmptyRows = 0
                 columnStyles = []
@@ -304,7 +306,7 @@ enum ODSWorkbookParser {
                     return
                 }
                 if tableDepth == 1, let name = currentSheetName {
-                    workbook.sheets.append(SpreadsheetSheet(name: name, rows: currentRows))
+                    workbook.sheets.append(SpreadsheetSheet(name: name, rows: currentRows, sourceIndex: workbook.sheets.count + 1, visibility: currentSheetVisibility))
                     currentSheetName = nil
                     currentRows = []
                     pendingEmptyRows = 0

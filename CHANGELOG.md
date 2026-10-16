@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.23.0 — 2026-10-16
+
+- Select XLSX, XLS and ODS worksheets by source index, exact name or visibility with `--sheets` and `--sheet-name`; `--list-sheets` exposes a verified workbook overview.
+- Select one or more A1 rectangles with `--cell-range`. Overlapping ranges form a union, distant ranges stay separate, and source mappings retain original cell addresses and sheet indices.
+- Existing imports still include hidden sheets by default. Cached formula results and flattened merge boundaries are preserved without evaluating formulas or fetching unselected merge anchors.
+
 ## 0.22.1 — 2026-10-16
 
 - Invalid ODS date components, including non-ASCII digits, retain their raw value with a diagnostic instead of terminating the process.

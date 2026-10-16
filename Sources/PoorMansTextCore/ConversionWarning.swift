@@ -228,17 +228,19 @@ public struct ConversionLocation: Codable, Hashable, Sendable {
     public let page: Int?
     public let sheet: String?
     public let cell: String?
+    public let sheetIndex: Int?
     public let slide: Int?
     public let frame: Int?
     public let paragraph: Int?
     public let message: String?
     public let note: String?
-    public init(page: Int? = nil, sheet: String? = nil, cell: String? = nil,
+    public init(page: Int? = nil, sheet: String? = nil, cell: String? = nil, sheetIndex: Int? = nil,
                 slide: Int? = nil, frame: Int? = nil, paragraph: Int? = nil,
                 message: String? = nil, note: String? = nil) {
         self.page = page
         self.sheet = sheet
         self.cell = cell
+        self.sheetIndex = sheetIndex
         self.slide = slide
         self.frame = frame
         self.paragraph = paragraph
@@ -247,7 +249,7 @@ public struct ConversionLocation: Codable, Hashable, Sendable {
     }
 
     public func merging(_ known: ConversionLocation) -> ConversionLocation {
-        ConversionLocation(page: known.page ?? page, sheet: known.sheet ?? sheet, cell: known.cell ?? cell,
+        ConversionLocation(page: known.page ?? page, sheet: known.sheet ?? sheet, cell: known.cell ?? cell, sheetIndex: known.sheetIndex ?? sheetIndex,
                            slide: known.slide ?? slide, frame: known.frame ?? frame, paragraph: known.paragraph ?? paragraph,
                            message: known.message ?? message, note: known.note ?? note)
     }

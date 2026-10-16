@@ -77,7 +77,8 @@ enum LegacyXLSWorkbookParser {
                 guard offset >= 0, offset < data.count else {
                     throw ParserError("an XLS sheet directory offset is invalid")
                 }
-                allBounds.append(BoundSheet(offset: offset, name: name, type: type))
+                let visibility: SpreadsheetSheetVisibility = switch record.payload[4] { case 0: .visible; case 1: .hidden; case 2: .veryHidden; default: .unknown }
+                allBounds.append(BoundSheet(offset: offset, name: name, type: type, visibility: visibility))
                 hasUnsupportedObjects = hasUnsupportedObjects || type != 0
             }
             let bounds = allBounds.filter { $0.type == 0 }
@@ -97,6 +98,7 @@ enum LegacyXLSWorkbookParser {
             }
 
             var workbook = SpreadsheetWorkbook(sheets: [])
+            workbook.sheetSummaries = allBounds.enumerated().map { .init(index: $0.offset + 1, name: $0.element.name, visibility: $0.element.visibility, isReadable: $0.element.type == 0) }
             var expandedCellCount = 0
             var hyperlinkScannedCellCount = 0
             for bound in bounds {
@@ -113,7 +115,7 @@ enum LegacyXLSWorkbookParser {
                 )
                 expandedCellCount += parsed.expandedCellCount
                 hyperlinkScannedCellCount += parsed.hyperlinkScannedCellCount
-                workbook.sheets.append(SpreadsheetSheet(name: bound.name, rows: parsed.rows))
+                workbook.sheets.append(SpreadsheetSheet(name: bound.name, rows: parsed.rows, sourceIndex: allBounds.firstIndex(where: { $0.offset == bound.offset }).map { $0 + 1 }, visibility: bound.visibility))
                 for warning in parsed.diagnostics.values {
                     workbook.packageDiagnostics.append(warning.at((warning.location ?? ConversionLocation()).merging(ConversionLocation(sheet: bound.name))))
                 }
@@ -728,6 +730,7 @@ enum LegacyXLSWorkbookParser {
             let offset: Int
             let name: String
             let type: UInt8
+            let visibility: SpreadsheetSheetVisibility
         }
 
         private struct BIFFHyperlinkRange {

@@ -101,3 +101,7 @@ Textbundle-Umbau vollständig im privaten Staging. Der Bericht wird dort exklusi
 angelegt. Erst danach wird das gesamte Ergebnis atomar veröffentlicht.
 Abbruch, Kollision, Schreibfehler und widersprüchliche Quellstände hinterlassen
 keinen halben Bericht am Ziel; vorhandene Ausgaben werden nicht überschrieben.
+
+## Ausgewählte Tabellenbereiche
+
+`options.spreadsheetSelection` ist optional; ohne Auswahl fehlt das Feld wie bisher. Ausgewählte Tabellenzellen behalten ihre ursprüngliche A1-Adresse und zusätzlich den einsbasierten `source.sheetIndex` aus dem gesamten Blattverzeichnis. Damit sind auch gleiche Quellblattnamen unterscheidbar. Überlappende Bereiche erzeugen keine doppelten Zuordnungen. Verlustdiagnosen dürfen die gesamte geprüfte Arbeitsmappe betreffen; die Auswahl entfernt keine Paketwarnungen.

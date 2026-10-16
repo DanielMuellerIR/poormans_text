@@ -15,6 +15,11 @@ struct ParsedArguments {
     var showHelp = false
     var showVersion = false
     var listFormats = false
+    var listSheets = false
+    var sheetSelection: SpreadsheetSheetSelection = .all
+    var cellRanges: [SpreadsheetCellRange] = []
+    var setsSheetSelection = false
+    var setsSpreadsheetSelection: Bool { setsSheetSelection || !cellRanges.isEmpty }
     var spreadsheetRendering: SpreadsheetRendering = .markdownTable
     var imageTextRecognition: ImageTextRecognition = .enabled
     var writeToStandardOutput = false
@@ -41,6 +46,10 @@ Options:
       --formats           List the supported input formats instead of converting.
       --spreadsheet-format table|tsv
                           Render spreadsheets as a GFM table (default) or escaped TSV.
+      --sheets all|visible|RANGES  Select source sheet indices, e.g. 1,3-5.
+      --sheet-name NAME   Select an exact sheet name (repeatable; excludes --sheets).
+      --cell-range A1:B8  Select a cell rectangle on each selected sheet (repeatable).
+      --list-sheets       Inspect sheet names, indices and visibility without output folders.
       --image-ocr on|off  Add local OCR text for images (default) or preserve only the image asset.
       --pdf-ocr auto|always|off  Choose local PDF OCR (default: auto).
       --pdf-pages RANGES  Select source pages, e.g. 1,3-5 (PDF inputs only).
@@ -102,7 +111,7 @@ and exits 64.
 /// --json` verschieden deuten.
 let valueOptions: Set<String> = [
     "-o", "--output", "--pandoc", "--timeout", "--jobs", "--spreadsheet-format",
-    "--image-ocr", "--pdf-ocr", "--pdf-layout", "--ocr-language", "--pdf-pages",
+    "--image-ocr", "--pdf-ocr", "--pdf-layout", "--ocr-language", "--pdf-pages", "--sheets", "--sheet-name", "--cell-range",
 ]
 
 /// Sagt VOR dem Parsen, ob `--json` als Option vorkommt, damit auch ein
@@ -184,6 +193,7 @@ private func apply(flag: String, to parsed: inout ParsedArguments) throws {
         parsed.pdfOptions.pdfDehyphenate = true
     case "--json": parsed.json = true
     case "--formats": parsed.listFormats = true
+    case "--list-sheets": parsed.listSheets = true
     case "--stdout": parsed.writeToStandardOutput = true
     case "--frontmatter": parsed.frontmatter = true
     case "--textbundle": parsed.outputLayout = .textbundle
@@ -222,6 +232,25 @@ private func apply(option: String, value: String, to parsed: inout ParsedArgumen
         guard let jobs = Int(value), (1...4).contains(jobs) else { throw CLIArgumentError.invalidConversionOption("--jobs requires an integer from 1 through 4") }
         parsed.jobs = jobs
         parsed.setsJobs = true
+    case "--sheets":
+        guard !parsed.setsSheetSelection else { throw CLIArgumentError.invalidConversionOption("--sheets cannot be repeated or combined with --sheet-name") }
+        do {
+            parsed.sheetSelection = value == "all" ? .all : value == "visible" ? .visible : .indices(try IndexSelection(value))
+        } catch { throw CLIArgumentError.invalidConversionOption("--sheets: " + error.localizedDescription) }
+        parsed.setsSheetSelection = true
+    case "--sheet-name":
+        guard !value.isEmpty, value.utf8.count <= 1_024 else { throw CLIArgumentError.invalidConversionOption("--sheet-name requires 1 through 1024 UTF-8 bytes") }
+        if parsed.setsSheetSelection {
+            guard case .names(let names) = parsed.sheetSelection else { throw CLIArgumentError.invalidConversionOption("--sheet-name cannot be combined with --sheets") }
+            guard names.count < 256 else { throw CLIArgumentError.invalidConversionOption("at most 256 sheet names may be selected") }
+            parsed.sheetSelection = .names(names + [value])
+        } else { parsed.sheetSelection = .names([value]) }
+        parsed.setsSheetSelection = true
+    case "--cell-range":
+        do {
+            guard parsed.cellRanges.count < 64 else { throw CLIArgumentError.invalidConversionOption("at most 64 cell ranges may be selected") }
+            parsed.cellRanges.append(try SpreadsheetCellRange(value))
+        } catch { throw CLIArgumentError.invalidConversionOption("--cell-range: " + error.localizedDescription) }
     case "--spreadsheet-format":
         parsed.spreadsheetRendering = try spreadsheetRendering(value)
         parsed.setsSpreadsheetRendering = true

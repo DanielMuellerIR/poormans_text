@@ -48,7 +48,7 @@ public enum ComparisonNavigation {
         var result: [ComparisonSection] = []
         for mapping in mappings {
             let source = normalized(mapping.source)
-            let location = ConversionLocation(page: source.page, sheet: source.sheet, slide: source.slide, frame: source.frame,
+            let location = ConversionLocation(page: source.page, sheet: source.sheet, sheetIndex: source.sheetIndex, slide: source.slide, frame: source.frame,
                                               message: source.message, note: source.note)
             guard location != ConversionLocation(), seen.insert(location).inserted else { continue }
             guard result.count < limit else { break }
@@ -63,27 +63,37 @@ public enum ComparisonNavigation {
         let direct = mappings.filter { includes(normalized($0.source), requested: location) }
         guard sections(direct, limit: 2).count <= 1 else { return nil }
         if let first = direct.first {
-            return ComparisonTarget(range: first.output, exact: normalized(first.source) == location)
+            return ComparisonTarget(range: first.output, exact: sameDetail(normalized(first.source), requested: location))
         }
         let hasVisualSection = location.page != nil || location.sheet != nil || location.slide != nil || location.frame != nil
-        let section = ConversionLocation(page: location.page, sheet: location.sheet, slide: location.slide, frame: location.frame,
+        let section = ConversionLocation(page: location.page, sheet: location.sheet, sheetIndex: location.sheetIndex, slide: location.slide, frame: location.frame,
                                          message: hasVisualSection ? nil : location.message, note: hasVisualSection ? nil : location.note)
         guard section != ConversionLocation(),
-              let first = mappings.first(where: { includes(normalized($0.source), requested: section) }) else { return nil }
+              !mappings.isEmpty else { return nil }
+        let candidates = mappings.filter { includes(normalized($0.source), requested: section) }
+        guard sections(candidates, limit: 2).count <= 1, let first = candidates.first else { return nil }
         return ComparisonTarget(range: first.output, exact: false)
+    }
+
+    private static func sameDetail(_ source: ConversionLocation, requested: ConversionLocation) -> Bool {
+        let aligned = ConversionLocation(page: source.page, sheet: source.sheet, cell: source.cell,
+            sheetIndex: requested.sheetIndex == nil ? nil : source.sheetIndex, slide: source.slide, frame: source.frame,
+            paragraph: source.paragraph, message: source.message, note: source.note)
+        return aligned == requested
     }
 
     private static func normalized(_ location: ConversionLocation) -> ConversionLocation {
         // Ältere Präsentationsdiagnosen tragen die Foliennummer zusätzlich
         // im Seitenfeld. Dieser Alias darf einen belegten Folienbezug nicht sperren.
         let alias = location.page != nil && (location.page == location.slide || location.page == location.frame)
-        return ConversionLocation(page: alias ? nil : location.page, sheet: location.sheet, cell: location.cell,
+        return ConversionLocation(page: alias ? nil : location.page, sheet: location.sheet, cell: location.cell, sheetIndex: location.sheetIndex,
             slide: location.slide, frame: location.frame, paragraph: location.paragraph, message: location.message, note: location.note)
     }
 
     private static func includes(_ source: ConversionLocation, requested: ConversionLocation) -> Bool {
         (requested.page == nil || source.page == requested.page)
             && (requested.sheet == nil || source.sheet == requested.sheet)
+            && (requested.sheetIndex == nil || source.sheetIndex == requested.sheetIndex)
             && (requested.cell == nil || source.cell == requested.cell)
             && (requested.slide == nil || source.slide == requested.slide)
             && (requested.frame == nil || source.frame == requested.frame)

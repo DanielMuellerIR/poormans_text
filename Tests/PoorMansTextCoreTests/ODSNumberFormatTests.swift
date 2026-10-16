@@ -67,6 +67,22 @@ final class ODSNumberFormatTests: XCTestCase {
         XCTAssertTrue(workbook.locatedDiagnostics.allSatisfy { $0.code == "spreadsheet.numberFormatNotPreserved" && $0.location?.sheet == "Values" })
     }
 
+    func testNonASCIIDateAndTimeComponentsFallBackWithoutTrapping() throws {
+        let values = ["٢٠٢٦-١٠-١٦", "2026-１０-16", "2026-10-16T١٢:30:45", "2026-10-16T12:３０:45", "2026-10-16T12:30:٤٥", "2026-10-16T12:30:45.١٢"]
+        let xml = content(cells: values.map { cell(type: "date", value: $0, style: "DateTime") }.joined())
+        let workbook = try ODSWorkbookParser.parse(Data(xml.utf8))
+        XCTAssertEqual(workbook.sheets[0].rows[0].map(\.displayText), values)
+        XCTAssertEqual(workbook.locatedDiagnostics.count, values.count)
+        XCTAssertTrue(workbook.locatedDiagnostics.allSatisfy { $0.code == "spreadsheet.numberFormatNotPreserved" })
+    }
+
+    func testODSDateOnlyKeepsCalendarDayBeforeMidnight() throws {
+        let xml = content(cells: cell(type: "date", value: "2026-10-16T23:59:59.999999", style: "Date"))
+        let workbook = try ODSWorkbookParser.parse(Data(xml.utf8))
+        XCTAssertEqual(workbook.sheets[0].rows[0][0].displayText, "2026-10-16")
+        XCTAssertTrue(workbook.locatedDiagnostics.isEmpty)
+    }
+
     func testNamedStylesDefaultPrecisionAndCustomNullDate() throws {
         let styles = """
         <office:document-styles \(namespaces)><office:styles>

@@ -100,12 +100,13 @@ struct ODSNumberStyles {
 
     private static func dateSerial(_ raw: String) -> String? {
         guard raw.utf8.count <= 64,
-              let expression = try? NSRegularExpression(pattern: #"^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}):(\d{2})(\.\d{1,6})?)?$"#),
+              let expression = try? NSRegularExpression(pattern: #"^([0-9]{4})-([0-9]{2})-([0-9]{2})(?:T([0-9]{2}):([0-9]{2}):([0-9]{2})(\.[0-9]{1,6})?)?$"#),
               let match = expression.firstMatch(in: raw, range: NSRange(raw.startIndex..., in: raw)) else { return nil }
         func part(_ index: Int) -> String? { Range(match.range(at: index), in: raw).map { String(raw[$0]) } }
-        let year = Int(part(1)!)!, month = Int(part(2)!)!, day = Int(part(3)!)!
-        let hour = Int(part(4) ?? "0")!, minute = Int(part(5) ?? "0")!, second = Int(part(6) ?? "0")!
-        guard (1...9999).contains(year), hour < 24, minute < 60, second < 60 else { return nil }
+        guard let yearText = part(1), let monthText = part(2), let dayText = part(3),
+              let year = Int(yearText), let month = Int(monthText), let day = Int(dayText),
+              let hour = Int(part(4) ?? "0"), let minute = Int(part(5) ?? "0"), let second = Int(part(6) ?? "0"),
+              (1...9999).contains(year), hour < 24, minute < 60, second < 60 else { return nil }
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(secondsFromGMT: 0)!
         let components = DateComponents(year: year, month: month, day: day)

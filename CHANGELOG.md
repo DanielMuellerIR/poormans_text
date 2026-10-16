@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.22.1 — 2026-10-16
+
+- Invalid ODS date components, including non-ASCII digits, retain their raw value with a diagnostic instead of terminating the process.
+- Calendar-only number formats preserve the source day immediately before midnight. Time rounding carries into the next day only when seconds are displayed.
+
 ## 0.22.0 — 2026-10-16
 
 - Add typed PDF page selection and `--pdf-pages` with inclusive ranges,

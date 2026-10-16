@@ -55,6 +55,21 @@ final class SpreadsheetNumberFormatTests: XCTestCase {
         XCTAssertTrue(leap.issue?.contains("fictitious") == true)
     }
 
+    func testDateOnlyDoesNotRoundAcrossMidnight() {
+        for (serial, system) in [("46311", SpreadsheetDateSystem.excel1900), ("44849", .excel1904), ("46311", .openDocument)] {
+            let expected = "2026-10-16"
+            for fraction in [".999999", ".999999999999999999"] {
+                let result = SpreadsheetNumberFormat(code: "yyyy-mm-dd").format(serial + fraction, dateSystem: system)
+                XCTAssertEqual(result.text, expected)
+                XCTAssertNil(result.issue)
+            }
+        }
+        XCTAssertEqual(SpreadsheetNumberFormat(code: "yyyy-mm-dd").format("59.999999").text, "1900-02-28")
+        XCTAssertEqual(SpreadsheetNumberFormat(code: "yyyy-mm-dd").format("61.999999").text, "1900-03-01")
+        XCTAssertEqual(SpreadsheetNumberFormat(code: "yyyy-mm-dd hh:mm").format("46311.999999").text, "2026-10-16 23:59")
+        XCTAssertEqual(SpreadsheetNumberFormat(code: "yyyy-mm-dd hh:mm:ss").format("46311.999999").text, "2026-10-17 00:00:00")
+    }
+
     func testUnsupportedOrHiddenMeaningRetainsStoredValue() {
         for code in ["# ?/?", "[DBNum1]0", "[$-ffff]0.00", "0;0;", "0.00\"unfinished",
                      String(repeating: "0", count: 1_025), "0.00/00", #""hidden""#] {

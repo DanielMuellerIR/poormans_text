@@ -465,9 +465,19 @@ struct SpreadsheetNumberFormat: Sendable {
             let serial = NSDecimalNumber(decimal: value).doubleValue
             guard serial.isFinite, serial <= 2_958_465 else { throw FormatError("the date or duration is outside the supported range") }
             let precision = pow(10, Double(fractionalDigits))
-            let ticks = Int64((serial * 86_400 * precision).rounded())
+            let displaysSeconds = tokens.contains {
+                if case .date("s", _) = $0 { return true }
+                if case .elapsed("s", _) = $0 { return true }
+                return false
+            }
+            let ticks = Int64((serial * 86_400 * precision).rounded(displaysSeconds ? .toNearestOrAwayFromZero : .down))
             let wholeSeconds = ticks / Int64(precision)
-            let day = Int(wholeSeconds / 86_400)
+            // Ohne ausgegebene Sekunden darf die Zeitrundung keinen Kalendertag
+            // erzeugen. Decimal bewahrt auch Brüche knapp unter dem Folgetag.
+            var original = value
+            var calendarDays = Decimal()
+            NSDecimalRound(&calendarDays, &original, 0, .down)
+            let day = displaysSeconds ? Int(wholeSeconds / 86_400) : NSDecimalNumber(decimal: calendarDays).intValue
             let seconds = Int(wholeSeconds % 86_400)
             var calendar = Calendar(identifier: .gregorian)
             calendar.timeZone = TimeZone(secondsFromGMT: 0)!

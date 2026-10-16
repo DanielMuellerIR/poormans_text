@@ -183,6 +183,11 @@ distinguishes information, approximation and known content loss; available
 source positions and omitted counts are included. Diagnostics alone keep a
 successful exit code. See [the diagnostic contract](docs/DIAGNOSTICS.md).
 
+Choose **Preview** after conversion for rendered headings, lists, tables, code
+and local image thumbnails, or switch to selectable Markdown source. ⌘F searches
+the displayed excerpt. The preview shows limits explicitly, displays HTML as
+text and keeps links inactive. See [the preview behavior](docs/MARKDOWN-PREVIEW.md).
+
 `--report` saves a portable `conversion-report.json` with verified source/output
 hashes, effective options, diagnostics and known source-to-Markdown byte ranges.
 `--source-map --json` exposes the same mappings without writing a report.
@@ -519,7 +524,7 @@ and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compa
 their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current version is 0.19.0.
+The current version is 0.20.0.
 
 ## License
 

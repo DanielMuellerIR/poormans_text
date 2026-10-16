@@ -131,7 +131,9 @@ public final class AppModel: ObservableObject {
         }
     }
     @Published public var destinationFolder: URL? { didSet { savePreferences() } }
-    @Published public var selectedInput: String?
+    @Published public var selectedInput: String? {
+        didSet { if selectedInput != oldValue { closePreview() } }
+    }
     @Published public private(set) var actionMessage: String?
     /// Warum die zuletzt über Dock, Doppelklick oder `open -a` übergebenen
     /// Dateien nicht angenommen wurden. Drop meldet `false` (Cursor), der
@@ -140,6 +142,9 @@ public final class AppModel: ObservableObject {
     /// angenommene Auftrag löscht die Meldung wieder.
     @Published public private(set) var openRejectionMessage: String?
     @Published public private(set) var preview: MarkdownPreview?
+    @Published public private(set) var isLoadingPreview = false
+    private var previewTask: Task<Void, Never>?
+    private var previewGeneration = UUID()
     private let defaults: UserDefaults
     private var loadingPreferences = true
     /// Nicht `private`: Der Test belegt damit, dass ein Wiederholen die gewählte
@@ -324,7 +329,7 @@ public final class AppModel: ObservableObject {
 
     public func selectResult(_ item: BatchItem) {
         selectedInput = item.id
-        preview = nil
+        closePreview()
         actionMessage = nil
     }
 
@@ -354,8 +359,26 @@ public final class AppModel: ObservableObject {
 
     public func loadPreview() {
         guard let result = selectedResult else { return }
-        do { preview = try MarkdownPreview.read(result.markdownFile) }
-        catch { actionMessage = AppErrorMessage.describe(error) }
+        closePreview()
+        let expected = result.outputFiles.first { $0.path == result.markdownFile.lastPathComponent }
+        let generation = UUID()
+        previewGeneration = generation; isLoadingPreview = true; actionMessage = nil
+        let read = Task.detached(priority: .userInitiated) { try MarkdownPreview.read(result.markdownFile, expected: expected) }
+        previewTask = Task { [weak self] in
+            do {
+                let prepared = try await withTaskCancellationHandler(operation: { try await read.value }, onCancel: { read.cancel() })
+                guard !Task.isCancelled, let self, self.previewGeneration == generation else { return }
+                self.preview = prepared; self.isLoadingPreview = false; self.previewTask = nil
+            } catch {
+                guard !Task.isCancelled, let self, self.previewGeneration == generation else { return }
+                self.actionMessage = AppErrorMessage.describe(error); self.isLoadingPreview = false; self.previewTask = nil
+            }
+        }
+    }
+
+    public func closePreview() {
+        previewTask?.cancel(); previewTask = nil; previewGeneration = UUID()
+        preview = nil; isLoadingPreview = false
     }
 
     public func copyMarkdown(to pasteboard: NSPasteboard = .general) {
@@ -425,7 +448,7 @@ public final class AppModel: ObservableObject {
             relativeDirectories = [:]
         }
         state = .converting(inputURL)
-        preview = nil
+        closePreview()
         actionMessage = nil
         let request = request(for: inputURL, options: conversionOptions)
 
@@ -473,7 +496,7 @@ public final class AppModel: ObservableObject {
         let options = conversionOptions
         let outputRoot = destinationFolder
         let overrides = destinationOverrides
-        preview = nil
+        closePreview()
         actionMessage = nil
 
         let cancellation = beginConversion()
@@ -716,7 +739,7 @@ public final class AppModel: ObservableObject {
         guard !isConverting else {
             return
         }
-        preview = nil
+        closePreview()
         actionMessage = nil
         openRejectionMessage = nil
         selectedInput = nil

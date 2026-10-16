@@ -7,6 +7,32 @@ import XCTest
 /// oder Öffnen-Ereignis — und zeigt je Eingabe ein Ergebnis. Bilder ohne OCR
 /// brauchen weder Pandoc noch Vision, deshalb laufen diese Tests überall.
 final class AppModelBatchTests: XCTestCase {
+    @MainActor
+    func testPreviewLoadingCanBeClosedAndResultChangesDiscardOldText() async throws {
+        let first = try copyImage(to: "First.png")
+        let second = try copyImage(to: "Second.png")
+        let model = AppModel(defaults: .isolatedForAppTest())
+        model.imageTextRecognition = .disabled
+        model.convert([first, second])
+        let items = try await awaitBatch(model)
+        model.selectResult(items[0])
+        model.loadPreview()
+        XCTAssertTrue(model.isLoadingPreview)
+        model.closePreview()
+        try await Task.sleep(for: .milliseconds(30))
+        XCTAssertNil(model.preview)
+        XCTAssertFalse(model.isLoadingPreview)
+        model.loadPreview()
+        let deadline = Date().addingTimeInterval(3)
+        while model.isLoadingPreview, Date() < deadline { try await Task.sleep(for: .milliseconds(10)) }
+        XCTAssertTrue(model.preview?.text.contains("# First") == true)
+        model.selectResult(items[1])
+        XCTAssertNil(model.preview)
+        model.loadPreview()
+        while model.isLoadingPreview, Date() < deadline { try await Task.sleep(for: .milliseconds(10)) }
+        XCTAssertTrue(model.preview?.text.contains("# Second") == true)
+        XCTAssertFalse(model.preview?.text.contains("# First") == true)
+    }
     private var root: URL!
 
     override func setUpWithError() throws {

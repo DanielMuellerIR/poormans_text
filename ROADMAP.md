@@ -22,7 +22,6 @@ Kurzbefehle reichen die jeweils passenden Optionen weiter.
 
 ### Ergebnisprüfung und Quellbezug
 
-- Markdown einschließlich lokaler Bilder sicher gerendert anzeigen.
 - Zunächst bei PDFs und Bildern Quelle und Ergebnis nebeneinander prüfen und
   bekannte Fundstellen direkt ansteuern können.
 

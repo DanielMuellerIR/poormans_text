@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.20.0 — 2026-10-16
+
+- Add a rendered Markdown preview alongside the selectable source view, with
+  headings, lists, tables, code, quotations, local image thumbnails, search and
+  verified source anchors. Keep frontmatter in a separate metadata disclosure.
+- Render raw HTML as text, leave links inactive, disable content JavaScript and
+  external loads, and serve only registered result assets through a private
+  scheme. Bound image decoding and reject symlink, hardlink, SVG and traversal
+  paths; preserve original document and asset bytes.
+- Read and render previews in the background, discard stale reads on result
+  changes, and show explicit excerpt, rendering and image limits. Verify known
+  output positions against the same read before navigating to them.
+- Pin Swift Markdown 0.8.0 with the resolved Swift CMark 0.9.0 parser and include
+  their license notices in the app bundle.
+
 ## 0.19.0 — 2026-10-16
 
 - Add optional source mappings for PDF pages, OCR image frames, spreadsheet

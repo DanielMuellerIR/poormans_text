@@ -168,3 +168,39 @@
 "The document must be a local file." = "Das Dokument muss eine lokale Datei sein.";
 "The document filename is invalid." = "Der Dateiname des Dokuments ist ungültig.";
 "The in-memory document exceeds the 256 MiB size limit." = "Das im Speicher übergebene Dokument überschreitet die Größenbegrenzung von 256 MiB.";
+
+"Preview" = "Vorschau";
+
+"Preview view" = "Vorschauansicht";
+
+"Rendered" = "Formatiert";
+
+"Markdown" = "Markdown";
+
+"Find in preview" = "In der Vorschau suchen";
+
+"Previous match" = "Vorheriger Treffer";
+
+"Next match" = "Nächster Treffer";
+
+"Loading preview…" = "Vorschau wird geladen…";
+
+"Rendered preview limited. The Markdown file remains complete." = "Formatierte Vorschau begrenzt. Die Markdown-Datei bleibt vollständig.";
+
+"HTML is shown as text in the preview." = "HTML wird in der Vorschau als Text angezeigt.";
+
+"Some Markdown extensions are shown as text." = "Einige Markdown-Erweiterungen werden als Text angezeigt.";
+
+"Some images are unavailable in the preview." = "Einige Bilder können in der Vorschau nicht angezeigt werden.";
+
+"The preview position cannot be verified or is outside this excerpt." = "Die Vorschauposition ist nicht mehr belegt oder liegt außerhalb dieses Ausschnitts.";
+
+"No match in this preview." = "Kein Treffer in dieser Vorschau.";
+
+"Links are inactive in the preview." = "Links sind in der Vorschau nicht aktiv.";
+
+"Image unavailable in preview" = "Bild in der Vorschau nicht verfügbar";
+
+"Rendered preview limited" = "Formatierte Vorschau begrenzt";
+
+"Document metadata" = "Dokumentangaben";

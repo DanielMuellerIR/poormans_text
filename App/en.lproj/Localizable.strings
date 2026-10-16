@@ -168,3 +168,39 @@
 "The document must be a local file." = "The document must be a local file.";
 "The document filename is invalid." = "The document filename is invalid.";
 "The in-memory document exceeds the 256 MiB size limit." = "The in-memory document exceeds the 256 MiB size limit.";
+
+"Preview" = "Preview";
+
+"Preview view" = "Preview view";
+
+"Rendered" = "Rendered";
+
+"Markdown" = "Markdown";
+
+"Find in preview" = "Find in preview";
+
+"Previous match" = "Previous match";
+
+"Next match" = "Next match";
+
+"Loading preview…" = "Loading preview…";
+
+"Rendered preview limited. The Markdown file remains complete." = "Rendered preview limited. The Markdown file remains complete.";
+
+"HTML is shown as text in the preview." = "HTML is shown as text in the preview.";
+
+"Some Markdown extensions are shown as text." = "Some Markdown extensions are shown as text.";
+
+"Some images are unavailable in the preview." = "Some images are unavailable in the preview.";
+
+"The preview position cannot be verified or is outside this excerpt." = "The preview position cannot be verified or is outside this excerpt.";
+
+"No match in this preview." = "No match in this preview.";
+
+"Links are inactive in the preview." = "Links are inactive in the preview.";
+
+"Image unavailable in preview" = "Image unavailable in preview";
+
+"Rendered preview limited" = "Rendered preview limited";
+
+"Document metadata" = "Document metadata";

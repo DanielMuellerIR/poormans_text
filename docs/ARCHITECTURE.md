@@ -440,3 +440,16 @@ Foundation-Vertrag, Portabilität und Grenzen stehen in
 [CONVERSION-REPORT.md](CONVERSION-REPORT.md). App, CLI und spätere Hosts
 verwenden die Ergebnisfelder, ohne Parserzustand oder technische Marker im
 Markdown nachzubilden.
+
+## Gerenderte Vorschau
+
+`MarkdownPreview` liest begrenzt und prüft bei bekannten Manifesten denselben
+Byte-Strom. `RenderedMarkdownPreview` erzeugt aus dem gepinnten Markdown-AST
+ausschließlich maskiertes HTML, statische Darstellung und bekannte Quellanker.
+`PreviewAssets` öffnet nur registrierte Ergebnisbilder über gehaltene
+Verzeichnisdeskriptoren und liefert begrenzte PNG-Thumbnails.
+
+`MarkdownPreviewPane` verbindet Quelltext, native WebKit-Suche, Ankersprünge und
+sichtbare Grenzen. `AppModel` verwirft veraltete Lesevorgänge; der App-Adapter
+öffnet nur die Ergebnisansicht. Pfad-, Ressourcen- und Darstellungsvertrag stehen
+in [MARKDOWN-PREVIEW.md](MARKDOWN-PREVIEW.md).

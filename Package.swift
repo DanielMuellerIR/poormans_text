@@ -25,6 +25,7 @@ let package = Package(
         // Der Updater tauscht die installierte App aus. Deshalb exakt gepinnt:
         // ein Versionssprung wird bewusst geprüft, nie still aufgelöst.
         .package(url: "https://github.com/sparkle-project/Sparkle", exact: "2.9.4"),
+        .package(url: "https://github.com/swiftlang/swift-markdown", exact: "0.8.0"),
     ],
     targets: [
         .target(
@@ -54,6 +55,7 @@ let package = Package(
             dependencies: [
                 "PoorMansTextCore",
                 .product(name: "Sparkle", package: "Sparkle"),
+                .product(name: "Markdown", package: "swift-markdown"),
             ]
         ),
         .testTarget(

@@ -53,6 +53,14 @@ def main():
         identity = json.loads(output("swift", "package", "show-dependencies", "--format", "json"))["identity"]
         # SwiftPM ersetzt Bindestriche im Compiler-Paketnamen durch Unterstriche.
         identity = identity.replace("-", "_")
+        # Der separate Metadaten-Compile braucht auch die öffentlichen C-Module
+        # des Markdown-Parsers; SwiftBuild übergibt sie sonst nur seinen Targets.
+        parser_headers = [
+            project / ".build/checkouts/swift-markdown/Sources/CAtomic/include",
+            project / ".build/checkouts/swift-cmark/src/include",
+            project / ".build/checkouts/swift-cmark/extensions/include",
+        ]
+        parser_arguments = [argument for path in parser_headers for argument in ("-I", str(path))]
         baseline = None
         first_metadata = None
         for architecture in architectures:
@@ -68,6 +76,7 @@ def main():
                 "-module-name", "PoorMansTextAppSupport", "-package-name", identity,
                 "-swift-version", "6", "-target", architecture + "-apple-macos13.0",
                 "-sdk", sdk, "-I", str(binary_directory), "-F", str(binary_directory),
+                *parser_arguments,
                 "-emit-const-values-path", str(constant_file),
                 # Der zusätzliche Name „…-list“ fehlt in Swift 6.3.
                 "-Xfrontend", "-const-gather-protocols-file", "-Xfrontend", str(protocols),

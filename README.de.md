@@ -192,6 +192,12 @@ ausgelassene Diagnosezahlen stehen zusätzlich bereit. Diagnosen allein ändern
 den erfolgreichen Exit-Code nicht. Details stehen im
 [Diagnosevertrag](docs/DIAGNOSTICS.md).
 
+**Vorschau** zeigt nach der Konvertierung Überschriften, Listen, Tabellen, Code
+und lokale Bildvorschauen. Die Quelltextansicht bleibt auswählbar; ⌘F sucht im
+angezeigten Ausschnitt. Grenzen werden sichtbar gemeldet, HTML bleibt Text,
+Links sind in der Vorschau nicht aktiv. Details stehen unter
+[Markdown-Vorschau](docs/MARKDOWN-PREVIEW.md).
+
 `--report` speichert `conversion-report.json` mit belegten Quell-/Ausgabehashes,
 wirksamen Optionen, Diagnosen und bekannten Zuordnungen zum Markdown.
 `--source-map --json` liefert die Zuordnungen ohne Berichtdatei. Frontmatter und
@@ -547,7 +553,7 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.19.0.
+Die aktuelle Version ist 0.20.0.
 
 ## Lizenz
 

@@ -12,6 +12,7 @@ struct ContentView: View {
     @State private var pandocOffer: PandocInstaller.Offer?
     @State private var showsPandocInstallSuccess = false
     @State private var pandocInstallError: String?
+    @State private var showsPreview = false
 
     var body: some View {
         VStack(spacing: 24) {
@@ -32,6 +33,27 @@ struct ContentView: View {
                 endPoint: .bottomTrailing
             )
         )
+        .sheet(isPresented: Binding(
+            get: { showsPreview && (model.preview != nil || model.isLoadingPreview) },
+            set: { showsPreview = $0; if !$0 { model.closePreview() } }
+        ), onDismiss: { showsPreview = false }) {
+            VStack(alignment: .leading, spacing: 16) {
+                HStack {
+                    Text("Preview").font(.headline)
+                    if let result = model.selectedResult {
+                        Text(verbatim: result.inputURL.lastPathComponent).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
+                    }
+                }
+                if let preview = model.preview, let result = model.selectedResult {
+                    MarkdownPreviewPane(preview: preview, result: result)
+                } else {
+                    ProgressView("Loading preview…").frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+                HStack { Spacer(); Button("Done") { model.closePreview() }.keyboardShortcut(.cancelAction) }
+            }
+            .padding(20)
+            .frame(width: 800, height: 560)
+        }
         .task {
             preparePandocOffer()
             // Höchstens ein Start-Dialog pro Start: Solange Pandoc fehlt, hat
@@ -442,23 +464,26 @@ struct ContentView: View {
 
     @ViewBuilder private var resultActions: some View {
         if model.selectedResult != nil {
-            HStack {
-                Button("Open Markdown") { model.openResult() }
-                Button("Open in Fastra") { model.openResultInFastra() }
-                Button("Copy Markdown") { model.copyMarkdown() }
-                Button("Text Preview") { model.loadPreview() }
-            }
-            if let preview = model.preview {
-                ScrollView([.horizontal, .vertical]) {
-                    Text(verbatim: preview.text).font(.body.monospaced()).textSelection(.enabled)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }.frame(maxHeight: 160)
-                if preview.truncated { Text("Preview limited to 256 KiB. Open the file to read all text.").font(.caption) }
+            ViewThatFits(in: .horizontal) {
+                HStack { openResultButtons; inspectResultButtons }
+                VStack(spacing: 8) {
+                    HStack { openResultButtons }
+                    HStack { inspectResultButtons }
+                }
             }
         }
         if let message = model.actionMessage {
             Text(message).font(.callout).textSelection(.enabled)
         }
+    }
+
+    @ViewBuilder private var openResultButtons: some View {
+        Button("Open Markdown") { model.openResult() }
+        Button("Open in Fastra") { model.openResultInFastra() }
+    }
+    @ViewBuilder private var inspectResultButtons: some View {
+        Button("Copy Markdown") { model.copyMarkdown() }
+        Button("Preview") { showsPreview = true; model.loadPreview() }
     }
 
     private var footer: some View {

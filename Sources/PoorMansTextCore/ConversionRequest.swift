@@ -56,6 +56,7 @@ public struct ConversionOptions: Equatable, Sendable {
     public var pdfDehyphenate: Bool
     /// Physische PDF-Seiten; nil importiert alle. Andere Formate lehnen die Auswahl ab.
     public var pdfPages: IndexSelection?
+    public var epubChapters: IndexSelection?
     public var presentationSelection: PresentationSelection?
     public var spreadsheetSelection: SpreadsheetSelection?
     public var sourceMapping: Bool
@@ -74,6 +75,7 @@ public struct ConversionOptions: Equatable, Sendable {
         pdfRemoveHeadersFooters: Bool = false,
         pdfDehyphenate: Bool = false,
         pdfPages: IndexSelection? = nil,
+        epubChapters: IndexSelection? = nil,
         presentationSelection: PresentationSelection? = nil,
         spreadsheetSelection: SpreadsheetSelection? = nil,
         sourceMapping: Bool = false,
@@ -90,6 +92,7 @@ public struct ConversionOptions: Equatable, Sendable {
         self.pdfRemoveHeadersFooters = pdfRemoveHeadersFooters
         self.pdfDehyphenate = pdfDehyphenate
         self.pdfPages = pdfPages
+        self.epubChapters = epubChapters
         self.presentationSelection = presentationSelection
         self.spreadsheetSelection = spreadsheetSelection
         self.sourceMapping = sourceMapping
@@ -125,7 +128,7 @@ public struct ConversionProgress: Equatable, Sendable {
         case finished
     }
 
-    public enum Unit: String, Equatable, Sendable { case file, page, sheet, frame, slide, cell }
+    public enum Unit: String, Equatable, Sendable { case file, page, sheet, frame, slide, chapter, cell }
     public let phase: Phase
     public let format: InputFormat?
     public let unit: Unit?

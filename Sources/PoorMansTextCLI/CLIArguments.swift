@@ -15,6 +15,8 @@ struct ParsedArguments {
     var showHelp = false
     var showVersion = false
     var listFormats = false
+    var listChapters = false
+    var epubChapters: IndexSelection?
     var listSlides = false
     var presentationSelection: PresentationSelection?
     var listSheets = false
@@ -55,6 +57,8 @@ Options:
       --slides RANGES    Select source slides, e.g. 1,3-5 (PPTX/PPTM/POTX/ODP).
       --notes on|off     Include presentation notes (default: on).
       --list-slides      Inspect ordered slide titles and local notes references.
+      --epub-chapters RANGES  Select EPUB spine entries, e.g. 1,3-5.
+      --list-chapters     Inspect EPUB reading order and navigation without conversion.
       --image-ocr on|off  Add local OCR text for images (default) or preserve only the image asset.
       --pdf-ocr auto|always|off  Choose local PDF OCR (default: auto).
       --pdf-pages RANGES  Select source pages, e.g. 1,3-5 (PDF inputs only).
@@ -116,7 +120,7 @@ and exits 64.
 /// --json` verschieden deuten.
 let valueOptions: Set<String> = [
     "-o", "--output", "--pandoc", "--timeout", "--jobs", "--spreadsheet-format",
-    "--image-ocr", "--pdf-ocr", "--pdf-layout", "--ocr-language", "--pdf-pages", "--sheets", "--sheet-name", "--cell-range", "--slides", "--notes",
+    "--image-ocr", "--pdf-ocr", "--pdf-layout", "--ocr-language", "--pdf-pages", "--sheets", "--sheet-name", "--cell-range", "--slides", "--notes", "--epub-chapters",
 ]
 
 /// Sagt VOR dem Parsen, ob `--json` als Option vorkommt, damit auch ein
@@ -200,6 +204,7 @@ private func apply(flag: String, to parsed: inout ParsedArguments) throws {
     case "--formats": parsed.listFormats = true
     case "--list-sheets": parsed.listSheets = true
     case "--list-slides": parsed.listSlides = true
+    case "--list-chapters": parsed.listChapters = true
     case "--stdout": parsed.writeToStandardOutput = true
     case "--frontmatter": parsed.frontmatter = true
     case "--textbundle": parsed.outputLayout = .textbundle
@@ -238,6 +243,9 @@ private func apply(option: String, value: String, to parsed: inout ParsedArgumen
         guard let jobs = Int(value), (1...4).contains(jobs) else { throw CLIArgumentError.invalidConversionOption("--jobs requires an integer from 1 through 4") }
         parsed.jobs = jobs
         parsed.setsJobs = true
+    case "--epub-chapters":
+        do { parsed.epubChapters = try IndexSelection(value) }
+        catch { throw CLIArgumentError.invalidConversionOption("--epub-chapters: " + error.localizedDescription) }
     case "--slides":
         do { parsed.presentationSelection = PresentationSelection(slides: try IndexSelection(value), includeNotes: parsed.presentationSelection?.includeNotes ?? true) }
         catch { throw CLIArgumentError.invalidConversionOption("--slides: " + error.localizedDescription) }

@@ -21,6 +21,7 @@ public enum ComparisonNavigation {
             location.frame.map { String(format: NSLocalizedString("Frame %d", comment: ""), $0) },
             location.sheet.map { String(format: NSLocalizedString("Sheet %@", comment: ""), $0) },
             location.cell.map { String(format: NSLocalizedString("Cell %@", comment: ""), $0) },
+            location.chapter.map { String(format: NSLocalizedString("Chapter %d", comment: ""), $0) },
             location.slide.map { String(format: NSLocalizedString("Slide %d", comment: ""), $0) },
             location.paragraph.map { String(format: NSLocalizedString("Paragraph %d", comment: ""), $0) },
             location.message.map { String(format: NSLocalizedString("Message %@", comment: ""), $0) },
@@ -49,7 +50,7 @@ public enum ComparisonNavigation {
         for mapping in mappings {
             let source = normalized(mapping.source)
             let location = ConversionLocation(page: source.page, sheet: source.sheet, sheetIndex: source.sheetIndex, slide: source.slide, frame: source.frame,
-                                              message: source.message, note: source.note)
+                                              message: source.message, note: source.note, chapter: source.chapter)
             guard location != ConversionLocation(), seen.insert(location).inserted else { continue }
             guard result.count < limit else { break }
             result.append(ComparisonSection(location: location))
@@ -65,9 +66,9 @@ public enum ComparisonNavigation {
         if let first = direct.first {
             return ComparisonTarget(range: first.output, exact: sameDetail(normalized(first.source), requested: location))
         }
-        let hasVisualSection = location.page != nil || location.sheet != nil || location.slide != nil || location.frame != nil
+        let hasVisualSection = location.page != nil || location.sheet != nil || location.slide != nil || location.frame != nil || location.chapter != nil
         let section = ConversionLocation(page: location.page, sheet: location.sheet, sheetIndex: location.sheetIndex, slide: location.slide, frame: location.frame,
-                                         message: hasVisualSection ? nil : location.message, note: hasVisualSection ? nil : location.note)
+                                         message: hasVisualSection ? nil : location.message, note: hasVisualSection ? nil : location.note, chapter: location.chapter)
         guard section != ConversionLocation(),
               !mappings.isEmpty else { return nil }
         let candidates = mappings.filter { includes(normalized($0.source), requested: section) }
@@ -78,7 +79,7 @@ public enum ComparisonNavigation {
     private static func sameDetail(_ source: ConversionLocation, requested: ConversionLocation) -> Bool {
         let aligned = ConversionLocation(page: source.page, sheet: source.sheet, cell: source.cell,
             sheetIndex: requested.sheetIndex == nil ? nil : source.sheetIndex, slide: source.slide, frame: source.frame,
-            paragraph: source.paragraph, message: source.message, note: source.note)
+            paragraph: source.paragraph, message: source.message, note: source.note, chapter: source.chapter)
         return aligned == requested
     }
 
@@ -87,7 +88,7 @@ public enum ComparisonNavigation {
         // im Seitenfeld. Dieser Alias darf einen belegten Folienbezug nicht sperren.
         let alias = location.page != nil && (location.page == location.slide || location.page == location.frame)
         return ConversionLocation(page: alias ? nil : location.page, sheet: location.sheet, cell: location.cell, sheetIndex: location.sheetIndex,
-            slide: location.slide, frame: location.frame, paragraph: location.paragraph, message: location.message, note: location.note)
+            slide: location.slide, frame: location.frame, paragraph: location.paragraph, message: location.message, note: location.note, chapter: location.chapter)
     }
 
     private static func includes(_ source: ConversionLocation, requested: ConversionLocation) -> Bool {
@@ -100,5 +101,6 @@ public enum ComparisonNavigation {
             && (requested.paragraph == nil || source.paragraph == requested.paragraph)
             && (requested.message == nil || source.message == requested.message)
             && (requested.note == nil || source.note == requested.note)
+            && (requested.chapter == nil || source.chapter == requested.chapter)
     }
 }

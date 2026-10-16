@@ -181,6 +181,7 @@ struct PandocTextAdapter: DocumentConversionAdapter {
         let pandocExecutable = try PandocTool.resolve(context.options.pandocExecutable)
         let workDirectory = context.workDirectory
         let sourceDirectory = context.resolvedInputURL.deletingLastPathComponent()
+        var epubSelection: EPUBSelectionPackage?
         var warnings = kind.expectedWarnings
         var metadata = DocumentMetadata()
 
@@ -252,6 +253,21 @@ struct PandocTextAdapter: DocumentConversionAdapter {
                 throw ConversionError.invalidInput(context.inputURL, format: context.format, reason: error.localizedDescription)
             }
             metadata = EPUBMetadataReader.read(fromPackageAt: staged)
+            if let selection = context.options.epubChapters {
+                let reader = try ZIPArchiveInspector.inspectionSnapshot(at: staged)
+                let package: EPUBSelectionPackage
+                do {
+                    package = try EPUBSelectionPackage(reader: reader)
+                    try package.prepare(selection: selection, archive: staged, workDirectory: workDirectory)
+                }
+                catch {
+                    try ConversionExecution.check()
+                    if let error = error as? ConversionError { throw error }
+                    throw ConversionError.invalidInput(context.inputURL, format: .epub, reason: error.localizedDescription)
+                }
+                epubSelection = package
+                warnings += package.diagnostics
+            }
             html = try Self.pandocHTML(from: staged, reader: kind.reader, context: context, pandocExecutable: pandocExecutable)
             baseDirectory = nil
 
@@ -288,6 +304,18 @@ struct PandocTextAdapter: DocumentConversionAdapter {
             stagedOutputDirectory: context.stagedOutputDirectory,
             pandocExecutable: pandocExecutable
         )
+        if let epubSelection {
+            let markdownURL = context.stagedOutputDirectory.appendingPathComponent(converted.markdownRelativePath)
+            let text = try String(contentsOf: markdownURL, encoding: .utf8)
+            let selected: String
+            do { selected = try epubSelection.finishMarkdown(text) }
+            catch {
+                try ConversionExecution.check()
+                throw ConversionError.invalidInput(context.inputURL, format: .epub, reason: error.localizedDescription)
+            }
+            do { try Data(selected.utf8).write(to: markdownURL, options: .atomic) }
+            catch { throw ConversionError.fileSystemFailure("could not save selected EPUB Markdown: " + error.localizedDescription) }
+        }
         return StagedConversionResult(
             markdownRelativePath: converted.markdownRelativePath,
             assetRelativePaths: converted.assetRelativePaths,

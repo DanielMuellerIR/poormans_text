@@ -565,7 +565,7 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.24.0.
+Die aktuelle Version ist 0.25.0.
 
 ## Lizenz
 
@@ -583,6 +583,10 @@ der App liegt.
 Poor Man's Text verarbeitet Dokumente lokal und enthält keine Telemetrie. Der
 einzige Netzwerkzugriff ist die Update-Suche. Einzelheiten stehen in
 [PRIVACY.md](PRIVACY.md), Hinweise zum Support in [SUPPORT.md](SUPPORT.md).
+
+### EPUB-Auswahl
+
+`--list-chapters --json buch.epub` zeigt Spine-Lesereihenfolge, Titel, ergänzende Einträge und Navigationsfragmente. `--epub-chapters 1,3-5` übernimmt gewählte lokale XHTML-Dateien in Lesereihenfolge mit ursprünglichen Kapitelindizes, Bildern und lokalen Abschnittslinks. Links auf ausgeschlossene Kapitel behalten ihren sichtbaren Text mit einem Hinweis. Ohne Auswahl bleibt der bisherige EPUB-Import bestehen. Unterstützte Inhalte und Grenzen stehen unter [EPUB-Auswahl](docs/EPUB-SELECTION.md).
 
 ### Präsentationsauswahl
 

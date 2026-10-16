@@ -37,7 +37,7 @@ do {
 
     if arguments.listFormats {
         guard arguments.inputURLs.isEmpty, arguments.outputURL == nil,
-              !arguments.listSheets, !arguments.listSlides, arguments.presentationSelection == nil, !arguments.setsSpreadsheetSelection, !arguments.setsJobs, !arguments.setsPDFOptions, !arguments.setsSpreadsheetRendering, !arguments.setsImageTextRecognition,
+              !arguments.listSheets, !arguments.listSlides, !arguments.listChapters, arguments.epubChapters == nil, arguments.presentationSelection == nil, !arguments.setsSpreadsheetSelection, !arguments.setsJobs, !arguments.setsPDFOptions, !arguments.setsSpreadsheetRendering, !arguments.setsImageTextRecognition,
               !arguments.writeToStandardOutput, !arguments.frontmatter, !arguments.sourceMapping, !arguments.conversionReport,
               arguments.outputLayout == .markdownFolder, !arguments.progress, arguments.timeout == nil else {
             throw CLIArgumentError.formatsTakesNoInput
@@ -53,14 +53,22 @@ do {
         throw CLIArgumentError.invalidConversionOption("--source-map requires --json or --report.")
     }
 
-    if arguments.listSheets || arguments.listSlides {
-        guard !(arguments.listSheets && arguments.listSlides), arguments.presentationSelection == nil, arguments.inputURLs.count == 1, arguments.outputURL == nil, !arguments.writeToStandardOutput,
+    if arguments.listSheets || arguments.listSlides || arguments.listChapters {
+        guard [arguments.listSheets, arguments.listSlides, arguments.listChapters].filter({ $0 }).count == 1, arguments.epubChapters == nil, arguments.presentationSelection == nil, arguments.inputURLs.count == 1, arguments.outputURL == nil, !arguments.writeToStandardOutput,
               !arguments.setsSpreadsheetSelection, !arguments.setsSpreadsheetRendering, !arguments.setsImageTextRecognition,
               !arguments.setsPDFOptions, !arguments.setsJobs, arguments.pandocURL == nil,
               !arguments.frontmatter, !arguments.sourceMapping, !arguments.conversionReport, !arguments.progress, arguments.outputLayout == .markdownFolder else {
-            throw CLIArgumentError.invalidConversionOption("--list-sheets or --list-slides requires one matching document and cannot be combined with conversion options")
+            throw CLIArgumentError.invalidConversionOption("a content overview requires one matching document and cannot be combined with conversion options")
         }
-        if arguments.listSlides {
+        if arguments.listChapters {
+            let summary = try DocumentConverter().inspectEPUBContents(arguments.inputURLs[0], cancellation: cancellation, processTimeout: arguments.timeout)
+            if arguments.json { writeJSON(summary) }
+            else {
+                for chapter in summary.chapters { print("\(chapter.number)\t\(chapter.isLinear ? "primary" : "auxiliary")\t\(chapter.isReadable ? "XHTML" : "unavailable")\t\(chapter.title ?? chapter.path)") }
+                if summary.chaptersTruncated { FileHandle.standardError.write(Data("Chapter overview limited to the first \(summary.chapters.count) of \(summary.chapterCount) chapters.\n".utf8)) }
+                for warning in summary.diagnostics { FileHandle.standardError.write(Data("Warning: \(warning.message)\n".utf8)) }
+            }
+        } else if arguments.listSlides {
             let summary = try DocumentConverter().inspectPresentationContents(arguments.inputURLs[0], cancellation: cancellation, processTimeout: arguments.timeout)
             if arguments.json { writeJSON(summary) }
             else {
@@ -86,6 +94,7 @@ do {
         pdfRemoveHeadersFooters: arguments.pdfOptions.pdfRemoveHeadersFooters,
         pdfDehyphenate: arguments.pdfOptions.pdfDehyphenate,
         pdfPages: arguments.pdfOptions.pdfPages,
+        epubChapters: arguments.epubChapters,
         presentationSelection: arguments.presentationSelection,
         spreadsheetSelection: arguments.setsSpreadsheetSelection ? try SpreadsheetSelection(sheets: arguments.sheetSelection, ranges: arguments.cellRanges) : nil,
         sourceMapping: arguments.sourceMapping,

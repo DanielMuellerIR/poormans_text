@@ -109,3 +109,7 @@ keinen halben Bericht am Ziel; vorhandene Ausgaben werden nicht überschrieben.
 ## Ausgewählte Präsentationsinhalte
 
 `options.presentationSelection` ist optional. Bei einer ausdrücklichen Auswahl enthält es `slides` als normalisiertes Intervall und `includeNotes`. `nil` bei den Folien bedeutet alle Folien. `source.slide` bleibt die ursprüngliche Position in der Präsentation, auch wenn Folien übersprungen werden. Absichtlich ausgeschlossene Folien/Notizen erzeugen keine Inhaltsverlustdiagnosen.
+
+## Ausgewählte EPUB-Kapitel
+
+`options.epubChapters` ist optional und enthält ein normalisiertes einsbasiertes Intervall der Spine-Einträge. `source.chapter` bleibt deren ursprünglicher Index einschließlich ergänzender (`linear=no`) Einträge. Ausgewählte Kapitel haben eigene Markdown-Bereiche; Frontmatter und Textbundle-Umschreibungen werden wie bei den anderen Zuordnungen eingerechnet. Links auf ausgeschlossene Kapitel sind Informationshinweise, fehlende/unsichere ausgewählte Linkziele Inhaltsverlustdiagnosen. Der Quellenhash beschreibt das unveränderte ursprüngliche EPUB, nicht die private Auswahlkopie.

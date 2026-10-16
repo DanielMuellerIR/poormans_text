@@ -3,6 +3,35 @@ import XCTest
 @testable import PoorMansTextCore
 
 final class CLIIntegrationTests: XCTestCase {
+    func testEPUBOverviewSelectionAndChapterReports() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("PMTCLIEPUB-\(UUID())")
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let source = try EPUBSelectionFixture.create(in: root)
+        let original = try Data(contentsOf: source)
+        let overview = try runCLI(["--json", "--list-chapters", source.path])
+        XCTAssertEqual(overview.status, 0, overview.standardError)
+        let summary = try JSONDecoder().decode(EPUBContentSummary.self, from: Data(overview.standardOutput.utf8))
+        XCTAssertEqual(summary.chapters.map(\.title), ["BetaMarker", "AlphaMarker", "GammaMarker"])
+        let run = try runCLI(["--json", "--epub-chapters", "3,1,1", "--report", "--output", root.appendingPathComponent("selected").path, source.path])
+        XCTAssertEqual(run.status, 0, run.standardError)
+        let response = try decodeJSON(run.standardOutput)
+        let report = try JSONDecoder().decode(ConversionReport.self, from: Data(contentsOf: URL(fileURLWithPath: XCTUnwrap(response["reportFile"] as? String))))
+        XCTAssertEqual(report.options.epubChapters?.description, "1,3"); XCTAssertEqual(report.sourceMappings.map { $0.source.chapter }, [1, 3])
+        let stdout = try runCLI(["--stdout", "--epub-chapters", "2", source.path])
+        XCTAssertEqual(stdout.status, 0, stdout.standardError); XCTAssertTrue(stdout.standardOutput.contains("AlphaMarker")); XCTAssertFalse(stdout.standardOutput.contains("BetaMarker"))
+        for flags in [["--epub-chapters", "0"], ["--list-chapters", "--epub-chapters", "1"], ["--list-chapters", "--report"], ["--list-chapters", "--list-slides"]] {
+            try assertJSONFailure(flags + ["--json", source.path], expectedStatus: 64)
+        }
+        for flags in [["--epub-chapters", "1"], ["--list-chapters"]] { try assertJSONFailure(["--formats", "--json"] + flags, expectedStatus: 64) }
+        try assertJSONFailure(["--json", "--epub-chapters", "4", "--output", root.appendingPathComponent("never").path, source.path], expectedStatus: 65)
+        let csv = root.appendingPathComponent("values.csv"); try Data("Name,Value\nMarker,1\n".utf8).write(to: csv)
+        try assertJSONFailure(["--json", "--epub-chapters", "1", csv.path], expectedStatus: 65)
+        try assertJSONFailure(["--json", "--list-chapters", csv.path], expectedStatus: 65)
+        XCTAssertEqual(try Data(contentsOf: source), original)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: source.deletingPathExtension().path + "-markdown"))
+    }
+
     func testPresentationOverviewTextReportsItsDefaultLimit() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent("PMTCLIOverviewLimit-\(UUID())")
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
@@ -326,7 +355,7 @@ final class CLIIntegrationTests: XCTestCase {
     func testEveryValueOptionConsumesItsValue() throws {
         let valueOptions = [
             "-o", "--output", "--pandoc", "--timeout", "--jobs", "--spreadsheet-format",
-            "--image-ocr", "--pdf-ocr", "--pdf-layout", "--ocr-language", "--pdf-pages", "--sheets", "--sheet-name", "--cell-range", "--slides", "--notes",
+            "--image-ocr", "--pdf-ocr", "--pdf-layout", "--ocr-language", "--pdf-pages", "--sheets", "--sheet-name", "--cell-range", "--slides", "--notes", "--epub-chapters",
         ]
         for option in valueOptions {
             let asValue = try runCLI([option, "--json"])

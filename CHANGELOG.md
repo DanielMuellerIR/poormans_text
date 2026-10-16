@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.25.0 — 2026-10-16
+
+- Select EPUB spine entries with `--epub-chapters` and inspect reading order, titles, auxiliary entries and navigation fragments with `--list-chapters`.
+- Selected chapters retain original source indices, shared images and local fragment links. Links to excluded chapters keep their visible text with an informational diagnostic; unsafe or missing targets are diagnosed.
+- EPUB selection edits only a verified private package, verifies it again and retains Pandoc's sandbox. Chapter mappings include frontmatter and Textbundle resource rewrites; default EPUB imports are unchanged.
+
 ## 0.24.0 — 2026-10-16
 
 - Select PPTX, PPTM, POTX and ODP slide ranges with `--slides`, preserving presentation order and original slide numbers. `--notes on|off` controls note text, tables and images before importing their contents.

@@ -535,7 +535,7 @@ and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compa
 their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current version is 0.24.0.
+The current version is 0.25.0.
 
 ## License
 
@@ -553,6 +553,10 @@ subject to its own license, which ships with the app as
 Poor Man's Text processes documents locally and includes no telemetry. Its only
 network access is the update check. Details are in [PRIVACY.md](PRIVACY.md);
 support information is in [SUPPORT.md](SUPPORT.md).
+
+### EPUB selection
+
+`--list-chapters --json book.epub` shows spine order, titles, auxiliary entries and navigation fragments. `--epub-chapters 1,3-5` imports selected local XHTML documents in reading order, retaining original chapter indices, images and local fragment links. Links to excluded chapters keep their visible text with a diagnostic. Without selection, the existing EPUB import remains unchanged. See [EPUB selection](docs/EPUB-SELECTION.md) for supported documents and limits.
 
 ### Presentation selection
 

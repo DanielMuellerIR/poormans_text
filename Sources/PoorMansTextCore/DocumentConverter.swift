@@ -163,6 +163,29 @@ public struct DocumentConverter: Sendable {
         }
     }
 
+    public func inspectEPUBContents(
+        _ inputURL: URL,
+        maximumChapters: Int = 200,
+        cancellation: ConversionCancellationToken? = nil,
+        processTimeout: TimeInterval? = nil
+    ) throws -> EPUBContentSummary {
+        try withDetectionContext(cancellation, processTimeout) {
+            guard (1...EPUBContentSummary.maximumSummaryChapters).contains(maximumChapters) else { throw ConversionError.invalidInput(inputURL, format: .epub, reason: "the EPUB overview limit must be between 1 and 500") }
+            let detected = try detectInput(at: inputURL.standardizedFileURL)
+            guard detected.inspection.format == .epub else { throw ConversionError.unsupportedInput(inputURL) }
+            do {
+                return try ZIPArchiveInspector.withVerifiedReader(at: inputURL.resolvingSymlinksInPath()) { reader in
+                    let fingerprint = try ConversionFileFingerprint.read(reader.url)
+                    let identity = ConversionSourceIdentity(name: inputURL.lastPathComponent, sha256: fingerprint.sha256, byteCount: fingerprint.byteCount, unavailableReason: nil)
+                    return try EPUBSelectionPackage(reader: reader).summary(identity: identity, maximumChapters: maximumChapters)
+                }
+            } catch {
+                try ConversionExecution.check()
+                throw ConversionError.invalidInput(inputURL, format: .epub, reason: error.localizedDescription)
+            }
+        }
+    }
+
     /// Bindet einen Kontext nur, wenn noch keiner steht. Ein Aufruf aus einer
     /// laufenden Konvertierung heraus behält damit deren Token und Zeitgrenze.
     private func withDetectionContext<T>(
@@ -261,6 +284,9 @@ public struct DocumentConverter: Sendable {
         }
         if request.options.presentationSelection != nil, ![InputFormat.pptx, .odp].contains(format) {
             throw ConversionError.invalidInput(inputURL, format: format, reason: "presentation selection can only be used with PPTX, PPTM, POTX or ODP input")
+        }
+        if request.options.epubChapters != nil, format != .epub {
+            throw ConversionError.invalidInput(inputURL, format: format, reason: "EPUB chapter selection can only be used with EPUB input")
         }
         let resolvedInputURL = inputURL.resolvingSymlinksInPath()
         guard resolvedInputURL == resolvedBeforeDetection else {

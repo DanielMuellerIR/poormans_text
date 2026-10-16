@@ -228,6 +228,7 @@ public struct ConversionLocation: Codable, Hashable, Sendable {
     public let page: Int?
     public let sheet: String?
     public let cell: String?
+    public let chapter: Int?
     public let sheetIndex: Int?
     public let slide: Int?
     public let frame: Int?
@@ -236,10 +237,11 @@ public struct ConversionLocation: Codable, Hashable, Sendable {
     public let note: String?
     public init(page: Int? = nil, sheet: String? = nil, cell: String? = nil, sheetIndex: Int? = nil,
                 slide: Int? = nil, frame: Int? = nil, paragraph: Int? = nil,
-                message: String? = nil, note: String? = nil) {
+                message: String? = nil, note: String? = nil, chapter: Int? = nil) {
         self.page = page
         self.sheet = sheet
         self.cell = cell
+        self.chapter = chapter
         self.sheetIndex = sheetIndex
         self.slide = slide
         self.frame = frame
@@ -251,13 +253,13 @@ public struct ConversionLocation: Codable, Hashable, Sendable {
     public func merging(_ known: ConversionLocation) -> ConversionLocation {
         ConversionLocation(page: known.page ?? page, sheet: known.sheet ?? sheet, cell: known.cell ?? cell, sheetIndex: known.sheetIndex ?? sheetIndex,
                            slide: known.slide ?? slide, frame: known.frame ?? frame, paragraph: known.paragraph ?? paragraph,
-                           message: known.message ?? message, note: known.note ?? note)
+                           message: known.message ?? message, note: known.note ?? note, chapter: known.chapter ?? chapter)
     }
 
     var label: String {
         [slide.map { "Slide \($0)" } ?? page.map { "Page \($0)" }, sheet.map { "Sheet \($0)" },
          cell.map { "Cell \($0)" }, frame.map { "Frame \($0)" }, paragraph.map { "Paragraph \($0)" },
-         message.map { "Message \($0)" }, note.map { "Note \($0)" }].compactMap { $0 }.joined(separator: ", ")
+         message.map { "Message \($0)" }, note.map { "Note \($0)" }, chapter.map { "Chapter \($0)" }].compactMap { $0 }.joined(separator: ", ")
     }
 }
 

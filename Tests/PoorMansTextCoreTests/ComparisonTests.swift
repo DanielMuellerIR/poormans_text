@@ -112,6 +112,15 @@ final class ComparisonTests: XCTestCase {
         XCTAssertFalse(coarse.exact); XCTAssertEqual(coarse.range.utf8Offset, 10)
     }
 
+    func testEPUBChapterNavigationKeepsDistinctSourceIndices() throws {
+        let mappings = [1, 3].map { number in ConversionSourceMapping(source: .init(chapter: number), output: .init(file: "text.md", utf8Offset: number * 10, utf8Length: 5)) }
+        XCTAssertEqual(ComparisonNavigation.sections(mappings).map { $0.location.chapter }, [1, 3])
+        let target = try XCTUnwrap(ComparisonNavigation.target(for: .init(chapter: 3), mappings: mappings))
+        XCTAssertTrue(target.exact); XCTAssertEqual(target.range.utf8Offset, 30)
+        XCTAssertNil(ComparisonNavigation.target(for: .init(chapter: 2), mappings: mappings))
+        XCTAssertTrue(ComparisonNavigation.label(.init(chapter: 3)).contains("3"))
+    }
+
     func testDiagnosticsFilterMeaningAndUnknownLocationsWithoutDroppingDetails() {
         let information = ConversionWarning(code: "info", message: "Information marker", kind: .information)
         let loss = ConversionWarning(code: "loss", message: "Loss marker", location: ConversionLocation(sheet: "Budget🙂", cell: "B4"), kind: .contentLoss)

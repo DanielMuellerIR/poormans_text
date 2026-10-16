@@ -492,3 +492,7 @@ Arbeitsbudgets für die ausgewählten Seiten. Details: [PDF-IMPORT.md](PDF-IMPOR
 ## Präsentationsauswahl
 
 `PresentationSelection` verbindet ursprüngliche Folienintervalle mit der Notizübernahme. `PresentationImport` wählt über `p:sldIdLst` beziehungsweise die ODP-Seitenreihenfolge vor dem Lesen der Folienblöcke aus. Ausgeschlossene Inhalte erzeugen keine Konvertierungsdiagnosen oder Assets; die vollständige Paketprüfung bleibt davor aktiv. Fortschritt und Text-/Assetbudgets zählen die ausgewählte Arbeit, Quellenzuordnungen behalten die ursprünglichen Foliennummern. Die verifizierte Inhaltsübersicht liest höchstens 500 Folientitel und lokale Notizverweise ohne Medienablage oder Renderer.
+
+## EPUB-Auswahl
+
+`EPUBSelectionPackage` liest Container, OPF-Spine, XHTML und optionale Navigation aus verifizierten ZIP-Snapshots. Die Auswahl ändert OPF und gewählte XHTML-Dateien ausschließlich in einer privaten Kopie; das macOS-Systemwerkzeug `/usr/bin/zip` aktualisiert literal übergebene Paketpfade, anschließend wird das vollständige Paket erneut geprüft. Pandocs bestehende Sandbox bleibt erhalten. Zufällige interne Textmarken passieren die sichere HTML-Konvertierung, werden danach in ausschließlich generierte lokale Anker umgewandelt und müssen vollständig verschwinden. Linkumschreibung verwendet den bestehenden Markdown-Scanner, damit Code unverändert bleibt. Kapitelbereiche werden erst anhand der abschließenden Markdown-Bytes registriert.

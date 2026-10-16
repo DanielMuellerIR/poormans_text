@@ -228,6 +228,8 @@ final class WordProcessingAdapterTests: XCTestCase {
         )
         let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
         XCTAssertTrue(markdown.contains("Accepted change"))
+        XCTAssertEqual(result.diagnostics.map(\.kind), [.contentLoss, .information])
+        XCTAssertTrue(result.diagnostics.allSatisfy { $0.location == nil })
         XCTAssertEqual(
             result.diagnostics.map(\.code),
             inspection.expectedWarnings.map(\.code)

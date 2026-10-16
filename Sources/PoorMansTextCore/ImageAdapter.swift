@@ -104,15 +104,7 @@ struct ImageAdapter: DocumentConversionAdapter {
         var warnings = [ConversionWarning]()
         if let extraction {
             warnings.append(.imageOCRApplied)
-            if extraction.wasDownscaled {
-                warnings.append(.imageOCRDownscaled)
-            }
-            if extraction.hadOCRFailure {
-                warnings.append(.imageOCRFailed)
-            }
-            if extraction.hasFrameWithoutText {
-                warnings.append(.imageTextUnavailable)
-            }
+            warnings += extraction.diagnostics
         }
         return StagedConversionResult(
             markdownRelativePath: markdownName,
@@ -155,8 +147,13 @@ struct ImageAdapter: DocumentConversionAdapter {
         )
 
         var pages = [String]()
-        var hadOCRFailure = false
-        var wasDownscaled = false
+        var diagnostics = BoundedConversionDiagnostics()
+        func failedFrame(_ index: Int) {
+            let location = ConversionLocation(frame: index + 1)
+            diagnostics.append(ConversionWarning.imageOCRFailed.at(location))
+            diagnostics.append(ConversionWarning.imageTextUnavailable.at(location))
+            pages.append("")
+        }
         for frameIndex in 0..<frameCount {
             try ConversionExecution.report(unit: .frame, completed: frameIndex, total: frameCount)
             let properties = try frameProperties(source, at: frameIndex)
@@ -164,40 +161,36 @@ struct ImageAdapter: DocumentConversionAdapter {
             let maximumEdge = downscaledEdge(for: dimensions, budget: frameBudget)
 
             guard let image = decodedImage(source, at: frameIndex, maximumEdge: maximumEdge) else {
-                hadOCRFailure = true
-                pages.append("")
+                failedFrame(frameIndex)
                 continue
             }
             // ImageIO rundet die kurze Kante mindestens auf einen Pixel. Die
             // ganzzahlige Planung ist konservativ, diese Kontrolle bindet aber
             // auch einen Decoder mit abweichender Rundung an dasselbe Budget.
             guard image.height > 0, image.width <= frameBudget / image.height else {
-                hadOCRFailure = true
-                pages.append("")
+                failedFrame(frameIndex)
                 continue
             }
             if maximumEdge != nil {
                 // Erst ein tatsächlich erzeugtes, budgetkonformes Thumbnail
                 // zählt als Verkleinerung. Ein Decoderfehler darf keine
                 // erfolgreiche Verkleinerung behaupten.
-                wasDownscaled = true
+                diagnostics.append(ConversionWarning.imageOCRDownscaled.at(ConversionLocation(frame: frameIndex + 1)))
             }
             let orientation = imageOrientation(from: properties)
             do {
-                pages.append(try VisionTextRecognizer.recognize(in: image, orientation: orientation, languages: languages).text)
+                let text = try VisionTextRecognizer.recognize(in: image, orientation: orientation, languages: languages).text
+                pages.append(text)
+                if text.isEmpty { diagnostics.append(ConversionWarning.imageTextUnavailable.at(ConversionLocation(frame: frameIndex + 1))) }
             } catch {
                 try ConversionExecution.check()
-                hadOCRFailure = true
-                pages.append("")
+                failedFrame(frameIndex)
             }
         }
         try ConversionExecution.report(unit: .frame, completed: frameCount, total: frameCount)
         try verified.validateUnchanged()
         return ImageExtraction(
-            frames: pages,
-            hadOCRFailure: hadOCRFailure,
-            wasDownscaled: wasDownscaled,
-            hasFrameWithoutText: pages.contains { $0.isEmpty }
+            frames: pages, diagnostics: diagnostics.result
         )
     }
 
@@ -356,10 +349,7 @@ struct ImageAdapter: DocumentConversionAdapter {
 
     private struct ImageExtraction {
         let frames: [String]
-        let hadOCRFailure: Bool
-        /// Wahr, sobald ein Frame für die Erkennung verkleinert wurde.
-        let wasDownscaled: Bool
-        let hasFrameWithoutText: Bool
+        let diagnostics: [ConversionWarning]
     }
 }
 

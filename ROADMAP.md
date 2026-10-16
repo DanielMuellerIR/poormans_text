@@ -22,8 +22,6 @@ Kurzbefehle reichen die jeweils passenden Optionen weiter.
 
 ### Ergebnisprüfung und Quellbezug
 
-- Hinweise, tatsächliche Inhaltsverluste und unsichere Erkennung unterscheiden
-  und nach Fundstellen zusammenfassen.
 - Einen optionalen Konvertierungsbericht mit Quellenidentität, Optionen,
   Konverterversion und nachvollziehbarer Zuordnung zwischen Quelle und
   Ergebnis anbieten. Unbekannte Fundstellen ausdrücklich als unbekannt behandeln.

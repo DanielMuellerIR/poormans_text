@@ -185,6 +185,13 @@ Kollision am Ausgabeziel gemeldet, und nichts wird überschrieben.
 
 ### Frontmatter, Textbundle und Standardausgabe
 
+Erfolgreiche JSON-Antworten behalten die Textliste `warnings` und ergänzen bei
+vorhandenen Meldungen `diagnostics` und `diagnosticGroups`. `kind` unterscheidet
+Information, Annäherung und bekannten Inhaltsverlust; belegbare Fundstellen und
+ausgelassene Diagnosezahlen stehen zusätzlich bereit. Diagnosen allein ändern
+den erfolgreichen Exit-Code nicht. Details stehen im
+[Diagnosevertrag](docs/DIAGNOSTICS.md).
+
 `--frontmatter` stellt dem Markdown einen YAML-Kopf aus der Quelle voran:
 Titel, Autor, Thema, Beschreibung, Schlüsselwörter sowie Erstell- und
 Änderungsdatum, gelesen aus den OOXML-Kerneigenschaften (DOCX, XLSX), der
@@ -534,7 +541,7 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.17.2.
+Die aktuelle Version ist 0.18.0.
 
 ## Lizenz
 

@@ -168,6 +168,8 @@ final class PDFAdapterTests: XCTestCase {
             result.diagnostics.map(\.code),
             ["pdf.layoutNotPreserved", "pdf.ocrApplied", "pdf.pageTextUnavailable"]
         )
+        XCTAssertEqual(result.diagnostics.map(\.kind), [.approximation, .information, .approximation])
+        XCTAssertEqual(result.diagnostics.last?.location?.page, 1)
         XCTAssertTrue(markdown.contains("_No text could be extracted from this page._"), markdown)
     }
 

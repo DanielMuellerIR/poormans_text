@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.18.0 — 2026-10-16
+
+- Classify conversion diagnostics as information, approximation or known content
+  loss while preserving stable codes, text warnings and successful exit semantics.
+  Read older diagnostic JSON and add machine-readable kinds and ordered groups
+  to CLI results whenever diagnostics are present.
+- Identify image frames, presentation slides and source paragraphs, notes parts
+  and actual email Message-IDs where available. Keep unknown positions unknown.
+- Count omitted diagnostics consistently, including spreadsheet warnings across
+  sheets. Report the actual omitted count and avoid false limit notices when
+  a document reaches the limit exactly; preserve all converted document content.
+
 ## 0.17.2 — 2026-10-16
 
 - Fill missing ODS display text using supported numeric, percentage, currency,

@@ -3,6 +3,24 @@ import XCTest
 @testable import PoorMansTextCore
 
 final class CLIIntegrationTests: XCTestCase {
+    func testInformationalOCRDiagnosticsRemainSuccessfulAndMachineReadable() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let input = Bundle.module.resourceURL!.appendingPathComponent("Fixtures/WordProcessing/fixture.png")
+        let original = try Data(contentsOf: input)
+        let result = try runCLI(["--json", "--output", root.appendingPathComponent("result").path, input.path])
+        XCTAssertEqual(result.status, 0, result.standardError)
+        let json = try decodeJSON(result.standardOutput)
+        XCTAssertEqual(json["ok"] as? Bool, true)
+        let warnings = try XCTUnwrap(json["warnings"] as? [String])
+        XCTAssertTrue(warnings.contains { $0.contains("Local OCR text was added") })
+        let diagnostics = try XCTUnwrap(json["diagnostics"] as? [[String: Any]])
+        XCTAssertTrue(diagnostics.contains { $0["code"] as? String == "image.ocrApplied" && $0["kind"] as? String == "information" })
+        let groups = try XCTUnwrap(json["diagnosticGroups"] as? [[String: Any]])
+        XCTAssertTrue(groups.contains { $0["code"] as? String == "image.ocrApplied" && $0["count"] as? Int == 1 })
+        XCTAssertEqual(try Data(contentsOf: input), original)
+    }
     func testRTFSuccessAndInvalidDataKeepJSONAndExitSemantics() throws {
         let temporaryDirectory = FileManager.default.temporaryDirectory.appendingPathComponent(
             "PoorMansTextCLIIntegrationTests-\(UUID().uuidString)",

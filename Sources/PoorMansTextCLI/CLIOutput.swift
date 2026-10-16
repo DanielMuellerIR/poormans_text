@@ -32,6 +32,7 @@ struct JSONResponse: Encodable {
     let assets: [String]?
     let warnings: [String]?
     var diagnostics: [ConversionWarning]? = nil
+    var diagnosticGroups: [ConversionDiagnosticGroup]? = nil
     let metadata: JSONMetadata?
     let error: String?
 
@@ -43,6 +44,7 @@ struct JSONResponse: Encodable {
         assets: [String]? = nil,
         warnings: [String]? = nil,
         diagnostics: [ConversionWarning]? = nil,
+        diagnosticGroups: [ConversionDiagnosticGroup]? = nil,
         metadata: JSONMetadata? = nil,
         error: String? = nil
     ) {
@@ -54,6 +56,7 @@ struct JSONResponse: Encodable {
         self.assets = assets
         self.warnings = warnings
         self.diagnostics = diagnostics
+        self.diagnosticGroups = diagnosticGroups
         self.metadata = metadata
         self.error = error
     }
@@ -66,7 +69,8 @@ struct JSONResponse: Encodable {
             markdownFile: canonicalPath(result.markdownFile),
             assets: result.assets.map(canonicalPath),
             warnings: result.warnings,
-            diagnostics: result.diagnostics.contains { $0.location != nil } ? result.diagnostics : nil,
+            diagnostics: result.diagnostics.isEmpty ? nil : result.diagnostics,
+            diagnosticGroups: result.diagnostics.isEmpty ? nil : result.diagnosticGroups,
             metadata: JSONMetadata(result.metadata)
         )
     }
@@ -87,6 +91,7 @@ struct JSONBatchEntry: Encodable {
     let assets: [String]?
     let warnings: [String]?
     var diagnostics: [ConversionWarning]? = nil
+    var diagnosticGroups: [ConversionDiagnosticGroup]? = nil
     let metadata: JSONMetadata?
     let error: String?
 
@@ -98,7 +103,8 @@ struct JSONBatchEntry: Encodable {
             markdownFile: canonicalPath(result.markdownFile),
             assets: result.assets.map(canonicalPath),
             warnings: result.warnings,
-            diagnostics: result.diagnostics.contains { $0.location != nil } ? result.diagnostics : nil,
+            diagnostics: result.diagnostics.isEmpty ? nil : result.diagnostics,
+            diagnosticGroups: result.diagnostics.isEmpty ? nil : result.diagnosticGroups,
             metadata: JSONMetadata(result.metadata),
             error: nil
         )

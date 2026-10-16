@@ -32,13 +32,12 @@ enum ODSWorkbookParser {
         }
 
         private func locate(_ warning: ConversionWarning) {
-            guard workbook.locatedDiagnostics.count < 256 else { return }
             // Leere Wiederholungen sind noch nicht materialisiert. Bei einem
             // wiederholten betroffenen Element bezeichnet der Bezug dessen erste Zelle.
             var column = (currentRow?.count ?? 0) + pendingEmptyCells + 1
             var name = ""
             while column > 0 { column -= 1; name = String(UnicodeScalar(65 + column % 26)!) + name; column /= 26 }
-            workbook.locatedDiagnostics.append(warning.at(ConversionLocation(sheet: currentSheetName, cell: "\(name)\(currentRows.count + pendingEmptyRows + 1)")))
+            workbook.packageDiagnostics.append(warning.at(ConversionLocation(sheet: currentSheetName, cell: "\(name)\(currentRows.count + pendingEmptyRows + 1)")))
         }
         private var currentSheetName: String?
         private var currentRows = [[SpreadsheetCell]]()

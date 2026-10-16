@@ -111,15 +111,3 @@ final class ImportMediaStore {
         return path
     }
 }
-
-struct ImportDiagnostics {
-    private(set) var values: [ConversionWarning] = []
-    private var omitted = 0
-    mutating func add(_ code: String, _ message: String, page: Int? = nil, cell: String? = nil) {
-        guard values.count < 256 else { omitted += 1; return }
-        values.append(ConversionWarning(code: code, message: message.count > 4_096 ? String(message.prefix(4_096)) + "…" : message, location: page == nil && cell == nil ? nil : ConversionLocation(page: page, cell: cell)))
-    }
-    var result: [ConversionWarning] {
-        values + (omitted == 0 ? [] : [ConversionWarning(code: "diagnostics.limited", message: "\(omitted) further import diagnostics were omitted after the first 256.")])
-    }
-}

@@ -100,8 +100,10 @@ final class ImageAdapterTests: XCTestCase {
         XCTAssertEqual(try Data(contentsOf: try XCTUnwrap(result.assets.first)), sourceBefore)
         XCTAssertEqual(
             result.diagnostics.map(\.code),
-            ["image.ocrApplied", "image.textUnavailable"]
+            ["image.ocrApplied", "image.textUnavailable", "image.textUnavailable"]
         )
+        XCTAssertEqual(result.diagnostics.compactMap { $0.location?.frame }, [1, 2])
+        XCTAssertTrue(result.diagnostics.allSatisfy { $0.kind == .information })
         XCTAssertTrue(markdown.contains("### Frame 1"), markdown)
         XCTAssertTrue(markdown.contains("### Frame 2"), markdown)
         XCTAssertEqual(

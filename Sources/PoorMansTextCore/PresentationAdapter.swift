@@ -86,6 +86,8 @@ final class PresentationImport {
     private var page = 0
     private var expandedTextBytes = 0
     private var listStyles: [String: [Int: Bool]] = [:]
+    private var paragraphPositions: [ObjectIdentifier: Int] = [:]
+    private var currentNote: String?
     /// Bereits abgelegte Bilder je Paketpfad. Die Ablage dedupliziert zwar
     /// nach Prüfsumme, aber erst nach Entpacken, Dekodieren und Hashen; ein
     /// Bild mit vielen Verweisen kostete das je Verweis erneut (Roadmap-Punkt,
@@ -140,9 +142,15 @@ final class PresentationImport {
             for (index, node) in slides.enumerated() {
                 page = index + 1
                 try ConversionExecution.report(unit: .slide, completed: index, total: slides.count)
+                indexParagraphs(in: node, namespace: Self.text)
                 var slide = PresentationSlide()
+                var noteIndex = 0
                 for child in node.children {
-                    if child.name == "notes", child.namespace == Self.presentationODF { slide.notes += try odpBlocks(child, level: nil) }
+                    if child.name == "notes", child.namespace == Self.presentationODF {
+                        noteIndex += 1; currentNote = String(noteIndex)
+                        defer { currentNote = nil }
+                        slide.notes += try odpBlocks(child, level: nil)
+                    }
                     else { slide.blocks += try odpBlocks(child, level: nil) }
                 }
                 try append(PresentationRenderer.render(slide, number: page, maximumBytes: 128 * 1_024 * 1_024 - markdown.utf8.count))
@@ -156,6 +164,8 @@ final class PresentationImport {
         let root = try ImportXML.parse(reader.data(named: part))
         guard root.name == "sld", root.namespace == Self.presentation else { throw ImportFailure("invalid slide root at \(part)") }
         root.selectAlternateContent(supportedNamespaces: [Self.presentation, Self.drawing, Self.relations])
+        currentNote = nil
+        indexParagraphs(in: root, namespace: Self.drawing)
         let relations = try relationships(for: part)
         var result = PresentationSlide(blocks: try pptxBlocks(root, part: part, relations: relations))
         // Nach Beziehungs-Id sortiert: `relations.values` ist ungeordnet, und
@@ -163,17 +173,27 @@ final class PresentationImport {
         // der Notizblöcke (Review-Fund 2026-09-10).
         for relation in relations.sorted(by: { $0.key < $1.key }).map(\.value)
         where relation.type.hasSuffix("/notesSlide") {
+            let previous = diagnostics.context
+            diagnostics.context = ConversionLocation(page: page, slide: page, note: relation.target)
+            defer { diagnostics.context = previous }
             guard !relation.external else { diagnostics.add("presentation.notesUnavailable", "External notes were not loaded.", page: page); continue }
             let path = try ImportPackagePath.resolve(relation.target, relativeTo: part)
+            diagnostics.context = ConversionLocation(page: page, slide: page, note: path)
             guard let data = try reader.dataIfPresent(named: path) else { diagnostics.add("presentation.notesUnavailable", "A notes part is missing: \(path)", page: page); continue }
             let notes = try ImportXML.parse(data)
             notes.selectAlternateContent(supportedNamespaces: [Self.presentation, Self.drawing, Self.relations])
+            currentNote = path
+            indexParagraphs(in: notes, namespace: Self.drawing)
+            defer { currentNote = nil }
             result.notes += try pptxBlocks(notes, part: path, relations: relationships(for: path))
         }
         return result
     }
     private func pptxBlocks(_ node: ImportXML, part: String, relations: [String: Relation]) throws -> [PresentationBlock] {
         try ConversionExecution.check()
+        let previous = diagnostics.context
+        diagnostics.context = (previous ?? ConversionLocation()).merging(ConversionLocation(page: page, slide: page, paragraph: paragraphPositions[ObjectIdentifier(node)], note: currentNote))
+        defer { diagnostics.context = previous }
         if node.name == "sp", node.namespace == Self.presentation,
            !node.descendants("ph", namespace: Self.presentation).isEmpty,
            node.descendants("p", namespace: Self.drawing).contains(where: { $0.elements("pPr", namespace: Self.drawing).isEmpty }) {
@@ -231,6 +251,9 @@ final class PresentationImport {
     }
     private func odpBlocks(_ node: ImportXML, level: Int?, listStyle: String? = nil) throws -> [PresentationBlock] {
         try ConversionExecution.check()
+        let previous = diagnostics.context
+        diagnostics.context = (previous ?? ConversionLocation()).merging(ConversionLocation(page: page, slide: page, paragraph: paragraphPositions[ObjectIdentifier(node)], note: currentNote))
+        defer { diagnostics.context = previous }
         if node.namespace == Self.text {
             if node.name == "p" || node.name == "h" {
                 let text = try odfText(node)
@@ -328,10 +351,26 @@ final class PresentationImport {
         return count
     }
     private func odfText(_ node: ImportXML) throws -> String {
+        let previous = diagnostics.context
+        diagnostics.context = (previous ?? ConversionLocation()).merging(ConversionLocation(paragraph: paragraphPositions[ObjectIdentifier(node)]))
+        defer { diagnostics.context = previous }
         var output = ImportTextBuilder(maximumBytes: min(16 * 1_024 * 1_024, 128 * 1_024 * 1_024 - expandedTextBytes))
         try appendODFText(node, to: &output)
         expandedTextBytes += output.bytes
         return output.value
+    }
+    private func indexParagraphs(in root: ImportXML, namespace: String) {
+        paragraphPositions = [:]
+        var count = 0
+        func visit(_ node: ImportXML, paragraph: Int?) {
+            var paragraph = paragraph
+            if node.namespace == namespace, node.name == "p" || node.name == "h" {
+                count += 1; paragraph = count
+            }
+            if let paragraph { paragraphPositions[ObjectIdentifier(node)] = paragraph }
+            for child in node.children { visit(child, paragraph: paragraph) }
+        }
+        visit(root, paragraph: nil)
     }
     private func appendODFText(_ node: ImportXML, to output: inout ImportTextBuilder) throws {
         try ConversionExecution.check()

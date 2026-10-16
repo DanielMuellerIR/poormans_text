@@ -1,15 +1,58 @@
 import Foundation
 
-/// Maschinenlesbare Warnung mit stabilem Code und verständlicher Meldung.
+/// Bedeutung einer Diagnose; keine Fehlerstufe und kein Qualitätsversprechen.
+public enum ConversionDiagnosticKind: String, Codable, Hashable, Sendable {
+    case information
+    case approximation
+    case contentLoss
+}
+
+/// Maschinenlesbare Diagnose. Der bisherige Typname bleibt quellkompatibel.
 public struct ConversionWarning: Codable, Hashable, Sendable {
     public let code: String
     public let message: String
     public let location: ConversionLocation?
+    public let kind: ConversionDiagnosticKind
+    public let omittedCount: Int?
 
-    public init(code: String, message: String, location: ConversionLocation? = nil) {
+    public init(code: String, message: String, location: ConversionLocation? = nil,
+                kind: ConversionDiagnosticKind? = nil, omittedCount: Int? = nil) {
         self.code = code
         self.message = message
         self.location = location
+        self.kind = kind ?? Self.defaultKind(for: code)
+        self.omittedCount = omittedCount.map { max(0, $0) }
+    }
+
+    private enum CodingKeys: String, CodingKey { case code, message, location, kind, omittedCount }
+
+    public init(from decoder: any Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        let code = try values.decode(String.self, forKey: .code)
+        self.init(code: code, message: try values.decode(String.self, forKey: .message),
+                  location: try values.decodeIfPresent(ConversionLocation.self, forKey: .location),
+                  kind: try values.decodeIfPresent(String.self, forKey: .kind).flatMap(ConversionDiagnosticKind.init(rawValue:)),
+                  omittedCount: try values.decodeIfPresent(Int.self, forKey: .omittedCount))
+    }
+
+    private static func defaultKind(for code: String) -> ConversionDiagnosticKind {
+        switch code {
+        case "metadata.unavailable", "wordProcessing.changesAccepted", "pdf.ocrApplied", "image.ocrApplied",
+             "image.textUnavailable", "pdf.repeatedMarginRemoved", "mail.partSavedAsAttachment",
+             "html.remoteImagesKeptAsLinks", "notebook.rawCellPreservedAsText", "notebook.externalReferenceNotLoaded",
+             "notebook.htmlNotInterpreted", "diagnostics.limited", "diagnostics.locationsLimited":
+            return .information
+        case "richText.attachmentNotRepresented", "wordProcessing.commentsNotPreserved", "wordProcessing.macrosNotPreserved",
+             "wordProcessing.templateSemanticsNotPreserved", "openDocument.changesNotPreserved",
+             "spreadsheet.formulaResultMissing", "spreadsheet.unsupportedObjects", "spreadsheet.macrosNotPreserved",
+             "spreadsheet.templateSemanticsNotPreserved", "spreadsheet.hyperlinkNotPreserved", "html.missingImagesDropped",
+             "presentation.hyperlinkFlattened", "presentation.imageUnavailable", "presentation.macrosNotPreserved",
+             "presentation.notesUnavailable", "presentation.objectNotRepresented", "notebook.attachmentUnavailable",
+             "notebook.imageUnavailable", "notebook.resourceUnavailable", "notebook.outputNotRepresented":
+            return .contentLoss
+        default:
+            return .approximation
+        }
     }
 }
 
@@ -185,15 +228,39 @@ public struct ConversionLocation: Codable, Hashable, Sendable {
     public let page: Int?
     public let sheet: String?
     public let cell: String?
-    public init(page: Int? = nil, sheet: String? = nil, cell: String? = nil) {
+    public let slide: Int?
+    public let frame: Int?
+    public let paragraph: Int?
+    public let message: String?
+    public let note: String?
+    public init(page: Int? = nil, sheet: String? = nil, cell: String? = nil,
+                slide: Int? = nil, frame: Int? = nil, paragraph: Int? = nil,
+                message: String? = nil, note: String? = nil) {
         self.page = page
         self.sheet = sheet
         self.cell = cell
+        self.slide = slide
+        self.frame = frame
+        self.paragraph = paragraph
+        self.message = message
+        self.note = note
+    }
+
+    public func merging(_ known: ConversionLocation) -> ConversionLocation {
+        ConversionLocation(page: known.page ?? page, sheet: known.sheet ?? sheet, cell: known.cell ?? cell,
+                           slide: known.slide ?? slide, frame: known.frame ?? frame, paragraph: known.paragraph ?? paragraph,
+                           message: known.message ?? message, note: known.note ?? note)
+    }
+
+    var label: String {
+        [slide.map { "Slide \($0)" } ?? page.map { "Page \($0)" }, sheet.map { "Sheet \($0)" },
+         cell.map { "Cell \($0)" }, frame.map { "Frame \($0)" }, paragraph.map { "Paragraph \($0)" },
+         message.map { "Message \($0)" }, note.map { "Note \($0)" }].compactMap { $0 }.joined(separator: ", ")
     }
 }
 
 extension ConversionWarning {
     func at(_ location: ConversionLocation) -> ConversionWarning {
-        ConversionWarning(code: code, message: message, location: location)
+        ConversionWarning(code: code, message: message, location: location, kind: kind, omittedCount: omittedCount)
     }
 }

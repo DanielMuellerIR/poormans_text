@@ -57,8 +57,14 @@ struct MailAdapter: DocumentConversionAdapter {
             throw ConversionError.invalidInput(context.inputURL, format: .eml, reason: error.reason)
         }
         try ConversionPostprocessor.prepend(table, to: context.stagedOutputDirectory.appendingPathComponent(converted.markdownRelativePath))
+        let identifier = try part.headers.first(where: { $0.name == "message-id" }).map { try MIMEMessage.decodedHeader($0.value) }
+        let knownMessage = identifier.flatMap { !$0.isEmpty && $0.utf8.count <= 4096 ? $0 : nil }
+        let warnings = converted.warnings.map { warning in
+            guard let knownMessage else { return warning }
+            return warning.at((warning.location ?? ConversionLocation()).merging(ConversionLocation(message: knownMessage)))
+        }
         return StagedConversionResult(markdownRelativePath: converted.markdownRelativePath,
-            assetRelativePaths: converted.assetRelativePaths, warnings: converted.warnings, metadata: metadata)
+            assetRelativePaths: converted.assetRelativePaths, warnings: warnings, metadata: metadata)
     }
 
     private static func hasAppleMailCount(_ data: Data) -> Bool {

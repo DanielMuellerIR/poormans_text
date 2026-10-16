@@ -48,7 +48,9 @@ struct SpreadsheetSheet: Equatable, Sendable {
 
 struct SpreadsheetWorkbook: Equatable, Sendable {
     var sheets: [SpreadsheetSheet]
-    var locatedDiagnostics: [ConversionWarning] = []
+    var packageDiagnostics = BoundedConversionDiagnostics()
+    var locatedDiagnostics: [ConversionWarning] { packageDiagnostics.values }
+    var omittedDiagnosticCount: Int { packageDiagnostics.omittedCount }
     var hasFlattenedMerges = false
     var hasFormulaWithoutResult = false
     var hasUnsupportedObjects = false

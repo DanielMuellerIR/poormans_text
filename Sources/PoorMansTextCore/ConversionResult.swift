@@ -17,13 +17,13 @@ public struct ConversionResult: Sendable {
     public let diagnostics: [ConversionWarning]
     /// Angaben aus dem Quelldokument, soweit das Format sie kennt.
     public let metadata: DocumentMetadata
+    public var diagnosticGroups: [ConversionDiagnosticGroup] { ConversionDiagnosticGroup.grouped(diagnostics) }
 
     /// Quellkompatible Textsicht für CLI, App und bisherige Library-Aufrufer.
     public var warnings: [String] {
         diagnostics.map { warning in
-            guard let location = warning.location else { return warning.message }
-            let parts = [location.page.map { "Page \($0)" }, location.sheet.map { "Sheet \($0)" }, location.cell.map { "Cell \($0)" }].compactMap { $0 }
-            return parts.joined(separator: ", ") + ": " + warning.message
+            guard let label = warning.location?.label, !label.isEmpty else { return warning.message }
+            return label + ": " + warning.message
         }
     }
 

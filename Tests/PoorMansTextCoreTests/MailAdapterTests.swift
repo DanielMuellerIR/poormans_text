@@ -18,6 +18,22 @@ final class MailAdapterTests: XCTestCase {
         return url
     }
 
+    func testDiagnosticsUseAnActualMessageIDAndLeaveMissingIDsUnknown() throws {
+        for (index, identifier) in ["<source@example.invalid>", nil].enumerated() {
+            let mail = "From: sender@example.invalid\n" + (identifier.map { "Message-ID: \($0)\n" } ?? "")
+                + "Content-Type: text/html; charset=utf-8\n\n<p>MailMarker</p><img src=\"missing.png\" alt=\"ImageMarker\">"
+            let input = try source(mail, named: "message-\(index).eml")
+            let original = try Data(contentsOf: input)
+            let result = try DocumentConverter().convert(ConversionRequest(inputURL: input))
+            XCTAssertFalse(result.diagnostics.isEmpty)
+            XCTAssertTrue(result.diagnostics.allSatisfy { $0.location?.message == identifier })
+            XCTAssertTrue(result.diagnostics.contains { $0.code == "html.missingImagesDropped" && $0.kind == .contentLoss })
+            let text = try String(contentsOf: result.markdownFile, encoding: .utf8)
+            XCTAssertEqual(text.components(separatedBy: "MailMarker").count - 1, 1)
+            XCTAssertEqual(try Data(contentsOf: input), original)
+        }
+    }
+
     func testEMLAndAppleMailHaveIdenticalContentAndVisibleHeaders() throws {
         let mail = "From: sender@example.invalid\r\nTo: receiver@example.invalid\r\nSubject: =?utf-8?Q?Gr=C3=BC=C3=9Fe?=\r\nDate: Wed, 30 Sep 2026 10:30:00 +0200\r\nContent-Type: text/plain; charset=utf-8\r\n\r\nBody marker Grüße"
         let eml = try source(mail, named: "plain.eml")

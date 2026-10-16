@@ -300,8 +300,8 @@ struct SpreadsheetAdapter: DocumentConversionAdapter {
                 }
             }
         }
-        if workbook.locatedDiagnostics.count >= 256 || omittedFormulas > 0 {
-            result.append(ConversionWarning(code: "diagnostics.locationsLimited", message: "Location details are limited to the first 256 package warnings and 256 missing formula results; \(omittedFormulas) further formula locations were omitted. Summary warnings still apply to the whole workbook."))
+        if workbook.omittedDiagnosticCount > 0 || omittedFormulas > 0 {
+            result.append(ConversionWarning(code: "diagnostics.locationsLimited", message: "Location details are limited to the first 256 package warnings and 256 missing formula results; \(workbook.omittedDiagnosticCount) further package locations and \(omittedFormulas) further formula locations were omitted. Summary warnings still apply to the whole workbook.", omittedCount: workbook.omittedDiagnosticCount + omittedFormulas))
         }
         return result
     }

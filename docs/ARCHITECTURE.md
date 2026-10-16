@@ -374,9 +374,12 @@ ordnet zwei Spalten und bereinigt auf Wunsch wiederkehrende Ränder und
 Worttrennungen. Bei unsicherer Geometrie bleibt der gesamte Originaltext.
 `OCRLanguageSelection` validiert gemeinsam für PDF und Bilder gegen die lokal
 von Vision unterstützten Sprachen. `ConversionLocation` ergänzt bestehende
-`ConversionWarning`-Werte optional um Seite, Blatt und Zelle. Die CLI behält
-Textwarnungen und ergänzt bei vorhandenen Positionen ein `diagnostics`-Array;
-die App zeigt den Bezug in ihrer bisherigen Warnungsliste.
+`ConversionWarning`-Werte optional um Seite, Blatt, Zelle, Folie, Frame,
+Quellabsatz sowie Nachrichten- und Notizkennungen. Die CLI behält
+Textwarnungen und ergänzt bei vorhandenen Meldungen `diagnostics` und
+`diagnosticGroups`. Bedeutung, bekannte Fundstellen und tatsächlich ausgelassene
+Diagnosezahlen stehen maschinenlesbar zur Verfügung; die App zeigt den Bezug
+in ihrer bisherigen Warnungsliste. Der Vertrag steht in [DIAGNOSTICS.md](DIAGNOSTICS.md).
 
 ODS-Positionsdiagnosen berücksichtigen noch nicht materialisierte leere Zeilen
 und Zellen. Bei wiederholten betroffenen Elementen nennen sie die erste Zelle

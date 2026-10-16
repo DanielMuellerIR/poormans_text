@@ -114,10 +114,10 @@ enum LegacyXLSWorkbookParser {
                 expandedCellCount += parsed.expandedCellCount
                 hyperlinkScannedCellCount += parsed.hyperlinkScannedCellCount
                 workbook.sheets.append(SpreadsheetSheet(name: bound.name, rows: parsed.rows))
-                workbook.locatedDiagnostics += parsed.diagnostics.prefix(max(0, 256 - workbook.locatedDiagnostics.count)).map {
-                    ConversionWarning(code: $0.code, message: $0.message,
-                                      location: ConversionLocation(sheet: bound.name, cell: $0.location?.cell))
+                for warning in parsed.diagnostics.values {
+                    workbook.packageDiagnostics.append(warning.at((warning.location ?? ConversionLocation()).merging(ConversionLocation(sheet: bound.name))))
                 }
+                workbook.packageDiagnostics.addOmitted(parsed.diagnostics.omittedCount)
                 workbook.hasFlattenedMerges = workbook.hasFlattenedMerges || parsed.hasMerges
                 workbook.hasFormulaWithoutResult = workbook.hasFormulaWithoutResult
                     || parsed.hasFormulaWithoutResult
@@ -199,11 +199,11 @@ enum LegacyXLSWorkbookParser {
             let dateSystem: SpreadsheetDateSystem
 
             func cell(_ raw: String, style: Int, formula: String?, row: Int, column: Int,
-                      diagnostics: inout [ConversionWarning]) -> SpreadsheetCell {
+                      diagnostics: inout BoundedConversionDiagnostics) -> SpreadsheetCell {
                 let result = formats.indices.contains(style)
                     ? formats[style].format(raw, dateSystem: dateSystem)
                     : SpreadsheetFormattedNumber(text: raw, issue: "cell XF index \(style) has no valid definition")
-                if result.issue != nil, diagnostics.count < 256 {
+                if result.issue != nil {
                     var remaining = column + 1
                     var name = ""
                     while remaining > 0 { remaining -= 1; name = String(UnicodeScalar(65 + remaining % 26)!) + name; remaining /= 26 }
@@ -310,7 +310,7 @@ enum LegacyXLSWorkbookParser {
             var pendingStringFormula: (row: Int, column: Int, formula: String?)?
             var hyperlinks = [BIFFHyperlink]()
             var hyperlinkScannedCellCount = 0
-            var diagnostics: [ConversionWarning] = []
+            var diagnostics = BoundedConversionDiagnostics()
 
             for record in sheetRecords.dropFirst() {
                 try ConversionExecution.check()
@@ -646,7 +646,7 @@ enum LegacyXLSWorkbookParser {
             into cells: inout [Int: [Int: SpreadsheetCell]],
             budget: inout CellBudget,
             numberStyles: BIFFNumberStyles,
-            diagnostics: inout [ConversionWarning]
+            diagnostics: inout BoundedConversionDiagnostics
         ) throws {
             guard payload.count >= 12, (payload.count - 6) % 6 == 0 else {
                 throw ParserError("an XLS multiple-number record is invalid")
@@ -765,7 +765,7 @@ enum LegacyXLSWorkbookParser {
             let hasUnsupportedObjects: Bool
             let expandedCellCount: Int
             let hyperlinkScannedCellCount: Int
-            let diagnostics: [ConversionWarning]
+            let diagnostics: BoundedConversionDiagnostics
         }
 
         private struct HyperlinkCursor {

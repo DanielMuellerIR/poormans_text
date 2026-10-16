@@ -48,6 +48,31 @@ final class PresentationNotebookTests: XCTestCase {
             .init(name: "ppt/media/picture.png", content: try png)
         ]
     }
+    func testSlideParagraphAndNoteDiagnosticsUseSourcePositions() throws {
+        var entries = try pptxEntries()
+        for (part, marker) in [("ppt/slides/slide10.xml", "FIRSTTOKEN"), ("ppt/notesSlides/notesSlide1.xml", "NOTESTOKEN")] {
+            let index = try XCTUnwrap(entries.firstIndex { $0.name == part })
+            let xml = String(decoding: entries[index].content, as: UTF8.self)
+                .replacingOccurrences(of: "<a:t>\(marker)</a:t>", with: "<a:rPr><a:hlinkClick r:id=\"link\"/></a:rPr><a:t>\(marker)</a:t>")
+            entries[index] = entry(part, xml)
+        }
+        let source = root.appendingPathComponent("positions.pptx")
+        let original = try ZIPFixtureBuilder.archive(entries: entries)
+        try original.write(to: source)
+        let result = try DocumentConverter().convert(ConversionRequest(inputURL: source))
+        let links = result.diagnostics.filter { $0.code == "presentation.hyperlinkFlattened" }
+        XCTAssertEqual(links.count, 2)
+        XCTAssertEqual(links.compactMap { $0.location?.slide }, [1, 1])
+        XCTAssertEqual(links.compactMap { $0.location?.paragraph }, [1, 1])
+        XCTAssertNil(links.first?.location?.note)
+        XCTAssertEqual(links.last?.location?.note, "ppt/notesSlides/notesSlide1.xml")
+        XCTAssertTrue(links.allSatisfy { $0.kind == .contentLoss })
+        let output = try String(contentsOf: result.markdownFile, encoding: .utf8)
+        for marker in ["FIRSTTOKEN", "TABLETOKEN", "SECONDTOKEN", "NOTESTOKEN"] {
+            XCTAssertEqual(output.components(separatedBy: marker).count - 1, 1)
+        }
+        XCTAssertEqual(try Data(contentsOf: source), original)
+    }
     func testPowerPointVariantsKeepOrderListsTablesNotesAndImageBytes() throws {
         for (ext, type) in [("pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"), ("pptm", "application/vnd.ms-powerpoint.presentation.macroEnabled.main+xml"), ("potx", "application/vnd.openxmlformats-officedocument.presentationml.template.main+xml")] {
             var entries = try pptxEntries()

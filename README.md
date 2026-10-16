@@ -177,6 +177,12 @@ nothing is overwritten.
 
 ### Frontmatter, Textbundle, and standard output
 
+Successful JSON responses retain text `warnings` and include structured
+`diagnostics` and `diagnosticGroups` when messages are present. Their `kind`
+distinguishes information, approximation and known content loss; available
+source positions and omitted counts are included. Diagnostics alone keep a
+successful exit code. See [the diagnostic contract](docs/DIAGNOSTICS.md).
+
 `--frontmatter` starts the Markdown with a YAML header built from the source:
 title, author, subject, description, keywords, and creation and modification
 dates, read from OOXML core properties (DOCX, XLSX), OpenDocument `meta.xml`
@@ -507,7 +513,7 @@ and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compa
 their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current version is 0.17.2.
+The current version is 0.18.0.
 
 ## License
 

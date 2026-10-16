@@ -210,7 +210,7 @@ struct PDFAdapter: DocumentConversionAdapter {
         var pages = [[PDFTextLine]]()
         var bounds = [CGRect]()
         var plans = [OCRPlan]()
-        var diagnostics = [ConversionWarning]()
+        var diagnostics = BoundedConversionDiagnostics()
         var sourceBytes = 0
         for index in 0..<document.pageCount {
             try ConversionExecution.report(unit: .page, completed: index, total: document.pageCount)
@@ -301,13 +301,14 @@ struct PDFAdapter: DocumentConversionAdapter {
         }
         try ConversionExecution.report(unit: .page, completed: document.pageCount, total: document.pageCount)
         return PDFExtraction(pages: textPages, usedOCR: !plans.isEmpty, hadOCRFailure: failed,
-            hasPageWithoutText: textPages.contains { $0.isEmpty }, diagnostics: diagnostics, isStructured: true)
+            hasPageWithoutText: textPages.contains { $0.isEmpty }, diagnostics: diagnostics.result, isStructured: true)
     }
 
     private func extractLegacyText(from document: PDFDocument, options: ConversionOptions) throws -> PDFExtraction {
         var pages = [String]()
         var ocrPlans = [OCRPlan]()
         var extractedTextBytes = 0
+        var diagnostics = BoundedConversionDiagnostics()
 
         for pageIndex in 0..<document.pageCount {
             try ConversionExecution.report(unit: .page, completed: pageIndex, total: document.pageCount)
@@ -346,6 +347,7 @@ struct PDFAdapter: DocumentConversionAdapter {
             } catch {
                 try ConversionExecution.check()
                 hadOCRFailure = true
+                diagnostics.append(ConversionWarning.pdfOCRFailed.at(ConversionLocation(page: plan.index + 1)))
                 continue
             }
             // Hat die OCR nichts gefunden, bleibt der eingebettete Rückfall
@@ -358,11 +360,14 @@ struct PDFAdapter: DocumentConversionAdapter {
             pages[plan.index] = recognizedText
         }
         try ConversionExecution.report(unit: .page, completed: document.pageCount, total: document.pageCount)
+        for index in pages.indices where pages[index].isEmpty {
+            diagnostics.append(ConversionWarning.pdfPageTextUnavailable.at(ConversionLocation(page: index + 1)))
+        }
         return PDFExtraction(
             pages: pages,
             usedOCR: !ocrPlans.isEmpty,
             hadOCRFailure: hadOCRFailure,
-            hasPageWithoutText: pages.contains { $0.isEmpty }
+            hasPageWithoutText: pages.contains { $0.isEmpty }, diagnostics: diagnostics.result
         )
     }
 

@@ -1,6 +1,6 @@
 import Foundation
 
-enum SpreadsheetDateSystem: Sendable { case excel1900, excel1904 }
+enum SpreadsheetDateSystem: Sendable { case excel1900, excel1904, openDocument }
 
 struct SpreadsheetFormattedNumber: Sendable {
     let text: String
@@ -102,7 +102,7 @@ struct SpreadsheetNumberFormat: Sendable {
          45: "mm:ss", 46: "[h]:mm:ss", 47: "mmss.0", 48: "##0.0E+0", 49: "@"][id]
     }
 
-    private static func decimal(_ raw: String) -> Decimal? {
+    static func decimal(_ raw: String) -> Decimal? {
         guard !raw.isEmpty, raw.utf8.count <= 128 else { return nil }
         let bytes = Array(raw.utf8)
         var i = 0
@@ -471,9 +471,13 @@ struct SpreadsheetNumberFormat: Sendable {
             let seconds = Int(wholeSeconds % 86_400)
             var calendar = Calendar(identifier: .gregorian)
             calendar.timeZone = TimeZone(secondsFromGMT: 0)!
-            let base = calendar.date(from: DateComponents(year: dateSystem == .excel1900 ? 1899 : 1904,
-                                                         month: dateSystem == .excel1900 ? 12 : 1,
-                                                         day: dateSystem == .excel1900 ? 31 : 1))!
+            let baseComponents: DateComponents
+            switch dateSystem {
+            case .excel1900: baseComponents = DateComponents(year: 1899, month: 12, day: 31)
+            case .excel1904: baseComponents = DateComponents(year: 1904, month: 1, day: 1)
+            case .openDocument: baseComponents = DateComponents(year: 1899, month: 12, day: 30)
+            }
+            let base = calendar.date(from: baseComponents)!
             let leapDay = dateSystem == .excel1900 && day == 60
             if hasDate && dateSystem == .excel1900 && day == 0 { throw FormatError("Excel day zero has no Gregorian calendar date") }
             let offset = dateSystem == .excel1900 && day >= 60 ? day - 1 : day

@@ -10,6 +10,8 @@ Blattreihenfolge, Darstellung, Größenbegrenzung und Warnungssemantik.
 - ODS wird als geprüftes OpenDocument-ZIP-Paket gelesen. `content.xml` liefert
   Blätter, typisierte Werte, sichtbaren Text, Formeln, Wiederholungen und
   Zellverbünde sowie über einen deklarierten XLink-Namensraum verknüpfte Zellen.
+  Zahlenstyles aus `content.xml` und optional `styles.xml` ergänzen fehlende
+  Anzeigetexte, ohne vorhandenen sichtbaren Zelltext zu ersetzen.
 - XLSX wird als geprüftes OOXML-ZIP-Paket gelesen. Arbeitsmappenbeziehungen
   dürfen nur auf interne Arbeitsblätter zeigen; entfernte Beziehungen und
   ausbrechende Pfade werden abgelehnt. Externe Hyperlink-Beziehungen eines
@@ -70,6 +72,36 @@ abgeschnittene oder ungültige Definitionen führen vor der Veröffentlichung zu
 einem Fehler. Ein nicht auflösbarer Zell-XF erhält dagegen den Rohwert mit
 zellbezogener Diagnose. Die allgemeine XLS-Verlustwarnung bleibt zusätzlich
 bestehen und beschreibt weiterhin mögliche Verluste außerhalb der Zahlendarstellung.
+
+## Zahlenformate in ODS
+
+Nichtleerer expliziter Zelltext hat Vorrang, auch wenn er dem gespeicherten Wert
+widerspricht. Ein fehlender oder leerer Absatz erhält bei unterstütztem Style
+seinen Anzeigetext aus dem typisierten Wert. Der gespeicherte Wert bleibt im
+Modell unverändert. Ohne Zahlenstyle bleibt seine ursprüngliche Schreibweise.
+CSV und TSV werden weiterhin ohne Office-Zahlenstyles gelesen.
+
+Unterstützt sind feste und optionale Dezimalstellen, Gruppierung, Prozent,
+explizite Währungssymbole, führende Nullen, wissenschaftliche Schreibweise,
+gregorianische Datumsbestandteile, Uhrzeiten und verstrichene Zeit. Die
+entsprechende Teilmenge wird an denselben Formatierer wie XLSX/XLS übergeben.
+Zellstyles gehen Zeilen- und Spaltenvorgaben vor; Zeilen gehen Spalten vor.
+Elternstyles und eine ausdrücklich definierte Standard-Dezimalpräzision werden
+berücksichtigt. Zahlen mit Datumsstyle verwenden das deklarierte ODS-Null-Datum,
+standardmäßig 1899-12-30; der fiktive Excel-Schalttag gilt dabei nicht.
+
+ISO-Daten ohne Zeitzonen sowie Tages-/Stunden-/Minuten-/Sekunden-Dauern werden
+unterstützt, einschließlich sechs Nachkommastellen bei Sekunden. Kalenderdaten
+vor 1899-12-30, Zeitzonen, Monats-/Jahresdauern, alternative Kalender, automatische
+Datumsreihenfolgen, bedingte Styles, Brüche, eingebettete Zahlentexte und unbekannte
+Gebietsschemata behalten den Rohwert mit `spreadsheet.numberFormatNotPreserved`.
+Auch eine fehlende Standardpräzision wird nicht als Rundung auf ganze Zahlen
+interpretiert. Die Regeln folgen der [ODF-1.3-Spezifikation, Teil 3](https://docs.oasis-open.org/office/OpenDocument/v1.3/os/part3-schema/OpenDocument-v1.3-os-part3-schema.html).
+
+Style-XML ist auf 200.000 Knoten und Attribute, Tiefe 128, 1 MiB Text und
+Attributdaten sowie 65.536 Zell-/Datenstyles begrenzt. Doppelte Style-Namen,
+ungültiges XML und Entitätsdeklarationen werden abgelehnt. Auch wiederholte
+und aus Formaten erzeugte Zelltexte zählen zum gemeinsamen Textbudget.
 
 ## Gemeinsames Arbeitsmappenmodell
 

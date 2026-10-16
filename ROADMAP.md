@@ -20,13 +20,6 @@ verwenden weiterhin den gemeinsamen Formatkatalog und die bestehenden
 Sicherheitsgrenzen. Konvertierungslogik bleibt im Kern; App, CLI und
 Kurzbefehle reichen die jeweils passenden Optionen weiter.
 
-### Tabellenwerte und Anzeigeformate
-
-- ODS-Werte und ihre sichtbare Darstellung mit den gemeinsamen Regeln für
-  Datums-, Zeit-, Prozent- und Währungsformate sowie führende Nullen abgleichen.
-- Fehlende ODS-Anzeigetexte aus belegbaren Zahlenstyles ergänzen und nicht
-  unterstützte Formate konkret diagnostizieren; Formeln weiterhin nicht berechnen.
-
 ### Ergebnisprüfung und Quellbezug
 
 - Hinweise, tatsächliche Inhaltsverluste und unsichere Erkennung unterscheiden

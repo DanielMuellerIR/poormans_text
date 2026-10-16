@@ -20,6 +20,8 @@ final class NamespacePrefixTracker {
         uris[prefix] = stack.isEmpty ? nil : stack
     }
 
+    func namespaceURI(for prefix: String) -> String? { uris[prefix]?.last }
+
     /// Der Wert des Attributs, dessen Präfix wirklich auf den erwarteten
     /// Namensraum zeigt. Ein unpräfigiertes Attribut hat in XML keinen
     /// Namensraum und zählt deshalb nie.

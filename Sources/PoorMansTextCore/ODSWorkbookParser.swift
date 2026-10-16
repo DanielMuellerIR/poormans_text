@@ -1,8 +1,9 @@
 import Foundation
 
 enum ODSWorkbookParser {
-    static func parse(_ xml: Data, maximumTextBytes: Int = SpreadsheetLimits.maximumOutputBytes) throws -> SpreadsheetWorkbook {
-        let delegate = ContentDelegate(maximumTextBytes: maximumTextBytes)
+    static func parse(_ xml: Data, styles: Data? = nil, maximumTextBytes: Int = SpreadsheetLimits.maximumOutputBytes) throws -> SpreadsheetWorkbook {
+        let numberStyles = try ODSNumberStyles.parse(content: xml, styles: styles)
+        let delegate = ContentDelegate(maximumTextBytes: maximumTextBytes, numberStyles: numberStyles)
         let parser = ImportXMLParser.make(xml, delegate: delegate)
         let parsedSuccessfully = parser.parse()
         try ConversionExecution.check()
@@ -20,9 +21,14 @@ enum ODSWorkbookParser {
         var failure: Error?
         private let maximumTextBytes: Int
         private var textBytes = 0
+        private var numberStyles: ODSNumberStyles
+        private var columnStyles: [String?] = []
+        private var rowStyle: String?
+        private var nullDate = "1899-12-30"
 
-        init(maximumTextBytes: Int) {
+        init(maximumTextBytes: Int, numberStyles: ODSNumberStyles) {
             self.maximumTextBytes = max(0, maximumTextBytes)
+            self.numberStyles = numberStyles
         }
 
         private func locate(_ warning: ConversionWarning) {
@@ -100,6 +106,11 @@ enum ODSWorkbookParser {
                 return
             }
             guard spreadsheetDepth != nil else { return }
+            if namespaceURI == Namespaces.table, elementName == "null-date",
+               parent?.namespaceURI == Namespaces.table, parent?.name == "calculation-settings" {
+                nullDate = attribute("date-value", namespace: Namespaces.table, in: attributeDict) ?? "1899-12-30"
+                return
+            }
             if annotationDepth != nil { return }
             if namespaceURI == Namespaces.office, elementName == "annotation" {
                 workbook.hasUnsupportedObjects = true
@@ -121,14 +132,24 @@ enum ODSWorkbookParser {
                     ?? "Sheet \(workbook.sheets.count + 1)"
                 currentRows = []
                 pendingEmptyRows = 0
+                columnStyles = []
                 return
             }
             guard currentSheetName != nil else { return }
             guard tableDepth == 1 else { return }
 
+            if namespaceURI == Namespaces.table, elementName == "table-column" {
+                let repeated = positiveRepeat(attribute("number-columns-repeated", namespace: Namespaces.table, in: attributeDict),
+                                              maximum: SpreadsheetLimits.maximumColumns, parser: parser)
+                let count = min(repeated, SpreadsheetLimits.maximumColumns - columnStyles.count)
+                columnStyles.append(contentsOf: repeatElement(attribute("default-cell-style-name", namespace: Namespaces.table, in: attributeDict), count: count))
+                return
+            }
+
             if namespaceURI == Namespaces.table, elementName == "table-row" {
                 currentRow = []
                 pendingEmptyCells = 0
+                rowStyle = attribute("default-cell-style-name", namespace: Namespaces.table, in: attributeDict)
                 currentRowRepeat = positiveRepeat(
                     attribute("number-rows-repeated", namespace: Namespaces.table, in: attributeDict),
                     maximum: SpreadsheetLimits.maximumRows,
@@ -162,6 +183,7 @@ enum ODSWorkbookParser {
                 currentCell = CellBuilder(
                     repeated: repeated,
                     isCovered: elementName == "covered-table-cell",
+                    styleName: attribute("style-name", namespace: Namespaces.table, in: attributeDict),
                     valueType: attribute("value-type", namespace: Namespaces.office, in: attributeDict),
                     rawValue: attribute("value", namespace: Namespaces.office, in: attributeDict)
                         ?? attribute("string-value", namespace: Namespaces.office, in: attributeDict)
@@ -314,7 +336,7 @@ enum ODSWorkbookParser {
         private func finishCell(parser: XMLParser) {
             guard let builder = currentCell, currentRow != nil else { return }
             defer { currentCell = nil }
-            let cell = builder.cell
+            let cell = builder.cell(display: builder.text.isEmpty ? builder.rawValue ?? "" : builder.text)
             if builder.formula != nil, cell.displayText.isEmpty {
                 workbook.hasFormulaWithoutResult = true
             }
@@ -341,7 +363,25 @@ enum ODSWorkbookParser {
             guard currentRow!.count + builder.repeated <= SpreadsheetLimits.maximumColumns else {
                 return fail(SpreadsheetLimits.columnBudgetMessage, parser: parser)
             }
-            currentRow!.append(contentsOf: repeatElement(cell, count: builder.repeated))
+            for repetition in 0..<builder.repeated {
+                if ConversionExecution.isCancelled { parser.abortParsing(); return }
+                var display = cell.displayText
+                if builder.text.isEmpty, let raw = builder.rawValue,
+                   ["float", "currency", "percentage", "date", "time"].contains(builder.valueType ?? "") {
+                    let column = currentRow!.count
+                    let style = builder.styleName ?? rowStyle ?? (column < columnStyles.count ? columnStyles[column] : nil)
+                    let formatted = numberStyles.format(raw, type: builder.valueType, styleName: style, nullDate: nullDate)
+                    display = formatted.text
+                    if let warning = formatted.warning(storedValue: raw, at: ConversionLocation()) { locate(warning) }
+                }
+                let additionalBytes = display.utf8.count - (repetition == 0 ? builder.text.utf8.count : 0)
+                // Der eingegebene Text wurde beim Lesen bereits einmal berechnet.
+                // Wiederholte und neu erzeugte Texte zählen ebenfalls zum Budget.
+                let charged = max(0, additionalBytes)
+                guard charged <= maximumTextBytes - textBytes else { return fail("the spreadsheet exceeds the materialized-text budget", parser: parser) }
+                textBytes += charged
+                currentRow!.append(builder.cell(display: display))
+            }
             expandedCellCount += builder.repeated
             checkCellBudget(parser: parser)
         }
@@ -393,6 +433,12 @@ enum ODSWorkbookParser {
             guard expandedCellCount <= SpreadsheetLimits.maximumCells - repeatedCellCount else {
                 return fail(SpreadsheetLimits.cellBudgetMessage, parser: parser)
             }
+            let rowBytes = row.reduce(0) { $0 + $1.displayText.utf8.count }
+            let repetitions = max(0, currentRowRepeat - 1)
+            guard repetitions == 0 || rowBytes <= (maximumTextBytes - textBytes) / repetitions else {
+                return fail("the spreadsheet exceeds the materialized-text budget", parser: parser)
+            }
+            textBytes += rowBytes * repetitions
             currentRows.append(contentsOf: repeatElement(row, count: currentRowRepeat))
             expandedCellCount += repeatedCellCount
         }
@@ -442,14 +488,14 @@ enum ODSWorkbookParser {
     private struct CellBuilder {
         let repeated: Int
         let isCovered: Bool
+        let styleName: String?
         let valueType: String?
         let rawValue: String?
         let formula: String?
         var text = ""
         var linkTarget: String?
 
-        var cell: SpreadsheetCell {
-            let display = text.isEmpty ? (rawValue ?? "") : text
+        func cell(display: String) -> SpreadsheetCell {
             let value: SpreadsheetCellValue = switch valueType {
             case "float", "currency", "percentage": .number(rawValue ?? display)
             case "boolean": .boolean((rawValue ?? display).lowercased() == "true")

@@ -106,7 +106,7 @@ struct SpreadsheetAdapter: DocumentConversionAdapter {
         do {
             let package = try ZIPArchiveInspector.packageContents(
                 at: inputURL,
-                entryNames: ["mimetype", "content.xml"]
+                entryNames: ["mimetype", "content.xml", "styles.xml"]
             )
             if package.entryNames.contains("mimetype"),
                package.entryNames.contains("content.xml"),
@@ -115,7 +115,7 @@ struct SpreadsheetAdapter: DocumentConversionAdapter {
                           .trimmingCharacters(in: .whitespacesAndNewlines)
                   }),
                mimetype == "application/vnd.oasis.opendocument.spreadsheet" {
-                let workbook = try ODSWorkbookParser.parse(package.entries["content.xml"]!)
+                let workbook = try ODSWorkbookParser.parse(package.entries["content.xml"]!, styles: package.entries["styles.xml"])
                 return .match(
                     AdapterInputInspection(
                         format: .ods,
@@ -196,7 +196,7 @@ struct SpreadsheetAdapter: DocumentConversionAdapter {
                 packageReader = reader
                 if context.format == .ods {
                     let package = try reader.contents(
-                        entryNames: ["mimetype", "content.xml"]
+                        entryNames: ["mimetype", "content.xml", "styles.xml"]
                     )
                     guard let content = package.entries["content.xml"],
                           let mimetype = package.entries["mimetype"].map({
@@ -206,7 +206,7 @@ struct SpreadsheetAdapter: DocumentConversionAdapter {
                           mimetype == "application/vnd.oasis.opendocument.spreadsheet" else {
                         throw SpreadsheetError("the verified ODS package changed after inspection")
                     }
-                    workbook = try ODSWorkbookParser.parse(content)
+                    workbook = try ODSWorkbookParser.parse(content, styles: package.entries["styles.xml"])
                 } else {
                     guard let kind = try XLSXWorkbookParser.spreadsheetKind(reader: reader) else {
                         throw SpreadsheetError("the verified XLSX package changed after inspection")

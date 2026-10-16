@@ -145,15 +145,17 @@ enum ZIPFixtureBuilder {
         ])
     }
 
-    static func odsPackage(contentXML: String) throws -> Data {
-        try archive(entries: [
+    static func odsPackage(contentXML: String, stylesXML: String? = nil) throws -> Data {
+        var entries = [
             Entry(
                 name: "mimetype",
                 content: Data("application/vnd.oasis.opendocument.spreadsheet".utf8),
                 isStored: true
             ),
             Entry(name: "content.xml", content: Data(contentXML.utf8)),
-        ])
+        ]
+        if let stylesXML { entries.append(Entry(name: "styles.xml", content: Data(stylesXML.utf8))) }
+        return try archive(entries: entries)
     }
 
     /// - Parameters:

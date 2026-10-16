@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.17.2 — 2026-10-16
+
+- Fill missing ODS display text using supported numeric, percentage, currency,
+  scientific, date and time styles from content.xml and styles.xml. Preserve
+  existing visible text, stored values and cached formula results; respect cell,
+  row, column and inherited styles, default precision and the workbook null date.
+- Retain raw values with cell-specific diagnostics when an ODS style or typed
+  value cannot be represented reliably. Bound style definitions and all
+  materialized text, including repeated cells and rows.
+
 ## 0.17.1 — 2026-10-16
 
 - Apply the shared number formatter to BIFF8 XLS cell styles, including NUMBER,

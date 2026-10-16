@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.26.1 — 2026-10-16
+
+- Translate the content selection dialog’s Cancel button into German and expose explicit accessible labels for its actions, fields and source rows.
+
 ## 0.26.0 — 2026-10-16
 
 - Select PDF pages, workbook sheets and cell ranges, presentation slides and notes, or whole EPUB chapters in the app before conversion. Complete import remains directly available.

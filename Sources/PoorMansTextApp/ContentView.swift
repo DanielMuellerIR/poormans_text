@@ -258,6 +258,7 @@ struct ContentView: View {
                         guard model.acceptsNewDocuments, let input = AppModel.chooseSelectionDocument() else { return }
                         contentSelection = ContentSelectionTicket(input: input)
                     }
+                    .accessibilityLabel("Select Content…").accessibilityIdentifier("selectionChoose")
                 }.controlSize(.large)
             }
 

@@ -97,7 +97,9 @@ struct ContentSelectionView: View {
                                     if !row.detail.isEmpty { Text(verbatim: row.detail).font(.caption).foregroundStyle(.secondary) }
                                 }.frame(maxWidth: .infinity, alignment: .leading)
                             }
-                            .toggleStyle(.checkbox).padding(8).disabled(!row.enabled)
+                            .toggleStyle(.checkbox)
+                            .accessibilityLabel(Text(verbatim: row.title + (row.detail.isEmpty ? "" : " · " + row.detail)))
+                            .padding(8).disabled(!row.enabled)
                             .background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 6))
                         }
                     }.padding(1)
@@ -122,20 +124,27 @@ struct ContentSelectionView: View {
             }
             Divider()
             HStack {
-                Button("Read Again") { model.load() }.disabled(model.isLoading)
+                Button("Read Again") { model.load() }
+                    .accessibilityLabel("Read Again").accessibilityIdentifier("selectionReadAgain")
+                    .disabled(model.isLoading)
                 Spacer()
                 Button("Import Complete Document") { model.cancel(); app.convert(model.input); dismiss() }
+                    .accessibilityLabel("Import Complete Document").accessibilityIdentifier("selectionComplete")
                     .disabled(model.overview == nil || !app.acceptsNewDocuments)
             }
             HStack {
-                Button("Cancel") { model.cancel(); dismiss() }.keyboardShortcut(.cancelAction)
+                Button("Cancel") { model.cancel(); dismiss() }
+                    .accessibilityLabel("Cancel").accessibilityIdentifier("selectionCancel")
+                    .keyboardShortcut(.cancelAction)
                 Spacer()
                 if isSelectable {
                     Button("Convert Selection") {
                         guard case .success(let selection) = selection, let identity = model.overview?.identity else { return }
                         app.convertSelection(model.input, selection: selection, identity: identity)
                         model.cancel(); dismiss()
-                    }.keyboardShortcut(.defaultAction).disabled(!canConvert)
+                    }
+                    .accessibilityLabel("Convert Selection").accessibilityIdentifier("selectionConvert")
+                    .keyboardShortcut(.defaultAction).disabled(!canConvert)
                 }
             }
         }
@@ -160,15 +169,19 @@ struct ContentSelectionView: View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Source numbers").font(.callout).fontWeight(.medium)
             TextField("Source numbers (for example 1,3-5)", text: $positions)
-                .textFieldStyle(.roundedBorder).focused($positionsFocused).accessibilityIdentifier("selectionPositions")
+                .textFieldStyle(.roundedBorder).focused($positionsFocused)
+                .accessibilityLabel("Source numbers").accessibilityIdentifier("selectionPositions")
             HStack {
                 Button("All") {
                     if case .spreadsheet(let value) = model.overview { positions = value.sheets.filter(\.isReadable).map { String($0.index) }.joined(separator: ",") }
                     else { positions = count > 0 ? "1-\(count)" : "" }
                 }
+                .accessibilityLabel("All").accessibilityIdentifier("selectionAll")
                 Button("None") { positions = "" }
+                    .accessibilityLabel("None").accessibilityIdentifier("selectionNone")
                 if case .spreadsheet(let value) = model.overview {
                     Button("Visible Sheets") { positions = value.sheets.filter { $0.isReadable && $0.visibility == .visible }.map { String($0.index) }.joined(separator: ",") }
+                        .accessibilityLabel("Visible Sheets").accessibilityIdentifier("selectionVisibleSheets")
                         .disabled(value.sheets.contains { $0.isReadable && $0.visibility == .unknown })
                 }
                 Spacer()
@@ -176,11 +189,13 @@ struct ContentSelectionView: View {
             if case .spreadsheet = model.overview {
                 Text("Cell ranges").font(.callout).fontWeight(.medium)
                 TextField("Cell ranges (for example A1:C8,E2; empty means whole sheets)", text: $cells)
-                    .textFieldStyle(.roundedBorder).accessibilityIdentifier("selectionCells")
+                    .textFieldStyle(.roundedBorder)
+                    .accessibilityLabel("Cell ranges").accessibilityIdentifier("selectionCells")
                 Text("Ranges apply to every selected sheet. Merged cells and formulas keep the converter's existing limits.").font(.caption).foregroundStyle(.secondary)
             }
             if case .presentation = model.overview {
                 Toggle("Include presentation notes", isOn: $includeNotes)
+                    .accessibilityLabel("Include presentation notes").accessibilityIdentifier("selectionNotes")
             }
         }
     }

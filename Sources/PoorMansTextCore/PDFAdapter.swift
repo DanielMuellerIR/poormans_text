@@ -474,11 +474,13 @@ struct PDFAdapter: DocumentConversionAdapter {
             let content = text.isEmpty
                 ? "_No text could be extracted from this page._"
                 : (isStructured ? text : MarkdownEscaping.literalBlock(text))
+            let offset = markdownBytes
             try appendMarkdown(
                 "\n\n## Page \(index + 1)\n\n\(content)",
                 to: &markdown,
                 byteCount: &markdownBytes
             )
+            ConversionExecution.current?.recording?.record(ConversionLocation(page: index + 1), offset: offset, length: markdownBytes - offset)
         }
         try appendMarkdown("\n", to: &markdown, byteCount: &markdownBytes)
         return markdown

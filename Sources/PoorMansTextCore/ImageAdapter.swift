@@ -286,19 +286,23 @@ struct ImageAdapter: DocumentConversionAdapter {
         }
         try appendMarkdown("\n\n## OCR text", to: &markdown, byteCount: &markdownBytes)
         if extraction.frames.count == 1 {
+            let offset = markdownBytes
             try appendMarkdown(
                 "\n\n\(markdownText(for: extraction.frames[0]))\n",
                 to: &markdown,
                 byteCount: &markdownBytes
             )
+            ConversionExecution.current?.recording?.record(ConversionLocation(frame: 1), offset: offset, length: markdownBytes - offset)
             return markdown
         }
         for (index, text) in extraction.frames.enumerated() {
+            let offset = markdownBytes
             try appendMarkdown(
                 "\n\n### Frame \(index + 1)\n\n\(markdownText(for: text))",
                 to: &markdown,
                 byteCount: &markdownBytes
             )
+            ConversionExecution.current?.recording?.record(ConversionLocation(frame: index + 1), offset: offset, length: markdownBytes - offset)
         }
         try appendMarkdown("\n", to: &markdown, byteCount: &markdownBytes)
         return markdown

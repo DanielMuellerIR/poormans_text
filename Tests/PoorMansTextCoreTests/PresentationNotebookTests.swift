@@ -3,6 +3,26 @@ import XCTest
 @testable import PoorMansTextCore
 
 final class PresentationNotebookTests: XCTestCase {
+    func testReportMapsSlidesAfterFrontmatterAndTextbundleAssetRewrites() throws {
+        var entries = try pptxEntries()
+        entries.append(entry("docProps/core.xml", "<cp:coreProperties xmlns:cp=\"http://schemas.openxmlformats.org/package/2006/metadata/core-properties\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\"><dc:title>Title🙂</dc:title></cp:coreProperties>"))
+        let source = root.appendingPathComponent("mapped.pptx")
+        let original = try ZIPFixtureBuilder.archive(entries: entries)
+        try original.write(to: source)
+        let result = try DocumentConverter().convert(ConversionRequest(inputURL: source, options: ConversionOptions(frontmatter: true, outputLayout: .textbundle, conversionReport: true)))
+        let data = try Data(contentsOf: result.markdownFile)
+        XCTAssertTrue(String(decoding: data, as: UTF8.self).hasPrefix("---\n"))
+        XCTAssertEqual(result.sourceMappings.compactMap { $0.source.slide }, [1, 2])
+        XCTAssertEqual(result.sourceMappings.map { $0.output.file }, ["text.md", "text.md"])
+        let first = try XCTUnwrap(result.sourceMappings[0].output.text(in: data))
+        XCTAssertTrue(first.contains("FIRSTTOKEN"))
+        XCTAssertTrue(first.contains("NOTESTOKEN"))
+        XCTAssertTrue(first.contains("](assets/image1.png)"))
+        XCTAssertFalse(first.contains("](images/"))
+        XCTAssertTrue(result.sourceMappings[1].output.text(in: data)?.contains("SECONDTOKEN") == true)
+        XCTAssertEqual(result.sourceIdentity?.sha256, ConversionFileFingerprint.digest(original))
+        XCTAssertEqual(try Data(contentsOf: source), original)
+    }
     private var root: URL!
     override func setUpWithError() throws {
         root = FileManager.default.temporaryDirectory.appendingPathComponent("PMTFormats-\(UUID())")

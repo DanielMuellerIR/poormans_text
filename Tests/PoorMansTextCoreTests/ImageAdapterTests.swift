@@ -6,6 +6,20 @@ import XCTest
 @testable import PoorMansTextCore
 
 final class ImageAdapterTests: XCTestCase {
+    func testReportMapsEveryActualTIFFFrame() throws {
+        let source = temporaryDirectory.appendingPathComponent("frames.tiff")
+        try createTIFF(texts: ["FrameOneMarker", "FrameTwoMarker"], at: source)
+        let original = try Data(contentsOf: source)
+        let result = try DocumentConverter().convert(ConversionRequest(inputURL: source, options: ConversionOptions(conversionReport: true)))
+        let data = try Data(contentsOf: result.markdownFile)
+        XCTAssertEqual(result.sourceMappings.compactMap { $0.source.frame }, [1, 2])
+        for (index, marker) in ["FrameOneMarker", "FrameTwoMarker"].enumerated() {
+            XCTAssertTrue(result.sourceMappings[index].output.text(in: data)?.contains(marker) == true)
+        }
+        XCTAssertEqual(result.sourceIdentity?.sha256, ConversionFileFingerprint.digest(original))
+        XCTAssertEqual(try Data(contentsOf: result.assets[0]), original)
+        XCTAssertEqual(try Data(contentsOf: source), original)
+    }
     private var temporaryDirectory: URL!
 
     override func setUpWithError() throws {

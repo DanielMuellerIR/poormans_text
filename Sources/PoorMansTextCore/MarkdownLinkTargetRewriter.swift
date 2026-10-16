@@ -52,19 +52,27 @@ enum MarkdownLinkTargetRewriter {
     static func replacing(
         in markdown: String,
         mapping: [String: String],
-        checking check: @escaping () throws -> Void
+        checking check: @escaping () throws -> Void,
+        observing observer: ((ConversionTextEdit) -> Void)? = nil
     ) throws -> String {
         guard !mapping.isEmpty else {
             try check()
             return markdown
         }
-        return try rewrite(markdown, mapping: mapping, check: check)
+        let callback: ((Range<String.Index>, String) -> Void)? = observer.map { observer in
+            { range, replacement in
+                observer(ConversionTextEdit(offset: markdown.utf8.distance(from: markdown.startIndex, to: range.lowerBound),
+                    length: markdown.utf8.distance(from: range.lowerBound, to: range.upperBound), replacementLength: replacement.utf8.count))
+            }
+        }
+        return try rewrite(markdown, mapping: mapping, replacementObserver: callback, check: check)
     }
 
     private static func rewrite(
         _ markdown: String,
         mapping: [String: String],
         targetObserver: ((String) -> Void)? = nil,
+        replacementObserver: ((Range<String.Index>, String) -> Void)? = nil,
         check: (() throws -> Void)? = nil
     ) throws -> String {
         var result = ""
@@ -220,6 +228,12 @@ enum MarkdownLinkTargetRewriter {
                            let contentRange = definitionLines[index].range(of: content, options: .backwards) {
                             let start = definitionLines[index].index(contentRange.lowerBound, offsetBy: offset - lineOffset)
                             let end = definitionLines[index].index(start, offsetBy: original.count)
+                            if let mapped, let replacementObserver, mapped != original {
+                                let originalLine = lines[lineNumber + index]
+                                let globalStart = originalLine.index(originalLine.startIndex, offsetBy: definitionLines[index].distance(from: definitionLines[index].startIndex, to: start))
+                                let globalEnd = originalLine.index(globalStart, offsetBy: original.count)
+                                replacementObserver(globalStart..<globalEnd, mapped)
+                            }
                             definitionLines[index].replaceSubrange(start..<end, with: mapped ?? original)
                             break
                         }
@@ -253,7 +267,7 @@ enum MarkdownLinkTargetRewriter {
                 let rewritten = try rewriteInlineBlock(
                     lines, startingAt: lineNumber, in: markdown,
                     firstContext: context, containers: containers,
-                    mapping: mapping, targetObserver: targetObserver, check: check
+                    mapping: mapping, targetObserver: targetObserver, replacementObserver: replacementObserver, check: check
                 )
                 result += rewritten.text
                 consumedLine = rewritten.lastLine
@@ -279,7 +293,8 @@ enum MarkdownLinkTargetRewriter {
     private static func rewriteInlineBlock(
         _ lines: [Substring], startingAt firstLine: Int, in markdown: String,
         firstContext: MarkdownLineContext, containers initialContainers: MarkdownContainerState,
-        mapping: [String: String], targetObserver: ((String) -> Void)?, check: (() throws -> Void)?
+        mapping: [String: String], targetObserver: ((String) -> Void)?,
+        replacementObserver: ((Range<String.Index>, String) -> Void)?, check: (() throws -> Void)?
     ) throws -> (text: String, lastLine: Int, containers: MarkdownContainerState) {
         var contents = [firstContext.fenceCandidate]
         var originalStarts = [lines[firstLine].index(lines[firstLine].endIndex, offsetBy: -firstContext.fenceCandidate.count)]
@@ -335,6 +350,7 @@ enum MarkdownLinkTargetRewriter {
         var cursor = lines[firstLine].startIndex
         for edit in edits {
             try check?()
+            replacementObserver?(edit.range, edit.replacement)
             output += markdown[cursor..<edit.range.lowerBound]
             output += edit.replacement
             cursor = edit.range.upperBound

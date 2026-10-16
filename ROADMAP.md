@@ -22,9 +22,6 @@ Kurzbefehle reichen die jeweils passenden Optionen weiter.
 
 ### Ergebnisprüfung und Quellbezug
 
-- Einen optionalen Konvertierungsbericht mit Quellenidentität, Optionen,
-  Konverterversion und nachvollziehbarer Zuordnung zwischen Quelle und
-  Ergebnis anbieten. Unbekannte Fundstellen ausdrücklich als unbekannt behandeln.
 - Markdown einschließlich lokaler Bilder sicher gerendert anzeigen.
 - Zunächst bei PDFs und Bildern Quelle und Ergebnis nebeneinander prüfen und
   bekannte Fundstellen direkt ansteuern können.

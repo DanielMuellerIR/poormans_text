@@ -183,6 +183,12 @@ distinguishes information, approximation and known content loss; available
 source positions and omitted counts are included. Diagnostics alone keep a
 successful exit code. See [the diagnostic contract](docs/DIAGNOSTICS.md).
 
+`--report` saves a portable `conversion-report.json` with verified source/output
+hashes, effective options, diagnostics and known source-to-Markdown byte ranges.
+`--source-map --json` exposes the same mappings without writing a report.
+Frontmatter and Textbundle are supported; standard Markdown stays unchanged.
+See [reports and source mappings](docs/CONVERSION-REPORT.md).
+
 `--frontmatter` starts the Markdown with a YAML header built from the source:
 title, author, subject, description, keywords, and creation and modification
 dates, read from OOXML core properties (DOCX, XLSX), OpenDocument `meta.xml`
@@ -513,7 +519,7 @@ and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compa
 their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current version is 0.18.0.
+The current version is 0.19.0.
 
 ## License
 

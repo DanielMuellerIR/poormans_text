@@ -27,6 +27,7 @@ enum ConversionExecution {
         let processTimeout: TimeInterval?
         var protectedInputs: [URL] = []
         var plannedSources: [String: URL] = [:]
+        var recording: ConversionRecording? = nil
     }
     @TaskLocal static var current: Context?
 

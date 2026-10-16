@@ -192,6 +192,12 @@ ausgelassene Diagnosezahlen stehen zusätzlich bereit. Diagnosen allein ändern
 den erfolgreichen Exit-Code nicht. Details stehen im
 [Diagnosevertrag](docs/DIAGNOSTICS.md).
 
+`--report` speichert `conversion-report.json` mit belegten Quell-/Ausgabehashes,
+wirksamen Optionen, Diagnosen und bekannten Zuordnungen zum Markdown.
+`--source-map --json` liefert die Zuordnungen ohne Berichtdatei. Frontmatter und
+Textbundle werden berücksichtigt; das Standard-Markdown bleibt unverändert.
+Details stehen unter [Berichte und Quellzuordnung](docs/CONVERSION-REPORT.md).
+
 `--frontmatter` stellt dem Markdown einen YAML-Kopf aus der Quelle voran:
 Titel, Autor, Thema, Beschreibung, Schlüsselwörter sowie Erstell- und
 Änderungsdatum, gelesen aus den OOXML-Kerneigenschaften (DOCX, XLSX), der
@@ -541,7 +547,7 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.18.0.
+Die aktuelle Version ist 0.19.0.
 
 ## Lizenz
 

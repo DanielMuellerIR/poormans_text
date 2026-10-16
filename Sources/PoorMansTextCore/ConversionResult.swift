@@ -17,6 +17,10 @@ public struct ConversionResult: Sendable {
     public let diagnostics: [ConversionWarning]
     /// Angaben aus dem Quelldokument, soweit das Format sie kennt.
     public let metadata: DocumentMetadata
+    public let sourceIdentity: ConversionSourceIdentity?
+    public let sourceMappings: [ConversionSourceMapping]
+    public let outputFiles: [ConversionOutputFile]
+    public let reportFile: URL?
     public var diagnosticGroups: [ConversionDiagnosticGroup] { ConversionDiagnosticGroup.grouped(diagnostics) }
 
     /// Quellkompatible Textsicht für CLI, App und bisherige Library-Aufrufer.
@@ -35,7 +39,11 @@ public struct ConversionResult: Sendable {
         assets: [URL],
         outputLifetime: ConversionOutputLifetime,
         diagnostics: [ConversionWarning],
-        metadata: DocumentMetadata = DocumentMetadata()
+        metadata: DocumentMetadata = DocumentMetadata(),
+        sourceIdentity: ConversionSourceIdentity? = nil,
+        sourceMappings: [ConversionSourceMapping] = [],
+        outputFiles: [ConversionOutputFile] = [],
+        reportFile: URL? = nil
     ) {
         self.inputURL = inputURL
         self.format = format
@@ -45,6 +53,10 @@ public struct ConversionResult: Sendable {
         self.outputLifetime = outputLifetime
         self.diagnostics = diagnostics
         self.metadata = metadata
+        self.sourceIdentity = sourceIdentity
+        self.sourceMappings = sourceMappings
+        self.outputFiles = outputFiles
+        self.reportFile = reportFile
     }
 
 }

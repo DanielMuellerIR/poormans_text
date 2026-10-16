@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.19.0 — 2026-10-16
+
+- Add optional source mappings for PDF pages, OCR image frames, spreadsheet
+  cells and presentation slides. Use verified UTF-8 byte ranges, adjust them
+  after frontmatter and Textbundle link rewrites, and keep standard Markdown
+  unchanged. Bound mapping counts without truncating document contents.
+- Add `--report` for a portable, versioned conversion report with the primary
+  source hash captured from verified reads, effective options, diagnostics and
+  hashed output files. Publish reports atomically with the complete result;
+  retain unknown source identities explicitly and detect conflicting reads.
+- Expose mappings without a report through `--source-map --json` and compatible
+  library options. Include helpers to reject stale source/output bytes before
+  using stored positions; keep absolute local paths out of report metadata.
+
 ## 0.18.0 — 2026-10-16
 
 - Classify conversion diagnostics as information, approximation or known content

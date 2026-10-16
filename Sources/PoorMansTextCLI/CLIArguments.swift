@@ -19,6 +19,8 @@ struct ParsedArguments {
     var imageTextRecognition: ImageTextRecognition = .enabled
     var writeToStandardOutput = false
     var frontmatter = false
+    var sourceMapping = false
+    var conversionReport = false
     var outputLayout: OutputLayout = .markdownFolder
     /// Wurde `--spreadsheet-format` wirklich angegeben? Der Standardwert allein
     /// verrät das nicht, im Katalogmodus ist aber genau die Angabe der Fehler.
@@ -47,6 +49,8 @@ Options:
       --pdf-dehyphenate    Join conservative lowercase word breaks.
       --frontmatter       Start the Markdown with a YAML header (title, author, dates) from the source.
       --textbundle        Write INPUT.textbundle (text.md, assets/, info.json) instead of INPUT-markdown.
+      --source-map        Include verified source-to-Markdown byte ranges (requires --json or --report).
+      --report            Save conversion-report.json with source/output hashes, options and source mappings.
       --stdout            Print the Markdown to standard output instead of writing a folder.
       --progress          Report phases and known page/sheet/slide/cell progress on stderr.
       --jobs 1..4         Convert up to four batch documents concurrently (default: 1); OCR stays serial.
@@ -182,6 +186,8 @@ private func apply(flag: String, to parsed: inout ParsedArguments) throws {
     case "--stdout": parsed.writeToStandardOutput = true
     case "--frontmatter": parsed.frontmatter = true
     case "--textbundle": parsed.outputLayout = .textbundle
+    case "--source-map": parsed.sourceMapping = true
+    case "--report": parsed.conversionReport = true
     default: throw CLIArgumentError.unknownOption(flag)
     }
 }

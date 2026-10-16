@@ -3,6 +3,31 @@ import XCTest
 @testable import PoorMansTextCore
 
 final class CLIIntegrationTests: XCTestCase {
+    func testReportAndSourceMapOptionsExposePortableProofsAndRejectMeaninglessModes() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let source = root.appendingPathComponent("values.csv")
+        let original = Data("Name,Value\nMarker,42\n".utf8)
+        try original.write(to: source)
+        for flag in ["--report", "--source-map"] {
+            let run = try runCLI(["--json", flag, "--output", root.appendingPathComponent(String(flag.dropFirst(2))).path, source.path])
+            XCTAssertEqual(run.status, 0, run.standardError)
+            let json = try decodeJSON(run.standardOutput)
+            let identity = try XCTUnwrap(json["sourceIdentity"] as? [String: Any])
+            XCTAssertEqual(identity["sha256"] as? String, ConversionFileFingerprint.digest(original))
+            XCTAssertEqual((json["sourceMappings"] as? [[String: Any]])?.count, 4)
+            if flag == "--report" {
+                let report = try Data(contentsOf: URL(fileURLWithPath: XCTUnwrap(json["reportFile"] as? String)))
+                XCTAssertFalse(String(decoding: report, as: UTF8.self).contains(root.path))
+            } else { XCTAssertNil(json["reportFile"]) }
+        }
+        for arguments in [["--source-map", source.path], ["--formats", "--source-map"], ["--formats", "--report"],
+                          ["--stdout", "--report", source.path], ["--stdout", "--source-map", source.path]] {
+            XCTAssertEqual(try runCLI(arguments).status, 64, arguments.joined(separator: " "))
+        }
+        XCTAssertEqual(try Data(contentsOf: source), original)
+    }
     func testInformationalOCRDiagnosticsRemainSuccessfulAndMachineReadable() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)

@@ -424,3 +424,19 @@ frei. Jedes Dokument behält einen eigenen Kind-Token, damit Prozesszeitlimits
 keinen ganzen Batch abbrechen. Nach Benutzerabbruch wartet die Batchgrenze auf
 alle Worker und liefert fertige, fehlgeschlagene und nicht gestartete Eingaben
 in ihrer ursprünglichen Reihenfolge zurück.
+
+## Quellzuordnung und Berichte
+
+`ConversionRecording` ist an den synchronen Auftragskontext gebunden. Vollständige
+`VerifiedFile`-Lesevorgänge liefern den Hash der tatsächlich übernommenen
+Primärbytes; die vier nativen Renderer ergänzen bekannte UTF-8-Ausgabebereiche.
+Frontmatter verschiebt diese Bereiche; der Link-Rewriter meldet tatsächliche
+Textänderungen für das Textbundle. Standardkonvertierungen aktivieren weder
+Hashaufzeichnung noch Zuordnung.
+
+Nach der Nachbearbeitung prüft der Kern alle Bereiche, hasht fertige Ausgabedateien
+und schreibt den optionalen Bericht vor der atomaren Veröffentlichung. Der
+Foundation-Vertrag, Portabilität und Grenzen stehen in
+[CONVERSION-REPORT.md](CONVERSION-REPORT.md). App, CLI und spätere Hosts
+verwenden die Ergebnisfelder, ohne Parserzustand oder technische Marker im
+Markdown nachzubilden.

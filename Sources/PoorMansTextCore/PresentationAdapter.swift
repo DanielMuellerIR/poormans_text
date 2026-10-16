@@ -129,7 +129,9 @@ final class PresentationImport {
                 guard let key = id.attribute("id", namespace: Self.relations), let relation = relations[key], !relation.external, relation.type.hasSuffix("/slide") else { throw ImportFailure("missing or external slide relationship") }
                 let path = try ImportPackagePath.resolve(relation.target, relativeTo: part)
                 let slide = try autoreleasepool { try pptxSlide(path) }
-                try append(PresentationRenderer.render(slide, number: page, maximumBytes: 128 * 1_024 * 1_024 - markdown.utf8.count))
+                let offset = markdown.utf8.count
+                try append(PresentationRenderer.render(slide, number: page, maximumBytes: 128 * 1_024 * 1_024 - offset))
+                ConversionExecution.current?.recording?.record(ConversionLocation(slide: page), offset: offset, length: markdown.utf8.count - offset)
             }
             try ConversionExecution.report(unit: .slide, completed: ids.count, total: ids.count)
         } else {
@@ -153,7 +155,9 @@ final class PresentationImport {
                     }
                     else { slide.blocks += try odpBlocks(child, level: nil) }
                 }
-                try append(PresentationRenderer.render(slide, number: page, maximumBytes: 128 * 1_024 * 1_024 - markdown.utf8.count))
+                let offset = markdown.utf8.count
+                try append(PresentationRenderer.render(slide, number: page, maximumBytes: 128 * 1_024 * 1_024 - offset))
+                ConversionExecution.current?.recording?.record(ConversionLocation(slide: page), offset: offset, length: markdown.utf8.count - offset)
             }
             try ConversionExecution.report(unit: .slide, completed: slides.count, total: slides.count)
         }

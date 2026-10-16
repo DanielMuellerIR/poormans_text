@@ -33,6 +33,10 @@ struct JSONResponse: Encodable {
     let warnings: [String]?
     var diagnostics: [ConversionWarning]? = nil
     var diagnosticGroups: [ConversionDiagnosticGroup]? = nil
+    var sourceIdentity: ConversionSourceIdentity? = nil
+    var sourceMappings: [ConversionSourceMapping]? = nil
+    var outputFiles: [ConversionOutputFile]? = nil
+    var reportFile: String? = nil
     let metadata: JSONMetadata?
     let error: String?
 
@@ -45,6 +49,10 @@ struct JSONResponse: Encodable {
         warnings: [String]? = nil,
         diagnostics: [ConversionWarning]? = nil,
         diagnosticGroups: [ConversionDiagnosticGroup]? = nil,
+        sourceIdentity: ConversionSourceIdentity? = nil,
+        sourceMappings: [ConversionSourceMapping]? = nil,
+        outputFiles: [ConversionOutputFile]? = nil,
+        reportFile: String? = nil,
         metadata: JSONMetadata? = nil,
         error: String? = nil
     ) {
@@ -57,6 +65,10 @@ struct JSONResponse: Encodable {
         self.warnings = warnings
         self.diagnostics = diagnostics
         self.diagnosticGroups = diagnosticGroups
+        self.sourceIdentity = sourceIdentity
+        self.sourceMappings = sourceMappings
+        self.outputFiles = outputFiles
+        self.reportFile = reportFile
         self.metadata = metadata
         self.error = error
     }
@@ -71,6 +83,10 @@ struct JSONResponse: Encodable {
             warnings: result.warnings,
             diagnostics: result.diagnostics.isEmpty ? nil : result.diagnostics,
             diagnosticGroups: result.diagnostics.isEmpty ? nil : result.diagnosticGroups,
+            sourceIdentity: result.sourceIdentity,
+            sourceMappings: result.sourceIdentity == nil ? nil : result.sourceMappings,
+            outputFiles: result.sourceIdentity == nil ? nil : result.outputFiles,
+            reportFile: result.reportFile.map(canonicalPath),
             metadata: JSONMetadata(result.metadata)
         )
     }
@@ -92,6 +108,10 @@ struct JSONBatchEntry: Encodable {
     let warnings: [String]?
     var diagnostics: [ConversionWarning]? = nil
     var diagnosticGroups: [ConversionDiagnosticGroup]? = nil
+    var sourceIdentity: ConversionSourceIdentity? = nil
+    var sourceMappings: [ConversionSourceMapping]? = nil
+    var outputFiles: [ConversionOutputFile]? = nil
+    var reportFile: String? = nil
     let metadata: JSONMetadata?
     let error: String?
 
@@ -105,6 +125,10 @@ struct JSONBatchEntry: Encodable {
             warnings: result.warnings,
             diagnostics: result.diagnostics.isEmpty ? nil : result.diagnostics,
             diagnosticGroups: result.diagnostics.isEmpty ? nil : result.diagnosticGroups,
+            sourceIdentity: result.sourceIdentity,
+            sourceMappings: result.sourceIdentity == nil ? nil : result.sourceMappings,
+            outputFiles: result.sourceIdentity == nil ? nil : result.outputFiles,
+            reportFile: result.reportFile.map(canonicalPath),
             metadata: JSONMetadata(result.metadata),
             error: nil
         )

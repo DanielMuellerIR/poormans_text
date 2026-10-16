@@ -1,4 +1,5 @@
 import Foundation
+import CryptoKit
 
 /// Eine Quelldatei, die GENAU EINMAL geöffnet wurde und über denselben
 /// Deskriptor beschrieben ist.
@@ -34,6 +35,7 @@ struct VerifiedFile {
     let descriptor: Int32
     /// Die Auskunft von `fstat` — Objekttyp und Größe des geöffneten Objekts.
     let info: stat
+    let sourceURL: URL
     private let failure: (Failure) -> Error
 
     /// Öffnet `url`, prüft sie mit `fstat` und übergibt beides an `body`. Der
@@ -99,7 +101,7 @@ struct VerifiedFile {
             close(descriptor)
             throw failure(.couldNotInspect)
         }
-        return Owned(file: VerifiedFile(descriptor: descriptor, info: info, failure: failure))
+        return Owned(file: VerifiedFile(descriptor: descriptor, info: info, sourceURL: url, failure: failure))
     }
 
     var isRegularFile: Bool {
@@ -146,6 +148,10 @@ struct VerifiedFile {
         consume: (UnsafeRawBufferPointer) throws -> Bool
     ) throws -> Int {
         var readTotal = 0
+        let recording = ConversionExecution.current?.recording
+        let captures = recording?.captures(sourceURL) == true && lseek(descriptor, 0, SEEK_CUR) == 0
+        var hash: SHA256? = captures ? SHA256() : nil
+        var reachedEnd = false
         var buffer = [UInt8](repeating: 0, count: chunkSize)
         while true {
             try ConversionExecution.check()
@@ -153,7 +159,7 @@ struct VerifiedFile {
                 guard let base = raw.baseAddress else { return -1 }
                 return read(descriptor, base, chunkSize)
             }
-            if readBytes == 0 { break }
+            if readBytes == 0 { reachedEnd = true; break }
             guard readBytes > 0 else {
                 if errno == EINTR { continue }
                 throw failure(.couldNotRead)
@@ -163,10 +169,13 @@ struct VerifiedFile {
                 throw budgetExceeded()
             }
             let wantsMore = try buffer.withUnsafeBytes { raw in
-                try consume(UnsafeRawBufferPointer(rebasing: raw[0..<readBytes]))
+                let chunk = UnsafeRawBufferPointer(rebasing: raw[0..<readBytes])
+                hash?.update(bufferPointer: chunk)
+                return try consume(chunk)
             }
             guard wantsMore else { break }
         }
+        if reachedEnd, let hash { recording?.capture(hash.finalize().map { String(format: "%02x", $0) }.joined(), count: readTotal) }
         return readTotal
     }
 }

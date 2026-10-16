@@ -54,6 +54,9 @@ public struct ConversionOptions: Equatable, Sendable {
     public var pdfLayout: PDFLayout
     public var pdfRemoveHeadersFooters: Bool
     public var pdfDehyphenate: Bool
+    public var sourceMapping: Bool
+    public var conversionReport: Bool
+    var includesSourceMappings: Bool { sourceMapping || conversionReport }
 
     public init(
         pandocExecutable: URL? = nil,
@@ -65,7 +68,9 @@ public struct ConversionOptions: Equatable, Sendable {
         ocrLanguages: [String] = [],
         pdfLayout: PDFLayout = .automatic,
         pdfRemoveHeadersFooters: Bool = false,
-        pdfDehyphenate: Bool = false
+        pdfDehyphenate: Bool = false,
+        sourceMapping: Bool = false,
+        conversionReport: Bool = false
     ) {
         self.pandocExecutable = pandocExecutable
         self.spreadsheetRendering = spreadsheetRendering
@@ -77,6 +82,8 @@ public struct ConversionOptions: Equatable, Sendable {
         self.pdfLayout = pdfLayout
         self.pdfRemoveHeadersFooters = pdfRemoveHeadersFooters
         self.pdfDehyphenate = pdfDehyphenate
+        self.sourceMapping = sourceMapping
+        self.conversionReport = conversionReport
     }
 }
 

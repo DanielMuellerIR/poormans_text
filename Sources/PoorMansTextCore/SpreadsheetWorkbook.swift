@@ -171,9 +171,9 @@ enum SpreadsheetMarkdownRenderer {
             }
             switch style {
             case .markdownTable:
-                try appendMarkdownTable(sheet.rows, to: &output)
+                try appendMarkdownTable(sheet.rows, sheet: sheet.name, to: &output)
             case .tabSeparated:
-                try appendTabSeparatedBlock(sheet.rows, to: &output)
+                try appendTabSeparatedBlock(sheet.rows, sheet: sheet.name, to: &output)
             }
         }
         try output.append("\n")
@@ -182,10 +182,11 @@ enum SpreadsheetMarkdownRenderer {
 
     private static func appendMarkdownTable(
         _ rows: [[SpreadsheetCell]],
+        sheet: String,
         to output: inout BoundedSpreadsheetOutput
     ) throws {
         let columnCount = max(1, rows.map(\.count).max() ?? 0)
-        try appendTableRow(rows[0], columnCount: columnCount, to: &output)
+        try appendTableRow(rows[0], sheet: sheet, rowIndex: 0, columnCount: columnCount, to: &output)
         try output.append("\n| ")
         for column in 0..<columnCount {
             if column > 0 {
@@ -194,15 +195,17 @@ enum SpreadsheetMarkdownRenderer {
             try output.append("---")
         }
         try output.append(" |")
-        for row in rows.dropFirst() {
+        for (rowIndex, row) in rows.enumerated().dropFirst() {
             try ConversionExecution.check()
             try output.append("\n")
-            try appendTableRow(row, columnCount: columnCount, to: &output)
+            try appendTableRow(row, sheet: sheet, rowIndex: rowIndex, columnCount: columnCount, to: &output)
         }
     }
 
     private static func appendTableRow(
         _ row: [SpreadsheetCell],
+        sheet: String,
+        rowIndex: Int,
         columnCount: Int,
         to output: inout BoundedSpreadsheetOutput
     ) throws {
@@ -212,7 +215,9 @@ enum SpreadsheetMarkdownRenderer {
                 try output.append(" | ")
             }
             if row.indices.contains(column) {
+                let offset = output.byteCount
                 try output.append(markdownCell(row[column]))
+                recordCell(sheet: sheet, row: rowIndex, column: column, offset: offset, length: output.byteCount - offset)
             }
         }
         try output.append(" |")
@@ -261,6 +266,7 @@ enum SpreadsheetMarkdownRenderer {
 
     private static func appendTabSeparatedBlock(
         _ rows: [[SpreadsheetCell]],
+        sheet: String,
         to output: inout BoundedSpreadsheetOutput
     ) throws {
         let columnCount = max(1, rows.map(\.count).max() ?? 0)
@@ -281,7 +287,9 @@ enum SpreadsheetMarkdownRenderer {
                     try output.append("\t")
                 }
                 if row.indices.contains(column) {
+                    let offset = output.byteCount
                     try output.append(tsvCell(row[column]))
+                    recordCell(sheet: sheet, row: rowIndex, column: column, offset: offset, length: output.byteCount - offset)
                 }
             }
         }
@@ -300,6 +308,13 @@ enum SpreadsheetMarkdownRenderer {
             text = cell.displayText
         }
         return escapedTSVText(text)
+    }
+
+    private static func recordCell(sheet: String, row: Int, column: Int, offset: Int, length: Int) {
+        guard let recording = ConversionExecution.current?.recording else { return }
+        var column = column + 1, address = ""
+        while column > 0 { column -= 1; address = String(UnicodeScalar(65 + column % 26)!) + address; column /= 26 }
+        recording.record(ConversionLocation(sheet: sheet, cell: address + String(row + 1)), offset: offset, length: length)
     }
 
     private static func escapedTSVText(_ text: String) -> String {
@@ -374,7 +389,7 @@ enum SpreadsheetMarkdownRenderer {
 
 private struct BoundedSpreadsheetOutput {
     private(set) var value = ""
-    private var byteCount = 0
+    private(set) var byteCount = 0
     private let maximumBytes: Int
 
     init(maximumBytes: Int) {

@@ -38,7 +38,7 @@ do {
     if arguments.listFormats {
         guard arguments.inputURLs.isEmpty, arguments.outputURL == nil,
               !arguments.setsJobs, !arguments.setsPDFOptions, !arguments.setsSpreadsheetRendering, !arguments.setsImageTextRecognition,
-              !arguments.writeToStandardOutput, !arguments.frontmatter,
+              !arguments.writeToStandardOutput, !arguments.frontmatter, !arguments.sourceMapping, !arguments.conversionReport,
               arguments.outputLayout == .markdownFolder, !arguments.progress, arguments.timeout == nil else {
             throw CLIArgumentError.formatsTakesNoInput
         }
@@ -48,6 +48,9 @@ do {
 
     guard let firstInputURL = arguments.inputURLs.first else {
         throw CLIArgumentError.missingValue("INPUT")
+    }
+    if arguments.sourceMapping && !arguments.json && !arguments.conversionReport {
+        throw CLIArgumentError.invalidConversionOption("--source-map requires --json or --report.")
     }
 
     let options = ConversionOptions(
@@ -60,11 +63,16 @@ do {
         ocrLanguages: arguments.pdfOptions.ocrLanguages,
         pdfLayout: arguments.pdfOptions.pdfLayout,
         pdfRemoveHeadersFooters: arguments.pdfOptions.pdfRemoveHeadersFooters,
-        pdfDehyphenate: arguments.pdfOptions.pdfDehyphenate
+        pdfDehyphenate: arguments.pdfOptions.pdfDehyphenate,
+        sourceMapping: arguments.sourceMapping,
+        conversionReport: arguments.conversionReport
     )
     let enumerator = InputEnumerator()
 
     if arguments.writeToStandardOutput {
+        if arguments.sourceMapping || arguments.conversionReport {
+            throw CLIArgumentError.standardOutputConflict("cannot be combined with --source-map or --report")
+        }
         if arguments.json {
             throw CLIArgumentError.standardOutputConflict("cannot be combined with --json")
         }

@@ -166,7 +166,8 @@ public struct DocumentConverter: Sendable {
                 ?? inherited?.cancellation ?? ConversionCancellationToken(),
             progress: progress ?? inherited?.progress,
             processTimeout: processTimeout ?? inherited?.processTimeout,
-            protectedInputs: inherited?.protectedInputs ?? [], plannedSources: inherited?.plannedSources ?? [:])
+            protectedInputs: inherited?.protectedInputs ?? [], plannedSources: inherited?.plannedSources ?? [:],
+            recording: options.includesSourceMappings ? ConversionRecording() : nil)
         return try ConversionExecution.$current.withValue(context) {
             do { return try convertInContext(request) }
             catch {
@@ -208,6 +209,8 @@ public struct DocumentConverter: Sendable {
                 reason: "the input changed while it was being inspected"
             )
         }
+        let recording = ConversionExecution.current?.recording
+        recording?.activate(at: resolvedInputURL)
 
         try ConversionExecution.report(ConversionProgress(phase: .preparingOutput, format: format))
         let destination = try resolveDestination(for: request, inputURL: inputURL)
@@ -272,6 +275,7 @@ public struct DocumentConverter: Sendable {
         if request.options.frontmatter {
             if let frontmatter = stagedResult.metadata.frontmatter {
                 try ConversionPostprocessor.prepend(frontmatter, to: stagedMarkdown)
+                recording?.shift(by: frontmatter.utf8.count)
             } else {
                 warnings.append(.metadataUnavailable)
             }
@@ -281,8 +285,50 @@ public struct DocumentConverter: Sendable {
                 in: stagedOutput,
                 markdownRelativePath: markdownRelativePath,
                 assetRelativePaths: assetRelativePaths,
-                fileManager: fileManager
+                fileManager: fileManager,
+                recording: recording
             )
+        }
+
+        var sourceIdentity: ConversionSourceIdentity?
+        var sourceMappings: [ConversionSourceMapping] = []
+        var outputFiles: [ConversionOutputFile] = []
+        var reportRelativePath: String?
+        if let recording {
+            do {
+                sourceIdentity = try recording.identity(named: inputURL.lastPathComponent)
+                let markdownData = try Data(contentsOf: stagedOutput.appendingPathComponent(markdownRelativePath))
+                sourceMappings = try recording.mappings(file: markdownRelativePath, markdown: markdownData)
+                if recording.omittedMappingCount > 0 {
+                    warnings.append(ConversionWarning(code: "sourceMap.limited", message: "\(recording.omittedMappingCount) further source mappings were omitted because of mapping bounds or text replacements.", kind: .information, omittedCount: recording.omittedMappingCount))
+                } else if sourceMappings.isEmpty {
+                    warnings.append(ConversionWarning(code: "sourceMap.unavailable", message: "No verified source-to-text positions are available for this conversion.", kind: .information))
+                }
+                var files = [markdownRelativePath] + assetRelativePaths
+                if request.options.outputLayout == .textbundle { files.append("info.json") }
+                outputFiles = try files.sorted().map { path in
+                    try ConversionExecution.check()
+                    let fingerprint = try ConversionFileFingerprint.read(stagedOutput.appendingPathComponent(path))
+                    return ConversionOutputFile(path: path, sha256: fingerprint.sha256, byteCount: fingerprint.byteCount)
+                }
+                if request.options.conversionReport {
+                    let portableWarnings = ConversionPostprocessor.portableDiagnostics(warnings, paths: [
+                        (inputURL.path, "[source]"), (resolvedInputURL.path, "[source]"),
+                        (temporaryRoot.path, "[staging]"), (destination.url.path, "[output]"),
+                        (NSHomeDirectory(), "[home]")])
+                    let report = ConversionReport(schemaVersion: 1, converterVersion: ProductInfo.version, format: format,
+                        source: sourceIdentity!, options: ConversionReport.Options(request.options), diagnostics: portableWarnings,
+                        diagnosticGroups: ConversionDiagnosticGroup.grouped(portableWarnings), outputs: outputFiles,
+                        sourceMappings: sourceMappings, omittedMappingCount: recording.omittedMappingCount)
+                    reportRelativePath = try ConversionPostprocessor.write(report, in: stagedOutput)
+                }
+            } catch let error as ConversionError { throw error }
+            catch is ConversionRecording.Failure {
+                throw ConversionError.invalidInput(inputURL, format: format, reason: "the primary source changed between verified reads")
+            } catch {
+                try ConversionExecution.check()
+                throw ConversionError.fileSystemFailure(error.localizedDescription)
+            }
         }
 
         try ConversionExecution.report(ConversionProgress(phase: .publishing, format: format))
@@ -301,7 +347,11 @@ public struct DocumentConverter: Sendable {
             assets: assetRelativePaths.map { destination.url.appendingPathComponent($0) },
             outputLifetime: destination.lifetime,
             diagnostics: warnings,
-            metadata: stagedResult.metadata
+            metadata: stagedResult.metadata,
+            sourceIdentity: sourceIdentity,
+            sourceMappings: sourceMappings,
+            outputFiles: outputFiles,
+            reportFile: reportRelativePath.map { destination.url.appendingPathComponent($0) }
         )
         ConversionExecution.current?.progress?(ConversionProgress(phase: .finished, format: format))
         return result

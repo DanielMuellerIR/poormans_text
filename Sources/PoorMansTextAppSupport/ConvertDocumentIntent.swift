@@ -21,6 +21,18 @@ public enum ShortcutPDFLayout: String, AppEnum {
     public static let caseDisplayRepresentations: [Self: DisplayRepresentation] = [.automatic: "Automatic", .legacy: "Legacy"]
 }
 
+public enum ShortcutSelectionMode: String, AppEnum {
+    case documentDefault, all, visible
+    public static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "Sheet selection")
+    public static let caseDisplayRepresentations: [Self: DisplayRepresentation] = [.documentDefault: "Document Default", .all: "All Sheets", .visible: "Visible Sheets"]
+}
+
+public enum ShortcutNotesMode: String, AppEnum {
+    case documentDefault, include, exclude
+    public static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "Presentation notes")
+    public static let caseDisplayRepresentations: [Self: DisplayRepresentation] = [.documentDefault: "Document Default", .include: "Include Notes", .exclude: "Exclude Notes"]
+}
+
 public struct ConvertDocumentIntent: AppIntent {
     public static let title: LocalizedStringResource = "Convert Document to Markdown"
     public static let description = IntentDescription("Convert one document into a new folder or Textbundle, including its images. Existing results are never overwritten. The result is a list: the complete output folder's file URL first, followed by any conversion warnings.")
@@ -38,6 +50,14 @@ public struct ConvertDocumentIntent: AppIntent {
     @Parameter(title: "PDF Layout", default: .automatic) public var pdfLayout: ShortcutPDFLayout
     @Parameter(title: "Remove Repeated PDF Headers and Footers", default: false) public var removeHeadersFooters: Bool
     @Parameter(title: "Join Hyphenated PDF Words", default: false) public var dehyphenate: Bool
+    @Parameter(title: "PDF Pages (for example 1,3-5)", default: "") public var pdfPages: String
+    @Parameter(title: "Sheet Indices (for example 1,3-5)", default: "") public var sheetIndices: String
+    @Parameter(title: "Exact Sheet Names", default: []) public var sheetNames: [String]
+    @Parameter(title: "Sheet Selection", default: .documentDefault) public var sheetSelection: ShortcutSelectionMode
+    @Parameter(title: "Cell Ranges (for example A1:C8,E2)", default: "") public var cellRanges: String
+    @Parameter(title: "Slides (for example 1,3-5)", default: "") public var slides: String
+    @Parameter(title: "Presentation Notes", default: .documentDefault) public var presentationNotes: ShortcutNotesMode
+    @Parameter(title: "EPUB Chapters (for example 1,3-5)", default: "") public var epubChapters: String
     @Parameter(title: "Tool Timeout in Seconds", default: 120) public var toolTimeout: Double
 
     public static var parameterSummary: some ParameterSummary {
@@ -51,17 +71,52 @@ public struct ConvertDocumentIntent: AppIntent {
             \.$pdfLayout
             \.$removeHeadersFooters
             \.$dehyphenate
+            \.$pdfPages
+            \.$sheetIndices
+            \.$sheetNames
+            \.$sheetSelection
+            \.$cellRanges
+            \.$slides
+            \.$presentationNotes
+            \.$epubChapters
             \.$toolTimeout
         }
     }
 
     public init() {}
 
+    func contentSelection() throws -> DocumentContentSelection? {
+        let pdf = try ContentSelectionParsing.indices(pdfPages)
+        let sheets = try ContentSelectionParsing.indices(sheetIndices)
+        let ranges = try ContentSelectionParsing.ranges(cellRanges)
+        let selectedSlides = try ContentSelectionParsing.indices(slides)
+        let chapters = try ContentSelectionParsing.indices(epubChapters)
+        let hasSheets = sheets != nil || !sheetNames.isEmpty || sheetSelection != .documentDefault || !ranges.isEmpty
+        let hasSlides = selectedSlides != nil || presentationNotes != .documentDefault
+        guard [pdf != nil, hasSheets, hasSlides, chapters != nil].filter({ $0 }).count <= 1 else {
+            throw ContentSelectionFailure("Select content from only one format family per invocation.")
+        }
+        if let pdf { return .pdf(pdf) }
+        if let chapters { return .epub(chapters) }
+        if hasSlides { return .presentation(PresentationSelection(slides: selectedSlides, includeNotes: presentationNotes != .exclude)) }
+        if hasSheets {
+            guard [sheets != nil, !sheetNames.isEmpty, sheetSelection != .documentDefault].filter({ $0 }).count <= 1 else {
+                throw ContentSelectionFailure("Choose sheet indices, exact names, or a visibility mode, not several at once.")
+            }
+            let chosen: SpreadsheetSheetSelection
+            if let sheets { chosen = .indices(sheets) }
+            else if !sheetNames.isEmpty { chosen = .names(sheetNames) }
+            else { chosen = sheetSelection == .visible ? .visible : .all }
+            return .spreadsheet(try SpreadsheetSelection(sheets: chosen, ranges: ranges))
+        }
+        return nil
+    }
+
     public func perform() async throws -> some IntentResult & ReturnsValue<[String]> {
         guard toolTimeout.isFinite, toolTimeout > 0 else {
             throw ShortcutFailure(message: String(localized: "The tool timeout must be a positive number."))
         }
-        let options = ConversionOptions(
+        var options = ConversionOptions(
             spreadsheetRendering: spreadsheetFormat == .table ? .markdownTable : .tabSeparated,
             imageTextRecognition: imageOCR ? .enabled : .disabled,
             frontmatter: frontmatter,
@@ -72,6 +127,8 @@ public struct ConvertDocumentIntent: AppIntent {
             pdfRemoveHeadersFooters: removeHeadersFooters,
             pdfDehyphenate: dehyphenate
         )
+        if let selection = try contentSelection() { options = selection.applying(to: options) }
+        let resolvedOptions = options
         let document = document
         let destination = destinationFolder
         let timeout = toolTimeout
@@ -80,7 +137,7 @@ public struct ConvertDocumentIntent: AppIntent {
         do {
             result = try await withTaskCancellationHandler {
                 try await Task.detached(priority: .userInitiated) {
-                    try ShortcutConversion.convert(document, into: destination, options: options, timeout: timeout, cancellation: cancellation)
+                    try ShortcutConversion.convert(document, into: destination, options: resolvedOptions, timeout: timeout, cancellation: cancellation)
                 }.value
             } onCancel: { cancellation.cancel() }
         } catch {

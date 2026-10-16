@@ -14,6 +14,7 @@ struct ContentView: View {
     @State private var pandocInstallError: String?
     @State private var showsPreview = false
     @State private var showsComparison = false
+    @State private var contentSelection: ContentSelectionTicket?
 
     var body: some View {
         VStack(spacing: 24) {
@@ -56,6 +57,9 @@ struct ContentView: View {
             .padding(20)
             .frame(minWidth: 760, idealWidth: showsComparison ? 1080 : 800,
                    minHeight: 560, idealHeight: showsComparison ? 760 : 560)
+        }
+        .sheet(item: $contentSelection) { ticket in
+            ContentSelectionView(input: ticket.input).environmentObject(model).id(ticket.id)
         }
         .task {
             preparePandocOffer()
@@ -247,11 +251,14 @@ struct ContentView: View {
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: 390)
-                Button("Choose Document…") {
-                    model.chooseDocument()
-                }
-                .controlSize(.large)
-                .keyboardShortcut(.defaultAction)
+                HStack(spacing: 12) {
+                    Button("Choose Document…") { model.chooseDocument() }
+                        .keyboardShortcut(.defaultAction)
+                    Button("Select Content…") {
+                        guard model.acceptsNewDocuments, let input = AppModel.chooseSelectionDocument() else { return }
+                        contentSelection = ContentSelectionTicket(input: input)
+                    }
+                }.controlSize(.large)
             }
 
         case .converting(let inputURL):

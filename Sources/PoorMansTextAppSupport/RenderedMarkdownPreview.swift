@@ -156,10 +156,24 @@ public struct RenderedMarkdownPreview: Sendable {
             case is Strikethrough: wrap("del", node: node, depth: depth)
             case is ThematicBreak: _ = start("hr", node: node)
             case let html as HTMLBlock:
+                if let id = generatedEPUBAnchor(html.rawHTML.trimmingCharacters(in: .newlines)) {
+                    if let anchor = start("span", node: node) { append("<span id=\"\(id)\"></span>"); end("span", anchor: anchor) }
+                    return
+                }
                 hasLiteralHTML = true
                 guard let anchor = start("pre", node: node, attributes: " class=\"literal-html\"") else { return }
                 append(escape(html.rawHTML)); end("pre", anchor: anchor)
             case let html as InlineHTML:
+                if let parent = node.parent {
+                    let siblings = Array(parent.children), index = node.indexInParent
+                    if let id = generatedEPUBAnchor(html.rawHTML + "</a>"), index + 1 < siblings.count,
+                       (siblings[index + 1] as? InlineHTML)?.rawHTML == "</a>" {
+                        if let anchor = start("span", node: node) { append("<span id=\"\(id)\"></span>"); end("span", anchor: anchor) }
+                        return
+                    }
+                    if html.rawHTML == "</a>", index > 0, let previous = siblings[index - 1] as? InlineHTML,
+                       generatedEPUBAnchor(previous.rawHTML + "</a>") != nil { return }
+                }
                 if ["<br>", "<br/>", "<br />"].contains(html.rawHTML.lowercased()) { append("<br>") }
                 else { hasLiteralHTML = true; append(escape(html.rawHTML)) }
             case let image as Markdown.Image:
@@ -203,6 +217,12 @@ public struct RenderedMarkdownPreview: Sendable {
                     for child in node.children { render(child, depth: depth + 1) }
                 }
             }
+        }
+        // Nur exakt leere, vom EPUB-Importer erzeugbare Anker; kein fremdes HTML.
+        func generatedEPUBAnchor(_ raw: String) -> String? {
+            guard raw.utf8.count <= 128,
+                  raw.range(of: #"^<a id="pmt-epub-chapter-[1-9][0-9]*(?:-anchor-[1-9][0-9]*)?"></a>$"#, options: .regularExpression) != nil else { return nil }
+            return String(raw.dropFirst(7).dropLast(6))
         }
         func plainText(_ node: any Markup, depth: Int) -> String {
             guard depth < 64 else { return "" }

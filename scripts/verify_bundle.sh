@@ -42,13 +42,22 @@ try:
     parameters = {parameter["name"]: parameter for parameter in action["parameters"]}
     folder_metadata = parameters["destinationFolder"]["typeSpecificMetadata"]
     folder_metadata = dict(zip(folder_metadata[::2], folder_metadata[1::2]))
+    selection_parameters = {"pdfPages", "sheetIndices", "sheetNames", "sheetSelection", "cellRanges", "slides", "presentationNotes", "epubChapters"}
+    summary_parameters = set(action["actionConfiguration"]["actionSummary"]["wrapper"]["otherParameterIdentifiers"])
+    def default_value(name):
+        values = parameters[name]["typeSpecificMetadata"]
+        return dict(zip(values[::2], values[1::2]))["LNValueTypeSpecificMetadataKeyDefaultValue"]
     valid = (
         action["fullyQualifiedTypeName"] == "PoorMansTextAppSupport.ConvertDocumentIntent"
         and action["isDiscoverable"] is True
         and action["outputFlags"] == 0
         and action["outputType"]["array"]["wrapper"]["memberValueType"]
             == {"primitive": {"wrapper": {"typeIdentifier": 0}}}
-        and {"document", "destinationFolder"}.issubset(parameters)
+        and {"document", "destinationFolder"}.union(selection_parameters).issubset(parameters)
+        and selection_parameters.issubset(summary_parameters)
+        and default_value("sheetNames") == {"array": {"elements": []}}
+        and default_value("sheetSelection") == {"string": {"wrapper": "documentDefault"}}
+        and default_value("presentationNotes") == {"string": {"wrapper": "documentDefault"}}
         and folder_metadata["LNValueTypeMetadataKeyFileSupportedTypes"]["array"]["elements"]
             == [{"string": {"wrapper": "public.folder"}}]
         and any(item["actionIdentifier"] == "ConvertDocumentIntent" for item in metadata["autoShortcuts"])

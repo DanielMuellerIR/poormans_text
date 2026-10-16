@@ -20,11 +20,6 @@ verwenden weiterhin den gemeinsamen Formatkatalog und die bestehenden
 Sicherheitsgrenzen. Konvertierungslogik bleibt im Kern; App, CLI und
 Kurzbefehle reichen die jeweils passenden Optionen weiter.
 
-### Teilbereiche auswählen
-
-- Die Auswahl in App und CLI sowie über passende Kurzbefehle-Parameter anbieten;
-  die ausgegebenen Fundstellen behalten die Nummern und Namen der Quelle.
-
 ### Strukturierte lokale Dokumenterkennung
 
 - Auf unterstützten macOS-Versionen zusätzlich Apples strukturierte

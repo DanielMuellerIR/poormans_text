@@ -152,6 +152,12 @@ public final class AppModel: ObservableObject {
     /// verloren (Review-Fund 2026-09-10).
     var destinationOverrides: [String: URL] = [:]
     var failedEnumerationInputs: [URL] = []
+    private struct BoundSelection {
+        let input: URL
+        let selection: DocumentContentSelection
+        let identity: ConversionSourceIdentity
+    }
+    private var retrySelection: BoundSelection?
     private var relativeDirectories: [String: [String]] = [:]
 
     public var conversionOptions: ConversionOptions {
@@ -434,7 +440,11 @@ public final class AppModel: ObservableObject {
         convertSingle(inputURL, isRetry: false)
     }
 
-    private func convertSingle(_ inputURL: URL, isRetry: Bool) {
+    public func convertSelection(_ input: URL, selection: DocumentContentSelection, identity: ConversionSourceIdentity) {
+        convertSingle(input, isRetry: false, selection: BoundSelection(input: input.standardizedFileURL, selection: selection, identity: identity))
+    }
+
+    private func convertSingle(_ inputURL: URL, isRetry: Bool, selection: BoundSelection? = nil) {
         guard acceptsNewDocuments else {
             return
         }
@@ -451,7 +461,10 @@ public final class AppModel: ObservableObject {
         state = .converting(inputURL)
         closePreview()
         actionMessage = nil
-        let request = request(for: inputURL, options: conversionOptions)
+        let bound = selection ?? (isRetry && retrySelection?.input == inputURL.standardizedFileURL ? retrySelection : nil)
+        retrySelection = bound
+        let base = request(for: inputURL, options: bound?.selection.applying(to: conversionOptions) ?? conversionOptions)
+        let request = ConversionRequest(inputURL: base.inputURL, destination: base.destination, options: base.options, expectedSourceIdentity: bound?.identity)
 
         // Die Dateikonvertierung läuft außerhalb des Main Actors, damit das Fenster
         // während textutil und Pandoc weiterhin reagiert.
@@ -463,8 +476,10 @@ public final class AppModel: ObservableObject {
                 let result = try await Task.detached(priority: .userInitiated) {
                     try DocumentConverter().convert(request, progress: progress, cancellation: cancellation)
                 }.value
+                retrySelection = nil
                 state = .succeeded(result)
             } catch {
+                if case ConversionError.cancelled = error { retrySelection = nil }
                 state = .failed(input: inputURL, message: AppErrorMessage.describe(error))
             }
         }
@@ -490,6 +505,7 @@ public final class AppModel: ObservableObject {
             return
         }
 
+        retrySelection = nil
         if !keepingDestinationOverrides { destinationOverrides = [:] }
         relativeDirectories = [:]
         failedEnumerationInputs = []
@@ -603,6 +619,16 @@ public final class AppModel: ObservableObject {
         convert(urls)
     }
 
+    public static func chooseSelectionDocument() -> URL? {
+        let panel = NSOpenPanel()
+        panel.title = NSLocalizedString("Select Content", comment: "")
+        panel.prompt = NSLocalizedString("Read Content", comment: "")
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+        panel.canChooseFiles = true
+        return panel.runModal() == .OK ? panel.url : nil
+    }
+
     /// Der echte Öffnen-Dialog von macOS. Mehrfachauswahl und Ordner sind
     /// erlaubt; ein Ordner wird wie beim Drop rekursiv durchsucht.
     private static func presentOpenPanel() -> [URL] {
@@ -706,6 +732,7 @@ public final class AppModel: ObservableObject {
         guard acceptsNewDocuments else {
             return
         }
+        retrySelection = nil
         state = .converting(URL(fileURLWithPath: source.fileName))
         let options = conversionOptions
 
@@ -744,6 +771,7 @@ public final class AppModel: ObservableObject {
         actionMessage = nil
         openRejectionMessage = nil
         selectedInput = nil
+        retrySelection = nil
         destinationOverrides = [:]
         relativeDirectories = [:]
         failedEnumerationInputs = []

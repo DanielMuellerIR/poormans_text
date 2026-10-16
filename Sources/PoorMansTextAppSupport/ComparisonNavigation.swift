@@ -19,7 +19,10 @@ public enum ComparisonNavigation {
         let parts = [
             location.page.flatMap { location.frame == $0 ? nil : String(format: NSLocalizedString("Page %d", comment: ""), $0) },
             location.frame.map { String(format: NSLocalizedString("Frame %d", comment: ""), $0) },
-            location.sheet.map { String(format: NSLocalizedString("Sheet %@", comment: ""), $0) },
+            location.sheet.map { name in
+                let label = String(format: NSLocalizedString("Sheet %@", comment: ""), name)
+                return location.sheetIndex.map { "\(label) [\($0)]" } ?? label
+            },
             location.cell.map { String(format: NSLocalizedString("Cell %@", comment: ""), $0) },
             location.chapter.map { String(format: NSLocalizedString("Chapter %d", comment: ""), $0) },
             location.slide.map { String(format: NSLocalizedString("Slide %d", comment: ""), $0) },

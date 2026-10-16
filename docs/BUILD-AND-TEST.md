@@ -56,7 +56,7 @@ Nur die Reihenfolge der zulässigen Eingabetypen wird dabei normalisiert.
 
 `Contents/Resources/Metadata.appintents` wird vor der Signatur in das Bundle
 übernommen. `scripts/verify_bundle.sh` verlangt die Aktion, ihre beiden
-Dateiparameter und den App-Kurzbefehl. Ein Build ohne diese Metadaten bricht ab,
+Dateiparameter, die acht Inhaltsauswahlparameter und den App-Kurzbefehl. Ein Build ohne diese Metadaten bricht ab,
 statt eine in Kurzbefehle unsichtbare Aktion auszuliefern. Lokalisierungen liegen
 in `Localizable.strings` und `AppShortcuts.strings` für Englisch und Deutsch.
 Die Systemintegration muss zusätzlich mit dem notarisiert installierten Bundle
@@ -275,3 +275,10 @@ PNG-/TIFF-Fixtures, OCR, Verkleinerung und bytegleiche Originalassets.
 gewählten Zeilen-/Zell-/Spaltengrenze, über mehrere Blätter, mit aufgefüllten
 Leerzellen und in beiden Rendering-Stilen. Parserprüfungen bleiben frühzeitig
 aktiv; Link-Scan-, XML-, Text- und Ausgabebudgets sind zusätzliche Grenzen.
+
+`ContentSelectionTests` und `SourceIdentityBindingTests` prüfen echte temporäre
+PDF-/XLSX-/XLS-/ODS-/PPTX-/ODP-/EPUB-Eingaben, ursprüngliche Indizes,
+Kurzbefehle-Parameter, fehlende Auswahlübertragung, Abbruch und Quellenwechsel.
+Die verbindliche Quellenbindung wird auch ohne Bericht/Mapping geprüft. GUI-
+Auswahl und Kurzbefehle benötigen zusätzlich einen echten Lauf am notarisierten
+Bundle; Metadaten und Modelltests ersetzen diese Abnahme nicht.

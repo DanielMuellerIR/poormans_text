@@ -341,6 +341,25 @@ pass the folder URL to another action. Images and other assets stay together.
 Existing outputs are never overwritten. Pandoc must be installed for formats
 that need it. The action runs without opening the app.
 
+Choose **Select Content…** in the app to inspect one PDF, XLSX/XLS/ODS workbook,
+PPTX/PPTM/POTX/ODP presentation, or EPUB. Enter original source numbers such as
+`1,3-5`, or select rows in the bounded overview. Workbook ranges such as
+`A1:C8,E2` apply to every selected sheet; an empty range selects whole sheets.
+EPUB selection covers whole spine files, while navigation fragments provide
+orientation. **Choose Document…**, drops, folders and services continue to import
+complete documents. A selection belongs only to the inspected source bytes;
+changed or unverifiable input requires reading the overview again. A retry after
+an output collision keeps that document's selection.
+
+In Shortcuts, expand the conversion action for PDF pages, sheet indices or an
+array of exact sheet names, visibility, cell ranges, slides, presentation notes,
+and EPUB chapters. Empty ranges leave the document complete. Use only one format
+family per invocation, and only one of sheet indices, exact names or visibility.
+Explicit selections for an incompatible input fail instead of being ignored.
+**Document Default** keeps existing sheet and note behavior; explicit note modes
+apply only to presentations. Sheet names are separate list items, so commas in a
+name remain literal.
+
 While conversion runs, the app shows active files and known page, sheet, slide,
 notebook-cell, or image-frame progress. Cancel Conversion retains completed batch results and
 removes the current document's workspace without publishing it. Unstarted inputs
@@ -535,7 +554,7 @@ and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compa
 their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current version is 0.25.0.
+The current version is 0.26.0.
 
 ## License
 

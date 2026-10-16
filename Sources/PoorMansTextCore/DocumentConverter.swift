@@ -234,7 +234,7 @@ public struct DocumentConverter: Sendable {
     ) throws -> ConversionResult {
         var options = request.options
         options.ocrLanguages = try OCRLanguageSelection.resolve(options.ocrLanguages)
-        let request = ConversionRequest(inputURL: request.inputURL, destination: request.destination, options: options)
+        let request = ConversionRequest(inputURL: request.inputURL, destination: request.destination, options: options, expectedSourceIdentity: request.expectedSourceIdentity)
         let inherited = ConversionExecution.current
         let context = ConversionExecution.Context(
             cancellation: cancellation.map { ConversionCancellationToken(parent: $0) }
@@ -242,7 +242,7 @@ public struct DocumentConverter: Sendable {
             progress: progress ?? inherited?.progress,
             processTimeout: processTimeout ?? inherited?.processTimeout,
             protectedInputs: inherited?.protectedInputs ?? [], plannedSources: inherited?.plannedSources ?? [:],
-            recording: options.includesSourceMappings ? ConversionRecording() : nil)
+            recording: options.includesSourceMappings || request.expectedSourceIdentity != nil ? ConversionRecording() : nil)
         return try ConversionExecution.$current.withValue(context) {
             do { return try convertInContext(request) }
             catch {
@@ -381,7 +381,7 @@ public struct DocumentConverter: Sendable {
         var sourceMappings: [ConversionSourceMapping] = []
         var outputFiles: [ConversionOutputFile] = []
         var reportRelativePath: String?
-        if let recording {
+        if let recording, request.options.includesSourceMappings {
             do {
                 sourceIdentity = try recording.identity(named: inputURL.lastPathComponent)
                 let markdownData = try Data(contentsOf: stagedOutput.appendingPathComponent(markdownRelativePath))
@@ -419,6 +419,21 @@ public struct DocumentConverter: Sendable {
         }
 
         try ConversionExecution.report(ConversionProgress(phase: .publishing, format: format))
+        if let expected = request.expectedSourceIdentity {
+            let actual: ConversionSourceIdentity
+            do {
+                guard let recording else { throw ConversionRecording.Failure.conflictingSource }
+                actual = try recording.identity(named: inputURL.lastPathComponent)
+            } catch {
+                try ConversionExecution.check()
+                throw ConversionError.invalidInput(inputURL, format: format, reason: "The source changed or could not be verified. Read the content overview again.")
+            }
+            guard let hash = expected.sha256, let count = expected.byteCount,
+                  actual.sha256 == hash, actual.byteCount == count else {
+                throw ConversionError.invalidInput(inputURL, format: format, reason: "The source changed or could not be verified. Read the content overview again.")
+            }
+            sourceIdentity = actual
+        }
         try publish(
             stagedOutput,
             to: destination.url,

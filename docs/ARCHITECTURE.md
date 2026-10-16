@@ -496,3 +496,21 @@ Arbeitsbudgets für die ausgewählten Seiten. Details: [PDF-IMPORT.md](PDF-IMPOR
 ## EPUB-Auswahl
 
 `EPUBSelectionPackage` liest Container, OPF-Spine, XHTML und optionale Navigation aus verifizierten ZIP-Snapshots. Die Auswahl ändert OPF und gewählte XHTML-Dateien ausschließlich in einer privaten Kopie; das macOS-Systemwerkzeug `/usr/bin/zip` aktualisiert literal übergebene Paketpfade, anschließend wird das vollständige Paket erneut geprüft. Pandocs bestehende Sandbox bleibt erhalten. Zufällige interne Textmarken passieren die sichere HTML-Konvertierung, werden danach in ausschließlich generierte lokale Anker umgewandelt und müssen vollständig verschwinden. Linkumschreibung verwendet den bestehenden Markdown-Scanner, damit Code unverändert bleibt. Kapitelbereiche werden erst anhand der abschließenden Markdown-Bytes registriert.
+
+### An die Inhaltsübersicht gebundene Aufträge
+
+`ConversionRequest.expectedSourceIdentity` bindet eine dokumentbezogene Auswahl
+an SHA-256 und Bytezahl der Inhaltsübersicht. Der Kern vergleicht unmittelbar vor
+der Veröffentlichung mit dem vollständig verifizierten, tatsächlich importierten
+Quellstrom. Ein erneutes Lesen des möglicherweise ersetzten Quellpfads ist dafür
+kein Ersatz. Fehlende oder abweichende Identitäten verhindern die Veröffentlichung,
+auch ohne Quellzuordnung oder Bericht. Eine Änderung nach dem importierten Snapshot
+ändert dessen korrekt gebundenes Ergebnis nicht; der Quellenvergleich erkennt die
+inzwischen abweichende Originaldatei weiterhin.
+
+`ContentSelectionModel` lädt eine fensterlokale Übersicht mit Abbruch-Token und
+Generationskennung. `AppModel` kopiert Basisoptionen pro Einzelauftrag und hält die
+Auswahl nur für einen bewussten Wiederholungsversuch desselben Dokuments. Neue
+Einzel-, Batch- und Dienstimporte verwenden wieder ihre vollständigen Eingaben.
+Die Kurzbefehle-Aktion bildet optionale Parameter auf dieselben typisierten
+Core-Auswahlen ab; widersprüchliche Formatfamilien werden vor dem Import abgewiesen.

@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.26.0 — 2026-10-16
+
+- Select PDF pages, workbook sheets and cell ranges, presentation slides and notes, or whole EPUB chapters in the app before conversion. Complete import remains directly available.
+- Bind document selections to the verified imported source bytes. A changed or unverifiable source requires a fresh content overview; selections never carry into other batch or service inputs.
+- Add optional content parameters to the Shortcuts action, with explicit document defaults for sheet visibility and presentation notes. Conflicting or incompatible selections fail with a clear error.
+- Render only exact empty EPUB-generated anchors safely in preview and distinguish same-named sheets by their original indices.
+
 ## 0.25.0 — 2026-10-16
 
 - Select EPUB spine entries with `--epub-chapters` and inspect reading order, titles, auxiliary entries and navigation fragments with `--list-chapters`.

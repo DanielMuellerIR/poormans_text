@@ -375,6 +375,26 @@ fordern Aufräumen an und ergeben Exit 130, ein Werkzeugtimeout Exit 124.
 Nach einem Timeout laufen weitere Batch-Eingaben weiter. Erfasste Werkzeugausgaben
 sind auf 16 MiB je Stream begrenzt.
 
+Mit **Inhalte auswählen…** liest die App genau ein PDF, eine XLSX-/XLS-/ODS-
+Arbeitsmappe, eine PPTX-/PPTM-/POTX-/ODP-Präsentation oder ein EPUB ein.
+Quellnummern wie `1,3-5` lassen sich eingeben oder in der begrenzten Übersicht
+anklicken. Zellbereiche wie `A1:C8,E2` gelten für jedes gewählte Blatt; eine leere
+Bereichseingabe übernimmt ganze Blätter. EPUB-Auswahl umfasst ganze Dateien der
+Spine-Lesereihenfolge; Navigationsfragmente dienen zur Orientierung.
+**Dokument auswählen…**, Drop, Ordner und Dienste importieren weiterhin alles.
+Eine Auswahl gehört ausschließlich zu den geprüften Quellbytes. Geänderte oder
+nicht verifizierbare Quellen erfordern ein erneutes Einlesen. Eine Wiederholung
+nach einer Ausgabekollision behält die Auswahl dieses Dokuments.
+
+Die aufgeklappte Kurzbefehle-Aktion bietet PDF-Seiten, Blattindizes oder eine
+Liste exakter Blattnamen, Sichtbarkeit, Zellbereiche, Folien, Notizmodus und
+EPUB-Kapitel. Leere Bereiche bedeuten vollständigen Import. Pro Aufruf darf nur
+eine Formatfamilie gewählt werden; Blattindizes, Namen und Sichtbarkeitsmodus
+sind gegenseitige Alternativen. Unpassende Angaben werden als Fehler gemeldet.
+**Dokumentstandard** erhält das bisherige Verhalten für Blätter und Notizen;
+explizite Notizmodi gelten nur für Präsentationen. Blattnamen sind einzelne
+Listeneinträge, sodass Kommas im Namen erhalten bleiben.
+
 ## Signierte Installation
 
 Der Installer baut App und CLI als Universal Binaries, signiert beide mit
@@ -565,7 +585,7 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.25.0.
+Die aktuelle Version ist 0.26.0.
 
 ## Lizenz
 

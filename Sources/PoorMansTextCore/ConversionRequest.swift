@@ -105,15 +105,19 @@ public struct ConversionRequest: Equatable, Sendable {
     public let inputURL: URL
     public let destination: ConversionDestination
     public let options: ConversionOptions
+    /// Erwartete Bytes einer zuvor gelesenen Inhaltsübersicht, nur für diesen Auftrag.
+    public let expectedSourceIdentity: ConversionSourceIdentity?
 
     public init(
         inputURL: URL,
         destination: ConversionDestination = .adjacentToInput,
-        options: ConversionOptions = ConversionOptions()
+        options: ConversionOptions = ConversionOptions(),
+        expectedSourceIdentity: ConversionSourceIdentity? = nil
     ) {
         self.inputURL = inputURL
         self.destination = destination
         self.options = options
+        self.expectedSourceIdentity = expectedSourceIdentity
     }
 }
 

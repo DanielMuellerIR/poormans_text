@@ -49,6 +49,25 @@ final class RenderedMarkdownPreviewTests: XCTestCase {
         XCTAssertTrue(preview.html.contains("default-src 'none'"))
     }
 
+    func testOnlyExactEmptyEPUBAnchorsAreRenderedAndCodeRemainsLiteral() throws {
+        let source = "<a id=\"pmt-epub-chapter-2\"></a>\n\nText <a id=\"pmt-epub-chapter-2-anchor-3\"></a>tail\n"
+        let preview = RenderedMarkdownPreview.render(source, assets: nil)
+        XCTAssertFalse(preview.hasLiteralHTML)
+        XCTAssertTrue(preview.html.contains("<span id=\"pmt-epub-chapter-2\"></span>"), preview.html)
+        XCTAssertTrue(preview.html.contains("<span id=\"pmt-epub-chapter-2-anchor-3\"></span>"), preview.html)
+        XCTAssertNotNil(preview.anchor(for: .init(file: "text.md", utf8Offset: 0, utf8Length: source.utf8.count)))
+        for raw in ["<a id=\"pmt-epub-chapter-2\" onclick=\"bad()\"></a>", "<a id=\"other\"></a>", "<a id=\"pmt-epub-chapter-2\">text</a>", "<a id=\"pmt-epub-chapter-0\"></a>"] {
+            let result = RenderedMarkdownPreview.render(raw, assets: nil)
+            XCTAssertTrue(result.hasLiteralHTML, raw)
+            XCTAssertFalse(result.html.contains("<a "), raw)
+        }
+        for raw in ["`<a id=\"pmt-epub-chapter-2\"></a>`", "```html\n<a id=\"pmt-epub-chapter-2\"></a>\n```"] {
+            let result = RenderedMarkdownPreview.render(raw, assets: nil)
+            XCTAssertTrue(result.html.contains("&lt;a id="))
+            XCTAssertFalse(result.html.contains("<span id=\"pmt-epub-chapter-2\""))
+        }
+    }
+
     func testKnownCellAnchorUsesActualUTF8AfterUnicode() throws {
         let source = "# 🙂 title\n\n| Name | Value |\n| --- | --- |\n| Grüße🙂Marker | 42 |\n"
         let prefix = try XCTUnwrap(source.range(of: "Grüße🙂Marker"))

@@ -42,7 +42,7 @@ public enum AppErrorMessage {
             case .processTimedOut: return format("The conversion tool exceeded its time limit.")
             case .inputDoesNotExist(let url): return format("Input does not exist: %@", url.path)
             case .unsupportedInput(let url): return format("Unsupported input format: %@", url.path)
-            case .invalidInput(let url, let kind, let reason): return format("Invalid %@ input at %@: %@", kind.rawValue.uppercased(), url.path, reason)
+            case .invalidInput(let url, let kind, let reason): return format("Invalid %@ input at %@: %@", kind.rawValue.uppercased(), url.path, bundle.localizedString(forKey: reason, value: nil, table: nil))
             case .ambiguousInput(let url, let kinds): return format("Input matches more than one format at %@: %@", url.path, kinds.map(\.rawValue).sorted().joined(separator: ", "))
             case .invalidRichText(let url, let reason): return format("Invalid rich-text document at %@: %@", url.path, reason)
             case .outputAlreadyExists(let url): return format("Output already exists and will not be overwritten: %@", url.path)

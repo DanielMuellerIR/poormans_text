@@ -3,6 +3,59 @@ import XCTest
 @testable import PoorMansTextCore
 
 final class CLIIntegrationTests: XCTestCase {
+    func testPresentationOverviewTextReportsItsDefaultLimit() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("PMTCLIOverviewLimit-\(UUID())")
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let source = root.appendingPathComponent("many.odp")
+        let pages = (1...201).map { "<draw:page><text:p>Title\($0)</text:p></draw:page>" }.joined()
+        let xml = "<office:document-content xmlns:office=\"\(PresentationImport.office)\" xmlns:draw=\"\(PresentationImport.draw)\" xmlns:text=\"\(PresentationImport.text)\"><office:body><office:presentation>\(pages)</office:presentation></office:body></office:document-content>"
+        try ZIPFixtureBuilder.archive(entries: [.init(name: "mimetype", content: Data("application/vnd.oasis.opendocument.presentation".utf8)), .init(name: "content.xml", content: Data(xml.utf8))]).write(to: source)
+        let run = try runCLI(["--list-slides", source.path])
+        XCTAssertEqual(run.status, 0, run.standardError)
+        XCTAssertEqual(run.standardOutput.split(separator: "\n").count, 200)
+        XCTAssertTrue(run.standardError.contains("200 of 201"))
+        let json = try runCLI(["--json", "--list-slides", source.path])
+        let summary = try JSONDecoder().decode(PresentationContentSummary.self, from: Data(json.standardOutput.utf8))
+        XCTAssertEqual(summary.slideCount, 201); XCTAssertEqual(summary.slides.count, 200); XCTAssertTrue(summary.slidesTruncated)
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: root.path), ["many.odp"])
+    }
+
+    func testPresentationOverviewSelectionAndNoteOptions() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("PMTCLISlides-\(UUID())")
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let source = root.appendingPathComponent("slides.odp")
+        let xml = "<office:document-content xmlns:office=\"\(PresentationImport.office)\" xmlns:draw=\"\(PresentationImport.draw)\" xmlns:text=\"\(PresentationImport.text)\" xmlns:presentation=\"\(PresentationImport.presentationODF)\"><office:body><office:presentation><draw:page><text:p>FirstMarker</text:p></draw:page><draw:page><text:p>SecondMarker</text:p><presentation:notes><text:p>NotesMarker</text:p></presentation:notes></draw:page></office:presentation></office:body></office:document-content>"
+        let bytes = try ZIPFixtureBuilder.archive(entries: [.init(name: "mimetype", content: Data("application/vnd.oasis.opendocument.presentation".utf8)), .init(name: "content.xml", content: Data(xml.utf8))]); try bytes.write(to: source)
+        let overview = try runCLI(["--json", "--list-slides", source.path])
+        XCTAssertEqual(overview.status, 0, overview.standardError)
+        let summary = try JSONDecoder().decode(PresentationContentSummary.self, from: Data(overview.standardOutput.utf8))
+        XCTAssertEqual(summary.slides.map(\.number), [1, 2]); XCTAssertEqual(summary.slides.map(\.hasNotes), [false, true])
+        let destination = root.appendingPathComponent("selected")
+        let run = try runCLI(["--json", "--slides", "2,2", "--notes", "off", "--report", "--output", destination.path, source.path])
+        XCTAssertEqual(run.status, 0, run.standardError)
+        let response = try decodeJSON(run.standardOutput)
+        let text = try String(contentsOf: URL(fileURLWithPath: XCTUnwrap(response["markdownFile"] as? String)), encoding: .utf8)
+        XCTAssertTrue(text.contains("## Slide 2")); XCTAssertTrue(text.contains("SecondMarker")); XCTAssertFalse(text.contains("FirstMarker")); XCTAssertFalse(text.contains("NotesMarker"))
+        let report = try JSONDecoder().decode(ConversionReport.self, from: Data(contentsOf: URL(fileURLWithPath: XCTUnwrap(response["reportFile"] as? String))))
+        XCTAssertEqual(report.options.presentationSelection?.slides?.description, "2"); XCTAssertEqual(report.options.presentationSelection?.includeNotes, false)
+        XCTAssertEqual(report.sourceMappings.map { $0.source.slide }, [2])
+        let stdout = try runCLI(["--stdout", "--slides", "2", "--notes", "on", source.path])
+        XCTAssertEqual(stdout.status, 0, stdout.standardError); XCTAssertTrue(stdout.standardOutput.contains("NotesMarker"))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: source.deletingPathExtension().path + "-markdown"))
+        for flags in [["--slides", "0"], ["--notes", "maybe"], ["--list-slides", "--notes", "on"], ["--list-slides", "--list-sheets"], ["--list-slides", "--report"]] {
+            try assertJSONFailure(flags + ["--json", source.path], expectedStatus: 64)
+        }
+        for flags in [["--slides", "1"], ["--notes", "on"], ["--list-slides"]] { try assertJSONFailure(["--formats", "--json"] + flags, expectedStatus: 64) }
+        try assertJSONFailure(["--json", "--slides", "3", "--output", root.appendingPathComponent("never").path, source.path], expectedStatus: 65)
+        let csv = root.appendingPathComponent("values.csv"); try Data("Name,Value\nMarker,1\n".utf8).write(to: csv)
+        try assertJSONFailure(["--json", "--slides", "1", csv.path], expectedStatus: 65)
+        try assertJSONFailure(["--json", "--notes", "off", csv.path], expectedStatus: 65)
+        try assertJSONFailure(["--json", "--list-slides", csv.path], expectedStatus: 65)
+        XCTAssertEqual(try Data(contentsOf: source), bytes)
+    }
+
     func testSpreadsheetOverviewSelectionAndOriginalCoordinates() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent("PMTCLIWorkbook-\(UUID())")
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
@@ -273,7 +326,7 @@ final class CLIIntegrationTests: XCTestCase {
     func testEveryValueOptionConsumesItsValue() throws {
         let valueOptions = [
             "-o", "--output", "--pandoc", "--timeout", "--jobs", "--spreadsheet-format",
-            "--image-ocr", "--pdf-ocr", "--pdf-layout", "--ocr-language", "--pdf-pages", "--sheets", "--sheet-name", "--cell-range",
+            "--image-ocr", "--pdf-ocr", "--pdf-layout", "--ocr-language", "--pdf-pages", "--sheets", "--sheet-name", "--cell-range", "--slides", "--notes",
         ]
         for option in valueOptions {
             let asValue = try runCLI([option, "--json"])

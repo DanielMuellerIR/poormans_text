@@ -22,7 +22,6 @@ Kurzbefehle reichen die jeweils passenden Optionen weiter.
 
 ### Teilbereiche auswählen
 
-- Folien und die Übernahme von Präsentationsnotizen auswählen.
 - EPUB-Kapitel in ihrer Lesereihenfolge auswählen.
 - Die Auswahl in App und CLI sowie über passende Kurzbefehle-Parameter anbieten;
   die ausgegebenen Fundstellen behalten die Nummern und Namen der Quelle.

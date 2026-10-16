@@ -145,6 +145,24 @@ public struct DocumentConverter: Sendable {
         }
     }
 
+    public func inspectPresentationContents(
+        _ inputURL: URL,
+        maximumSlides: Int = 200,
+        cancellation: ConversionCancellationToken? = nil,
+        processTimeout: TimeInterval? = nil
+    ) throws -> PresentationContentSummary {
+        try withDetectionContext(cancellation, processTimeout) {
+            let detected = try detectInput(at: inputURL.standardizedFileURL)
+            let format = detected.inspection.format
+            guard [InputFormat.pptx, .odp].contains(format) else { throw ConversionError.unsupportedInput(inputURL) }
+            do { return try PresentationAdapter().inspectContents(at: inputURL.standardizedFileURL, maximumSlides: maximumSlides) }
+            catch {
+                try ConversionExecution.check()
+                throw ConversionError.invalidInput(inputURL, format: format, reason: error.localizedDescription)
+            }
+        }
+    }
+
     /// Bindet einen Kontext nur, wenn noch keiner steht. Ein Aufruf aus einer
     /// laufenden Konvertierung heraus behält damit deren Token und Zeitgrenze.
     private func withDetectionContext<T>(
@@ -240,6 +258,9 @@ public struct DocumentConverter: Sendable {
         }
         if request.options.spreadsheetSelection != nil, ![InputFormat.xlsx, .xls, .ods].contains(format) {
             throw ConversionError.invalidInput(inputURL, format: format, reason: "spreadsheet selection can only be used with XLSX, XLS or ODS input")
+        }
+        if request.options.presentationSelection != nil, ![InputFormat.pptx, .odp].contains(format) {
+            throw ConversionError.invalidInput(inputURL, format: format, reason: "presentation selection can only be used with PPTX, PPTM, POTX or ODP input")
         }
         let resolvedInputURL = inputURL.resolvingSymlinksInPath()
         guard resolvedInputURL == resolvedBeforeDetection else {

@@ -15,6 +15,8 @@ struct ParsedArguments {
     var showHelp = false
     var showVersion = false
     var listFormats = false
+    var listSlides = false
+    var presentationSelection: PresentationSelection?
     var listSheets = false
     var sheetSelection: SpreadsheetSheetSelection = .all
     var cellRanges: [SpreadsheetCellRange] = []
@@ -50,6 +52,9 @@ Options:
       --sheet-name NAME   Select an exact sheet name (repeatable; excludes --sheets).
       --cell-range A1:B8  Select a cell rectangle on each selected sheet (repeatable).
       --list-sheets       Inspect sheet names, indices and visibility without output folders.
+      --slides RANGES    Select source slides, e.g. 1,3-5 (PPTX/PPTM/POTX/ODP).
+      --notes on|off     Include presentation notes (default: on).
+      --list-slides      Inspect ordered slide titles and local notes references.
       --image-ocr on|off  Add local OCR text for images (default) or preserve only the image asset.
       --pdf-ocr auto|always|off  Choose local PDF OCR (default: auto).
       --pdf-pages RANGES  Select source pages, e.g. 1,3-5 (PDF inputs only).
@@ -111,7 +116,7 @@ and exits 64.
 /// --json` verschieden deuten.
 let valueOptions: Set<String> = [
     "-o", "--output", "--pandoc", "--timeout", "--jobs", "--spreadsheet-format",
-    "--image-ocr", "--pdf-ocr", "--pdf-layout", "--ocr-language", "--pdf-pages", "--sheets", "--sheet-name", "--cell-range",
+    "--image-ocr", "--pdf-ocr", "--pdf-layout", "--ocr-language", "--pdf-pages", "--sheets", "--sheet-name", "--cell-range", "--slides", "--notes",
 ]
 
 /// Sagt VOR dem Parsen, ob `--json` als Option vorkommt, damit auch ein
@@ -194,6 +199,7 @@ private func apply(flag: String, to parsed: inout ParsedArguments) throws {
     case "--json": parsed.json = true
     case "--formats": parsed.listFormats = true
     case "--list-sheets": parsed.listSheets = true
+    case "--list-slides": parsed.listSlides = true
     case "--stdout": parsed.writeToStandardOutput = true
     case "--frontmatter": parsed.frontmatter = true
     case "--textbundle": parsed.outputLayout = .textbundle
@@ -232,6 +238,12 @@ private func apply(option: String, value: String, to parsed: inout ParsedArgumen
         guard let jobs = Int(value), (1...4).contains(jobs) else { throw CLIArgumentError.invalidConversionOption("--jobs requires an integer from 1 through 4") }
         parsed.jobs = jobs
         parsed.setsJobs = true
+    case "--slides":
+        do { parsed.presentationSelection = PresentationSelection(slides: try IndexSelection(value), includeNotes: parsed.presentationSelection?.includeNotes ?? true) }
+        catch { throw CLIArgumentError.invalidConversionOption("--slides: " + error.localizedDescription) }
+    case "--notes":
+        guard ["on", "off"].contains(value) else { throw CLIArgumentError.invalidConversionOption("--notes requires on or off") }
+        parsed.presentationSelection = PresentationSelection(slides: parsed.presentationSelection?.slides, includeNotes: value == "on")
     case "--sheets":
         guard !parsed.setsSheetSelection else { throw CLIArgumentError.invalidConversionOption("--sheets cannot be repeated or combined with --sheet-name") }
         do {

@@ -535,7 +535,7 @@ and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compa
 their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current version is 0.23.0.
+The current version is 0.24.0.
 
 ## License
 
@@ -553,6 +553,10 @@ subject to its own license, which ships with the app as
 Poor Man's Text processes documents locally and includes no telemetry. Its only
 network access is the update check. Details are in [PRIVACY.md](PRIVACY.md);
 support information is in [SUPPORT.md](SUPPORT.md).
+
+### Presentation selection
+
+`--list-slides --json slides.pptx` lists ordered slide titles and local note references without importing images. `--slides 1,3-5` selects source slides in presentation order; `--notes off` excludes note text, tables and images before conversion. Notes remain included by default. PPTX, PPTM, POTX and ODP share these options. See [presentation selection](docs/PRESENTATION-SELECTION.md).
 
 ### Spreadsheet selection
 

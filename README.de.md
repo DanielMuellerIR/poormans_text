@@ -565,7 +565,7 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.23.0.
+Die aktuelle Version ist 0.24.0.
 
 ## Lizenz
 
@@ -583,6 +583,10 @@ der App liegt.
 Poor Man's Text verarbeitet Dokumente lokal und enthält keine Telemetrie. Der
 einzige Netzwerkzugriff ist die Update-Suche. Einzelheiten stehen in
 [PRIVACY.md](PRIVACY.md), Hinweise zum Support in [SUPPORT.md](SUPPORT.md).
+
+### Präsentationsauswahl
+
+`--list-slides --json folien.pptx` zeigt Folientitel in Präsentationsreihenfolge und lokale Notizverweise ohne Bildimport. `--slides 1,3-5` wählt Quellfolien; `--notes off` schließt Notiztexte, Tabellen und Bilder vor ihrer Übernahme aus. Standardmäßig bleiben Notizen enthalten. Die Optionen gelten für PPTX, PPTM, POTX und ODP. Einzelheiten stehen unter [Präsentationsauswahl](docs/PRESENTATION-SELECTION.md).
 
 ### Tabellenauswahl
 

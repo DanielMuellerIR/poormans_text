@@ -38,12 +38,25 @@ struct PresentationAdapter: DocumentConversionAdapter {
         }
         return nil
     }
+    func inspectContents(at inputURL: URL, maximumSlides: Int) throws -> PresentationContentSummary {
+        guard (1...PresentationContentSummary.maximumSummarySlides).contains(maximumSlides) else {
+            throw ImportFailure("the presentation overview limit must be between 1 and 500")
+        }
+        return try ZIPArchiveInspector.withVerifiedReader(at: inputURL.resolvingSymlinksInPath()) { reader in
+            guard let format = try format(reader) else { throw ImportFailure("the input is not a supported presentation") }
+            let importer = PresentationImport(reader: reader, output: reader.url.deletingLastPathComponent().appendingPathComponent("unused-overview-output"))
+            let fingerprint = try ConversionFileFingerprint.read(reader.url)
+            let identity = ConversionSourceIdentity(name: inputURL.lastPathComponent, sha256: fingerprint.sha256, byteCount: fingerprint.byteCount, unavailableReason: nil)
+            return try importer.overview(format: format, sourceIdentity: identity, maximumSlides: maximumSlides)
+        }
+    }
+
     func convert(_ context: AdapterConversionContext) throws -> StagedConversionResult {
         do {
             let reader = try ZIPArchiveInspector.openVerifiedPackage(from: context.resolvedInputURL, into: context.workDirectory, named: "presentation.zip")
             guard try format(reader) == context.format else { throw ImportFailure("presentation format changed after inspection") }
             let importer = PresentationImport(reader: reader, output: context.stagedOutputDirectory)
-            let markdown = try importer.convert(format: context.format, title: context.inputURL.deletingPathExtension().lastPathComponent)
+            let markdown = try importer.convert(format: context.format, title: context.inputURL.deletingPathExtension().lastPathComponent, selection: context.options.presentationSelection)
             let filename = context.inputURL.deletingPathExtension().lastPathComponent + ".md"
             try Data(markdown.utf8).write(to: context.stagedOutputDirectory.appendingPathComponent(filename), options: .atomic)
             return StagedConversionResult(markdownRelativePath: filename, assetRelativePaths: importer.media.paths, warnings: importer.diagnostics.result, metadata: PackageMetadataParser.read(from: reader, entryName: context.format == .pptx ? "docProps/core.xml" : "meta.xml"))
@@ -109,7 +122,56 @@ final class PresentationImport {
         }
         return result
     }
-    func convert(format: InputFormat, title: String) throws -> String {
+
+    func overview(format: InputFormat, sourceIdentity: ConversionSourceIdentity, maximumSlides: Int) throws -> PresentationContentSummary {
+        var summaries = [PresentationSlideSummary]()
+        let count: Int
+        if format == .pptx {
+            let part = "ppt/presentation.xml"
+            let root = try ImportXML.parse(reader.data(named: part))
+            let relations = try relationships(for: part)
+            let ids = root.elements("sldIdLst", namespace: Self.presentation).flatMap { $0.elements("sldId", namespace: Self.presentation) }
+            guard !ids.isEmpty, ids.count <= 1_000 else { throw ImportFailure("presentation requires between 1 and 1,000 slides") }
+            count = ids.count
+            for (index, id) in ids.prefix(maximumSlides).enumerated() {
+                try ConversionExecution.check()
+                guard let key = id.attribute("id", namespace: Self.relations), let relation = relations[key], !relation.external, relation.type.hasSuffix("/slide") else { throw ImportFailure("missing or external slide relationship") }
+                let path = try ImportPackagePath.resolve(relation.target, relativeTo: part)
+                let slide = try ImportXML.parse(reader.data(named: path))
+                guard slide.name == "sld", slide.namespace == Self.presentation else { throw ImportFailure("invalid slide root at \(path)") }
+                slide.selectAlternateContent(supportedNamespaces: [Self.presentation, Self.drawing, Self.relations])
+                let title = slide.descendants("p", namespace: Self.drawing).lazy.map(drawingText).first { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+                let hasNotes = try relationships(for: path).values.contains { relation in
+                    guard !relation.external, relation.type.hasSuffix("/notesSlide") else { return false }
+                    return reader.entryNames.contains(try ImportPackagePath.resolve(relation.target, relativeTo: path))
+                }
+                summaries.append(.init(number: index + 1, title: boundedTitle(title), hasNotes: hasNotes))
+            }
+        } else {
+            let root = try ImportXML.parse(reader.data(named: "content.xml"))
+            let slides = root.elements("body", namespace: Self.office).flatMap { $0.elements("presentation", namespace: Self.office) }.flatMap { $0.elements("page", namespace: Self.draw) }
+            guard !slides.isEmpty, slides.count <= 1_000 else { throw ImportFailure("presentation requires between 1 and 1,000 slides") }
+            count = slides.count
+            for (index, slide) in slides.prefix(maximumSlides).enumerated() {
+                try ConversionExecution.check()
+                let body = slide.children.filter { $0.name != "notes" || $0.namespace != Self.presentationODF }
+                let title = body.lazy.flatMap { ($0.name == "p" && $0.namespace == Self.text ? [$0] : []) + $0.descendants("p", namespace: Self.text) }.map(\.text).first { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+                summaries.append(.init(number: index + 1, title: boundedTitle(title), hasNotes: !slide.elements("notes", namespace: Self.presentationODF).isEmpty))
+            }
+        }
+        return .init(sourceIdentity: sourceIdentity,
+            slideCount: count, slides: summaries, slidesTruncated: summaries.count < count)
+    }
+
+    private func boundedTitle(_ value: String?) -> String? {
+        guard let value = value?.trimmingCharacters(in: .whitespacesAndNewlines), !value.isEmpty else { return nil }
+        guard value.utf8.count > 256 else { return value }
+        var bytes = Data(value.utf8.prefix(253))
+        for _ in 0..<3 where String(data: bytes, encoding: .utf8) == nil { bytes.removeLast() }
+        return (String(data: bytes, encoding: .utf8) ?? "") + "…"
+    }
+    func convert(format: InputFormat, title: String, selection: PresentationSelection? = nil) throws -> String {
+        let includeNotes = selection?.includeNotes ?? true
         diagnostics.add("presentation.layoutNotPreserved", "Slide positions, themes, transitions, animations and exact formatting are not preserved.")
         if reader.entryNames.contains(where: { $0.hasSuffix("vbaProject.bin") }) { diagnostics.add("presentation.macrosNotPreserved", "Presentation macros are never executed and are not copied.") }
         var markdown = "# " + MarkdownEscaping.heading(title) + "\n\n"
@@ -123,17 +185,19 @@ final class PresentationImport {
             let relations = try relationships(for: part)
             let ids = root.elements("sldIdLst", namespace: Self.presentation).flatMap { $0.elements("sldId", namespace: Self.presentation) }
             guard !ids.isEmpty, ids.count <= 1_000 else { throw ImportFailure("presentation requires between 1 and 1,000 slides") }
-            for (index, id) in ids.enumerated() {
+            let selected = try selection?.slides?.zeroBasedIndices(itemCount: ids.count) ?? Array(ids.indices)
+            for (completed, index) in selected.enumerated() {
+                let id = ids[index]
                 page = index + 1
-                try ConversionExecution.report(unit: .slide, completed: index, total: ids.count)
+                try ConversionExecution.report(unit: .slide, completed: completed, total: selected.count)
                 guard let key = id.attribute("id", namespace: Self.relations), let relation = relations[key], !relation.external, relation.type.hasSuffix("/slide") else { throw ImportFailure("missing or external slide relationship") }
                 let path = try ImportPackagePath.resolve(relation.target, relativeTo: part)
-                let slide = try autoreleasepool { try pptxSlide(path) }
+                let slide = try autoreleasepool { try pptxSlide(path, includeNotes: includeNotes) }
                 let offset = markdown.utf8.count
                 try append(PresentationRenderer.render(slide, number: page, maximumBytes: 128 * 1_024 * 1_024 - offset))
                 ConversionExecution.current?.recording?.record(ConversionLocation(slide: page), offset: offset, length: markdown.utf8.count - offset)
             }
-            try ConversionExecution.report(unit: .slide, completed: ids.count, total: ids.count)
+            try ConversionExecution.report(unit: .slide, completed: selected.count, total: selected.count)
         } else {
             let root = try ImportXML.parse(reader.data(named: "content.xml"))
             if let data = try reader.dataIfPresent(named: "styles.xml") { collectListStyles(try ImportXML.parse(data)) }
@@ -141,14 +205,17 @@ final class PresentationImport {
             guard root.name == "document-content", root.namespace == Self.office else { throw ImportFailure("invalid OpenDocument presentation root") }
             let slides = root.elements("body", namespace: Self.office).flatMap { $0.elements("presentation", namespace: Self.office) }.flatMap { $0.elements("page", namespace: Self.draw) }
             guard !slides.isEmpty, slides.count <= 1_000 else { throw ImportFailure("presentation requires between 1 and 1,000 slides") }
-            for (index, node) in slides.enumerated() {
+            let selected = try selection?.slides?.zeroBasedIndices(itemCount: slides.count) ?? Array(slides.indices)
+            for (completed, index) in selected.enumerated() {
+                let node = slides[index]
                 page = index + 1
-                try ConversionExecution.report(unit: .slide, completed: index, total: slides.count)
+                try ConversionExecution.report(unit: .slide, completed: completed, total: selected.count)
                 indexParagraphs(in: node, namespace: Self.text)
                 var slide = PresentationSlide()
                 var noteIndex = 0
                 for child in node.children {
                     if child.name == "notes", child.namespace == Self.presentationODF {
+                        guard includeNotes else { continue }
                         noteIndex += 1; currentNote = String(noteIndex)
                         defer { currentNote = nil }
                         slide.notes += try odpBlocks(child, level: nil)
@@ -159,12 +226,12 @@ final class PresentationImport {
                 try append(PresentationRenderer.render(slide, number: page, maximumBytes: 128 * 1_024 * 1_024 - offset))
                 ConversionExecution.current?.recording?.record(ConversionLocation(slide: page), offset: offset, length: markdown.utf8.count - offset)
             }
-            try ConversionExecution.report(unit: .slide, completed: slides.count, total: slides.count)
+            try ConversionExecution.report(unit: .slide, completed: selected.count, total: selected.count)
         }
         return markdown
     }
     static let presentationODF = "urn:oasis:names:tc:opendocument:xmlns:presentation:1.0"
-    private func pptxSlide(_ part: String) throws -> PresentationSlide {
+    private func pptxSlide(_ part: String, includeNotes: Bool) throws -> PresentationSlide {
         let root = try ImportXML.parse(reader.data(named: part))
         guard root.name == "sld", root.namespace == Self.presentation else { throw ImportFailure("invalid slide root at \(part)") }
         root.selectAlternateContent(supportedNamespaces: [Self.presentation, Self.drawing, Self.relations])
@@ -176,7 +243,7 @@ final class PresentationImport {
         // eine Folie mit zwei Notizteilen ergab je Lauf eine andere Reihenfolge
         // der Notizblöcke (Review-Fund 2026-09-10).
         for relation in relations.sorted(by: { $0.key < $1.key }).map(\.value)
-        where relation.type.hasSuffix("/notesSlide") {
+        where includeNotes && relation.type.hasSuffix("/notesSlide") {
             let previous = diagnostics.context
             diagnostics.context = ConversionLocation(page: page, slide: page, note: relation.target)
             defer { diagnostics.context = previous }

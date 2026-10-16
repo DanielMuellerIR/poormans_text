@@ -56,6 +56,7 @@ public struct ConversionOptions: Equatable, Sendable {
     public var pdfDehyphenate: Bool
     /// Physische PDF-Seiten; nil importiert alle. Andere Formate lehnen die Auswahl ab.
     public var pdfPages: IndexSelection?
+    public var presentationSelection: PresentationSelection?
     public var spreadsheetSelection: SpreadsheetSelection?
     public var sourceMapping: Bool
     public var conversionReport: Bool
@@ -73,6 +74,7 @@ public struct ConversionOptions: Equatable, Sendable {
         pdfRemoveHeadersFooters: Bool = false,
         pdfDehyphenate: Bool = false,
         pdfPages: IndexSelection? = nil,
+        presentationSelection: PresentationSelection? = nil,
         spreadsheetSelection: SpreadsheetSelection? = nil,
         sourceMapping: Bool = false,
         conversionReport: Bool = false
@@ -88,6 +90,7 @@ public struct ConversionOptions: Equatable, Sendable {
         self.pdfRemoveHeadersFooters = pdfRemoveHeadersFooters
         self.pdfDehyphenate = pdfDehyphenate
         self.pdfPages = pdfPages
+        self.presentationSelection = presentationSelection
         self.spreadsheetSelection = spreadsheetSelection
         self.sourceMapping = sourceMapping
         self.conversionReport = conversionReport

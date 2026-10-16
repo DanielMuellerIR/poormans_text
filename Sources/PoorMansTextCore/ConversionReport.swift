@@ -72,6 +72,7 @@ public struct ConversionReport: Codable, Sendable {
         public let pdfRemoveHeadersFooters: Bool
         public let pdfDehyphenate: Bool
         public let pdfPages: IndexSelection?
+        public let presentationSelection: PresentationSelection?
         public let spreadsheetSelection: SpreadsheetSelection?
         public let sourceMapping: Bool
         public let conversionReport: Bool
@@ -87,6 +88,7 @@ public struct ConversionReport: Codable, Sendable {
             pdfRemoveHeadersFooters = options.pdfRemoveHeadersFooters
             pdfDehyphenate = options.pdfDehyphenate
             pdfPages = options.pdfPages
+            presentationSelection = options.presentationSelection
             spreadsheetSelection = options.spreadsheetSelection
             sourceMapping = options.includesSourceMappings
             conversionReport = options.conversionReport

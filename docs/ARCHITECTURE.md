@@ -488,3 +488,7 @@ Arbeitsbudgets für die ausgewählten Seiten. Details: [PDF-IMPORT.md](PDF-IMPOR
 ## Arbeitsmappenauswahl
 
 `SpreadsheetSelection` verbindet eine typisierte Blattauswahl mit bis zu 64 validierten A1-Rechtecken. XLSX, BIFF und ODS liefern Sichtbarkeit und ursprüngliche Blattindizes. Die vollständige Quelle bleibt an die bisherigen Parser- und Paketbudgets gebunden. Erst danach zerlegt die Auswahl ihre Rechteckvereinigung in disjunkte, begrenzte Ausgabeabschnitte; der gemeinsame Renderer erhält Zeilen-/Spaltenursprung und Quellblattindex. So werden entfernte Bereiche nicht zur großen umschließenden Tabelle expandiert. GUI-Adapter und SwiftUI sind daran nicht beteiligt. `inspectSpreadsheetContents` liefert einen hashgebundenen Überblick aus einem vollständig geprüften Snapshot ohne Ausgabeordner.
+
+## Präsentationsauswahl
+
+`PresentationSelection` verbindet ursprüngliche Folienintervalle mit der Notizübernahme. `PresentationImport` wählt über `p:sldIdLst` beziehungsweise die ODP-Seitenreihenfolge vor dem Lesen der Folienblöcke aus. Ausgeschlossene Inhalte erzeugen keine Konvertierungsdiagnosen oder Assets; die vollständige Paketprüfung bleibt davor aktiv. Fortschritt und Text-/Assetbudgets zählen die ausgewählte Arbeit, Quellenzuordnungen behalten die ursprünglichen Foliennummern. Die verifizierte Inhaltsübersicht liest höchstens 500 Folientitel und lokale Notizverweise ohne Medienablage oder Renderer.

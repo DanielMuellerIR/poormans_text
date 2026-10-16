@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.24.0 — 2026-10-16
+
+- Select PPTX, PPTM, POTX and ODP slide ranges with `--slides`, preserving presentation order and original slide numbers. `--notes on|off` controls note text, tables and images before importing their contents.
+- `--list-slides` and the library's bounded presentation overview expose ordered titles, local note references and a verified source hash without importing images or creating output folders.
+- Excluded slides and notes produce no conversion-loss diagnostics or unused output assets; full package verification remains mandatory.
+
 ## 0.23.0 — 2026-10-16
 
 - Select XLSX, XLS and ODS worksheets by source index, exact name or visibility with `--sheets` and `--sheet-name`; `--list-sheets` exposes a verified workbook overview.

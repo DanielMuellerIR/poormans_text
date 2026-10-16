@@ -23,6 +23,154 @@ final class PresentationNotebookTests: XCTestCase {
         XCTAssertEqual(result.sourceIdentity?.sha256, ConversionFileFingerprint.digest(original))
         XCTAssertEqual(try Data(contentsOf: source), original)
     }
+    func testSelectedSlidesKeepPresentationOrderAndSourceNumbersInBothOutputLayouts() throws {
+        let original = try ZIPFixtureBuilder.archive(entries: pptxEntries())
+        let source = root.appendingPathComponent("selected.pptx"); try original.write(to: source)
+        for layout in [OutputLayout.markdownFolder, .textbundle] {
+            let destination = root.appendingPathComponent(UUID().uuidString + (layout == .textbundle ? ".textbundle" : ""))
+            let selection = PresentationSelection(slides: try IndexSelection("2,2"))
+            let result = try DocumentConverter().convert(.init(inputURL: source, destination: .directory(destination), options: .init(outputLayout: layout, presentationSelection: selection, conversionReport: true)))
+            let data = try Data(contentsOf: result.markdownFile), text = String(decoding: data, as: UTF8.self)
+            XCTAssertTrue(text.contains("## Slide 2")); XCTAssertTrue(text.contains("SECONDTOKEN"))
+            for token in ["FIRSTTOKEN", "TABLETOKEN", "NOTESTOKEN", "## Slide 1"] { XCTAssertFalse(text.contains(token)) }
+            XCTAssertTrue(result.assets.isEmpty)
+            XCTAssertEqual(result.sourceMappings.compactMap { $0.source.slide }, [2])
+            XCTAssertTrue(result.sourceMappings[0].output.text(in: data)?.contains("SECONDTOKEN") == true)
+            let report = try JSONDecoder().decode(ConversionReport.self, from: Data(contentsOf: XCTUnwrap(result.reportFile)))
+            XCTAssertEqual(report.options.presentationSelection, selection)
+        }
+        XCTAssertEqual(try Data(contentsOf: source), original)
+    }
+
+    func testDefaultAndExplicitAllSlidesAreByteEqualAndNotesCanBeExcluded() throws {
+        let source = root.appendingPathComponent("notes.pptx")
+        let original = try ZIPFixtureBuilder.archive(entries: pptxEntries()); try original.write(to: source)
+        var outputs = [Data]()
+        for selection in [PresentationSelection?.none, PresentationSelection(slides: try IndexSelection("2,1,2"))] {
+            let result = try DocumentConverter().convert(.init(inputURL: source, destination: .directory(root.appendingPathComponent(UUID().uuidString)), options: .init(presentationSelection: selection)))
+            outputs.append(try Data(contentsOf: result.markdownFile))
+            XCTAssertEqual(result.assets.count, 1)
+        }
+        XCTAssertEqual(outputs[0], outputs[1])
+        let result = try DocumentConverter().convert(.init(inputURL: source, destination: .directory(root.appendingPathComponent("without-notes")), options: .init(presentationSelection: .init(includeNotes: false))))
+        let text = try String(contentsOf: result.markdownFile, encoding: .utf8)
+        XCTAssertFalse(text.contains("NOTESTOKEN")); XCTAssertFalse(text.contains("### Notes"))
+        XCTAssertTrue(text.contains("FIRSTTOKEN")); XCTAssertTrue(text.contains("TABLETOKEN"))
+        XCTAssertEqual(text.components(separatedBy: "![Slide image]").count - 1, 1)
+        XCTAssertEqual(try Data(contentsOf: XCTUnwrap(result.assets.first)), try png)
+        XCTAssertEqual(try Data(contentsOf: source), original)
+    }
+
+    func testExcludedBrokenSlidesAndNotesDoNotCreateLossDiagnostics() throws {
+        var entries = try pptxEntries(); entries.removeAll { $0.name == "ppt/slides/slide10.xml" }
+        let source = root.appendingPathComponent("missing-slide.pptx"); try ZIPFixtureBuilder.archive(entries: entries).write(to: source)
+        let result = try DocumentConverter().convert(.init(inputURL: source, destination: .directory(root.appendingPathComponent("selected-good")), options: .init(presentationSelection: .init(slides: IndexSelection("2")))))
+        XCTAssertTrue(result.assets.isEmpty)
+        XCTAssertFalse(result.diagnostics.contains { $0.kind == .contentLoss })
+        XCTAssertThrowsError(try DocumentConverter().convert(.init(inputURL: source, destination: .directory(root.appendingPathComponent("all-broken")))))
+        entries = try pptxEntries(); entries.removeAll { $0.name == "ppt/notesSlides/notesSlide1.xml" }
+        let notes = root.appendingPathComponent("missing-notes.pptx"); try ZIPFixtureBuilder.archive(entries: entries).write(to: notes)
+        for include in [false, true] {
+            let result = try DocumentConverter().convert(.init(inputURL: notes, destination: .directory(root.appendingPathComponent(UUID().uuidString)), options: .init(presentationSelection: .init(slides: IndexSelection("1"), includeNotes: include))))
+            XCTAssertEqual(result.diagnostics.contains { $0.code == "presentation.notesUnavailable" }, include)
+            if include { XCTAssertTrue(result.diagnostics.contains { $0.code == "presentation.notesUnavailable" && $0.location?.slide == 1 }) }
+        }
+    }
+
+    func testPresentationOverviewIsBoundedVerifiedAndHasNoOutputOrAssetSideEffects() throws {
+        var entries = try pptxEntries()
+        entries = entries.map { item in
+            guard item.name == "ppt/slides/slide10.xml" else { return item }
+            return entry(item.name, String(decoding: item.content, as: UTF8.self).replacingOccurrences(of: "FIRSTTOKEN", with: String(repeating: "Long🙂", count: 100)))
+        }
+        let source = root.appendingPathComponent("overview.pptx"); let original = try ZIPFixtureBuilder.archive(entries: entries); try original.write(to: source)
+        let summary = try DocumentConverter().inspectPresentationContents(source, maximumSlides: 1)
+        XCTAssertEqual(summary.slideCount, 2); XCTAssertEqual(summary.slides.map(\.number), [1]); XCTAssertTrue(summary.slidesTruncated)
+        XCTAssertTrue(summary.slides[0].hasNotes); XCTAssertLessThanOrEqual(try XCTUnwrap(summary.slides[0].title).utf8.count, 256)
+        XCTAssertFalse(summary.slides[0].title!.contains("�"))
+        XCTAssertTrue(try summary.sourceIdentity.matchesFile(at: source))
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: root.path), ["overview.pptx"])
+        for limit in [0, 501] { XCTAssertThrowsError(try DocumentConverter().inspectPresentationContents(source, maximumSlides: limit)) }
+        XCTAssertEqual(try Data(contentsOf: source), original)
+    }
+
+    func testODPSelectedNotesRetainTextTableAndImageAndCanBeExcluded() throws {
+        let body = """
+        <text:p>ODPBODY1</text:p><presentation:notes xmlns:presentation="\(PresentationImport.presentationODF)">
+        <text:p>ODPNOTES</text:p><table:table><table:table-row><table:table-cell><text:p>NOTETABLE</text:p></table:table-cell></table:table-row></table:table>
+        <draw:frame><draw:image xlink:href="Pictures/note.png"/></draw:frame></presentation:notes>
+        """
+        let xml = odpDocument(body).replacingOccurrences(of: "</draw:page>", with: "</draw:page><draw:page><text:p>ODPBODY2</text:p></draw:page>")
+        let source = root.appendingPathComponent("notes.odp")
+        let original = try ZIPFixtureBuilder.archive(entries: [entry("mimetype", "application/vnd.oasis.opendocument.presentation"), entry("content.xml", xml), .init(name: "Pictures/note.png", content: png)])
+        try original.write(to: source)
+        let summary = try DocumentConverter().inspectPresentationContents(source)
+        XCTAssertEqual(summary.slides.map(\.title), ["ODPBODY1", "ODPBODY2"]); XCTAssertEqual(summary.slides.map(\.hasNotes), [true, false])
+        for include in [false, true] {
+            let result = try DocumentConverter().convert(.init(inputURL: source, destination: .directory(root.appendingPathComponent(UUID().uuidString)), options: .init(presentationSelection: .init(slides: IndexSelection("1"), includeNotes: include), conversionReport: true)))
+            let text = try String(contentsOf: result.markdownFile, encoding: .utf8)
+            XCTAssertTrue(text.contains("ODPBODY1")); XCTAssertFalse(text.contains("ODPBODY2"))
+            XCTAssertEqual(text.contains("ODPNOTES"), include); XCTAssertEqual(text.contains("NOTETABLE"), include)
+            XCTAssertEqual(result.assets.count, include ? 1 : 0)
+            if include { XCTAssertEqual(try Data(contentsOf: result.assets[0]), try png) }
+            XCTAssertEqual(result.sourceMappings.compactMap { $0.source.slide }, [1])
+        }
+        XCTAssertEqual(try Data(contentsOf: source), original)
+    }
+
+    func testPresentationSelectionCancellationWrongInputAndInvalidRangesNeverPublish() throws {
+        let source = root.appendingPathComponent("cancel.pptx"); try ZIPFixtureBuilder.archive(entries: pptxEntries()).write(to: source)
+        let destination = root.appendingPathComponent("never")
+        XCTAssertThrowsError(try DocumentConverter().convert(.init(inputURL: source, destination: .directory(destination), options: .init(presentationSelection: .init(slides: IndexSelection("3"))))))
+        let token = ConversionCancellationToken()
+        XCTAssertThrowsError(try DocumentConverter().convert(.init(inputURL: source, destination: .directory(destination), options: .init(presentationSelection: .init(slides: IndexSelection("2")))), progress: { event in if event.unit == .slide { token.cancel() } }, cancellation: token)) { error in
+            guard case ConversionError.cancelled = error else { return XCTFail("\(error)") }
+        }
+        XCTAssertThrowsError(try DocumentConverter().inspectPresentationContents(source, cancellation: token))
+        let csv = root.appendingPathComponent("values.csv"); try Data("Name,Value\nMarker,1\n".utf8).write(to: csv)
+        XCTAssertThrowsError(try DocumentConverter().convert(.init(inputURL: csv, destination: .directory(destination), options: .init(presentationSelection: .init(includeNotes: false)))))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: destination.path))
+        XCTAssertFalse(try FileManager.default.contentsOfDirectory(atPath: root.path).contains { $0.hasPrefix(".poormans-text-") })
+    }
+
+    func testPresentationSelectionStillVerifiesExcludedAssetBytes() throws {
+        var entries = try pptxEntries()
+        let index = try XCTUnwrap(entries.firstIndex { $0.name == "ppt/media/picture.png" }); entries[index].declaredChecksum = 0
+        let source = root.appendingPathComponent("corrupt.pptx"); try ZIPFixtureBuilder.archive(entries: entries).write(to: source)
+        let destination = root.appendingPathComponent("never")
+        XCTAssertThrowsError(try DocumentConverter().convert(.init(inputURL: source, destination: .directory(destination), options: .init(presentationSelection: .init(slides: IndexSelection("2")), conversionReport: true))))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: destination.path))
+    }
+
+    func testSelectedSlideProgressCountsSelectedWorkAndKeepsPhysicalNumber() throws {
+        let source = root.appendingPathComponent("progress.pptx"); try ZIPFixtureBuilder.archive(entries: pptxEntries()).write(to: source)
+        let progress = SelectedSlideProgress()
+        let result = try DocumentConverter().convert(.init(inputURL: source, destination: .directory(root.appendingPathComponent("progress-result")), options: .init(presentationSelection: .init(slides: IndexSelection("2")), sourceMapping: true)), progress: { if $0.unit == .slide { progress.append($0) } })
+        XCTAssertEqual(progress.snapshot.map(\.completed), [0, 1]); XCTAssertEqual(progress.snapshot.map(\.total), [1, 1])
+        XCTAssertEqual(result.sourceMappings.map { $0.source.slide }, [2])
+    }
+
+    func testSlideSelectionDoesNotBypassSourceSlideCountLimit() throws {
+        var entries = try pptxEntries()
+        entries = entries.map { item in
+            guard item.name == "ppt/presentation.xml" else { return item }
+            let ids = String(repeating: "<p:sldId id=\"1\" r:id=\"first\"/>", count: 1_001)
+            return entry(item.name, "<p:presentation xmlns:p=\"\(PresentationImport.presentation)\" xmlns:r=\"\(PresentationImport.relations)\"><p:sldIdLst>\(ids)</p:sldIdLst></p:presentation>")
+        }
+        let source = root.appendingPathComponent("too-many.pptx"); try ZIPFixtureBuilder.archive(entries: entries).write(to: source)
+        let destination = root.appendingPathComponent("never")
+        XCTAssertThrowsError(try DocumentConverter().convert(.init(inputURL: source, destination: .directory(destination), options: .init(presentationSelection: .init(slides: IndexSelection("1"))))))
+        XCTAssertThrowsError(try DocumentConverter().inspectPresentationContents(source, maximumSlides: 1))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: destination.path))
+    }
+
+    private final class SelectedSlideProgress: @unchecked Sendable {
+        private let lock = NSLock()
+        private var values = [ConversionProgress]()
+        func append(_ value: ConversionProgress) { lock.lock(); defer { lock.unlock() }; values.append(value) }
+        var snapshot: [ConversionProgress] { lock.lock(); defer { lock.unlock() }; return values }
+    }
+
     private var root: URL!
     override func setUpWithError() throws {
         root = FileManager.default.temporaryDirectory.appendingPathComponent("PMTFormats-\(UUID())")

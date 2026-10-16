@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.21.0 — 2026-10-16
+
+- Add source/result comparison with verified PDF pages and image frames,
+  page/frame navigation and zoom. Rasterize source previews from the same
+  hashed bytes, leave source links inactive and preserve original files.
+- Filter diagnostics by meaning and location, show full messages and codes,
+  and navigate recorded PDF, image, sheet/cell and slide references. Mark coarse
+  section jumps and unknown or ambiguous positions explicitly.
+- Capture mappings for app conversions without writing a report. Verify source
+  and output bytes before using positions, invalidate comparisons on source or
+  folder changes, and distinguish missing, changed and unverifiable sources.
+- Adapt preview controls to narrow panes and allow repeated jumps to the same
+  recorded location. Bound source verification, retained bytes and raster previews.
+
 ## 0.20.0 — 2026-10-16
 
 - Add a rendered Markdown preview alongside the selectable source view, with

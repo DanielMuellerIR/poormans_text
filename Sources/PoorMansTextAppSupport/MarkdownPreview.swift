@@ -3,8 +3,9 @@ import Darwin
 import CryptoKit
 import PoorMansTextCore
 
-/// Liest höchstens 256 KiB plus ein Prüfbyte; die vollständige Datei bleibt
-/// beim Öffnen und Kopieren verfügbar. Geteilte UTF-8-Zeichen am Ende entfallen.
+/// Hält höchstens 256 KiB plus ein Prüfbyte; ein bekanntes Manifest wird im
+/// vollständigen Lesevorgang geprüft. Öffnen und Kopieren verwenden die ganze
+/// Datei. Geteilte UTF-8-Zeichen am Ende des Ausschnitts entfallen.
 public struct MarkdownPreview: Sendable {
     public let id = UUID()
     public let text: String

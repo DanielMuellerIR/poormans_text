@@ -77,7 +77,9 @@ final class AppModelDropTests: XCTestCase {
                 switch model.state {
                 case .succeeded(let result):
                     XCTAssertEqual(result.format.rawValue, "image")
-                    XCTAssertTrue(result.diagnostics.isEmpty)
+                    XCTAssertEqual(result.diagnostics.map(\.code), ["sourceMap.unavailable"])
+                    XCTAssertEqual(result.diagnostics.first?.kind, .information)
+                    XCTAssertNotNil(result.sourceIdentity)
                     let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
                     XCTAssertFalse(markdown.contains("## OCR text"), markdown)
                     return

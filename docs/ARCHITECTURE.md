@@ -253,8 +253,10 @@ Wiederholungen ersetzen nur fehlgeschlagene Listeneinträge, an derselben Positi
 Erfolgreiche Ausgaben bleiben bestehen.
 
 `MarkdownPreview` liest über einen auf reguläre Dateien geprüften Deskriptor
-höchstens 256 KiB plus ein Prüfbyte und kürzt eine angeschnittene UTF-8-Endsequenz.
-Die Vorschau lädt keine Bilder und führt kein Markdown oder HTML aus.
+einen Ausschnitt von höchstens 256 KiB plus ein Prüfbyte und kürzt eine
+angeschnittene UTF-8-Endsequenz. Bei vorhandenem Manifest hasht es denselben
+vollständigen Lesevorgang zur Ankerprüfung. Gerendertes Markdown darf nur
+registrierte lokale Rasterassets anzeigen; fremdes HTML bleibt Text.
 Öffnen und Kopieren beziehen sich auf das ausgewählte Ergebnis; die Zwischenablage
 enthält ausschließlich den Markdown-Text und meldet ausgelassene Asset-Dateien.
 Die SwiftUI-Ergebnisliste erzeugt Zeilen bedarfsgerecht über `LazyVStack`.
@@ -453,3 +455,18 @@ Verzeichnisdeskriptoren und liefert begrenzte PNG-Thumbnails.
 sichtbare Grenzen. `AppModel` verwirft veraltete Lesevorgänge; der App-Adapter
 öffnet nur die Ergebnisansicht. Pfad-, Ressourcen- und Darstellungsvertrag stehen
 in [MARKDOWN-PREVIEW.md](MARKDOWN-PREVIEW.md).
+
+## Quellenvergleich
+
+`ConversionComparisonPane` ordnet Diagnosen und bekannte Ergebnisbezüge zu.
+`ComparisonNavigation` hält die Regeln für Filter, Abschnittsbildung und genaue
+beziehungsweise gröbere Sprünge zentral; mehrdeutige Blattbezüge bleiben offen.
+App-Konvertierungen aktivieren die optionale Zuordnung ohne Berichtdatei.
+
+`ComparisonSourceSnapshot` prüft einen vollständigen Byte-Strom und hält ihn nur
+innerhalb der Vorschaugrenze. Ein eigener Actor erzeugt begrenzte PDF-/ImageIO-
+Rasteransichten aus genau diesen Bytes. `ComparisonSourceModel` verwirft alte
+Lese-/Rasteraufgaben und entzieht bei Dateisystemänderungen die Zuordnung.
+Unbekannte Identitäten werden nicht nachträglich als passend angenommen.
+Die UI-Adapter führen weder PDF-Aktionen aus noch ändern sie die Quelle;
+Details stehen in [SOURCE-COMPARISON.md](SOURCE-COMPARISON.md).

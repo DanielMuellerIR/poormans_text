@@ -160,7 +160,8 @@ public final class AppModel: ObservableObject {
             frontmatter: frontmatter, outputLayout: outputLayout,
             pdfTextRecognition: pdfTextRecognition,
             ocrLanguages: ocrLanguageCodes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? [] : ocrLanguageCodes.components(separatedBy: ","),
-            pdfLayout: pdfLayout, pdfRemoveHeadersFooters: pdfRemoveHeadersFooters, pdfDehyphenate: pdfDehyphenate)
+            pdfLayout: pdfLayout, pdfRemoveHeadersFooters: pdfRemoveHeadersFooters, pdfDehyphenate: pdfDehyphenate,
+            sourceMapping: true)
     }
 
     public var selectedResult: ConversionResult? {

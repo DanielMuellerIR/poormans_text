@@ -188,6 +188,11 @@ and local image thumbnails, or switch to selectable Markdown source. ⌘F search
 the displayed excerpt. The preview shows limits explicitly, displays HTML as
 text and keeps links inactive. See [the preview behavior](docs/MARKDOWN-PREVIEW.md).
 
+**Compare** places a verified PDF page or image frame next to the result.
+Filter diagnostics by meaning and location, navigate recorded references and
+check sheet/cell or slide positions. Changed or missing sources are marked;
+unknown positions remain explicit. See [source comparison](docs/SOURCE-COMPARISON.md).
+
 `--report` saves a portable `conversion-report.json` with verified source/output
 hashes, effective options, diagnostics and known source-to-Markdown byte ranges.
 `--source-map --json` exposes the same mappings without writing a report.
@@ -301,7 +306,8 @@ searched with the same rules as on the command line. Conversion Options remember
 an output parent (by default next to each source), table format, image OCR,
 frontmatter, Textbundle, PDF OCR/layout, OCR languages, and batch parallelism. Subdirectories are preserved under a selected parent.
 Select a batch result to open its Markdown in the default app, copy it, show it
-in Finder, or read a text preview limited to 256 KiB. Copying reports omitted
+in Finder, read a rendered/source preview limited to 256 KiB, or compare it
+with known source positions. Copying reports omitted
 asset files. Retry Failed Inputs retains successful outputs and result order;
 a failed input also offers another output name or destination. Existing output
 is never replaced. The interface follows the system's English or German language.
@@ -524,7 +530,7 @@ and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compa
 their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current version is 0.20.0.
+The current version is 0.21.0.
 
 ## License
 

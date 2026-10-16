@@ -20,11 +20,6 @@ verwenden weiterhin den gemeinsamen Formatkatalog und die bestehenden
 Sicherheitsgrenzen. Konvertierungslogik bleibt im Kern; App, CLI und
 Kurzbefehle reichen die jeweils passenden Optionen weiter.
 
-### Ergebnisprüfung und Quellbezug
-
-- Zunächst bei PDFs und Bildern Quelle und Ergebnis nebeneinander prüfen und
-  bekannte Fundstellen direkt ansteuern können.
-
 ### Teilbereiche auswählen
 
 - PDF-Seiten, Tabellenblätter und Zellbereiche gezielt importieren.

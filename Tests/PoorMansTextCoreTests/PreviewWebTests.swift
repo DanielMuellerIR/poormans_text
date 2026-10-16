@@ -49,6 +49,12 @@ import XCTest
         try await waitUntil { try await self.value("String(window.scrollY > 0)", in: view) == "true" }
         let lastText = try await value("document.getElementById('\(last.id)')?.textContent ?? ''", in: view)
         XCTAssertEqual(lastText, "Second Needle")
+        _ = try await value("window.scrollTo(0,0); 'reset'", in: view)
+        coordinator.update(view, rendered: rendered, assets: nil, query: "", request: 1, backwards: false, anchor: last.id, anchorRequest: 1)
+        try await waitUntil { try await self.value("String(window.scrollY > 0)", in: view) == "true" }
+        _ = try await value("window.scrollTo(0,0); 'reset'", in: view)
+        view.setFrameSize(NSSize(width: 400, height: 200))
+        try await waitUntil { try await self.value("String(window.scrollY > 0)", in: view) == "true" }
     }
 
     func testRealWebKitSnapshotsHaveVisibleContentInLightAndDark() async throws {

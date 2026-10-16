@@ -198,6 +198,12 @@ angezeigten Ausschnitt. Grenzen werden sichtbar gemeldet, HTML bleibt Text,
 Links sind in der Vorschau nicht aktiv. Details stehen unter
 [Markdown-Vorschau](docs/MARKDOWN-PREVIEW.md).
 
+**Vergleichen** zeigt eine geprüfte PDF-Seite oder einen Bildframe neben dem
+Ergebnis. Diagnosen lassen sich nach Bedeutung und Fundstelle filtern;
+aufgezeichnete Blatt-/Zell- und Folienbezüge sind ansteuerbar. Veränderte oder
+fehlende Quellen werden markiert, unbekannte Positionen bleiben ausdrücklich
+unbekannt. Details stehen unter [Quellenvergleich](docs/SOURCE-COMPARISON.md).
+
 `--report` speichert `conversion-report.json` mit belegten Quell-/Ausgabehashes,
 wirksamen Optionen, Diagnosen und bekannten Zuordnungen zum Markdown.
 `--source-map --json` liefert die Zuordnungen ohne Berichtdatei. Frontmatter und
@@ -317,7 +323,8 @@ Kommandozeile durchsucht. „Konvertierungsoptionen“ merkt sich Zielordner
 Textbundle sowie PDF-OCR/-Layout, OCR-Sprachen und Batch-Parallelität.
 Unter einem gewählten Zielordner bleiben Unterordner erhalten.
 Einzelne Batch-Ergebnisse lassen sich auswählen, in der Standard-App öffnen,
-kopieren, im Finder zeigen oder als Textvorschau mit höchstens 256 KiB lesen.
+kopieren, im Finder zeigen, als formatierte oder Quelltextvorschau mit höchstens
+256 KiB lesen und mit bekannten Quellpositionen vergleichen.
 Beim Kopieren meldet die App ausgelassene Asset-Dateien. „Fehlgeschlagene Eingaben
 erneut versuchen“ erhält erfolgreiche Ausgaben und die Ergebnisreihenfolge.
 Für fehlgeschlagene Eingaben lässt sich ein anderer Name oder Zielordner wählen;
@@ -553,7 +560,7 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.20.0.
+Die aktuelle Version ist 0.21.0.
 
 ## Lizenz
 

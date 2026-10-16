@@ -32,6 +32,8 @@ final class AppOptionsTests: XCTestCase {
         XCTAssertEqual(request.options.pdfTextRecognition, .always)
         XCTAssertTrue(request.options.pdfRemoveHeadersFooters)
         XCTAssertTrue(request.options.pdfDehyphenate)
+        XCTAssertTrue(request.options.sourceMapping)
+        XCTAssertFalse(request.options.conversionReport)
     }
 
     @MainActor

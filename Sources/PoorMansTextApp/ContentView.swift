@@ -13,6 +13,7 @@ struct ContentView: View {
     @State private var showsPandocInstallSuccess = false
     @State private var pandocInstallError: String?
     @State private var showsPreview = false
+    @State private var showsComparison = false
 
     var body: some View {
         VStack(spacing: 24) {
@@ -39,20 +40,22 @@ struct ContentView: View {
         ), onDismiss: { showsPreview = false }) {
             VStack(alignment: .leading, spacing: 16) {
                 HStack {
-                    Text("Preview").font(.headline)
+                    Text(showsComparison ? "Compare source and result" : "Preview").font(.headline)
                     if let result = model.selectedResult {
                         Text(verbatim: result.inputURL.lastPathComponent).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
                     }
                 }
                 if let preview = model.preview, let result = model.selectedResult {
-                    MarkdownPreviewPane(preview: preview, result: result)
+                    if showsComparison { ConversionComparisonPane(preview: preview, result: result) }
+                    else { MarkdownPreviewPane(preview: preview, result: result) }
                 } else {
                     ProgressView("Loading preview…").frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
                 HStack { Spacer(); Button("Done") { model.closePreview() }.keyboardShortcut(.cancelAction) }
             }
             .padding(20)
-            .frame(width: 800, height: 560)
+            .frame(minWidth: 760, idealWidth: showsComparison ? 1080 : 800,
+                   minHeight: 560, idealHeight: showsComparison ? 760 : 560)
         }
         .task {
             preparePandocOffer()
@@ -483,7 +486,8 @@ struct ContentView: View {
     }
     @ViewBuilder private var inspectResultButtons: some View {
         Button("Copy Markdown") { model.copyMarkdown() }
-        Button("Preview") { showsPreview = true; model.loadPreview() }
+        Button("Preview") { showsComparison = false; showsPreview = true; model.loadPreview() }
+        Button("Compare") { showsComparison = true; showsPreview = true; model.loadPreview() }
     }
 
     private var footer: some View {

@@ -7,6 +7,7 @@ public struct MarkdownPreviewPane: View {
     public let preview: MarkdownPreview
     public let result: ConversionResult
     public let target: ConversionTextRange?
+    public let targetRequest: Int
     @State private var rendered: RenderedMarkdownPreview?
     @State private var assets: PreviewAssets?
     @State private var mode = 0
@@ -18,36 +19,23 @@ public struct MarkdownPreviewPane: View {
     @State private var loading = true
     @FocusState private var searchFocused: Bool
 
-    public init(preview: MarkdownPreview, result: ConversionResult, target: ConversionTextRange? = nil) {
-        self.preview = preview; self.result = result; self.target = target
+    public init(preview: MarkdownPreview, result: ConversionResult, target: ConversionTextRange? = nil, targetRequest: Int = 0) {
+        self.preview = preview; self.result = result; self.target = target; self.targetRequest = targetRequest
     }
 
     public var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 10) {
-                Picker("Preview view", selection: $mode) {
-                    Text("Rendered").tag(0)
-                    Text("Markdown").tag(1)
-                }.pickerStyle(.segmented).labelsHidden().frame(width: 210)
-                Spacer(minLength: 4)
-                Button { searchFocused = true } label: { Image(systemName: "magnifyingglass") }
-                    .keyboardShortcut("f", modifiers: .command).help("Find in preview").accessibilityLabel(Text("Find in preview"))
-                TextField("Find in preview", text: $query)
-                    .textFieldStyle(.roundedBorder).frame(minWidth: 130, maxWidth: 220)
-                    .focused($searchFocused)
-                    .onSubmit { find(backwards: false) }
-                Button { find(backwards: true) } label: { Image(systemName: "chevron.up") }
-                    .help("Previous match").accessibilityLabel(Text("Previous match")).disabled(query.isEmpty)
-                Button { find(backwards: false) } label: { Image(systemName: "chevron.down") }
-                    .help("Next match").accessibilityLabel(Text("Next match")).disabled(query.isEmpty)
+            PreviewToolbarLayout {
+                modePicker
+                HStack(spacing: 10) { searchControls }
             }
             ZStack {
                 if mode == 1 {
                     PreviewSourceView(text: preview.text, query: query, request: searchRequest, backwards: backwards,
-                                      target: validTarget, missing: { matchMissing = $0 })
+                                      target: validTarget, targetRequest: targetRequest, missing: { matchMissing = $0 })
                 } else if let rendered {
                     PreviewWebView(rendered: rendered, assets: assets, query: query, request: searchRequest,
-                                   backwards: backwards, anchor: validTarget.flatMap { rendered.anchor(for: $0)?.id },
+                                   backwards: backwards, anchor: validTarget.flatMap { rendered.anchor(for: $0)?.id }, anchorRequest: targetRequest,
                                    missing: { matchMissing = $0 }, imageFailed: { imageFailed = true })
                 }
                 if loading, mode == 0 { ProgressView("Loading preview…") }
@@ -86,6 +74,25 @@ public struct MarkdownPreviewPane: View {
         }
     }
 
+    private var modePicker: some View {
+        Picker("Preview view", selection: $mode) {
+            Text("Rendered").tag(0)
+            Text("Markdown").tag(1)
+        }.pickerStyle(.segmented).labelsHidden().frame(width: 210)
+    }
+    @ViewBuilder private var searchControls: some View {
+        Button { searchFocused = true } label: { Image(systemName: "magnifyingglass") }
+            .keyboardShortcut("f", modifiers: .command).help("Find in preview").accessibilityLabel(Text("Find in preview"))
+        TextField("Find in preview", text: $query)
+            .textFieldStyle(.roundedBorder).frame(minWidth: 130, maxWidth: 220)
+            .focused($searchFocused)
+            .onSubmit { find(backwards: false) }
+        Button { find(backwards: true) } label: { Image(systemName: "chevron.up") }
+            .help("Previous match").accessibilityLabel(Text("Previous match")).disabled(query.isEmpty)
+        Button { find(backwards: false) } label: { Image(systemName: "chevron.down") }
+            .help("Next match").accessibilityLabel(Text("Next match")).disabled(query.isEmpty)
+    }
+
     private var validTarget: ConversionTextRange? {
         guard let target, target.file == result.markdownFile.lastPathComponent, preview.matchesExpectedOutput == true,
               target.utf8Offset >= 0, target.utf8Length >= 0, target.utf8Offset <= preview.text.utf8.count,
@@ -97,12 +104,42 @@ public struct MarkdownPreviewPane: View {
     }
 }
 
+/// Ein einziges Suchfeld behält den Fokus auch beim Umbruch. Zwei gleichzeitig
+/// vermessene FocusState-Bindungen in ViewThatFits können ältere SwiftUI-
+/// Bedienungshilfen in einen zyklischen Präferenzgraphen führen.
+private struct PreviewToolbarLayout: Layout {
+    private let gap: CGFloat = 10
+    private func metrics(_ width: CGFloat?, _ subviews: Subviews) -> (width: CGFloat, mode: CGSize, search: CGSize, stacked: Bool) {
+        let mode = subviews[0].sizeThatFits(.unspecified)
+        let minimum = subviews[1].sizeThatFits(.zero)
+        let ideal = subviews[1].sizeThatFits(.unspecified)
+        let proposed = width.flatMap { $0.isFinite ? $0 : nil }
+        let width = max(max(mode.width, minimum.width), proposed ?? (mode.width + gap + ideal.width))
+        let stacked = mode.width + gap + minimum.width > width
+        let searchWidth = max(minimum.width, stacked ? width : width - mode.width - gap)
+        let search = subviews[1].sizeThatFits(ProposedViewSize(width: searchWidth, height: nil))
+        return (width, mode, search, stacked)
+    }
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let value = metrics(proposal.width, subviews)
+        return CGSize(width: value.width, height: value.stacked ? value.mode.height + gap + value.search.height : max(value.mode.height, value.search.height))
+    }
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let value = metrics(bounds.width, subviews)
+        subviews[0].place(at: bounds.origin, anchor: .topLeading, proposal: ProposedViewSize(value.mode))
+        let point = CGPoint(x: value.stacked ? bounds.minX : bounds.maxX - value.search.width,
+                            y: value.stacked ? bounds.minY + value.mode.height + gap : bounds.minY)
+        subviews[1].place(at: point, anchor: .topLeading, proposal: ProposedViewSize(value.search))
+    }
+}
+
 private struct PreviewSourceView: NSViewRepresentable {
     let text: String
     let query: String
     let request: Int
     let backwards: Bool
     let target: ConversionTextRange?
+    let targetRequest: Int
     let missing: (Bool) -> Void
     func makeCoordinator() -> Coordinator { Coordinator() }
     func makeNSView(context: Context) -> NSScrollView {
@@ -124,11 +161,14 @@ private struct PreviewSourceView: NSViewRepresentable {
         guard let view = scroll.documentView as? NSTextView else { return }
         let changed = view.string != text
         if changed { view.string = text; context.coordinator.lastRequest = -1 }
-        if context.coordinator.target != target, let target,
+        if context.coordinator.target != target || context.coordinator.targetRequest != targetRequest, let target,
            let selection = Self.selection(target, in: text) {
             view.setSelectedRange(selection); view.scrollRangeToVisible(selection)
+        } else if target == nil, context.coordinator.target != nil {
+            view.setSelectedRange(NSRange(location: view.selectedRange().location, length: 0))
         }
         context.coordinator.target = target
+        context.coordinator.targetRequest = targetRequest
         guard context.coordinator.lastRequest != request else { return }
         context.coordinator.lastRequest = request
         guard !query.isEmpty else { return }
@@ -157,6 +197,7 @@ private struct PreviewSourceView: NSViewRepresentable {
     final class Coordinator {
         var lastRequest = -1
         var target: ConversionTextRange?
+        var targetRequest = -1
     }
 }
 
@@ -167,6 +208,7 @@ private struct PreviewWebView: NSViewRepresentable {
     let request: Int
     let backwards: Bool
     let anchor: String?
+    let anchorRequest: Int
     let missing: (Bool) -> Void
     let imageFailed: () -> Void
     func makeCoordinator() -> PreviewWebCoordinator { PreviewWebCoordinator() }
@@ -174,7 +216,7 @@ private struct PreviewWebView: NSViewRepresentable {
     func updateNSView(_ view: WKWebView, context: Context) {
         context.coordinator.onMissing = missing
         context.coordinator.onImageFailed = imageFailed
-        context.coordinator.update(view, rendered: rendered, assets: assets, query: query, request: request, backwards: backwards, anchor: anchor)
+        context.coordinator.update(view, rendered: rendered, assets: assets, query: query, request: request, backwards: backwards, anchor: anchor, anchorRequest: anchorRequest)
     }
 }
 
@@ -188,6 +230,7 @@ private struct PreviewWebView: NSViewRepresentable {
     private var request = -1
     private var backwards = false
     private var anchor: String?
+    private var anchorRequest = -1
     private var active = Set<ObjectIdentifier>()
     private var failedImages = Set<URL>()
     private var generation = 0
@@ -199,16 +242,21 @@ private struct PreviewWebView: NSViewRepresentable {
         configuration.defaultWebpagePreferences.allowsContentJavaScript = false
         configuration.preferences.isFraudulentWebsiteWarningEnabled = false
         configuration.setURLSchemeHandler(self, forURLScheme: "pmt-preview")
-        let view = WKWebView(frame: .zero, configuration: configuration)
+        let view = PreviewWebContentView(frame: .zero, configuration: configuration)
         view.navigationDelegate = self
         view.underPageBackgroundColor = .textBackgroundColor
+        view.viewportChanged = { [weak self, weak view] in
+            guard let self, self.loaded, let view else { return }
+            self.scroll(in: view)
+        }
         return view
     }
-    func update(_ view: WKWebView, rendered: RenderedMarkdownPreview, assets: PreviewAssets?, query: String, request: Int, backwards: Bool, anchor: String?) {
+    func update(_ view: WKWebView, rendered: RenderedMarkdownPreview, assets: PreviewAssets?, query: String, request: Int, backwards: Bool, anchor: String?, anchorRequest: Int = 0) {
         let newDocument = html != rendered.html || self.assets?.token != assets?.token
         let newSearch = self.request != request || self.query != query
-        let newAnchor = self.anchor != anchor
+        let newAnchor = self.anchor != anchor || self.anchorRequest != anchorRequest
         self.assets = assets; self.query = query; self.request = request; self.backwards = backwards; self.anchor = anchor
+        self.anchorRequest = anchorRequest
         if newDocument {
             generation += 1
             html = rendered.html; loaded = false; failedImages = []
@@ -270,5 +318,16 @@ private struct PreviewWebView: NSViewRepresentable {
     private final class SchemeRequest: @unchecked Sendable {
         let task: any WKURLSchemeTask
         init(task: any WKURLSchemeTask) { self.task = task }
+    }
+}
+
+private final class PreviewWebContentView: WKWebView {
+    var viewportChanged: (() -> Void)?
+    override func setFrameSize(_ newSize: NSSize) {
+        let changed = frame.size != newSize
+        super.setFrameSize(newSize)
+        if changed {
+            Task { @MainActor [weak self] in self?.viewportChanged?() }
+        }
     }
 }

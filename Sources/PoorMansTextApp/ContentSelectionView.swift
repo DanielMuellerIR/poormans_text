@@ -82,35 +82,41 @@ struct ContentSelectionView: View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Select Content").font(.headline)
             Text(verbatim: model.input.lastPathComponent).foregroundStyle(.secondary).lineLimit(2).textSelection(.enabled)
-            if model.isLoading {
-                ProgressView("Reading content overview…").frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if let error = model.error {
-                ScrollView { Text(verbatim: error).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading) }
-            } else if isSelectable {
-                selectionControls
-                ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 4) {
-                        ForEach(rows) { row in
-                            Toggle(isOn: Binding(get: { contains(row.id) }, set: { toggle(row.id, selected: $0) })) {
-                                VStack(alignment: .leading, spacing: 3) {
-                                    Text(verbatim: row.title).fontWeight(.medium)
-                                    if !row.detail.isEmpty { Text(verbatim: row.detail).font(.caption).foregroundStyle(.secondary) }
-                                }.frame(maxWidth: .infinity, alignment: .leading)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    if model.isLoading {
+                        ProgressView("Reading content overview…").frame(maxWidth: .infinity, minHeight: 120)
+                    } else if let error = model.error {
+                        Text(verbatim: error).textSelection(.enabled)
+                    } else if isSelectable {
+                        selectionControls
+                        LazyVStack(alignment: .leading, spacing: 4) {
+                            ForEach(rows) { row in
+                                Toggle(isOn: Binding(get: { contains(row.id) }, set: { toggle(row.id, selected: $0) })) {
+                                    VStack(alignment: .leading, spacing: 3) {
+                                        Text(verbatim: row.title).fontWeight(.medium)
+                                        if !row.detail.isEmpty { Text(verbatim: row.detail).font(.caption).foregroundStyle(.secondary) }
+                                    }.frame(maxWidth: .infinity, alignment: .leading)
+                                }
+                                .toggleStyle(.checkbox)
+                                .accessibilityLabel(Text(verbatim: row.title + (row.detail.isEmpty ? "" : " · " + row.detail)))
+                                .padding(8).disabled(!row.enabled)
+                                .background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 6))
                             }
-                            .toggleStyle(.checkbox)
-                            .accessibilityLabel(Text(verbatim: row.title + (row.detail.isEmpty ? "" : " · " + row.detail)))
-                            .padding(8).disabled(!row.enabled)
-                            .background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 6))
+                        }.padding(1)
+                        if case .epub(let value) = model.overview {
+                            Text("Chapters select whole spine files. Navigation fragments are for orientation only.").font(.caption).foregroundStyle(.secondary)
+                            if value.navigationTruncated { Text("Navigation overview limited.").font(.caption).foregroundStyle(.secondary) }
+                            if !value.diagnostics.isEmpty { Text(verbatim: value.diagnostics.map(\.message).joined(separator: "\n")).font(.caption).foregroundStyle(.secondary).lineLimit(3) }
                         }
-                    }.padding(1)
-                }.frame(minHeight: 120)
+                    } else if model.overview != nil {
+                        Text("This format supports complete import only.").frame(maxWidth: .infinity, minHeight: 120)
+                    }
+                }.frame(maxWidth: .infinity, alignment: .leading)
+            }.frame(minHeight: 80)
+            if isSelectable && !model.isLoading && model.error == nil {
                 if rows.count < count {
                     Text("Overview limited. Enter source numbers above to select items beyond this list.").font(.caption).foregroundStyle(.secondary)
-                }
-                if case .epub(let value) = model.overview {
-                    Text("Chapters select whole spine files. Navigation fragments are for orientation only.").font(.caption).foregroundStyle(.secondary)
-                    if value.navigationTruncated { Text("Navigation overview limited.").font(.caption).foregroundStyle(.secondary) }
-                    if !value.diagnostics.isEmpty { Text(verbatim: value.diagnostics.map(\.message).joined(separator: "\n")).font(.caption).foregroundStyle(.secondary).lineLimit(3) }
                 }
                 if model.overview?.identity?.sha256 == nil || model.overview?.identity?.byteCount == nil {
                     Text("The source could not be verified. Read the content overview again.").foregroundStyle(.red)
@@ -119,8 +125,6 @@ struct ContentSelectionView: View {
                 } else {
                     Text(String(format: NSLocalizedString("%d of %d selected", comment: ""), selectedCount, count)).font(.callout).foregroundStyle(.secondary)
                 }
-            } else if model.overview != nil {
-                Text("This format supports complete import only.").frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             Divider()
             HStack {

@@ -17,13 +17,16 @@ struct ContentView: View {
     @State private var contentSelection: ContentSelectionTicket?
 
     var body: some View {
-        VStack(spacing: 24) {
-            header
-            options
-            dropArea
-            footer
+        ScrollView {
+            VStack(spacing: 24) {
+                header
+                options
+                dropArea
+                footer
+            }
+            .padding(32)
+            .frame(maxWidth: .infinity)
         }
-        .padding(32)
         .frame(minWidth: 560, minHeight: 430)
         .background(
             LinearGradient(

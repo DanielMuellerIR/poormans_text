@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.26.2 — 2026-10-16
+
+- Keep content selection validation and actions visible in small windows by scrolling its form and source list together. Let the main page scroll when options or conversion messages exceed the available height.
+
 ## 0.26.1 — 2026-10-16
 
 - Translate the content selection dialog’s Cancel button into German and expose explicit accessible labels for its actions, fields and source rows.

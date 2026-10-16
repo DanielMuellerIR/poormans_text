@@ -54,6 +54,8 @@ public struct ConversionOptions: Equatable, Sendable {
     public var pdfLayout: PDFLayout
     public var pdfRemoveHeadersFooters: Bool
     public var pdfDehyphenate: Bool
+    /// Physische PDF-Seiten; nil importiert alle. Andere Formate lehnen die Auswahl ab.
+    public var pdfPages: IndexSelection?
     public var sourceMapping: Bool
     public var conversionReport: Bool
     var includesSourceMappings: Bool { sourceMapping || conversionReport }
@@ -69,6 +71,7 @@ public struct ConversionOptions: Equatable, Sendable {
         pdfLayout: PDFLayout = .automatic,
         pdfRemoveHeadersFooters: Bool = false,
         pdfDehyphenate: Bool = false,
+        pdfPages: IndexSelection? = nil,
         sourceMapping: Bool = false,
         conversionReport: Bool = false
     ) {
@@ -82,6 +85,7 @@ public struct ConversionOptions: Equatable, Sendable {
         self.pdfLayout = pdfLayout
         self.pdfRemoveHeadersFooters = pdfRemoveHeadersFooters
         self.pdfDehyphenate = pdfDehyphenate
+        self.pdfPages = pdfPages
         self.sourceMapping = sourceMapping
         self.conversionReport = conversionReport
     }

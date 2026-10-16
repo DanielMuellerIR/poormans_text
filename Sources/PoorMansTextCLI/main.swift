@@ -64,6 +64,7 @@ do {
         pdfLayout: arguments.pdfOptions.pdfLayout,
         pdfRemoveHeadersFooters: arguments.pdfOptions.pdfRemoveHeadersFooters,
         pdfDehyphenate: arguments.pdfOptions.pdfDehyphenate,
+        pdfPages: arguments.pdfOptions.pdfPages,
         sourceMapping: arguments.sourceMapping,
         conversionReport: arguments.conversionReport
     )

@@ -208,6 +208,11 @@ unbekannt. Details stehen unter [Quellenvergleich](docs/SOURCE-COMPARISON.md).
 wirksamen Optionen, Diagnosen und bekannten Zuordnungen zum Markdown.
 `--source-map --json` liefert die Zuordnungen ohne Berichtdatei. Frontmatter und
 Textbundle werden berücksichtigt; das Standard-Markdown bleibt unverändert.
+
+`--pdf-pages "1,3-5"` importiert gewählte PDF-Seiten in Quellreihenfolge und
+behält die ursprünglichen Seitennummern. Dubletten werden zusammengeführt;
+ungültige oder außerhalb liegende Werte sind Fehler. Ohne Option werden alle
+Seiten importiert. Details stehen unter [PDF-Import und Seitenauswahl](docs/PDF-IMPORT.md).
 Details stehen unter [Berichte und Quellzuordnung](docs/CONVERSION-REPORT.md).
 
 `--frontmatter` stellt dem Markdown einen YAML-Kopf aus der Quelle voran:
@@ -560,7 +565,7 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.21.0.
+Die aktuelle Version ist 0.22.0.
 
 ## Lizenz
 

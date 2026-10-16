@@ -43,6 +43,7 @@ Options:
                           Render spreadsheets as a GFM table (default) or escaped TSV.
       --image-ocr on|off  Add local OCR text for images (default) or preserve only the image asset.
       --pdf-ocr auto|always|off  Choose local PDF OCR (default: auto).
+      --pdf-pages RANGES  Select source pages, e.g. 1,3-5 (PDF inputs only).
       --ocr-language CODES Comma-separated local OCR languages, e.g. de,en.
       --pdf-layout auto|legacy  Reconstruct PDF structure or keep the previous extraction.
       --pdf-remove-headers-footers  Remove repeated text at page margins.
@@ -101,7 +102,7 @@ and exits 64.
 /// --json` verschieden deuten.
 let valueOptions: Set<String> = [
     "-o", "--output", "--pandoc", "--timeout", "--jobs", "--spreadsheet-format",
-    "--image-ocr", "--pdf-ocr", "--pdf-layout", "--ocr-language",
+    "--image-ocr", "--pdf-ocr", "--pdf-layout", "--ocr-language", "--pdf-pages",
 ]
 
 /// Sagt VOR dem Parsen, ob `--json` als Option vorkommt, damit auch ein
@@ -205,6 +206,10 @@ private func apply(option: String, value: String, to parsed: inout ParsedArgumen
         parsed.setsPDFOptions = true
         guard let mode = PDFTextRecognition(rawValue: value) else { throw CLIArgumentError.invalidConversionOption("--pdf-ocr requires auto, always, or off") }
         parsed.pdfOptions.pdfTextRecognition = mode
+    case "--pdf-pages":
+        parsed.setsPDFOptions = true
+        do { parsed.pdfOptions.pdfPages = try IndexSelection(value) }
+        catch { throw CLIArgumentError.invalidConversionOption("--pdf-pages: " + error.localizedDescription) }
     case "--pdf-layout":
         parsed.setsPDFOptions = true
         guard let layout = PDFLayout(rawValue: value) else { throw CLIArgumentError.invalidConversionOption("--pdf-layout requires auto or legacy") }

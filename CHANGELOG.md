@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.22.0 — 2026-10-16
+
+- Add typed PDF page selection and `--pdf-pages` with inclusive ranges,
+  deduplication, source ordering and strict bounds. Keep original page numbers
+  in Markdown, diagnostics and source mappings; retain unchanged default output.
+- Plan text/OCR work and cleanup only for selected pages while preserving full
+  source validation and safety limits. Report progress for the selected count.
+- Expose a bounded PDF page metadata overview with a verified source fingerprint,
+  page labels and sizes, without text import, OCR, rendering or publication.
+- Record explicit page selections as an optional portable report option.
+
 ## 0.21.0 — 2026-10-16
 
 - Add source/result comparison with verified PDF pages and image frames,

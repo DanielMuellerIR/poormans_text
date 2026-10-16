@@ -111,6 +111,21 @@ public struct DocumentConverter: Sendable {
         }
     }
 
+    public func inspectPDFContents(
+        _ inputURL: URL,
+        maximumPages: Int = 200,
+        cancellation: ConversionCancellationToken? = nil,
+        processTimeout: TimeInterval? = nil
+    ) throws -> PDFContentSummary {
+        try withDetectionContext(cancellation, processTimeout) {
+            do { return try PDFAdapter().inspectContents(at: inputURL.standardizedFileURL, maximumPages: maximumPages) }
+            catch {
+                try ConversionExecution.check()
+                throw ConversionError.invalidInput(inputURL, format: .pdf, reason: error.localizedDescription)
+            }
+        }
+    }
+
     /// Bindet einen Kontext nur, wenn noch keiner steht. Ein Aufruf aus einer
     /// laufenden Konvertierung heraus behält damit deren Token und Zeitgrenze.
     private func withDetectionContext<T>(
@@ -201,6 +216,9 @@ public struct DocumentConverter: Sendable {
         }
         let detected = try detectInput(at: inputURL)
         let format = detected.inspection.format
+        if request.options.pdfPages != nil, format != .pdf {
+            throw ConversionError.invalidInput(inputURL, format: format, reason: "PDF page selection can only be used with a PDF input")
+        }
         let resolvedInputURL = inputURL.resolvingSymlinksInPath()
         guard resolvedInputURL == resolvedBeforeDetection else {
             throw ConversionError.invalidInput(

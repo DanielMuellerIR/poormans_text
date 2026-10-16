@@ -3,6 +3,44 @@ import XCTest
 @testable import PoorMansTextCore
 
 final class CLIIntegrationTests: XCTestCase {
+    func testPDFPageSelectionKeepsSourceNumbersAndWorksWithStdout() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("PMTCLISelection-\(UUID())")
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let source = try PDFSelectionFixture.create(in: root, texts: ["OneMarker", "TwoMarker", "ThreeMarker", "FourMarker"])
+        let original = try Data(contentsOf: source)
+        let run = try runCLI(["--json", "--report", "--pdf-ocr=off", "--pdf-pages=4,2,2", "--output", root.appendingPathComponent("selected").path, source.path])
+        XCTAssertEqual(run.status, 0, run.standardError)
+        let json = try decodeJSON(run.standardOutput)
+        let markdown = try String(contentsOfFile: XCTUnwrap(json["markdownFile"] as? String), encoding: .utf8)
+        XCTAssertTrue(markdown.contains("## Page 2")); XCTAssertTrue(markdown.contains("## Page 4"))
+        XCTAssertFalse(markdown.contains("OneMarker")); XCTAssertFalse(markdown.contains("ThreeMarker"))
+        let mappings = try XCTUnwrap(json["sourceMappings"] as? [[String: Any]])
+        XCTAssertEqual(mappings.compactMap { ($0["source"] as? [String: Any])?["page"] as? Int }, [2, 4])
+        let report = try JSONDecoder().decode(ConversionReport.self, from: Data(contentsOf: URL(fileURLWithPath: XCTUnwrap(json["reportFile"] as? String))))
+        XCTAssertEqual(report.options.pdfPages?.description, "2,4")
+        let stdout = try runCLI(["--stdout", "--pdf-pages", "2", "--pdf-ocr", "off", "--pdf-layout", "legacy", source.path])
+        XCTAssertEqual(stdout.status, 0, stdout.standardError)
+        XCTAssertTrue(stdout.standardOutput.contains("## Page 2")); XCTAssertFalse(stdout.standardOutput.contains("FourMarker"))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: source.deletingPathExtension().path + "-markdown"))
+        XCTAssertEqual(try Data(contentsOf: source), original)
+    }
+
+    func testPDFPageSelectionRejectsInvalidRangesWrongFormatsAndCatalogMode() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("PMTCLISelectionError-\(UUID())")
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let source = try PDFSelectionFixture.create(in: root, texts: ["OneMarker", "TwoMarker"])
+        for value in ["", "0", "2-1", "1,,2", "1-"] {
+            try assertJSONFailure(["--pdf-pages", value, "--json", source.path], expectedStatus: 64)
+        }
+        try assertJSONFailure(["--formats", "--pdf-pages", "1", "--json"], expectedStatus: 64)
+        let destination = root.appendingPathComponent("never-published")
+        try assertJSONFailure(["--json", "--pdf-pages", "3", "--output", destination.path, source.path], expectedStatus: 65)
+        let csv = root.appendingPathComponent("values.csv"); try Data("Name,Value\nMarker,42\n".utf8).write(to: csv)
+        try assertJSONFailure(["--json", "--pdf-pages", "1", "--output", destination.path, csv.path], expectedStatus: 65)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: destination.path))
+    }
     func testReportAndSourceMapOptionsExposePortableProofsAndRejectMeaninglessModes() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
@@ -184,7 +222,7 @@ final class CLIIntegrationTests: XCTestCase {
     func testEveryValueOptionConsumesItsValue() throws {
         let valueOptions = [
             "-o", "--output", "--pandoc", "--timeout", "--jobs", "--spreadsheet-format",
-            "--image-ocr", "--pdf-ocr", "--pdf-layout", "--ocr-language",
+            "--image-ocr", "--pdf-ocr", "--pdf-layout", "--ocr-language", "--pdf-pages",
         ]
         for option in valueOptions {
             let asValue = try runCLI([option, "--json"])

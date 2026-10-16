@@ -22,7 +22,7 @@ Kurzbefehle reichen die jeweils passenden Optionen weiter.
 
 ### Teilbereiche auswählen
 
-- PDF-Seiten, Tabellenblätter und Zellbereiche gezielt importieren.
+- Tabellenblätter und Zellbereiche gezielt importieren.
 - Folien und die Übernahme von Präsentationsnotizen auswählen.
 - EPUB-Kapitel in ihrer Lesereihenfolge auswählen.
 - Die Auswahl in App und CLI sowie über passende Kurzbefehle-Parameter anbieten;

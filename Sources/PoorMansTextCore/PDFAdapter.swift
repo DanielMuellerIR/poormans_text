@@ -51,6 +51,37 @@ struct PDFAdapter: DocumentConversionAdapter {
         }
     }
 
+    func inspectContents(at inputURL: URL, maximumPages: Int) throws -> PDFContentSummary {
+        guard (1...PDFContentSummary.maximumSummaryPages).contains(maximumPages) else {
+            throw PDFAdapterError("the PDF overview limit must be between 1 and \(PDFContentSummary.maximumSummaryPages)")
+        }
+        return try VerifiedFileStaging.withTemporaryCopy(of: inputURL.resolvingSymlinksInPath(),
+            maximumBytes: PDFImportLimits.maximumSourceBytes, describedAs: "the PDF source", fileExtension: "pdf") { snapshot in
+            let document = try validatedDocument(at: snapshot)
+            let fingerprint = try ConversionFileFingerprint.read(snapshot)
+            var pages: [PDFPageSummary] = []
+            for index in 0..<min(maximumPages, document.pageCount) {
+                try ConversionExecution.check()
+                guard let page = document.page(at: index) else { throw PDFAdapterError("the PDF page \(index + 1) is unreadable") }
+                let box = page.bounds(for: .mediaBox)
+                let validSize = box.width.isFinite && box.height.isFinite && box.width > 0 && box.height > 0
+                pages.append(PDFPageSummary(number: index + 1, label: boundedPageLabel(page.label),
+                    width: validSize ? Double(box.width) : nil, height: validSize ? Double(box.height) : nil))
+            }
+            return PDFContentSummary(sourceIdentity: ConversionSourceIdentity(name: inputURL.lastPathComponent,
+                sha256: fingerprint.sha256, byteCount: fingerprint.byteCount, unavailableReason: nil),
+                pageCount: document.pageCount, pages: pages, pagesTruncated: pages.count < document.pageCount)
+        }
+    }
+
+    private func boundedPageLabel(_ label: String?) -> String? {
+        guard let label else { return nil }
+        guard label.utf8.count > 256 else { return label }
+        var bytes = Data(label.utf8.prefix(253))
+        for _ in 0..<3 where String(data: bytes, encoding: .utf8) == nil { bytes.removeLast() }
+        return (String(data: bytes, encoding: .utf8) ?? "") + "…"
+    }
+
     func convert(_ context: AdapterConversionContext) throws -> StagedConversionResult {
         guard context.format == .pdf else {
             throw ConversionError.unsupportedInput(context.inputURL)
@@ -100,7 +131,7 @@ struct PDFAdapter: DocumentConversionAdapter {
 
         let markdown: String
         do {
-            markdown = try renderedMarkdown(from: extracted.pages, sourceURL: context.inputURL, isStructured: extracted.isStructured)
+            markdown = try renderedMarkdown(from: extracted.pages, pageNumbers: extracted.pageNumbers, sourceURL: context.inputURL, isStructured: extracted.isStructured)
         } catch {
             throw ConversionError.invalidInput(
                 context.inputURL,
@@ -206,14 +237,15 @@ struct PDFAdapter: DocumentConversionAdapter {
     }
 
     private func extractText(from document: PDFDocument, options: ConversionOptions) throws -> PDFExtraction {
-        if options.pdfLayout == .legacy { return try extractLegacyText(from: document, options: options) }
+        let indices = try options.pdfPages?.zeroBasedIndices(itemCount: document.pageCount) ?? Array(0..<document.pageCount)
+        if options.pdfLayout == .legacy { return try extractLegacyText(from: document, options: options, indices: indices) }
         var pages = [[PDFTextLine]]()
         var bounds = [CGRect]()
         var plans = [OCRPlan]()
         var diagnostics = BoundedConversionDiagnostics()
         var sourceBytes = 0
-        for index in 0..<document.pageCount {
-            try ConversionExecution.report(unit: .page, completed: index, total: document.pageCount)
+        for (outputIndex, index) in indices.enumerated() {
+            try ConversionExecution.report(unit: .page, completed: outputIndex, total: indices.count)
             guard let page = document.page(at: index) else { throw PDFAdapterError("the PDF page \(index + 1) is unreadable") }
             let text = ExtractedText.normalized(page.string ?? "")
             try accountText(text, totalBytes: &sourceBytes)
@@ -228,18 +260,18 @@ struct PDFAdapter: DocumentConversionAdapter {
             // Große Bildressourcen lösen deshalb ebenfalls lokale OCR aus.
             let needsOCR = options.pdfTextRecognition == .always || (options.pdfTextRecognition == .automatic &&
                 (text.count < PDFImportLimits.minimumEmbeddedTextCharacters || PDFImageResources.containsScanCandidate(on: page)))
-            if needsOCR { plans.append(OCRPlan(index: index, page: page, dimensions: try rasterDimensions(for: page))) }
+            if needsOCR { plans.append(OCRPlan(index: index, outputIndex: outputIndex, page: page, dimensions: try rasterDimensions(for: page))) }
         }
         guard plans.reduce(0, { $0 + $1.dimensions.pixelCount }) <= PDFImportLimits.maximumOCRPixels else {
             throw PDFAdapterError("the PDF pages selected for OCR exceed the pixel budget")
         }
         var failed = false
         for plan in plans {
-            try ConversionExecution.report(unit: .page, completed: plan.index, total: document.pageCount)
+            try ConversionExecution.report(unit: .page, completed: plan.outputIndex, total: indices.count)
             do {
                 let recognized = try recognizeText(in: plan.page, dimensions: plan.dimensions, languages: options.ocrLanguages)
-                let box = bounds[plan.index]
-                let original = pages[plan.index].flatMap { source -> [PDFTextLine] in
+                let box = bounds[plan.outputIndex]
+                let original = pages[plan.outputIndex].flatMap { source -> [PDFTextLine] in
                     guard source.bounds == box else { return [source] }
                     guard let text = plan.page.string,
                           let selection = plan.page.selection(for: NSRange(location: 0, length: text.utf16.count)) else { return [] }
@@ -261,7 +293,7 @@ struct PDFAdapter: DocumentConversionAdapter {
                         source.bounds.intersects(rectangle) && source.text.trimmingCharacters(in: .whitespacesAndNewlines) == key
                     }) { continue }
                     try accountText(line.text, totalBytes: &sourceBytes)
-                    pages[plan.index].append(PDFTextLine(text: line.text, bounds: rectangle))
+                    pages[plan.outputIndex].append(PDFTextLine(text: line.text, bounds: rectangle))
                 }
             } catch {
                 try ConversionExecution.check()
@@ -274,7 +306,7 @@ struct PDFAdapter: DocumentConversionAdapter {
             try ConversionExecution.check()
             let filtered = PDFTextLayout.removingRepeatedMargins(pages, bounds: bounds)
             for index in pages.indices where filtered[index].count != pages[index].count {
-                diagnostics.append(ConversionWarning(code: "pdf.repeatedMarginRemoved", message: "Repeated text at the page margin was removed by request.", location: ConversionLocation(page: index + 1)))
+                diagnostics.append(ConversionWarning(code: "pdf.repeatedMarginRemoved", message: "Repeated text at the page margin was removed by request.", location: ConversionLocation(page: indices[index] + 1)))
             }
             pages = filtered
         }
@@ -288,30 +320,30 @@ struct PDFAdapter: DocumentConversionAdapter {
         }).sorted(by: >)
         let textPages = try pages.indices.map { index -> String in
             try ConversionExecution.check()
-            guard let page = document.page(at: index) else { throw PDFAdapterError("the PDF page is unreadable") }
+            guard let page = document.page(at: indices[index]) else { throw PDFAdapterError("the PDF page is unreadable") }
             let rendered = PDFStructuredLayout.render(pages[index], page: page, bodyFont: bodyFont,
                 headingSizes: headingSizes, hardHyphens: options.pdfDehyphenate)
             if rendered.ambiguous {
-                diagnostics.append(ConversionWarning(code: "pdf.layoutAmbiguous", message: "Aligned text may be a table or parallel columns; row order was retained.", location: ConversionLocation(page: index + 1)))
+                diagnostics.append(ConversionWarning(code: "pdf.layoutAmbiguous", message: "Aligned text may be a table or parallel columns; row order was retained.", location: ConversionLocation(page: indices[index] + 1)))
             }
             return rendered.markdown
         }
         for index in textPages.indices where textPages[index].isEmpty {
-            diagnostics.append(ConversionWarning.pdfPageTextUnavailable.at(ConversionLocation(page: index + 1)))
+            diagnostics.append(ConversionWarning.pdfPageTextUnavailable.at(ConversionLocation(page: indices[index] + 1)))
         }
-        try ConversionExecution.report(unit: .page, completed: document.pageCount, total: document.pageCount)
-        return PDFExtraction(pages: textPages, usedOCR: !plans.isEmpty, hadOCRFailure: failed,
+        try ConversionExecution.report(unit: .page, completed: indices.count, total: indices.count)
+        return PDFExtraction(pages: textPages, pageNumbers: indices.map { $0 + 1 }, usedOCR: !plans.isEmpty, hadOCRFailure: failed,
             hasPageWithoutText: textPages.contains { $0.isEmpty }, diagnostics: diagnostics.result, isStructured: true)
     }
 
-    private func extractLegacyText(from document: PDFDocument, options: ConversionOptions) throws -> PDFExtraction {
+    private func extractLegacyText(from document: PDFDocument, options: ConversionOptions, indices: [Int]) throws -> PDFExtraction {
         var pages = [String]()
         var ocrPlans = [OCRPlan]()
         var extractedTextBytes = 0
         var diagnostics = BoundedConversionDiagnostics()
 
-        for pageIndex in 0..<document.pageCount {
-            try ConversionExecution.report(unit: .page, completed: pageIndex, total: document.pageCount)
+        for (outputIndex, pageIndex) in indices.enumerated() {
+            try ConversionExecution.report(unit: .page, completed: outputIndex, total: indices.count)
             guard let page = document.page(at: pageIndex) else {
                 throw PDFAdapterError("the PDF page \(pageIndex + 1) is unreadable")
             }
@@ -321,7 +353,7 @@ struct PDFAdapter: DocumentConversionAdapter {
                 pages.append(extractedText)
             } else {
                 let dimensions = try rasterDimensions(for: page)
-                ocrPlans.append(OCRPlan(index: pageIndex, page: page, dimensions: dimensions))
+                ocrPlans.append(OCRPlan(index: pageIndex, outputIndex: outputIndex, page: page, dimensions: dimensions))
                 // Der wenige eingebettete Text bleibt als Rückfall stehen.
                 // Liefert die OCR nichts oder scheitert sie, ist er weiterhin
                 // das, was im Dokument steht — ihn zu verwerfen wäre
@@ -340,7 +372,7 @@ struct PDFAdapter: DocumentConversionAdapter {
 
         var hadOCRFailure = false
         for plan in ocrPlans {
-            try ConversionExecution.report(unit: .page, completed: plan.index, total: document.pageCount)
+            try ConversionExecution.report(unit: .page, completed: plan.outputIndex, total: indices.count)
             let recognizedText: String
             do {
                 recognizedText = try recognizeText(in: plan.page, dimensions: plan.dimensions, languages: options.ocrLanguages).text
@@ -355,16 +387,17 @@ struct PDFAdapter: DocumentConversionAdapter {
             guard !recognizedText.isEmpty else { continue }
             // Der Rückfall wird ersetzt, also gibt er seinen Anteil am Budget
             // wieder frei.
-            extractedTextBytes -= pages[plan.index].lengthOfBytes(using: .utf8)
+            extractedTextBytes -= pages[plan.outputIndex].lengthOfBytes(using: .utf8)
             try accountText(recognizedText, totalBytes: &extractedTextBytes)
-            pages[plan.index] = recognizedText
+            pages[plan.outputIndex] = recognizedText
         }
-        try ConversionExecution.report(unit: .page, completed: document.pageCount, total: document.pageCount)
+        try ConversionExecution.report(unit: .page, completed: indices.count, total: indices.count)
         for index in pages.indices where pages[index].isEmpty {
-            diagnostics.append(ConversionWarning.pdfPageTextUnavailable.at(ConversionLocation(page: index + 1)))
+            diagnostics.append(ConversionWarning.pdfPageTextUnavailable.at(ConversionLocation(page: indices[index] + 1)))
         }
         return PDFExtraction(
             pages: pages,
+            pageNumbers: indices.map { $0 + 1 },
             usedOCR: !ocrPlans.isEmpty,
             hadOCRFailure: hadOCRFailure,
             hasPageWithoutText: pages.contains { $0.isEmpty }, diagnostics: diagnostics.result
@@ -462,7 +495,7 @@ struct PDFAdapter: DocumentConversionAdapter {
         return try VisionTextRecognizer.recognize(in: image, languages: languages)
     }
 
-    private func renderedMarkdown(from pages: [String], sourceURL: URL, isStructured: Bool) throws -> String {
+    private func renderedMarkdown(from pages: [String], pageNumbers: [Int], sourceURL: URL, isStructured: Bool) throws -> String {
         var markdown = ""
         var markdownBytes = 0
         try appendMarkdown(
@@ -476,11 +509,11 @@ struct PDFAdapter: DocumentConversionAdapter {
                 : (isStructured ? text : MarkdownEscaping.literalBlock(text))
             let offset = markdownBytes
             try appendMarkdown(
-                "\n\n## Page \(index + 1)\n\n\(content)",
+                "\n\n## Page \(pageNumbers[index])\n\n\(content)",
                 to: &markdown,
                 byteCount: &markdownBytes
             )
-            ConversionExecution.current?.recording?.record(ConversionLocation(page: index + 1), offset: offset, length: markdownBytes - offset)
+            ConversionExecution.current?.recording?.record(ConversionLocation(page: pageNumbers[index]), offset: offset, length: markdownBytes - offset)
         }
         try appendMarkdown("\n", to: &markdown, byteCount: &markdownBytes)
         return markdown
@@ -502,6 +535,7 @@ struct PDFAdapter: DocumentConversionAdapter {
 
     private struct PDFExtraction {
         let pages: [String]
+        let pageNumbers: [Int]
         let usedOCR: Bool
         let hadOCRFailure: Bool
         let hasPageWithoutText: Bool
@@ -511,6 +545,7 @@ struct PDFAdapter: DocumentConversionAdapter {
 
     private struct OCRPlan {
         let index: Int
+        let outputIndex: Int
         let page: PDFPage
         let dimensions: RasterDimensions
     }

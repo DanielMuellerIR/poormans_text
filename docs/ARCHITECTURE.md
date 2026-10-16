@@ -470,3 +470,17 @@ Lese-/Rasteraufgaben und entzieht bei Dateisystemänderungen die Zuordnung.
 Unbekannte Identitäten werden nicht nachträglich als passend angenommen.
 Die UI-Adapter führen weder PDF-Aktionen aus noch ändern sie die Quelle;
 Details stehen in [SOURCE-COMPARISON.md](SOURCE-COMPARISON.md).
+
+## PDF-Seitenauswahl
+
+`IndexSelection` normalisiert positive inklusive Bereiche, begrenzt ihre Anzahl
+und löst sie erst gegen die tatsächliche Dokumentgröße auf. `PDFAdapter` trennt
+Quellindex und Ausgabeindex: Nur gewählte Seiten liefern Text/OCR-Arbeit,
+während Überschriften, Diagnosen und Quellzuordnungen ihre physischen Nummern
+behalten. Beide Layoutwege nutzen dieselbe Auswahl; ohne Auswahl bleibt ihr
+bisheriger Ablauf erhalten.
+
+`inspectPDFContents` liefert aus einer geprüften privaten Kopie ausschließlich
+begrenzte Seitenmetadaten und deren Quellhash. Es startet weder Import noch OCR
+und veröffentlicht nichts. Größen-/Seitenlimits gelten für die ganze Quelle,
+Arbeitsbudgets für die ausgewählten Seiten. Details: [PDF-IMPORT.md](PDF-IMPORT.md).

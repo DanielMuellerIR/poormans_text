@@ -199,6 +199,11 @@ hashes, effective options, diagnostics and known source-to-Markdown byte ranges.
 Frontmatter and Textbundle are supported; standard Markdown stays unchanged.
 See [reports and source mappings](docs/CONVERSION-REPORT.md).
 
+`--pdf-pages "1,3-5"` imports selected PDF pages in source order and retains
+their original page numbers. Duplicates merge; invalid or out-of-range values
+are errors. Without this option, all pages are imported. See
+[PDF import and page selection](docs/PDF-IMPORT.md).
+
 `--frontmatter` starts the Markdown with a YAML header built from the source:
 title, author, subject, description, keywords, and creation and modification
 dates, read from OOXML core properties (DOCX, XLSX), OpenDocument `meta.xml`
@@ -530,7 +535,7 @@ and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compa
 their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current version is 0.21.0.
+The current version is 0.22.0.
 
 ## License
 

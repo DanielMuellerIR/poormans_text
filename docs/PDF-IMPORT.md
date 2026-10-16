@@ -17,10 +17,37 @@ gesperrte Dokumente, beschädigte PDFs, leere Dokumente und Dokumente mit mehr a
 Quelle begrenzt in den privaten Arbeitsbereich; danach lesen alle weiteren
 Schritte nur diese Kopie.
 
+## Seiten auswählen
+
+`--pdf-pages "1,3-5"` importiert nur diese einsbasierten, inklusiven Bereiche.
+Mehrere Bereiche sind durch Kommas getrennt; Überschneidungen und Dubletten
+werden zusammengeführt. Die Ausgabe folgt immer der Quellreihenfolge und behält
+die tatsächlichen Nummern in `## Page N`, Diagnosen und Quellzuordnungen.
+Ohne Option werden alle Seiten importiert. Leere, rückwärts laufende und
+außerhalb des Dokuments liegende Bereiche sind Fehler; sie werden nicht gekürzt.
+Bei anderen Eingabeformaten ist die PDF-Auswahl unzulässig.
+
+Die Auswahl wirkt vor Textextraktion und OCR-Planung. Text- und OCR-Pixelbudgets
+zählen die tatsächlich gewählten Seiten; Quelldateigröße und die Grenze von
+1.000 Seiten gelten weiterhin für das gesamte PDF. Fortschrittszahlen beziehen
+sich auf die gewählte Seitenzahl. Randbereinigung bewertet nur gewählte Seiten;
+Dehyphenierung verbindet niemals Text über eine Seitengrenze hinweg. Beide
+Layoutvarianten unterstützen die Auswahl; Rand-/Spaltenbereinigung bleiben wie
+bisher dem automatischen Layout vorbehalten.
+
+Die Library bietet `ConversionOptions.pdfPages: IndexSelection?` und eine
+kanonisch codierte Bereichsauswahl. Konvertierungsberichte halten sie als
+optionales `options.pdfPages` fest. Die spätere App-Auswahl kann über
+`DocumentConverter.inspectPDFContents` bis zu 500 Seitenmetadaten mit Quellhash,
+Gesamtzahl, ursprünglichen Nummern, begrenzten Labels und Seitengrößen abrufen.
+Diese Übersicht importiert keinen Text, rendert keine Seiten, startet keine OCR
+und schreibt keine Ausgabe. Die eigentliche Konvertierung prüft die Quelle neu.
+
 ## Textextraktion und OCR
 
-Jede Ausgabe beginnt mit dem Quelldateinamen und enthält für jede PDF-Seite einen
-eigenen `## Page N`-Abschnitt. PDFKit liefert den eingebetteten Seitentext zuerst.
+Jede Ausgabe beginnt mit dem Quelldateinamen und enthält für jede gewählte
+PDF-Seite einen eigenen `## Page N`-Abschnitt. PDFKit liefert den eingebetteten
+Seitentext zuerst.
 `--pdf-ocr auto` (Standard) plant OCR bei weniger als 20 Textzeichen oder
 bei einer größeren Bildressource (mindestens 256 × 128 Pixel), auch innerhalb
 von Form-XObjects. So verdeckt ein digitaler Kopf keinen gescannten Hauptteil.
@@ -40,7 +67,7 @@ Ergebnisse mit geringer Erkennungswahrscheinlichkeit erscheinen als
 64 MiB; durch das Maskieren bleibt das erzeugte Markdown damit innerhalb des
 128-MiB-Ausgabebudgets.
 
-Eingebetteter Text bleibt vollständig erhalten. Der Adapter ergänzt OCR-Zeilen
+Im automatischen Layout bleibt eingebetteter Text vollständig erhalten. Der Adapter ergänzt OCR-Zeilen
 und entfernt nur räumlich überlappende, exakt textgleiche Dubletten. Abweichende
 OCR-Lesarten können deshalb zusätzlich zum digitalen Original erscheinen.
 
@@ -51,7 +78,7 @@ spannen. Die sichtbaren Zeichen trennen große horizontale Lücken. Vorhandene P
 Zeilengrenzen bleiben auch innerhalb desselben Höhenbandes getrennt.
 
 PDFKit-Schriftgrößen liefern die häufigste, nach Zeichen gewichtete nichtfette
-Fließtextgröße des Dokuments. Größere, einheitlich gesetzte Textzeilen mit
+Fließtextgröße der gewählten Seiten. Größere, einheitlich gesetzte Textzeilen mit
 Buchstaben werden als Überschriften ausgegeben; absteigende Größen ordnen ihre
 Ebenen unter den Seitenüberschriften ein. Gemischte Schriftgrößen, fehlende
 Schriftinformationen und OCR-Zeilen bekommen keine erfundene Schriftgröße.
@@ -87,7 +114,7 @@ Grenzen. Bei ungenügendem Beleg wird keine Tabellenstruktur erfunden.
 
 `--pdf-remove-headers-footers` entfernt optional identischen Text in den oberen
 oder unteren zehn Prozent, wenn er auf mindestens zwei und 60 Prozent aller
-Seiten in derselben Randzone vorkommt. Gleichlautender Haupttext bleibt erhalten;
+gewählten Seiten in derselben Randzone vorkommt. Gleichlautender Haupttext bleibt erhalten;
 wechselnde Seitennummern werden nicht normalisiert. Die Diagnose nennt die Seite.
 Soft-Hyphens werden bereinigt. `--pdf-dehyphenate` verbindet zusätzlich nur lange
 kleingeschriebene Wortteile an benachbarten Zeilen derselben Spalte (mindestens
@@ -99,6 +126,9 @@ Ohne weitere Optionen bleibt ihre Ausgabe bytegleich zur früheren CLI, inklusiv
 ihrer damaligen Rasterorientierung. Spalten- und Randbereinigung wirken nur im
 automatischen Layout. Neue automatische OCR rendert in PDF-Koordinaten; ein
 zusätzlicher Y-Flip hatte Rastertext aufrecht erzeugter PDFs bisher gespiegelt.
+Im Legacy-Modus ersetzt nichtleere OCR den eingebetteten Rückfalltext. Dabei
+können bestehende OCR-Lesefehler Zeichen verändern oder auslassen; dieser Weg
+bleibt ein Vergleich mit dem bisherigen Verhalten.
 
 `pdf.ocrApplied` weist auf verwendete lokale OCR hin. Bleibt eine Seite ganz
 ohne Text, steht im Seitenabschnitt eine sichtbare Leermeldung und der Adapter

@@ -81,6 +81,11 @@ Pfade sicher auflösen; ein fremder Bericht ist nicht automatisch vertrauenswür
 
 ## Grenzen und atomare Veröffentlichung
 
+Eine explizite PDF-Auswahl steht als kanonische Bereichszeichenfolge unter
+`options.pdfPages`, etwa `"2,4-6"`. Ohne Auswahl fehlt dieses optionale Feld;
+Schema 1 bleibt rückwärts lesbar. Seitenbezüge nennen die physischen Nummern
+der vollständigen Quelle, auch wenn nur ein Teil importiert wurde.
+
 Ein Auftrag sammelt höchstens 100.000 Zuordnungen. Für die zusätzliche Grenze
 von 8 MiB zählen UTF-8-Bytes der Quellkennungen plus 64 Byte je Eintrag.
 Weitere Stellen werden mit `sourceMap.limited` und genauer Anzahl gemeldet;

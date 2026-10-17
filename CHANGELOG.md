@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.27.1 — 2026-10-17
+
+- Keep numeric EPUB text immediately after fragment anchors and retain internal links when selecting chapters.
+- Reject a selected source replaced by a folder, including collision retries, instead of converting its children. Keep same-named sheet cell navigation bound to the selected source index.
+- Render inline HTML neighbors in one pass so short previews with many line breaks remain responsive.
+- Preserve precise date/time and elapsed-minute values immediately before midnight without rounding them into the next day when seconds are not displayed.
+
 ## 0.27.0 — 2026-10-17
 
 - Add an internal, bounded macOS 26 document recognition prototype for text, paragraphs, lists and table cells, sharing the existing OCR concurrency gate. Existing image/PDF conversion and defaults remain unchanged.

@@ -448,7 +448,10 @@ public final class AppModel: ObservableObject {
         guard acceptsNewDocuments else {
             return
         }
-        if InputEnumerator().isSearchableDirectory(inputURL) {
+        // Ein Dateitausch kann die Verzeichniskennzeichnung der URL ändern.
+        // Für denselben Pfad muss die alte Quellbindung trotzdem gelten.
+        let bound = selection ?? (isRetry && retrySelection?.input.path == inputURL.standardizedFileURL.path ? retrySelection : nil)
+        if bound == nil && InputEnumerator().isSearchableDirectory(inputURL) {
             convert([inputURL])
             return
         }
@@ -461,7 +464,6 @@ public final class AppModel: ObservableObject {
         state = .converting(inputURL)
         closePreview()
         actionMessage = nil
-        let bound = selection ?? (isRetry && retrySelection?.input == inputURL.standardizedFileURL ? retrySelection : nil)
         retrySelection = bound
         let base = request(for: inputURL, options: bound?.selection.applying(to: conversionOptions) ?? conversionOptions)
         let request = ConversionRequest(inputURL: base.inputURL, destination: base.destination, options: base.options, expectedSourceIdentity: bound?.identity)

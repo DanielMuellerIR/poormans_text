@@ -124,16 +124,28 @@ public struct RenderedMarkdownPreview: Sendable {
         }
         mutating func wrap(_ tag: String, node: any Markup, depth: Int, attributes: String = "") {
             guard let anchor = start(tag, node: node, attributes: attributes) else { return }
-            for child in node.children { render(child, depth: depth + 1) }
+            renderChildren(node, depth: depth)
             end(tag, anchor: anchor)
         }
-        mutating func render(_ node: any Markup, depth: Int) {
+        mutating func renderChildren(_ node: any Markup, depth: Int) {
+            // Nachbarn im selben Durchlauf mitgeben: child(at:) berechnet im
+            // Markdown-Paket IDs über alle vorherigen Geschwister und ist O(n).
+            var iterator = node.children.makeIterator()
+            var previous: (any Markup)?
+            var current = iterator.next()
+            while !limited, let child = current {
+                let next = iterator.next()
+                render(child, depth: depth + 1, previousSibling: previous, nextSibling: next)
+                previous = child; current = next
+            }
+        }
+        mutating func render(_ node: any Markup, depth: Int, previousSibling: (any Markup)? = nil, nextSibling: (any Markup)? = nil) {
             guard !limited else { return }
             nodes += 1
             guard nodes <= 50_000, depth <= 64 else { limited = true; return }
             switch node {
             case is Document:
-                for child in node.children { render(child, depth: depth + 1) }
+                renderChildren(node, depth: depth)
             case let text as Markdown.Text: append(escape(text.string))
             case is SoftBreak: append("\n")
             case is LineBreak: append("<br>")
@@ -150,7 +162,7 @@ public struct RenderedMarkdownPreview: Sendable {
             case let item as ListItem:
                 guard let anchor = start("li", node: node) else { return }
                 if let checkbox = item.checkbox { append(checkbox == .checked ? "<span class=\"checkbox\">☑</span> " : "<span class=\"checkbox\">☐</span> ") }
-                for child in node.children { render(child, depth: depth + 1) }; end("li", anchor: anchor)
+                renderChildren(node, depth: depth); end("li", anchor: anchor)
             case is Emphasis: wrap("em", node: node, depth: depth)
             case is Strong: wrap("strong", node: node, depth: depth)
             case is Strikethrough: wrap("del", node: node, depth: depth)
@@ -164,18 +176,15 @@ public struct RenderedMarkdownPreview: Sendable {
                 guard let anchor = start("pre", node: node, attributes: " class=\"literal-html\"") else { return }
                 append(escape(html.rawHTML)); end("pre", anchor: anchor)
             case let html as InlineHTML:
-                if let parent = node.parent {
-                    let siblings = Array(parent.children), index = node.indexInParent
-                    if let id = generatedEPUBAnchor(html.rawHTML + "</a>"), index + 1 < siblings.count,
-                       (siblings[index + 1] as? InlineHTML)?.rawHTML == "</a>" {
-                        if let anchor = start("span", node: node) { append("<span id=\"\(id)\"></span>"); end("span", anchor: anchor) }
-                        return
-                    }
-                    if html.rawHTML == "</a>", index > 0, let previous = siblings[index - 1] as? InlineHTML,
-                       generatedEPUBAnchor(previous.rawHTML + "</a>") != nil { return }
+                if ["<br>", "<br/>", "<br />"].contains(html.rawHTML.lowercased()) { append("<br>"); return }
+                if let id = generatedEPUBAnchor(html.rawHTML + "</a>"),
+                   (nextSibling as? InlineHTML)?.rawHTML == "</a>" {
+                    if let anchor = start("span", node: node) { append("<span id=\"\(id)\"></span>"); end("span", anchor: anchor) }
+                    return
                 }
-                if ["<br>", "<br/>", "<br />"].contains(html.rawHTML.lowercased()) { append("<br>") }
-                else { hasLiteralHTML = true; append(escape(html.rawHTML)) }
+                if html.rawHTML == "</a>", let previous = previousSibling as? InlineHTML,
+                   generatedEPUBAnchor(previous.rawHTML + "</a>") != nil { return }
+                hasLiteralHTML = true; append(escape(html.rawHTML))
             case let image as Markdown.Image:
                 let alt = plainText(image, depth: 0)
                 if let target = image.source, let url = assets?.url(for: target), images.contains(url) || images.count < 64 {
@@ -193,12 +202,12 @@ public struct RenderedMarkdownPreview: Sendable {
                 let previous = alignments; alignments = table.columnAlignments
                 guard let anchor = start("div", node: node, attributes: " class=\"table-wrap\"") else { return }
                 guard append("<table>") else { end("div", anchor: anchor); return }
-                for child in node.children { render(child, depth: depth + 1) }
+                renderChildren(node, depth: depth)
                 close("table"); end("div", anchor: anchor); alignments = previous
             case is Table.Head:
                 inTableHead = true; column = 0
                 guard append("<thead><tr>") else { inTableHead = false; return }
-                for child in node.children { render(child, depth: depth + 1) }
+                renderChildren(node, depth: depth)
                 close("tr"); close("thead"); inTableHead = false
             case is Table.Body: wrap("tbody", node: node, depth: depth)
             case is Table.Row: column = 0; wrap("tr", node: node, depth: depth)
@@ -214,7 +223,7 @@ public struct RenderedMarkdownPreview: Sendable {
                     append(escape(String(decoding: sourceBytes[start..<end], as: UTF8.self)))
                     self.end("span", anchor: anchor)
                 } else {
-                    for child in node.children { render(child, depth: depth + 1) }
+                    renderChildren(node, depth: depth)
                 }
             }
         }

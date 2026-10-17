@@ -210,7 +210,7 @@ final class EPUBSelectionPackage {
             guard !xml.xmlString.contains(token) else { throw ImportFailure("an EPUB chapter conflicts with generated conversion markers") }
             documents[chapter.number] = xml; bodies[chapter.number] = body
             let chapterAnchor = "pmt-epub-chapter-\(chapter.number)"
-            let boundary = token + "CHAPTER\(chapter.number)"
+            let boundary = token + "CHAPTER\(chapter.number)END"
             markers[boundary] = chapterAnchor
             body.insertChild(XMLElement(name: "p", stringValue: boundary), at: 0)
             var ids: [String: String] = [:]
@@ -222,7 +222,7 @@ final class EPUBSelectionPackage {
                 guard markers.count < 8_192 else { throw ImportFailure("selected EPUB chapters exceed 8192 fragment anchors") }
                 serial += 1
                 let anchor = chapterAnchor + "-anchor-\(serial)"
-                let marker = token + "ANCHOR\(serial)"
+                let marker = token + "ANCHOR\(serial)END"
                 ids[id] = anchor; markers[marker] = anchor
                 var position: XMLNode = node
                 while let parent = position.parent as? XMLElement, !Self.anchorContainers.contains(parent.localName ?? "") { position = parent }
@@ -305,7 +305,7 @@ final class EPUBSelectionPackage {
         }
         let linked = try MarkdownLinkTargetRewriter.replacing(in: markdown, mapping: replacements, checking: ConversionExecution.check)
         guard !linked.contains(token + "LINK") else { throw ImportFailure("an EPUB internal link could not be rebound") }
-        let expression = try NSRegularExpression(pattern: token + "(?:CHAPTER|ANCHOR)[0-9]+")
+        let expression = try NSRegularExpression(pattern: token + "(?:CHAPTER|ANCHOR)[0-9]+END")
         let source = linked as NSString
         let matches = expression.matches(in: linked, range: NSRange(location: 0, length: source.length))
         guard matches.count == markers.count else { throw ImportFailure("an EPUB conversion marker was lost or duplicated") }

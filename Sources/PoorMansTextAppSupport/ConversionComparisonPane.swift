@@ -196,7 +196,7 @@ public struct ConversionComparisonPane: View {
     private func navigateCell() {
         guard let sheet = selectedSection?.sheet else { return }
         selectedDiagnostic = nil
-        navigate(ConversionLocation(sheet: sheet, cell: cell.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()))
+        navigate(ConversionLocation(sheet: sheet, cell: cell.trimmingCharacters(in: .whitespacesAndNewlines).uppercased(), sheetIndex: selectedSection?.sheetIndex))
     }
 }
 

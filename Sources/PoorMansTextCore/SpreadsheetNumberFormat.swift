@@ -470,7 +470,18 @@ struct SpreadsheetNumberFormat: Sendable {
                 if case .elapsed("s", _) = $0 { return true }
                 return false
             }
-            let ticks = Int64((serial * 86_400 * precision).rounded(displaysSeconds ? .toNearestOrAwayFromZero : .down))
+            let ticks: Int64
+            if displaysSeconds {
+                ticks = Int64((serial * 86_400 * precision).rounded(.toNearestOrAwayFromZero))
+            } else {
+                var original = value, scale = Decimal(86_400), scaled = Decimal(), truncated = Decimal()
+                // Auch die Multiplikation muss abwärts runden: 38-stellige
+                // Tagesbrüche dürfen dabei nicht zur nächsten Sekunde werden.
+                let status = NSDecimalMultiply(&scaled, &original, &scale, .down)
+                guard status == .noError || status == .lossOfPrecision else { throw FormatError("the date or duration is outside the supported range") }
+                NSDecimalRound(&truncated, &scaled, 0, .down)
+                ticks = NSDecimalNumber(decimal: truncated).int64Value
+            }
             let wholeSeconds = ticks / Int64(precision)
             // Ohne ausgegebene Sekunden darf die Zeitrundung keinen Kalendertag
             // erzeugen. Decimal bewahrt auch Brüche knapp unter dem Folgetag.

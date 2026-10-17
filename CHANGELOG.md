@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.27.0 — 2026-10-17
+
+- Add an internal, bounded macOS 26 document recognition prototype for text, paragraphs, lists and table cells, sharing the existing OCR concurrency gate. Existing image/PDF conversion and defaults remain unchanged.
+- Add a reproducible local comparison matrix with independent content expectations, source hashes, timing and process memory measurements. Product integration remains pending.
+
 ## 0.26.2 — 2026-10-16
 
 - Keep content selection validation and actions visible in small windows by scrolling its form and source list together. Let the main page scroll when options or conversion messages exceed the available height.

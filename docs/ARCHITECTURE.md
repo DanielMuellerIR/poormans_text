@@ -43,7 +43,11 @@ JSON-Import ohne Codeausführung. ODM löst ausschließlich lokale ODT-Teildokum
 derselben Foundation-basierten Anfrage und bestimmen deren API nicht.
 PDFKit liest eingebetteten PDF-Text, und Vision verarbeitet ausschließlich lokal
 gerenderte Seiten entsprechend dem gewählten OCR-Modus. ImageIO übernimmt Bilddaten unverändert als Asset;
-Vision ergänzt dort optional lokalen Text.
+Vision ergänzt dort optional lokalen Text. Der interne `VisionDocumentRecognizer`
+verwendet ab macOS 26 strukturierte Dokumenterkennung und teilt den OCR-Slot mit
+dem bisherigen Weg. Sein neutrales Modell enthält getrennte Text-/Struktursichten;
+die Produktadapter rufen ihn noch nicht auf. Vertrag und Vergleich stehen unter
+[Strukturierte OCR](STRUCTURED-OCR.md).
 
 ## Formatneutrale Konvertierung
 

@@ -507,6 +507,10 @@ pro Frame. Für Bilder gelten dieselben OCR-Grenzen wie beim PDF-Fallback:
 höchstens 16 Millionen Pixel pro Frame und 64 Millionen insgesamt. Der Konverter
 markiert unsichere OCR-Stellen im Markdown, damit sie am Original geprüft werden.
 
+Ein interner Prototyp ab macOS 26 erkennt zusätzlich Absätze, Listen und
+Tabellenzellen. Vergleich und Grenzen stehen unter [Strukturierte OCR](docs/STRUCTURED-OCR.md);
+Bild- und PDF-Konvertierung verwenden weiterhin den bisherigen OCR-Weg.
+
 Die formatneutrale Engine prüft den Quellinhalt, statt nur der Dateiendung zu
 glauben, und wählt danach den passenden Weg. Bei Textdokumenten werden
 Bildverweise geprüft und ersetzt, bevor Pandoc GitHub-Flavored Markdown erstellt;
@@ -585,7 +589,7 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.26.2.
+Die aktuelle Version ist 0.27.0.
 
 ## Lizenz
 

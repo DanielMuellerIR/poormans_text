@@ -4,6 +4,10 @@ Poor Man's Text liest PDF-Dateien ohne Pandoc oder Netzverbindung. Der Adapter
 liest eingebetteten Text mit PDFKit und ergänzt bei Bedarf lokale Vision-OCR.
 Zweispaltigen Text ordnet er nach Positionen; er bildet keine PDF-Seiten nach.
 
+Ein separater [strukturierter OCR-Prototyp](STRUCTURED-OCR.md) untersucht
+Absätze, Listen und Tabellen ab macOS 26. Er wird vom PDF-Import noch nicht
+aufgerufen; seine Vergleichsergebnisse ändern die bestehenden Optionen nicht.
+
 ## Erkennung und Grenzen
 
 Der Adapter erkennt `%PDF-` im Dateikopf und öffnet anschließend die Datei mit

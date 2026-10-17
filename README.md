@@ -479,6 +479,10 @@ each frame. Image dimensions and all frames share the same 16-million-per-frame
 and 64-million-pixel OCR budgets as PDF fallback; exceeding them rejects OCR mode
 before publication. Low-confidence OCR is marked in the Markdown for review.
 
+An internal macOS 26 prototype also recognizes paragraphs, lists and table cells.
+Its local comparison and limits are described in [Structured OCR](docs/STRUCTURED-OCR.md);
+image and PDF conversion still use the existing OCR path.
+
 The format-neutral engine verifies source contents instead of trusting only the
 filename extension, then selects the matching path. Word-processing paths
 validate and rewrite image references before Pandoc creates GitHub-Flavored
@@ -554,7 +558,7 @@ and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compa
 their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current version is 0.26.2.
+The current version is 0.27.0.
 
 ## License
 

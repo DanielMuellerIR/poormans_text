@@ -309,7 +309,8 @@ PDFs, images, or folders
 into the window or onto the app, or choose them from the open panel. A folder is
 searched with the same rules as on the command line. Conversion Options remembers
 an output parent (by default next to each source), table format, image OCR,
-frontmatter, Textbundle, PDF OCR/layout, OCR method and languages, and batch parallelism. Subdirectories are preserved under a selected parent.
+frontmatter, Textbundle, DOCX text changes, PDF OCR/layout, OCR method and
+languages, and batch parallelism. Subdirectories are preserved under a selected parent.
 Select a batch result to open its Markdown in the default app, copy it, show it
 in Finder, read a rendered/source preview limited to 256 KiB, or compare it
 with known source positions. Copying reports omitted
@@ -334,7 +335,8 @@ Keyboard Shortcuts › Services):
 The native **Convert Document to Markdown** action is available in Shortcuts
 on macOS 13 or later. Supply one document and a destination folder (for example
 with the Folder action). Expand the action to choose Textbundle, metadata,
-spreadsheet format, OCR method and languages, PDF layout, and the external-tool timeout. The action
+spreadsheet format, DOCX text changes, OCR method and languages, PDF layout,
+and the external-tool timeout. The action
 returns a text list: the local file URL of the complete output folder first,
 followed by any conversion warnings. Use Get Item from List → First Item to
 pass the folder URL to another action. Images and other assets stay together.
@@ -433,8 +435,11 @@ behavior are not retained.
 
 DOC remains a separate legacy adapter: macOS `textutil` creates local HTML, and
 the converter warns that OLE objects, text boxes, macros, and some embedded
-content may be lost. DOCX tracked changes are explicitly accepted; comments and
-accepted changes are reported as diagnostics.
+content may be lost. DOCX text changes can be accepted (default), rejected, or
+marked visibly with `--docx-changes accept|reject|mark` and the matching app/Shortcuts
+option. Comments retain their text, available author/date and source reference.
+Removed anchors and unsupported revision history produce diagnostics. Details and
+limits are in [DOCX reviews](docs/DOCX-REVIEWS.md).
 
 ODS, XLSX, and binary XLS use native readers and a shared workbook model. Each
 sheet becomes a Markdown section, in source order, rendered either as a GFM
@@ -518,7 +523,7 @@ Expected losses or approximations:
 - complex tables, text boxes, and multi-column layouts
 - equations and application-specific rich-text attributes
 - semantic heading levels when the source only expresses larger font sizes
-- DOCX/ODT comments and DOC change markup
+- ODT comments, DOC change markup, and DOCX formatting/cell-property revision history
 - DOC OLE objects, text boxes, macros, and images unsupported by `textutil`
 - DOCM/DOTM macros and DOTX/DOTM template behavior
 - spreadsheet formulas without stored results, merged-cell structure, charts,
@@ -558,7 +563,7 @@ and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compa
 their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current version is 0.28.0.
+The current version is 0.29.0.
 
 ## License
 

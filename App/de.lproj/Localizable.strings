@@ -319,3 +319,9 @@
 "Structured OCR (macOS 26+)" = "Strukturierte OCR (macOS 26+)";
 "Structured OCR preserves paragraphs, lists and tables. If unavailable or uncertain, standard OCR is used with a diagnostic." = "Strukturierte OCR erhält Absätze, Listen und Tabellen. Bei fehlender Verfügbarkeit oder unsicherer Struktur folgt Standard-OCR mit einer Diagnose.";
 "Structured OCR cannot safely merge digital PDF text with additional OCR text within its geometry limits. No result was published. Choose standard OCR or turn PDF OCR off." = "Strukturierte OCR kann digitalen PDF-Text und zusätzlichen OCR-Text innerhalb ihrer Geometriegrenzen nicht sicher zusammenführen. Es wurde kein Ergebnis veröffentlicht. Wähle Standard-OCR oder schalte PDF-OCR aus.";
+
+"DOCX text changes" = "DOCX-Textänderungen";
+"Accept changes" = "Änderungen annehmen";
+"Reject changes" = "Änderungen verwerfen";
+"Mark changes visibly" = "Änderungen sichtbar markieren";
+"Applies to DOCX text changes. Comments retain their author, date and source reference. Other document formats keep their existing behavior." = "Gilt für DOCX-Textänderungen. Kommentare behalten Autor, Datum und Textbezug. Andere Dokumentformate verwenden ihr bisheriges Verhalten.";

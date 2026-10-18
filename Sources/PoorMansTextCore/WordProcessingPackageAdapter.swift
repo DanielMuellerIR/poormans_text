@@ -116,6 +116,19 @@ struct WordProcessingPackageAdapter: DocumentConversionAdapter {
             throw ConversionError.unsafeImageReference(reference)
         }
 
+        var review: DOCXReviewPreserver?
+        if context.format == .docx && (inspection.containsComments || inspection.containsTrackedChanges) {
+            let preserver = DOCXReviewPreserver()
+            do {
+                guard let mainPart = try WordProcessingPackageInspector.mainDocumentPart(reader: reader, entryNames: reader.entryNames) else {
+                    throw ImportFailure("the DOCX main part is missing")
+                }
+                try preserver.prepare(reader: reader, mainPart: mainPart, mode: context.options.docxChangeMode, workDirectory: context.workDirectory)
+                review = preserver
+            } catch let error as ConversionError { throw error }
+            catch { throw ConversionError.invalidInput(context.inputURL, format: .docx, reason: error.localizedDescription) }
+        }
+
         let pandocExecutable = try PandocTool.resolve(context.options.pandocExecutable)
         let htmlURL = context.workDirectory.appendingPathComponent("document.html")
         var arguments = [
@@ -126,7 +139,8 @@ struct WordProcessingPackageAdapter: DocumentConversionAdapter {
             "--wrap=preserve",
         ]
         if context.format == .docx {
-            arguments.append("--track-changes=accept")
+            let mode = context.options.docxChangeMode
+            arguments.append("--track-changes=\(mode == .mark ? "all" : mode.rawValue)")
         }
         arguments.append(contentsOf: [
             "--output", htmlURL.path,
@@ -169,10 +183,18 @@ struct WordProcessingPackageAdapter: DocumentConversionAdapter {
             stagedOutputDirectory: context.stagedOutputDirectory,
             pandocExecutable: pandocExecutable
         )
+        try review?.finish(markdownURL: context.stagedOutputDirectory.appendingPathComponent(converted.markdownRelativePath))
+        var warnings = inspection.warnings.filter { $0.code != "docx.commentsPresent" &&
+            !(context.format == .docx && context.options.docxChangeMode != .accept && $0.code == "wordProcessing.changesAccepted") }
+        if context.format == .docx, inspection.containsTrackedChanges, context.options.docxChangeMode != .accept {
+            warnings.append(.init(code: context.options.docxChangeMode == .reject ? "docx.changesRejected" : "docx.changesMarked",
+                message: context.options.docxChangeMode == .reject ? "Tracked DOCX text changes were rejected." : "Tracked DOCX text changes were visibly marked with their available author and date.", kind: .information))
+        }
+        warnings += review?.warnings ?? []
         return StagedConversionResult(
             markdownRelativePath: converted.markdownRelativePath,
             assetRelativePaths: converted.assetRelativePaths,
-            warnings: inspection.warnings,
+            warnings: warnings,
             metadata: PackageMetadataParser.read(
                 from: reader,
                 entryName: context.format == .odt ? "meta.xml" : "docProps/core.xml"

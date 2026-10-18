@@ -7,6 +7,8 @@ struct ParsedArguments {
     var pandocURL: URL?
     var pdfOptions = ConversionOptions()
     var setsPDFOptions = false
+    var docxChangeMode: DOCXChangeMode = .accept
+    var setsDOCXChangeMode = false
     var json = false
     var progress = false
     var timeout: TimeInterval?
@@ -59,6 +61,7 @@ Options:
       --list-slides      Inspect ordered slide titles and local notes references.
       --epub-chapters RANGES  Select EPUB spine entries, e.g. 1,3-5.
       --list-chapters     Inspect EPUB reading order and navigation without conversion.
+      --docx-changes accept|reject|mark  Choose tracked DOCX text (default: accept); comments are retained.
       --image-ocr on|off  Add local OCR text for images (default) or preserve only the image asset.
       --pdf-ocr auto|always|off  Choose local PDF OCR (default: auto).
       --pdf-pages RANGES  Select source pages, e.g. 1,3-5 (PDF inputs only).
@@ -121,7 +124,7 @@ and exits 64.
 /// --json` verschieden deuten.
 let valueOptions: Set<String> = [
     "-o", "--output", "--pandoc", "--timeout", "--jobs", "--spreadsheet-format",
-    "--image-ocr", "--ocr-method", "--pdf-ocr", "--pdf-layout", "--ocr-language", "--pdf-pages", "--sheets", "--sheet-name", "--cell-range", "--slides", "--notes", "--epub-chapters",
+    "--docx-changes", "--image-ocr", "--ocr-method", "--pdf-ocr", "--pdf-layout", "--ocr-language", "--pdf-pages", "--sheets", "--sheet-name", "--cell-range", "--slides", "--notes", "--epub-chapters",
 ]
 
 /// Sagt VOR dem Parsen, ob `--json` als Option vorkommt, damit auch ein
@@ -224,6 +227,10 @@ private func apply(option: String, value: String, to parsed: inout ParsedArgumen
             )
         }
         parsed.timeout = seconds
+    case "--docx-changes":
+        guard let mode = DOCXChangeMode(rawValue: value) else { throw CLIArgumentError.invalidConversionOption("--docx-changes requires accept, reject, or mark") }
+        parsed.docxChangeMode = mode
+        parsed.setsDOCXChangeMode = true
     case "--pdf-ocr":
         parsed.setsPDFOptions = true
         guard let mode = PDFTextRecognition(rawValue: value) else { throw CLIArgumentError.invalidConversionOption("--pdf-ocr requires auto, always, or off") }

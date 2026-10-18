@@ -148,6 +148,25 @@ final class ShortcutConversionTests: XCTestCase {
         return url
     }
 
+    func testDOCXReviewModesReachIntentConversionWithCommentsAndNotes() async throws {
+        let source = try DOCXReviewFixture.make(in: root)
+        for mode in [ShortcutDOCXChangeMode.reject, .mark] {
+            let folder = destination.appendingPathComponent(mode.rawValue)
+            try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: false)
+            var intent = configured(document: IntentFile(fileURL: source))
+            intent.destinationFolder = IntentFile(fileURL: folder, type: .folder)
+            intent.docxChangeMode = mode
+            let result = try await intent.perform()
+            let output = try resultFolder(result.value)
+            let markdown = try String(contentsOf: output.appendingPathComponent("review.md"), encoding: .utf8)
+            let body = markdown.components(separatedBy: "## Document comments")[0]
+            XCTAssertTrue(body.contains("DELETEONLY"))
+            XCTAssertEqual(body.contains("INSERTONLY"), mode == .mark)
+            XCTAssertTrue(body.contains("END_OLD"))
+            XCTAssertTrue(markdown.contains("### Comment 6"))
+        }
+    }
+
     private func configured(document: IntentFile) -> ConvertDocumentIntent {
         var intent = ConvertDocumentIntent()
         intent.document = document

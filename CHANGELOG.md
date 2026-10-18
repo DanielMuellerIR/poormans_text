@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.29.0 — 2026-10-18
+
+- Add a shared DOCX text-change choice in the app, CLI (`--docx-changes accept|reject|mark`), Shortcuts and reports. Acceptance remains the default; marked insertions, deletions and moves retain available author/date metadata through HTML conversion.
+- Preserve DOCX comments as literal annotations with source markers, original comment identifiers, available author/date and source excerpts. Retain annotations when the selected mode removes their anchors; diagnose incomplete ranges and missing definitions.
+- Preserve footnotes, endnotes and image bytes across modes; normalize nonstandard note parts in the verified private copy and retain multiple note references in a run. Handle inserted/deleted table rows and paragraph breaks, and diagnose unsupported formatting/cell history.
+
 ## 0.28.0 — 2026-10-18
 
 - Add opt-in structured local OCR for image imports and rasterized PDF pages on macOS 26. CLI `--ocr-method standard|structured`, the app and Shortcuts share the choice; standard OCR remains the default.

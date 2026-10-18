@@ -40,6 +40,10 @@ public enum PDFLayout: String, Codable, Equatable, Sendable {
     case legacy
 }
 
+public enum DOCXChangeMode: String, Codable, Equatable, Sendable {
+    case accept, reject, mark
+}
+
 /// Wie das Ergebnis auf der Platte liegt.
 public enum OutputLayout: String, Codable, Equatable, Sendable {
     /// `Name-markdown/Name.md` plus `images/`, das bisherige Format.
@@ -59,6 +63,7 @@ public struct ConversionOptions: Equatable, Sendable {
     public var pdfTextRecognition: PDFTextRecognition
     public var ocrLanguages: [String]
     public var ocrMethod: OCRMethod
+    public var docxChangeMode: DOCXChangeMode
     public var pdfLayout: PDFLayout
     public var pdfRemoveHeadersFooters: Bool
     public var pdfDehyphenate: Bool
@@ -80,6 +85,7 @@ public struct ConversionOptions: Equatable, Sendable {
         pdfTextRecognition: PDFTextRecognition = .automatic,
         ocrLanguages: [String] = [],
         ocrMethod: OCRMethod = .standard,
+        docxChangeMode: DOCXChangeMode = .accept,
         pdfLayout: PDFLayout = .automatic,
         pdfRemoveHeadersFooters: Bool = false,
         pdfDehyphenate: Bool = false,
@@ -98,6 +104,7 @@ public struct ConversionOptions: Equatable, Sendable {
         self.pdfTextRecognition = pdfTextRecognition
         self.ocrLanguages = ocrLanguages
         self.ocrMethod = ocrMethod
+        self.docxChangeMode = docxChangeMode
         self.pdfLayout = pdfLayout
         self.pdfRemoveHeadersFooters = pdfRemoveHeadersFooters
         self.pdfDehyphenate = pdfDehyphenate

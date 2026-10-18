@@ -64,7 +64,7 @@ final class WordProcessingPackageInspectionTests: XCTestCase {
         XCTAssertEqual(
             inspection.expectedWarnings.map(\.code),
             [
-                "wordProcessing.commentsNotPreserved",
+                "docx.commentsPresent",
                 "wordProcessing.changesAccepted",
             ]
         )

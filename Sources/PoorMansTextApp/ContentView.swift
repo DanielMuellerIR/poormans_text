@@ -445,6 +445,13 @@ struct ContentView: View {
                     Text("Markdown tables").tag(SpreadsheetRendering.markdownTable)
                     Text("Tab-separated text").tag(SpreadsheetRendering.tabSeparated)
                 }
+                Picker("DOCX text changes", selection: $model.docxChangeMode) {
+                    Text("Accept changes").tag(DOCXChangeMode.accept)
+                    Text("Reject changes").tag(DOCXChangeMode.reject)
+                    Text("Mark changes visibly").tag(DOCXChangeMode.mark)
+                }
+                .accessibilityIdentifier("docxChangeMode")
+                .help("Applies to DOCX text changes. Comments retain their author, date and source reference. Other document formats keep their existing behavior.")
                 Picker("Images", selection: $model.imageTextRecognition) {
                     Text("Add local OCR text").tag(ImageTextRecognition.enabled)
                     Text("Keep only the image").tag(ImageTextRecognition.disabled)

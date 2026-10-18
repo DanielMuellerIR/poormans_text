@@ -319,3 +319,9 @@
 "Structured OCR (macOS 26+)" = "Structured OCR (macOS 26+)";
 "Structured OCR preserves paragraphs, lists and tables. If unavailable or uncertain, standard OCR is used with a diagnostic." = "Structured OCR preserves paragraphs, lists and tables. If unavailable or uncertain, standard OCR is used with a diagnostic.";
 "Structured OCR cannot safely merge digital PDF text with additional OCR text within its geometry limits. No result was published. Choose standard OCR or turn PDF OCR off." = "Structured OCR cannot safely merge digital PDF text with additional OCR text within its geometry limits. No result was published. Choose standard OCR or turn PDF OCR off.";
+
+"DOCX text changes" = "DOCX text changes";
+"Accept changes" = "Accept changes";
+"Reject changes" = "Reject changes";
+"Mark changes visibly" = "Mark changes visibly";
+"Applies to DOCX text changes. Comments retain their author, date and source reference. Other document formats keep their existing behavior." = "Applies to DOCX text changes. Comments retain their author, date and source reference. Other document formats keep their existing behavior.";

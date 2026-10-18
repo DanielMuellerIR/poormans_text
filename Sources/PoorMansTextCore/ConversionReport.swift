@@ -70,6 +70,7 @@ public struct ConversionReport: Codable, Sendable {
         public let ocrLanguages: [String]
         /// nil bezeichnet Berichte aus Versionen vor der Methodenwahl.
         public let ocrMethod: OCRMethod?
+        public let docxChangeMode: DOCXChangeMode?
         public let pdfLayout: PDFLayout
         public let pdfRemoveHeadersFooters: Bool
         public let pdfDehyphenate: Bool
@@ -88,6 +89,7 @@ public struct ConversionReport: Codable, Sendable {
             pdfTextRecognition = options.pdfTextRecognition
             ocrLanguages = options.ocrLanguages
             ocrMethod = options.ocrMethod
+            docxChangeMode = options.docxChangeMode
             pdfLayout = options.pdfLayout
             pdfRemoveHeadersFooters = options.pdfRemoveHeadersFooters
             pdfDehyphenate = options.pdfDehyphenate

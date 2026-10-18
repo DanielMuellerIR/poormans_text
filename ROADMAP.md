@@ -28,8 +28,6 @@ Kurzbefehle reichen die jeweils passenden Optionen weiter.
 
 ### Kommentare, Änderungen und Links
 
-- DOCX-Kommentare zugeordnet ausgeben und zwischen angenommenen, verworfenen
-  und sichtbar markierten Änderungen wählen können.
 - Hyperlinkziele aus Präsentationen zusammen mit ihrem sichtbaren Text erhalten.
 - PDF-Hervorhebungen, Kommentare und Linkziele mit Seitenbezug übernehmen.
 

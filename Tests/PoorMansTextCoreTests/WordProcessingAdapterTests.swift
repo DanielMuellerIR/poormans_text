@@ -213,7 +213,7 @@ final class WordProcessingAdapterTests: XCTestCase {
         XCTAssertEqual(
             inspection.expectedWarnings.map(\.code),
             [
-                "wordProcessing.commentsNotPreserved",
+                "docx.commentsPresent",
                 "wordProcessing.changesAccepted",
             ]
         )
@@ -228,12 +228,10 @@ final class WordProcessingAdapterTests: XCTestCase {
         )
         let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
         XCTAssertTrue(markdown.contains("Accepted change"))
-        XCTAssertEqual(result.diagnostics.map(\.kind), [.contentLoss, .information])
-        XCTAssertTrue(result.diagnostics.allSatisfy { $0.location == nil })
-        XCTAssertEqual(
-            result.diagnostics.map(\.code),
-            inspection.expectedWarnings.map(\.code)
-        )
+        XCTAssertEqual(result.diagnostics.map(\.kind), [.information, .information])
+        XCTAssertNotNil(result.diagnostics.first { $0.code == "docx.commentPreserved" }?.location?.paragraph)
+        XCTAssertTrue(markdown.contains("Review note"))
+        XCTAssertEqual(result.diagnostics.map(\.code), ["wordProcessing.changesAccepted", "docx.commentPreserved"])
 
         let odtURL = fixture("annotated.odt")
         let odtInspection = try DocumentConverter().inspect(odtURL)

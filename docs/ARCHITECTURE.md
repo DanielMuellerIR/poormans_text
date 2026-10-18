@@ -164,6 +164,17 @@ und überschrittene Größenbudgets ab. Pandoc
 läuft danach mit `--sandbox` und extrahiert Medien ausschließlich in den
 Arbeitsordner. Externe Bildbeziehungen werden nie geladen.
 
+`DOCXReviewPreserver` ergänzt im verifizierten privaten DOCX Textmarker für
+Kommentare und sichtbar gewählte Revisionen. Pandoc übernimmt weiterhin die
+Textauswahl für Annehmen/Verwerfen; der Adapter behandelt zusätzlich
+Tabellenzeilen und verschobenen Text. Kommentare werden vor Pandoc aus den
+Beziehungen gelesen, ihre internen Anker entfernt und nach der gemeinsamen
+HTML-Schlussstrecke als maskierte Anmerkungen samt Quellzuordnung ausgegeben.
+Zufällige Marker werden vollständig aufgelöst; Fußnotennummern bleiben Pandocs
+Aufgabe. Nichtstandardmäßige Notenteile erhalten geprüfte private Aliase samt
+lokalen Beziehungen. Budgets und Grenzen stehen in [DOCX-REVIEWS.md](DOCX-REVIEWS.md).
+ODT/DOC verwenden ihre bisherigen Wege.
+
 Der Tabellenimport liest ODS, XLSX und binäres XLS in ein eigenes
 Arbeitsmappenmodell und rendert erst danach Markdown. Die drei Leser verwenden
 dieselbe Blatt-, Zell-, Linkziel-, Budget- und Diagnosegrenze; XLSX- und ODS-ZIP-Pakete

@@ -54,7 +54,9 @@ try:
         and action["outputType"]["array"]["wrapper"]["memberValueType"]
             == {"primitive": {"wrapper": {"typeIdentifier": 0}}}
         and {"document", "destinationFolder"}.union(selection_parameters).issubset(parameters)
-        and selection_parameters.union({"ocrMethod"}).issubset(summary_parameters)
+        and selection_parameters.union({"ocrMethod", "docxChangeMode"}).issubset(summary_parameters)
+        and "docxChangeMode" in parameters
+        and default_value("docxChangeMode") == {"string": {"wrapper": "accept"}}
         and "ocrMethod" in parameters
         and default_value("ocrMethod") == {"string": {"wrapper": "standard"}}
         and default_value("sheetNames") == {"array": {"elements": []}}

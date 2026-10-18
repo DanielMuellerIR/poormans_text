@@ -81,7 +81,7 @@ extension ConversionWarning {
 
     static let wordProcessingChangesAccepted = ConversionWarning(
         code: "wordProcessing.changesAccepted",
-        message: "Tracked changes were accepted before the Markdown was generated."
+        message: "Tracked DOCX text changes were accepted before the Markdown was generated."
     )
 
     static let wordProcessingMacrosNotPreserved = ConversionWarning(

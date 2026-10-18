@@ -325,7 +325,8 @@ können in das Fenster oder auf die App gezogen oder über den Dateidialog
 ausgewählt werden. Ein Ordner wird nach denselben Regeln wie auf der
 Kommandozeile durchsucht. „Konvertierungsoptionen“ merkt sich Zielordner
 (standardmäßig neben der Quelle), Tabellenformat, Bild-OCR, Frontmatter und
-Textbundle sowie PDF-OCR/-Layout, OCR-Methode und -Sprachen und Batch-Parallelität.
+Textbundle sowie DOCX-Textänderungen, PDF-OCR/-Layout, OCR-Methode und -Sprachen
+und Batch-Parallelität.
 Unter einem gewählten Zielordner bleiben Unterordner erhalten.
 Einzelne Batch-Ergebnisse lassen sich auswählen, in der Standard-App öffnen,
 kopieren, im Finder zeigen, als formatierte oder Quelltextvorschau mit höchstens
@@ -353,8 +354,9 @@ Tastaturkurzbefehle › Dienste):
 
 Die native Aktion **Dokument in Markdown umwandeln** steht in Kurzbefehle ab
 macOS 13 bereit. Sie erhält ein Dokument und einen Zielordner, etwa aus der Aktion
-„Ordner“. Aufgeklappt bietet sie Textbundle, Metadaten, Tabellenformat, OCR,
-PDF-Layout und das Zeitlimit für externe Werkzeuge. Zurückgegeben wird eine
+„Ordner“. Aufgeklappt bietet sie Textbundle, Metadaten, Tabellenformat,
+DOCX-Textänderungen, OCR, PDF-Layout und das Zeitlimit für externe Werkzeuge.
+Zurückgegeben wird eine
 Textliste: zuerst die lokale Datei-URL des vollständigen Ausgabeordners, danach
 mögliche Warnungen. „Objekt aus Liste abrufen → Erstes Objekt“ übergibt die
 Ordner-URL an eine weitere Aktion. Bilder und andere Assets bleiben zusammen.
@@ -458,8 +460,12 @@ Makros und Vorlagenverhalten nicht erhalten bleiben.
 
 DOC bleibt ein eigener Altformatadapter: macOS `textutil` erzeugt lokales HTML, und
 der Konverter warnt vor möglichen Verlusten bei OLE-Objekten, Textfeldern, Makros
-und manchen eingebetteten Inhalten. DOCX-Änderungen werden bewusst angenommen;
-Kommentare und angenommene Änderungen erscheinen als Diagnosen.
+und manchen eingebetteten Inhalten. DOCX-Textänderungen lassen sich annehmen
+(Vorgabe), verwerfen oder sichtbar markieren: `--docx-changes accept|reject|mark`
+und dieselbe Auswahl in App/Kurzbefehlen. Kommentare behalten Text, vorhandene
+Autoren-/Datumsangaben und Quellbezug. Entfernte Anker und nicht rekonstruierbare
+Änderungshistorie werden diagnostiziert. Details und Grenzen stehen unter
+[DOCX-Anmerkungen](docs/DOCX-REVIEWS.md).
 
 ODS, XLSX und binäres XLS verwenden native Leser und ein gemeinsames
 Arbeitsmappenmodell. Jedes Blatt wird in Quellreihenfolge zu einem
@@ -547,7 +553,7 @@ Erwartbare Verluste oder Annäherungen:
 - komplexe Tabellen, Textfelder und mehrspaltige Anordnungen
 - Gleichungen und anwendungsspezifische Rich-Text-Eigenschaften
 - semantische Überschriftenebenen, wenn die Quelle nur größere Schrift verwendet
-- DOCX-/ODT-Kommentare und DOC-Änderungsmarkup
+- ODT-Kommentare, DOC-Änderungsmarkup und DOCX-Historie von Format-/Zelleigenschaften
 - DOC-OLE-Objekte, Textfelder, Makros und von `textutil` nicht gelesene Bilder
 - DOCM-/DOTM-Makros und das Vorlagenverhalten von DOTX/DOTM
 - Tabellenformeln ohne gespeichertes Ergebnis, Zellverbünde, Diagramme,
@@ -589,7 +595,7 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.28.0.
+Die aktuelle Version ist 0.29.0.
 
 ## Lizenz
 

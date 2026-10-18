@@ -31,7 +31,9 @@ struct WordProcessingPackageInspection {
             result.append(.wordProcessingTemplateSemanticsNotPreserved)
         }
         if containsComments {
-            result.append(.wordProcessingCommentsNotPreserved)
+            result.append(format == .docx
+                ? ConversionWarning(code: "docx.commentsPresent", message: "DOCX comments are imported as annotations with their source reference.", kind: .information)
+                : .wordProcessingCommentsNotPreserved)
         }
         if containsTrackedChanges {
             result.append(
@@ -67,23 +69,19 @@ enum WordProcessingPackageInspector {
             guard document.hasDocumentRoot else {
                 throw InspectionError("\(mainPart) has no valid WordprocessingML document root")
             }
-            // Kommentare, Fuß- und Endnoten liegen neben dem Hauptteil; bei
-            // `word/document2.xml` also weiter unter `word/`.
-            let partDirectory = (mainPart as NSString).deletingLastPathComponent
-            func siblingPart(_ name: String) -> String {
-                partDirectory.isEmpty ? name : "\(partDirectory)/\(name)"
-            }
-            let commentDefinitions = try reader.dataIfPresent(named: siblingPart("comments.xml"))
+            // Beziehungen bestimmen auch abweichend benannte Kommentar-/Notenteile.
+            let commentPart = try DOCXReviewPreserver.commentPart(reader: reader, mainPart: mainPart)
+            let commentDefinitions = try commentPart.flatMap { try reader.dataIfPresent(named: $0) }
                 .map { try WordprocessingContentParser.inspect($0).containsCommentDefinitions }
                 ?? false
             let comments = document.containsCommentAnchors || commentDefinitions
             // Fuß- und Endnoten gehören zum selben Dokument: Pandoc liest sie
-            // mit und wendet `--track-changes=accept` auch dort an. Wurde nur
+            // mit und wendet den Änderungsmodus auch dort an. Wurde nur
             // dort etwas nachverfolgt, nahm die Umwandlung die Änderung still
             // an — ohne die Warnung, für die es sie gibt
             // (Review-Fund 2026-09-10).
             var changes = document.containsTrackedChanges
-            for name in [siblingPart("footnotes.xml"), siblingPart("endnotes.xml")] where !changes {
+            for name in try DOCXReviewPreserver.noteParts(reader: reader, mainPart: mainPart) where !changes {
                 guard let xml = try reader.dataIfPresent(named: name) else {
                     continue
                 }
@@ -136,7 +134,7 @@ enum WordProcessingPackageInspector {
     /// gilt weiterhin `word/document.xml`. Fehlt das Ziel im Paket, ist es
     /// kein lesbares Word-Dokument (`nil`). Ob der Teil wirklich
     /// WordprocessingML ist, entscheiden danach Content-Type und Wurzelelement.
-    private static func mainDocumentPart(
+    static func mainDocumentPart(
         reader: any ZIPPackageReading,
         entryNames: Set<String>
     ) throws -> String? {
@@ -417,7 +415,7 @@ private enum WordprocessingContentParser {
                 return
             }
             switch elementName {
-            case "commentRangeStart":
+            case "commentRangeStart", "commentRangeEnd", "commentReference":
                 containsCommentAnchors = true
             case "comment":
                 containsCommentDefinitions = true

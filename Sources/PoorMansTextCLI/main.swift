@@ -37,7 +37,7 @@ do {
 
     if arguments.listFormats {
         guard arguments.inputURLs.isEmpty, arguments.outputURL == nil,
-              !arguments.listSheets, !arguments.listSlides, !arguments.listChapters, arguments.epubChapters == nil, arguments.presentationSelection == nil, !arguments.setsSpreadsheetSelection, !arguments.setsJobs, !arguments.setsPDFOptions, !arguments.setsSpreadsheetRendering, !arguments.setsImageTextRecognition,
+              !arguments.listSheets, !arguments.listSlides, !arguments.listChapters, arguments.epubChapters == nil, arguments.presentationSelection == nil, !arguments.setsSpreadsheetSelection, !arguments.setsJobs, !arguments.setsPDFOptions, !arguments.setsDOCXChangeMode, !arguments.setsSpreadsheetRendering, !arguments.setsImageTextRecognition,
               !arguments.writeToStandardOutput, !arguments.frontmatter, !arguments.sourceMapping, !arguments.conversionReport,
               arguments.outputLayout == .markdownFolder, !arguments.progress, arguments.timeout == nil else {
             throw CLIArgumentError.formatsTakesNoInput
@@ -56,7 +56,7 @@ do {
     if arguments.listSheets || arguments.listSlides || arguments.listChapters {
         guard [arguments.listSheets, arguments.listSlides, arguments.listChapters].filter({ $0 }).count == 1, arguments.epubChapters == nil, arguments.presentationSelection == nil, arguments.inputURLs.count == 1, arguments.outputURL == nil, !arguments.writeToStandardOutput,
               !arguments.setsSpreadsheetSelection, !arguments.setsSpreadsheetRendering, !arguments.setsImageTextRecognition,
-              !arguments.setsPDFOptions, !arguments.setsJobs, arguments.pandocURL == nil,
+              !arguments.setsPDFOptions, !arguments.setsDOCXChangeMode, !arguments.setsJobs, arguments.pandocURL == nil,
               !arguments.frontmatter, !arguments.sourceMapping, !arguments.conversionReport, !arguments.progress, arguments.outputLayout == .markdownFolder else {
             throw CLIArgumentError.invalidConversionOption("a content overview requires one matching document and cannot be combined with conversion options")
         }
@@ -91,6 +91,7 @@ do {
         pdfTextRecognition: arguments.pdfOptions.pdfTextRecognition,
         ocrLanguages: arguments.pdfOptions.ocrLanguages,
         ocrMethod: arguments.pdfOptions.ocrMethod,
+        docxChangeMode: arguments.docxChangeMode,
         pdfLayout: arguments.pdfOptions.pdfLayout,
         pdfRemoveHeadersFooters: arguments.pdfOptions.pdfRemoveHeadersFooters,
         pdfDehyphenate: arguments.pdfOptions.pdfDehyphenate,

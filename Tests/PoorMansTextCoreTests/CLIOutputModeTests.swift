@@ -22,7 +22,7 @@ final class CLIOutputModeTests: XCTestCase {
 
     func testPDFAndLanguageOptionsValidateBeforeConverting() throws {
         for arguments in [
-            ["--ocr-method", "invalid"], ["--ocr-method="], ["--pdf-ocr", "never"], ["--pdf-layout=bad"], ["--ocr-language", "zz-no-such-language"],
+            ["--docx-changes", "invalid"], ["--docx-changes="], ["--ocr-method", "invalid"], ["--ocr-method="], ["--pdf-ocr", "never"], ["--pdf-layout=bad"], ["--ocr-language", "zz-no-such-language"],
             ["--ocr-language="], ["--formats", "--pdf-ocr", "auto"],
             ["--formats", "--pdf-remove-headers-footers"], ["--formats", "--pdf-dehyphenate"],
             ["--formats", "--ocr-language", "en"],
@@ -34,6 +34,20 @@ final class CLIOutputModeTests: XCTestCase {
         let result = try runCLI(["--stdout", "--image-ocr=off", "--ocr-language=de,en", "--pdf-ocr=off", "--pdf-layout=legacy", image.path])
         XCTAssertEqual(result.status, 0, result.standardError)
         XCTAssertTrue(result.standardOutput.contains("images/image01.png"))
+    }
+
+    func testDOCXChangeModesReachTheConverterAndCatalogRejectsTheOption() throws {
+        let source = try DOCXReviewFixture.make(in: root)
+        for mode in ["accept", "reject", "mark"] {
+            let result = try runCLI(["--stdout", "--docx-changes=" + mode, source.path])
+            XCTAssertEqual(result.status, 0, result.standardError)
+            let body = result.standardOutput.components(separatedBy: "## Document comments")[0]
+            XCTAssertEqual(body.components(separatedBy: "INSERTONLY").count - 1, mode == "reject" ? 0 : 1)
+            XCTAssertEqual(body.components(separatedBy: "DELETEONLY").count - 1, mode == "accept" ? 0 : 1)
+            XCTAssertTrue(result.standardOutput.contains("### Comment 6"))
+        }
+        let catalog = try runCLI(["--formats", "--docx-changes", "accept"])
+        XCTAssertEqual(catalog.status, 64)
     }
 
     func testStandardOutputPrintsTheMarkdownAndLeavesNoFolderBehind() throws {

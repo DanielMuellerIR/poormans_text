@@ -21,6 +21,12 @@ public enum ShortcutOCRMethod: String, AppEnum {
     public static let caseDisplayRepresentations: [Self: DisplayRepresentation] = [.standard: "Standard OCR", .structured: "Structured OCR (macOS 26+)"]
 }
 
+public enum ShortcutDOCXChangeMode: String, AppEnum {
+    case accept, reject, mark
+    public static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "DOCX text changes")
+    public static let caseDisplayRepresentations: [Self: DisplayRepresentation] = [.accept: "Accept changes", .reject: "Reject changes", .mark: "Mark changes visibly"]
+}
+
 public enum ShortcutPDFLayout: String, AppEnum {
     case automatic, legacy
     public static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "PDF layout")
@@ -53,6 +59,7 @@ public struct ConvertDocumentIntent: AppIntent {
     @Parameter(title: "Recognize Text in Images", default: true) public var imageOCR: Bool
     @Parameter(title: "PDF Text Recognition", default: .automatic) public var pdfOCR: ShortcutPDFRecognition
     @Parameter(title: "OCR Method", default: .standard) public var ocrMethod: ShortcutOCRMethod
+    @Parameter(title: "DOCX text changes", default: .accept) public var docxChangeMode: ShortcutDOCXChangeMode
     @Parameter(title: "OCR Languages", default: "") public var ocrLanguages: String
     @Parameter(title: "PDF Layout", default: .automatic) public var pdfLayout: ShortcutPDFLayout
     @Parameter(title: "Remove Repeated PDF Headers and Footers", default: false) public var removeHeadersFooters: Bool
@@ -75,6 +82,7 @@ public struct ConvertDocumentIntent: AppIntent {
             \.$imageOCR
             \.$pdfOCR
             \.$ocrMethod
+            \.$docxChangeMode
             \.$ocrLanguages
             \.$pdfLayout
             \.$removeHeadersFooters
@@ -132,6 +140,7 @@ public struct ConvertDocumentIntent: AppIntent {
             pdfTextRecognition: pdfOCR == .automatic ? .automatic : pdfOCR == .always ? .always : .disabled,
             ocrLanguages: ocrLanguages.split(separator: ",").map { String($0).trimmingCharacters(in: .whitespaces) },
             ocrMethod: ocrMethod == .structured ? .structured : .standard,
+            docxChangeMode: docxChangeMode == .mark ? .mark : docxChangeMode == .reject ? .reject : .accept,
             pdfLayout: pdfLayout == .automatic ? .automatic : .legacy,
             pdfRemoveHeadersFooters: removeHeadersFooters,
             pdfDehyphenate: dehyphenate

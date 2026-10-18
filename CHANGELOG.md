@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.41.3 — 2026-10-18
+
+- Declare the structured OCR mapper initializer explicitly so Swift 6.2 can compile its private budget state; recognition behavior and limits remain unchanged.
+
 ## 0.41.2 — 2026-10-18
 
 - Refresh English and German usage, collection actions, image/OCR limits, dependency notices and release documentation for the current feature set.

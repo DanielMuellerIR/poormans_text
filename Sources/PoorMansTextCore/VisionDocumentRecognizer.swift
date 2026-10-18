@@ -102,6 +102,10 @@ enum VisionDocumentRecognizer {
         var remainingBytes: Int
         private var remainingElements = 16_384
 
+        init(remainingBytes: Int) {
+            self.remainingBytes = remainingBytes
+        }
+
         mutating func document(_ container: DocumentObservation.Container) throws -> StructuredDocumentRecognition.Document {
             try checkCancellation()
             return try .init(

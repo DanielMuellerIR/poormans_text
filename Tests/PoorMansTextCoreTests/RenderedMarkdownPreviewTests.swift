@@ -78,6 +78,16 @@ final class RenderedMarkdownPreviewTests: XCTestCase {
         }
     }
 
+    func testOnlyExactEmptyPDFPageAnchorsAreRendered() {
+        let source = "<a id=\"pmt-pdf-page-2\"></a>\n\n[Jump](#pmt-pdf-page-2)\n"
+        let preview = RenderedMarkdownPreview.render(source,assets: nil)
+        XCTAssertFalse(preview.hasLiteralHTML)
+        XCTAssertTrue(preview.html.contains("<span id=\"pmt-pdf-page-2\"></span>"))
+        for raw in ["<a id=\"pmt-pdf-page-0\"></a>", "<a id=\"pmt-pdf-page-2\" onclick=\"bad()\"></a>", "<a id=\"pmt-pdf-page-2\">bad</a>", "`<a id=\"pmt-pdf-page-2\"></a>`"] {
+            XCTAssertFalse(RenderedMarkdownPreview.render(raw,assets: nil).html.contains("<span id=\"pmt-pdf-page-"))
+        }
+    }
+
     func testKnownCellAnchorUsesActualUTF8AfterUnicode() throws {
         let source = "# 🙂 title\n\n| Name | Value |\n| --- | --- |\n| Grüße🙂Marker | 42 |\n"
         let prefix = try XCTUnwrap(source.range(of: "Grüße🙂Marker"))

@@ -389,6 +389,16 @@ Zellen ein, maskiert die Werte, erzeugt Überschriften und nennt ungelöste
 Spaltenmehrdeutigkeit. Bei Standard-OCR bleibt der Legacy-Pfad zum Vergleich unverändert.
 
 `PDFAdapter` koordiniert die verifizierte PDF-Kopie, Seitenbudgets und OCR.
+`PDFAnnotations` liest begrenzt Kommentare, Markierungen und Linkaktionen aus
+dieser privaten Kopie. Eindeutige digitale Textbezüge ergeben Inline-Links,
+sonst bleiben sichere Ziele separate Seitenanmerkungen. Rohwerte schützen
+Rich-Text-Inhalte und Datumsangaben vor unbeabsichtigter Interpretation;
+Popup-Verweise müssen beidseitig und eindeutig passen. Detailzuordnungen tragen
+Seite und Anmerkungsnummer. `DocumentLinkTarget` prüft erlaubte externe Ziele
+für PDF und Präsentationen gemeinsam; der Renderer maskiert Linksyntax separat.
+PDF-Rasterung blendet Annotationen pro Aufruf aus und stellt den Displayzustand
+auch bei Fehlern wieder her.
+
 `PDFImageResources` durchsucht begrenzt lokale Bild-/Formressourcen als Hinweis
 auf gemischte Seiten. `PDFTextLayout` rekonstruiert geprüfte Textpositionen und Schriftgrößen,
 ordnet zwei Spalten und bereinigt auf Wunsch wiederkehrende Ränder und

@@ -28,7 +28,6 @@ Kurzbefehle reichen die jeweils passenden Optionen weiter.
 
 ### Kommentare, Änderungen und Links
 
-- PDF-Hervorhebungen, Kommentare und Linkziele mit Seitenbezug übernehmen.
 
 ### Konvertierungsprofile
 

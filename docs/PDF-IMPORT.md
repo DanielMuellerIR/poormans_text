@@ -4,9 +4,10 @@ Poor Man's Text liest PDF-Dateien ohne Pandoc oder Netzverbindung. Der Adapter
 liest eingebetteten Text mit PDFKit und ergänzt bei Bedarf lokale Vision-OCR.
 Zweispaltigen Text ordnet er nach Positionen; er bildet keine PDF-Seiten nach.
 
-Ein separater [strukturierter OCR-Prototyp](STRUCTURED-OCR.md) untersucht
-Absätze, Listen und Tabellen ab macOS 26. Er wird vom PDF-Import noch nicht
-aufgerufen; seine Vergleichsergebnisse ändern die bestehenden Optionen nicht.
+Die optionale [strukturierte OCR](STRUCTURED-OCR.md) erkennt ab macOS 26
+zusätzlich Absätze, Listen und Tabellen. Standard-OCR bleibt voreingestellt;
+`--ocr-method structured` wählt die strukturierte Erkennung mit diagnostiziertem
+Rückfall auf Standard-OCR.
 
 ## Erkennung und Grenzen
 
@@ -126,7 +127,7 @@ vier Zeichen vor und drei nach dem Trennstrich). Das bleibt eine opt-in Heuristi
 keine Wörterbuchprüfung; echte Bindestrichwörter können betroffen sein.
 
 `--pdf-layout legacy` erhält die bisherige PDFKit-/OCR-Extraktion als Vergleich.
-Ohne weitere Optionen bleibt ihre Ausgabe bytegleich zur früheren CLI, inklusive
+Bei Seiten ohne Anmerkungen und ohne OCR bleibt ihre Ausgabe bytegleich zur früheren CLI, inklusive
 ihrer damaligen Rasterorientierung. Spalten- und Randbereinigung wirken nur im
 automatischen Layout. Neue automatische OCR rendert in PDF-Koordinaten; ein
 zusätzlicher Y-Flip hatte Rastertext aufrecht erzeugter PDFs bisher gespiegelt.
@@ -139,6 +140,47 @@ ohne Text, steht im Seitenabschnitt eine sichtbare Leermeldung und der Adapter
 meldet `pdf.pageTextUnavailable`; bei einem Vision-Fehler kommt zusätzlich
 `pdf.ocrFailed`. Jede PDF-Konvertierung meldet außerdem
 `pdf.layoutNotPreserved`.
+
+## Anmerkungen und Hyperlinks
+
+Kommentare, Freitext sowie Hervorhebungen, Unterstreichungen und Durchstreichungen
+werden automatisch als Anmerkungen unter ihrer ursprünglichen Seite ausgegeben.
+Vorhandene Autoren, Anmerkungskennungen und Zeitangaben bleiben erhalten;
+PDF-Datumszeichenfolgen werden als Quellwerte bezeichnet und nicht umgedeutet.
+Ein klar benannter Quellenauszug ist ein Zitat neben dem unveränderten Haupttext.
+Rechteck und Zielpunkt werden in PDF-Seitenkoordinaten mit acht signifikanten
+Stellen angegeben. Verbundene Popup-Darstellungen ohne zusätzliche Inhalte
+werden nicht als zweiter Kommentar ausgegeben; unabhängige Popups bleiben erhalten.
+
+Linkrechtecke werden nur bei eindeutiger digitaler Quellauswahl und eindeutiger
+Fundstelle im Ergebnis zu Inline-Links. Mehrzeilige Bereiche können mehrere
+Linkspannen ergeben. Überlappende Links, wiederholter Text, veränderte Layouttexte
+und reine OCR-Seiten behalten das sichere Ziel als separate Linkanmerkung mit
+Diagnose. OCR erhält keine erfundene Verbindung zwischen Bild und Kommentar.
+Anmerkungsdarstellungen werden beim OCR-Rastern ausgeblendet; sie dürfen nicht
+als zusätzlicher Seitentext erkannt werden. Die Quelldatei wird nie verändert.
+
+Externe Links erlauben nur `https`, `http` und `mailto` ohne Zugangsdaten.
+Interne Ziele und statische Sprünge zur ersten, letzten, nächsten oder vorherigen
+Seite verwenden `pmt-pdf-page-N` für ausgegebene physische Seiten. Ausgeschlossene
+oder fehlende Ziele erzeugen eine Diagnose und keinen toten Link. Die genaue
+Zielposition oder Zoomstufe wird nicht als Markdown-Navigation rekonstruiert.
+Datei-, Druck-, JavaScript- und andere aktive Aktionen werden nicht ausgeführt;
+unsichere Ziele bleiben, soweit lesbar, als inaktiver Quelltext erhalten.
+Kommentare und Metadaten erzeugen keine zusätzlichen Links oder aktives HTML.
+Nur Rich-Text-Quelltext ohne Klartext bleibt wörtlich mit einer Diagnose erhalten.
+Die Vorschau zeigt Links als inaktive beschriftete Spannen; Vergleichssprünge
+verwenden die geprüfte Seite und die Ergebniszuordnung.
+
+Die gewählten Seiten dürfen zusammen höchstens 8.192 Anmerkungsobjekte mit
+8 MiB ausgewertetem Inhalt und 8 MiB Anmerkungsausgabe enthalten. Ein Textinhalt
+ist auf 1 MiB, ein Metadatenfeld auf 65.536 Byte, eine Auswahl auf 65.536 Byte
+und 1.024 Zeilen begrenzt. Höchstens 16.384 geometrische Bereiche sowie 32 MiB
+Popup-Vergleichswerte werden verarbeitet. Nach 512 MiB Fundstellensuche bleiben
+weitere Ziele separat erhalten. Harte Inhaltsgrenzen brechen vor Veröffentlichung
+ab. Das gesamte Markdown bleibt auf 128 MiB begrenzt. Sind rohe Anmerkungsobjekte nicht eindeutig zuzuordnen, bleibt nur der lesbare
+PDFKit-Inhalt mit einer Verlustdiagnose. Unbekannte Typen behalten
+lesbare Inhalte mit einer Diagnose; ihre grafische Erscheinung bleibt eine Grenze.
 
 ## Bewusste Grenzen
 

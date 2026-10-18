@@ -475,6 +475,8 @@ ODM-Masterdokumente behalten ihren eigenen Text und lösen nur
 vorhandene lokale ODT-Abschnitte sicher auf, bevor sie diese in Quellreihenfolge
 zusammenführen.
 
+PDF-Kommentare und Textmarkierungen behalten verfügbare Autoren, Zeiten und Seitenbezüge. Sichere Hyperlinks erscheinen am eindeutig zugeordneten Text oder als separate Anmerkungen; interne Ziele verweisen auf ausgewählte Quellseiten. Nicht unterstützte Aktionen werden diagnostiziert und nie ausgeführt. Details: [PDF-Anmerkungen](docs/PDF-IMPORT.md#anmerkungen-und-hyperlinks).
+
 PDFKit liest eingebetteten PDF-Text. Die Automatik rendert Seiten mit größeren
 Bildressourcen oder weniger als 20 extrahierten Zeichen und liest sie lokal
 mit Vision-OCR. Das Markdown behält sichtbare Seitenabschnitte. Passwortgeschützte PDFs, mehr als 1.000 Seiten
@@ -595,7 +597,7 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.30.0.
+Die aktuelle Version ist 0.31.0.
 
 ## Lizenz
 

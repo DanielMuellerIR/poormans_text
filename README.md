@@ -447,6 +447,8 @@ table or as an escaped TSV code block. Formulas are not calculated; stored
 cell results are used. ODM master documents keep their own text and safely
 resolve only existing local ODT sections before flattening them in source order.
 
+PDF comments and text markings retain available author/date and page references. Safe hyperlinks use uniquely matched text or separate annotations; internal targets use selected source-page anchors. Unsupported actions are diagnosed and never executed. See [PDF annotations](docs/PDF-IMPORT.md#anmerkungen-und-hyperlinks).
+
 PDF uses PDFKit for embedded text. Automatic OCR renders pages with larger
 embedded images or fewer than 20 extracted characters and reads them locally
 with Vision. The Markdown keeps explicit page sections. Password-protected PDFs, more than 1,000 pages, and OCR work above the
@@ -563,7 +565,7 @@ and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compa
 their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current version is 0.30.0.
+The current version is 0.31.0.
 
 ## License
 

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.31.0 — 2026-10-18
+
+- Retain PDF comments and text markings with available author, source dates, page references and excerpts. Preserve rich-text-only annotations literally; distinguish associated popups from independent content.
+- Preserve safe external links at uniquely matched text ranges and map internal destinations or static page jumps to selected source-page anchors. Keep ambiguous links separately and diagnose unsupported or unsafe actions without executing them.
+- Exclude annotation appearances from OCR rasterization, restore private PDF display state, and retain bounded source/result mappings for comparison navigation across the app, CLI and Shortcuts.
+
 ## 0.30.0 — 2026-10-18
 
 - Preserve safe PPTX/PPTM/POTX and ODP hyperlinks across text, tables and notes, including multiple link ranges per paragraph or cell and inherited text-shape defaults.

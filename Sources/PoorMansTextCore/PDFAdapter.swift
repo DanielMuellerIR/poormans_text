@@ -130,8 +130,11 @@ struct PDFAdapter: DocumentConversionAdapter {
         }
 
         let markdown: String
+        var annotationWarnings: [ConversionWarning] = []
         do {
-            markdown = try renderedMarkdown(from: extracted.pages, pageNumbers: extracted.pageNumbers, sourceURL: context.inputURL, isStructured: extracted.isStructured)
+            let annotations = PDFAnnotations(document: document, selectedPages: Set(extracted.pageNumbers))
+            markdown = try renderedMarkdown(from: extracted.pages, pageNumbers: extracted.pageNumbers, sourceURL: context.inputURL, isStructured: extracted.isStructured, annotations: annotations)
+            annotationWarnings = annotations.warnings
         } catch {
             throw ConversionError.invalidInput(
                 context.inputURL,
@@ -154,7 +157,7 @@ struct PDFAdapter: DocumentConversionAdapter {
         return StagedConversionResult(
             markdownRelativePath: markdownName,
             assetRelativePaths: [],
-            warnings: warnings + extracted.diagnostics,
+            warnings: warnings + extracted.diagnostics + annotationWarnings,
             metadata: Self.metadata(of: document)
         )
     }
@@ -518,7 +521,7 @@ struct PDFAdapter: DocumentConversionAdapter {
         try VisionTextRecognizer.recognize(in: rasterImage(in: page, dimensions: dimensions), languages: languages)
     }
 
-    private func rasterImage(in page: PDFPage, dimensions: RasterDimensions) throws -> CGImage {
+    func rasterImage(in page: PDFPage, dimensions: RasterDimensions) throws -> CGImage {
         try ConversionExecution.check()
         let colorSpace = CGColorSpaceCreateDeviceRGB()
         guard let context = CGContext(
@@ -541,6 +544,11 @@ struct PDFAdapter: DocumentConversionAdapter {
         // Warnung (Review-Fund 2026-09-10).
         context.scaleBy(x: dimensions.scale, y: dimensions.scale)
         context.translateBy(x: -dimensions.bounds.minX, y: -dimensions.bounds.minY)
+        // Anmerkungen sind eigene Inhalte, kein zusätzlicher OCR-Seitentext.
+        // PDFKits Darstellung erhält weiterhin Rotation und Box-Transformation.
+        let displayedAnnotations = page.displaysAnnotations
+        page.displaysAnnotations = false
+        defer { page.displaysAnnotations = displayedAnnotations }
         page.draw(with: .mediaBox, to: context)
         guard let image = context.makeImage() else {
             throw PDFAdapterError("the rendered PDF page has no image")
@@ -550,7 +558,7 @@ struct PDFAdapter: DocumentConversionAdapter {
         return image
     }
 
-    private func renderedMarkdown(from pages: [String], pageNumbers: [Int], sourceURL: URL, isStructured: Bool) throws -> String {
+    private func renderedMarkdown(from pages: [String], pageNumbers: [Int], sourceURL: URL, isStructured: Bool, annotations: PDFAnnotations) throws -> String {
         var markdown = ""
         var markdownBytes = 0
         try appendMarkdown(
@@ -559,16 +567,21 @@ struct PDFAdapter: DocumentConversionAdapter {
             byteCount: &markdownBytes
         )
         for (index, text) in pages.enumerated() {
-            let content = text.isEmpty
+            let original = text.isEmpty
                 ? "_No text could be extracted from this page._"
                 : (isStructured ? text : MarkdownEscaping.literalBlock(text))
+            let content = try annotations.render(original, pageNumber: pageNumbers[index])
             let offset = markdownBytes
+            let prefix = "\n\n" + (annotations.hasAnnotations ? "<a id=\"pmt-pdf-page-\(pageNumbers[index])\"></a>\n\n" : "") + "## Page \(pageNumbers[index])\n\n"
             try appendMarkdown(
-                "\n\n## Page \(pageNumbers[index])\n\n\(content)",
+                prefix + content.markdown,
                 to: &markdown,
                 byteCount: &markdownBytes
             )
             ConversionExecution.current?.recording?.record(ConversionLocation(page: pageNumbers[index]), offset: offset, length: markdownBytes - offset)
+            for mapping in content.mappings {
+                ConversionExecution.current?.recording?.record(mapping.location, offset: offset + prefix.utf8.count + mapping.offset, length: mapping.length)
+            }
         }
         try appendMarkdown("\n", to: &markdown, byteCount: &markdownBytes)
         return markdown

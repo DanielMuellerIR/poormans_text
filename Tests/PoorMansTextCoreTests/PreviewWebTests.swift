@@ -147,6 +147,58 @@ import XCTest
         try await waitUntil { missing }
     }
 
+    func testPDFAnnotationsHaveSafeNativePreviewAndExactSourceResultJump() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("PMTPDFPreview-\(UUID())")
+        try FileManager.default.createDirectory(at: root,withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let source = try PDFAnnotationFixture.make(in: root)
+        let result = try DocumentConverter().convert(.init(inputURL: source, options: .init(pdfTextRecognition: .disabled,conversionReport: true)))
+        let text = try String(contentsOf: result.markdownFile,encoding: .utf8)
+        let rendered = RenderedMarkdownPreview.render(text,assets: nil)
+        let location = ConversionLocation(page: 1,note: "Annotation 4")
+        let target = try XCTUnwrap(ComparisonNavigation.target(for: location,mappings: result.sourceMappings))
+        XCTAssertTrue(target.exact)
+        XCTAssertTrue(target.range.text(in: Data(text.utf8))?.contains("COMMENT") == true)
+        let anchor = try XCTUnwrap(rendered.anchor(for: target.range))
+        let snapshot = try ComparisonSourceSnapshot.read(result), sourceRenderer = ComparisonSourceRenderer(snapshot)
+        let pages = try await sourceRenderer.prepare()
+        XCTAssertEqual(pages,2)
+        let sourcePage = try await sourceRenderer.render(try XCTUnwrap(location.page))
+        let secondPage = try await sourceRenderer.render(2)
+        XCTAssertFalse(sourcePage.isEmpty); XCTAssertNotEqual(sourcePage,secondPage)
+        let coordinator = PreviewWebCoordinator(), view = coordinator.makeWebView()
+        view.frame = NSRect(x: 0,y: 0,width: 740,height: 620)
+        coordinator.update(view,rendered: rendered,assets: nil,query: "",request: 0,backwards: false,anchor: nil)
+        try await waitUntil { try await self.value("String(document.querySelectorAll('.preview-link').length)",in: view) == "2" }
+        let active = try await value("String(document.querySelectorAll('a[href],script,iframe,img').length)",in: view)
+        let pageAnchors = try await value("String(!!document.getElementById('pmt-pdf-page-1') && !!document.getElementById('pmt-pdf-page-2'))",in: view)
+        XCTAssertEqual(active,"0"); XCTAssertEqual(pageAnchors,"true")
+        XCTAssertFalse(rendered.hasLiteralHTML); XCTAssertFalse(view.configuration.defaultWebpagePreferences.allowsContentJavaScript)
+        for (name,appearance) in [("light",NSAppearance.Name.aqua),("dark",.darkAqua)] {
+            view.appearance = NSAppearance(named: appearance)
+            for (state,jump) in [("overview",false),("comment",true)] {
+                _ = try await value("window.scrollTo(0,0); 'reset'",in: view)
+                if jump {
+                    coordinator.update(view,rendered: rendered,assets: nil,query: "",request: 0,backwards: false,anchor: anchor.id,anchorRequest: name == "light" ? 1 : 2)
+                    try await waitUntil { try await self.value("String(window.scrollY > 0 && document.getElementById('\(anchor.id)').getBoundingClientRect().top >= 0 && document.getElementById('\(anchor.id)').getBoundingClientRect().bottom <= window.innerHeight)",in: view) == "true" }
+                    let heading = try await value("document.getElementById('\(anchor.id)')?.textContent ?? ''",in: view)
+                    XCTAssertEqual(heading,"Annotation 4")
+                }
+                try await Task.sleep(for: .milliseconds(150))
+                if let path = ProcessInfo.processInfo.environment["PMT_PDF_PREVIEW_DIR"] {
+                    let data: Data = try await withCheckedThrowingContinuation { continuation in
+                        view.takeSnapshot(with: nil) { image,error in
+                            if let error { continuation.resume(throwing: error) }
+                            else if let tiff = image?.tiffRepresentation, let bitmap = NSBitmapImageRep(data: tiff),let png = bitmap.representation(using: .png,properties: [:]) { continuation.resume(returning: png) }
+                            else { continuation.resume(throwing: CocoaError(.fileReadUnknown)) }
+                        }
+                    }
+                    try data.write(to: URL(fileURLWithPath: path).appendingPathComponent("pdf-\(state)-\(name).png"))
+                }
+            }
+        }
+    }
+
     private func value(_ script: String, in view: WKWebView) async throws -> String {
         try await withCheckedThrowingContinuation { continuation in
             view.evaluateJavaScript(script) { value, error in

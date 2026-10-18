@@ -227,10 +227,10 @@ public struct RenderedMarkdownPreview: Sendable {
                 }
             }
         }
-        // Nur exakt leere, von EPUB-/Präsentationsimportern erzeugbare Anker.
+        // Nur exakt leere, von den Dokumentimportern erzeugbare Anker.
         func generatedImportAnchor(_ raw: String) -> String? {
             guard raw.utf8.count <= 128,
-                  raw.range(of: #"^<a id="pmt-(?:epub-chapter-[1-9][0-9]*(?:-anchor-[1-9][0-9]*)?|slide-[1-9][0-9]*)"></a>$"#, options: .regularExpression) != nil else { return nil }
+                  raw.range(of: #"^<a id="pmt-(?:epub-chapter-[1-9][0-9]*(?:-anchor-[1-9][0-9]*)?|slide-[1-9][0-9]*|pdf-page-[1-9][0-9]*)"></a>$"#, options: .regularExpression) != nil else { return nil }
             return String(raw.dropFirst(7).dropLast(6))
         }
         func plainText(_ node: any Markup, depth: Int) -> String {

@@ -173,4 +173,16 @@ final class ShortcutConversionTests: XCTestCase {
         intent.destinationFolder = IntentFile(fileURL: destination, type: .folder)
         return intent
     }
+
+    func testPDFAnnotationsReachIntentWithSelectedPagesAndTextbundle() async throws {
+        let source = try PDFAnnotationFixture.make(in: root), before = try Data(contentsOf: source)
+        var intent = configured(document: IntentFile(fileURL: source))
+        intent.pdfPages = "1"; intent.textbundle = true; intent.pdfOCR = .disabled
+        let result = try await intent.perform()
+        let output = try resultFolder(result.value)
+        let markdown = try String(contentsOf: output.appendingPathComponent("text.md"),encoding: .utf8)
+        XCTAssertTrue(markdown.contains("COMMENT\\_BODY")); XCTAssertTrue(markdown.contains(MarkdownEscaping.linkDestination(PDFAnnotationFixture.encodedWeb)))
+        XCTAssertFalse(markdown.contains("#pmt-pdf-page-2")); XCTAssertFalse(markdown.contains("BODY_TWO"))
+        XCTAssertEqual(try Data(contentsOf: source), before)
+    }
 }

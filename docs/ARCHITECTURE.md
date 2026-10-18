@@ -567,7 +567,7 @@ inzwischen abweichende Originaldatei weiterhin.
 Generationskennung. `AppModel` kopiert Basisoptionen pro Einzelauftrag und hält die
 Auswahl nur für einen bewussten Wiederholungsversuch desselben Dokuments. Neue
 Einzel-, Batch- und Dienstimporte verwenden wieder ihre vollständigen Eingaben.
-Die Kurzbefehle-Aktion bildet optionale Parameter auf dieselben typisierten
+Beide Kurzbefehle-Aktionen bilden Parameter auf dieselben typisierten
 Core-Auswahlen ab; widersprüchliche Formatfamilien werden vor dem Import abgewiesen.
 
 ## Benannte Konvertierungsprofile
@@ -599,8 +599,15 @@ Neustart ein bewusstes Neuladen. `AppProfileInvocation` friert Profil und wirksa
 Werte pro Auftrag ein; gebundene Anfragen werden außerhalb des Main Actors
 aufgelöst und tragen ihre Quellidentität bis in den Kern. Mehrfach-/Dienstaufrufe
 übernehmen keine Dokumentbindungen. `ShortcutProfileQuery` liefert lokale
-AppEntity-Namen. Optionale Intent-Werte unterscheiden unbelegt von explizit false;
-so bleiben Profilvorrang und die bisherigen Defaults eindeutig.
+AppEntity-Namen.
+
+`ConvertWithProfileIntent` ergänzt den bestehenden Konvertierungsadapter um
+explizite `Profile Value / On / Off`-Zustände für Ja/Nein-Optionen. Kurzbefehle
+initialisiert optionale Bool-Schalter mit `false`, weshalb Swift-Optionalität
+allein keine Profilübernahme sicherstellt. Der neue Adapter übersetzt die drei
+Zustände in `nil / true / false` und delegiert an `ConvertDocumentIntent`;
+Profilauflösung, Quellbindung, lokale Freigaben und atomare Ausgabe bleiben dort
+zentral. Die bisherige Aktion behält ihre Kennung und Parameter.
 
 Reguläre MBOX-Dateien verwenden `MBOXReader`, `MBOXAdapter`, die vorhandene
 MIME-/Mail-Engine und den gemeinsamen Sammlungsvertrag. Varianten, Ressourcen-

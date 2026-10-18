@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.37.1 — 2026-10-18
+
+- Add a dedicated Shortcuts profile action with explicit Profile Value, On and Off choices. Fresh native Shortcuts actions no longer replace inherited Boolean profile settings with unrequested false values.
+- Keep the existing action and parameter identifiers compatible with saved workflows; both actions use the same conversion, source binding and local path checks.
+
 ## 0.37.0 — 2026-10-18
 
 - Preserve bounded ENEX resource records byte for byte, validate canonical Base64 and raster/PDF types, and retain duplicates, alternate payloads and recognition source text. Use ordinal asset paths independent of export filenames; keep active or unknown types as binary attachments.

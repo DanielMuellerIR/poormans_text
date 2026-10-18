@@ -381,7 +381,6 @@
 "A profile name must contain 1 through 128 UTF-8 bytes, without path separators, control characters or surrounding whitespace." = "Ein Profilname muss 1 bis 128 UTF-8-Byte enthalten, ohne Pfadtrenner, Steuerzeichen oder umgebende Leerzeichen.";
 "The profile content selection belongs to different document bytes. Clear it explicitly or choose the bound document." = "Die Inhaltsauswahl des Profils gehört zu anderen Dokumentbytes. Verwirf sie ausdrücklich oder wähle das gebundene Dokument.";
 
-"Convert one document into a new folder or Textbundle, including its images. Existing results are never overwritten. The result is a list: the complete output folder's file URL first, followed by any conversion warnings. Empty option values use the selected profile or the existing defaults; explicit values override the profile." = "Wandelt ein Dokument einschließlich seiner Bilder in einen neuen Ordner oder ein Textbundle um. Vorhandene Ergebnisse werden nie überschrieben. Die Ergebnisliste enthält zuerst die lokale Datei-URL des vollständigen Ausgabeordners und danach mögliche Warnungen. Leere Optionswerte übernehmen das gewählte Profil oder die bisherigen Standards; gesetzte Werte überschreiben das Profil.";
 
 "Example profile added. Choose it in the profile menu." = "Beispielprofil hinzugefügt. Wähle es im Profilmenü aus.";
 
@@ -389,3 +388,11 @@
 "MBOX From quoting was retained because its original variant cannot be identified reliably." = "Die MBOX-Quotierung von From-Zeilen wurde erhalten, weil die ursprüngliche Variante nicht zuverlässig erkennbar ist.";
 
 "note" = "Notiz";
+"Convert one document into a new folder or Textbundle, including its images. Existing results are never overwritten. The result is a list: the complete output folder's file URL first, followed by any conversion warnings. For reliable profile inheritance in Shortcuts, use Convert Document with Profile." = "Wandelt ein Dokument einschließlich seiner Bilder in einen neuen Ordner oder ein Textbundle um. Vorhandene Ergebnisse werden nie überschrieben. Die Ergebnisliste enthält zuerst die lokale Datei-URL des vollständigen Ausgabeordners und danach mögliche Warnungen. Für zuverlässige Profilübernahme in Kurzbefehle dient Dokument mit Profil umwandeln.";
+"Convert Document with Profile" = "Dokument mit Profil umwandeln";
+"Convert with Profile" = "Mit Profil umwandeln";
+"Profile option" = "Profiloption";
+"Profile Value" = "Profilwert";
+"On" = "Ein";
+"Convert one document using a saved conversion profile. Profile Value keeps each saved setting; On and Off explicitly override it. The destination folder is required. Existing results are never overwritten. The result is a list: the output folder URL followed by conversion warnings." = "Wandelt ein Dokument mit einem gespeicherten Konvertierungsprofil um. Profilwert übernimmt die gespeicherte Einstellung; Ein und Aus überschreiben sie ausdrücklich. Der Zielordner ist erforderlich. Vorhandene Ergebnisse werden nie überschrieben. Die Ergebnisliste enthält zuerst die lokale Ausgabeordner-URL und danach mögliche Warnungen.";
+"Convert ${document} into ${destinationFolder} using ${profile}" = "${document} mit ${profile} nach ${destinationFolder} umwandeln";

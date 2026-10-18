@@ -159,11 +159,54 @@ final class AppProfileTests: XCTestCase {
             XCTAssertEqual(FileManager.default.fileExists(atPath: output.appendingPathComponent("conversion-report.json").path), !override)
         }
     }
+    func testProfileActionPreservesDefaultsAndExplicitOverridesInRealOutput() async throws {
+        let source = try csv(), original = try Data(contentsOf: source)
+        try store.save(ConversionProfile(name: "Native defaults", options: .init(
+            spreadsheetRendering: .tabSeparated, imageTextRecognition: .disabled,
+            frontmatter: true, outputLayout: .textbundle, pdfRemoveHeadersFooters: true,
+            pdfDehyphenate: true, sourceMapping: true, conversionReport: true)))
+        for override in [false, true] {
+            let parent = root.appendingPathComponent(override ? "native-overridden" : "native-inherited")
+            try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: false)
+            var intent = ConvertWithProfileIntent(); intent.profileStoreOverride = store
+            intent.profile = ShortcutProfile(name: "Native defaults")
+            intent.document = IntentFile(fileURL: source); intent.destinationFolder = IntentFile(fileURL: parent)
+            if override {
+                intent.textbundle = .disabled; intent.frontmatter = .disabled
+                intent.sourceMapping = .disabled; intent.imageOCR = .enabled
+                intent.removeHeadersFooters = .disabled; intent.dehyphenate = .disabled
+                intent.spreadsheetFormat = .table
+            }
+            let result = try await intent.perform()
+            let output = try XCTUnwrap(URL(string: XCTUnwrap(result.value?.first)))
+            XCTAssertEqual(output.lastPathComponent, override ? "values-markdown" : "values.textbundle")
+            let report = try JSONDecoder().decode(ConversionReport.self, from: Data(contentsOf: output.appendingPathComponent("conversion-report.json")))
+            XCTAssertEqual(report.options.frontmatter, !override)
+            XCTAssertTrue(report.options.sourceMapping) // Berichte aktivieren ihre erforderliche Quellzuordnung unabhängig vom Schalter.
+            XCTAssertEqual(report.options.pdfRemoveHeadersFooters, !override)
+            XCTAssertEqual(report.options.pdfDehyphenate, !override)
+            XCTAssertEqual(report.options.imageTextRecognition, override ? .enabled : .disabled)
+            let text = try String(contentsOf: output.appendingPathComponent(override ? "values.md" : "text.md"), encoding: .utf8)
+            XCTAssertTrue(text.contains(override ? "| PROFILEBODY | 42 |" : "PROFILEBODY\t42"))
+        }
+        let parent = root.appendingPathComponent("native-no-report")
+        try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: false)
+        var intent = ConvertWithProfileIntent(); intent.profileStoreOverride = store
+        intent.profile = ShortcutProfile(name: "Native defaults")
+        intent.document = IntentFile(fileURL: source); intent.destinationFolder = IntentFile(fileURL: parent)
+        intent.conversionReport = .disabled
+        let result = try await intent.perform()
+        let output = try XCTUnwrap(URL(string: XCTUnwrap(result.value?.first)))
+        XCTAssertEqual(output.lastPathComponent, "values.textbundle")
+        XCTAssertFalse(FileManager.default.fileExists(atPath: output.appendingPathComponent("conversion-report.json").path))
+        XCTAssertEqual(try Data(contentsOf: source), original)
+    }
+
     func testIntentBindingMissingProfileAndLocalPermissionFailBeforeOutput() async throws {
         let source = try PDFAnnotationFixture.make(in: root), parent = root.appendingPathComponent("intent")
         try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: false)
         try store.save(ConversionProfile(name: "Bound", options: .init(pdfTextRecognition: .disabled, pdfPages: IndexSelection("2")), boundSource: source))
-        var intent = ConvertDocumentIntent(); intent.profileStoreOverride = store
+        var intent = ConvertWithProfileIntent(); intent.profileStoreOverride = store
         intent.profile = ShortcutProfile(name: "Bound"); intent.document = IntentFile(fileURL: source); intent.destinationFolder = IntentFile(fileURL: parent)
         let value = try await intent.perform(); let output = try XCTUnwrap(URL(string: XCTUnwrap(value.value?.first)))
         XCTAssertFalse(try String(contentsOf: output.appendingPathComponent("review.md"), encoding: .utf8).contains("BODY\\_ONE"))

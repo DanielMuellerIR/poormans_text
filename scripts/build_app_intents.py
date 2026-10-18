@@ -84,7 +84,7 @@ def main():
             ], check=True)
             constants = [constant_file]
             extracted = [item for path in constants for item in json.loads(path.read_text())]
-            if not any(item.get("typeName") == "PoorMansTextAppSupport.ConvertDocumentIntent" for item in extracted):
+            if not {"PoorMansTextAppSupport.ConvertDocumentIntent", "PoorMansTextAppSupport.ConvertWithProfileIntent"}.issubset({item.get("typeName") for item in extracted}):
                 raise RuntimeError("Compiler metadata does not contain the conversion intent")
             values = root / (architecture + ".txt")
             values.write_text("".join(str(path) + "\n" for path in constants))
@@ -101,7 +101,7 @@ def main():
             metadata = target / "Metadata.appintents"
             files = {str(item.relative_to(metadata)): json.loads(item.read_text()) for item in metadata.rglob("*") if item.is_file()}
             actions = files.get("extract.actionsdata", {}).get("actions", {})
-            if "ConvertDocumentIntent" not in actions:
+            if not {"ConvertDocumentIntent", "ConvertWithProfileIntent"}.issubset(actions):
                 raise RuntimeError("Apple metadata does not contain the conversion intent")
             comparable = comparable_metadata(files)
             if baseline is not None and comparable != baseline:

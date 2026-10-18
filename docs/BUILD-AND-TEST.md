@@ -55,11 +55,16 @@ prüft die Konvertieraktion und vergleicht die Metadaten beider Architekturen.
 Nur die Reihenfolge der zulässigen Eingabetypen wird dabei normalisiert.
 
 `Contents/Resources/Metadata.appintents` wird vor der Signatur in das Bundle
-übernommen. `scripts/verify_bundle.sh` verlangt die Aktion, ihre beiden
+übernommen. `scripts/verify_bundle.sh` verlangt beide Aktionen, ihre beiden
 Dateiparameter, die acht Inhaltsauswahlparameter, die OCR-Methodenwahl, den DOCX-Änderungsmodus, die optionale Profilentität mit
-Abfrage sowie den App-Kurzbefehl. Wiederverwendbare Optionsparameter sind optional
-ohne Metadatendefault, damit unbelegte Werte ein Profil übernehmen können; die
-Adaptertests sichern die bisherigen Defaults ohne Profil.
+Abfrage sowie beide App-Kurzbefehle. Die Profil-Aktion verlangt ein Profil und
+Ja/Nein-Optionen mit dem Default `fromProfile` sowie den Fällen `enabled` und
+`disabled`. Native Kurzbefehle initialisieren optionale Bool-Schalter trotzdem
+mit `false`; die eigene Aktion verhindert deren unbeabsichtigten Vorrang. Die
+bisherige Aktion und ihre Parameter bleiben für gespeicherte Abläufe kompatibel.
+Adaptertests prüfen echte Ausgaben mit geerbten und ausdrücklich überschriebenen
+Werten. Die native Prüfung muss zusätzlich eine frisch angelegte Profil-Aktion
+mit unberührten Optionen und mit ausdrücklichem Aus prüfen.
 Ein Build ohne diese Metadaten bricht ab,
 statt eine in Kurzbefehle unsichtbare Aktion auszuliefern. Lokalisierungen liegen
 in `Localizable.strings` und `AppShortcuts.strings` für Englisch und Deutsch.

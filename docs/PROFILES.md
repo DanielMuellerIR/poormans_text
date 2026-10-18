@@ -36,13 +36,18 @@ Dokumentbindungen ebenfalls ab.
 
 ## Kurzbefehle
 
-Die Aktion **Dokument in Markdown umwandeln** bietet die optionale Auswahl eines
-Konvertierungsprofils aus demselben lokalen Speicher. Unbelegte Optionsparameter
-übernehmen Profilwerte; gesetzte Werte, einschließlich `false`, haben Vorrang.
-Ohne Profil bleiben die bisherigen Konvertierungsdefaults erhalten. Bereits
-in älteren Kurzbefehlen gespeicherte Werte sind explizite Angaben; entferne einen
-Wert, wenn stattdessen das Profil gelten soll. Inhaltsauswahlen und das ausdrückliche
+Die Aktion **Dokument mit Profil umwandeln** verlangt ein gespeichertes Profil
+und übernimmt dessen Einstellungen. Ja/Nein-Optionen bieten **Profilwert**, **Ein**
+und **Aus**. Unberührte Optionen stehen auf **Profilwert**; **Ein** und **Aus**
+überschreiben auch einen gegenteiligen gespeicherten Wert. Unbelegte Text- und
+Formatoptionen übernehmen ebenfalls das Profil. Inhaltsauswahlen und das ausdrückliche
 Verwerfen einer Profilbindung behalten den dokumentierten Quellschutz.
+
+Die bisherige Aktion **Dokument in Markdown umwandeln** bleibt mit ihren
+Parameterkennungen für vorhandene Kurzbefehle erhalten. Kurzbefehle initialisiert
+ihre Ja/Nein-Schalter mit `false`, auch wenn Swift sie als optional beschreibt.
+Deshalb eignet sich für neue profilierte Abläufe die eigene Profil-Aktion.
+Gespeicherte Werte älterer Aktionen bleiben explizite Angaben.
 
 Der gewählte Kurzbefehle-Zielordner ist weiterhin verpflichtend und hat Vorrang
 vor einem lokalen Profilziel. Lokale Profilpfade verlangen zusätzlich die Option

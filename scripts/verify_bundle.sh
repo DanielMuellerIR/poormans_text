@@ -68,6 +68,26 @@ try:
             == [{"string": {"wrapper": "public.folder"}}]
         and any(item["actionIdentifier"] == "ConvertDocumentIntent" for item in metadata["autoShortcuts"])
     )
+    profile_action = metadata["actions"]["ConvertWithProfileIntent"]
+    profile_values = {parameter["name"]: parameter for parameter in profile_action["parameters"]}
+    boolean_options = {"textbundle", "frontmatter", "imageOCR", "removeHeadersFooters", "dehyphenate", "sourceMapping", "conversionReport"}
+    def profile_default(name):
+        values = profile_values[name]["typeSpecificMetadata"]
+        return dict(zip(values[::2], values[1::2])).get("LNValueTypeSpecificMetadataKeyDefaultValue")
+    choices = next(item for item in metadata["enums"] if item["identifier"] == "ShortcutProfileBooleanChoice")
+    valid = valid and (
+        profile_action["fullyQualifiedTypeName"] == "PoorMansTextAppSupport.ConvertWithProfileIntent"
+        and profile_action["isDiscoverable"] is True
+        and profile_action["outputType"] == action["outputType"]
+        and set(parameters) == set(profile_values)
+        and profile_values["profile"]["isOptional"] is False
+        and all(profile_values[name]["isOptional"] is False
+                and profile_default(name) == {"string": {"wrapper": "fromProfile"}}
+                for name in boolean_options)
+        and {item["identifier"] for item in choices["cases"]} == {"fromProfile", "enabled", "disabled"}
+        and profile_values["destinationFolder"]["typeSpecificMetadata"] == parameters["destinationFolder"]["typeSpecificMetadata"]
+        and any(item["actionIdentifier"] == "ConvertWithProfileIntent" for item in metadata["autoShortcuts"])
+    )
     if not valid:
         raise ValueError("conversion action contract does not match")
 except (OSError, ValueError, KeyError, TypeError) as error:

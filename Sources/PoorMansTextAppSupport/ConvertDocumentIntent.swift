@@ -47,7 +47,7 @@ public enum ShortcutNotesMode: String, AppEnum {
 
 public struct ConvertDocumentIntent: AppIntent {
     public static let title: LocalizedStringResource = "Convert Document to Markdown"
-    public static let description = IntentDescription("Convert one document into a new folder or Textbundle, including its images. Existing results are never overwritten. The result is a list: the complete output folder's file URL first, followed by any conversion warnings. Empty option values use the selected profile or the existing defaults; explicit values override the profile.")
+    public static let description = IntentDescription("Convert one document into a new folder or Textbundle, including its images. Existing results are never overwritten. The result is a list: the complete output folder's file URL first, followed by any conversion warnings. For reliable profile inheritance in Shortcuts, use Convert Document with Profile.")
     public static let openAppWhenRun = false
 
     @Parameter(title: "Document") public var document: IntentFile
@@ -171,6 +171,7 @@ public struct ConvertDocumentIntent: AppIntent {
 public struct DocumentShortcuts: AppShortcutsProvider {
     public static var appShortcuts: [AppShortcut] {
         AppShortcut(intent: ConvertDocumentIntent(), phrases: ["Convert a document with \(.applicationName)"], shortTitle: "Convert Document", systemImageName: "doc.text")
+        AppShortcut(intent: ConvertWithProfileIntent(), phrases: ["Convert a document using a profile with \(.applicationName)"], shortTitle: "Convert with Profile", systemImageName: "doc.text")
     }
 }
 

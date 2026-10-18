@@ -30,7 +30,7 @@ Schrift, Anordnung oder TextKit-spezifische Eigenschaft.
 
 Nach der Konvertierung öffnet **In Fastra öffnen** das Markdown direkt in Fastra. **Markdown öffnen** verwendet die Standard-App. Fastra muss installiert sein.
 
-Benannte Profile lassen sich in der App verwalten und in Kurzbefehle auswählen. Leere Kurzbefehle-Optionen übernehmen Profilwerte; explizite Angaben haben Vorrang. Einzelheiten stehen im [Profilvertrag](docs/PROFILES.md).
+Benannte Profile lassen sich in der App verwalten und in der Kurzbefehle-Aktion **Dokument mit Profil umwandeln** auswählen. **Profilwert / Ein / Aus** übernehmen gespeicherte Einstellungen oder überschreiben sie ausdrücklich. Einzelheiten stehen im [Profilvertrag](docs/PROFILES.md).
 
 ## Ausgabe
 
@@ -605,7 +605,7 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.37.0.
+Die aktuelle Version ist 0.37.1.
 
 ## Lizenz
 

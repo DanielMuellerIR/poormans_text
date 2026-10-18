@@ -28,7 +28,7 @@ TextKit-specific attribute.
 
 After conversion, choose **Open in Fastra** to open the Markdown directly in Fastra, or **Open Markdown** to use the default app. Fastra must be installed.
 
-Named profiles can be managed in the app and selected in Shortcuts. Empty Shortcuts options inherit profile values; explicit values take precedence. See the [profile contract](docs/PROFILES.md).
+Named profiles can be managed in the app and selected in the **Convert Document with Profile** Shortcuts action. Its **Profile Value / On / Off** choices preserve saved settings or explicitly override them. See the [profile contract](docs/PROFILES.md).
 
 ## Output
 
@@ -573,7 +573,7 @@ and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compa
 their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current version is 0.37.0.
+The current version is 0.37.1.
 
 ## License
 

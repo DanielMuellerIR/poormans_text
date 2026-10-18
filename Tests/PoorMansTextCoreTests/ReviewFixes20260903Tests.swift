@@ -210,6 +210,13 @@ final class ReviewFixes20260903Tests: XCTestCase {
         let fileService = try XCTUnwrap(services.first { $0["NSSendFileTypes"] != nil })
         let sendFileTypes = Set(try XCTUnwrap(fileService["NSSendFileTypes"] as? [String]))
 
+        // Ohne Kontext registriert macOS Dienste, bietet sie jedoch nicht
+        // automatisch im Menü an. Der Port gehört zum App-Dienstanbieter.
+        for service in services {
+            XCTAssertNotNil(service["NSRequiredContext"] as? [String: Any])
+            XCTAssertEqual(service["NSPortName"] as? String, plist["CFBundleName"] as? String)
+        }
+
         // Jeder Dokumenttyp, den die App öffnet, muss auch im Finder-Dienst
         // stehen; nur `public.folder` gehört allein dem Dienst.
         XCTAssertEqual(contentTypes.subtracting(sendFileTypes), [])

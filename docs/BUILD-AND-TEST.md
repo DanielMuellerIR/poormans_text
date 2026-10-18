@@ -338,3 +338,14 @@ Quellreferenzen, Identitätskonflikte, Budgets und atomaren Abbruch ab.
 Vorschau, Dienst und Intent-Ausgabe. `MBOXReaderTests` ergänzt Paketgrenzen,
 Deskriptorbindung und den ausdrücklich benannten Postfachhash. Native Finder-/
 Kurzbefehle-Läufe und eine Sichtprüfung bleiben zusätzlich erforderlich.
+
+Die Systemdienste brauchen einen expliziten `NSPortName` passend zum App-Namen
+und `NSRequiredContext` (hier ein leeres Dictionary). Ohne den Kontext kann macOS
+den Dienst registrieren, ohne ihn im Finder-Menü anzubieten. Siehe Apples
+[Services Properties](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/SysServices/Articles/properties.html).
+Die native Prüfung muss den Menüeintrag mit einer markierten Datei und einem
+Apple-Mail-Export tatsächlich ausführen; ein Aufruf des Dienstanbieters im Unit-Test
+belegt die Registrierung allein nicht.
+Die App aktualisiert den macOS-Dienstkatalog nach dem Registrieren des Anbieters,
+damit geänderte Definitionen nach einem App-Tausch ohne neue Anmeldung verfügbar
+werden.

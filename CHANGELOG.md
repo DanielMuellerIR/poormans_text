@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.40.1 — 2026-10-18
+
+- Advertise the system services with an explicit application port and an empty required context, so macOS presents the file conversion service in Finder instead of merely registering it. Refresh the service catalog when the app starts after an update.
+
 ## 0.40.0 — 2026-10-18
 
 - Read exported Apple Mail `.mbox` packages through their direct `mbox` file, without traversing other package contents or following internal links. Retain the regular MBOX reader, limits, ordinal message paths and atomic output protection.

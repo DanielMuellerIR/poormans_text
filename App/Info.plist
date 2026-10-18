@@ -412,9 +412,9 @@
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>0.40.0</string>
+    <string>0.40.1</string>
     <key>CFBundleVersion</key>
-    <string>80</string>
+    <string>82</string>
     <key>LSApplicationCategoryType</key>
     <string>public.app-category.utilities</string>
     <key>LSMinimumSystemVersion</key>
@@ -432,6 +432,10 @@
             </dict>
             <key>NSMessage</key>
             <string>convertFilesToMarkdown</string>
+            <key>NSPortName</key>
+            <string>Poor Man's Text</string>
+            <key>NSRequiredContext</key>
+            <dict/>
             <key>NSSendFileTypes</key>
             <array>
                 <string>org.openxmlformats.spreadsheetml.sheet</string>
@@ -477,6 +481,10 @@
             </dict>
             <key>NSMessage</key>
             <string>convertRichTextToMarkdown</string>
+            <key>NSPortName</key>
+            <string>Poor Man's Text</string>
+            <key>NSRequiredContext</key>
+            <dict/>
             <key>NSSendTypes</key>
             <array>
                 <string>com.apple.flat-rtfd</string>

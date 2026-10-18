@@ -1,3 +1,4 @@
+import AppKit
 import PoorMansTextAppSupport
 import SwiftUI
 
@@ -32,6 +33,8 @@ struct PoorMansTextDesktopApp: App {
                         let provider = ServicesProvider(model: model)
                         services = provider
                         NSApp.servicesProvider = provider
+                        // Nach einem App-Tausch den Dienstkatalog ohne neue Anmeldung aktualisieren.
+                        NSUpdateDynamicServices()
                     }
                 }
         }

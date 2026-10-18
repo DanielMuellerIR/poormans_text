@@ -39,6 +39,13 @@ enum MBOXReader {
     }
 
     static func read(_ url: URL, consume: (Message) throws -> Void) throws {
+        try MBOXSource.withMailbox(at: url) { source, package in
+            if package { ConversionExecution.current?.recording?.activateMember(at: source.sourceURL, path: "mbox") }
+            try read(source, consume: consume)
+        }
+    }
+
+    static func read(_ source: VerifiedFile, consume: (Message) throws -> Void) throws {
         var line = Data()
         var message = Data()
         var envelope: String?
@@ -113,7 +120,7 @@ enum MBOXReader {
             previousWasEmpty = content.isEmpty
         }
 
-        try VerifiedFileStaging.withVerifiedSource(at: url, maximumBytes: maximumArchiveBytes, describedAs: "the MBOX archive") { source, _ in
+        do {
             _ = try source.readChunks(maximumBytes: maximumArchiveBytes, chunkSize: 65_536,
                 budgetExceeded: { ImportFailure("the MBOX exceeds its archive size limit") }) { bytes in
                 var start = 0

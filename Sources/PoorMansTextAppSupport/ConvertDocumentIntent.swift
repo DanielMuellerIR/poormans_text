@@ -50,7 +50,7 @@ public struct ConvertDocumentIntent: AppIntent {
     public static let description = IntentDescription("Convert one document into a new folder or Textbundle, including its images. Existing results are never overwritten. The result is a list: the complete output folder's file URL first, followed by any conversion warnings. For reliable profile inheritance in Shortcuts, use Convert Document with Profile.")
     public static let openAppWhenRun = false
 
-    @Parameter(title: "Document") public var document: IntentFile
+    @Parameter(title: "Document", supportedTypeIdentifiers: ["public.data", "com.apple.package", "com.apple.mail.mbox"]) public var document: IntentFile
     @Parameter(title: "Destination Folder", supportedTypeIdentifiers: ["public.folder"])
     public var destinationFolder: IntentFile
     @Parameter(title: "Textbundle") public var textbundle: Bool?

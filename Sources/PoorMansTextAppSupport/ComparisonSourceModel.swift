@@ -35,7 +35,8 @@ import PoorMansTextCore
         stop()
         state = .loading; count = 0; number = 1; image = nil; imageUnavailable = false
         let token = generation
-        watcher = ComparisonSourceWatcher(url: result.inputURL) { [weak self] in
+        let watchedURL = result.sourceIdentity?.memberPath == "mbox" ? result.inputURL.appendingPathComponent("mbox") : result.inputURL
+        watcher = ComparisonSourceWatcher(url: watchedURL) { [weak self] in
             Task { @MainActor [weak self] in
                 guard let self, self.generation == token else { return }
                 self.invalidate()

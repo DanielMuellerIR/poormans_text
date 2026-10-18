@@ -452,7 +452,7 @@ public struct DocumentConverter: Sendable {
                 throw ConversionError.invalidInput(inputURL, format: format, reason: "The source changed or could not be verified. Read the content overview again.")
             }
             guard let hash = expected.sha256, let count = expected.byteCount,
-                  actual.sha256 == hash, actual.byteCount == count else {
+                  actual.sha256 == hash, actual.byteCount == count, actual.memberPath == expected.memberPath else {
                 throw ConversionError.invalidInput(inputURL, format: format, reason: "The source changed or could not be verified. Read the content overview again.")
             }
             sourceIdentity = actual

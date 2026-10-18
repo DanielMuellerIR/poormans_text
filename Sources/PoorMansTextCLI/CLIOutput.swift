@@ -186,12 +186,13 @@ struct FormatsJSONResponse: Encodable {
         let format: String
         let extensions: [String]
         let container: String
+        let containers: [String]
         let requires: [String]
         let available: Bool
         let unavailableReason: String?
 
         enum CodingKeys: String, CodingKey {
-            case format, extensions, container, requires, available, unavailableReason
+            case format, extensions, container, containers, requires, available, unavailableReason
         }
 
         func encode(to encoder: any Encoder) throws {
@@ -199,6 +200,7 @@ struct FormatsJSONResponse: Encodable {
             try container.encode(format, forKey: .format)
             try container.encode(extensions, forKey: .extensions)
             try container.encode(self.container, forKey: .container)
+            try container.encode(containers, forKey: .containers)
             try container.encode(requires, forKey: .requires)
             try container.encode(available, forKey: .available)
             if let unavailableReason {
@@ -230,6 +232,7 @@ func writeFormats(_ catalog: [FormatAvailability], json: Bool) {
                     format: $0.format.format.rawValue,
                     extensions: $0.format.fileExtensions,
                     container: $0.format.containerKind.rawValue,
+                    containers: $0.format.containerKinds.map(\.rawValue),
                     requires: $0.format.requiredTools.map(\.rawValue),
                     available: $0.isAvailable,
                     unavailableReason: $0.unavailableReason
@@ -254,7 +257,7 @@ func writeFormats(_ catalog: [FormatAvailability], json: Bool) {
         (
             entry.format.format.rawValue,
             entry.format.fileExtensions.map { ".\($0)" }.joined(separator: " "),
-            entry.format.containerKind.rawValue,
+            entry.format.containerKinds.map(\.rawValue).joined(separator: "/"),
             entry.format.requiredTools.map(\.rawValue).joined(separator: "+"),
             entry.isAvailable ? "available" : "unavailable (\(entry.unavailableReason ?? "unknown"))"
         )

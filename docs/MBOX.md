@@ -1,6 +1,6 @@
-# Reguläre MBOX-Dateien
+# MBOX-Dateien und Apple-Mail-Exporte
 
-Der Kern liest reguläre MBOX-Dateien als eine geordnete Sammlung. `index.md`
+Der Kern liest reguläre MBOX-Dateien und exportierte Apple-Mail-`.mbox`-Pakete als eine geordnete Sammlung. `index.md`
 beziehungsweise `text.md` ist die Übersicht; jede Nachricht besitzt einen
 nummerierten Unterordner mit Markdown, Bildern und Anhängen. Gleiche Betreffzeilen,
 Message-IDs und Anhangsnamen bleiben getrennt. Der [Sammlungsvertrag](COLLECTIONS.md)
@@ -16,7 +16,9 @@ Alle von der bestehenden Mail-Engine lesbaren Kopfzeilen und MIME-Inhalte werden
 Kopfzeilentabelle. Metadaten stammen aus den Nachrichtenheadern; die Quellposition
 `message` bezeichnet die laufende Nachrichtennummer ab 1, auch bei fehlenden oder
 doppelten Message-IDs. Der Quellhash bezieht sich auf die vollständigen, unveränderten
-Archivbytes. Anhänge werden gespeichert, nicht als weitere Dokumente konvertiert.
+Archivbytes. Bei einem Apple-Mail-Paket benennt `sourceIdentity.memberPath` beziehungsweise
+`source.memberPath` im Bericht ausdrücklich `mbox`: Nur dieser Postfachdatenstrom
+wird gehasht, nicht das gesamte Verzeichnis. Anhänge werden gespeichert, nicht als weitere Dokumente konvertiert.
 Entfernte Bilder werden weiterhin nicht geladen.
 
 ## Belegte Varianten und eindeutige Grenzen
@@ -45,7 +47,7 @@ die gespeicherte Quotierung und meldet `mbox.fromQuotingRetained` für die Nachr
 Das folgt dem lesenden Verhalten von Python mailbox für mboxo; eine automatische
 Wiederherstellung des ursprünglichen unquotierten Körpers wird nicht versprochen.
 `Content-Length`-Varianten (mboxcl/mboxcl2), reine CR-Zeilenenden, vorangestellte
-Fremddaten und Apple-Mail-Verzeichnispakete werden ausdrücklich abgewiesen.
+Fremddaten werden ausdrücklich abgewiesen.
 Ein `.mbox`-Verzeichnis bleibt dabei eine Einheit; die Ordnersuche importiert
 seine enthaltenen Dateien nicht versehentlich als unabhängige Dokumente.
 
@@ -64,5 +66,29 @@ gemeldet, die Gesamtzahl erst am Ende des einmaligen Lesedurchlaufs.
 
 Ein Fehler, Abbruch oder überschrittenes Budget in irgendeiner Nachricht verwirft
 die gesamte temporäre Ausgabe. Vorhandene Ziele werden nie überschrieben.
-Apple-Mail-Exportpakete und eigene Bedienelemente für einzelne Sammlungsdokumente
-sind noch offen; die bisherigen App-Aktionen beziehen sich auf die Übersicht.
+
+## Apple-Mail-Pakete und Bedienung
+
+Apple Mail erzeugt über „Postfach → Postfach exportieren“ `.mbox`-Pakete
+([Apple-Handbuch](https://support.apple.com/guide/mail/mlhlp1030/mac)). Unterstützt
+wird das direkte reguläre Mitglied `mbox`. Weitere Dateien wie `table_of_contents`,
+Unterordner und enthaltene EML/EMLX werden nicht gelesen oder rekursiv importiert.
+Fehlende, verschachtelte, symbolisch oder hart verlinkte Postfachdaten sowie
+Sonderdateien werden abgewiesen. Eine laufende Mail-Datenbank, IMAP-/Exchange-Cache,
+PST und eine Mailkontenanmeldung gehören nicht zu diesem Importweg.
+
+App, CLI, Finder-Dienst und beide Kurzbefehle-Aktionen übernehmen das Paket als
+Einheit. Kurzbefehle benötigen einen lokalen Datei-/Paketpfad; ein als Byteblock
+übergebenes Dokument kann kein Verzeichnispaket darstellen. Der Formatkatalog
+behält `container: "file"` bei und ergänzt `containers: ["file", "package"]`.
+
+Die App zeigt die Anzahl und eine durchsuchbare nummerierte Nachrichtenliste.
+Gleiche Betreffzeilen bleiben über die Nummer unterscheidbar. „Übersicht“ wählt
+den Archiveinstieg; Öffnen, Fastra, Kopieren und Vorschau verwenden die aktuelle
+Wahl. Relative Bild-/Anhangslinks einer einzelnen Nachricht beziehen sich auf
+deren Unterordner. Kopieren übernimmt nur Markdown; für gültige relative Links
+wird der gespeicherte Ergebnisordner benötigt. „Bericht öffnen“ öffnet den
+vollständigen Bericht, wenn er vor der Konvertierung aktiviert wurde.
+Die gerenderte Vorschau lädt nur registrierte lokale Rasterbilder und lässt
+Links inaktiv. Die Übersicht auf der Platte verlinkt alle Nachrichtendokumente.
+Anhänge bleiben Originaldateien und werden nicht automatisch konvertiert.

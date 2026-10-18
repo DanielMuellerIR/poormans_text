@@ -22,6 +22,8 @@ public struct SupportedFormat: Sendable, Equatable {
     /// Kleingeschriebene Dateiendungen ohne Punkt, Hauptendung zuerst.
     public let fileExtensions: [String]
     public let containerKind: InputContainerKind
+    /// Alle zulässigen Formen; `containerKind` bleibt die bisherige Hauptform.
+    public let containerKinds: [InputContainerKind]
     /// Externe Werkzeuge, ohne die dieses Format nicht konvertierbar ist.
     public let requiredTools: [ExternalTool]
 
@@ -29,11 +31,13 @@ public struct SupportedFormat: Sendable, Equatable {
         format: InputFormat,
         fileExtensions: [String],
         containerKind: InputContainerKind,
-        requiredTools: [ExternalTool]
+        requiredTools: [ExternalTool],
+        additionalContainerKinds: [InputContainerKind] = []
     ) {
         self.format = format
         self.fileExtensions = fileExtensions
         self.containerKind = containerKind
+        self.containerKinds = [containerKind] + additionalContainerKinds.filter { $0 != containerKind }
         self.requiredTools = requiredTools
     }
 }

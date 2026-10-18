@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.40.0 — 2026-10-18
+
+- Read exported Apple Mail `.mbox` packages through their direct `mbox` file, without traversing other package contents or following internal links. Retain the regular MBOX reader, limits, ordinal message paths and atomic output protection.
+- Select the collection overview or a numbered message in the app to open, copy and preview it with its local assets; open the complete optional conversion report. Keep duplicate subjects and attachment names separate.
+- Register Apple Mail mailbox packages for app opening, Finder services and both Shortcuts actions. Describe both file and package forms additively in the format catalog and identify the hashed mailbox member in reports.
+
 ## 0.39.1 — 2026-10-18
 
 - Wrap the clipboard copy hint at the minimum window width so the omitted-image explanation remains fully readable in German and English.

@@ -424,3 +424,17 @@
 "The clipboard changed while it was being read. Copy the selection again." = "The clipboard changed while it was being read. Copy the selection again.";
 "No supported text or image data is available. Copy formatted text or a PNG, TIFF, JPEG, HEIC, GIF, BMP, or WebP image." = "No supported text or image data is available. Copy formatted text or a PNG, TIFF, JPEG, HEIC, GIF, BMP, or WebP image.";
 "No recognized text is available to copy. Enable image OCR before pasting, or save Markdown and Assets to keep the image." = "No recognized text is available to copy. Enable image OCR before pasting, or save Markdown and Assets to keep the image.";
+
+"%d messages" = "%d messages";
+
+"%d documents" = "%d documents";
+
+"Overview" = "Overview";
+
+"Find a message" = "Find a message";
+
+"Find a document" = "Find a document";
+
+"Open Report" = "Open Report";
+
+"The conversion report could not be opened." = "The conversion report could not be opened.";

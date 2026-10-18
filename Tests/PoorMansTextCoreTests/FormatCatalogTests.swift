@@ -47,13 +47,14 @@ final class FormatCatalogTests: XCTestCase {
         }
     }
 
-    func testRTFDIsTheOnlyPackageFormat() {
+    func testCatalogDescribesRegularAndPackageForms() {
         let packages = DocumentConverter().supportedFormatDescriptors
-            .filter { $0.containerKind == .package }
+            .filter { $0.containerKinds.contains(.package) }
             .map(\.format)
         // Ein Host, der Ordner sonst als Projekt öffnet, braucht diese
         // Unterscheidung; RTFD ist der Grund, dass es sie überhaupt gibt.
-        XCTAssertEqual(packages, [.rtfd])
+        XCTAssertEqual(Set(packages), Set([.rtfd, .mbox]))
+        XCTAssertEqual(DocumentConverter().supportedFormatDescriptors.first { $0.format == .mbox }?.containerKind, .file)
     }
 
     func testMissingToolMakesOnlyTheAffectedFormatsUnavailable() {

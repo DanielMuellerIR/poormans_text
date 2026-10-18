@@ -70,6 +70,8 @@ final class CLIOutputModeTests: XCTestCase {
 
     func testStandardOutputPrintsTheMarkdownAndLeavesNoFolderBehind() throws {
         let image = try copyImage(to: "Bild.png")
+        let temporaryRoot = FileManager.default.temporaryDirectory
+        let existing = Set(try FileManager.default.contentsOfDirectory(atPath: temporaryRoot.path))
 
         let result = try runCLI(["--stdout", "--image-ocr", "off", image.path])
 
@@ -82,8 +84,8 @@ final class CLIOutputModeTests: XCTestCase {
         )
         XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: root.path), ["Bild.png"])
         let leftovers = try FileManager.default.contentsOfDirectory(
-            atPath: FileManager.default.temporaryDirectory.path
-        ).filter { $0.hasPrefix("PoorMansTextImport-") }
+            atPath: temporaryRoot.path
+        ).filter { $0.hasPrefix("PoorMansTextImport-") && !existing.contains($0) }
         XCTAssertTrue(leftovers.isEmpty, "temporary output was not removed: \(leftovers)")
     }
 

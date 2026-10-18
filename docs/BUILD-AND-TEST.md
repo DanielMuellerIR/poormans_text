@@ -333,3 +333,8 @@ beschreibt unterstützte Varianten und offene Ressourcen-/Linkgrenzen.
 `ENEXNoteLinks` löst ausschließlich eindeutige explizite Identitäten auf.
 `ENEXResourceTests` decken Raster-/PDF-/Binärbytes, Dubletten, gefährliche Namen,
 Quellreferenzen, Identitätskonflikte, Budgets und atomaren Abbruch ab.
+
+`AppCollectionTests` prüft beide MBOX-Formen, Nachrichtenauswahl, Kopieren,
+Vorschau, Dienst und Intent-Ausgabe. `MBOXReaderTests` ergänzt Paketgrenzen,
+Deskriptorbindung und den ausdrücklich benannten Postfachhash. Native Finder-/
+Kurzbefehle-Läufe und eine Sichtprüfung bleiben zusätzlich erforderlich.

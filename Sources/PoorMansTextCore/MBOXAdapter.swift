@@ -1,14 +1,22 @@
 import Foundation
 
 struct MBOXAdapter: DocumentConversionAdapter {
-    let supportedFormatDescriptors = [SupportedFormat(format: .mbox, fileExtensions: ["mbox"], containerKind: .file, requiredTools: [.pandoc])]
+    let supportedFormatDescriptors = [SupportedFormat(format: .mbox, fileExtensions: ["mbox"], containerKind: .file, requiredTools: [.pandoc], additionalContainerKinds: [.package])]
     private static let priority = 185
 
     func inspectInput(at inputURL: URL) throws -> AdapterInputDetection {
         let named = inputURL.pathExtension.lowercased() == "mbox"
         do {
-            let prefix = try VerifiedFileStaging.prefix(of: inputURL, maximumBytes: MBOXReader.maximumArchiveBytes,
-                prefixBytes: MIMEMessage.maximumHeaderBytes + 8192, describedAs: "the MBOX archive")
+            let prefix = try MBOXSource.withMailbox(at: inputURL) { source, _ in
+                var data = Data()
+                let limit = MIMEMessage.maximumHeaderBytes + 8192
+                _ = try source.readChunks(maximumBytes: MBOXReader.maximumArchiveBytes, chunkSize: 65_536,
+                    budgetExceeded: { ImportFailure("the MBOX exceeds its archive size limit") }) { chunk in
+                    data.append(contentsOf: chunk.prefix(limit - data.count))
+                    return data.count < limit
+                }
+                return data
+            }
             if prefix.isEmpty && named { return .match(.init(format: .mbox, priority: Self.priority, expectedWarnings: [])) }
             guard let newline = prefix.firstIndex(of: 10) else {
                 if named { throw ImportFailure("the MBOX has no complete separator line") }

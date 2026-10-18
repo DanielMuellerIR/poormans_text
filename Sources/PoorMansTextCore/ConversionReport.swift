@@ -6,10 +6,20 @@ public struct ConversionSourceIdentity: Codable, Hashable, Sendable {
     public let sha256: String?
     public let byteCount: Int?
     public let unavailableReason: String?
+    /// Nur der tatsächlich gelesene Datenstrom eines Verzeichnispakets.
+    public private(set) var memberPath: String? = nil
 
     /// Ein Hashvergleich belegt die Byteidentität, keine Inhaltsvollständigkeit.
     public func matchesFile(at url: URL) throws -> Bool {
         guard let sha256, let byteCount else { return false }
+        if let memberPath {
+            guard memberPath == "mbox" else { return false }
+            return try MBOXSource.withMailbox(at: url) { file, package in
+                guard package else { return false }
+                let actual = try ConversionFileFingerprint.read(file)
+                return actual.sha256 == sha256 && actual.byteCount == byteCount
+            }
+        }
         let actual = try ConversionFileFingerprint.read(url)
         return actual.sha256 == sha256 && actual.byteCount == byteCount
     }
@@ -119,13 +129,17 @@ struct ConversionFileFingerprint {
     static func digest(_ data: Data) -> String { SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined() }
     static func read(_ url: URL) throws -> Self {
         try VerifiedFileStaging.withVerifiedSource(at: url, maximumBytes: 1_073_741_824, describedAs: "the fingerprinted file") { source, _ in
-            var hash = SHA256()
-            let count = try source.readChunks(maximumBytes: 1_073_741_824, chunkSize: 262_144,
-                budgetExceeded: { ImportFailure("the fingerprinted file exceeds its size limit") }) {
-                hash.update(bufferPointer: $0); return true
-            }
-            return Self(sha256: hash.finalize().map { String(format: "%02x", $0) }.joined(), byteCount: count)
+            try read(source)
         }
+    }
+
+    static func read(_ source: VerifiedFile) throws -> Self {
+        var hash = SHA256()
+        let count = try source.readChunks(maximumBytes: 1_073_741_824, chunkSize: 262_144,
+            budgetExceeded: { ImportFailure("the fingerprinted file exceeds its size limit") }) {
+            hash.update(bufferPointer: $0); return true
+        }
+        return Self(sha256: hash.finalize().map { String(format: "%02x", $0) }.joined(), byteCount: count)
     }
 }
 
@@ -148,12 +162,16 @@ final class ConversionRecording: @unchecked Sendable {
     private var primaryPath: String?
     private var fingerprint: ConversionFileFingerprint?
     private var conflictingReads = false
+    private var memberPath: String?
     private var ranges: [(source: ConversionLocation, offset: Int, length: Int)] = []
     private var mappingBytes = 0
     private var omittedMappings = 0
     var omittedMappingCount: Int { lock.withLock { omittedMappings } }
 
     func activate(at url: URL) { lock.withLock { primaryPath = url.standardizedFileURL.path } }
+    func activateMember(at url: URL, path: String) {
+        lock.withLock { primaryPath = url.standardizedFileURL.path; memberPath = path }
+    }
     func captures(_ url: URL) -> Bool { lock.withLock { primaryPath == url.standardizedFileURL.path } }
     func capture(_ hash: String, count: Int) {
         lock.withLock {
@@ -165,7 +183,8 @@ final class ConversionRecording: @unchecked Sendable {
         try lock.withLock {
             guard !conflictingReads else { throw Failure.conflictingSource }
             return ConversionSourceIdentity(name: name, sha256: fingerprint?.sha256, byteCount: fingerprint?.byteCount,
-                unavailableReason: fingerprint == nil ? "No complete verified byte stream was recorded for the primary source, for example a directory package." : nil)
+                unavailableReason: fingerprint == nil ? "No complete verified byte stream was recorded for the primary source, for example a directory package." : nil,
+                memberPath: memberPath)
         }
     }
     func record(_ source: ConversionLocation, offset: Int, length: Int) {

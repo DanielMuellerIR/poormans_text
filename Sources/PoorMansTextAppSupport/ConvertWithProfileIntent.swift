@@ -24,7 +24,7 @@ public struct ConvertWithProfileIntent: AppIntent {
     public static let description = IntentDescription("Convert one document using a saved conversion profile. Profile Value keeps each saved setting; On and Off explicitly override it. The destination folder is required. Existing results are never overwritten. The result is a list: the output folder URL followed by conversion warnings.")
     public static let openAppWhenRun = false
 
-    @Parameter(title: "Document") public var document: IntentFile
+    @Parameter(title: "Document", supportedTypeIdentifiers: ["public.data", "com.apple.package", "com.apple.mail.mbox"]) public var document: IntentFile
     @Parameter(title: "Destination Folder", supportedTypeIdentifiers: ["public.folder"])
     public var destinationFolder: IntentFile
     @Parameter(title: "Textbundle", default: .fromProfile) public var textbundle: ShortcutProfileBooleanChoice

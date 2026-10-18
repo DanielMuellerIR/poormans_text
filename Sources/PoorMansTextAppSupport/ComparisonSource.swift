@@ -17,6 +17,10 @@ struct ComparisonSourceSnapshot: Sendable {
         guard let expected = result.sourceIdentity, let digest = expected.sha256, let expectedCount = expected.byteCount,
               expectedCount >= 0 else { throw Failure.unverified }
         guard expectedCount <= 1_073_741_824 else { throw Failure.limit }
+        if expected.memberPath != nil {
+            guard try expected.matchesFile(at: result.inputURL) else { throw Failure.changed }
+            return Self(data: nil, format: result.format)
+        }
         let descriptor = open(result.inputURL.path, O_RDONLY | O_NOFOLLOW | O_CLOEXEC | O_NONBLOCK)
         guard descriptor >= 0 else { throw errno == ENOENT ? Failure.missing : Failure.unreadable }
         let handle = FileHandle(fileDescriptor: descriptor, closeOnDealloc: true)

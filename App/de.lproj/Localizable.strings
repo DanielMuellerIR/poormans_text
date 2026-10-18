@@ -424,3 +424,17 @@
 "The clipboard changed while it was being read. Copy the selection again." = "Die Zwischenablage wurde während des Lesens verändert. Kopiere die Auswahl erneut.";
 "No supported text or image data is available. Copy formatted text or a PNG, TIFF, JPEG, HEIC, GIF, BMP, or WebP image." = "Keine unterstützten Text- oder Bilddaten verfügbar. Kopiere formatierten Text oder ein Bild als PNG, TIFF, JPEG, HEIC, GIF, BMP oder WebP.";
 "No recognized text is available to copy. Enable image OCR before pasting, or save Markdown and Assets to keep the image." = "Es ist kein erkannter Text zum Kopieren verfügbar. Aktiviere vor dem Einfügen die Bild-OCR oder sichere Markdown und Assets, um das Bild zu behalten.";
+
+"%d messages" = "%d Nachrichten";
+
+"%d documents" = "%d Dokumente";
+
+"Overview" = "Übersicht";
+
+"Find a message" = "Nachricht suchen";
+
+"Find a document" = "Dokument suchen";
+
+"Open Report" = "Bericht öffnen";
+
+"The conversion report could not be opened." = "Der Konvertierungsbericht konnte nicht geöffnet werden.";

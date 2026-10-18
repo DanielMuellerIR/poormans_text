@@ -28,10 +28,6 @@ Kurzbefehle reichen die jeweils passenden Optionen weiter.
 
 ### Mailarchive und Notizexporte
 
-- Exportierte Apple-Mail-Postfachpakete ergänzen und einzelne Sammlungsdokumente
-  in App, Dienst und Kurzbefehlen vollständig bedienen. Reguläre MBOX-Dateien
-  sind als vollständige geordnete Sammlung bereits lesbar; Varianten und
-  bewusste Grenzen stehen in [docs/MBOX.md](docs/MBOX.md).
 - ENEX-Notizen in App, Dienst und Kurzbefehlen einzeln wählen, öffnen, kopieren
   und vorschauen. Kern/CLI erhalten bereits Notizen, Metadaten, Ressourcen und
   anhand expliziter Identitäten auflösbare Verweise; Grenzen stehen in

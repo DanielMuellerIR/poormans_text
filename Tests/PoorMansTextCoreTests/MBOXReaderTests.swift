@@ -27,6 +27,81 @@ final class MBOXReaderTests: XCTestCase {
         Data(messages.map { envelope + ending + $0 + ending }.joined().utf8)
     }
 
+    func testAppleMailPackageReadsOnlyDirectMailboxAndRecordsItsMemberHash() throws {
+        let package = root.appendingPathComponent("Export.mbox")
+        try FileManager.default.createDirectory(at: package, withIntermediateDirectories: false)
+        let bytes = archive([mail(1, body: "PACKAGE_ONE"), mail(2, body: "PACKAGE_TWO")])
+        try bytes.write(to: package.appendingPathComponent("mbox"))
+        try Data(mail(3, body: "DO_NOT_IMPORT").utf8).write(to: package.appendingPathComponent("extra.eml"))
+        try FileManager.default.createSymbolicLink(at: package.appendingPathComponent("ignored"), withDestinationURL: root)
+        XCTAssertEqual(try DocumentConverter().inspect(package).format, .mbox)
+        XCTAssertFalse(InputEnumerator().isSearchableDirectory(package))
+        XCTAssertEqual(try InputEnumerator().enumerate([root]).map { $0.url.path }, [package.path])
+        for layout in [OutputLayout.markdownFolder, .textbundle] {
+            let result = try DocumentConverter().convert(.init(inputURL: package, destination: .temporary,
+                options: .init(frontmatter: true, outputLayout: layout, conversionReport: true)))
+            defer { try? FileManager.default.removeItem(at: result.outputDirectory) }
+            XCTAssertEqual(result.documents.map(\.sourceIndex), [1, 2])
+            let texts = try result.documents.map { try String(contentsOf: $0.markdownFile, encoding: .utf8) }
+            XCTAssertEqual(texts.filter { $0.contains("PACKAGE_ONE") }.count, 1)
+            XCTAssertEqual(texts.filter { $0.contains("PACKAGE_TWO") }.count, 1)
+            XCTAssertFalse(texts.joined().contains("DO_NOT_IMPORT"))
+            XCTAssertEqual(result.sourceIdentity?.sha256, ConversionFileFingerprint.digest(bytes))
+            XCTAssertEqual(result.sourceIdentity?.memberPath, "mbox")
+            XCTAssertTrue(try XCTUnwrap(result.sourceIdentity).matchesFile(at: package))
+            let report = try JSONDecoder().decode(ConversionReport.self, from: Data(contentsOf: XCTUnwrap(result.reportFile)))
+            XCTAssertEqual(report.source.memberPath, "mbox")
+            XCTAssertEqual(report.documents?.count, 2)
+            XCTAssertEqual(try Data(contentsOf: package.appendingPathComponent("mbox")), bytes)
+        }
+    }
+
+    func testAppleMailPackageRejectsMissingNestedLinksSpecialFilesAndOutputInsideSource() throws {
+        let outside = try source(archive([mail(1)]), name: "outside.mbox")
+        for kind in ["missing", "nested", "symlink", "hardlink", "fifo", "directory"] {
+            let package = root.appendingPathComponent(kind + ".mbox")
+            try FileManager.default.createDirectory(at: package, withIntermediateDirectories: false)
+            let member = package.appendingPathComponent("mbox")
+            switch kind {
+            case "nested":
+                let child = package.appendingPathComponent("nested")
+                try FileManager.default.createDirectory(at: child, withIntermediateDirectories: false)
+                try Data(contentsOf: outside).write(to: child.appendingPathComponent("mbox"))
+            case "symlink": try FileManager.default.createSymbolicLink(at: member, withDestinationURL: outside)
+            case "hardlink": XCTAssertEqual(link(outside.path, member.path), 0)
+            case "fifo": XCTAssertEqual(mkfifo(member.path, 0o600), 0)
+            case "directory": try FileManager.default.createDirectory(at: member, withIntermediateDirectories: false)
+            default: break
+            }
+            let output = root.appendingPathComponent(kind + "-result")
+            XCTAssertThrowsError(try DocumentConverter().convert(.init(inputURL: package, destination: .directory(output))))
+            XCTAssertFalse(FileManager.default.fileExists(atPath: output.path))
+        }
+        let valid = root.appendingPathComponent("valid.mbox")
+        try FileManager.default.createDirectory(at: valid, withIntermediateDirectories: false)
+        try Data(contentsOf: outside).write(to: valid.appendingPathComponent("mbox"))
+        XCTAssertThrowsError(try DocumentConverter().convert(.init(inputURL: valid, destination: .directory(valid.appendingPathComponent("result")))))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: valid.appendingPathComponent("result").path))
+    }
+
+    func testPackageMailboxRemainsBoundWhenParentAndMemberAreReplaced() throws {
+        let package = root.appendingPathComponent("Bound.mbox")
+        try FileManager.default.createDirectory(at: package, withIntermediateDirectories: false)
+        let original = archive([mail(1, body: "ORIGINAL")])
+        try original.write(to: package.appendingPathComponent("mbox"))
+        try MBOXSource.withMailbox(at: package) { file, isPackage in
+            XCTAssertTrue(isPackage)
+            try FileManager.default.moveItem(at: package, to: root.appendingPathComponent("moved"))
+            try FileManager.default.createDirectory(at: package, withIntermediateDirectories: false)
+            try archive([mail(2, body: "REPLACEMENT")]).write(to: package.appendingPathComponent("mbox"))
+            var messages: [Data] = []
+            try MBOXReader.read(file) { messages.append($0.data) }
+            XCTAssertEqual(messages.count, 1)
+            XCTAssertTrue(String(decoding: messages[0], as: UTF8.self).contains("ORIGINAL"))
+            XCTAssertFalse(String(decoding: messages[0], as: UTF8.self).contains("REPLACEMENT"))
+        }
+    }
+
     func testReaderPreservesMessageBytesOrderQuotingAndBothLineEndings() throws {
         for ending in ["\n", "\r\n"] {
             let body = "BODY_ONE\(ending)From ordinary prose\(ending)From sender@example.test said hello\(ending)>From escaped\(ending)>>From already quoted\(ending)\(ending)last"

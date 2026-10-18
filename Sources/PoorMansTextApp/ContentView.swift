@@ -14,6 +14,7 @@ struct ContentView: View {
     @State private var pandocInstallError: String?
     @State private var showsPreview = false
     @State private var showsComparison = false
+    @State private var collectionQuery = ""
     @State private var contentSelection: ContentSelectionTicket?
 
     var body: some View {
@@ -50,7 +51,7 @@ struct ContentView: View {
                         Text(verbatim: result.inputURL.lastPathComponent).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
                     }
                 }
-                if let preview = model.preview, let result = model.selectedResult {
+                if let preview = model.preview, let result = model.selectedOutput {
                     if showsComparison { ConversionComparisonPane(preview: preview, result: result) }
                     else { MarkdownPreviewPane(preview: preview, result: result) }
                 } else {
@@ -521,7 +522,8 @@ struct ContentView: View {
     }
 
     @ViewBuilder private var resultActions: some View {
-        if model.selectedResult != nil {
+        if let result = model.selectedResult {
+            if result.isCollection { collectionSelection(result).id(result.outputDirectory) }
             ViewThatFits(in: .horizontal) {
                 HStack { openResultButtons; inspectResultButtons }
                 VStack(spacing: 8) {
@@ -535,6 +537,43 @@ struct ContentView: View {
         }
     }
 
+    private func collectionSelection(_ result: ConversionResult) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text(String(format: NSLocalizedString(result.format == .mbox ? "%d messages" : "%d documents", comment: ""), result.documents.count)).font(.headline)
+                Spacer()
+                Button("Overview") { model.selectCollectionDocument(nil) }
+                    .accessibilityIdentifier("collectionOverview")
+            }
+            TextField(LocalizedStringKey(result.format == .mbox ? "Find a message" : "Find a document"), text: $collectionQuery)
+                .textFieldStyle(.roundedBorder)
+                .accessibilityIdentifier("collectionSearch")
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 4) {
+                    ForEach(result.documents.filter { collectionQuery.isEmpty || $0.title.localizedCaseInsensitiveContains(collectionQuery) || String($0.sourceIndex) == collectionQuery }, id: \.sourceIndex) { document in
+                        Button { model.selectCollectionDocument(document.sourceIndex) } label: {
+                            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                                Text("\(document.sourceIndex).").monospacedDigit().foregroundStyle(.secondary)
+                                Text(verbatim: document.title).lineLimit(2).multilineTextAlignment(.leading)
+                                Spacer(minLength: 0)
+                                if model.selectedDocumentIndex == document.sourceIndex { Image(systemName: "checkmark") }
+                            }.padding(6).frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .background(model.selectedDocumentIndex == document.sourceIndex ? Color.accentColor.opacity(0.15) : Color.clear)
+                        .clipShape(RoundedRectangle(cornerRadius: 5))
+                        .accessibilityIdentifier("collectionDocument-\(document.sourceIndex)")
+                    }
+                }
+            }.frame(height: 110)
+            Text(model.selectedDocument.map { "\($0.sourceIndex). \($0.title)" } ?? NSLocalizedString("Overview", comment: ""))
+                .font(.callout).foregroundStyle(.secondary).lineLimit(2)
+                .accessibilityIdentifier("collectionSelected")
+        }
+        .frame(maxWidth: 520)
+        .onAppear { collectionQuery = "" }
+    }
+
     @ViewBuilder private var openResultButtons: some View {
         Button("Open Markdown") { model.openResult() }
         Button("Open in Fastra") { model.openResultInFastra() }
@@ -542,9 +581,10 @@ struct ContentView: View {
     @ViewBuilder private var inspectResultButtons: some View {
         Button("Copy Markdown") { model.copyMarkdown() }
         Button("Preview") { showsComparison = false; showsPreview = true; model.loadPreview() }
-        if !model.isClipboardResult {
+        if !model.isClipboardResult, model.selectedResult?.isCollection != true {
             Button("Compare") { showsComparison = true; showsPreview = true; model.loadPreview() }
         }
+        if model.selectedResult?.reportFile != nil { Button("Open Report") { model.openReport() } }
     }
 
     private var footer: some View {

@@ -82,6 +82,7 @@ public final class AppModel: ObservableObject {
     }
 
     private func beginConversion(keepingClipboardDraft: Bool = false) -> ConversionCancellationToken {
+        selectedDocumentIndex = nil
         if !keepingClipboardDraft { clipboardDraft = nil; clipboardProfile = nil; isClipboardResult = false }
         let token = ConversionCancellationToken()
         activeCancellation = token
@@ -147,8 +148,9 @@ public final class AppModel: ObservableObject {
     }
     @Published public var destinationFolder: URL? { didSet { savePreferences() } }
     @Published public var selectedInput: String? {
-        didSet { if selectedInput != oldValue { closePreview() } }
+        didSet { if selectedInput != oldValue { selectCollectionDocument(nil) } }
     }
+    @Published public private(set) var selectedDocumentIndex: Int?
     @Published public private(set) var actionMessage: String?
     @Published public private(set) var clipboardDraft: RichTextClipboard.Draft?
     @Published public private(set) var isClipboardResult = false
@@ -197,6 +199,35 @@ public final class AppModel: ObservableObject {
         case .batchFinished(let items): return items.first { $0.id == selectedInput }?.result
         default: return nil
         }
+    }
+
+    public var selectedDocument: ConversionDocument? {
+        guard let index = selectedDocumentIndex else { return nil }
+        return selectedResult?.documents.first { $0.sourceIndex == index }
+    }
+
+    /// Die Vorschau löst Ressourcen relativ zur gewählten Nachricht auf.
+    public var selectedOutput: ConversionResult? {
+        guard let result = selectedResult, let document = selectedDocument else { return selectedResult }
+        return ConversionResult(inputURL: result.inputURL, format: result.format,
+            outputDirectory: document.markdownFile.deletingLastPathComponent(), markdownFile: document.markdownFile,
+            assets: document.assets, outputLifetime: result.outputLifetime, diagnostics: result.diagnostics.filter {
+                $0.location?.message == String(document.sourceIndex) || $0.location?.note == String(document.sourceIndex)
+            }, metadata: document.metadata, sourceIdentity: result.sourceIdentity, reportFile: result.reportFile)
+    }
+
+    public func selectCollectionDocument(_ index: Int?) {
+        selectedDocumentIndex = index.flatMap { candidate in
+            selectedResult?.documents.contains { $0.sourceIndex == candidate } == true ? candidate : nil
+        }
+        closePreview()
+        actionMessage = nil
+    }
+
+    public func openReport() {
+        guard let file = selectedResult?.reportFile else { return }
+        actionMessage = nil
+        if !NSWorkspace.shared.open(file) { actionMessage = NSLocalizedString("The conversion report could not be opened.", comment: "") }
     }
 
     public var failedInputs: [URL] {
@@ -388,7 +419,7 @@ public final class AppModel: ObservableObject {
     }
 
     public func openResult() {
-        guard let result = selectedResult else { return }
+        guard let result = selectedOutput else { return }
         actionMessage = nil
         if !NSWorkspace.shared.open(result.markdownFile) {
             actionMessage = NSLocalizedString("The Markdown file could not be opened.", comment: "")
@@ -396,7 +427,7 @@ public final class AppModel: ObservableObject {
     }
 
     public func openResultInFastra() {
-        guard let result = selectedResult else { return }
+        guard let result = selectedOutput else { return }
         actionMessage = nil
         guard let application = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "de.dm0.fastra") else {
             actionMessage = NSLocalizedString("Fastra is not installed. Install Fastra or use Open Markdown.", comment: "")
@@ -412,9 +443,11 @@ public final class AppModel: ObservableObject {
     }
 
     public func loadPreview() {
-        guard let result = selectedResult else { return }
+        guard let result = selectedOutput, let collection = selectedResult else { return }
         closePreview()
-        let expected = result.outputFiles.first { $0.path == result.markdownFile.lastPathComponent }
+        let prefix = collection.outputDirectory.path + "/"
+        let relative = String(result.markdownFile.path.dropFirst(prefix.count))
+        let expected = collection.outputFiles.first { $0.path == relative }
         let generation = UUID()
         previewGeneration = generation; isLoadingPreview = true; actionMessage = nil
         let read = Task.detached(priority: .userInitiated) { try MarkdownPreview.read(result.markdownFile, expected: expected) }
@@ -436,7 +469,7 @@ public final class AppModel: ObservableObject {
     }
 
     public func copyMarkdown(to pasteboard: NSPasteboard = .general) {
-        guard let result = selectedResult else { return }
+        guard let result = selectedOutput else { return }
         do {
             if clipboardDraft != nil {
                 let outcome = try RichTextClipboard.clipboardOutcome(from: result)
@@ -776,9 +809,13 @@ public final class AppModel: ObservableObject {
     /// alle gelungenen Markdown-Dateien eines Mehrfachlaufs.
     public func revealResult() {
         switch state {
-        case .succeeded(let result):
-            NSWorkspace.shared.activateFileViewerSelecting([result.markdownFile])
+        case .succeeded:
+            if let result = selectedOutput { NSWorkspace.shared.activateFileViewerSelecting([result.markdownFile]) }
         case .batchFinished(let items):
+            if let result = selectedOutput {
+                NSWorkspace.shared.activateFileViewerSelecting([result.markdownFile])
+                return
+            }
             let files = items.filter { selectedInput == nil || $0.id == selectedInput }.compactMap { $0.result?.markdownFile }
             guard !files.isEmpty else {
                 return
@@ -921,6 +958,7 @@ public final class AppModel: ObservableObject {
         actionMessage = nil
         openRejectionMessage = nil
         selectedInput = nil
+        selectedDocumentIndex = nil
         retrySelection = nil
         destinationOverrides = [:]
         relativeDirectories = [:]

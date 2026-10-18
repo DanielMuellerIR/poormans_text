@@ -75,7 +75,7 @@ public struct InputEnumerator: Sendable {
         fileExtensions = Set(descriptors.flatMap { $0.fileExtensions.map { $0.lowercased() } })
         packageExtensions = Set(
             descriptors
-                .filter { $0.containerKind == .package }
+                .filter { $0.containerKinds.contains(.package) }
                 .flatMap { $0.fileExtensions.map { $0.lowercased() } }
         )
     }
@@ -152,9 +152,7 @@ public struct InputEnumerator: Sendable {
 
     private func isPackage(_ url: URL) -> Bool {
         let ext = url.pathExtension.lowercased()
-        // Ein Apple-Mail-Paket darf bis zum eigenen Paketleser nicht als
-        // beliebiger Ordner mit scheinbar unabhängigen Nachrichten erscheinen.
-        return packageExtensions.contains(ext) || ext == "mbox" && fileExtensions.contains(ext)
+        return packageExtensions.contains(ext)
     }
 
     private func isSupportedByExtension(_ url: URL) -> Bool {

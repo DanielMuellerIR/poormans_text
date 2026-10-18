@@ -65,6 +65,17 @@ struct VerifiedFile {
         )
     }
 
+    /// Ein festes Paketmitglied relativ zum bereits gebundenen Paket öffnen.
+    static func openMember<T>(named name: String, in directory: Int32, sourceURL: URL,
+                              failure: @escaping (Failure) -> Error, body: (VerifiedFile) throws -> T) throws -> T {
+        let descriptor = openat(directory, name, O_RDONLY | O_NONBLOCK | O_NOFOLLOW | O_CLOEXEC)
+        guard descriptor >= 0 else { throw failure(.couldNotOpen(String(cString: strerror(errno)))) }
+        defer { close(descriptor) }
+        var info = stat()
+        guard fstat(descriptor, &info) == 0 else { throw failure(.couldNotInspect) }
+        return try body(VerifiedFile(descriptor: descriptor, info: info, sourceURL: sourceURL, failure: failure))
+    }
+
     /// Hält denselben geprüften Deskriptor für bedarfsgerechte spätere Zugriffe
     /// offen. Die letzte Referenz schließt ihn, auch nach einem Parserfehler.
     final class Owned {

@@ -13,7 +13,7 @@
 Poor Man's Text converts RTF, RTFD, DOCX (including DOCM and DOTX/DOTM), ODT,
 legacy Word (`.doc`), ODS, XLSX (including XLSM and XLTX/XLTM), XLS, CSV and
 TSV, PPTX/PPTM/POTX and ODP presentations, IPYNB notebooks, OpenDocument master (`.odm`), PDF, HTML and Safari web archives, EPUB,
-LaTeX, DocBook, Org, MediaWiki, Textile, reStructuredText, FictionBook, EML, Apple Mail (`.emlx`), Outlook (`.msg`), regular MBOX archives, bounded ENEX exports, and
+LaTeX, DocBook, Org, MediaWiki, Textile, reStructuredText, FictionBook, EML, Apple Mail (`.emlx`), Outlook (`.msg`), MBOX archives and Apple Mail export packages, bounded ENEX exports, and
 PNG, JPEG, HEIC, TIFF, GIF, BMP, or WebP images into folders containing
 Markdown and any separately stored image assets.
 
@@ -32,7 +32,7 @@ Named profiles can be managed in the app and selected in the **Convert Document 
 
 ## Output
 
-Regular MBOX files become ordered message collections with headers, bodies and local assets. See the [MBOX limits and variant contract](docs/MBOX.md); Apple Mail export packages remain pending.
+Regular MBOX files and exported Apple Mail `.mbox` packages become ordered message collections with headers, bodies and local assets. In the app, select the overview or a numbered message to open, copy or preview it; the optional report covers the complete collection. App, CLI, Finder service and Shortcuts use the same reader. See the [MBOX limits and variant contract](docs/MBOX.md).
 
 Bounded ENEX exports become ordered note collections with titles, tags, dates and static checkbox/task content. [ENEX limits](docs/ENEX.md) describe XML safety, byte-preserving resources and the limits of internal link resolution.
 
@@ -598,7 +598,7 @@ and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compa
 their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current version is 0.39.1.
+The current version is 0.40.0.
 
 ## License
 

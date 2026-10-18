@@ -620,7 +620,7 @@ Zustände in `nil / true / false` und delegiert an `ConvertDocumentIntent`;
 Profilauflösung, Quellbindung, lokale Freigaben und atomare Ausgabe bleiben dort
 zentral. Die bisherige Aktion behält ihre Kennung und Parameter.
 
-Reguläre MBOX-Dateien verwenden `MBOXReader`, `MBOXAdapter`, die vorhandene
+Reguläre MBOX-Dateien und Apple-Mail-Exportpakete verwenden `MBOXSource`, `MBOXReader`, `MBOXAdapter`, die vorhandene
 MIME-/Mail-Engine und den gemeinsamen Sammlungsvertrag. Varianten, Ressourcen-
 und Fehlergrenzen stehen in [MBOX.md](MBOX.md). `MBOXReaderTests` prüfen reale
 Dateien, Körper-/Headerbestand, Anhangsbytes, Zeilenenden und atomaren Abbruch.
@@ -635,3 +635,8 @@ beschreibt unterstützte Varianten und offene Ressourcen-/Linkgrenzen.
 `ENEXNoteLinks` löst ausschließlich eindeutige explizite Identitäten auf.
 `ENEXResourceTests` decken Raster-/PDF-/Binärbytes, Dubletten, gefährliche Namen,
 Quellreferenzen, Identitätskonflikte, Budgets und atomaren Abbruch ab.
+
+`MBOXSource` öffnet nur das direkte Paketmitglied `mbox` über den gehaltenen
+Verzeichnisdeskriptor und `openat` ohne Symlinkverfolgung. Der Formatkatalog
+behält die Hauptform und ergänzt alle Containerformen. `AppModel` verwaltet die
+nummerierte Sammlungsauswahl und richtet die Vorschau relativ zur Nachricht aus.

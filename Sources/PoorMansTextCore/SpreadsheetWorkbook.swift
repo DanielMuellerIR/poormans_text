@@ -264,18 +264,7 @@ enum SpreadsheetMarkdownRenderer {
     /// als URL und verhindert zugleich, dass ein Quellwert die Linksyntax
     /// verlassen kann.
     private static func escapedMarkdownLinkTarget(_ target: String) -> String {
-        var escaped = ""
-        for scalar in target.unicodeScalars {
-            switch scalar.value {
-            // Markdown löst Zeichenreferenzen auf; diese Maske bewahrt den geprüften Rohwert.
-            case 0x26: escaped += "&amp;"
-            case 0x00...0x20, 0x7F, 0x28, 0x29, 0x3C, 0x3E, 0x5B, 0x5C, 0x5D, 0x7C:
-                escaped += scalar.utf8.map { String(format: "%%%02X", $0) }.joined()
-            default:
-                escaped.unicodeScalars.append(scalar)
-            }
-        }
-        return escaped
+        MarkdownEscaping.linkDestination(target)
     }
 
     private static func appendTabSeparatedBlock(

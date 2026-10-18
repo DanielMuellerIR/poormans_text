@@ -2,6 +2,7 @@ import AppKit
 import WebKit
 import XCTest
 @testable import PoorMansTextAppSupport
+@testable import PoorMansTextCore
 
 @MainActor final class PreviewWebTests: XCTestCase {
     func testRealWebKitLoadsOnlyApprovedImagesAndKeepsHTMLAndScriptsInactive() async throws {
@@ -93,6 +94,44 @@ import XCTest
         }
         XCTAssertEqual(backgrounds.count, 2)
         XCTAssertNotEqual(backgrounds[0], backgrounds[1])
+    }
+
+    func testPresentationLinksRenderInRealWebKitWithoutActiveNavigation() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("PMTPresentationPreview-\(UUID())")
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: root) }
+        for ext in ["pptx", "odp"] {
+            let source = root.appendingPathComponent("linked.\(ext)")
+            try PresentationLinkFixture.data(ext: ext).write(to: source)
+            let result = try DocumentConverter().convert(.init(inputURL: source, destination: .directory(root.appendingPathComponent(ext))))
+            let assets = try PreviewAssets(outputDirectory: result.outputDirectory, assets: result.assets)
+            let rendered = RenderedMarkdownPreview.render(try String(contentsOf: result.markdownFile, encoding: .utf8), assets: assets)
+            let coordinator = PreviewWebCoordinator(); let view = coordinator.makeWebView()
+            view.frame = NSRect(x: 0, y: 0, width: 740, height: 780)
+            coordinator.update(view, rendered: rendered, assets: assets, query: "", request: 0, backwards: false, anchor: nil)
+            try await waitUntil { try await self.value("String(document.querySelectorAll('.preview-link').length)", in: view) == "7" }
+            let active = try await value("String(document.querySelectorAll('a[href],script,iframe').length)", in: view)
+            let anchors = try await value("String(!!document.getElementById('pmt-slide-1') && !!document.getElementById('pmt-slide-2'))", in: view)
+            let target = try await value("Array.from(document.querySelectorAll('.preview-link')).find(x=>x.textContent.includes('JUMP_LABEL'))?.title ?? ''", in: view)
+            XCTAssertEqual(active, "0"); XCTAssertEqual(anchors, "true"); XCTAssertEqual(target, "#pmt-slide-2")
+            let noteText = try await value("document.querySelector('blockquote')?.textContent ?? ''", in: view)
+            XCTAssertEqual(noteText.trimmingCharacters(in: .whitespacesAndNewlines), "NOTE_WEB NOTE_JUMP", ext)
+            XCTAssertFalse(rendered.hasLiteralHTML); XCTAssertFalse(view.configuration.defaultWebpagePreferences.allowsContentJavaScript)
+            for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
+                view.appearance = NSAppearance(named: appearance)
+                try await Task.sleep(for: .milliseconds(150))
+                let snapshot: Data = try await withCheckedThrowingContinuation { continuation in
+                    view.takeSnapshot(with: nil) { image, error in
+                        if let error { continuation.resume(throwing: error) }
+                        else if let tiff = image?.tiffRepresentation, let bitmap = NSBitmapImageRep(data: tiff), let png = bitmap.representation(using: .png, properties: [:]) { continuation.resume(returning: png) }
+                        else { continuation.resume(throwing: CocoaError(.fileReadUnknown)) }
+                    }
+                }
+                if let path = ProcessInfo.processInfo.environment["PMT_PRESENTATION_PREVIEW_DIR"] {
+                    try snapshot.write(to: URL(fileURLWithPath: path).appendingPathComponent("presentation-\(ext)-\(name).png"))
+                }
+            }
+        }
     }
 
     func testLargePreviewReportsAnAbsentSearchResult() async throws {

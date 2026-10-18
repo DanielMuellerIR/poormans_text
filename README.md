@@ -563,7 +563,7 @@ and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compa
 their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current version is 0.29.0.
+The current version is 0.30.0.
 
 ## License
 
@@ -611,7 +611,9 @@ OCR adds text. Heuristics and limits: [PDF import](docs/PDF-IMPORT.md).
 
 PPTX/PPTM/POTX, ODP and IPYNB are native inputs and do not require Pandoc.
 Slides retain source order, text, nested lists, tables, notes and supported
-image assets. Notebook imports preserve Markdown, language-tagged code, text
+image assets. Text, table and note hyperlinks retain safe external targets and
+internal slide references; excluded or unavailable targets produce diagnostics.
+Notebook imports preserve Markdown, language-tagged code, text
 outputs and embedded images; notebook code is never executed.
 Unsupported objects or output representations and unavailable assets are
 reported. Details and budgets: [presentations](docs/PRESENTATION-IMPORT.md),

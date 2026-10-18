@@ -68,6 +68,16 @@ final class RenderedMarkdownPreviewTests: XCTestCase {
         }
     }
 
+    func testOnlyExactEmptyPresentationAnchorsAreRendered() throws {
+        let source = "<a id=\"pmt-slide-2\"></a>\n\n[Jump](#pmt-slide-2)\n"
+        let preview = RenderedMarkdownPreview.render(source, assets: nil)
+        XCTAssertTrue(preview.html.contains("<span id=\"pmt-slide-2\"></span>"), preview.html)
+        for raw in ["<a id=\"pmt-slide-0\"></a>", "<a id=\"pmt-slide-2\" onclick=\"bad()\"></a>", "<a id=\"pmt-slide-2\">bad</a>", "`<a id=\"pmt-slide-2\"></a>`"] {
+            let result = RenderedMarkdownPreview.render(raw, assets: nil)
+            XCTAssertFalse(result.html.contains("<span id=\"pmt-slide-"), result.html)
+        }
+    }
+
     func testKnownCellAnchorUsesActualUTF8AfterUnicode() throws {
         let source = "# 🙂 title\n\n| Name | Value |\n| --- | --- |\n| Grüße🙂Marker | 42 |\n"
         let prefix = try XCTUnwrap(source.range(of: "Grüße🙂Marker"))

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.30.0 — 2026-10-18
+
+- Preserve safe PPTX/PPTM/POTX and ODP hyperlinks across text, tables and notes, including multiple link ranges per paragraph or cell and inherited text-shape defaults.
+- Map internal links and static slide jumps to stable anchors using the original slide numbers; retain visible text and diagnose excluded, missing, ambiguous or unsafe targets and unsupported actions.
+- Keep generated slide anchors safe in the rendered preview, share URI escaping with spreadsheet output, and bound hyperlink expansion before table repetition and publication.
+
 ## 0.29.0 — 2026-10-18
 
 - Add a shared DOCX text-change choice in the app, CLI (`--docx-changes accept|reject|mark`), Shortcuts and reports. Acceptance remains the default; marked insertions, deletions and moves retain available author/date metadata through HTML conversion.

@@ -189,7 +189,7 @@ final class PresentationNotebookTests: XCTestCase {
         let bytes = try ZIPFixtureBuilder.archive(entries: entries)
         try bytes.write(to: source)
         let result = try DocumentConverter().convert(ConversionRequest(inputURL: source))
-        XCTAssertTrue(result.diagnostics.contains { $0.code == "presentation.hyperlinkFlattened" })
+        XCTAssertTrue(result.diagnostics.contains { $0.code == "presentation.linkUnavailable" })
         let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
         XCTAssertEqual(markdown.components(separatedBy: "TABLETOKEN").count - 1, 1)
         XCTAssertEqual(try Data(contentsOf: source), bytes)
@@ -228,7 +228,7 @@ final class PresentationNotebookTests: XCTestCase {
         let original = try ZIPFixtureBuilder.archive(entries: entries)
         try original.write(to: source)
         let result = try DocumentConverter().convert(ConversionRequest(inputURL: source))
-        let links = result.diagnostics.filter { $0.code == "presentation.hyperlinkFlattened" }
+        let links = result.diagnostics.filter { $0.code == "presentation.linkUnavailable" }
         XCTAssertEqual(links.count, 2)
         XCTAssertEqual(links.compactMap { $0.location?.slide }, [1, 1])
         XCTAssertEqual(links.compactMap { $0.location?.paragraph }, [1, 1])
@@ -487,9 +487,9 @@ final class PresentationNotebookTests: XCTestCase {
         try ZIPFixtureBuilder.archive(entries: [entry("mimetype", "application/vnd.oasis.opendocument.presentation"), entry("content.xml", odpDocument(body))]).write(to: source)
         let result = try DocumentConverter().convert(ConversionRequest(inputURL: source))
         let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
-        XCTAssertTrue(markdown.contains("External label Local label"), markdown)
+        XCTAssertTrue(markdown.contains("[External label](https://invalid.test/never-load) Local label"), markdown)
         XCTAssertEqual(markdown.components(separatedBy: "INNERUNIQUETOKEN").count - 1, 1)
-        XCTAssertEqual(result.diagnostics.filter { $0.code == "presentation.hyperlinkFlattened" }.count, 2)
+        XCTAssertEqual(result.diagnostics.filter { $0.code == "presentation.linkUnsafe" }.count, 1)
         XCTAssertTrue(result.diagnostics.contains { $0.code == "presentation.nestedTableFlattened" && $0.location?.page == 1 })
     }
     /// Ein Bild im Absatz (`text:p` > `draw:frame` > `draw:image`) fiel ohne

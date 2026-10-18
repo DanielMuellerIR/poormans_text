@@ -8,9 +8,11 @@ struct PresentationSlide {
     var notes: [PresentationBlock] = []
 }
 indirect enum PresentationBlock {
-    case paragraph(String, level: Int?, ordered: Bool)
-    case table([[String]])
+    case paragraph(PresentationText, level: Int?, ordered: Bool)
+    case table([[PresentationText]])
     case image(String, String)
+    static func paragraph(_ text: String, level: Int?, ordered: Bool) -> Self { .paragraph(PresentationText(text), level: level, ordered: ordered) }
+    static func table(_ rows: [[String]]) -> Self { .table(rows.map { $0.map(PresentationText.init) }) }
 }
 
 /// Gemeinsame Ausgabe für OOXML und OpenDocument: Dokumentreihenfolge bleibt
@@ -18,6 +20,7 @@ indirect enum PresentationBlock {
 enum PresentationRenderer {
     static func render(_ slide: PresentationSlide, number: Int, maximumBytes: Int = 128 * 1_024 * 1_024) throws -> String {
         var output = ImportTextBuilder(maximumBytes: maximumBytes)
+        try output.append("<a id=\"\(PresentationLinkTarget.anchor(number))\"></a>\n\n")
         try output.append("## Slide \(number)\n\n")
         try blocks(slide.blocks, to: &output, quoted: false)
         if !slide.notes.isEmpty {
@@ -37,7 +40,7 @@ enum PresentationRenderer {
             case .paragraph(let text, let level, let ordered):
                 let indent = String(repeating: "    ", count: min(max(level ?? 0, 0), 16))
                 if level != nil { try output.append(indent + (ordered ? "1. " : "- ")) }
-                let literal = MarkdownEscaping.literalBlock(text)
+                let literal = try text.markdown(table: false, maximumBytes: output.maximumBytes - output.bytes)
                 var first = true
                 for line in literal.split(separator: "\n", omittingEmptySubsequences: false) {
                     if !first { try output.append("\n" + (quoted ? "> " : "") + (level == nil ? "" : indent + "   ")) }
@@ -54,8 +57,8 @@ enum PresentationRenderer {
                     try output.append("| ")
                     for column in 0..<width {
                         if column > 0 { try output.append(" | ") }
-                        let text = column < row.count ? row[column] : ""
-                        try output.append(MarkdownEscaping.inlineLiteral(text).replacingOccurrences(of: "\n", with: "<br>"))
+                        let text = column < row.count ? row[column] : PresentationText()
+                        try output.append(text.markdown(table: true, maximumBytes: output.maximumBytes - output.bytes))
                     }
                     try output.append(" |")
                     if rowIndex == 0 { try output.append("\n" + (quoted ? "> " : "") + "| " + Array(repeating: "---", count: width).joined(separator: " | ") + " |") }

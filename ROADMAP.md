@@ -28,7 +28,6 @@ Kurzbefehle reichen die jeweils passenden Optionen weiter.
 
 ### Kommentare, Änderungen und Links
 
-- Hyperlinkziele aus Präsentationen zusammen mit ihrem sichtbaren Text erhalten.
 - PDF-Hervorhebungen, Kommentare und Linkziele mit Seitenbezug übernehmen.
 
 ### Konvertierungsprofile

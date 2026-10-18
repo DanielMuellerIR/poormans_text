@@ -595,7 +595,7 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.29.0.
+Die aktuelle Version ist 0.30.0.
 
 ## Lizenz
 
@@ -643,7 +643,9 @@ wenn OCR Text ergänzt. Heuristiken und Grenzen: [PDF-Import](docs/PDF-IMPORT.md
 
 PPTX/PPTM/POTX, ODP und IPYNB werden nativ ohne Pandoc gelesen. Folien behalten
 Quellreihenfolge, Text, verschachtelte Listen, Tabellen, Notizen und unterstützte
-Bild-Assets. Notebooks behalten Markdown, sprachmarkierten Code, Textausgaben und
+Bild-Assets. Text-, Tabellen- und Notizlinks behalten sichere externe Ziele und
+interne Folienverweise; ausgeschlossene oder fehlende Ziele werden diagnostiziert.
+Notebooks behalten Markdown, sprachmarkierten Code, Textausgaben und
 eingebettete Bilder; Notebook-Code wird niemals ausgeführt. Nicht darstellbare
 Objekte/Ausgaben und nicht verfügbare Assets werden diagnostiziert.
 Details und Grenzen: [Präsentationen](docs/PRESENTATION-IMPORT.md),

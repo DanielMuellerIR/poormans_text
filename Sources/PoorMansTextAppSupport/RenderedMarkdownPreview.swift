@@ -168,7 +168,7 @@ public struct RenderedMarkdownPreview: Sendable {
             case is Strikethrough: wrap("del", node: node, depth: depth)
             case is ThematicBreak: _ = start("hr", node: node)
             case let html as HTMLBlock:
-                if let id = generatedEPUBAnchor(html.rawHTML.trimmingCharacters(in: .newlines)) {
+                if let id = generatedImportAnchor(html.rawHTML.trimmingCharacters(in: .newlines)) {
                     if let anchor = start("span", node: node) { append("<span id=\"\(id)\"></span>"); end("span", anchor: anchor) }
                     return
                 }
@@ -177,13 +177,13 @@ public struct RenderedMarkdownPreview: Sendable {
                 append(escape(html.rawHTML)); end("pre", anchor: anchor)
             case let html as InlineHTML:
                 if ["<br>", "<br/>", "<br />"].contains(html.rawHTML.lowercased()) { append("<br>"); return }
-                if let id = generatedEPUBAnchor(html.rawHTML + "</a>"),
+                if let id = generatedImportAnchor(html.rawHTML + "</a>"),
                    (nextSibling as? InlineHTML)?.rawHTML == "</a>" {
                     if let anchor = start("span", node: node) { append("<span id=\"\(id)\"></span>"); end("span", anchor: anchor) }
                     return
                 }
                 if html.rawHTML == "</a>", let previous = previousSibling as? InlineHTML,
-                   generatedEPUBAnchor(previous.rawHTML + "</a>") != nil { return }
+                   generatedImportAnchor(previous.rawHTML + "</a>") != nil { return }
                 hasLiteralHTML = true; append(escape(html.rawHTML))
             case let image as Markdown.Image:
                 let alt = plainText(image, depth: 0)
@@ -227,10 +227,10 @@ public struct RenderedMarkdownPreview: Sendable {
                 }
             }
         }
-        // Nur exakt leere, vom EPUB-Importer erzeugbare Anker; kein fremdes HTML.
-        func generatedEPUBAnchor(_ raw: String) -> String? {
+        // Nur exakt leere, von EPUB-/Präsentationsimportern erzeugbare Anker.
+        func generatedImportAnchor(_ raw: String) -> String? {
             guard raw.utf8.count <= 128,
-                  raw.range(of: #"^<a id="pmt-epub-chapter-[1-9][0-9]*(?:-anchor-[1-9][0-9]*)?"></a>$"#, options: .regularExpression) != nil else { return nil }
+                  raw.range(of: #"^<a id="pmt-(?:epub-chapter-[1-9][0-9]*(?:-anchor-[1-9][0-9]*)?|slide-[1-9][0-9]*)"></a>$"#, options: .regularExpression) != nil else { return nil }
             return String(raw.dropFirst(7).dropLast(6))
         }
         func plainText(_ node: any Markup, depth: Int) -> String {

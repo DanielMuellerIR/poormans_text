@@ -22,11 +22,39 @@ Die Ausgabe erhält Text in der Dokumentreihenfolge. Position, Theme, Animation,
 Übergänge und genaue Schriftgestaltung werden nicht nachgebildet. Vererbte
 OOXML-Listenformatierung aus Layouts/Mastern wird bei betroffenen Absätzen
 explizit diagnostiziert; Text bleibt erhalten. Benutzerdefinierte Nummerierung
-und Startwerte werden nicht exakt reproduziert. Hyperlinks bleiben als sichtbarer
-Text mit Verlustdiagnose stehen. Tabellenverbünde werden abgeflacht; verschachtelte
+und Startwerte werden nicht exakt reproduziert. Hyperlinks aus Text, Tabellen
+und Notizen behalten ihre getrennten Textbereiche und sicheren Ziele.
+Tabellenverbünde werden abgeflacht; verschachtelte
 ODP-Tabellen landen einmal im Text der äußeren Zelle und erhalten eine Diagnose.
 Diagramme, SmartArt-Beziehungen, Video, Audio und OLE-Objekte werden diagnostiziert,
 aber nicht rekonstruiert. Makros werden nie ausgeführt oder kopiert.
+
+## Hyperlinks und Folienziele
+
+Jede ausgegebene Folie besitzt einen stabilen Anker `<a id="pmt-slide-N"></a>`
+mit ihrer ursprünglichen Nummer. Interne OOXML-Slide-Beziehungen sowie eindeutige
+ODP-Seitennamen/-IDs führen dorthin. ODP-Fragmente werden einmal percent-dekodiert;
+auch die Typkennung `|page` wird unterstützt. Mehrdeutige, fehlende oder durch
+`--slides` ausgeschlossene Ziele bleiben als sichtbarer Text mit Diagnose stehen.
+Die Zuordnung folgt der Dokumentreihenfolge, nicht der Zahl im XML-Dateinamen.
+
+Mehrere Links pro Absatz oder Zelle bleiben getrennte Textbereiche. Explizite
+OOXML-Run-Links haben Vorrang vor Absatz-/Shape-Defaults; ODP-Textlinks vor einem
+umgebenden Shape-Link. Benachbarte Bereiche mit identischem Ziel dürfen zusammen
+erscheinen. Mehrzeilige Links behalten ihre Zeilen; Tabellen nutzen `<br>`.
+Linktexte und URI-Sonderzeichen werden maskiert, einschließlich `&`, Klammern,
+Pipes und Unicode. Die externe Auswahl erlaubt HTTP, HTTPS und Mailto ohne
+Steuerzeichen; Webziele mit eingebetteten Zugangsdaten, Dateiziele und nicht
+aufgelöste relative Ziele bleiben mit Verlustdiagnose nicht klickbar.
+
+Statische PowerPoint-Sprünge zur ersten/letzten/nächsten/vorherigen Folie erhalten
+einen passenden internen Link. Verlaufssprünge, benutzerdefinierte Shows,
+Programme, Makros und sonstige Aktionen werden nicht ausgeführt oder als normale
+Weblinks ausgegeben. Mouse-over-Ziele werden nicht zu Klickaktionen umgedeutet.
+Bildlinks haben keinen unterstützten Textbereich und werden mit Diagnose
+abgeflacht; die vorhandenen Bildbytes bleiben erhalten. Linkziele lösen niemals
+Ressourcenladen aus. Die App-Vorschau zeigt die Links und ihre Ziele, lässt sie
+aber wie bisher inaktiv; nur exakt leere generierte Folienanker werden umgesetzt.
 
 ## Sicherheits- und Ressourcengrenzen
 
@@ -48,7 +76,9 @@ in einem begrenzten `content.xml`.
 ODP-Tabellen haben höchstens 256 Spalten und 1.000 Zeilen. Vor Wiederholungen
 prüft der Parser einen konservativen UTF-8-Ausgabebedarf einschließlich
 Markdown-Maskierung. Expandierte Absätze dürfen höchstens 16 MiB, ihr gesamter
-Text höchstens 128 MiB belegen. Der Renderer prüft jede Vergrößerung des Markdown
+Text höchstens 128 MiB belegen. Zusätzlich gelten höchstens 8.192 gelesene Quell-Linkdefinitionen und
+8.192 UTF-8-Bytes pro externem Ziel; Linkexpansion wird vor Materialisierung und
+Tabellenwiederholung gegen das Ausgabebudget geprüft. Der Renderer prüft jede Vergrößerung des Markdown
 gegen das verbleibende Dokumentbudget von 128 MiB. Nach 256 einzelnen Diagnosen
 folgt die Zahl der weiteren ausgelassenen Diagnosen.
 
@@ -65,3 +95,15 @@ Bild- und Quellenbytes und prüfen mit lokal vorhandenem Pandoc die GFM-Struktur
 von Tabellen und nummerierten Listen. Weitere Fixtures prüfen CRC-Fehler in
 ungenutzten Medien, Bilder über 16 MiB, wiederholte ODP-Zellen/Leerzeichen,
 Entitätsdeklarationen, fehlenden Inhalt und Abbruch vor Veröffentlichung.
+
+
+`PresentationLinkTests` erzeugt echte PPTX/PPTM/POTX/ODP mit jeweils sieben
+Hyperlinks, mehreren Links pro Zelle, internen Zielen und Notizlinks. Ein
+unabhängiger Markdown-Parser prüft die tatsächlichen Ziele, Textmarker und
+Bytevergleiche die Quellen/Assets. Weitere Fälle prüfen Auswahl, Textbundle,
+Defekt-/Aktionsdiagnosen, Defaults, Unicode, Mehrzeilen und atomare Budgets.
+`PreviewWebTests` prüft echte WebKit-Ausgaben in Hell/Dunkel und verhindert aktive
+Navigation oder nachgeladene Ressourcen.
+
+Primärquellen: [OOXML-Klickaktionen](https://learn.microsoft.com/en-us/openspecs/office_standards/ms-oe376/7ff3db24-b7b9-4ffe-aa78-3ec47cab2489),
+[OpenDocument-1.3-Schema](https://docs.oasis-open.org/office/OpenDocument/v1.3/OpenDocument-v1.3-part3-schema.html).

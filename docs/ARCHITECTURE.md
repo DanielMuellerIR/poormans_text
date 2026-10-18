@@ -411,7 +411,11 @@ des wiederholten Bereichs.
 `PresentationAdapter` bindet PPTX/PPTM/POTX und ODP an den geprüften Paketleser.
 `PresentationImport` liest ihre Struktur; `PresentationSlide`/`PresentationBlock`
 und `PresentationRenderer` teilen Absatz-, Listen-, Tabellen-, Bild- und
-Notizdarstellung. `ImportXML` begrenzt die XML-Bäume und lehnt Entitätsdeklarationen
+Notizdarstellung. `PresentationText` enthält getrennte Textläufe mit validierten
+Linkzielen; der Renderer maskiert erst den gesamten Quelltext und ersetzt danach
+nur eigene Linkmarker. Interne Beziehungen werden auf ursprüngliche Foliennummern
+abgebildet und gegen die tatsächlich ausgewählten Folien geprüft. Die gemeinsame
+URI-Maskierung liegt in `MarkdownEscaping`. `ImportXML` begrenzt die XML-Bäume und lehnt Entitätsdeklarationen
 ab. `ImportTextBuilder` prüft vor jeder String-Vergrößerung das Ausgabebudget;
 ODP-Wiederholungen werden zusätzlich vor ihrer Expansion geprüft.
 

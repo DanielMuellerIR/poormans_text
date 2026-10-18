@@ -46,7 +46,9 @@ public struct ConversionWarning: Codable, Hashable, Sendable {
              "wordProcessing.templateSemanticsNotPreserved", "openDocument.changesNotPreserved",
              "spreadsheet.formulaResultMissing", "spreadsheet.unsupportedObjects", "spreadsheet.macrosNotPreserved",
              "spreadsheet.templateSemanticsNotPreserved", "spreadsheet.hyperlinkNotPreserved", "html.missingImagesDropped",
-             "presentation.hyperlinkFlattened", "presentation.imageUnavailable", "presentation.macrosNotPreserved",
+             "presentation.hyperlinkFlattened", "presentation.linkUnavailable", "presentation.linkExcluded",
+             "presentation.linkUnsafe", "presentation.linkActionNotRepresented", "presentation.hyperlinkNotRepresented",
+             "presentation.imageUnavailable", "presentation.macrosNotPreserved",
              "presentation.notesUnavailable", "presentation.objectNotRepresented", "notebook.attachmentUnavailable",
              "notebook.imageUnavailable", "notebook.resourceUnavailable", "notebook.outputNotRepresented":
             return .contentLoss

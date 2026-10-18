@@ -56,8 +56,10 @@ Nur die Reihenfolge der zulässigen Eingabetypen wird dabei normalisiert.
 
 `Contents/Resources/Metadata.appintents` wird vor der Signatur in das Bundle
 übernommen. `scripts/verify_bundle.sh` verlangt die Aktion, ihre beiden
-Dateiparameter, die acht Inhaltsauswahlparameter, die OCR-Methodenwahl samt
-Standardwert, den DOCX-Änderungsmodus samt Standardwert und den App-Kurzbefehl.
+Dateiparameter, die acht Inhaltsauswahlparameter, die OCR-Methodenwahl, den DOCX-Änderungsmodus, die optionale Profilentität mit
+Abfrage sowie den App-Kurzbefehl. Wiederverwendbare Optionsparameter sind optional
+ohne Metadatendefault, damit unbelegte Werte ein Profil übernehmen können; die
+Adaptertests sichern die bisherigen Defaults ohne Profil.
 Ein Build ohne diese Metadaten bricht ab,
 statt eine in Kurzbefehle unsichtbare Aktion auszuliefern. Lokalisierungen liegen
 in `Localizable.strings` und `AppShortcuts.strings` für Englisch und Deutsch.

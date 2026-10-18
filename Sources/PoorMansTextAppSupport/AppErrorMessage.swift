@@ -36,6 +36,14 @@ public enum AppErrorMessage {
         if let error = error as? OCRLanguageSelection.SelectionError {
             return format("Invalid OCR language selection: %@", error.reason)
         }
+        if let error = error as? ConversionProfileError {
+            switch error.kind {
+            case .missing: return format("The profile could not be found. Reload profiles or choose current settings.")
+            case .collision: return format("A profile with this name already exists. Choose another name.")
+            case .localPermission: return format("This profile contains local paths. Allow them explicitly before selecting it.")
+            case .invalid, .fileSystem: return format("Profile error: %@", bundle.localizedString(forKey: error.reason, value: nil, table: nil))
+            }
+        }
         if let error = error as? ConversionError {
             switch error {
             case .cancelled: return format("Conversion cancelled.")

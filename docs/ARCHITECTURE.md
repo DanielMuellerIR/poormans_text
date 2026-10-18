@@ -570,6 +570,17 @@ Schlüssel ab. Alle Modellebenen lehnen unbekannte Felder ab; nur fehlende bekan
 Optionsfelder erhalten dokumentierte Schema-Defaults. `ConversionProfileStore`
 liest begrenzt, hält den Zielordner per Deskriptor, schützt die Namensvergabe mit
 einer kurzen nicht wartenden Schreibsperre und publiziert vollständige 0600-Dateien
-per exklusivem Hardlink. Ein vorhandenes Ziel wird nicht ersetzt. Die CLI bleibt
+per exklusivem Hardlink. Import und neue Speicherung ersetzen kein vorhandenes Ziel.
+Explizite App-Updates/Löschungen verlangen den zuvor gelesenen Profilstand und
+verwenden dieselbe nicht wartende Sperre; Updates publizieren atomar. Die CLI bleibt
 für Parsing, Verwaltung und explizite Optionsvorränge zuständig; Konvertierungslogik
 bleibt im Kern. Der öffentliche Vertrag steht in [PROFILES.md](PROFILES.md).
+
+`AppProfiles` verwaltet die App-Auswahl, behält die bisherigen Preferences und
+merkt die gelesene Profilrevision. Externe Änderungen verlangen auch nach einem
+Neustart ein bewusstes Neuladen. `AppProfileInvocation` friert Profil und wirksame
+Werte pro Auftrag ein; gebundene Anfragen werden außerhalb des Main Actors
+aufgelöst und tragen ihre Quellidentität bis in den Kern. Mehrfach-/Dienstaufrufe
+übernehmen keine Dokumentbindungen. `ShortcutProfileQuery` liefert lokale
+AppEntity-Namen. Optionale Intent-Werte unterscheiden unbelegt von explizit false;
+so bleiben Profilvorrang und die bisherigen Defaults eindeutig.

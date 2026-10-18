@@ -2,8 +2,55 @@
 
 Profile speichern wiederkehrende Konvertierungsoptionen lokal. Die CLI kann sie
 anlegen, auflisten, auswählen und als versioniertes JSON importieren/exportieren.
-App- und Kurzbefehle-Bedienung folgen separat. Profile starten keine Konvertierung
+App und Kurzbefehle verwenden denselben Speicher und dieselbe Optionsauflösung. Profile starten keine Konvertierung
 automatisch und enthalten keine Warteschlange.
+
+## App und gemerkte Einstellungen
+
+Der Profilwähler steht über den Konvertierungsoptionen. **Aktuelle Einstellungen**
+behält die sichtbaren Werte ohne Profilbindung. **Profile verwalten …** bietet
+Speichern unter neuem Namen, Duplizieren, Aktualisieren, Neuladen und bewusstes
+Löschen. Ungespeicherte Änderungen werden angezeigt; vor dem Laden anderer
+Profilwerte fragt die App nach. Löschen entfernt das Profil und behält die
+aktuellen Optionswerte. Beispielprofile für lokale Scans und Dokumentprüfung
+werden nur auf Wunsch angelegt.
+
+Vorhandene gemerkte Einstellungen bleiben erhalten. Die App legt daraus kein
+Profil automatisch an. Gewählter Profilname und aktuelle Werte bleiben beim
+Neustart erhalten, auch bei ungespeicherten Änderungen. Fehlt das Profil oder
+wurde sein gespeicherter Stand geändert, bleiben die Werte erhalten; Neuladen
+oder **Aktuelle Einstellungen** klärt den Zustand vor der nächsten Konvertierung.
+Aktualisieren/Löschen prüft den zuvor gelesenen Stand gegen parallele Änderungen.
+Laufende Konvertierungen verwenden ihren beim Start eingefrorenen Optionsstand.
+
+Neue App-Profile speichern portable Optionen. Zielordner und Batch-Parallelität
+bleiben eigenständige App-Einstellungen. Aktualisierungen/Duplikate behalten
+vorhandene Dokumentbindungen und lokale Ziel-/Werkzeugpfade. Lokale Profile aus
+der CLI verlangen vor dem Laden eine ausdrückliche Zustimmung. Ihr Ausgabeziel
+ist ein genauer Ordner für ein Dokument; ein anderes gewähltes App-Ziel verwendet
+wieder die übliche Zielwurzel. Mehrfachimporte dürfen weder eine Dokumentbindung
+noch den genauen lokalen Ausgabeordner still übernehmen. **Aktuelle Einstellungen
+ohne Bindung verwenden** verwirft die Bindung nur für den aktuellen Aufruf;
+das gespeicherte Profil bleibt erhalten. Dienste mit Zwischenablagetext weisen
+Dokumentbindungen ebenfalls ab.
+
+## Kurzbefehle
+
+Die Aktion **Dokument in Markdown umwandeln** bietet die optionale Auswahl eines
+Konvertierungsprofils aus demselben lokalen Speicher. Unbelegte Optionsparameter
+übernehmen Profilwerte; gesetzte Werte, einschließlich `false`, haben Vorrang.
+Ohne Profil bleiben die bisherigen Konvertierungsdefaults erhalten. Bereits
+in älteren Kurzbefehlen gespeicherte Werte sind explizite Angaben; entferne einen
+Wert, wenn stattdessen das Profil gelten soll. Inhaltsauswahlen und das ausdrückliche
+Verwerfen einer Profilbindung behalten den dokumentierten Quellschutz.
+
+Der gewählte Kurzbefehle-Zielordner ist weiterhin verpflichtend und hat Vorrang
+vor einem lokalen Profilziel. Lokale Profilpfade verlangen zusätzlich die Option
+**Lokale Profilpfade erlauben**. Fehlende Profile oder ungültige Werte führen vor
+Veröffentlichung zu einer lesbaren Fehlermeldung. Profilnamen sind lokale
+App-Entitäten; es werden keine entfernten Ressourcen abgefragt. Der Adapter folgt
+Apples Verträgen für [optionale Parameter](https://developer.apple.com/documentation/appintents/adding-parameters-to-an-app-intent)
+und [EntityQuery](https://developer.apple.com/documentation/appintents/entityquery).
 
 ## Wiederverwendbare Optionen
 

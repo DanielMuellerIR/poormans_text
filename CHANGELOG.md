@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.33.0 — 2026-10-18
+
+- Select and manage named conversion profiles in the app; preserve current settings and show unsaved changes across restarts.
+- Create, duplicate, update and explicitly delete profiles with protection against stale edits; offer scan and review examples on request.
+- Choose profiles in Shortcuts. Empty optional values inherit the profile, explicit values override it, and document bindings and local-path permission remain enforced.
+
 ## 0.32.0 — 2026-10-18
 
 - Add versioned named conversion profiles with strict JSON validation, bounded local storage, import/export and CLI selection. Explicit CLI options override profile values; omitted known fields retain stable defaults.

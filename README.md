@@ -28,6 +28,8 @@ TextKit-specific attribute.
 
 After conversion, choose **Open in Fastra** to open the Markdown directly in Fastra, or **Open Markdown** to use the default app. Fastra must be installed.
 
+Named profiles can be managed in the app and selected in Shortcuts. Empty Shortcuts options inherit profile values; explicit values take precedence. See the [profile contract](docs/PROFILES.md).
+
 ## Output
 
 Converting a supported input creates a new sibling directory without changing
@@ -565,7 +567,7 @@ and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compa
 their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current version is 0.32.0.
+The current version is 0.33.0.
 
 ## License
 
@@ -598,7 +600,7 @@ Use `--list-sheets --json workbook.xlsx` to inspect source sheet indices, exact 
 
 ### Named conversion profiles
 
-Save recurring options with `--save-profile NAME`, select them with `--profile NAME`, and manage portable JSON using `--list-profiles`, `--import-profile FILE` and `--export-profile FILE`. Explicit conversion options take precedence. Content selections require `--profile-source FILE` when saved and remain bound to those exact source bytes. Local output/tool paths require `--profile-local` for each profile operation. See [profiles and precedence](docs/PROFILES.md). App and Shortcuts profile controls are planned.
+Save recurring options with `--save-profile NAME`, select them with `--profile NAME`, and manage portable JSON using `--list-profiles`, `--import-profile FILE` and `--export-profile FILE`. Explicit conversion options take precedence. Content selections require `--profile-source FILE` when saved and remain bound to those exact source bytes. Local output/tool paths require `--profile-local` for each profile operation. See [profiles and precedence](docs/PROFILES.md).
 
 ### PDF text and OCR options
 

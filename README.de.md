@@ -30,6 +30,8 @@ Schrift, Anordnung oder TextKit-spezifische Eigenschaft.
 
 Nach der Konvertierung öffnet **In Fastra öffnen** das Markdown direkt in Fastra. **Markdown öffnen** verwendet die Standard-App. Fastra muss installiert sein.
 
+Benannte Profile lassen sich in der App verwalten und in Kurzbefehle auswählen. Leere Kurzbefehle-Optionen übernehmen Profilwerte; explizite Angaben haben Vorrang. Einzelheiten stehen im [Profilvertrag](docs/PROFILES.md).
+
 ## Ausgabe
 
 Die Konvertierung einer unterstützten Eingabe erzeugt einen neuen Nachbarordner,
@@ -597,7 +599,7 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.32.0.
+Die aktuelle Version ist 0.33.0.
 
 ## Lizenz
 
@@ -630,7 +632,7 @@ einzige Netzwerkzugriff ist die Update-Suche. Einzelheiten stehen in
 
 ### Benannte Konvertierungsprofile
 
-`--save-profile NAME` speichert wiederkehrende Optionen, `--profile NAME` wählt sie aus. `--list-profiles`, `--import-profile DATEI` und `--export-profile DATEI` verwalten das versionierte JSON. Explizite Konvertierungsoptionen haben Vorrang. Inhaltsauswahlen brauchen beim Speichern `--profile-source DATEI` und bleiben an genau diese Quellbytes gebunden. Lokale Ziel-/Werkzeugpfade verlangen bei jedem Profilvorgang `--profile-local`. Details: [Profile und Vorrang](docs/PROFILES.md). Die Profilbedienung in App und Kurzbefehle ist geplant.
+`--save-profile NAME` speichert wiederkehrende Optionen, `--profile NAME` wählt sie aus. `--list-profiles`, `--import-profile DATEI` und `--export-profile DATEI` verwalten das versionierte JSON. Explizite Konvertierungsoptionen haben Vorrang. Inhaltsauswahlen brauchen beim Speichern `--profile-source DATEI` und bleiben an genau diese Quellbytes gebunden. Lokale Ziel-/Werkzeugpfade verlangen bei jedem Profilvorgang `--profile-local`. Details: [Profile und Vorrang](docs/PROFILES.md).
 
 ### PDF-Text und OCR-Optionen
 

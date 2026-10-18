@@ -26,11 +26,6 @@ Kurzbefehle reichen die jeweils passenden Optionen weiter.
   Fotos erweitern; Inhaltsbestand, Zellzuordnung, Lesereihenfolge, Laufzeit
   und Speicherbedarf entscheiden über seinen Einsatz.
 
-### Konvertierungsprofile
-
-- Benannte Konvertierungsprofile in App und Kurzbefehle integrieren; Profilwerte,
-  explizite Änderungen und quellengebundene Auswahlen verständlich zeigen.
-
 ### Inhalte direkt einfügen
 
 - Kopierten Rich Text direkt in der App in Markdown umwandeln.

@@ -130,7 +130,8 @@ final class ShortcutConversionTests: XCTestCase {
         let source = root.appendingPathComponent("structured.png")
         try bytes.write(to: source)
         let intent = configured(document: IntentFile(fileURL: source))
-        XCTAssertEqual(intent.ocrMethod, .standard)
+        XCTAssertNil(intent.ocrMethod)
+        XCTAssertEqual(try intent.explicitOptions().ocrMethod, .standard)
         intent.ocrMethod = .structured
         let result = try await intent.perform()
         let output = try resultFolder(result.value)

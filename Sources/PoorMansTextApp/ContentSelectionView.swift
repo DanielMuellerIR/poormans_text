@@ -163,7 +163,7 @@ struct ContentSelectionView: View {
             case .epub(let summary): positions = summary.chapterCount > 0 ? "1-\(summary.chapterCount)" : ""
             case .complete: positions = ""
             }
-            cells = ""; includeNotes = true
+            cells = ""; includeNotes = app.presentationIncludeNotes
         }
         .onDisappear { model.cancel() }
         .onChange(of: app.isConverting) { active in if active { model.cancel(); dismiss() } }

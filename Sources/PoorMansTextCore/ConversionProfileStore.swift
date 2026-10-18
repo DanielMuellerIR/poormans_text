@@ -83,6 +83,33 @@ public struct ConversionProfileStore: Sendable {
             try Self.publish(data, named: name, directoryFD: fd)
         }
     }
+    /// Explizite Bearbeitung erfordert den zuvor gelesenen Stand. Alle eigenen
+    /// Schreiber verwenden dieselbe Sperre; veraltete Fenster ersetzen nichts.
+    public func update(_ profile: ConversionProfile, replacing expected: ConversionProfile, allowLocalTargets: Bool = false) throws {
+        try profile.requireLocalPermission(allowLocalTargets)
+        let data = try profile.encoded(), name = try filename(expected.name)
+        guard try filename(profile.name) == name else { throw ConversionProfileError("Use a new profile to change its name.") }
+        try withDirectory(create: false) { fd in
+            try withEditLock(fd) {
+                guard try load(name, directoryFD: fd) == expected else { throw ConversionProfileError("The saved profile changed. Reload it before editing.", kind: .fileSystem) }
+                try Self.publish(data, named: name, directoryFD: fd, replacing: true)
+            }
+        }
+    }
+    public func delete(_ expected: ConversionProfile) throws {
+        let name = try filename(expected.name)
+        try withDirectory(create: false) { fd in
+            try withEditLock(fd) {
+                guard try load(name, directoryFD: fd) == expected else { throw ConversionProfileError("The saved profile changed. Reload it before deleting.", kind: .fileSystem) }
+                guard unlinkat(fd, name, 0) == 0 else { throw ConversionProfileError("The profile could not be deleted.", kind: .fileSystem) }
+            }
+        }
+    }
+    private func withEditLock<T>(_ fd: Int32, _ body: () throws -> T) throws -> T {
+        guard flock(fd, LOCK_EX | LOCK_NB) == 0 else { throw ConversionProfileError("The profile store is busy; try again.", kind: .fileSystem) }
+        defer { flock(fd, LOCK_UN) }
+        return try body()
+    }
     public static func readProfile(at url: URL) throws -> ConversionProfile {
         do {
             let data = try VerifiedFileStaging.withVerifiedSource(at: url, maximumBytes: ConversionProfile.maximumBytes, describedAs: "the imported profile") { source, _ in
@@ -107,7 +134,7 @@ public struct ConversionProfileStore: Sendable {
         let store = Self(directory: url.deletingLastPathComponent())
         try store.withDirectory(create: false) { try publish(data, named: url.lastPathComponent, directoryFD: $0) }
     }
-    private static func publish(_ data: Data, named name: String, directoryFD: Int32) throws {
+    private static func publish(_ data: Data, named name: String, directoryFD: Int32, replacing: Bool = false) throws {
         let temporary = ".profile-\(UUID().uuidString).tmp"
         let fd = openat(directoryFD, temporary, O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW | O_CLOEXEC, 0o600)
         guard fd >= 0 else { throw ConversionProfileError("The profile staging file could not be created.", kind: .fileSystem) }
@@ -123,6 +150,10 @@ public struct ConversionProfileStore: Sendable {
             }
         }
         guard fsync(fd) == 0 else { throw ConversionProfileError("The profile staging file could not be synchronized.", kind: .fileSystem) }
+        if replacing {
+            guard renameat(directoryFD, temporary, directoryFD, name) == 0 else { throw ConversionProfileError("The profile could not be updated.", kind: .fileSystem) }
+            return
+        }
         guard linkat(directoryFD, temporary, directoryFD, name, 0) == 0 else {
             throw ConversionProfileError(errno == EEXIST ? "The profile name or export target already exists; nothing was overwritten." : "The profile could not be published.", kind: errno == EEXIST ? .collision : .fileSystem)
         }

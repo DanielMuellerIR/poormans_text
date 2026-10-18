@@ -47,23 +47,23 @@ public enum ShortcutNotesMode: String, AppEnum {
 
 public struct ConvertDocumentIntent: AppIntent {
     public static let title: LocalizedStringResource = "Convert Document to Markdown"
-    public static let description = IntentDescription("Convert one document into a new folder or Textbundle, including its images. Existing results are never overwritten. The result is a list: the complete output folder's file URL first, followed by any conversion warnings.")
+    public static let description = IntentDescription("Convert one document into a new folder or Textbundle, including its images. Existing results are never overwritten. The result is a list: the complete output folder's file URL first, followed by any conversion warnings. Empty option values use the selected profile or the existing defaults; explicit values override the profile.")
     public static let openAppWhenRun = false
 
     @Parameter(title: "Document") public var document: IntentFile
     @Parameter(title: "Destination Folder", supportedTypeIdentifiers: ["public.folder"])
     public var destinationFolder: IntentFile
-    @Parameter(title: "Textbundle", default: false) public var textbundle: Bool
-    @Parameter(title: "Include Metadata", default: false) public var frontmatter: Bool
-    @Parameter(title: "Spreadsheet Format", default: .table) public var spreadsheetFormat: ShortcutSpreadsheetFormat
-    @Parameter(title: "Recognize Text in Images", default: true) public var imageOCR: Bool
-    @Parameter(title: "PDF Text Recognition", default: .automatic) public var pdfOCR: ShortcutPDFRecognition
-    @Parameter(title: "OCR Method", default: .standard) public var ocrMethod: ShortcutOCRMethod
-    @Parameter(title: "DOCX text changes", default: .accept) public var docxChangeMode: ShortcutDOCXChangeMode
-    @Parameter(title: "OCR Languages", default: "") public var ocrLanguages: String
-    @Parameter(title: "PDF Layout", default: .automatic) public var pdfLayout: ShortcutPDFLayout
-    @Parameter(title: "Remove Repeated PDF Headers and Footers", default: false) public var removeHeadersFooters: Bool
-    @Parameter(title: "Join Hyphenated PDF Words", default: false) public var dehyphenate: Bool
+    @Parameter(title: "Textbundle") public var textbundle: Bool?
+    @Parameter(title: "Include Metadata") public var frontmatter: Bool?
+    @Parameter(title: "Spreadsheet Format") public var spreadsheetFormat: ShortcutSpreadsheetFormat?
+    @Parameter(title: "Recognize Text in Images") public var imageOCR: Bool?
+    @Parameter(title: "PDF Text Recognition") public var pdfOCR: ShortcutPDFRecognition?
+    @Parameter(title: "OCR Method") public var ocrMethod: ShortcutOCRMethod?
+    @Parameter(title: "DOCX text changes") public var docxChangeMode: ShortcutDOCXChangeMode?
+    @Parameter(title: "OCR Languages") public var ocrLanguages: String?
+    @Parameter(title: "PDF Layout") public var pdfLayout: ShortcutPDFLayout?
+    @Parameter(title: "Remove Repeated PDF Headers and Footers") public var removeHeadersFooters: Bool?
+    @Parameter(title: "Join Hyphenated PDF Words") public var dehyphenate: Bool?
     @Parameter(title: "PDF Pages (for example 1,3-5)", default: "") public var pdfPages: String
     @Parameter(title: "Sheet Indices (for example 1,3-5)", default: "") public var sheetIndices: String
     @Parameter(title: "Exact Sheet Names", default: []) public var sheetNames: [String]
@@ -72,10 +72,22 @@ public struct ConvertDocumentIntent: AppIntent {
     @Parameter(title: "Slides (for example 1,3-5)", default: "") public var slides: String
     @Parameter(title: "Presentation Notes", default: .documentDefault) public var presentationNotes: ShortcutNotesMode
     @Parameter(title: "EPUB Chapters (for example 1,3-5)", default: "") public var epubChapters: String
+    @Parameter(title: "Conversion profile") public var profile: ShortcutProfile?
+    @Parameter(title: "Allow local profile paths", default: false) public var allowLocalProfile: Bool
+    @Parameter(title: "Discard profile document selection", default: false) public var discardProfileSelection: Bool
+    @Parameter(title: "Record source locations") public var sourceMapping: Bool?
+    @Parameter(title: "Write conversion report") public var conversionReport: Bool?
+    var profileStoreOverride: ConversionProfileStore?
+
     @Parameter(title: "Tool Timeout in Seconds", default: 120) public var toolTimeout: Double
 
     public static var parameterSummary: some ParameterSummary {
         Summary("Convert \(\.$document) into \(\.$destinationFolder)") {
+            \.$profile
+            \.$allowLocalProfile
+            \.$discardProfileSelection
+            \.$sourceMapping
+            \.$conversionReport
             \.$textbundle
             \.$frontmatter
             \.$spreadsheetFormat
@@ -132,21 +144,12 @@ public struct ConvertDocumentIntent: AppIntent {
         guard toolTimeout.isFinite, toolTimeout > 0 else {
             throw ShortcutFailure(message: String(localized: "The tool timeout must be a positive number."))
         }
-        var options = ConversionOptions(
-            spreadsheetRendering: spreadsheetFormat == .table ? .markdownTable : .tabSeparated,
-            imageTextRecognition: imageOCR ? .enabled : .disabled,
-            frontmatter: frontmatter,
-            outputLayout: textbundle ? .textbundle : .markdownFolder,
-            pdfTextRecognition: pdfOCR == .automatic ? .automatic : pdfOCR == .always ? .always : .disabled,
-            ocrLanguages: ocrLanguages.split(separator: ",").map { String($0).trimmingCharacters(in: .whitespaces) },
-            ocrMethod: ocrMethod == .structured ? .structured : .standard,
-            docxChangeMode: docxChangeMode == .mark ? .mark : docxChangeMode == .reject ? .reject : .accept,
-            pdfLayout: pdfLayout == .automatic ? .automatic : .legacy,
-            pdfRemoveHeadersFooters: removeHeadersFooters,
-            pdfDehyphenate: dehyphenate
-        )
-        if let selection = try contentSelection() { options = selection.applying(to: options) }
-        let resolvedOptions = options
+        let resolvedOptions = try explicitOptions()
+        let profileName = profile?.id
+        let store = profileStoreOverride ?? ConversionProfileStore()
+        let allowLocal = allowLocalProfile
+        let discardSelection = discardProfileSelection
+        let explicit = explicitOptionKeys()
         let document = document
         let destination = destinationFolder
         let timeout = toolTimeout
@@ -155,7 +158,7 @@ public struct ConvertDocumentIntent: AppIntent {
         do {
             result = try await withTaskCancellationHandler {
                 try await Task.detached(priority: .userInitiated) {
-                    try ShortcutConversion.convert(document, into: destination, options: resolvedOptions, timeout: timeout, cancellation: cancellation)
+                    try ShortcutConversion.convert(document, into: destination, options: resolvedOptions, timeout: timeout, cancellation: cancellation, profileName: profileName, store: store, explicit: explicit, allowLocal: allowLocal, discardSelection: discardSelection)
                 }.value
             } onCancel: { cancellation.cancel() }
         } catch {
@@ -177,7 +180,7 @@ private struct ShortcutFailure: LocalizedError {
 }
 
 private enum ShortcutConversion {
-    static func convert(_ document: IntentFile, into destination: IntentFile, options: ConversionOptions, timeout: Double, cancellation: ConversionCancellationToken) throws -> ConversionResult {
+    static func convert(_ document: IntentFile, into destination: IntentFile, options explicitOptions: ConversionOptions, timeout: Double, cancellation: ConversionCancellationToken, profileName: String?, store: ConversionProfileStore, explicit: Set<ConversionProfileOptionKey>, allowLocal: Bool, discardSelection: Bool) throws -> ConversionResult {
         try cancellation.checkCancellation()
         guard let parent = destination.fileURL, parent.isFileURL else {
             throw ShortcutFailure(message: String(localized: "Choose a destination folder on this Mac."))
@@ -211,11 +214,59 @@ private enum ShortcutConversion {
         }
         let sourceAccess = source.startAccessingSecurityScopedResource()
         defer { if sourceAccess { source.stopAccessingSecurityScopedResource() } }
+        var options = explicitOptions
+        var identity: ConversionSourceIdentity?
+        if let profileName {
+            let profile = try store.load(named: profileName)
+            let resolved = try profile.resolve(for: source, overriding: explicitOptions, explicit: explicit, discardBoundSelection: discardSelection, allowLocalTargets: allowLocal, cancellation: cancellation)
+            options = resolved.options; identity = resolved.expectedSourceIdentity
+        } else if allowLocal || discardSelection {
+            throw AppProfileFailure(key: "Profile modifiers require a selected profile.")
+        }
         let name = DocumentConverter.defaultOutputDirectory(for: source, layout: options.outputLayout).lastPathComponent
         return try DocumentConverter().convert(
-            ConversionRequest(inputURL: source, destination: .directory(parent.appendingPathComponent(name, isDirectory: true)), options: options),
+            ConversionRequest(inputURL: source, destination: .directory(parent.appendingPathComponent(name, isDirectory: true)), options: options, expectedSourceIdentity: identity),
             cancellation: cancellation,
             processTimeout: timeout
         )
+    }
+}
+
+extension ConvertDocumentIntent {
+    func explicitOptions() throws -> ConversionOptions {
+        var options = ConversionOptions(
+            spreadsheetRendering: spreadsheetFormat == .tsv ? .tabSeparated : .markdownTable,
+            imageTextRecognition: imageOCR == false ? .disabled : .enabled,
+            frontmatter: frontmatter ?? false,
+            outputLayout: textbundle == true ? .textbundle : .markdownFolder,
+            pdfTextRecognition: pdfOCR == .always ? .always : pdfOCR == .disabled ? .disabled : .automatic,
+            ocrLanguages: (ocrLanguages ?? "").split(separator: ",").map { String($0).trimmingCharacters(in: .whitespaces) },
+            ocrMethod: ocrMethod == .structured ? .structured : .standard,
+            docxChangeMode: docxChangeMode == .mark ? .mark : docxChangeMode == .reject ? .reject : .accept,
+            pdfLayout: pdfLayout == .legacy ? .legacy : .automatic,
+            pdfRemoveHeadersFooters: removeHeadersFooters ?? false,
+            pdfDehyphenate: dehyphenate ?? false,
+            presentationIncludeNotes: presentationNotes != .exclude,
+            sourceMapping: sourceMapping ?? false, conversionReport: conversionReport ?? false)
+        if let selection = try contentSelection() { options = selection.applying(to: options) }
+        return options
+    }
+    func explicitOptionKeys() -> Set<ConversionProfileOptionKey> {
+        var keys = Set<ConversionProfileOptionKey>()
+        let values: [(Bool, ConversionProfileOptionKey)] = [
+            (spreadsheetFormat != nil,.spreadsheetRendering), (imageOCR != nil,.imageTextRecognition),
+            (frontmatter != nil,.frontmatter), (textbundle != nil,.outputLayout), (pdfOCR != nil,.pdfTextRecognition),
+            (ocrLanguages != nil,.ocrLanguages), (ocrMethod != nil,.ocrMethod), (docxChangeMode != nil,.docxChangeMode),
+            (pdfLayout != nil,.pdfLayout), (removeHeadersFooters != nil,.pdfRemoveHeadersFooters), (dehyphenate != nil,.pdfDehyphenate),
+            (sourceMapping != nil,.sourceMapping), (conversionReport != nil,.conversionReport),
+            (!pdfPages.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,.pdfPages),
+            (!epubChapters.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,.epubChapters),
+            (!slides.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,.presentationSlides),
+            (presentationNotes != .documentDefault,.presentationIncludeNotes),
+            (!sheetIndices.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !sheetNames.isEmpty || sheetSelection != .documentDefault,.spreadsheetSheets),
+            (!cellRanges.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,.spreadsheetRanges)
+        ]
+        for (present,key) in values where present { keys.insert(key) }
+        return keys
     }
 }

@@ -46,7 +46,9 @@ try:
     summary_parameters = set(action["actionConfiguration"]["actionSummary"]["wrapper"]["otherParameterIdentifiers"])
     def default_value(name):
         values = parameters[name]["typeSpecificMetadata"]
-        return dict(zip(values[::2], values[1::2]))["LNValueTypeSpecificMetadataKeyDefaultValue"]
+        return dict(zip(values[::2], values[1::2])).get("LNValueTypeSpecificMetadataKeyDefaultValue")
+    profile_parameters = {"profile", "allowLocalProfile", "discardProfileSelection", "sourceMapping", "conversionReport"}
+    optional_options = {"textbundle", "frontmatter", "spreadsheetFormat", "imageOCR", "pdfOCR", "ocrMethod", "docxChangeMode", "ocrLanguages", "pdfLayout", "removeHeadersFooters", "dehyphenate", "sourceMapping", "conversionReport"}
     valid = (
         action["fullyQualifiedTypeName"] == "PoorMansTextAppSupport.ConvertDocumentIntent"
         and action["isDiscoverable"] is True
@@ -54,11 +56,11 @@ try:
         and action["outputType"]["array"]["wrapper"]["memberValueType"]
             == {"primitive": {"wrapper": {"typeIdentifier": 0}}}
         and {"document", "destinationFolder"}.union(selection_parameters).issubset(parameters)
-        and selection_parameters.union({"ocrMethod", "docxChangeMode"}).issubset(summary_parameters)
-        and "docxChangeMode" in parameters
-        and default_value("docxChangeMode") == {"string": {"wrapper": "accept"}}
-        and "ocrMethod" in parameters
-        and default_value("ocrMethod") == {"string": {"wrapper": "standard"}}
+        and selection_parameters.union(profile_parameters, {"ocrMethod", "docxChangeMode"}).issubset(summary_parameters)
+        and profile_parameters.issubset(parameters)
+        and parameters["profile"]["isOptional"] is True
+        and all(parameters[name]["isOptional"] is True and default_value(name) is None for name in optional_options)
+        and "ShortcutProfile" in metadata["entities"]
         and default_value("sheetNames") == {"array": {"elements": []}}
         and default_value("sheetSelection") == {"string": {"wrapper": "documentDefault"}}
         and default_value("presentationNotes") == {"string": {"wrapper": "documentDefault"}}

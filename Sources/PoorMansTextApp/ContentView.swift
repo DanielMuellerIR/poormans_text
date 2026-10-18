@@ -20,6 +20,7 @@ struct ContentView: View {
         ScrollView {
             VStack(spacing: 24) {
                 header
+                ProfileControls(model: model)
                 options
                 dropArea
                 footer
@@ -474,6 +475,9 @@ struct ContentView: View {
                 }
                 Toggle("Remove repeated PDF headers and footers", isOn: $model.pdfRemoveHeadersFooters)
                 Toggle("Join conservative PDF word breaks", isOn: $model.pdfDehyphenate)
+                Toggle("Include presentation notes", isOn: $model.presentationIncludeNotes)
+                Toggle("Record source locations", isOn: $model.sourceMapping)
+                Toggle("Write conversion report", isOn: $model.conversionReport)
                 Picker("Batch documents at once", selection: $model.batchParallelism) {
                     ForEach(1...4, id: \.self) { Text(String($0)).tag($0) }
                 }

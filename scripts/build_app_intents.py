@@ -49,7 +49,7 @@ def main():
         support_sources = sorted(source.parent.glob("*.swift"))
         sources.write_text("".join(str(path) + "\n" for path in support_sources))
         protocols = root / "protocols.json"
-        protocols.write_text(json.dumps(["AppIntent", "AppEnum", "AppShortcutsProvider"]))
+        protocols.write_text(json.dumps(["AppIntent", "AppEnum", "AppShortcutsProvider", "AppEntity", "EntityQuery", "EntityStringQuery"]))
         identity = json.loads(output("swift", "package", "show-dependencies", "--format", "json"))["identity"]
         # SwiftPM ersetzt Bindestriche im Compiler-Paketnamen durch Unterstriche.
         identity = identity.replace("-", "_")

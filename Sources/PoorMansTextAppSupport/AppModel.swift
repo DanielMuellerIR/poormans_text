@@ -125,6 +125,18 @@ public final class AppModel: ObservableObject {
     @Published public var spreadsheetRendering: SpreadsheetRendering = .markdownTable { didSet { savePreferences() } }
     @Published public var frontmatter = false { didSet { savePreferences() } }
     @Published public var outputLayout: OutputLayout = .markdownFolder { didSet { savePreferences() } }
+    @Published public var presentationIncludeNotes = true { didSet { savePreferences() } }
+    @Published public var sourceMapping = true { didSet { savePreferences() } }
+    @Published public var conversionReport = false { didSet { savePreferences() } }
+    @Published public var profilePandocExecutable: URL? { didSet { savePreferences() } }
+    @Published public internal(set) var profiles: [ConversionProfile] = []
+    @Published public internal(set) var selectedProfile: ConversionProfile?
+    @Published public internal(set) var selectedProfileName: String?
+    @Published public internal(set) var profileMessage: String?
+    @Published public internal(set) var profileAllowsLocalTargets = false
+    @Published public internal(set) var profileNeedsReload = false
+    var selectedProfileRevision: String?
+    let profileStore: ConversionProfileStore
     @Published public var batchParallelism = 1 {
         didSet {
             let bounded = min(max(batchParallelism, 1), 4)
@@ -163,7 +175,7 @@ public final class AppModel: ObservableObject {
     private var relativeDirectories: [String: [String]] = [:]
 
     public var conversionOptions: ConversionOptions {
-        ConversionOptions(spreadsheetRendering: spreadsheetRendering,
+        ConversionOptions(pandocExecutable: profilePandocExecutable, spreadsheetRendering: spreadsheetRendering,
             imageTextRecognition: imageTextRecognition,
             frontmatter: frontmatter, outputLayout: outputLayout,
             pdfTextRecognition: pdfTextRecognition,
@@ -171,7 +183,8 @@ public final class AppModel: ObservableObject {
             ocrMethod: ocrMethod,
             docxChangeMode: docxChangeMode,
             pdfLayout: pdfLayout, pdfRemoveHeadersFooters: pdfRemoveHeadersFooters, pdfDehyphenate: pdfDehyphenate,
-            sourceMapping: true)
+            presentationIncludeNotes: presentationIncludeNotes,
+            sourceMapping: sourceMapping, conversionReport: conversionReport)
     }
 
     public var selectedResult: ConversionResult? {
@@ -220,8 +233,9 @@ public final class AppModel: ObservableObject {
     /// (Review-Fund 2026-09-03).
     private var pendingDrops = 0
 
-    public init(defaults: UserDefaults = .standard) {
+    public init(defaults: UserDefaults = .standard, profileStore: ConversionProfileStore = .init()) {
         self.defaults = defaults
+        self.profileStore = profileStore
         imageTextRecognition = defaults.string(forKey: "imageTextRecognition").flatMap(ImageTextRecognition.init(rawValue:)) ?? .enabled
         spreadsheetRendering = defaults.string(forKey: "spreadsheetRendering").flatMap(SpreadsheetRendering.init(rawValue:)) ?? .markdownTable
         frontmatter = defaults.bool(forKey: "frontmatter")
@@ -235,10 +249,18 @@ public final class AppModel: ObservableObject {
         pdfRemoveHeadersFooters = defaults.bool(forKey: "pdfRemoveHeadersFooters")
         pdfDehyphenate = defaults.bool(forKey: "pdfDehyphenate")
         batchParallelism = min(max(defaults.integer(forKey: "batchParallelism"), 1), 4)
+        presentationIncludeNotes = defaults.object(forKey: "presentationIncludeNotes") == nil ? true : defaults.bool(forKey: "presentationIncludeNotes")
+        sourceMapping = defaults.object(forKey: "sourceMapping") == nil ? true : defaults.bool(forKey: "sourceMapping")
+        conversionReport = defaults.bool(forKey: "conversionReport")
+        profilePandocExecutable = defaults.string(forKey: "profilePandocExecutable").map { URL(fileURLWithPath: $0) }
+        selectedProfileName = defaults.string(forKey: "selectedProfileName")
+        selectedProfileRevision = defaults.string(forKey: "selectedProfileRevision")
+        profileAllowsLocalTargets = defaults.bool(forKey: "profileAllowsLocalTargets")
         loadingPreferences = false
+        refreshProfiles()
     }
 
-    private func savePreferences() {
+    func savePreferences() {
         guard !loadingPreferences else { return }
         defaults.set(imageTextRecognition.rawValue, forKey: "imageTextRecognition")
         defaults.set(spreadsheetRendering.rawValue, forKey: "spreadsheetRendering")
@@ -253,13 +275,20 @@ public final class AppModel: ObservableObject {
         defaults.set(frontmatter, forKey: "frontmatter")
         defaults.set(outputLayout.rawValue, forKey: "outputLayout")
         defaults.set(destinationFolder?.path, forKey: "destinationFolder")
+        defaults.set(presentationIncludeNotes, forKey: "presentationIncludeNotes")
+        defaults.set(sourceMapping, forKey: "sourceMapping")
+        defaults.set(conversionReport, forKey: "conversionReport")
+        defaults.set(profilePandocExecutable?.path, forKey: "profilePandocExecutable")
+        defaults.set(selectedProfileName, forKey: "selectedProfileName")
+        defaults.set(profileAllowsLocalTargets, forKey: "profileAllowsLocalTargets")
+        defaults.set(selectedProfileRevision, forKey: "selectedProfileRevision")
     }
 
     public func request(for input: URL, options: ConversionOptions) -> ConversionRequest {
-        let destination = destinationOverrides[input.path] ?? destinationFolder.map {
+        let destination = destinationOverrides[input.path] ?? (usesExactProfileDestination ? destinationFolder : destinationFolder.map {
             let parent = (relativeDirectories[input.path] ?? []).reduce($0) { $0.appendingPathComponent($1, isDirectory: true) }
             return parent.appendingPathComponent(DocumentConverter.outputDirectoryName(for: input, layout: options.outputLayout))
-        }
+        })
         return ConversionRequest(inputURL: input, destination: destination.map(ConversionDestination.directory) ?? .adjacentToInput, options: options)
     }
 
@@ -276,8 +305,14 @@ public final class AppModel: ObservableObject {
     /// Dateisystemfehler — gleiche Option, zwei Verhalten (Roadmap-Punkt,
     /// 2026-09-10).
     private func executeBatch(_ requests: [ConversionRequest], original: [BatchItem], slots: [Int], jobs: Int,
-                              outputRoot: URL?, cancellation: ConversionCancellationToken) async -> [BatchItem] {
+                              outputRoot: URL?, cancellation: ConversionCancellationToken, profile: AppProfileInvocation) async -> [BatchItem] {
         let attempted = Set(slots)
+        do { try await Task.detached { try profile.validateBatch() }.value }
+        catch {
+            return original.enumerated().map { index, item in
+                attempted.contains(index) ? BatchItem(input: item.input, outcome: .failed(AppErrorMessage.describe(error))) : item
+            }
+        }
         batchDisplayItems = Dictionary(uniqueKeysWithValues: original.enumerated().filter { !attempted.contains($0.offset) }.map { ($0.offset, $0.element) })
         let baseCompleted = original.count - slots.count
         let handler: BatchConversionProgressHandler = { [weak self] event in
@@ -432,11 +467,12 @@ public final class AppModel: ObservableObject {
             let cancellation = beginConversion()
             let jobs = batchParallelism
             let outputRoot = destinationFolder
+            let profile = profileInvocation()
             let slots = retry.compactMap { item in items.firstIndex { $0.id == item.id } }
             conversionTask = Task {
                 defer { finishConversion(cancellation) }
                 let updated = await executeBatch(requests, original: items, slots: slots, jobs: jobs,
-                    outputRoot: outputRoot, cancellation: cancellation)
+                    outputRoot: outputRoot, cancellation: cancellation, profile: profile)
                 state = .batchFinished(updated)
             }
         } else if let first = failedInputs.first { convertSingle(first, isRetry: true) }
@@ -475,6 +511,7 @@ public final class AppModel: ObservableObject {
         retrySelection = bound
         let base = request(for: inputURL, options: bound?.selection.applying(to: conversionOptions) ?? conversionOptions)
         let request = ConversionRequest(inputURL: base.inputURL, destination: base.destination, options: base.options, expectedSourceIdentity: bound?.identity)
+        let profile = profileInvocation()
 
         // Die Dateikonvertierung läuft außerhalb des Main Actors, damit das Fenster
         // während textutil und Pandoc weiterhin reagiert.
@@ -484,7 +521,8 @@ public final class AppModel: ObservableObject {
             defer { finishConversion(cancellation) }
             do {
                 let result = try await Task.detached(priority: .userInitiated) {
-                    try DocumentConverter().convert(request, progress: progress, cancellation: cancellation)
+                    let resolved = try profile.prepare(request, cancellation: cancellation)
+                    return try DocumentConverter().convert(resolved, progress: progress, cancellation: cancellation)
                 }.value
                 retrySelection = nil
                 state = .succeeded(result)
@@ -523,6 +561,7 @@ public final class AppModel: ObservableObject {
         let options = conversionOptions
         let outputRoot = destinationFolder
         let overrides = destinationOverrides
+        let profile = profileInvocation()
         closePreview()
         actionMessage = nil
 
@@ -549,7 +588,7 @@ public final class AppModel: ObservableObject {
             }
             let original = inputs.map { BatchItem(input: $0.url, outcome: .failed(AppErrorMessage.describe(ConversionError.cancelled))) }
             let finished = await executeBatch(requests, original: original, slots: Array(original.indices), jobs: jobs,
-                outputRoot: outputRoot, cancellation: cancellation)
+                outputRoot: outputRoot, cancellation: cancellation, profile: profile)
             selectedInput = finished.first(where: { $0.result != nil })?.id
             state = .batchFinished(finished)
         }
@@ -747,12 +786,14 @@ public final class AppModel: ObservableObject {
         let options = conversionOptions
 
         let cancellation = beginConversion()
+        let profile = profileInvocation()
         let progress = progressHandler(cancellation)
         conversionTask = Task {
             defer { finishConversion(cancellation) }
             do {
                 let outcome = try await Task.detached(priority: .userInitiated) {
-                    try RichTextClipboard.convert(source, options: options, progress: progress, cancellation: cancellation)
+                    try profile.validateClipboard()
+                    return try RichTextClipboard.convert(source, options: options, progress: progress, cancellation: cancellation)
                 }.value
                 try cancellation.checkCancellation()
                 // `setString` meldet `false`, wenn inzwischen ein anderer

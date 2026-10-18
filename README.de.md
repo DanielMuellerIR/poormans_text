@@ -15,7 +15,9 @@ alte Word-Dateien (`.doc`), ODS, XLSX (einschließlich XLSM und XLTX/XLTM), XLS,
 CSV und TSV, PPTX/PPTM/POTX- und ODP-Präsentationen, IPYNB-Notebooks,
 OpenDocument-Masterdokumente (`.odm`), PDFs, HTML und
 Safari-Webarchive, EPUB, LaTeX, DocBook, Org, MediaWiki, Textile,
-reStructuredText, FictionBook, EML, Apple Mail (`.emlx`), Outlook (`.msg`) und MBOX-Archive und Apple-Mail-Exportpakete und begrenzte ENEX-Exporte sowie PNG-, JPEG-, HEIC-, TIFF-, GIF-, BMP- und
+reStructuredText, FictionBook, EML, Apple Mail (`.emlx`), Outlook (`.msg`),
+MBOX-Archive, Apple-Mail-Exportpakete und begrenzte ENEX-Exporte sowie
+PNG-, JPEG-, HEIC-, TIFF-, GIF-, BMP- und
 WebP-Bilder in Ordner mit Markdown und gegebenenfalls separat gespeicherten
 Bildern um.
 
@@ -124,7 +126,7 @@ DMG und zugehörige `.sha256`-Datei stehen im
 Ordner, lässt sich der Download vor dem Öffnen prüfen:
 
 ```sh
-shasum -a 256 -c Poor-Mans-Text-0.16.12.dmg.sha256
+shasum -a 256 -c Poor-Mans-Text-0.41.2.dmg.sha256
 ```
 
 Danach das DMG öffnen und Poor Man's Text in den Programme-Ordner ziehen. Die
@@ -247,7 +249,8 @@ Markdown auf der Standardausgabe aus und entfernt das temporäre Ergebnis.
 Diagnosen gehen an die Standardfehlerausgabe. Bilder werden nicht behalten und
 gemeldet; ihre Verweise bleiben im Text. Der Schalter lässt sich nicht mit
 `--json`, `--output`, `--textbundle`, `--jobs`, mehreren Eingaben oder einem
-Ordner kombinieren.
+Ordner kombinieren. MBOX- und ENEX-Sammlungen brauchen einen
+Ausgabeordner oder ein Textbundle; `--stdout` weist sie vor der Textausgabe ab.
 
 Der Textmodus gibt je Ergebnis einen Pfad pro Zeile aus. Ein Pfad, der selbst
 einen Zeilenumbruch enthält, belegt zwei Zeilen; Skripte, die die Ausgabe
@@ -314,6 +317,68 @@ aus dem Konverter selbst stammt, übernimmt ein Aufrufer später hinzukommende
 Formate, ohne selbst geändert zu werden. Die Endungen sind dabei nur ein
 schneller Vorfilter — die Umwandlung erkennt das Format immer erneut am Inhalt
 und meldet einen ehrlichen Fehler, wenn beides nicht zusammenpasst.
+
+### EPUB-Auswahl
+
+`--list-chapters --json buch.epub` zeigt Spine-Lesereihenfolge, Titel, ergänzende Einträge und Navigationsfragmente. `--epub-chapters 1,3-5` übernimmt gewählte lokale XHTML-Dateien in Lesereihenfolge mit ursprünglichen Kapitelindizes, Bildern und lokalen Abschnittslinks. Links auf ausgeschlossene Kapitel behalten ihren sichtbaren Text mit einem Hinweis. Ohne Auswahl bleibt der bisherige EPUB-Import bestehen. Unterstützte Inhalte und Grenzen stehen unter [EPUB-Auswahl](docs/EPUB-SELECTION.md).
+
+### Präsentationsauswahl
+
+`--list-slides --json folien.pptx` zeigt Folientitel in Präsentationsreihenfolge und lokale Notizverweise ohne Bildimport. `--slides 1,3-5` wählt Quellfolien; `--notes off` schließt Notiztexte, Tabellen und Bilder vor ihrer Übernahme aus. Standardmäßig bleiben Notizen enthalten. Die Optionen gelten für PPTX, PPTM, POTX und ODP. Einzelheiten stehen unter [Präsentationsauswahl](docs/PRESENTATION-SELECTION.md).
+
+### Tabellenauswahl
+
+`--list-sheets --json mappe.xlsx` zeigt Quellindizes, exakte Namen und Sichtbarkeit. `--sheets visible` übernimmt sichtbare Arbeitsblätter; `--sheets 1,3-5` oder wiederholtes `--sheet-name NAME` wählt bestimmte Blätter. Wiederholtes `--cell-range B2:D8` wählt Rechtecke auf jedem gewählten Blatt. Überlappungen werden dedupliziert, entfernte Rechtecke bleiben getrennt; Berichte behalten die ursprünglichen Koordinaten. Ohne diese Optionen werden versteckte Blätter weiterhin übernommen. Grenzen, Verbundzellen und Formeln stehen unter [Tabellenauswahl](docs/SPREADSHEET-SELECTION.md).
+
+### Benannte Konvertierungsprofile
+
+`--save-profile NAME` speichert wiederkehrende Optionen, `--profile NAME` wählt sie aus. `--list-profiles`, `--import-profile DATEI` und `--export-profile DATEI` verwalten das versionierte JSON. Explizite Konvertierungsoptionen haben Vorrang. Inhaltsauswahlen brauchen beim Speichern `--profile-source DATEI` und bleiben an genau diese Quellbytes gebunden. Lokale Ziel-/Werkzeugpfade verlangen bei jedem Profilvorgang `--profile-local`. Details: [Profile und Vorrang](docs/PROFILES.md).
+
+### PDF-Text und OCR-Optionen
+
+`--pdf-ocr auto|always|off` steuert lokale OCR; die Automatik erkennt auch
+Scanbilder unter digitalen Kopfzeilen. `--ocr-language de,en` wählt lokal von
+Vision unterstützte Sprachen für PDF- und Bildimporte. `--pdf-layout auto|legacy`
+wählt Überschriften aus Schriftgrößen, einfache Gittertabellen und zweispaltige
+Textordnung oder die bisherige Extraktion zum Vergleich. Mehrdeutig ausgerichteter
+Text behält die Zeilenordnung und erhält eine sichtbare Warnung.
+`--pdf-remove-headers-footers` entfernt wiederkehrenden Text am Seitenrand;
+`--pdf-dehyphenate` verbindet auf Wunsch vorsichtig kleingeschriebene Wortteile.
+Die App merkt sich diese Einstellungen. Digitaler Quelltext bleibt erhalten,
+wenn OCR Text ergänzt. Heuristiken und Grenzen: [PDF-Import](docs/PDF-IMPORT.md).
+
+### Präsentationen und Notebooks
+
+PPTX/PPTM/POTX, ODP und IPYNB werden nativ ohne Pandoc gelesen. Folien behalten
+Quellreihenfolge, Text, verschachtelte Listen, Tabellen, Notizen und unterstützte
+Bild-Assets. Text-, Tabellen- und Notizlinks behalten sichere externe Ziele und
+interne Folienverweise; ausgeschlossene oder fehlende Ziele werden diagnostiziert.
+Notebooks behalten Markdown, sprachmarkierten Code, Textausgaben und
+eingebettete Bilder; Notebook-Code wird niemals ausgeführt. Nicht darstellbare
+Objekte/Ausgaben und nicht verfügbare Assets werden diagnostiziert.
+Details und Grenzen: [Präsentationen](docs/PRESENTATION-IMPORT.md),
+[Notebooks](docs/NOTEBOOK-IMPORT.md).
+
+### Batch-Parallelität und Quellschutz
+
+`--jobs 1..4` legt die Zahl gleichzeitig bearbeiteter Batch-Dokumente fest;
+Standard ist 1. Die App merkt sich dieselbe Einstellung. Lokale Vision-OCR
+verarbeitet pro Prozess höchstens ein Bild, während andere Dokumente ohne OCR
+weiterarbeiten können. Wartende OCR prüft Abbruch alle 50 ms. Vier Dokumente
+können dennoch viel Speicher für Parser, Bilder und Werkzeugprozesse benötigen;
+die Einstellung begrenzt Parallelität, keinen festen RAM-Verbrauch. Messungen
+stehen unter [Performance](docs/PERFORMANCE.md).
+
+Alle Batch-Ziele und Ausgabe-Elternordner werden vor dem ersten mkdir oder
+Worker gegen sämtliche Quellen geprüft, auch Nachbarausgaben von Dateien innerhalb
+eines anderen Quellpakets. Die erste Eingabeposition reserviert ihr Ziel; spätere
+Kollisionen scheitern unabhängig von der Verarbeitungsgeschwindigkeit. Vorhandene
+Ausgaben bleiben unverändert. Ergebnisse, JSON-Einträge und der erste gewöhnliche
+Fehler folgen der Eingabereihenfolge. SIGINT/SIGTERM liefert Exit 130, erhält
+fertige Ergebnisse und wartet auf die Bereinigung laufender Worker; übrige
+Eingaben bleiben erneut versuchbar. Ein einzelnes Werkzeug-Zeitlimit stoppt die
+anderen Dokumente nicht. Leere Ausgabe-Elternordner können nach Abbruch bestehen
+bleiben; temporäre Dokumentarbeitsbereiche und Teilergebnisse werden entfernt.
 
 ## macOS-App
 
@@ -549,7 +614,9 @@ darunter lokal erkannten Text. `--image-ocr off` behält nur das Bild; das eigne
 sich etwa für Handschrift, Diagramme oder Text, der nicht als Markdown suchbar
 werden soll. Die macOS-App bietet dieselbe Auswahl vor der Umwandlung. Ein mehrseitiges TIFF bleibt ein Asset und erhält einen OCR-Abschnitt
 pro Frame. Für Bilder gelten dieselben OCR-Grenzen wie beim PDF-Fallback:
-höchstens 16 Millionen Pixel pro Frame und 64 Millionen insgesamt. Der Konverter
+höchstens 16 Millionen Pixel pro Frame und 64 Millionen insgesamt. Größere
+Bildframes werden nur für die Erkennung verkleinert und mit
+`image.ocrDownscaled` gemeldet; das gespeicherte Original bleibt unverändert. Der Konverter
 markiert unsichere OCR-Stellen im Markdown, damit sie am Original geprüft werden.
 
 Strukturierte lokale OCR erkennt zusätzlich Absätze, Listen und
@@ -563,8 +630,9 @@ die nativen Tabellenleser starten Pandoc nicht.
 
 Die Konvertierung läuft in einem privaten Staging-Verzeichnis. Erst nach
 erfolgreichem Abschluss aller Stufen wird das Ergebnis an ein dauerhaftes oder
-vom Aufrufer verwaltetes temporäres Ziel verschoben. Entfernte Bildverweise werden
-nicht heruntergeladen, sondern abgelehnt. Anhänge, die nicht im Markdown
+vom Aufrufer verwaltetes temporäres Ziel verschoben. Entfernte Ressourcen werden
+nie geladen; unsichere oder nicht verfügbare Verweise erzeugen je nach Format
+Warnungen oder Fehler. Anhänge, die nicht im Markdown
 dargestellt werden können, erzeugen Warnungen.
 
 ## Formatunterstützung und Grenzen
@@ -582,7 +650,7 @@ In der Regel erhalten:
   und je Zelle ein Linkziel
 - Reihenfolge lokaler ODM-Abschnitte
 - eingebetteter PDF-Text in Seitenreihenfolge mit Seitenabschnitten
-- bytegleiche PNG-, JPEG-, HEIC- und TIFF-Assets mit optional lokal erkanntem Text
+- bytegleiche PNG-, JPEG-, HEIC-, TIFF-, GIF-, BMP- und WebP-Assets mit optional lokal erkanntem Text
 
 Erwartbare Verluste oder Annäherungen:
 
@@ -647,70 +715,9 @@ ausgeliefert. Für Pandoc gilt seine eigene Lizenz.
 
 Der Updater [Sparkle](https://sparkle-project.org) wird mitgeliefert; für ihn
 gilt seine eigene Lizenz, die als `Contents/Resources/Sparkle-LICENSE.txt` in
-der App liegt.
+der App liegt. Die gerenderte Vorschau verwendet Swift Markdown und cmark-gfm;
+deren Lizenzhinweise liegen unter `Contents/Resources/Markdown-LICENSES.txt`.
 
-Poor Man's Text verarbeitet Dokumente lokal und enthält keine Telemetrie. Der
-einzige Netzwerkzugriff ist die Update-Suche. Einzelheiten stehen in
+Poor Man's Text verarbeitet Dokumente lokal und enthält keine Telemetrie. Netzwerkzugriffe betreffen die Update-Suche samt Download und eine ausdrücklich
+angeforderte Pandoc-Installation über Homebrew. Einzelheiten stehen in
 [PRIVACY.md](PRIVACY.md), Hinweise zum Support in [SUPPORT.md](SUPPORT.md).
-
-### EPUB-Auswahl
-
-`--list-chapters --json buch.epub` zeigt Spine-Lesereihenfolge, Titel, ergänzende Einträge und Navigationsfragmente. `--epub-chapters 1,3-5` übernimmt gewählte lokale XHTML-Dateien in Lesereihenfolge mit ursprünglichen Kapitelindizes, Bildern und lokalen Abschnittslinks. Links auf ausgeschlossene Kapitel behalten ihren sichtbaren Text mit einem Hinweis. Ohne Auswahl bleibt der bisherige EPUB-Import bestehen. Unterstützte Inhalte und Grenzen stehen unter [EPUB-Auswahl](docs/EPUB-SELECTION.md).
-
-### Präsentationsauswahl
-
-`--list-slides --json folien.pptx` zeigt Folientitel in Präsentationsreihenfolge und lokale Notizverweise ohne Bildimport. `--slides 1,3-5` wählt Quellfolien; `--notes off` schließt Notiztexte, Tabellen und Bilder vor ihrer Übernahme aus. Standardmäßig bleiben Notizen enthalten. Die Optionen gelten für PPTX, PPTM, POTX und ODP. Einzelheiten stehen unter [Präsentationsauswahl](docs/PRESENTATION-SELECTION.md).
-
-### Tabellenauswahl
-
-`--list-sheets --json mappe.xlsx` zeigt Quellindizes, exakte Namen und Sichtbarkeit. `--sheets visible` übernimmt sichtbare Arbeitsblätter; `--sheets 1,3-5` oder wiederholtes `--sheet-name NAME` wählt bestimmte Blätter. Wiederholtes `--cell-range B2:D8` wählt Rechtecke auf jedem gewählten Blatt. Überlappungen werden dedupliziert, entfernte Rechtecke bleiben getrennt; Berichte behalten die ursprünglichen Koordinaten. Ohne diese Optionen werden versteckte Blätter weiterhin übernommen. Grenzen, Verbundzellen und Formeln stehen unter [Tabellenauswahl](docs/SPREADSHEET-SELECTION.md).
-
-### Benannte Konvertierungsprofile
-
-`--save-profile NAME` speichert wiederkehrende Optionen, `--profile NAME` wählt sie aus. `--list-profiles`, `--import-profile DATEI` und `--export-profile DATEI` verwalten das versionierte JSON. Explizite Konvertierungsoptionen haben Vorrang. Inhaltsauswahlen brauchen beim Speichern `--profile-source DATEI` und bleiben an genau diese Quellbytes gebunden. Lokale Ziel-/Werkzeugpfade verlangen bei jedem Profilvorgang `--profile-local`. Details: [Profile und Vorrang](docs/PROFILES.md).
-
-### PDF-Text und OCR-Optionen
-
-`--pdf-ocr auto|always|off` steuert lokale OCR; die Automatik erkennt auch
-Scanbilder unter digitalen Kopfzeilen. `--ocr-language de,en` wählt lokal von
-Vision unterstützte Sprachen für PDF- und Bildimporte. `--pdf-layout auto|legacy`
-wählt Überschriften aus Schriftgrößen, einfache Gittertabellen und zweispaltige
-Textordnung oder die bisherige Extraktion zum Vergleich. Mehrdeutig ausgerichteter
-Text behält die Zeilenordnung und erhält eine sichtbare Warnung.
-`--pdf-remove-headers-footers` entfernt wiederkehrenden Text am Seitenrand;
-`--pdf-dehyphenate` verbindet auf Wunsch vorsichtig kleingeschriebene Wortteile.
-Die App merkt sich diese Einstellungen. Digitaler Quelltext bleibt erhalten,
-wenn OCR Text ergänzt. Heuristiken und Grenzen: [PDF-Import](docs/PDF-IMPORT.md).
-
-### Präsentationen und Notebooks
-
-PPTX/PPTM/POTX, ODP und IPYNB werden nativ ohne Pandoc gelesen. Folien behalten
-Quellreihenfolge, Text, verschachtelte Listen, Tabellen, Notizen und unterstützte
-Bild-Assets. Text-, Tabellen- und Notizlinks behalten sichere externe Ziele und
-interne Folienverweise; ausgeschlossene oder fehlende Ziele werden diagnostiziert.
-Notebooks behalten Markdown, sprachmarkierten Code, Textausgaben und
-eingebettete Bilder; Notebook-Code wird niemals ausgeführt. Nicht darstellbare
-Objekte/Ausgaben und nicht verfügbare Assets werden diagnostiziert.
-Details und Grenzen: [Präsentationen](docs/PRESENTATION-IMPORT.md),
-[Notebooks](docs/NOTEBOOK-IMPORT.md).
-
-### Batch-Parallelität und Quellschutz
-
-`--jobs 1..4` legt die Zahl gleichzeitig bearbeiteter Batch-Dokumente fest;
-Standard ist 1. Die App merkt sich dieselbe Einstellung. Lokale Vision-OCR
-verarbeitet pro Prozess höchstens ein Bild, während andere Dokumente ohne OCR
-weiterarbeiten können. Wartende OCR prüft Abbruch alle 50 ms. Vier Dokumente
-können dennoch viel Speicher für Parser, Bilder und Werkzeugprozesse benötigen;
-die Einstellung begrenzt Parallelität, keinen festen RAM-Verbrauch. Messungen
-stehen unter [Performance](docs/PERFORMANCE.md).
-
-Alle Batch-Ziele und Ausgabe-Elternordner werden vor dem ersten mkdir oder
-Worker gegen sämtliche Quellen geprüft, auch Nachbarausgaben von Dateien innerhalb
-eines anderen Quellpakets. Die erste Eingabeposition reserviert ihr Ziel; spätere
-Kollisionen scheitern unabhängig von der Verarbeitungsgeschwindigkeit. Vorhandene
-Ausgaben bleiben unverändert. Ergebnisse, JSON-Einträge und der erste gewöhnliche
-Fehler folgen der Eingabereihenfolge. SIGINT/SIGTERM liefert Exit 130, erhält
-fertige Ergebnisse und wartet auf die Bereinigung laufender Worker; übrige
-Eingaben bleiben erneut versuchbar. Ein einzelnes Werkzeug-Zeitlimit stoppt die
-anderen Dokumente nicht. Leere Ausgabe-Elternordner können nach Abbruch bestehen
-bleiben; temporäre Dokumentarbeitsbereiche und Teilergebnisse werden entfernt.

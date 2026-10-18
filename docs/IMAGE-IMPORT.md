@@ -1,6 +1,6 @@
 # Bildimport
 
-Der Bildadapter akzeptiert PNG, JPEG, HEIC und TIFF anhand der von ImageIO
+Der Bildadapter akzeptiert PNG, JPEG, HEIC, TIFF, GIF, BMP und WebP anhand der von ImageIO
 erkannten Daten, nicht allein anhand der Endung. Eine Datei ohne passende Endung
 wird deshalb trotzdem erkannt; eine Textdatei namens `.png` wird abgewiesen.
 Nur reguläre Dateien bis 1 GiB und höchstens 1.000 TIFF-Frames sind zulässig.
@@ -46,8 +46,14 @@ Bild bleibt davon unberührt: Als Asset landet immer die unveränderte Quelle im
 Ergebnis.
 
 Eine unlesbare Frame-Pixelquelle erzeugt eine Warnung, lässt das Originalasset
-aber bestehen. Leere Erkennung und niedrige Sicherheit werden sichtbar markiert;
-aus dem OCR-Text kann keine neue Markdown-Struktur entstehen.
+aber bestehen. Leere Erkennung und niedrige Sicherheit werden sichtbar markiert.
+Standard-OCR maskiert den erkannten Text als wörtlichen Inhalt.
+
+Mit `--ocr-method structured` ist ab macOS 26 zusätzlich die lokale Erkennung
+von Absätzen, Listen und Tabellen wählbar. Die Ausgabe verwendet nur die
+geprüfte erkannte Struktur und maskiert deren Text. Standard bleibt `standard`;
+bei fehlender oder unbrauchbarer Struktur wird mit einer Diagnose darauf
+zurückgefallen. Vergleich und Grenzen stehen in [STRUCTURED-OCR.md](STRUCTURED-OCR.md).
 
 ## Diagnosen
 

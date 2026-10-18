@@ -265,7 +265,8 @@ mit seinem bestehenden atomaren Schritt.
 
 `ConversionResult.markdownFile` bleibt primär; `documents` und `isCollection`
 ergänzen den Ergebnisvertrag. CLI-JSON erhält eine geordnete Liste, der Bericht
-relative Dokumentpfade. Die bestehende App-Vorschau öffnet die Übersicht;
+relative Dokumentpfade. Die App bietet Übersicht und nummerierte Einträge zur
+Auswahl für Öffnen, Kopieren und Vorschau; der Bericht umfasst die ganze Sammlung.
 stdout lehnt Sammlungen vor der ersten Textausgabe ab. Details und Grenzen:
 [Sammlungsausgabe](COLLECTIONS.md).
 

@@ -16,9 +16,9 @@ Zwei unabhängige Prüfungen bleiben Pflicht:
 
 Der private Sparkle-Schlüssel gehört weder in Git noch in Logs oder Argumente.
 Nur sein öffentlicher Gegenpart steht als `SUPublicEDKey` in `App/Info.plist`.
-Poor Man's Text benutzt bewusst dasselbe Schlüsselpaar wie Fastra und (seit
-2026-08-06) MD Clip; es liegt im lokalen Schlüsselbund unter dem Dienst
-`https://sparkle-project.org`. Eine Rotation beträfe damit alle drei Apps.
+Der lokale Signierschlüssel wird im Schlüsselbund verwaltet; GitHub Actions
+verwendet das dafür eingerichtete Repository-Secret. Schlüsselverwaltung und
+Rotation erfolgen außerhalb des öffentlichen Repositories.
 
 ## Was im Projekt dazugehört
 

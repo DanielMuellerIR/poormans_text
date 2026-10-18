@@ -3,7 +3,7 @@
 Eine Sammlung entsteht aus einer Quelle und wird als ein vollständiges Ergebnis
 veröffentlicht. Ihr `markdownFile` bleibt der primäre Einstieg: eine Übersicht mit
 relativen Links auf die Dokumente in Quellreihenfolge. Derselbe kleine Vertrag ist
-für Mailarchive und Notizexporte vorgesehen; die unterstützten Eingabeformate
+für MBOX-/Apple-Mail-Archive und ENEX-Notizexporte implementiert; die Eingabeformate
 werden weiterhin im Formatkatalog ausgewiesen.
 
 ## Ergebnis und JSON
@@ -59,11 +59,14 @@ Datei und deren endgültige UTF-8-Bereiche; lokale Offsets werden nicht der
 
 ## Ausgabeaktionen
 
-Öffnen und Vorschau verwenden weiterhin die primäre Übersicht. Ein Editor kann
-deren relative Dokumentlinks innerhalb des Ausgabeordners öffnen. Die sichere
-App-Vorschau aktiviert weiterhin keine Dokument- oder externen Links. Kopieren
-übernimmt die Übersicht; die vorhandene Meldung zu nicht kopierten Zusatzdateien
-und relativen Links bleibt wirksam. Einzeldokumente benötigen den Ausgabeordner.
+Die App bietet die primäre Übersicht und die nummerierten Nachrichten oder
+Notizen zur Auswahl. Öffnen, Kopieren und Vorschau verwenden den ausgewählten
+Eintrag; der optionale Bericht bleibt für die vollständige Sammlung erreichbar.
+Die sichere Vorschau aktiviert keine Dokument- oder externen Links. Ihre Liste
+lokaler Dateien zeigt registrierte Rasterbilder, die erste PDF-Seite und
+begrenzten UTF-8-Text; unbekannte Typen bleiben mit einem Hinweis erhalten.
+Kopieren meldet nicht übertragene Zusatzdateien und relative Links. Ein Editor
+kann die Dokumentlinks innerhalb des vollständigen Ausgabeordners öffnen.
 
 `--stdout` weist jede Sammlung vor der ersten Textausgabe ab, auch eine Sammlung
 mit nur einem Dokument. So werden keine Links auf anschließend entfernte

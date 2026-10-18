@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## 0.41.2 — 2026-10-18
 
+- Refresh English and German usage, collection actions, image/OCR limits, dependency notices and release documentation for the current feature set.
+
 - Register the native Evernote ENEX type alongside the fallback type, so Finder offers Open With and the conversion service when macOS prefers `com.evernote.enex`.
 
 ## 0.41.1 — 2026-10-18

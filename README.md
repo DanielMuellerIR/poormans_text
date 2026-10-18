@@ -117,7 +117,7 @@ Download the DMG and its `.sha256` file from the
 directory, verify the download before opening it:
 
 ```sh
-shasum -a 256 -c Poor-Mans-Text-0.16.12.dmg.sha256
+shasum -a 256 -c Poor-Mans-Text-0.41.2.dmg.sha256
 ```
 
 Open the DMG and drag Poor Man's Text to Applications. The app is signed with
@@ -233,7 +233,8 @@ without carrying the bundle files. Folder searches skip existing bundles.
 Markdown to standard output, and removes the temporary result. Diagnostics go
 to standard error. Image assets are not kept and are reported; their links stay
 in the text. It cannot be combined with `--json`, `--output`, `--textbundle`,
-`--jobs`, several inputs, or a folder.
+`--jobs`, several inputs, or a folder. MBOX and ENEX collections require a
+saved output folder or Textbundle; `--stdout` rejects them before writing text.
 
 Text mode prints one result path per line. A path that itself contains a line
 break spans two lines, so scripts that parse the output should use `--json`.
@@ -299,6 +300,67 @@ conversion. Because the list comes from the converter itself, a host picks up
 formats added in a later version without being changed. The extensions are a
 fast pre-filter only — the conversion always re-detects the format from the file
 contents and reports an honest error when they disagree.
+
+### EPUB selection
+
+`--list-chapters --json book.epub` shows spine order, titles, auxiliary entries and navigation fragments. `--epub-chapters 1,3-5` imports selected local XHTML documents in reading order, retaining original chapter indices, images and local fragment links. Links to excluded chapters keep their visible text with a diagnostic. Without selection, the existing EPUB import remains unchanged. See [EPUB selection](docs/EPUB-SELECTION.md) for supported documents and limits.
+
+### Presentation selection
+
+`--list-slides --json slides.pptx` lists ordered slide titles and local note references without importing images. `--slides 1,3-5` selects source slides in presentation order; `--notes off` excludes note text, tables and images before conversion. Notes remain included by default. PPTX, PPTM, POTX and ODP share these options. See [presentation selection](docs/PRESENTATION-SELECTION.md).
+
+### Spreadsheet selection
+
+Use `--list-sheets --json workbook.xlsx` to inspect source sheet indices, exact names and visibility. `--sheets visible` imports visible worksheets; `--sheets 1,3-5` or repeated `--sheet-name NAME` selects explicit sheets. Repeated `--cell-range B2:D8` selects rectangles on every selected sheet. Overlaps are deduplicated and distant rectangles stay separate, with original source coordinates in reports. Without these options, hidden sheets remain included as before. See [spreadsheet selection](docs/SPREADSHEET-SELECTION.md) for bounds, merges and formulas.
+
+### Named conversion profiles
+
+Save recurring options with `--save-profile NAME`, select them with `--profile NAME`, and manage portable JSON using `--list-profiles`, `--import-profile FILE` and `--export-profile FILE`. Explicit conversion options take precedence. Content selections require `--profile-source FILE` when saved and remain bound to those exact source bytes. Local output/tool paths require `--profile-local` for each profile operation. See [profiles and precedence](docs/PROFILES.md).
+
+### PDF text and OCR options
+
+`--pdf-ocr auto|always|off` selects local OCR; automatic mode also recognizes
+scan images below digital headers. `--ocr-language de,en` sets shared PDF/image
+languages supported by the local Vision installation. `--pdf-layout auto|legacy`
+selects font-based headings, simple ruled tables and two-column ordering,
+or the previous extraction for comparison. Ambiguous aligned text retains row
+order and gets a visible warning.
+`--pdf-remove-headers-footers` removes repeated text at page margins;
+`--pdf-dehyphenate` optionally joins conservative lowercase word breaks.
+The app remembers these settings. Original embedded text remains present when
+OCR adds text. Heuristics and limits: [PDF import](docs/PDF-IMPORT.md).
+
+### Presentations and notebooks
+
+PPTX/PPTM/POTX, ODP and IPYNB are native inputs and do not require Pandoc.
+Slides retain source order, text, nested lists, tables, notes and supported
+image assets. Text, table and note hyperlinks retain safe external targets and
+internal slide references; excluded or unavailable targets produce diagnostics.
+Notebook imports preserve Markdown, language-tagged code, text
+outputs and embedded images; notebook code is never executed.
+Unsupported objects or output representations and unavailable assets are
+reported. Details and budgets: [presentations](docs/PRESENTATION-IMPORT.md),
+[notebooks](docs/NOTEBOOK-IMPORT.md).
+
+### Batch parallelism and source protection
+
+`--jobs 1..4` controls the number of simultaneous batch documents; the default
+is 1. The app remembers the same setting. Local Vision OCR processes at most one
+image per process, while other documents can continue without OCR. A waiting
+OCR request checks cancellation every 50 ms. Four documents can still retain
+substantial parser, image and subprocess memory; this is a concurrency limit,
+not a fixed RAM limit. Measurements are recorded in [performance](docs/PERFORMANCE.md).
+
+All batch targets and output roots are planned and checked against every source
+before any directory or worker is created. This includes adjacent outputs for a
+file inside another source package. The first input position reserves a target;
+conflicting later inputs fail regardless of worker speed. Existing outputs are
+never overwritten. Results, JSON entries and the first ordinary error retain
+input order. SIGINT/SIGTERM returns 130, retains committed results, waits for
+running workers to clean up, and leaves remaining inputs available for retry.
+An individual tool timeout does not cancel the other documents. Empty output
+parent directories can remain after cancellation; unfinished document workspaces
+and partial results are removed.
 
 ## macOS app
 
@@ -518,8 +580,9 @@ the source contains handwriting, a diagram, or text that should not become
 searchable Markdown. The macOS app exposes the same choice before conversion.
 TIFF uses one retained asset and a separate OCR section for
 each frame. Image dimensions and all frames share the same 16-million-per-frame
-and 64-million-pixel OCR budgets as PDF fallback; exceeding them rejects OCR mode
-before publication. Low-confidence OCR is marked in the Markdown for review.
+and 64-million-pixel OCR budgets as PDF fallback. Larger image frames are
+downscaled only for recognition, with an `image.ocrDownscaled` diagnostic; the
+stored original remains unchanged. Low-confidence OCR is marked for review.
 
 Structured local OCR recognizes paragraphs, lists and table cells.
 Its comparison and limits are described in [Structured OCR](docs/STRUCTURED-OCR.md).
@@ -532,7 +595,8 @@ Markdown; native spreadsheet paths do not start Pandoc.
 
 The conversion runs in a private staging directory and moves the completed
 result into a persistent or caller-owned temporary destination only after all
-stages succeed. Remote image references are rejected rather than downloaded.
+stages succeed. Remote resources are never loaded; unsafe or unavailable references produce
+format-specific warnings or errors.
 Attachments that cannot be represented in the generated Markdown produce warnings.
 
 ## Format support and limitations
@@ -550,7 +614,7 @@ Typically preserved:
   and one hyperlink target per cell
 - local ODM section order
 - embedded PDF text in page order, with page sections
-- byte-identical PNG, JPEG, HEIC, and TIFF assets, with optional local OCR text
+- byte-identical PNG, JPEG, HEIC, TIFF, GIF, BMP, and WebP assets, with optional local OCR text
 
 Expected losses or approximations:
 
@@ -613,69 +677,10 @@ Text. Pandoc remains subject to its own license.
 
 The updater [Sparkle](https://sparkle-project.org) is bundled and remains
 subject to its own license, which ships with the app as
-`Contents/Resources/Sparkle-LICENSE.txt`.
+`Contents/Resources/Sparkle-LICENSE.txt`. The rendered preview uses Swift Markdown
+and cmark-gfm; their license notices ship as
+`Contents/Resources/Markdown-LICENSES.txt`.
 
-Poor Man's Text processes documents locally and includes no telemetry. Its only
-network access is the update check. Details are in [PRIVACY.md](PRIVACY.md);
+Poor Man's Text processes documents locally and includes no telemetry. Network access covers update checks/downloads and an explicitly requested
+Pandoc installation through Homebrew. Details are in [PRIVACY.md](PRIVACY.md);
 support information is in [SUPPORT.md](SUPPORT.md).
-
-### EPUB selection
-
-`--list-chapters --json book.epub` shows spine order, titles, auxiliary entries and navigation fragments. `--epub-chapters 1,3-5` imports selected local XHTML documents in reading order, retaining original chapter indices, images and local fragment links. Links to excluded chapters keep their visible text with a diagnostic. Without selection, the existing EPUB import remains unchanged. See [EPUB selection](docs/EPUB-SELECTION.md) for supported documents and limits.
-
-### Presentation selection
-
-`--list-slides --json slides.pptx` lists ordered slide titles and local note references without importing images. `--slides 1,3-5` selects source slides in presentation order; `--notes off` excludes note text, tables and images before conversion. Notes remain included by default. PPTX, PPTM, POTX and ODP share these options. See [presentation selection](docs/PRESENTATION-SELECTION.md).
-
-### Spreadsheet selection
-
-Use `--list-sheets --json workbook.xlsx` to inspect source sheet indices, exact names and visibility. `--sheets visible` imports visible worksheets; `--sheets 1,3-5` or repeated `--sheet-name NAME` selects explicit sheets. Repeated `--cell-range B2:D8` selects rectangles on every selected sheet. Overlaps are deduplicated and distant rectangles stay separate, with original source coordinates in reports. Without these options, hidden sheets remain included as before. See [spreadsheet selection](docs/SPREADSHEET-SELECTION.md) for bounds, merges and formulas.
-
-### Named conversion profiles
-
-Save recurring options with `--save-profile NAME`, select them with `--profile NAME`, and manage portable JSON using `--list-profiles`, `--import-profile FILE` and `--export-profile FILE`. Explicit conversion options take precedence. Content selections require `--profile-source FILE` when saved and remain bound to those exact source bytes. Local output/tool paths require `--profile-local` for each profile operation. See [profiles and precedence](docs/PROFILES.md).
-
-### PDF text and OCR options
-
-`--pdf-ocr auto|always|off` selects local OCR; automatic mode also recognizes
-scan images below digital headers. `--ocr-language de,en` sets shared PDF/image
-languages supported by the local Vision installation. `--pdf-layout auto|legacy`
-selects font-based headings, simple ruled tables and two-column ordering,
-or the previous extraction for comparison. Ambiguous aligned text retains row
-order and gets a visible warning.
-`--pdf-remove-headers-footers` removes repeated text at page margins;
-`--pdf-dehyphenate` optionally joins conservative lowercase word breaks.
-The app remembers these settings. Original embedded text remains present when
-OCR adds text. Heuristics and limits: [PDF import](docs/PDF-IMPORT.md).
-
-### Presentations and notebooks
-
-PPTX/PPTM/POTX, ODP and IPYNB are native inputs and do not require Pandoc.
-Slides retain source order, text, nested lists, tables, notes and supported
-image assets. Text, table and note hyperlinks retain safe external targets and
-internal slide references; excluded or unavailable targets produce diagnostics.
-Notebook imports preserve Markdown, language-tagged code, text
-outputs and embedded images; notebook code is never executed.
-Unsupported objects or output representations and unavailable assets are
-reported. Details and budgets: [presentations](docs/PRESENTATION-IMPORT.md),
-[notebooks](docs/NOTEBOOK-IMPORT.md).
-
-### Batch parallelism and source protection
-
-`--jobs 1..4` controls the number of simultaneous batch documents; the default
-is 1. The app remembers the same setting. Local Vision OCR processes at most one
-image per process, while other documents can continue without OCR. A waiting
-OCR request checks cancellation every 50 ms. Four documents can still retain
-substantial parser, image and subprocess memory; this is a concurrency limit,
-not a fixed RAM limit. Measurements are recorded in [performance](docs/PERFORMANCE.md).
-
-All batch targets and output roots are planned and checked against every source
-before any directory or worker is created. This includes adjacent outputs for a
-file inside another source package. The first input position reserves a target;
-conflicting later inputs fail regardless of worker speed. Existing outputs are
-never overwritten. Results, JSON entries and the first ordinary error retain
-input order. SIGINT/SIGTERM returns 130, retains committed results, waits for
-running workers to clean up, and leaves remaining inputs available for retry.
-An individual tool timeout does not cancel the other documents. Empty output
-parent directories can remain after cancellation; unfinished document workspaces
-and partial results are removed.

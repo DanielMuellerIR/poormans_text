@@ -5,7 +5,8 @@ DMG. It installs the application and links the bundled `poormans-text` CLI;
 Pandoc is a dependency. The application requires macOS 13 or later and includes
 its own Sparkle updater.
 
-The definition currently targets the published 0.16.6 release. Before submitting
+The reviewed draft remains pinned to release 0.16.6; it does not track the
+latest application release. Before submitting
 or using a newer release, update both `version` and `sha256` from its verified
 DMG. A checksum must never be replaced with `:no_check`.
 

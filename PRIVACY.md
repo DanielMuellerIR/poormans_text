@@ -11,8 +11,7 @@ Conversion invokes the local macOS text system and a locally installed Pandoc
 executable. Pandoc is not bundled. The decision not to show the optional CLI
 installation offer again is stored only as a local app preference.
 
-The app does make one kind of network request: it looks for updates through
-Sparkle. It fetches a signed feed from
+Update checks and downloads use Sparkle. It fetches a signed feed from
 `https://danielmuellerir.github.io/poormans_text/appcast.xml` and, only after
 the user agrees, downloads the disk image from `github.com`. GitHub as the host
 of both receives the data an HTTP request carries anyway, in particular the IP
@@ -20,6 +19,10 @@ address. No profile of the Mac is transmitted: Sparkle's optional hardware and
 system profiling is switched off. Automatic checks can be turned off in Terminal
 with `defaults write org.poormanstext.PoorMansText SUEnableAutomaticChecks -bool NO`;
 the "Check for Updates …" menu item then still works on demand.
+
+An explicitly requested Pandoc installation starts Homebrew, which contacts
+its package and download servers. Document contents are not passed to that
+installation. Conversion itself does not load remote document resources.
 
 Installing or downloading the app, Pandoc, or source code may be subject to the
 separate privacy practices of the chosen distribution platform or package
@@ -37,7 +40,7 @@ Pandoc-Datei auf. Pandoc wird nicht mitgeliefert. Die Entscheidung, das optional
 CLI-Installationsangebot nicht erneut anzuzeigen, wird nur als lokale
 App-Einstellung gespeichert.
 
-Eine Art von Netzwerkzugriff gibt es: Die App sucht über Sparkle nach Updates.
+Für Update-Suche und Downloads verwendet die App Sparkle.
 Sie lädt dazu einen signierten Feed von
 `https://danielmuellerir.github.io/poormans_text/appcast.xml` und — erst nach
 Zustimmung — das Image von `github.com`. GitHub als Betreiber beider Adressen
@@ -48,6 +51,10 @@ sich im Terminal mit
 `defaults write org.poormanstext.PoorMansText SUEnableAutomaticChecks -bool NO`
 abschalten; der Menüpunkt „Check for Updates …" funktioniert dann weiterhin auf
 Wunsch.
+
+Eine ausdrücklich angeforderte Pandoc-Installation startet Homebrew und dessen
+Zugriffe auf Paket- und Downloadserver. Dokumentinhalte werden dieser Installation
+nicht übergeben. Die Konvertierung lädt keine entfernten Dokumentressourcen.
 
 Für Installation oder Download der App, von Pandoc oder des Quellcodes können
 die getrennten Datenschutzbedingungen der gewählten Plattform oder

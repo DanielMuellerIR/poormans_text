@@ -31,7 +31,8 @@ einsbasiert und beziehen sich auf die Quelle:
 - `message`: tatsächlich vorhandene Message-ID einer E-Mail; ohne ID bleibt das
   Feld leer.
 - `note`: Paketpfad eines PowerPoint-Notizteils bzw. einsbasierte Kennung des
-  ODP-Notizcontainers innerhalb seiner Folie.
+  ODP-Notizcontainers innerhalb seiner Folie; bei ENEX die Notiznummer ab 1.
+- `chapter`: ursprünglicher EPUB-Spine-Index ab 1.
 
 Globale DOCX-Kommentarwarnungen erhalten keine behauptete Absatznummer.
 Ein Objekt, das mehrere Absätze umfasst, wird nur so genau verortet, wie es

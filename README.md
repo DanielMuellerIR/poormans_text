@@ -309,7 +309,7 @@ PDFs, images, or folders
 into the window or onto the app, or choose them from the open panel. A folder is
 searched with the same rules as on the command line. Conversion Options remembers
 an output parent (by default next to each source), table format, image OCR,
-frontmatter, Textbundle, PDF OCR/layout, OCR languages, and batch parallelism. Subdirectories are preserved under a selected parent.
+frontmatter, Textbundle, PDF OCR/layout, OCR method and languages, and batch parallelism. Subdirectories are preserved under a selected parent.
 Select a batch result to open its Markdown in the default app, copy it, show it
 in Finder, read a rendered/source preview limited to 256 KiB, or compare it
 with known source positions. Copying reports omitted
@@ -334,7 +334,7 @@ Keyboard Shortcuts › Services):
 The native **Convert Document to Markdown** action is available in Shortcuts
 on macOS 13 or later. Supply one document and a destination folder (for example
 with the Folder action). Expand the action to choose Textbundle, metadata,
-spreadsheet format, OCR, PDF layout, and the external-tool timeout. The action
+spreadsheet format, OCR method and languages, PDF layout, and the external-tool timeout. The action
 returns a text list: the local file URL of the complete output folder first,
 followed by any conversion warnings. Use Get Item from List → First Item to
 pass the folder URL to another action. Images and other assets stay together.
@@ -479,9 +479,9 @@ each frame. Image dimensions and all frames share the same 16-million-per-frame
 and 64-million-pixel OCR budgets as PDF fallback; exceeding them rejects OCR mode
 before publication. Low-confidence OCR is marked in the Markdown for review.
 
-An internal macOS 26 prototype also recognizes paragraphs, lists and table cells.
-Its local comparison and limits are described in [Structured OCR](docs/STRUCTURED-OCR.md);
-image and PDF conversion still use the existing OCR path.
+Structured local OCR recognizes paragraphs, lists and table cells.
+Its comparison and limits are described in [Structured OCR](docs/STRUCTURED-OCR.md).
+Use `--ocr-method structured` (or OCR method in the app and Shortcuts) to opt in on macOS 26+. The default is `standard`; unavailable or unsafe structure falls back with a diagnostic.
 
 The format-neutral engine verifies source contents instead of trusting only the
 filename extension, then selects the matching path. Word-processing paths
@@ -558,7 +558,7 @@ and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compa
 their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current version is 0.27.1.
+The current version is 0.28.0.
 
 ## License
 

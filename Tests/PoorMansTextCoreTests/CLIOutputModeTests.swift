@@ -22,7 +22,7 @@ final class CLIOutputModeTests: XCTestCase {
 
     func testPDFAndLanguageOptionsValidateBeforeConverting() throws {
         for arguments in [
-            ["--pdf-ocr", "never"], ["--pdf-layout=bad"], ["--ocr-language", "zz-no-such-language"],
+            ["--ocr-method", "invalid"], ["--ocr-method="], ["--pdf-ocr", "never"], ["--pdf-layout=bad"], ["--ocr-language", "zz-no-such-language"],
             ["--ocr-language="], ["--formats", "--pdf-ocr", "auto"],
             ["--formats", "--pdf-remove-headers-footers"], ["--formats", "--pdf-dehyphenate"],
             ["--formats", "--ocr-language", "en"],

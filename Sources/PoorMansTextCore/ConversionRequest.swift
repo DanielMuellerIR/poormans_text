@@ -22,6 +22,13 @@ public enum ImageTextRecognition: String, Codable, Equatable, Sendable {
     case disabled
 }
 
+/// Strukturierte lokale Erkennung ist ab macOS 26 verfügbar; Standard bleibt
+/// der bisherige Textleser. Ein Rückfall wird im Ergebnis diagnostiziert.
+public enum OCRMethod: String, Codable, Equatable, Sendable {
+    case standard
+    case structured
+}
+
 public enum PDFTextRecognition: String, Codable, Equatable, Sendable {
     case automatic = "auto"
     case always
@@ -51,6 +58,7 @@ public struct ConversionOptions: Equatable, Sendable {
     public var outputLayout: OutputLayout
     public var pdfTextRecognition: PDFTextRecognition
     public var ocrLanguages: [String]
+    public var ocrMethod: OCRMethod
     public var pdfLayout: PDFLayout
     public var pdfRemoveHeadersFooters: Bool
     public var pdfDehyphenate: Bool
@@ -71,6 +79,7 @@ public struct ConversionOptions: Equatable, Sendable {
         outputLayout: OutputLayout = .markdownFolder,
         pdfTextRecognition: PDFTextRecognition = .automatic,
         ocrLanguages: [String] = [],
+        ocrMethod: OCRMethod = .standard,
         pdfLayout: PDFLayout = .automatic,
         pdfRemoveHeadersFooters: Bool = false,
         pdfDehyphenate: Bool = false,
@@ -88,6 +97,7 @@ public struct ConversionOptions: Equatable, Sendable {
         self.outputLayout = outputLayout
         self.pdfTextRecognition = pdfTextRecognition
         self.ocrLanguages = ocrLanguages
+        self.ocrMethod = ocrMethod
         self.pdfLayout = pdfLayout
         self.pdfRemoveHeadersFooters = pdfRemoveHeadersFooters
         self.pdfDehyphenate = pdfDehyphenate

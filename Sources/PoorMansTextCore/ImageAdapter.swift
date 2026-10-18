@@ -77,7 +77,7 @@ struct ImageAdapter: DocumentConversionAdapter {
         let extraction: ImageExtraction?
         if context.options.imageTextRecognition == .enabled {
             do {
-                extraction = try recognizeText(at: stagedSource, frameCount: probe.frameCount, languages: context.options.ocrLanguages)
+                extraction = try recognizeText(at: stagedSource, frameCount: probe.frameCount, languages: context.options.ocrLanguages, method: context.options.ocrMethod)
             } catch {
                 throw ConversionError.invalidInput(context.inputURL, format: .image, reason: error.localizedDescription)
             }
@@ -131,7 +131,7 @@ struct ImageAdapter: DocumentConversionAdapter {
         return ImageProbe(fileFormat: fileFormat, frameCount: frameCount)
     }
 
-    private func recognizeText(at sourceURL: URL, frameCount: Int, languages: [String]) throws -> ImageExtraction {
+    private func recognizeText(at sourceURL: URL, frameCount: Int, languages: [String], method: OCRMethod) throws -> ImageExtraction {
         let verified = try VerifiedImageSource(at: sourceURL)
         let source = verified.source
 
@@ -179,11 +179,16 @@ struct ImageAdapter: DocumentConversionAdapter {
             }
             let orientation = imageOrientation(from: properties)
             do {
-                let text = try VisionTextRecognizer.recognize(in: image, orientation: orientation, languages: languages).text
+                let result = try DocumentOCR.recognize(in: image, orientation: orientation, languages: languages, method: method)
+                let text = result.markdown
                 pages.append(text)
+                for warning in result.diagnostics { diagnostics.append(warning.at(ConversionLocation(frame: frameIndex + 1))) }
                 if text.isEmpty { diagnostics.append(ConversionWarning.imageTextUnavailable.at(ConversionLocation(frame: frameIndex + 1))) }
             } catch {
                 try ConversionExecution.check()
+                if let failure = error as? DocumentOCR.FallbackFailure {
+                    diagnostics.append(failure.diagnostic.at(ConversionLocation(frame: frameIndex + 1)))
+                }
                 failedFrame(frameIndex)
             }
         }
@@ -311,7 +316,7 @@ struct ImageAdapter: DocumentConversionAdapter {
     private func markdownText(for text: String) -> String {
         text.isEmpty
             ? "_No text could be extracted from this image frame._"
-            : MarkdownEscaping.literalBlock(text)
+            : text
     }
 
     private func appendMarkdown(

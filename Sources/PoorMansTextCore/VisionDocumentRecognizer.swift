@@ -3,7 +3,8 @@ import Foundation
 import ImageIO
 import Vision
 
-/// Begrenzter lokaler Prototyp; noch kein Konvertierungsadapter oder Standard.
+/// Begrenzte lokale Dokumenterkennung; der Produktadapter prüft danach die
+/// Inhaltsdeckung und fällt bei unsicherer Struktur auf Standard-OCR zurück.
 enum VisionDocumentRecognizer {
     enum RecognitionError: Error, Equatable {
         case unavailable

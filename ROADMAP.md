@@ -22,16 +22,9 @@ Kurzbefehle reichen die jeweils passenden Optionen weiter.
 
 ### Strukturierte lokale Dokumenterkennung
 
-- Auf unterstützten macOS-Versionen zusätzlich Apples strukturierte
-  Dokumenterkennung für Tabellen, Listen und Absätze in Bildern und gerasterten
-  PDF-Seiten verwenden.
-- Den intern erprobten Weg ausdrücklich wählbar in PDF- und Bildimporte
-  integrieren und mit digitalem PDF-Text ohne Verlust oder Dubletten verbinden.
-  Den begrenzten Vergleich vor einem Standardwechsel an natürlichen Scans und
+- Den begrenzten Vergleich vor einem Standardwechsel an natürlichen Scans und
   Fotos erweitern; Inhaltsbestand, Zellzuordnung, Lesereihenfolge, Laufzeit
   und Speicherbedarf entscheiden über seinen Einsatz.
-- Den bisherigen OCR-Weg für ältere Systeme und als nachvollziehbaren
-  Rückfallweg erhalten.
 
 ### Kommentare, Änderungen und Links
 

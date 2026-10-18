@@ -236,6 +236,167 @@ final class VisionDocumentRecognizerTests: XCTestCase, @unchecked Sendable {
         }
     }
 
+    func testStructuredProductImportMatrixPreservesContentsCellsAndBytes() throws {
+        guard #available(macOS 26, *) else { throw XCTSkip("Requires macOS 26 Vision") }
+        let saved = ProcessInfo.processInfo.environment["PMT_STRUCTURED_IMPORT_DIR"].map { URL(fileURLWithPath: $0, isDirectory: true) }
+        let root = try saved ?? temporaryDirectory()
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { if saved == nil { try? FileManager.default.removeItem(at: root) } }
+        var measurements: [[String: Any]] = []
+        for fixture in try makeFixtures(in: root) {
+            var source = fixture.url
+            if fixture.orientation != .up {
+                source = root.appendingPathComponent("orientation.tiff")
+                let destination = try XCTUnwrap(CGImageDestinationCreateWithURL(source as CFURL, UTType.tiff.identifier as CFString, 1, nil))
+                CGImageDestinationAddImage(destination, try loadImage(fixture.url), [kCGImagePropertyOrientation: fixture.orientation.rawValue] as CFDictionary)
+                XCTAssertTrue(CGImageDestinationFinalize(destination))
+            }
+            let bytes = try Data(contentsOf: source)
+            let expected = fixture.expected + (source.pathExtension == "pdf" ? ["Second scan", "Local document", "Final sentence"] : [])
+            for method in [OCRMethod.standard, .structured] {
+                let start = DispatchTime.now().uptimeNanoseconds
+                let result = try DocumentConverter().convert(.init(inputURL: source, destination: .temporary,
+                    options: .init(ocrLanguages: fixture.languages, ocrMethod: method, conversionReport: true)))
+                defer { try? FileManager.default.removeItem(at: result.outputDirectory) }
+                let seconds = elapsed(start)
+                let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+                let evaluation = evaluate(markdown, expected: expected)
+                XCTAssertEqual(evaluation.counts, Array(repeating: 1, count: expected.count), "\(fixture.name) / \(method): \(markdown)")
+                if method == .structured {
+                    XCTAssertTrue(evaluation.expectedOrder, "\(fixture.name): \(markdown)")
+                    XCTAssertTrue(result.diagnostics.contains { $0.code == "ocr.structuredApplied" }, "\(fixture.name): \(result.diagnostics)")
+                    let tableRows = markdown.components(separatedBy: "\n").filter { $0.hasPrefix("| ") }
+                    for cell in fixture.cells {
+                        let row = try XCTUnwrap(tableRows.dropFirst(cell.row + 2).first, fixture.name)
+                        let columns = row.components(separatedBy: "|").dropFirst().dropLast().map { $0.trimmingCharacters(in: .whitespaces) }
+                        XCTAssertTrue(columns.indices.contains(cell.column), row)
+                        if columns.indices.contains(cell.column) { XCTAssertEqual(columns[cell.column], cell.text, fixture.name) }
+                    }
+                    if fixture.name == "bullet-list" { XCTAssertTrue(markdown.contains("- Alpha orchard\n- Beta garden\n- Gamma meadow"), markdown) }
+                    if fixture.name == "numbered-paragraphs" { XCTAssertTrue(markdown.contains("1. First action\n2. Second action\n3. Third action"), markdown) }
+                }
+                XCTAssertEqual(try Data(contentsOf: source), bytes)
+                if source.pathExtension != "pdf" { XCTAssertEqual(try Data(contentsOf: XCTUnwrap(result.assets.first)), bytes) }
+                XCTAssertEqual(result.sourceIdentity?.sha256, ConversionFileFingerprint.digest(bytes))
+                let reportData = try Data(contentsOf: result.outputDirectory.appendingPathComponent("conversion-report.json"))
+                let report = try JSONDecoder().decode(ConversionReport.self, from: reportData)
+                XCTAssertEqual(report.options.ocrMethod, method)
+                measurements.append(["fixture": fixture.name, "method": method.rawValue, "seconds": seconds,
+                    "sourceSHA256": ConversionFileFingerprint.digest(bytes), "expected": expected,
+                    "counts": evaluation.counts, "expectedOrder": evaluation.expectedOrder,
+                    "expectedCells": fixture.cells.count, "markdown": markdown,
+                    "diagnostics": result.diagnostics.map(\.code), "processPeakRSSBytes": peakRSS()])
+            }
+        }
+        try JSONSerialization.data(withJSONObject: measurements, options: [.prettyPrinted, .sortedKeys]).write(to: root.appendingPathComponent("product-imports.json"), options: .atomic)
+    }
+
+    func testStructuredMixedPDFConflictPreservesInvisibleOriginalAndAddsNonoverlappingScan() throws {
+        guard #available(macOS 26, *) else { throw XCTSkip("Requires macOS 26 Vision") }
+        let root = try temporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let source = root.appendingPathComponent("conflicting.pdf")
+        let image = try canvas { draw("Wrong original", x: 100, y: 1350); draw("Additional scan", x: 100, y: 1100) }
+        var box = CGRect(x: 0, y: 0, width: 1200, height: 1600)
+        let context = try XCTUnwrap(CGContext(source as CFURL, mediaBox: &box, nil))
+        context.beginPDFPage(nil)
+        context.draw(image, in: box)
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext(cgContext: context, flipped: false)
+        ("Digital original" as NSString).draw(at: NSPoint(x: 100, y: 1350), withAttributes: [.font: NSFont.systemFont(ofSize: 44), .foregroundColor: NSColor.clear])
+        NSGraphicsContext.restoreGraphicsState()
+        context.endPDFPage(); context.closePDF()
+        XCTAssertTrue(try XCTUnwrap(PDFDocument(url: source)?.page(at: 0)?.string).contains("Digital original"))
+        let bytes = try Data(contentsOf: source)
+        for layout in [PDFLayout.automatic, .legacy] {
+            let result = try DocumentConverter().convert(.init(inputURL: source, destination: .temporary, options: .init(ocrMethod: .structured, pdfLayout: layout)))
+            defer { try? FileManager.default.removeItem(at: result.outputDirectory) }
+            let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+            XCTAssertEqual(markdown.components(separatedBy: "Digital original").count - 1, 1, markdown)
+            XCTAssertEqual(markdown.components(separatedBy: "Additional scan").count - 1, 1, markdown)
+            XCTAssertFalse(markdown.contains("Wrong original"), markdown)
+            XCTAssertTrue(result.diagnostics.contains { $0.code == "ocr.structuredFallback" })
+            XCTAssertTrue(result.diagnostics.contains { $0.code == "pdf.ocrOriginalRetained" })
+            XCTAssertFalse(result.diagnostics.contains { $0.code == "ocr.structuredApplied" })
+        }
+        XCTAssertEqual(try Data(contentsOf: source), bytes)
+        let ambiguous = root.appendingPathComponent("ambiguous.pdf")
+        let wider = try canvas { draw("Digital original plus scan", x: 100, y: 1350) }
+        let secondContext = try XCTUnwrap(CGContext(ambiguous as CFURL, mediaBox: &box, nil))
+        secondContext.beginPDFPage(nil); secondContext.draw(wider, in: box)
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext(cgContext: secondContext, flipped: false)
+        ("Digital original" as NSString).draw(at: NSPoint(x: 100, y: 1350), withAttributes: [.font: NSFont.systemFont(ofSize: 44), .foregroundColor: NSColor.clear])
+        NSGraphicsContext.restoreGraphicsState()
+        secondContext.endPDFPage(); secondContext.closePDF()
+        let original = try Data(contentsOf: ambiguous)
+        let destination = root.appendingPathComponent("ambiguous-output")
+        XCTAssertThrowsError(try DocumentConverter().convert(.init(inputURL: ambiguous, destination: .directory(destination), options: .init(ocrMethod: .structured)))) {
+            XCTAssertTrue($0.localizedDescription.contains("geometry limits"), "\($0)")
+        }
+        XCTAssertFalse(FileManager.default.fileExists(atPath: destination.path))
+        XCTAssertFalse(try FileManager.default.contentsOfDirectory(atPath: root.path).contains { $0.hasPrefix(".poormans-text-") })
+        XCTAssertEqual(try Data(contentsOf: ambiguous), original)
+    }
+
+    func testStructuredPDFOptionsRetainRecognizedPagesAndLeaveDisabledLegacyUnchanged() throws {
+        guard #available(macOS 26, *) else { throw XCTSkip("Requires macOS 26 Vision") }
+        let root = try temporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let source = root.appendingPathComponent("repeated.pdf")
+        let tableImage = try canvas { table([["Name", "Count"], ["Apples", "42"]]) }
+        var box = CGRect(x: 0, y: 0, width: 1200, height: 1600)
+        let context = try XCTUnwrap(CGContext(source as CFURL, mediaBox: &box, nil))
+        for _ in 0..<2 {
+            context.beginPDFPage(nil)
+            NSGraphicsContext.saveGraphicsState()
+            NSGraphicsContext.current = NSGraphicsContext(cgContext: context, flipped: false)
+            draw("Repeated header", x: 100, y: 1500)
+            NSGraphicsContext.restoreGraphicsState()
+            context.draw(tableImage, in: CGRect(x: 100, y: 100, width: 1000, height: 1100))
+            context.endPDFPage()
+        }
+        context.closePDF()
+        let result = try DocumentConverter().convert(.init(inputURL: source, destination: .temporary,
+            options: .init(pdfTextRecognition: .always, ocrMethod: .structured, pdfRemoveHeadersFooters: true, pdfDehyphenate: true)))
+        defer { try? FileManager.default.removeItem(at: result.outputDirectory) }
+        let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+        for token in ["Repeated header", "Name", "Count", "Apples", "42"] {
+            XCTAssertEqual(markdown.components(separatedBy: token).count - 1, 2, markdown)
+        }
+        XCTAssertEqual(result.diagnostics.filter { $0.code == "ocr.structuredApplied" }.count, 2)
+        XCTAssertEqual(result.diagnostics.filter { $0.code == "pdf.structuredLayoutRetained" }.count, 2)
+        XCTAssertFalse(result.diagnostics.contains { $0.code == "pdf.repeatedMarginRemoved" })
+        var outputs: [String] = []
+        for method in [OCRMethod.standard, .structured] {
+            let disabled = try DocumentConverter().convert(.init(inputURL: source, destination: .temporary,
+                options: .init(pdfTextRecognition: .disabled, ocrMethod: method, pdfLayout: .legacy, pdfRemoveHeadersFooters: true)))
+            defer { try? FileManager.default.removeItem(at: disabled.outputDirectory) }
+            outputs.append(try String(contentsOf: disabled.markdownFile, encoding: .utf8))
+            XCTAssertFalse(disabled.diagnostics.contains { $0.code.hasPrefix("ocr.") })
+        }
+        XCTAssertEqual(outputs[0], outputs[1])
+    }
+
+    func testStructuredAndStandardImportsInFourWorkerBatch() throws {
+        guard #available(macOS 26, *) else { throw XCTSkip("Requires macOS 26 Vision") }
+        let root = try temporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let fixtures = Array(try makeFixtures(in: root).prefix(4))
+        let requests = fixtures.enumerated().map { index, fixture in
+            ConversionRequest(inputURL: fixture.url, destination: .temporary, options: .init(ocrMethod: index.isMultiple(of: 2) ? .structured : .standard))
+        }
+        let results = try BatchConverter().convert(requests, jobs: 4)
+        XCTAssertEqual(results.count, 4)
+        for (fixture, item) in zip(fixtures, results) {
+            let result = try item.outcome.get()
+            defer { try? FileManager.default.removeItem(at: result.outputDirectory) }
+            let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+            XCTAssertEqual(evaluate(markdown, expected: fixture.expected).counts, Array(repeating: 1, count: fixture.expected.count))
+            XCTAssertEqual(try Data(contentsOf: XCTUnwrap(result.assets.first)), try Data(contentsOf: fixture.url))
+        }
+    }
+
     private struct ExpectedCell: Codable, CustomStringConvertible {
         let row: Int
         let column: Int

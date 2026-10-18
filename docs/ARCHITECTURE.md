@@ -43,10 +43,14 @@ JSON-Import ohne Codeausführung. ODM löst ausschließlich lokale ODT-Teildokum
 derselben Foundation-basierten Anfrage und bestimmen deren API nicht.
 PDFKit liest eingebetteten PDF-Text, und Vision verarbeitet ausschließlich lokal
 gerenderte Seiten entsprechend dem gewählten OCR-Modus. ImageIO übernimmt Bilddaten unverändert als Asset;
-Vision ergänzt dort optional lokalen Text. Der interne `VisionDocumentRecognizer`
-verwendet ab macOS 26 strukturierte Dokumenterkennung und teilt den OCR-Slot mit
-dem bisherigen Weg. Sein neutrales Modell enthält getrennte Text-/Struktursichten;
-die Produktadapter rufen ihn noch nicht auf. Vertrag und Vergleich stehen unter
+Vision ergänzt dort optional lokalen Text. `DocumentOCR` wählt anhand von
+`ConversionOptions.ocrMethod` zwischen Standard-OCR und ausdrücklich gewählter
+strukturierter Erkennung ab macOS 26. `VisionDocumentRecognizer` liefert dafür
+ein neutrales Modell getrennter Text-/Struktursichten; `StructuredOCRRendering`
+prüft ihre Inhaltsdeckung und erzeugt sicheres Markdown. `PDFStructuredOCRMerge`
+vereinigt es räumlich mit maßgeblichem digitalem Originaltext. Unsichere Struktur
+und fehlende Verfügbarkeit führen mit Diagnose zur bisherigen Erkennung zurück.
+Vertrag und Vergleich stehen unter
 [Strukturierte OCR](STRUCTURED-OCR.md).
 
 ## Formatneutrale Konvertierung
@@ -248,7 +252,7 @@ openMarkdown(result.markdownFile)
 
 ## App-Einstellungen und Ergebnisaktionen
 
-`AppModel` speichert Zielordner, Tabellenformat, Bild-/PDF-OCR, OCR-Sprachen,
+`AppModel` speichert Zielordner, Tabellenformat, Bild-/PDF-OCR, OCR-Methode und -Sprachen,
 PDF-Layout, Frontmatter, Ausgabelayout und Batch-Parallelität in `UserDefaults`. Es bildet daraus `ConversionRequest` und
 friert Optionen und Ziel für einen Mehrfachlauf ein. Der Zielordner ist ein
 Elternordner; rekursiv gefundene Eingaben behalten darunter ihre relativen
@@ -371,7 +375,7 @@ atomaren Veröffentlichungsschritt. Der Markdown-Rewriter wurde nicht verändert
 `PDFTableGeometry` liest begrenzt lokale PDF-Pfade und liefert geschlossene
 Gitter als zusätzlichen Tabellenbeleg. `PDFStructuredLayout` ordnet Text in
 Zellen ein, maskiert die Werte, erzeugt Überschriften und nennt ungelöste
-Spaltenmehrdeutigkeit. Der Legacy-Pfad bleibt zum Vergleich unverändert.
+Spaltenmehrdeutigkeit. Bei Standard-OCR bleibt der Legacy-Pfad zum Vergleich unverändert.
 
 `PDFAdapter` koordiniert die verifizierte PDF-Kopie, Seitenbudgets und OCR.
 `PDFImageResources` durchsucht begrenzt lokale Bild-/Formressourcen als Hinweis
@@ -423,13 +427,18 @@ entstehen weiterhin in den dünnen Adaptern. Die App verwirft veraltete
 Fortschrittsmeldungen, erhält beim Retry bestehende Ergebnisse und verwendet
 weiterhin die bedarfsgerecht aufgebaute Ergebnisliste ohne automatische Vorschau.
 
-`OCRConcurrencyGate` umschließt nur `VisionTextRecognizer` unmittelbar beim
-`handler.perform`. Ein `NSCondition`-Slot begrenzt OCR pro Prozess auf eins;
+`OCRConcurrencyGate` umschließt `VisionTextRecognizer` unmittelbar beim
+`handler.perform` und `VisionDocumentRecognizer` während des asynchronen Requests.
+Ein `NSCondition`-Slot begrenzt beide OCR-Wege gemeinsam pro Prozess auf eins;
 wartende Dokumente prüfen ihren Token alle 50 ms und geben den Slot per `defer`
 frei. Jedes Dokument behält einen eigenen Kind-Token, damit Prozesszeitlimits
 keinen ganzen Batch abbrechen. Nach Benutzerabbruch wartet die Batchgrenze auf
 alle Worker und liefert fertige, fehlgeschlagene und nicht gestartete Eingaben
-in ihrer ursprünglichen Reihenfolge zurück.
+in ihrer ursprünglichen Reihenfolge zurück. `OCRAsyncBridge` verwendet für die
+synchrone Konvertierungsgrenze einen eigenen Thread-Executor, damit gleichzeitig
+wartende Swift-Aufgaben keine Fortsetzung im kooperativen Threadpool blockieren.
+Kontext und Abbruchtoken werden ausdrücklich übergeben; die Grenze wartet auch
+bei Abbruch auf das tatsächliche Framework-Ende.
 
 ## Quellzuordnung und Berichte
 

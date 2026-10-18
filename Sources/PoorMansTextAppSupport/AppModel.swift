@@ -116,6 +116,7 @@ public final class AppModel: ObservableObject {
     /// Gilt nur für Bildimporte; andere Formate ignorieren diese Option.
     @Published public var imageTextRecognition: ImageTextRecognition = .enabled { didSet { savePreferences() } }
     @Published public var pdfTextRecognition: PDFTextRecognition = .automatic { didSet { savePreferences() } }
+    @Published public var ocrMethod: OCRMethod = .standard { didSet { savePreferences() } }
     @Published public var pdfLayout: PDFLayout = .automatic { didSet { savePreferences() } }
     @Published public var ocrLanguageCodes: String = "" { didSet { savePreferences() } }
     @Published public var pdfRemoveHeadersFooters: Bool = false { didSet { savePreferences() } }
@@ -166,6 +167,7 @@ public final class AppModel: ObservableObject {
             frontmatter: frontmatter, outputLayout: outputLayout,
             pdfTextRecognition: pdfTextRecognition,
             ocrLanguages: ocrLanguageCodes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? [] : ocrLanguageCodes.components(separatedBy: ","),
+            ocrMethod: ocrMethod,
             pdfLayout: pdfLayout, pdfRemoveHeadersFooters: pdfRemoveHeadersFooters, pdfDehyphenate: pdfDehyphenate,
             sourceMapping: true)
     }
@@ -224,6 +226,7 @@ public final class AppModel: ObservableObject {
         outputLayout = defaults.string(forKey: "outputLayout").flatMap(OutputLayout.init(rawValue:)) ?? .markdownFolder
         destinationFolder = defaults.string(forKey: "destinationFolder").map { URL(fileURLWithPath: $0) }
         pdfTextRecognition = defaults.string(forKey: "pdfTextRecognition").flatMap(PDFTextRecognition.init(rawValue:)) ?? .automatic
+        ocrMethod = defaults.string(forKey: "ocrMethod").flatMap(OCRMethod.init(rawValue:)) ?? .standard
         pdfLayout = defaults.string(forKey: "pdfLayout").flatMap(PDFLayout.init(rawValue:)) ?? .automatic
         ocrLanguageCodes = defaults.string(forKey: "ocrLanguageCodes") ?? ""
         pdfRemoveHeadersFooters = defaults.bool(forKey: "pdfRemoveHeadersFooters")
@@ -237,6 +240,7 @@ public final class AppModel: ObservableObject {
         defaults.set(imageTextRecognition.rawValue, forKey: "imageTextRecognition")
         defaults.set(spreadsheetRendering.rawValue, forKey: "spreadsheetRendering")
         defaults.set(pdfTextRecognition.rawValue, forKey: "pdfTextRecognition")
+        defaults.set(ocrMethod.rawValue, forKey: "ocrMethod")
         defaults.set(pdfLayout.rawValue, forKey: "pdfLayout")
         defaults.set(ocrLanguageCodes, forKey: "ocrLanguageCodes")
         defaults.set(pdfRemoveHeadersFooters, forKey: "pdfRemoveHeadersFooters")

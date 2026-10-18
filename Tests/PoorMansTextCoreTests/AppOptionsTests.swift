@@ -19,6 +19,7 @@ final class AppOptionsTests: XCTestCase {
         model.batchParallelism = 3
         model.pdfTextRecognition = .always
         model.pdfLayout = .legacy
+        model.ocrMethod = .structured
         model.ocrLanguageCodes = "de,en"
         model.pdfRemoveHeadersFooters = true
         model.pdfDehyphenate = true
@@ -30,6 +31,7 @@ final class AppOptionsTests: XCTestCase {
         XCTAssertTrue(request.options.frontmatter)
         XCTAssertEqual(request.options.ocrLanguages, ["de", "en"])
         XCTAssertEqual(request.options.pdfTextRecognition, .always)
+        XCTAssertEqual(request.options.ocrMethod, .structured)
         XCTAssertTrue(request.options.pdfRemoveHeadersFooters)
         XCTAssertTrue(request.options.pdfDehyphenate)
         XCTAssertTrue(request.options.sourceMapping)

@@ -56,11 +56,15 @@ Nur die Reihenfolge der zulässigen Eingabetypen wird dabei normalisiert.
 
 `Contents/Resources/Metadata.appintents` wird vor der Signatur in das Bundle
 übernommen. `scripts/verify_bundle.sh` verlangt die Aktion, ihre beiden
-Dateiparameter, die acht Inhaltsauswahlparameter und den App-Kurzbefehl. Ein Build ohne diese Metadaten bricht ab,
+Dateiparameter, die acht Inhaltsauswahlparameter, die OCR-Methodenwahl samt
+Standardwert und den App-Kurzbefehl. Ein Build ohne diese Metadaten bricht ab,
 statt eine in Kurzbefehle unsichtbare Aktion auszuliefern. Lokalisierungen liegen
 in `Localizable.strings` und `AppShortcuts.strings` für Englisch und Deutsch.
 Die Systemintegration muss zusätzlich mit dem notarisiert installierten Bundle
 in Kurzbefehle geprüft werden; Metadaten allein beweisen keine Ausführung.
+Zeigt Kurzbefehle nach einem Update noch alte Parameter, die installierte App
+einmal starten und Kurzbefehle neu öffnen. Für die Abnahme eine aktuelle Aktion
+aus der Aktionsbibliothek und lokale Datei-/Ordnerauswahl verwenden.
 
 ## Schneller Developer-ID-Test
 

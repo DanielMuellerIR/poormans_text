@@ -90,6 +90,7 @@ do {
         outputLayout: arguments.outputLayout,
         pdfTextRecognition: arguments.pdfOptions.pdfTextRecognition,
         ocrLanguages: arguments.pdfOptions.ocrLanguages,
+        ocrMethod: arguments.pdfOptions.ocrMethod,
         pdfLayout: arguments.pdfOptions.pdfLayout,
         pdfRemoveHeadersFooters: arguments.pdfOptions.pdfRemoveHeadersFooters,
         pdfDehyphenate: arguments.pdfOptions.pdfDehyphenate,

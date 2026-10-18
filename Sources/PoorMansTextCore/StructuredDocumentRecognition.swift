@@ -1,6 +1,6 @@
 import Foundation
 
-/// Interner Vorversuch: Volltext und Struktur sind alternative Sichten auf
+/// Volltext und Struktur sind alternative Sichten auf
 /// dieselben Pixel. Sie dürfen nicht aneinandergehängt werden.
 struct StructuredDocumentRecognition: Codable, Equatable, Sendable {
     let documents: [Document]

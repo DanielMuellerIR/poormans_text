@@ -1,3 +1,4 @@
+import AppKit
 import AppIntents
 import Foundation
 import UniformTypeIdentifiers
@@ -114,6 +115,30 @@ final class ShortcutConversionTests: XCTestCase {
         XCTAssertGreaterThan(values.count, 1)
         XCTAssertTrue(try String(contentsOf: output.appendingPathComponent("warning.md"), encoding: .utf8).contains("Retained text"))
         XCTAssertEqual(try Data(contentsOf: source), data)
+    }
+
+    func testStructuredOCRParameterReachesRealImageConversion() async throws {
+        guard #available(macOS 26, *) else { throw XCTSkip("Requires structured Vision") }
+        let bitmap = try XCTUnwrap(NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: 1000, pixelsHigh: 400,
+            bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0))
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: bitmap)
+        NSColor.white.setFill(); NSRect(x: 0, y: 0, width: 1000, height: 400).fill()
+        ("Native structured import" as NSString).draw(at: NSPoint(x: 70, y: 200), withAttributes: [.font: NSFont.systemFont(ofSize: 52), .foregroundColor: NSColor.black])
+        NSGraphicsContext.restoreGraphicsState()
+        let bytes = try XCTUnwrap(bitmap.representation(using: .png, properties: [:]))
+        let source = root.appendingPathComponent("structured.png")
+        try bytes.write(to: source)
+        let intent = configured(document: IntentFile(fileURL: source))
+        XCTAssertEqual(intent.ocrMethod, .standard)
+        intent.ocrMethod = .structured
+        let result = try await intent.perform()
+        let output = try resultFolder(result.value)
+        let markdown = try String(contentsOf: output.appendingPathComponent("structured.md"), encoding: .utf8)
+        XCTAssertEqual(markdown.components(separatedBy: "Native structured import").count - 1, 1, markdown)
+        XCTAssertTrue(try XCTUnwrap(result.value).contains { $0.contains("Structured local OCR was used.") })
+        XCTAssertEqual(try Data(contentsOf: source), bytes)
+        XCTAssertEqual(try Data(contentsOf: output.appendingPathComponent("images/image01.png")), bytes)
     }
 
     private func resultFolder(_ values: [String]?) throws -> URL {

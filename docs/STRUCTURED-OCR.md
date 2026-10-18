@@ -1,9 +1,67 @@
-# Strukturierte lokale OCR: interner Prototyp
+# Strukturierte lokale OCR
 
-`VisionDocumentRecognizer` kapselt Apples `RecognizeDocumentsRequest` Revision 1
-ab macOS 26. Er ist intern im Core aufrufbar und liest ausschließlich übergebene
-lokale Pixel. PDF-/Bildkonvertierung, App, CLI und Kurzbefehle verwenden weiterhin
-den bestehenden `VNRecognizeTextRequest`-Weg. Die Produktintegration steht aus.
+Die OCR-Methode ist in CLI, App und Kurzbefehlen ausdrücklich wählbar. Standard
+bleibt der bisherige `VNRecognizeTextRequest`-Weg. `structured` verwendet ab
+macOS 26 Apples `RecognizeDocumentsRequest` Revision 1 für lokale Bildpixel und
+gerasterte PDF-Seiten; auf älteren Systemen folgt eine Diagnose und Standard-OCR.
+Die Methodenwahl schaltet OCR nicht ein: `--image-ocr off` beziehungsweise
+`--pdf-ocr off` gelten weiterhin. Die PDF-Automatik entscheidet wie bisher,
+welche Seiten eine lokale Erkennung benötigen.
+
+```sh
+poormans-text --ocr-method structured --report scan.png
+poormans-text --ocr-method structured --pdf-ocr always --ocr-language de,en scan.pdf
+```
+
+Die App speichert „OCR-Methode“ in ihren Konvertierungsoptionen. Die Aktion
+„Dokument in Markdown umwandeln“ bietet denselben Parameter. Der Bericht
+enthält die angeforderte Methode unter `options.ocrMethod`; Diagnosen nennen den
+tatsächlich verwendeten Weg. Alte Berichte ohne dieses Feld bleiben lesbar.
+Nach einem Update kann Kurzbefehle zunächst alte Parameter anzeigen. Die
+installierte App einmal starten und Kurzbefehle neu öffnen; eine neu eingefügte
+Aktion verwendet als Vorgabe weiterhin Standard-OCR.
+
+## Ausgabe und Zusammenführung
+
+`StructuredOCRRendering` vergleicht die Wortbestände von Volltext, Absätzen und
+ersetzenden Listen-/Tabellenbereichen einschließlich ihrer Häufigkeiten. Fehlt
+Text, überlappen alternative Strukturen/Dokumentregionen oder sind Positionen ungültig, wird die
+gesamte Bild-/Seitenerkennung auf Standard-OCR zurückgeführt. Volltext und
+Struktursichten werden niemals aneinandergehängt. Absatzreihenfolge stammt von
+Vision, Quelltext wird als Markdown maskiert. Aufzählungen und einfache
+Dezimalnummern werden Listen; andere Originalmarker bleiben wörtlicher Text.
+
+Markdown-Tabellen haben einen neutralen leeren Kopf: Vision belegt keine
+Kopfzeilenbedeutung. Alle Datenzeilen bleiben erhalten. Verbundene Zellen stehen
+einmal links oben, die überdeckten Positionen bleiben leer; diese Abflachung
+wird diagnostiziert. Gleiche Werte an verschiedenen Positionen bleiben getrennt.
+Es gelten höchstens 4.096 Rasterpositionen und 256 Spalten je ausgegebener Tabelle.
+Verschachtelte Tabellen/Listen werden nicht rekursiv modelliert.
+
+Bei PDF-Seiten vergleicht `PDFStructuredOCRMerge` normalisierte OCR-Rechtecke mit
+den digitalen Textpositionen. Textgleiche überlappende Blöcke erscheinen einmal;
+zusätzlicher digitaler Text bleibt erhalten. Bei widersprechendem Text fällt die
+Seite auf den vorhandenen Zeilenleser zurück: räumliche Dubletten werden entfernt,
+überlappender widersprechender OCR-Text wird diagnostiziert weggelassen und der
+digitale Originaltext bleibt maßgeblich. Fehlt sichere digitale Einzelgeometrie,
+wird zusätzlicher OCR-Text nur bei vollständig übereinstimmendem Wortbestand
+verworfen. Andernfalls bricht die Konvertierung verständlich ab, bevor ein
+Ergebnis mit unbekanntem Textverlust veröffentlicht würde. Dasselbe gilt für
+mehrdeutige Teilüberlappungen und überschrittene räumliche Vergleichsbudgets. Jede
+Vergleichsphase ist auf eine Million Positionspaare begrenzt und prüft Abbruch. Wortgrenzen bleiben im Textvergleich erhalten: „a part“
+und „apart“ sind ein Konflikt. Quellenvergleich und Bildassets bleiben bytegenau.
+
+Strukturierte OCR-Seiten behalten ihre erkannte Aufteilung. Die Optionen für
+wiederholte Ränder und Worttrennungen verändern sie nicht; eine Diagnose nennt
+diese Grenze. `--pdf-layout legacy` bleibt auf Seiten ohne OCR wirksam; OCR-Seiten
+verwenden die räumliche Zusammenführung zum Schutz des digitalen Originals.
+
+Diagnosen: `ocr.structuredApplied` (Information), `ocr.structuredFallback`,
+`ocr.tableSpansFlattened`, `pdf.ocrOriginalRetained` und
+`pdf.structuredLayoutRetained`. Ein Rückfall kürzt kein erkanntes erfolgreiches
+Ergebnis; Ressourcenüberschreitungen werden diagnostiziert oder brechen vor
+Veröffentlichung ab. Bei Ausfall auch der Standard-OCR bleiben das Originalbild
+beziehungsweise vorhandener digitaler PDF-Text und die Fehlerdiagnosen erhalten.
 
 ## Ergebnis und Grenzen
 
@@ -14,9 +72,6 @@ Zeilen-/Spaltenspannen sind nullbasiert und inklusiv; verbundene Zellen werden
 anhand ihrer API-Adresse einmal übernommen. Leere Zellen bleiben erhalten.
 Gleiche Texte an verschiedenen Stellen werden nicht zusammengeführt.
 
-Volltext, Absätze, Listen und Tabellen sind alternative Sichten auf denselben
-Inhalt. Sie dürfen nicht aneinandergehängt werden. Der Prototyp erzeugt noch
-kein Markdown und vereinigt keine erkannten Texte mit digitalem PDF-Text.
 Verschachtelte Strukturen bleiben als Text im jeweiligen Listenelement oder in
 der Tabellenzelle erhalten; ihre innere Struktur wird noch nicht rekursiv
 modelliert. Lesereihenfolge und Absatzgrenzen stammen von Vision und sind keine
@@ -33,15 +88,20 @@ die Eingabe an Vision; es ist keine harte Speichergrenze für Apples Framework.
 Der alte und der neue Weg teilen den prozessweiten OCR-Slot. Wartende asynchrone
 Anfragen prüfen Task- und Konvertierungsabbruch alle 50 ms. Auch nach Vision und
 während der Modellübernahme wird Abbruch geprüft. Ein aktiver Framework-Aufruf
-hat im Prototyp keine garantierte harte Abbruchfrist; der Slot bleibt bis zu
+hat keine garantierte harte Abbruchfrist; der Slot bleibt bis zu
 seinem tatsächlichen Ende belegt.
 
 Die verfügbaren Sprachen werden am konkreten Request abgefragt. Bis zu acht
 explizite Sprachvarianten sind erlaubt; kurze Kürzel werden gegen diese Liste
 aufgelöst. Ohne Auswahl arbeitet Vision mit automatischer Spracherkennung.
 Unbekannte Sprachen, ältere Systeme, API-Fehler und ungültige Zellspannen liefern
-unterscheidbare interne Fehler. Ein aufrufender Produktadapter muss daraus eine
-verständliche Diagnose und den bisherigen OCR-Rückfallweg machen.
+unterscheidbare interne Fehler. `DocumentOCR` erzeugt daraus eine verständliche
+Diagnose und führt genau einen Standard-OCR-Rückfall aus. Die synchrone
+Konvertierung überbrückt die asynchrone API mit einem einzelnen eigenen
+Thread-Executor; TaskLocal-Kontext und Abbruchtoken bleiben gebunden. Der Thread
+wartet ohne Wachhaltung, solange keine Arbeit ansteht. Die Konvertierung wartet
+auch bei Abbruch auf das tatsächliche Framework-Ende, bevor temporäre Daten und
+OCR-Slot freigegeben werden.
 
 ## Vergleich und Einsatzentscheidung
 
@@ -72,19 +132,43 @@ Die API meldete 30 Sprachvarianten; realer Text wurde nur auf Deutsch, Englisch
 und mit automatischer Auswahl geprüft.
 
 Der belegt nützliche Teilumfang sind diese einfachen Tabellen, Listen, Absätze
-und die geprüfte Mehrspaltigkeit. Die nächste Integration soll ihn ausdrücklich
-wählbar anbieten. Ein Standardwechsel ist durch diese kleine Matrix nicht
+und die geprüfte Mehrspaltigkeit. Die Produktintegration bietet ihn ausdrücklich
+wählbar an. Ein Standardwechsel ist durch diese kleine Matrix nicht
 begründet. Für ältere Systeme, API-/Sprach-/Budgetfehler und unbrauchbare Struktur
 bleibt der bisherige OCR-Weg erforderlich. Originalbilder sowie digitaler
-PDF-Text bleiben maßgeblich; Zusammenführung, Diagnosen, Fortschritt und
-Markdown-Sicherheit sind Aufgaben der Produktintegration.
+PDF-Text bleiben maßgeblich. Natürliches Fotomaterial, weitere Sprachen und
+komplexe verschachtelte Vorlagen brauchen einen breiteren Qualitätsvergleich.
+
+Die vollständige Produktintegration wurde anschließend mit denselben zehn
+Dokumentdateien je Methode geprüft: 20 Importe mit jeweils elf Seiten/Frames.
+Beide Methoden erhielten alle 63 erwarteten Textteile genau einmal und die
+unveränderten Bildassets. Strukturierte OCR erhielt 35/35 Tabellenzellen; die
+Sollreihenfolge über den vollständigen Import stimmte bei 10/10 Dokumenten,
+bei Standard-OCR bei 8/10. Diese Zählung unterscheidet sich vom elfteiligen
+reinen Erkennungsvergleich oben. Komplette Importe benötigten in einem Lauf
+1,075 bzw. 1,651 Sekunden. Der gemeinsame Prozess-Spitzenwert der Gesamtsuite
+von 1,65 GiB erlaubt keinen Speichervergleich zwischen den Methoden.
+
+Reale PDF-Fixtures prüfen zusätzlich widersprechenden digitalen Text und
+mehrdeutige Teilüberlappungen: Das digitale Original bleibt erhalten, räumlich
+getrennter Scantext wird übernommen; unsicherer Zusatztext führt zum atomaren
+Fehler ohne fertiges Ergebnis oder temporäre Reste. Vier parallele Konvertierungen,
+24 synchron wartende Swift-Aufgaben, Abbruch und Rückfallfehler sind geprüft.
+Die Methodenwahl und gerenderte Ausgabe wurden in der App auf Deutsch und
+Englisch sowie die lokale Dateikonvertierung in der nativen Kurzbefehle-App
+mit der notarisierten Universal-App geprüft. Reale Laufzeittests auf älterem
+macOS und Intel-Hardware stehen weiter aus.
 
 ## Reproduktion
 
 Vom Repo-Root mit Xcode und macOS 26 oder neuer:
 
 ```sh
-swift test --filter VisionDocumentRecognizerTests
+swift test --filter 'VisionDocumentRecognizerTests|StructuredOCRTests'
+
+import_dir=$(mktemp -d /tmp/poormans-structured-import.XXXXXX)
+PMT_STRUCTURED_IMPORT_DIR="$import_dir" \
+  swift test --skip-build --filter VisionDocumentRecognizerTests/testStructuredProductImportMatrixPreservesContentsCellsAndBytes
 
 comparison_dir=$(mktemp -d /tmp/poormans-vision.XXXXXX)
 PMT_VISION_COMPARISON_DIR="$comparison_dir" PMT_VISION_ENGINE=legacy \

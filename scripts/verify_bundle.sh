@@ -54,7 +54,9 @@ try:
         and action["outputType"]["array"]["wrapper"]["memberValueType"]
             == {"primitive": {"wrapper": {"typeIdentifier": 0}}}
         and {"document", "destinationFolder"}.union(selection_parameters).issubset(parameters)
-        and selection_parameters.issubset(summary_parameters)
+        and selection_parameters.union({"ocrMethod"}).issubset(summary_parameters)
+        and "ocrMethod" in parameters
+        and default_value("ocrMethod") == {"string": {"wrapper": "standard"}}
         and default_value("sheetNames") == {"array": {"elements": []}}
         and default_value("sheetSelection") == {"string": {"wrapper": "documentDefault"}}
         and default_value("presentationNotes") == {"string": {"wrapper": "documentDefault"}}

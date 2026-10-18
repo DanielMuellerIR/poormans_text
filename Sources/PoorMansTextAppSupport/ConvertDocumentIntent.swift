@@ -15,6 +15,12 @@ public enum ShortcutPDFRecognition: String, AppEnum {
     public static let caseDisplayRepresentations: [Self: DisplayRepresentation] = [.automatic: "Automatic", .always: "Always", .disabled: "Off"]
 }
 
+public enum ShortcutOCRMethod: String, AppEnum {
+    case standard, structured
+    public static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "OCR method")
+    public static let caseDisplayRepresentations: [Self: DisplayRepresentation] = [.standard: "Standard OCR", .structured: "Structured OCR (macOS 26+)"]
+}
+
 public enum ShortcutPDFLayout: String, AppEnum {
     case automatic, legacy
     public static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "PDF layout")
@@ -46,6 +52,7 @@ public struct ConvertDocumentIntent: AppIntent {
     @Parameter(title: "Spreadsheet Format", default: .table) public var spreadsheetFormat: ShortcutSpreadsheetFormat
     @Parameter(title: "Recognize Text in Images", default: true) public var imageOCR: Bool
     @Parameter(title: "PDF Text Recognition", default: .automatic) public var pdfOCR: ShortcutPDFRecognition
+    @Parameter(title: "OCR Method", default: .standard) public var ocrMethod: ShortcutOCRMethod
     @Parameter(title: "OCR Languages", default: "") public var ocrLanguages: String
     @Parameter(title: "PDF Layout", default: .automatic) public var pdfLayout: ShortcutPDFLayout
     @Parameter(title: "Remove Repeated PDF Headers and Footers", default: false) public var removeHeadersFooters: Bool
@@ -67,6 +74,7 @@ public struct ConvertDocumentIntent: AppIntent {
             \.$spreadsheetFormat
             \.$imageOCR
             \.$pdfOCR
+            \.$ocrMethod
             \.$ocrLanguages
             \.$pdfLayout
             \.$removeHeadersFooters
@@ -123,6 +131,7 @@ public struct ConvertDocumentIntent: AppIntent {
             outputLayout: textbundle ? .textbundle : .markdownFolder,
             pdfTextRecognition: pdfOCR == .automatic ? .automatic : pdfOCR == .always ? .always : .disabled,
             ocrLanguages: ocrLanguages.split(separator: ",").map { String($0).trimmingCharacters(in: .whitespaces) },
+            ocrMethod: ocrMethod == .structured ? .structured : .standard,
             pdfLayout: pdfLayout == .automatic ? .automatic : .legacy,
             pdfRemoveHeadersFooters: removeHeadersFooters,
             pdfDehyphenate: dehyphenate

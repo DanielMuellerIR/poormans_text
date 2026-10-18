@@ -62,6 +62,7 @@ Options:
       --image-ocr on|off  Add local OCR text for images (default) or preserve only the image asset.
       --pdf-ocr auto|always|off  Choose local PDF OCR (default: auto).
       --pdf-pages RANGES  Select source pages, e.g. 1,3-5 (PDF inputs only).
+      --ocr-method standard|structured  Local OCR method (structured: macOS 26+, with fallback).
       --ocr-language CODES Comma-separated local OCR languages, e.g. de,en.
       --pdf-layout auto|legacy  Reconstruct PDF structure or keep the previous extraction.
       --pdf-remove-headers-footers  Remove repeated text at page margins.
@@ -120,7 +121,7 @@ and exits 64.
 /// --json` verschieden deuten.
 let valueOptions: Set<String> = [
     "-o", "--output", "--pandoc", "--timeout", "--jobs", "--spreadsheet-format",
-    "--image-ocr", "--pdf-ocr", "--pdf-layout", "--ocr-language", "--pdf-pages", "--sheets", "--sheet-name", "--cell-range", "--slides", "--notes", "--epub-chapters",
+    "--image-ocr", "--ocr-method", "--pdf-ocr", "--pdf-layout", "--ocr-language", "--pdf-pages", "--sheets", "--sheet-name", "--cell-range", "--slides", "--notes", "--epub-chapters",
 ]
 
 /// Sagt VOR dem Parsen, ob `--json` als Option vorkommt, damit auch ein
@@ -235,6 +236,10 @@ private func apply(option: String, value: String, to parsed: inout ParsedArgumen
         parsed.setsPDFOptions = true
         guard let layout = PDFLayout(rawValue: value) else { throw CLIArgumentError.invalidConversionOption("--pdf-layout requires auto or legacy") }
         parsed.pdfOptions.pdfLayout = layout
+    case "--ocr-method":
+        guard let method = OCRMethod(rawValue: value) else { throw CLIArgumentError.invalidConversionOption("--ocr-method requires standard or structured") }
+        parsed.pdfOptions.ocrMethod = method
+        parsed.setsPDFOptions = true
     case "--ocr-language":
         parsed.setsPDFOptions = true
         do { parsed.pdfOptions.ocrLanguages = try OCRLanguageSelection.resolve(value.components(separatedBy: ",")) }

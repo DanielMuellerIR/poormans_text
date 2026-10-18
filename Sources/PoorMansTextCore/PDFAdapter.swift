@@ -238,8 +238,11 @@ struct PDFAdapter: DocumentConversionAdapter {
 
     private func extractText(from document: PDFDocument, options: ConversionOptions) throws -> PDFExtraction {
         let indices = try options.pdfPages?.zeroBasedIndices(itemCount: document.pageCount) ?? Array(0..<document.pageCount)
-        if options.pdfLayout == .legacy { return try extractLegacyText(from: document, options: options, indices: indices) }
+        if options.pdfLayout == .legacy && (options.ocrMethod == .standard || options.pdfTextRecognition == .disabled) {
+            return try extractLegacyText(from: document, options: options, indices: indices)
+        }
         var pages = [[PDFTextLine]]()
+        var structuredPages: [Int: String] = [:]
         var bounds = [CGRect]()
         var plans = [OCRPlan]()
         var diagnostics = BoundedConversionDiagnostics()
@@ -260,7 +263,14 @@ struct PDFAdapter: DocumentConversionAdapter {
             // Große Bildressourcen lösen deshalb ebenfalls lokale OCR aus.
             let needsOCR = options.pdfTextRecognition == .always || (options.pdfTextRecognition == .automatic &&
                 (text.count < PDFImportLimits.minimumEmbeddedTextCharacters || PDFImageResources.containsScanCandidate(on: page)))
-            if needsOCR { plans.append(OCRPlan(index: index, outputIndex: outputIndex, page: page, dimensions: try rasterDimensions(for: page))) }
+            if needsOCR {
+                plans.append(OCRPlan(index: index, outputIndex: outputIndex, page: page, dimensions: try rasterDimensions(for: page)))
+                if options.ocrMethod == .structured && options.pdfLayout == .legacy {
+                    diagnostics.append(ConversionWarning(code: "pdf.structuredLayoutRetained", message: "Structured OCR uses spatial merging to protect digital PDF text; legacy ordering does not modify OCR pages.", location: ConversionLocation(page: index + 1)))
+                }
+            } else if options.pdfLayout == .legacy {
+                structuredPages[outputIndex] = MarkdownEscaping.literalBlock(text)
+            }
         }
         guard plans.reduce(0, { $0 + $1.dimensions.pixelCount }) <= PDFImportLimits.maximumOCRPixels else {
             throw PDFAdapterError("the PDF pages selected for OCR exceed the pixel budget")
@@ -269,7 +279,6 @@ struct PDFAdapter: DocumentConversionAdapter {
         for plan in plans {
             try ConversionExecution.report(unit: .page, completed: plan.outputIndex, total: indices.count)
             do {
-                let recognized = try recognizeText(in: plan.page, dimensions: plan.dimensions, languages: options.ocrLanguages)
                 let box = bounds[plan.outputIndex]
                 let original = pages[plan.outputIndex].flatMap { source -> [PDFTextLine] in
                     guard source.bounds == box else { return [source] }
@@ -283,6 +292,41 @@ struct PDFAdapter: DocumentConversionAdapter {
                         return PDFTextLine(text: text, bounds: bounds)
                     }
                 }
+                let image = try rasterImage(in: plan.page, dimensions: plan.dimensions)
+                let result = try DocumentOCR.recognize(in: image, languages: options.ocrLanguages, method: options.ocrMethod)
+                let location = ConversionLocation(page: plan.index + 1)
+                if options.ocrMethod == .structured {
+                    // Fehlen sichere Einzelpositionen, schützt die ganze digitale
+                    // Seite den Originaltext vor einer widersprechenden Ersetzung.
+                    let digital = StructuredOCRRendering.inventory(original.map(\.text)) == StructuredOCRRendering.inventory(pages[plan.outputIndex].map(\.text))
+                        ? original : pages[plan.outputIndex]
+                    if let structured = result.structured,
+                       let merged = try PDFStructuredOCRMerge.merge(structured, original: digital, bounds: box) {
+                        try accountText(merged, totalBytes: &sourceBytes)
+                        structuredPages[plan.outputIndex] = merged
+                        for warning in result.diagnostics { diagnostics.append(warning.at(location)) }
+                        if options.pdfRemoveHeadersFooters || options.pdfDehyphenate {
+                            diagnostics.append(ConversionWarning(code: "pdf.structuredLayoutRetained", message: "Structured OCR keeps its recognized paragraphs, lists and tables; margin removal and dehyphenation do not modify these pages.", location: location))
+                        }
+                        continue
+                    }
+                    let standard: VisionTextRecognition
+                    if let fallback = result.standard {
+                        standard = fallback
+                        for warning in result.diagnostics { diagnostics.append(warning.at(location)) }
+                    } else {
+                        diagnostics.append(ConversionWarning(code: "ocr.structuredFallback", message: "Structured OCR could not be merged safely with digital PDF text. Standard local OCR was used instead.", location: location))
+                        standard = try VisionTextRecognizer.recognize(in: image, languages: options.ocrLanguages)
+                    }
+                    let supplement = try PDFStructuredOCRMerge.supplementaryLines(standard, original: digital, bounds: box)
+                    if supplement.conflict { diagnostics.append(PDFStructuredOCRMerge.conflictWarning.at(location)) }
+                    for line in supplement.lines {
+                        try accountText(line.text, totalBytes: &sourceBytes)
+                        pages[plan.outputIndex].append(line)
+                    }
+                    continue
+                }
+                guard let recognized = result.standard else { throw PDFAdapterError("the standard OCR result is missing") }
                 for line in recognized.lines {
                     try ConversionExecution.check()
                     let rectangle = CGRect(x: box.minX + line.bounds.minX * box.width, y: box.minY + line.bounds.minY * box.height,
@@ -298,17 +342,23 @@ struct PDFAdapter: DocumentConversionAdapter {
             } catch {
                 try ConversionExecution.check()
                 if error is PDFAdapterError { throw error }
+                if error is PDFStructuredOCRMerge.Failure { throw PDFAdapterError(error.localizedDescription) }
                 failed = true
+                if let failure = error as? DocumentOCR.FallbackFailure {
+                    diagnostics.append(failure.diagnostic.at(ConversionLocation(page: plan.index + 1)))
+                }
                 diagnostics.append(ConversionWarning.pdfOCRFailed.at(ConversionLocation(page: plan.index + 1)))
             }
         }
         if options.pdfRemoveHeadersFooters {
             try ConversionExecution.check()
             let filtered = PDFTextLayout.removingRepeatedMargins(pages, bounds: bounds)
-            for index in pages.indices where filtered[index].count != pages[index].count {
-                diagnostics.append(ConversionWarning(code: "pdf.repeatedMarginRemoved", message: "Repeated text at the page margin was removed by request.", location: ConversionLocation(page: indices[index] + 1)))
+            for index in pages.indices where structuredPages[index] == nil {
+                if filtered[index].count != pages[index].count {
+                    diagnostics.append(ConversionWarning(code: "pdf.repeatedMarginRemoved", message: "Repeated text at the page margin was removed by request.", location: ConversionLocation(page: indices[index] + 1)))
+                }
+                pages[index] = filtered[index]
             }
-            pages = filtered
         }
         // Die Aufbereitung aller Seiten lief bisher ohne jede Abbruchprüfung.
         // Bei einem tausendseitigen PDF wurde ein Abbruch erst danach wirksam
@@ -320,6 +370,7 @@ struct PDFAdapter: DocumentConversionAdapter {
         }).sorted(by: >)
         let textPages = try pages.indices.map { index -> String in
             try ConversionExecution.check()
+            if let structured = structuredPages[index] { return structured }
             guard let page = document.page(at: indices[index]) else { throw PDFAdapterError("the PDF page is unreadable") }
             let rendered = PDFStructuredLayout.render(pages[index], page: page, bodyFont: bodyFont,
                 headingSizes: headingSizes, hardHyphens: options.pdfDehyphenate)
@@ -464,6 +515,10 @@ struct PDFAdapter: DocumentConversionAdapter {
     }
 
     private func recognizeText(in page: PDFPage, dimensions: RasterDimensions, languages: [String]) throws -> VisionTextRecognition {
+        try VisionTextRecognizer.recognize(in: rasterImage(in: page, dimensions: dimensions), languages: languages)
+    }
+
+    private func rasterImage(in page: PDFPage, dimensions: RasterDimensions) throws -> CGImage {
         try ConversionExecution.check()
         let colorSpace = CGColorSpaceCreateDeviceRGB()
         guard let context = CGContext(
@@ -492,7 +547,7 @@ struct PDFAdapter: DocumentConversionAdapter {
         }
 
         try ConversionExecution.check()
-        return try VisionTextRecognizer.recognize(in: image, languages: languages)
+        return image
     }
 
     private func renderedMarkdown(from pages: [String], pageNumbers: [Int], sourceURL: URL, isStructured: Bool) throws -> String {

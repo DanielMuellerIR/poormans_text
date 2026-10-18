@@ -325,7 +325,7 @@ können in das Fenster oder auf die App gezogen oder über den Dateidialog
 ausgewählt werden. Ein Ordner wird nach denselben Regeln wie auf der
 Kommandozeile durchsucht. „Konvertierungsoptionen“ merkt sich Zielordner
 (standardmäßig neben der Quelle), Tabellenformat, Bild-OCR, Frontmatter und
-Textbundle sowie PDF-OCR/-Layout, OCR-Sprachen und Batch-Parallelität.
+Textbundle sowie PDF-OCR/-Layout, OCR-Methode und -Sprachen und Batch-Parallelität.
 Unter einem gewählten Zielordner bleiben Unterordner erhalten.
 Einzelne Batch-Ergebnisse lassen sich auswählen, in der Standard-App öffnen,
 kopieren, im Finder zeigen, als formatierte oder Quelltextvorschau mit höchstens
@@ -507,9 +507,9 @@ pro Frame. Für Bilder gelten dieselben OCR-Grenzen wie beim PDF-Fallback:
 höchstens 16 Millionen Pixel pro Frame und 64 Millionen insgesamt. Der Konverter
 markiert unsichere OCR-Stellen im Markdown, damit sie am Original geprüft werden.
 
-Ein interner Prototyp ab macOS 26 erkennt zusätzlich Absätze, Listen und
-Tabellenzellen. Vergleich und Grenzen stehen unter [Strukturierte OCR](docs/STRUCTURED-OCR.md);
-Bild- und PDF-Konvertierung verwenden weiterhin den bisherigen OCR-Weg.
+Strukturierte lokale OCR erkennt zusätzlich Absätze, Listen und
+Tabellenzellen. Vergleich und Grenzen stehen unter [Strukturierte OCR](docs/STRUCTURED-OCR.md).
+Mit `--ocr-method structured` (oder „OCR-Methode“ in App und Kurzbefehlen) ist sie ab macOS 26 ausdrücklich wählbar. Standard bleibt `standard`; fehlende oder unsichere Struktur fällt mit einer Diagnose auf Standard-OCR zurück.
 
 Die formatneutrale Engine prüft den Quellinhalt, statt nur der Dateiendung zu
 glauben, und wählt danach den passenden Weg. Bei Textdokumenten werden
@@ -589,7 +589,7 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.27.1.
+Die aktuelle Version ist 0.28.0.
 
 ## Lizenz
 

@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.28.0 — 2026-10-18
+
+- Add opt-in structured local OCR for image imports and rasterized PDF pages on macOS 26. CLI `--ocr-method standard|structured`, the app and Shortcuts share the choice; standard OCR remains the default.
+- Render verified paragraphs, lists and tables safely as Markdown, retaining blank and merged cells without duplicated text. Diagnose unavailable recognition, resource limits and inconsistent structure before falling back to standard OCR.
+- Merge OCR with digital PDF text spatially. Preserve conflicting original text with a diagnostic; retain the shared OCR gate, cancellation, source bytes and existing import budgets.
+- Abort before publishing when digital PDF geometry, partial overlaps or spatial comparison limits prevent a safe merge. Structured pages retain their layout instead of applying header removal or dehyphenation.
+
 ## 0.27.1 — 2026-10-17
 
 - Keep numeric EPUB text immediately after fragment anchors and retain internal links when selecting chapters.

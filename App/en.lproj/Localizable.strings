@@ -311,3 +311,11 @@
 "Choose sheet indices, exact names, or a visibility mode, not several at once." = "Choose sheet indices, exact names, or a visibility mode, not several at once.";
 
 "Cancel" = "Cancel";
+
+/* Local OCR method */
+"OCR method" = "OCR method";
+"OCR Method" = "OCR Method";
+"Standard OCR" = "Standard OCR";
+"Structured OCR (macOS 26+)" = "Structured OCR (macOS 26+)";
+"Structured OCR preserves paragraphs, lists and tables. If unavailable or uncertain, standard OCR is used with a diagnostic." = "Structured OCR preserves paragraphs, lists and tables. If unavailable or uncertain, standard OCR is used with a diagnostic.";
+"Structured OCR cannot safely merge digital PDF text with additional OCR text within its geometry limits. No result was published. Choose standard OCR or turn PDF OCR off." = "Structured OCR cannot safely merge digital PDF text with additional OCR text within its geometry limits. No result was published. Choose standard OCR or turn PDF OCR off.";

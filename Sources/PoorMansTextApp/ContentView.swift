@@ -454,6 +454,12 @@ struct ContentView: View {
                     Text("Always").tag(PDFTextRecognition.always)
                     Text("Off").tag(PDFTextRecognition.disabled)
                 }
+                Picker("OCR method", selection: $model.ocrMethod) {
+                    Text("Standard OCR").tag(OCRMethod.standard)
+                    Text("Structured OCR (macOS 26+)").tag(OCRMethod.structured)
+                }
+                .accessibilityIdentifier("ocrMethod")
+                .help("Structured OCR preserves paragraphs, lists and tables. If unavailable or uncertain, standard OCR is used with a diagnostic.")
                 TextField("OCR languages (empty: automatic; e.g. de,en)", text: $model.ocrLanguageCodes)
                 Picker("PDF text order", selection: $model.pdfLayout) {
                     Text("Automatic layout").tag(PDFLayout.automatic)

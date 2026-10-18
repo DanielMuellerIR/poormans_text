@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.38.4 — 2026-10-18
+
+- Import copied RTFD, RTF or HTML through an explicit Paste Rich Text command and ⌘V outside editable fields. Explain empty, plain-text, unsupported, oversized and multiple-item clipboard contents without replacing an existing draft.
+- Preview a temporary result, save a new permanent Markdown/assets folder or Textbundle from the captured source, or copy Markdown only with omitted-asset warnings. Keep source data and the source application unchanged, clean discarded drafts and preserve existing destinations.
+- Share conversion and format priority with the existing rich-text system service, adding HTML with embedded raster images and existing local-resource diagnostics. Never load remote resources or poll clipboard contents.
+
 ## 0.37.1 — 2026-10-18
 
 - Add a dedicated Shortcuts profile action with explicit Profile Value, On and Off choices. Fresh native Shortcuts actions no longer replace inherited Boolean profile settings with unrequested false values.

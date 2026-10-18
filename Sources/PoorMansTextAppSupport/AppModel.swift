@@ -81,7 +81,8 @@ public final class AppModel: ObservableObject {
         activeCancellation?.cancel()
     }
 
-    private func beginConversion() -> ConversionCancellationToken {
+    private func beginConversion(keepingClipboardDraft: Bool = false) -> ConversionCancellationToken {
+        if !keepingClipboardDraft { clipboardDraft = nil; clipboardProfile = nil; isClipboardResult = false }
         let token = ConversionCancellationToken()
         activeCancellation = token
         cancellationRequested = false
@@ -149,6 +150,9 @@ public final class AppModel: ObservableObject {
         didSet { if selectedInput != oldValue { closePreview() } }
     }
     @Published public private(set) var actionMessage: String?
+    @Published public private(set) var clipboardDraft: RichTextClipboard.Draft?
+    @Published public private(set) var isClipboardResult = false
+    private var clipboardProfile: AppProfileInvocation?
     /// Warum die zuletzt über Dock, Doppelklick oder `open -a` übergebenen
     /// Dateien nicht angenommen wurden. Drop meldet `false` (Cursor), der
     /// Dienst meldet Text an das rufende Programm — dieser Weg hatte bisher
@@ -434,6 +438,17 @@ public final class AppModel: ObservableObject {
     public func copyMarkdown(to pasteboard: NSPasteboard = .general) {
         guard let result = selectedResult else { return }
         do {
+            if clipboardDraft != nil {
+                let outcome = try RichTextClipboard.clipboardOutcome(from: result)
+                pasteboard.clearContents()
+                guard pasteboard.setString(outcome.markdown, forType: .string) else {
+                    throw AppClipboardWriteError()
+                }
+                closePreview()
+                clipboardDraft = nil
+                state = .copiedToClipboard(outcome)
+                return
+            }
             let text = try String(contentsOf: result.markdownFile, encoding: .utf8)
             pasteboard.clearContents()
             guard pasteboard.setString(text, forType: .string) else {
@@ -782,6 +797,7 @@ public final class AppModel: ObservableObject {
             return
         }
         retrySelection = nil
+        closePreview()
         state = .converting(URL(fileURLWithPath: source.fileName))
         let options = conversionOptions
 
@@ -814,11 +830,94 @@ public final class AppModel: ObservableObject {
         }
     }
 
+    /// Ausschließlich Menü, Tastatur oder Einfügeknopf rufen diesen Einstieg
+    /// auf. Start, Aktivierung und Menüvalidierung lesen keine Inhalte.
+    public func pasteRichText(from pasteboard: NSPasteboard = .general) {
+        guard acceptsNewDocuments else { return }
+        do {
+            let source = try RichTextClipboard.Source.read(from: pasteboard)
+            let options = conversionOptions
+            let profile = profileInvocation()
+            closePreview(); actionMessage = nil; retrySelection = nil
+            let cancellation = beginConversion()
+            state = .converting(URL(fileURLWithPath: source.fileName))
+            let progress = progressHandler(cancellation)
+            conversionTask = Task {
+                defer { finishConversion(cancellation) }
+                do {
+                    let draft = try await Task.detached(priority: .userInitiated) {
+                        try profile.validateClipboard()
+                        let result = try RichTextClipboard.convertDocument(source, options: options, progress: progress, cancellation: cancellation)
+                        return RichTextClipboard.Draft(source: source, options: options, result: result)
+                    }.value
+                    try cancellation.checkCancellation()
+                    clipboardDraft = draft
+                    clipboardProfile = profile
+                    isClipboardResult = true
+                    state = .succeeded(draft.result)
+                } catch {
+                    state = .failed(input: nil, message: AppErrorMessage.describe(error))
+                }
+            }
+        } catch {
+            // Eine ungeeignete Zwischenablage verwirft keine fertige Vorschau.
+            actionMessage = AppErrorMessage.describe(error)
+        }
+    }
+
+    public func chooseClipboardDestination() {
+        guard acceptsNewDocuments, let draft = clipboardDraft else { return }
+        let panel = NSSavePanel()
+        panel.title = NSLocalizedString("Save Markdown and Assets", comment: "")
+        panel.prompt = NSLocalizedString("Save Result", comment: "")
+        panel.nameFieldStringValue = DocumentConverter.outputDirectoryName(for: URL(fileURLWithPath: draft.source.fileName), layout: draft.options.outputLayout)
+        panel.directoryURL = destinationFolder
+        panel.canCreateDirectories = true
+        if panel.runModal() == .OK, let url = panel.url {
+            saveClipboardResult(to: draft.options.outputLayout == .textbundle && url.pathExtension.lowercased() != "textbundle" ? url.appendingPathExtension("textbundle") : url)
+        }
+    }
+
+    public func saveClipboardResult(to destination: URL) {
+        guard acceptsNewDocuments, let draft = clipboardDraft else { return }
+        closePreview(); actionMessage = nil
+        let profile = clipboardProfile ?? profileInvocation()
+        let cancellation = beginConversion(keepingClipboardDraft: true)
+        let progress = progressHandler(cancellation)
+        state = .converting(URL(fileURLWithPath: draft.source.fileName))
+        conversionTask = Task {
+            defer { finishConversion(cancellation) }
+            do {
+                let result = try await Task.detached(priority: .userInitiated) {
+                    try profile.validateClipboard()
+                    // Derselbe gelesene Snapshot und dieselben Optionen wie in
+                    // der Vorschau, mit atomarer Veröffentlichung im Kern.
+                    return try RichTextClipboard.convertDocument(draft.source, destination: .directory(destination), options: draft.options, progress: progress, cancellation: cancellation)
+                }.value
+                clipboardDraft = nil
+                state = .succeeded(result)
+            } catch {
+                state = .succeeded(draft.result)
+                actionMessage = AppErrorMessage.describe(error)
+            }
+        }
+    }
+
+    public func prepareToTerminate() {
+        activeCancellation?.cancel()
+        closePreview()
+        clipboardDraft?.discard()
+        clipboardDraft = nil
+    }
+
     public func reset() {
         guard !isConverting else {
             return
         }
         closePreview()
+        clipboardDraft = nil
+        clipboardProfile = nil
+        isClipboardResult = false
         actionMessage = nil
         openRejectionMessage = nil
         selectedInput = nil
@@ -828,4 +927,8 @@ public final class AppModel: ObservableObject {
         failedEnumerationInputs = []
         state = .idle
     }
+}
+
+private struct AppClipboardWriteError: LocalizedError {
+    var errorDescription: String? { NSLocalizedString("The Markdown could not be placed on the clipboard.", comment: "") }
 }

@@ -23,6 +23,11 @@ struct PoorMansTextDesktopApp: App {
                     openedDocuments.handler = { urls in
                         model.openDocuments(urls)
                     }
+                    openedDocuments.terminationHandler = { model.prepareToTerminate() }
+                    openedDocuments.configurePaste(
+                        handler: { model.pasteRichText() },
+                        canPaste: { model.acceptsNewDocuments }
+                    )
                     if services == nil {
                         let provider = ServicesProvider(model: model)
                         services = provider
@@ -50,6 +55,10 @@ struct PoorMansTextDesktopApp: App {
                 // Pandoc-Installation war ⌘O aktiv, aber wirkungslos
                 // (Roadmap-Punkt, 2026-09-10).
                 .disabled(!model.acceptsNewDocuments)
+            }
+            CommandGroup(after: .pasteboard) {
+                Button("Paste Rich Text") { model.pasteRichText() }
+                    .disabled(!model.acceptsNewDocuments)
             }
         }
     }

@@ -264,6 +264,7 @@ struct ContentView: View {
                     }
                     .accessibilityLabel("Select Content…").accessibilityIdentifier("selectionChoose")
                 }.controlSize(.large)
+                pasteControls
             }
 
         case .converting(let inputURL):
@@ -280,9 +281,9 @@ struct ContentView: View {
                 .font(.system(size: 48))
                 .foregroundStyle(.green)
                 .accessibilityHidden(true)
-            Text("Markdown created")
+            Text(LocalizedStringKey(model.clipboardDraft == nil ? "Markdown created" : "Rich text ready to preview"))
                 .font(.title3.bold())
-            Text(result.outputDirectory.lastPathComponent)
+            Text(model.clipboardDraft == nil ? result.outputDirectory.lastPathComponent : NSLocalizedString("Temporary result — choose how to keep it", comment: ""))
                 .font(.body.monospaced())
                 .lineLimit(2)
                 .textSelection(.enabled)
@@ -304,17 +305,26 @@ struct ContentView: View {
                 }
                 .frame(maxHeight: 110)
             }
-            resultActions
-            HStack {
-                Button("Show in Finder") {
-                    model.revealResult()
-                }
-                .keyboardShortcut(.defaultAction)
-                Button("Convert Another") {
-                    model.reset()
-                }
+            if model.clipboardDraft != nil {
+                Button("Preview") { showsComparison = false; showsPreview = true; model.loadPreview() }
+                    .accessibilityIdentifier("clipboardPreview")
+                HStack(spacing: 12) {
+                    Button("Save Markdown and Assets…") { model.chooseClipboardDestination() }
+                        .keyboardShortcut(.defaultAction)
+                    Button("Copy Markdown Only") { model.copyMarkdown() }
+                }.controlSize(.large)
+                Text("Copying keeps text only. Image links need a saved result with its assets.")
+                    .font(.callout).foregroundStyle(.secondary)
+                Button("Discard") { model.reset() }.keyboardShortcut(.cancelAction)
+                if let message = model.actionMessage { Text(message).font(.callout).textSelection(.enabled) }
+            } else {
+                resultActions
+                HStack {
+                    Button("Show in Finder") { model.revealResult() }
+                        .keyboardShortcut(.defaultAction)
+                    Button("Convert Another") { model.reset() }
+                }.controlSize(.large)
             }
-            .controlSize(.large)
 
         case .convertingBatch(let progress):
             ProgressView(
@@ -395,6 +405,7 @@ struct ContentView: View {
             }
             .controlSize(.large)
             .keyboardShortcut(.defaultAction)
+            pasteControls
 
         case .failed(let input, let message):
             Image(systemName: "xmark.octagon.fill")
@@ -427,6 +438,20 @@ struct ContentView: View {
                 }
             }
             .controlSize(.large)
+            pasteControls
+        }
+    }
+
+    private var pasteControls: some View {
+        VStack(spacing: 6) {
+            Button("Paste Rich Text") { model.pasteRichText() }
+                .disabled(!model.acceptsNewDocuments)
+                .accessibilityIdentifier("clipboardPaste")
+            Text("⌘V · RTFD, RTF, HTML")
+                .font(.caption).foregroundStyle(.secondary)
+            if let message = model.actionMessage, model.clipboardDraft == nil {
+                Text(message).font(.callout).textSelection(.enabled)
+            }
         }
     }
 
@@ -515,7 +540,9 @@ struct ContentView: View {
     @ViewBuilder private var inspectResultButtons: some View {
         Button("Copy Markdown") { model.copyMarkdown() }
         Button("Preview") { showsComparison = false; showsPreview = true; model.loadPreview() }
-        Button("Compare") { showsComparison = true; showsPreview = true; model.loadPreview() }
+        if !model.isClipboardResult {
+            Button("Compare") { showsComparison = true; showsPreview = true; model.loadPreview() }
+        }
     }
 
     private var footer: some View {

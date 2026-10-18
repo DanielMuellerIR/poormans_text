@@ -234,6 +234,17 @@ Zwischenablage; sie verändern keine Benutzerpräferenzen.
 `./build.sh debug` kopiert `App/en.lproj` und `App/de.lproj` in das lokale Bundle.
 Diese Prüfungen belegen Modell und Bundle, keine visuelle Bedienprüfung.
 
+`ClipboardImportTests` verwendet eigene benannte Zwischenablagen und echte
+temporäre RTF-/RTFD-/HTML-Fixtures. Die Prüfungen belegen Formatvorrang,
+ausdrückliches Lesen verzögert angebotener Daten, Listen/Links, unveränderte
+Quell- und Assetbytes, Vorschau, getrennte temporäre und dauerhafte Ergebnisse,
+Zielschutz, Abbruch, fehlendes Pandoc und Aufräumen beim normalen Beenden.
+`ServicesProviderTests` erhält die vorhandenen Dienste und prüft denselben Weg.
+Die native Abnahme ergänzt echtes ⌘V, bearbeitbare Textfelder, leere/reine
+Textzwischenablagen, Vorschau, Abbruch, Sichern und die dauerhaft auflösbaren
+Assetverweise am notarisiert installierten Bundle. Verhalten und Grenzen stehen
+in [CLIPBOARD-IMPORT.md](CLIPBOARD-IMPORT.md).
+
 ## Abbruch und Zeitlimits headless prüfen
 
 `ConversionCancellationTests`, `CLICancellationTests` und die PDF-Adaptertests

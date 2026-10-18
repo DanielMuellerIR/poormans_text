@@ -127,7 +127,7 @@
 "Poor Man's Text is busy with another conversion." = "Poor Man’s Text ist mit einer anderen Umwandlung beschäftigt.";
 "1 image was left out; the clipboard holds text only, so its image link points nowhere." = "1 Bild wurde ausgelassen; die Zwischenablage enthält nur Text, der Bildverweis führt ins Leere.";
 "%d images were left out; the clipboard holds text only, so their image links point nowhere." = "%d Bilder wurden ausgelassen; die Zwischenablage enthält nur Text, die Bildverweise führen ins Leere.";
-"The selection contains no rich text. Select formatted text in an app that provides RTF." = "Die Auswahl enthält keinen Rich Text. Formatierten Text in einer App auswählen, die RTF liefert.";
+"No supported rich text is available. Copy a selection as RTFD, RTF, or HTML." = "Kein unterstützter Rich Text verfügbar. Kopiere eine Auswahl als RTFD, RTF oder HTML.";
 "The selected rich text could not be read." = "Der ausgewählte Rich Text konnte nicht gelesen werden.";
 "Homebrew could not install Pandoc: %@" = "Homebrew konnte Pandoc nicht installieren: %@";
 "Homebrew finished, but Pandoc still cannot be found." = "Homebrew ist fertig, aber Pandoc ist weiterhin nicht zu finden.";
@@ -396,3 +396,18 @@
 "On" = "Ein";
 "Convert one document using a saved conversion profile. Profile Value keeps each saved setting; On and Off explicitly override it. The destination folder is required. Existing results are never overwritten. The result is a list: the output folder URL followed by conversion warnings." = "Wandelt ein Dokument mit einem gespeicherten Konvertierungsprofil um. Profilwert übernimmt die gespeicherte Einstellung; Ein und Aus überschreiben sie ausdrücklich. Der Zielordner ist erforderlich. Vorhandene Ergebnisse werden nie überschrieben. Die Ergebnisliste enthält zuerst die lokale Ausgabeordner-URL und danach mögliche Warnungen.";
 "Convert ${document} into ${destinationFolder} using ${profile}" = "${document} mit ${profile} nach ${destinationFolder} umwandeln";
+
+/* Rich-Text-Einfügen */
+"Paste Rich Text" = "Rich Text einfügen";
+"Rich text ready to preview" = "Rich Text ist bereit für die Vorschau";
+"Temporary result — choose how to keep it" = "Temporäres Ergebnis — Ausgabe wählen";
+"Save Markdown and Assets…" = "Markdown und Assets sichern…";
+"Copy Markdown Only" = "Nur Markdown kopieren";
+"Copying keeps text only. Image links need a saved result with its assets." = "Kopieren übernimmt nur Text. Bildverweise benötigen ein gesichertes Ergebnis mit seinen Assets.";
+"Discard" = "Verwerfen";
+"Save Markdown and Assets" = "Markdown und Assets sichern";
+"Save Result" = "Ergebnis sichern";
+"The clipboard is empty. Copy formatted text, then choose Paste Rich Text." = "Die Zwischenablage ist leer. Kopiere formatierten Text und wähle dann „Rich Text einfügen“.";
+"The clipboard contains plain text only. Copy formatted text as RTFD, RTF, or HTML." = "Die Zwischenablage enthält nur reinen Text. Kopiere formatierten Text als RTFD, RTF oder HTML.";
+"The clipboard contains several items. Copy one formatted selection at a time." = "Die Zwischenablage enthält mehrere Objekte. Kopiere jeweils eine formatierte Auswahl.";
+"The clipboard content exceeds the 64 MiB limit. Copy a smaller selection." = "Der Zwischenablageinhalt überschreitet die Grenze von 64 MiB. Kopiere eine kleinere Auswahl.";

@@ -19,12 +19,14 @@ public struct ClipboardOutcome: Sendable, Equatable {
 /// eigentliche Umwandlung arbeitet danach mit reinen Daten und darf deshalb
 /// auf einem Hintergrund-Task laufen.
 public enum RichTextClipboard {
-    /// Die gelesenen Rohdaten. RTFD hat Vorrang, weil nur diese Form Bilder
-    /// und Farben trägt; sonst genügt RTF.
+    /// Ein explizit gelesener Snapshot. RTFD erhält Paketressourcen und hat
+    /// deshalb Vorrang vor RTF, danach folgt HTML. Fehler fallen nicht still
+    /// auf eine möglicherweise unvollständige Darstellung zurück.
     public struct Source: Sendable, Equatable {
         public enum Kind: Sendable, Equatable {
             case flatRTFD
             case rtf
+            case html
         }
 
         public let kind: Kind
@@ -35,26 +37,55 @@ public enum RichTextClipboard {
             self.data = data
         }
 
-        /// Liest RTFD oder RTF vom Pasteboard; `nil`, wenn beides fehlt.
+        /// Kompatibler Einstieg des Systemdienstes.
         @MainActor
         public init?(pasteboard: NSPasteboard) {
-            if let data = pasteboard.data(forType: .rtfd), !data.isEmpty {
-                self.init(kind: .flatRTFD, data: data)
-            } else if let data = pasteboard.data(forType: .rtf), !data.isEmpty {
-                self.init(kind: .rtf, data: data)
-            } else {
-                return nil
-            }
+            guard let source = try? Self.read(from: pasteboard) else { return nil }
+            self = source
         }
 
-        /// Name der temporären Quelldatei; er bestimmt die Formaterkennung nur
-        /// über den Inhalt, macht aber die Fortschrittsanzeige lesbar.
+        @MainActor
+        public static func read(from pasteboard: NSPasteboard) throws -> Source {
+            let types = pasteboard.types ?? []
+            guard !types.isEmpty else { throw ClipboardError.emptyClipboard }
+            guard (pasteboard.pasteboardItems?.count ?? 0) <= 1 else { throw ClipboardError.multipleItems }
+            for (type, kind) in [(NSPasteboard.PasteboardType.rtfd, Kind.flatRTFD), (.rtf, .rtf), (.html, .html)] {
+                if types.contains(type) {
+                    guard let data = pasteboard.data(forType: type), !data.isEmpty else { throw ClipboardError.unreadableRichText }
+                    guard data.count <= maximumSourceBytes else { throw ClipboardError.tooLarge }
+                    return Source(kind: kind, data: data)
+                }
+            }
+            if types.contains(.string) { throw ClipboardError.plainTextOnly }
+            throw ClipboardError.noRichText
+        }
+
+        /// Lesbarer Name mit der zum Snapshot passenden Dateiendung.
         public var fileName: String {
             switch kind {
             case .flatRTFD: "Selection.rtfd"
             case .rtf: "Selection.rtf"
+            case .html: "Selection.html"
             }
         }
+    }
+
+    public static let maximumSourceBytes = 64 * 1_024 * 1_024
+
+    /// Hält ausschließlich das temporäre Ergebnis am Leben. Die temporäre
+    /// Quelle existiert nach der Konvertierung nicht mehr.
+    public final class Draft: Sendable {
+        public let source: Source
+        public let options: ConversionOptions
+        public let result: ConversionResult
+
+        init(source: Source, options: ConversionOptions, result: ConversionResult) {
+            precondition(result.outputLifetime == .temporary)
+            self.source = source; self.options = options; self.result = result
+        }
+
+        func discard() { try? FileManager.default.removeItem(at: result.outputDirectory) }
+        deinit { try? FileManager.default.removeItem(at: result.outputDirectory) }
     }
 
     /// Legt die Auswahl als Datei in einem eigenen temporären Ordner ab, lässt
@@ -67,7 +98,20 @@ public enum RichTextClipboard {
         progress: ConversionProgressHandler? = nil,
         cancellation: ConversionCancellationToken? = nil
     ) throws -> ClipboardOutcome {
+        let result = try convertDocument(source, options: options, progress: progress, cancellation: cancellation)
+        defer { try? FileManager.default.removeItem(at: result.outputDirectory) }
+        return try clipboardOutcome(from: result)
+    }
+
+    public static func convertDocument(
+        _ source: Source,
+        destination: ConversionDestination = .temporary,
+        options: ConversionOptions = ConversionOptions(),
+        progress: ConversionProgressHandler? = nil,
+        cancellation: ConversionCancellationToken? = nil
+    ) throws -> ConversionResult {
         try cancellation?.checkCancellation()
+        guard source.data.count <= maximumSourceBytes else { throw ClipboardError.tooLarge }
         let fileManager = FileManager.default
         let workDirectory = fileManager.temporaryDirectory.appendingPathComponent(
             "PoorMansTextClipboard-\(UUID().uuidString)",
@@ -78,7 +122,7 @@ public enum RichTextClipboard {
 
         let inputURL = workDirectory.appendingPathComponent(source.fileName)
         switch source.kind {
-        case .rtf:
+        case .rtf, .html:
             try source.data.write(to: inputURL)
         case .flatRTFD:
             // Flat-RTFD ist ein serialisiertes Paket. AppKit packt es wieder
@@ -96,12 +140,13 @@ public enum RichTextClipboard {
             try wrapper.write(to: inputURL, options: [], originalContentsURL: nil)
         }
 
-        let result = try DocumentConverter().convert(
-            ConversionRequest(inputURL: inputURL, destination: .temporary, options: options),
+        return try DocumentConverter().convert(
+            ConversionRequest(inputURL: inputURL, destination: destination, options: options),
             progress: progress, cancellation: cancellation
         )
-        defer { try? fileManager.removeItem(at: result.outputDirectory) }
+    }
 
+    public static func clipboardOutcome(from result: ConversionResult) throws -> ClipboardOutcome {
         let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
         var warnings = result.warnings
         if !result.assets.isEmpty {
@@ -121,13 +166,25 @@ public enum RichTextClipboard {
     public enum ClipboardError: LocalizedError {
         case noRichText
         case unreadableRichText
+        case emptyClipboard
+        case plainTextOnly
+        case multipleItems
+        case tooLarge
 
         public var errorDescription: String? {
             switch self {
             case .noRichText:
-                "The selection contains no rich text. Select formatted text in an app that provides RTF."
+                "No supported rich text is available. Copy a selection as RTFD, RTF, or HTML."
             case .unreadableRichText:
                 "The selected rich text could not be read."
+            case .emptyClipboard:
+                "The clipboard is empty. Copy formatted text, then choose Paste Rich Text."
+            case .plainTextOnly:
+                "The clipboard contains plain text only. Copy formatted text as RTFD, RTF, or HTML."
+            case .multipleItems:
+                "The clipboard contains several items. Copy one formatted selection at a time."
+            case .tooLarge:
+                "The clipboard content exceeds the 64 MiB limit. Copy a smaller selection."
             }
         }
     }

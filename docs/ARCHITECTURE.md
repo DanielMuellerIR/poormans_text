@@ -10,9 +10,16 @@ derselbe Kern von CLI, eigener App und später Fastra benutzt werden kann.
   Ergebnisobjekte.
 - `PoorMansTextAppSupport`: App-Zustand, Dateiauswahl, Drop-Übergabe, die
   Weitergabe gemeinsam geöffneter Dateien (`OpenedDocumentsRelay`) und die
-  Systemdienste (`ServicesProvider`, `RichTextClipboard`). Der Rich-Text-Dienst
-  schreibt die Auswahl als temporäre `.rtfd`- oder `.rtf`-Datei und nutzt den
-  normalen Adapterweg mit temporärem Ziel; der Kern kennt keine Zwischenablage.
+  Systemdienste (`ServicesProvider`, `RichTextClipboard`). Explizites Einfügen
+  und Rich-Text-Dienst lesen denselben begrenzten RTFD-/RTF-/HTML-Snapshot.
+  Die temporäre Quelldatei wird nach dem normalen Adapterweg entfernt; ein
+  App-Entwurf hält das separate temporäre Ergebnis für die Vorschau am Leben.
+  Dauerhaftes Sichern nutzt denselben Snapshot samt Optionen und die atomare
+  Veröffentlichung im Kern. Kopieren und der Dienst melden ausgelassene Assets;
+  der Kern kennt keine Zwischenablage. Ein AppKit-Adapter bindet das Ziel des
+  bestehenden Paste-Menüeintrags (⌘V) und validiert seine Aktivierung auch nach
+  SwiftUI-Menüupdates. Native Feldeditoren erhalten ihren
+  normalen Paste-Aufruf; die Menüvalidierung liest keine Zwischenablagedaten.
   `ConvertDocumentIntent` ist ein weiterer dünner Adapter: Er übernimmt
   dateibasierte Kurzbefehle-Eingaben, Optionen und Abbruch, ruft den Kern im
   Hintergrund auf und gibt eine Textliste mit der Ergebnisordner-URL an erster

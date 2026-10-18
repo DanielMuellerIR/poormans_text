@@ -233,7 +233,7 @@ final class AppOptionsTests: XCTestCase {
         )
         XCTAssertEqual(
             AppErrorMessage.describe(RichTextClipboard.ClipboardError.noRichText, bundle: bundle),
-            "Die Auswahl enthält keinen Rich Text. Formatierten Text in einer App auswählen, die RTF liefert."
+            "Kein unterstützter Rich Text verfügbar. Kopiere eine Auswahl als RTFD, RTF oder HTML."
         )
     }
 

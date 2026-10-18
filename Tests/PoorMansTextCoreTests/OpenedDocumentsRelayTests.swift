@@ -33,4 +33,40 @@ final class OpenedDocumentsRelayTests: XCTestCase {
         relay.handler = { _ in calls += 1 }
         XCTAssertEqual(calls, 0)
     }
+    @MainActor
+    func testPasteCommandSurvivesMenuRevalidationWithoutReadingClipboard() {
+        let app = NSApplication.shared
+        let original = app.mainMenu
+        let relay = OpenedDocumentsRelay()
+        defer {
+            relay.applicationWillTerminate(Notification(name: NSApplication.willTerminateNotification))
+            app.mainMenu = original
+        }
+        let menu = NSMenu()
+        let edit = NSMenu()
+        edit.autoenablesItems = false
+        let cut = NSMenuItem(title: "Cut", action: #selector(NSText.cut(_:)), keyEquivalent: "x")
+        let copy = NSMenuItem(title: "Copy", action: #selector(NSText.copy(_:)), keyEquivalent: "c")
+        let paste = NSMenuItem(title: "Paste", action: #selector(NSText.paste(_:)), keyEquivalent: "v")
+        edit.addItem(cut); edit.addItem(copy); edit.addItem(paste)
+        let top = NSMenuItem(title: "Edit", action: nil, keyEquivalent: "")
+        top.submenu = edit; menu.addItem(top); app.mainMenu = menu
+        var reads = 0
+        var accepts = true
+        relay.configurePaste(handler: { reads += 1 }, canPaste: { accepts })
+        XCTAssertEqual(reads, 0)
+        XCTAssertTrue(paste.isEnabled)
+        paste.isEnabled = false
+        XCTAssertTrue(paste.isEnabled, "An empty clipboard must still reach the explicit import command")
+        XCTAssertEqual(reads, 0)
+        XCTAssertEqual(cut.action, #selector(NSText.cut(_:)))
+        XCTAssertEqual(copy.action, #selector(NSText.copy(_:)))
+        edit.performActionForItem(at: 2)
+        XCTAssertEqual(reads, 1)
+        accepts = false
+        relay.configurePaste(handler: { reads += 1 }, canPaste: { accepts })
+        XCTAssertFalse(paste.isEnabled)
+        XCTAssertEqual(reads, 1)
+    }
+
 }

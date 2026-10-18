@@ -326,6 +326,23 @@ asset files. Retry Failed Inputs retains successful outputs and result order;
 a failed input also offers another output name or destination. Existing output
 is never replaced. The interface follows the system's English or German language.
 
+Use **Paste Rich Text** in the window or Edit menu, or **⌘V** outside editable
+text fields, to import a copied selection. Clipboard contents are read only for
+that explicit command. The priority is RTFD, then RTF, then HTML; an unreadable
+preferred representation is reported rather than silently replaced. Plain text,
+images alone, multiple items and an empty clipboard receive an explanation.
+
+The app first creates a temporary result for its local rendered/source preview.
+**Save Markdown and Assets…** chooses a new permanent output folder or Textbundle;
+existing output is never overwritten. **Copy Markdown Only** copies the text and
+reports assets it cannot carry; their relative links require a saved result.
+Discarding, replacing or copying a draft removes its temporary result. The
+source app and copied source remain unchanged. Inputs are limited to 64 MiB and
+need Pandoc. HTML supports text, lists, links and embedded raster data images.
+External images remain links, missing/local file references are diagnosed, and
+scripts, styles and layout are not retained. No external resources are loaded.
+See [clipboard import details](docs/CLIPBOARD-IMPORT.md).
+
 The app also registers two system services, available once it has been
 launched at least once (macOS lists them under System Settings › Keyboard ›
 Keyboard Shortcuts › Services):
@@ -573,7 +590,7 @@ and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compa
 their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current version is 0.37.1.
+The current version is 0.38.4.
 
 ## License
 

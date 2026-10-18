@@ -345,6 +345,25 @@ Für fehlgeschlagene Eingaben lässt sich ein anderer Name oder Zielordner wähl
 vorhandene Ausgaben werden nie ersetzt. Die Oberfläche folgt der englischen oder
 deutschen Systemsprache.
 
+Mit **Rich Text einfügen** im Fenster oder Bearbeiten-Menü sowie **⌘V** außerhalb
+bearbeitbarer Textfelder lässt sich eine kopierte Auswahl importieren. Die App
+liest Zwischenablageinhalte ausschließlich bei diesem ausdrücklichen Befehl.
+Der Vorrang ist RTFD, dann RTF, dann HTML; eine unlesbare bevorzugte Darstellung
+wird gemeldet, statt still auf eine andere zurückzufallen. Reiner Text, einzelne
+Bilder, mehrere Objekte und eine leere Zwischenablage erhalten einen Hinweis.
+
+Zuerst entsteht ein temporäres Ergebnis für die lokale formatierte oder
+Quelltextvorschau. **Markdown und Assets sichern…** wählt einen neuen dauerhaften
+Ausgabeordner oder ein Textbundle; vorhandene Ausgaben werden nie überschrieben.
+**Nur Markdown kopieren** übernimmt den Text und meldet ausgelassene Assets;
+deren relative Verweise benötigen ein gesichertes Ergebnis. Verwerfen, Ersetzen
+oder Kopieren entfernt das temporäre Ergebnis. Quelle und Quell-App bleiben
+unverändert. Eingaben sind auf 64 MiB begrenzt und benötigen Pandoc. HTML
+unterstützt Text, Listen, Links und eingebettete Rasterbilder als Daten-URI.
+Entfernte Bilder bleiben Links, fehlende/lokale Dateiverweise werden gemeldet.
+Skripte, Stile und Layout werden nicht übernommen; entfernte Ressourcen werden
+nicht geladen. [Details zum Einfügen](docs/CLIPBOARD-IMPORT.md).
+
 Die App meldet außerdem zwei Systemdienste an, die nach dem ersten Start zur
 Verfügung stehen (macOS führt sie unter Systemeinstellungen › Tastatur ›
 Tastaturkurzbefehle › Dienste):
@@ -605,7 +624,7 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.37.1.
+Die aktuelle Version ist 0.38.4.
 
 ## Lizenz
 

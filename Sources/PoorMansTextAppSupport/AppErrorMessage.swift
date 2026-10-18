@@ -14,8 +14,10 @@ public enum AppErrorMessage {
         }
         if let error = error as? RichTextClipboard.ClipboardError {
             switch error {
-            case .noRichText: return format("The selection contains no rich text. Select formatted text in an app that provides RTF.")
+            case .noRichText: return format("No supported rich text is available. Copy a selection as RTFD, RTF, or HTML.")
             case .unreadableRichText: return format("The selected rich text could not be read.")
+            case .emptyClipboard, .plainTextOnly, .multipleItems, .tooLarge:
+                return format(error.localizedDescription)
             }
         }
         if let error = error as? PandocInstaller.InstallError {

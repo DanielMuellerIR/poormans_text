@@ -127,7 +127,7 @@
 "Poor Man's Text is busy with another conversion." = "Poor Man's Text is busy with another conversion.";
 "1 image was left out; the clipboard holds text only, so its image link points nowhere." = "1 image was left out; the clipboard holds text only, so its image link points nowhere.";
 "%d images were left out; the clipboard holds text only, so their image links point nowhere." = "%d images were left out; the clipboard holds text only, so their image links point nowhere.";
-"The selection contains no rich text. Select formatted text in an app that provides RTF." = "The selection contains no rich text. Select formatted text in an app that provides RTF.";
+"No supported rich text is available. Copy a selection as RTFD, RTF, or HTML." = "No supported rich text is available. Copy a selection as RTFD, RTF, or HTML.";
 "The selected rich text could not be read." = "The selected rich text could not be read.";
 "Homebrew could not install Pandoc: %@" = "Homebrew could not install Pandoc: %@";
 "Homebrew finished, but Pandoc still cannot be found." = "Homebrew finished, but Pandoc still cannot be found.";
@@ -396,3 +396,18 @@
 "On" = "On";
 "Convert one document using a saved conversion profile. Profile Value keeps each saved setting; On and Off explicitly override it. The destination folder is required. Existing results are never overwritten. The result is a list: the output folder URL followed by conversion warnings." = "Convert one document using a saved conversion profile. Profile Value keeps each saved setting; On and Off explicitly override it. The destination folder is required. Existing results are never overwritten. The result is a list: the output folder URL followed by conversion warnings.";
 "Convert ${document} into ${destinationFolder} using ${profile}" = "Convert ${document} into ${destinationFolder} using ${profile}";
+
+/* Rich-Text-Einfügen */
+"Paste Rich Text" = "Paste Rich Text";
+"Rich text ready to preview" = "Rich text ready to preview";
+"Temporary result — choose how to keep it" = "Temporary result — choose how to keep it";
+"Save Markdown and Assets…" = "Save Markdown and Assets…";
+"Copy Markdown Only" = "Copy Markdown Only";
+"Copying keeps text only. Image links need a saved result with its assets." = "Copying keeps text only. Image links need a saved result with its assets.";
+"Discard" = "Discard";
+"Save Markdown and Assets" = "Save Markdown and Assets";
+"Save Result" = "Save Result";
+"The clipboard is empty. Copy formatted text, then choose Paste Rich Text." = "The clipboard is empty. Copy formatted text, then choose Paste Rich Text.";
+"The clipboard contains plain text only. Copy formatted text as RTFD, RTF, or HTML." = "The clipboard contains plain text only. Copy formatted text as RTFD, RTF, or HTML.";
+"The clipboard contains several items. Copy one formatted selection at a time." = "The clipboard contains several items. Copy one formatted selection at a time.";
+"The clipboard content exceeds the 64 MiB limit. Copy a smaller selection." = "The clipboard content exceeds the 64 MiB limit. Copy a smaller selection.";

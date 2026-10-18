@@ -28,11 +28,10 @@ Kurzbefehle reichen die jeweils passenden Optionen weiter.
 
 ### Inhalte direkt einfügen
 
-- Kopierten Rich Text direkt in der App in Markdown umwandeln.
 - Bilder und Screenshots aus der Zwischenablage übernehmen und bei Bedarf
   lokal mit OCR lesen.
-- Bilder und Anhänge bei dauerhaft gespeicherten Ergebnissen erhalten; bei
-  reiner Textausgabe ausgelassene Assets verständlich melden.
+- Bei eingefügten Bildern dauerhafte Assets erhalten und reine Textausgabe
+  mit verständlichem Hinweis auf ausgelassene Assets anbieten.
 
 ### Mailarchive und Notizexporte
 

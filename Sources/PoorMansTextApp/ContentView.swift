@@ -315,6 +315,8 @@ struct ContentView: View {
                 }.controlSize(.large)
                 Text(LocalizedStringKey(model.clipboardDraft?.source.isImage == true ? "Copying keeps recognized text only and omits the image." : "Copying keeps text only. Image links need a saved result with its assets."))
                     .font(.callout).foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
                 Button("Discard") { model.reset() }.keyboardShortcut(.cancelAction)
                 if let message = model.actionMessage { Text(message).font(.callout).textSelection(.enabled) }
             } else {

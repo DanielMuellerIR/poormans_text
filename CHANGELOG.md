@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.39.1 — 2026-10-18
+
+- Wrap the clipboard copy hint at the minimum window width so the omitted-image explanation remains fully readable in German and English.
+
 ## 0.39.0 — 2026-10-18
 
 - Extend explicit Paste and ⌘V to encoded clipboard images and screenshots, keeping the captured bytes as an asset without re-encoding, resizing or changing orientation and transparency.

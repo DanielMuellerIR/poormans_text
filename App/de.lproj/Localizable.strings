@@ -411,3 +411,16 @@
 "The clipboard contains plain text only. Copy formatted text as RTFD, RTF, or HTML." = "Die Zwischenablage enthält nur reinen Text. Kopiere formatierten Text als RTFD, RTF oder HTML.";
 "The clipboard contains several items. Copy one formatted selection at a time." = "Die Zwischenablage enthält mehrere Objekte. Kopiere jeweils eine formatierte Auswahl.";
 "The clipboard content exceeds the 64 MiB limit. Copy a smaller selection." = "Der Zwischenablageinhalt überschreitet die Grenze von 64 MiB. Kopiere eine kleinere Auswahl.";
+"Paste Text or Image" = "Text oder Bild einfügen";
+"Image ready to preview" = "Bild ist bereit für die Vorschau";
+"Copy Recognized Text" = "Erkannten Text kopieren";
+"Copying keeps recognized text only and omits the image." = "Beim Kopieren bleibt nur der erkannte Text erhalten; das Bild wird ausgelassen.";
+"⌘V · Rich text, images and screenshots" = "⌘V · Rich Text, Bilder und Screenshots";
+"The image was omitted. Only recognized text was copied; save Markdown and Assets to keep the image." = "Das Bild wurde ausgelassen. Nur erkannter Text wurde kopiert; sichere Markdown und Assets, um das Bild zu behalten.";
+"The clipboard is empty. Copy formatted text or an image, then choose Paste Text or Image." = "Die Zwischenablage ist leer. Kopiere formatierten Text oder ein Bild und wähle dann „Text oder Bild einfügen“.";
+"The clipboard contains plain text only. Copy formatted text as RTFD, RTF, or HTML, or copy an image." = "Die Zwischenablage enthält nur reinen Text. Kopiere formatierten Text als RTFD, RTF oder HTML oder ein Bild.";
+"The clipboard contains several items. Copy one formatted selection or image at a time." = "Die Zwischenablage enthält mehrere Objekte. Kopiere jeweils eine formatierte Auswahl oder ein Bild.";
+"The selected image could not be read. Copy encoded image data such as PNG or TIFF." = "Das ausgewählte Bild konnte nicht gelesen werden. Kopiere kodierte Bilddaten wie PNG oder TIFF.";
+"The clipboard changed while it was being read. Copy the selection again." = "Die Zwischenablage wurde während des Lesens verändert. Kopiere die Auswahl erneut.";
+"No supported text or image data is available. Copy formatted text or a PNG, TIFF, JPEG, HEIC, GIF, BMP, or WebP image." = "Keine unterstützten Text- oder Bilddaten verfügbar. Kopiere formatierten Text oder ein Bild als PNG, TIFF, JPEG, HEIC, GIF, BMP oder WebP.";
+"No recognized text is available to copy. Enable image OCR before pasting, or save Markdown and Assets to keep the image." = "Es ist kein erkannter Text zum Kopieren verfügbar. Aktiviere vor dem Einfügen die Bild-OCR oder sichere Markdown und Assets, um das Bild zu behalten.";

@@ -26,13 +26,6 @@ Kurzbefehle reichen die jeweils passenden Optionen weiter.
   Fotos erweitern; Inhaltsbestand, Zellzuordnung, Lesereihenfolge, Laufzeit
   und Speicherbedarf entscheiden über seinen Einsatz.
 
-### Inhalte direkt einfügen
-
-- Bilder und Screenshots aus der Zwischenablage übernehmen und bei Bedarf
-  lokal mit OCR lesen.
-- Bei eingefügten Bildern dauerhafte Assets erhalten und reine Textausgabe
-  mit verständlichem Hinweis auf ausgelassene Assets anbieten.
-
 ### Mailarchive und Notizexporte
 
 - Exportierte Apple-Mail-Postfachpakete ergänzen und einzelne Sammlungsdokumente

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.39.0 — 2026-10-18
+
+- Extend explicit Paste and ⌘V to encoded clipboard images and screenshots, keeping the captured bytes as an asset without re-encoding, resizing or changing orientation and transparency.
+- Reuse local image OCR, structured recognition, languages and profiles for preview and atomic Markdown/assets or Textbundle saving. Copy recognized text without a dead image link; retain drafts when OCR provides no text.
+- Read only representations actually offered by one clipboard item, preserving JPEG/HEIC/GIF/BMP/WebP instead of AppKit's synthesized TIFF. Keep rich-text priority, normal field Paste and the existing system service.
+
 ## 0.38.4 — 2026-10-18
 
 - Import copied RTFD, RTF or HTML through an explicit Paste Rich Text command and ⌘V outside editable fields. Explain empty, plain-text, unsupported, oversized and multiple-item clipboard contents without replacing an existing draft.

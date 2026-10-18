@@ -345,12 +345,17 @@ Für fehlgeschlagene Eingaben lässt sich ein anderer Name oder Zielordner wähl
 vorhandene Ausgaben werden nie ersetzt. Die Oberfläche folgt der englischen oder
 deutschen Systemsprache.
 
-Mit **Rich Text einfügen** im Fenster oder Bearbeiten-Menü sowie **⌘V** außerhalb
+Mit **Text oder Bild einfügen** im Fenster oder Bearbeiten-Menü sowie **⌘V** außerhalb
 bearbeitbarer Textfelder lässt sich eine kopierte Auswahl importieren. Die App
 liest Zwischenablageinhalte ausschließlich bei diesem ausdrücklichen Befehl.
 Der Vorrang ist RTFD, dann RTF, dann HTML; eine unlesbare bevorzugte Darstellung
-wird gemeldet, statt still auf eine andere zurückzufallen. Reiner Text, einzelne
-Bilder, mehrere Objekte und eine leere Zwischenablage erhalten einen Hinweis.
+wird gemeldet, statt still auf eine andere zurückzufallen. Reiner Text, mehrere
+Objekte und eine leere Zwischenablage erhalten einen Hinweis. Bilder werden als
+PNG, TIFF, JPEG, HEIC, GIF, BMP oder WebP in dieser Reihenfolge nach Rich Text
+übernommen. Nur tatsächlich angebotene Darstellungen werden gelesen; kein
+automatisch erzeugtes TIFF, Quellpfad, eigener Screenshot oder Hintergrundlesen.
+Die gewählten kodierten Bytes, Transparenz, Pixelmaße und Orientierung bleiben
+unverändert. Lokale OCR, Methode und Sprachen folgen den Einstellungen/dem Profil.
 
 Zuerst entsteht ein temporäres Ergebnis für die lokale formatierte oder
 Quelltextvorschau. **Markdown und Assets sichern…** wählt einen neuen dauerhaften
@@ -358,7 +363,10 @@ Ausgabeordner oder ein Textbundle; vorhandene Ausgaben werden nie überschrieben
 **Nur Markdown kopieren** übernimmt den Text und meldet ausgelassene Assets;
 deren relative Verweise benötigen ein gesichertes Ergebnis. Verwerfen, Ersetzen
 oder Kopieren entfernt das temporäre Ergebnis. Quelle und Quell-App bleiben
-unverändert. Eingaben sind auf 64 MiB begrenzt und benötigen Pandoc. HTML
+unverändert. Eingaben sind auf 64 MiB begrenzt; Rich Text benötigt Pandoc,
+Bildimport arbeitet ohne Pandoc. **Erkannten Text kopieren** übernimmt nur den
+OCR-Teil eines Bildergebnisses, ohne Bild und Bildverweis. Bei deaktivierter OCR
+oder fehlendem Text bleiben Entwurf und Zwischenablage erhalten. HTML
 unterstützt Text, Listen, Links und eingebettete Rasterbilder als Daten-URI.
 Entfernte Bilder bleiben Links, fehlende/lokale Dateiverweise werden gemeldet.
 Skripte, Stile und Layout werden nicht übernommen; entfernte Ressourcen werden
@@ -624,7 +632,7 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.38.4.
+Die aktuelle Version ist 0.39.0.
 
 ## Lizenz
 

@@ -411,3 +411,16 @@
 "The clipboard contains plain text only. Copy formatted text as RTFD, RTF, or HTML." = "The clipboard contains plain text only. Copy formatted text as RTFD, RTF, or HTML.";
 "The clipboard contains several items. Copy one formatted selection at a time." = "The clipboard contains several items. Copy one formatted selection at a time.";
 "The clipboard content exceeds the 64 MiB limit. Copy a smaller selection." = "The clipboard content exceeds the 64 MiB limit. Copy a smaller selection.";
+"Paste Text or Image" = "Paste Text or Image";
+"Image ready to preview" = "Image ready to preview";
+"Copy Recognized Text" = "Copy Recognized Text";
+"Copying keeps recognized text only and omits the image." = "Copying keeps recognized text only and omits the image.";
+"⌘V · Rich text, images and screenshots" = "⌘V · Rich text, images and screenshots";
+"The image was omitted. Only recognized text was copied; save Markdown and Assets to keep the image." = "The image was omitted. Only recognized text was copied; save Markdown and Assets to keep the image.";
+"The clipboard is empty. Copy formatted text or an image, then choose Paste Text or Image." = "The clipboard is empty. Copy formatted text or an image, then choose Paste Text or Image.";
+"The clipboard contains plain text only. Copy formatted text as RTFD, RTF, or HTML, or copy an image." = "The clipboard contains plain text only. Copy formatted text as RTFD, RTF, or HTML, or copy an image.";
+"The clipboard contains several items. Copy one formatted selection or image at a time." = "The clipboard contains several items. Copy one formatted selection or image at a time.";
+"The selected image could not be read. Copy encoded image data such as PNG or TIFF." = "The selected image could not be read. Copy encoded image data such as PNG or TIFF.";
+"The clipboard changed while it was being read. Copy the selection again." = "The clipboard changed while it was being read. Copy the selection again.";
+"No supported text or image data is available. Copy formatted text or a PNG, TIFF, JPEG, HEIC, GIF, BMP, or WebP image." = "No supported text or image data is available. Copy formatted text or a PNG, TIFF, JPEG, HEIC, GIF, BMP, or WebP image.";
+"No recognized text is available to copy. Enable image OCR before pasting, or save Markdown and Assets to keep the image." = "No recognized text is available to copy. Enable image OCR before pasting, or save Markdown and Assets to keep the image.";

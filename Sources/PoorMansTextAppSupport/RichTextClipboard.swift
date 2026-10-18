@@ -2,7 +2,7 @@ import AppKit
 import Foundation
 import PoorMansTextCore
 
-/// Ergebnis einer Umwandlung von markiertem Rich Text: das Markdown, das in
+/// Ergebnis einer Umwandlung von Zwischenablagedaten: das Markdown, das in
 /// der Zwischenablage landet, und die Hinweise dazu.
 public struct ClipboardOutcome: Sendable, Equatable {
     public let markdown: String
@@ -14,19 +14,21 @@ public struct ClipboardOutcome: Sendable, Equatable {
     }
 }
 
-/// Wandelt Rich Text von einer Zwischenablage über den normalen
+/// Wandelt Rich Text und kodierte Bilder über den normalen
 /// Dokumentweg um. Das Pasteboard wird nur auf dem Main Thread gelesen; die
 /// eigentliche Umwandlung arbeitet danach mit reinen Daten und darf deshalb
 /// auf einem Hintergrund-Task laufen.
 public enum RichTextClipboard {
     /// Ein explizit gelesener Snapshot. RTFD erhält Paketressourcen und hat
-    /// deshalb Vorrang vor RTF, danach folgt HTML. Fehler fallen nicht still
+    /// deshalb Vorrang vor RTF, danach folgt HTML. Erst danach werden
+    /// tatsächlich angebotene kodierte Bilddaten berücksichtigt. Fehler fallen nicht still
     /// auf eine möglicherweise unvollständige Darstellung zurück.
     public struct Source: Sendable, Equatable {
         public enum Kind: Sendable, Equatable {
             case flatRTFD
             case rtf
             case html
+            case image(ClipboardImageFormat)
         }
 
         public let kind: Kind
@@ -40,24 +42,40 @@ public enum RichTextClipboard {
         /// Kompatibler Einstieg des Systemdienstes.
         @MainActor
         public init?(pasteboard: NSPasteboard) {
-            guard let source = try? Self.read(from: pasteboard) else { return nil }
+            guard let source = try? Self.read(from: pasteboard, includingImages: false) else { return nil }
             self = source
         }
 
         @MainActor
-        public static func read(from pasteboard: NSPasteboard) throws -> Source {
+        public static func read(from pasteboard: NSPasteboard, includingImages: Bool = true) throws -> Source {
+            let change = pasteboard.changeCount
             let types = pasteboard.types ?? []
             guard !types.isEmpty else { throw ClipboardError.emptyClipboard }
-            guard (pasteboard.pasteboardItems?.count ?? 0) <= 1 else { throw ClipboardError.multipleItems }
+            let items = pasteboard.pasteboardItems ?? []
+            guard items.count <= 1 else { throw ClipboardError.multipleItems }
             for (type, kind) in [(NSPasteboard.PasteboardType.rtfd, Kind.flatRTFD), (.rtf, .rtf), (.html, .html)] {
                 if types.contains(type) {
                     guard let data = pasteboard.data(forType: type), !data.isEmpty else { throw ClipboardError.unreadableRichText }
                     guard data.count <= maximumSourceBytes else { throw ClipboardError.tooLarge }
+                    guard pasteboard.changeCount == change else { throw ClipboardError.changedDuringRead }
                     return Source(kind: kind, data: data)
                 }
             }
+            if includingImages {
+                // `pasteboard.types` ergänzt z. B. für JPEG ein synthetisches
+                // TIFF. Nur die tatsächlich angebotenen Item-Typen verwenden,
+                // sonst kodiert AppKit unbemerkt um und Originalbytes gehen verloren.
+                let item = items.first
+                let imageTypes = item?.types ?? []
+                for format in ClipboardImageFormat.allCases where imageTypes.contains(format.pasteboardType) {
+                    guard let data = item?.data(forType: format.pasteboardType), !data.isEmpty else { throw ClipboardError.unreadableImage }
+                    guard data.count <= maximumSourceBytes else { throw ClipboardError.tooLarge }
+                    guard pasteboard.changeCount == change else { throw ClipboardError.changedDuringRead }
+                    return Source(kind: .image(format), data: data)
+                }
+            }
             if types.contains(.string) { throw ClipboardError.plainTextOnly }
-            throw ClipboardError.noRichText
+            throw includingImages ? ClipboardError.noSupportedContent : ClipboardError.noRichText
         }
 
         /// Lesbarer Name mit der zum Snapshot passenden Dateiendung.
@@ -66,7 +84,13 @@ public enum RichTextClipboard {
             case .flatRTFD: "Selection.rtfd"
             case .rtf: "Selection.rtf"
             case .html: "Selection.html"
+            case .image(let format): "Clipboard Image.\(format.fileExtension)"
             }
+        }
+
+        public var isImage: Bool {
+            if case .image = kind { return true }
+            return false
         }
     }
 
@@ -122,7 +146,7 @@ public enum RichTextClipboard {
 
         let inputURL = workDirectory.appendingPathComponent(source.fileName)
         switch source.kind {
-        case .rtf, .html:
+        case .rtf, .html, .image:
             try source.data.write(to: inputURL)
         case .flatRTFD:
             // Flat-RTFD ist ein serialisiertes Paket. AppKit packt es wieder
@@ -140,7 +164,13 @@ public enum RichTextClipboard {
             try wrapper.write(to: inputURL, options: [], originalContentsURL: nil)
         }
 
-        return try DocumentConverter().convert(
+        let converter = DocumentConverter()
+        if source.isImage {
+            // Nur Bilddaten erlauben: Ein falscher Pasteboard-Typ darf keine
+            // andere Dokumentkonvertierung oder externe Werkzeuge auslösen.
+            guard try converter.detectFormat(at: inputURL) == .image else { throw ClipboardError.unreadableImage }
+        }
+        return try converter.convert(
             ConversionRequest(inputURL: inputURL, destination: destination, options: options),
             progress: progress, cancellation: cancellation
         )
@@ -149,6 +179,19 @@ public enum RichTextClipboard {
     public static func clipboardOutcome(from result: ConversionResult) throws -> ClipboardOutcome {
         let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
         var warnings = result.warnings
+        if result.format == .image {
+            // Der Bildadapter hält OCR hinter dieser Überschrift getrennt.
+            // Nur diesen Teil kopieren: Titel, Metadaten und Originalbildlink
+            // gehören zum dauerhaft zu sichernden Dokument, nicht zum OCR-Text.
+            guard let start = markdown.range(of: "\n\n## OCR text\n\n") else { throw ClipboardError.noRecognizedText }
+            let text = String(markdown[start.upperBound...])
+            let content = text.replacingOccurrences(of: "_No text could be extracted from this image frame._", with: "")
+                .replacingOccurrences(of: "(?m)^### Frame [0-9]+$", with: "", options: .regularExpression)
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !content.isEmpty else { throw ClipboardError.noRecognizedText }
+            warnings.append(NSLocalizedString("The image was omitted. Only recognized text was copied; save Markdown and Assets to keep the image.", comment: ""))
+            return ClipboardOutcome(markdown: text, warnings: warnings)
+        }
         if !result.assets.isEmpty {
             // Der Hinweis landet direkt im Fenster, deshalb übersetzt: Vorher
             // ging er als englischer Rohtext in die Oberfläche
@@ -170,6 +213,10 @@ public enum RichTextClipboard {
         case plainTextOnly
         case multipleItems
         case tooLarge
+        case unreadableImage
+        case changedDuringRead
+        case noSupportedContent
+        case noRecognizedText
 
         public var errorDescription: String? {
             switch self {
@@ -178,13 +225,21 @@ public enum RichTextClipboard {
             case .unreadableRichText:
                 "The selected rich text could not be read."
             case .emptyClipboard:
-                "The clipboard is empty. Copy formatted text, then choose Paste Rich Text."
+                "The clipboard is empty. Copy formatted text or an image, then choose Paste Text or Image."
             case .plainTextOnly:
-                "The clipboard contains plain text only. Copy formatted text as RTFD, RTF, or HTML."
+                "The clipboard contains plain text only. Copy formatted text as RTFD, RTF, or HTML, or copy an image."
             case .multipleItems:
-                "The clipboard contains several items. Copy one formatted selection at a time."
+                "The clipboard contains several items. Copy one formatted selection or image at a time."
             case .tooLarge:
                 "The clipboard content exceeds the 64 MiB limit. Copy a smaller selection."
+            case .unreadableImage:
+                "The selected image could not be read. Copy encoded image data such as PNG or TIFF."
+            case .changedDuringRead:
+                "The clipboard changed while it was being read. Copy the selection again."
+            case .noSupportedContent:
+                "No supported text or image data is available. Copy formatted text or a PNG, TIFF, JPEG, HEIC, GIF, BMP, or WebP image."
+            case .noRecognizedText:
+                "No recognized text is available to copy. Enable image OCR before pasting, or save Markdown and Assets to keep the image."
             }
         }
     }

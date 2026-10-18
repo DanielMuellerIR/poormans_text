@@ -12,6 +12,10 @@ derselbe Kern von CLI, eigener App und später Fastra benutzt werden kann.
   Weitergabe gemeinsam geöffneter Dateien (`OpenedDocumentsRelay`) und die
   Systemdienste (`ServicesProvider`, `RichTextClipboard`). Explizites Einfügen
   und Rich-Text-Dienst lesen denselben begrenzten RTFD-/RTF-/HTML-Snapshot.
+  Der ausdrückliche Einfügeweg akzeptiert zusätzlich kodierte Rasterbilder über
+  `ClipboardImageFormat` und den vorhandenen `ImageAdapter`. Nur Item-Typen werden
+  gewählt, damit AppKits synthetische TIFF-Darstellung keine Originalbytes ersetzt.
+  Der Rich-Text-Dienst bleibt auf seinen bisherigen Textvertrag beschränkt.
   Die temporäre Quelldatei wird nach dem normalen Adapterweg entfernt; ein
   App-Entwurf hält das separate temporäre Ergebnis für die Vorschau am Leben.
   Dauerhaftes Sichern nutzt denselben Snapshot samt Optionen und die atomare

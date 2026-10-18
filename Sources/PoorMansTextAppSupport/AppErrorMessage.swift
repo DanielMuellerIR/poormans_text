@@ -16,7 +16,7 @@ public enum AppErrorMessage {
             switch error {
             case .noRichText: return format("No supported rich text is available. Copy a selection as RTFD, RTF, or HTML.")
             case .unreadableRichText: return format("The selected rich text could not be read.")
-            case .emptyClipboard, .plainTextOnly, .multipleItems, .tooLarge:
+            case .emptyClipboard, .plainTextOnly, .multipleItems, .tooLarge, .unreadableImage, .changedDuringRead, .noSupportedContent, .noRecognizedText:
                 return format(error.localizedDescription)
             }
         }

@@ -326,11 +326,16 @@ asset files. Retry Failed Inputs retains successful outputs and result order;
 a failed input also offers another output name or destination. Existing output
 is never replaced. The interface follows the system's English or German language.
 
-Use **Paste Rich Text** in the window or Edit menu, or **⌘V** outside editable
+Use **Paste Text or Image** in the window or Edit menu, or **⌘V** outside editable
 text fields, to import a copied selection. Clipboard contents are read only for
 that explicit command. The priority is RTFD, then RTF, then HTML; an unreadable
 preferred representation is reported rather than silently replaced. Plain text,
-images alone, multiple items and an empty clipboard receive an explanation.
+multiple items and an empty clipboard receive an explanation. Image data is accepted
+as PNG, TIFF, JPEG, HEIC, GIF, BMP or WebP, with that priority after rich text.
+Only representations explicitly offered by the clipboard item are read; no
+automatically synthesized TIFF, file path, screen capture or clipboard polling is used.
+The selected encoded bytes, transparency, pixel dimensions and orientation remain
+unchanged. Local OCR, its method and languages follow the current settings/profile.
 
 The app first creates a temporary result for its local rendered/source preview.
 **Save Markdown and Assets…** chooses a new permanent output folder or Textbundle;
@@ -338,7 +343,10 @@ existing output is never overwritten. **Copy Markdown Only** copies the text and
 reports assets it cannot carry; their relative links require a saved result.
 Discarding, replacing or copying a draft removes its temporary result. The
 source app and copied source remain unchanged. Inputs are limited to 64 MiB and
-need Pandoc. HTML supports text, lists, links and embedded raster data images.
+need Pandoc for rich text; image import works without it. **Copy Recognized Text**
+copies only the OCR portion of an image result, omitting the image and its link.
+If OCR is disabled or no text is found, the draft and clipboard remain available.
+HTML supports text, lists, links and embedded raster data images.
 External images remain links, missing/local file references are diagnosed, and
 scripts, styles and layout are not retained. No external resources are loaded.
 See [clipboard import details](docs/CLIPBOARD-IMPORT.md).
@@ -590,7 +598,7 @@ and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compa
 their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current version is 0.38.4.
+The current version is 0.39.0.
 
 ## License
 

@@ -57,7 +57,7 @@ struct PoorMansTextDesktopApp: App {
                 .disabled(!model.acceptsNewDocuments)
             }
             CommandGroup(after: .pasteboard) {
-                Button("Paste Rich Text") { model.pasteRichText() }
+                Button("Paste Text or Image") { model.pasteRichText() }
                     .disabled(!model.acceptsNewDocuments)
             }
         }

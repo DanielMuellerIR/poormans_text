@@ -84,7 +84,7 @@ final class ClipboardImportTests: XCTestCase {
         }
     }
 
-    func testEmptyPlainImageAndMultipleItemsAreExplained() throws {
+    func testEmptyPlainAndMultipleItemsAreExplained() throws {
         let pasteboard = board()
         let model = AppModel(defaults: .isolatedForAppTest())
         pasteboard.clearContents()
@@ -94,9 +94,6 @@ final class ClipboardImportTests: XCTestCase {
         model.pasteRichText(from: pasteboard)
         XCTAssertTrue(model.actionMessage?.contains("plain text only") == true)
         XCTAssertEqual(pasteboard.string(forType: .string), "literal plain text")
-        pasteboard.clearContents()
-        pasteboard.setData(Data([1]), forType: .png)
-        XCTAssertThrowsError(try RichTextClipboard.Source.read(from: pasteboard))
         pasteboard.clearContents()
         let items = (0..<2).map { _ in let item = NSPasteboardItem(); item.setString("<p>item</p>", forType: .html); return item }
         pasteboard.writeObjects(items)

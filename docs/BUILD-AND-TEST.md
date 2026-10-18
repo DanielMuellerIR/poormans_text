@@ -239,6 +239,9 @@ temporäre RTF-/RTFD-/HTML-Fixtures. Die Prüfungen belegen Formatvorrang,
 ausdrückliches Lesen verzögert angebotener Daten, Listen/Links, unveränderte
 Quell- und Assetbytes, Vorschau, getrennte temporäre und dauerhafte Ergebnisse,
 Zielschutz, Abbruch, fehlendes Pandoc und Aufräumen beim normalen Beenden.
+`ClipboardImageTests` ergänzt Bildbytes in sieben Formaten, OCR/strukturierte
+Erkennung, Orientierung, Alpha, Retina-Pixel, große Abmessungen, eingefrorene
+Profile, reine Textausgabe und verzögert angebotene Daten.
 `ServicesProviderTests` erhält die vorhandenen Dienste und prüft denselben Weg.
 Die native Abnahme ergänzt echtes ⌘V, bearbeitbare Textfelder, leere/reine
 Textzwischenablagen, Vorschau, Abbruch, Sichern und die dauerhaft auflösbaren

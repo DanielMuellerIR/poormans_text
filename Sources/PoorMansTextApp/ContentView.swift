@@ -281,7 +281,7 @@ struct ContentView: View {
                 .font(.system(size: 48))
                 .foregroundStyle(.green)
                 .accessibilityHidden(true)
-            Text(LocalizedStringKey(model.clipboardDraft == nil ? "Markdown created" : "Rich text ready to preview"))
+            Text(LocalizedStringKey(model.clipboardDraft == nil ? "Markdown created" : model.clipboardDraft?.source.isImage == true ? "Image ready to preview" : "Rich text ready to preview"))
                 .font(.title3.bold())
             Text(model.clipboardDraft == nil ? result.outputDirectory.lastPathComponent : NSLocalizedString("Temporary result — choose how to keep it", comment: ""))
                 .font(.body.monospaced())
@@ -311,9 +311,9 @@ struct ContentView: View {
                 HStack(spacing: 12) {
                     Button("Save Markdown and Assets…") { model.chooseClipboardDestination() }
                         .keyboardShortcut(.defaultAction)
-                    Button("Copy Markdown Only") { model.copyMarkdown() }
+                    Button(LocalizedStringKey(model.clipboardDraft?.source.isImage == true ? "Copy Recognized Text" : "Copy Markdown Only")) { model.copyMarkdown() }
                 }.controlSize(.large)
-                Text("Copying keeps text only. Image links need a saved result with its assets.")
+                Text(LocalizedStringKey(model.clipboardDraft?.source.isImage == true ? "Copying keeps recognized text only and omits the image." : "Copying keeps text only. Image links need a saved result with its assets."))
                     .font(.callout).foregroundStyle(.secondary)
                 Button("Discard") { model.reset() }.keyboardShortcut(.cancelAction)
                 if let message = model.actionMessage { Text(message).font(.callout).textSelection(.enabled) }
@@ -444,10 +444,10 @@ struct ContentView: View {
 
     private var pasteControls: some View {
         VStack(spacing: 6) {
-            Button("Paste Rich Text") { model.pasteRichText() }
+            Button("Paste Text or Image") { model.pasteRichText() }
                 .disabled(!model.acceptsNewDocuments)
                 .accessibilityIdentifier("clipboardPaste")
-            Text("⌘V · RTFD, RTF, HTML")
+            Text("⌘V · Rich text, images and screenshots")
                 .font(.caption).foregroundStyle(.secondary)
             if let message = model.actionMessage, model.clipboardDraft == nil {
                 Text(message).font(.callout).textSelection(.enabled)

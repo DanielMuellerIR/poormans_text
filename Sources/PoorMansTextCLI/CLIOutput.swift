@@ -282,6 +282,16 @@ enum CLIExitCode: Int32 {
 }
 
 func exitCode(for error: Error) -> CLIExitCode {
+    if let error = error as? ConversionProfileError {
+        switch error.kind {
+        case .invalid: return .dataError
+        case .collision: return .cannotCreate
+        case .missing: return .noInput
+        case .localPermission: return .usage
+        case .fileSystem: return .inputOutput
+        }
+    }
+
     if let enumerationError = error as? InputEnumerationError {
         switch enumerationError {
         case .inputDoesNotExist, .noSupportedDocuments, .earlierResult:

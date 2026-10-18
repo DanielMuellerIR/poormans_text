@@ -26,15 +26,10 @@ Kurzbefehle reichen die jeweils passenden Optionen weiter.
   Fotos erweitern; Inhaltsbestand, Zellzuordnung, Lesereihenfolge, Laufzeit
   und Speicherbedarf entscheiden über seinen Einsatz.
 
-### Kommentare, Änderungen und Links
-
-
 ### Konvertierungsprofile
 
-- Benannte Profile für wiederkehrende Kombinationen aus Konvertierungsoptionen
-  speichern und auswählen, etwa für deutschsprachige Scans oder Archivimporte.
-- Profile in App, CLI und Kurzbefehle nutzbar machen; explizit angegebene Optionen
-  müssen nachvollziehbar Vorrang haben.
+- Benannte Konvertierungsprofile in App und Kurzbefehle integrieren; Profilwerte,
+  explizite Änderungen und quellengebundene Auswahlen verständlich zeigen.
 
 ### Inhalte direkt einfügen
 

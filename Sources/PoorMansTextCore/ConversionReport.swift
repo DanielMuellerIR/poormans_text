@@ -74,6 +74,7 @@ public struct ConversionReport: Codable, Sendable {
         public let pdfLayout: PDFLayout
         public let pdfRemoveHeadersFooters: Bool
         public let pdfDehyphenate: Bool
+        public let presentationIncludeNotes: Bool?
         public let pdfPages: IndexSelection?
         public let epubChapters: IndexSelection?
         public let presentationSelection: PresentationSelection?
@@ -93,6 +94,7 @@ public struct ConversionReport: Codable, Sendable {
             pdfLayout = options.pdfLayout
             pdfRemoveHeadersFooters = options.pdfRemoveHeadersFooters
             pdfDehyphenate = options.pdfDehyphenate
+            presentationIncludeNotes = options.presentationIncludeNotes
             pdfPages = options.pdfPages
             epubChapters = options.epubChapters
             presentationSelection = options.presentationSelection

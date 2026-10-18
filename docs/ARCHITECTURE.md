@@ -552,3 +552,24 @@ Auswahl nur für einen bewussten Wiederholungsversuch desselben Dokuments. Neue
 Einzel-, Batch- und Dienstimporte verwenden wieder ihre vollständigen Eingaben.
 Die Kurzbefehle-Aktion bildet optionale Parameter auf dieselben typisierten
 Core-Auswahlen ab; widersprüchliche Formatfamilien werden vor dem Import abgewiesen.
+
+## Benannte Konvertierungsprofile
+
+`ConversionProfile` ist ein versionierter, SwiftUI-freier Wert. Portable Optionen,
+dokumentgebundene Auswahl und ausdrücklich lokale Ziel-/Werkzeugpfade sind getrennt.
+`ConversionProfileOptions` enthält keine Privatpfade oder Dokumentpositionen;
+`presentationIncludeNotes` ist eine portable Präferenz. Eine explizite
+`PresentationSelection.includeNotes` hat im Adapter weiterhin Vorrang.
+`ConversionProfile.resolve` legt explizite Einzeloptionen über die Profilwerte;
+Blattwahl und Zellbereiche werden unabhängig überlagert. Quellgebundene Auswahlen
+benutzen die geprüfte Inhaltsübersicht und deren Hash/Größe. Die aufgelöste Anfrage
+trägt `expectedSourceIdentity` bis zur bestehenden Prüfung vor Veröffentlichung.
+
+`ProfileJSONPreflight` begrenzt Tiefe/Knoten und lehnt doppelte, auch maskierte
+Schlüssel ab. Alle Modellebenen lehnen unbekannte Felder ab; nur fehlende bekannte
+Optionsfelder erhalten dokumentierte Schema-Defaults. `ConversionProfileStore`
+liest begrenzt, hält den Zielordner per Deskriptor, schützt die Namensvergabe mit
+einer kurzen nicht wartenden Schreibsperre und publiziert vollständige 0600-Dateien
+per exklusivem Hardlink. Ein vorhandenes Ziel wird nicht ersetzt. Die CLI bleibt
+für Parsing, Verwaltung und explizite Optionsvorränge zuständig; Konvertierungslogik
+bleibt im Kern. Der öffentliche Vertrag steht in [PROFILES.md](PROFILES.md).

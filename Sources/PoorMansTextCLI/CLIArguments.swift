@@ -2,6 +2,18 @@ import Foundation
 import PoorMansTextCore
 
 struct ParsedArguments {
+    var profileName: String?
+    var saveProfileName: String?
+    var importProfileURL: URL?
+    var exportProfileURL: URL?
+    var profileDirectory: URL?
+    var profileSource: URL?
+    var listProfiles = false
+    var allowLocalProfile = false
+    var clearProfileSelection = false
+    var profileExplicit = Set<ConversionProfileOptionKey>()
+    var expectedSourceIdentity: ConversionSourceIdentity?
+    var presentationIncludeNotes = true
     var inputURLs = [URL]()
     var outputURL: URL?
     var pandocURL: URL?
@@ -48,6 +60,19 @@ Convert documents, spreadsheets, presentations, notebooks, PDFs, or images into 
 
 Options:
   -o, --output DIRECTORY  Set the new output directory.
+      --profile NAME      Apply a saved profile; explicit options take precedence.
+      --save-profile NAME Save options without converting an input.
+      --list-profiles     List profile names and scopes.
+      --import-profile FILE  Import a versioned profile without overwriting names.
+      --export-profile FILE  Export --profile NAME to a new file.
+      --profiles-directory DIR  Use another local profile store.
+      --profile-source FILE  Bind saved content selections to this exact document.
+      --profile-local     Explicitly permit local targets in profile operations.
+      --clear-profile-selection  Discard a chosen profile's bound content selection.
+      --no-frontmatter, --markdown-folder, --no-source-map, --no-report
+                          Explicitly disable profile output preferences.
+      --no-pdf-remove-headers-footers, --no-pdf-dehyphenate
+                          Explicitly disable profile PDF cleanup preferences.
       --pandoc PATH       Use a specific Pandoc executable.
       --formats           List the supported input formats instead of converting.
       --spreadsheet-format table|tsv
@@ -123,6 +148,7 @@ and exits 64.
 /// weiß: Parser und Vorabscan lesen sie beide, sonst könnten sie `--pandoc
 /// --json` verschieden deuten.
 let valueOptions: Set<String> = [
+    "--profile", "--save-profile", "--import-profile", "--export-profile", "--profiles-directory", "--profile-source",
     "-o", "--output", "--pandoc", "--timeout", "--jobs", "--spreadsheet-format",
     "--docx-changes", "--image-ocr", "--ocr-method", "--pdf-ocr", "--pdf-layout", "--ocr-language", "--pdf-pages", "--sheets", "--sheet-name", "--cell-range", "--slides", "--notes", "--epub-chapters",
 ]
@@ -194,7 +220,17 @@ func parseArguments(
 }
 
 private func apply(flag: String, to parsed: inout ParsedArguments) throws {
+    recordProfileOverride(flag, in: &parsed)
     switch flag {
+    case "--list-profiles": parsed.listProfiles = true
+    case "--profile-local": parsed.allowLocalProfile = true
+    case "--clear-profile-selection": parsed.clearProfileSelection = true
+    case "--no-frontmatter": parsed.frontmatter = false
+    case "--markdown-folder": parsed.outputLayout = .markdownFolder
+    case "--no-source-map": parsed.sourceMapping = false
+    case "--no-report": parsed.conversionReport = false
+    case "--no-pdf-remove-headers-footers": parsed.setsPDFOptions = true; parsed.pdfOptions.pdfRemoveHeadersFooters = false
+    case "--no-pdf-dehyphenate": parsed.setsPDFOptions = true; parsed.pdfOptions.pdfDehyphenate = false
     case "-h", "--help": parsed.showHelp = true
     case "-V", "--version": parsed.showVersion = true
     case "--progress": parsed.progress = true
@@ -219,7 +255,14 @@ private func apply(flag: String, to parsed: inout ParsedArguments) throws {
 }
 
 private func apply(option: String, value: String, to parsed: inout ParsedArguments) throws {
+    recordProfileOverride(option, in: &parsed)
     switch option {
+    case "--profile": parsed.profileName = value
+    case "--save-profile": parsed.saveProfileName = value
+    case "--import-profile": parsed.importProfileURL = try fileURL(value, option: option)
+    case "--export-profile": parsed.exportProfileURL = try fileURL(value, option: option)
+    case "--profiles-directory": parsed.profileDirectory = try fileURL(value, option: option)
+    case "--profile-source": parsed.profileSource = try fileURL(value, option: option)
     case "--timeout":
         guard let seconds = Double(value), seconds.isFinite, seconds > 0 else {
             throw CLIArgumentError.invalidConversionOption(
@@ -263,6 +306,7 @@ private func apply(option: String, value: String, to parsed: inout ParsedArgumen
         catch { throw CLIArgumentError.invalidConversionOption("--slides: " + error.localizedDescription) }
     case "--notes":
         guard ["on", "off"].contains(value) else { throw CLIArgumentError.invalidConversionOption("--notes requires on or off") }
+        parsed.presentationIncludeNotes = value == "on"
         parsed.presentationSelection = PresentationSelection(slides: parsed.presentationSelection?.slides, includeNotes: value == "on")
     case "--sheets":
         guard !parsed.setsSheetSelection else { throw CLIArgumentError.invalidConversionOption("--sheets cannot be repeated or combined with --sheet-name") }

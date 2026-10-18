@@ -56,7 +56,7 @@ struct PresentationAdapter: DocumentConversionAdapter {
             let reader = try ZIPArchiveInspector.openVerifiedPackage(from: context.resolvedInputURL, into: context.workDirectory, named: "presentation.zip")
             guard try format(reader) == context.format else { throw ImportFailure("presentation format changed after inspection") }
             let importer = PresentationImport(reader: reader, output: context.stagedOutputDirectory)
-            let markdown = try importer.convert(format: context.format, title: context.inputURL.deletingPathExtension().lastPathComponent, selection: context.options.presentationSelection)
+            let markdown = try importer.convert(format: context.format, title: context.inputURL.deletingPathExtension().lastPathComponent, selection: context.options.presentationSelection, defaultIncludeNotes: context.options.presentationIncludeNotes)
             let filename = context.inputURL.deletingPathExtension().lastPathComponent + ".md"
             try Data(markdown.utf8).write(to: context.stagedOutputDirectory.appendingPathComponent(filename), options: .atomic)
             return StagedConversionResult(markdownRelativePath: filename, assetRelativePaths: importer.media.paths, warnings: importer.diagnostics.result, metadata: PackageMetadataParser.read(from: reader, entryName: context.format == .pptx ? "docProps/core.xml" : "meta.xml"))
@@ -174,8 +174,8 @@ final class PresentationImport {
         for _ in 0..<3 where String(data: bytes, encoding: .utf8) == nil { bytes.removeLast() }
         return (String(data: bytes, encoding: .utf8) ?? "") + "…"
     }
-    func convert(format: InputFormat, title: String, selection: PresentationSelection? = nil) throws -> String {
-        let includeNotes = selection?.includeNotes ?? true
+    func convert(format: InputFormat, title: String, selection: PresentationSelection? = nil, defaultIncludeNotes: Bool = true) throws -> String {
+        let includeNotes = selection?.includeNotes ?? defaultIncludeNotes
         diagnostics.add("presentation.layoutNotPreserved", "Slide positions, themes, transitions, animations and exact formatting are not preserved.")
         if reader.entryNames.contains(where: { $0.hasSuffix("vbaProject.bin") }) { diagnostics.add("presentation.macrosNotPreserved", "Presentation macros are never executed and are not copied.") }
         var markdown = "# " + MarkdownEscaping.heading(title) + "\n\n"

@@ -6,7 +6,7 @@ import PoorMansTextCore
 /// Text stehen, und die Zahl der ausgelassenen Dateien geht an stderr.
 func convertToStandardOutput(_ inputURL: URL, options: ConversionOptions, arguments: ParsedArguments, cancellation: ConversionCancellationToken) throws {
     let result = try DocumentConverter().convert(
-        ConversionRequest(inputURL: inputURL, destination: .temporary, options: options),
+        ConversionRequest(inputURL: inputURL, destination: .temporary, options: options, expectedSourceIdentity: arguments.expectedSourceIdentity),
         progress: progressHandler(arguments, input: inputURL), cancellation: cancellation, processTimeout: arguments.timeout
     )
     defer { try? FileManager.default.removeItem(at: result.outputDirectory) }

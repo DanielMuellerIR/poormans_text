@@ -23,20 +23,22 @@ do {
     // an einem früheren Argument scheitern kann.
     parsedArguments.json = requestsJSONOutput(rawArguments)
     try parseArguments(rawArguments, into: &parsedArguments)
-    let arguments = parsedArguments
 
-    if arguments.showHelp {
+    if parsedArguments.showHelp {
         print(usage)
         exit(CLIExitCode.success.rawValue)
     }
 
-    if arguments.showVersion {
+    if parsedArguments.showVersion {
         print("\(ProductInfo.name) \(ProductInfo.version)")
         exit(CLIExitCode.success.rawValue)
     }
 
+    if try prepareProfiles(&parsedArguments, cancellation: cancellation) { exit(CLIExitCode.success.rawValue) }
+    let arguments = parsedArguments
+
     if arguments.listFormats {
-        guard arguments.inputURLs.isEmpty, arguments.outputURL == nil,
+        guard arguments.profileExplicit.subtracting([.pandocExecutable]).isEmpty, arguments.inputURLs.isEmpty, arguments.outputURL == nil,
               !arguments.listSheets, !arguments.listSlides, !arguments.listChapters, arguments.epubChapters == nil, arguments.presentationSelection == nil, !arguments.setsSpreadsheetSelection, !arguments.setsJobs, !arguments.setsPDFOptions, !arguments.setsDOCXChangeMode, !arguments.setsSpreadsheetRendering, !arguments.setsImageTextRecognition,
               !arguments.writeToStandardOutput, !arguments.frontmatter, !arguments.sourceMapping, !arguments.conversionReport,
               arguments.outputLayout == .markdownFolder, !arguments.progress, arguments.timeout == nil else {
@@ -54,7 +56,7 @@ do {
     }
 
     if arguments.listSheets || arguments.listSlides || arguments.listChapters {
-        guard [arguments.listSheets, arguments.listSlides, arguments.listChapters].filter({ $0 }).count == 1, arguments.epubChapters == nil, arguments.presentationSelection == nil, arguments.inputURLs.count == 1, arguments.outputURL == nil, !arguments.writeToStandardOutput,
+        guard arguments.profileExplicit.isEmpty, [arguments.listSheets, arguments.listSlides, arguments.listChapters].filter({ $0 }).count == 1, arguments.epubChapters == nil, arguments.presentationSelection == nil, arguments.inputURLs.count == 1, arguments.outputURL == nil, !arguments.writeToStandardOutput,
               !arguments.setsSpreadsheetSelection, !arguments.setsSpreadsheetRendering, !arguments.setsImageTextRecognition,
               !arguments.setsPDFOptions, !arguments.setsDOCXChangeMode, !arguments.setsJobs, arguments.pandocURL == nil,
               !arguments.frontmatter, !arguments.sourceMapping, !arguments.conversionReport, !arguments.progress, arguments.outputLayout == .markdownFolder else {
@@ -82,26 +84,7 @@ do {
         }
         exit(0)
     }
-    let options = ConversionOptions(
-        pandocExecutable: arguments.pandocURL,
-        spreadsheetRendering: arguments.spreadsheetRendering,
-        imageTextRecognition: arguments.imageTextRecognition,
-        frontmatter: arguments.frontmatter,
-        outputLayout: arguments.outputLayout,
-        pdfTextRecognition: arguments.pdfOptions.pdfTextRecognition,
-        ocrLanguages: arguments.pdfOptions.ocrLanguages,
-        ocrMethod: arguments.pdfOptions.ocrMethod,
-        docxChangeMode: arguments.docxChangeMode,
-        pdfLayout: arguments.pdfOptions.pdfLayout,
-        pdfRemoveHeadersFooters: arguments.pdfOptions.pdfRemoveHeadersFooters,
-        pdfDehyphenate: arguments.pdfOptions.pdfDehyphenate,
-        pdfPages: arguments.pdfOptions.pdfPages,
-        epubChapters: arguments.epubChapters,
-        presentationSelection: arguments.presentationSelection,
-        spreadsheetSelection: arguments.setsSpreadsheetSelection ? try SpreadsheetSelection(sheets: arguments.sheetSelection, ranges: arguments.cellRanges) : nil,
-        sourceMapping: arguments.sourceMapping,
-        conversionReport: arguments.conversionReport
-    )
+    let options = try arguments.conversionOptions
     let enumerator = InputEnumerator()
 
     if arguments.writeToStandardOutput {
@@ -143,7 +126,7 @@ do {
         ConversionRequest(
             inputURL: firstInputURL,
             destination: destination,
-            options: options
+            options: options, expectedSourceIdentity: arguments.expectedSourceIdentity
         ),
         progress: progressHandler(arguments, input: firstInputURL), cancellation: cancellation, processTimeout: arguments.timeout
     )

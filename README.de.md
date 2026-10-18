@@ -597,7 +597,7 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.31.0.
+Die aktuelle Version ist 0.32.0.
 
 ## Lizenz
 
@@ -627,6 +627,10 @@ einzige Netzwerkzugriff ist die Update-Suche. Einzelheiten stehen in
 ### Tabellenauswahl
 
 `--list-sheets --json mappe.xlsx` zeigt Quellindizes, exakte Namen und Sichtbarkeit. `--sheets visible` übernimmt sichtbare Arbeitsblätter; `--sheets 1,3-5` oder wiederholtes `--sheet-name NAME` wählt bestimmte Blätter. Wiederholtes `--cell-range B2:D8` wählt Rechtecke auf jedem gewählten Blatt. Überlappungen werden dedupliziert, entfernte Rechtecke bleiben getrennt; Berichte behalten die ursprünglichen Koordinaten. Ohne diese Optionen werden versteckte Blätter weiterhin übernommen. Grenzen, Verbundzellen und Formeln stehen unter [Tabellenauswahl](docs/SPREADSHEET-SELECTION.md).
+
+### Benannte Konvertierungsprofile
+
+`--save-profile NAME` speichert wiederkehrende Optionen, `--profile NAME` wählt sie aus. `--list-profiles`, `--import-profile DATEI` und `--export-profile DATEI` verwalten das versionierte JSON. Explizite Konvertierungsoptionen haben Vorrang. Inhaltsauswahlen brauchen beim Speichern `--profile-source DATEI` und bleiben an genau diese Quellbytes gebunden. Lokale Ziel-/Werkzeugpfade verlangen bei jedem Profilvorgang `--profile-local`. Details: [Profile und Vorrang](docs/PROFILES.md). Die Profilbedienung in App und Kurzbefehle ist geplant.
 
 ### PDF-Text und OCR-Optionen
 

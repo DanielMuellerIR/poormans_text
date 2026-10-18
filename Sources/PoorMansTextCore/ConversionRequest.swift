@@ -67,6 +67,8 @@ public struct ConversionOptions: Equatable, Sendable {
     public var pdfLayout: PDFLayout
     public var pdfRemoveHeadersFooters: Bool
     public var pdfDehyphenate: Bool
+    /// Wiederverwendbare Notizpräferenz; eine explizite Folienauswahl hat Vorrang.
+    public var presentationIncludeNotes: Bool
     /// Physische PDF-Seiten; nil importiert alle. Andere Formate lehnen die Auswahl ab.
     public var pdfPages: IndexSelection?
     public var epubChapters: IndexSelection?
@@ -89,6 +91,7 @@ public struct ConversionOptions: Equatable, Sendable {
         pdfLayout: PDFLayout = .automatic,
         pdfRemoveHeadersFooters: Bool = false,
         pdfDehyphenate: Bool = false,
+        presentationIncludeNotes: Bool = true,
         pdfPages: IndexSelection? = nil,
         epubChapters: IndexSelection? = nil,
         presentationSelection: PresentationSelection? = nil,
@@ -108,6 +111,7 @@ public struct ConversionOptions: Equatable, Sendable {
         self.pdfLayout = pdfLayout
         self.pdfRemoveHeadersFooters = pdfRemoveHeadersFooters
         self.pdfDehyphenate = pdfDehyphenate
+        self.presentationIncludeNotes = presentationIncludeNotes
         self.pdfPages = pdfPages
         self.epubChapters = epubChapters
         self.presentationSelection = presentationSelection

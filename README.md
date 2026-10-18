@@ -565,7 +565,7 @@ and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compa
 their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current version is 0.31.0.
+The current version is 0.32.0.
 
 ## License
 
@@ -595,6 +595,10 @@ support information is in [SUPPORT.md](SUPPORT.md).
 ### Spreadsheet selection
 
 Use `--list-sheets --json workbook.xlsx` to inspect source sheet indices, exact names and visibility. `--sheets visible` imports visible worksheets; `--sheets 1,3-5` or repeated `--sheet-name NAME` selects explicit sheets. Repeated `--cell-range B2:D8` selects rectangles on every selected sheet. Overlaps are deduplicated and distant rectangles stay separate, with original source coordinates in reports. Without these options, hidden sheets remain included as before. See [spreadsheet selection](docs/SPREADSHEET-SELECTION.md) for bounds, merges and formulas.
+
+### Named conversion profiles
+
+Save recurring options with `--save-profile NAME`, select them with `--profile NAME`, and manage portable JSON using `--list-profiles`, `--import-profile FILE` and `--export-profile FILE`. Explicit conversion options take precedence. Content selections require `--profile-source FILE` when saved and remain bound to those exact source bytes. Local output/tool paths require `--profile-local` for each profile operation. See [profiles and precedence](docs/PROFILES.md). App and Shortcuts profile controls are planned.
 
 ### PDF text and OCR options
 

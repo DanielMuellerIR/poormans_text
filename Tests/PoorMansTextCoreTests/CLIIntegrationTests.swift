@@ -350,8 +350,8 @@ final class CLIIntegrationTests: XCTestCase {
     /// Jede Option mit Wert muss ihren Wert wirklich verbrauchen — sonst läse
     /// der Vorabscan ein `--json` an dieser Stelle als Ausgabemodus, obwohl es
     /// ein Pfad oder ein ungültiger Wert ist. Die Liste hier spiegelt
-    /// `valueOptions` in CLIArguments.swift; eine neue Option mit Wert gehört
-    /// an beide Stellen.
+    /// Konvertierungsoptionen aus `valueOptions` in CLIArguments.swift. Die
+    /// eigenständige Profilverwaltung wird in CLIProfileTests separat geprüft.
     func testEveryValueOptionConsumesItsValue() throws {
         let valueOptions = [
             "-o", "--output", "--pandoc", "--timeout", "--jobs", "--spreadsheet-format",

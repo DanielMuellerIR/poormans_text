@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.32.0 — 2026-10-18
+
+- Add versioned named conversion profiles with strict JSON validation, bounded local storage, import/export and CLI selection. Explicit CLI options override profile values; omitted known fields retain stable defaults.
+- Bind saved page, chapter, slide and sheet/cell selections to a verified source fingerprint. Validate ranges when saving and recheck source bytes before publication; require an explicit choice to discard a saved selection.
+- Keep local output/tool paths separate and require explicit permission for their capture, import, export and use. Publish profiles atomically without overwriting names or export targets, including concurrent and Unicode-equivalent collisions.
+- Add a portable presentation-note preference and explicit negative output/cleanup flags for profile overrides. App and Shortcuts profile controls remain pending.
+
 ## 0.31.0 — 2026-10-18
 
 - Retain PDF comments and text markings with available author, source dates, page references and excerpts. Preserve rich-text-only annotations literally; distinguish associated popups from independent content.

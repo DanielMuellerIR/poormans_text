@@ -40,9 +40,10 @@ Kurzbefehle reichen die jeweils passenden Optionen weiter.
   in App, Dienst und Kurzbefehlen vollständig bedienen. Reguläre MBOX-Dateien
   sind als vollständige geordnete Sammlung bereits lesbar; Varianten und
   bewusste Grenzen stehen in [docs/MBOX.md](docs/MBOX.md).
-- ENEX-Bilder, Anhänge und auflösbare interne Verweise ergänzen; die erste
-  Notizsammlung mit Tags, Daten und statischen Checkboxen ist vorhanden.
-  Aktuelle Grenzen stehen in [docs/ENEX.md](docs/ENEX.md).
+- ENEX-Notizen in App, Dienst und Kurzbefehlen einzeln wählen, öffnen, kopieren
+  und vorschauen. Kern/CLI erhalten bereits Notizen, Metadaten, Ressourcen und
+  anhand expliziter Identitäten auflösbare Verweise; Grenzen stehen in
+  [docs/ENEX.md](docs/ENEX.md).
 
 ## Mögliche spätere Erweiterung
 

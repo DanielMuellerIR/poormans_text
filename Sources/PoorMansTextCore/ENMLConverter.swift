@@ -2,6 +2,14 @@ import Foundation
 
 struct ENMLConverter {
     private(set) var warnings: [ConversionWarning] = []
+    private let resources: ENEXResources?
+    private let noteLinks: ENEXNoteLinks?
+    private let markdownName: String
+    init(resources: ENEXResources? = nil, noteLinks: ENEXNoteLinks? = nil, markdownName: String = "") {
+        self.resources = resources
+        self.noteLinks = noteLinks
+        self.markdownName = markdownName
+    }
     private static let elements: Set<String> = ["a", "abbr", "acronym", "address", "b", "bdo", "big", "blockquote", "br", "caption", "center", "cite", "code", "col", "colgroup", "dd", "del", "dfn", "div", "dl", "dt", "em", "font", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "img", "ins", "kbd", "li", "map", "ol", "p", "pre", "q", "s", "samp", "small", "span", "strike", "strong", "sub", "sup", "table", "tbody", "td", "tfoot", "th", "thead", "tr", "tt", "u", "ul", "var"]
 
     mutating func convert(_ content: String) throws -> String {
@@ -31,6 +39,12 @@ struct ENMLConverter {
             guard ["true", "false"].contains(state), node.children.isEmpty, node.text.isEmpty else { return unsupported(node) }
             return "<span>" + (state == "true" ? "☑" : "☐") + "</span>"
         case "en-media":
+            guard node.children.isEmpty, node.text.isEmpty else { return unsupported(node) }
+            if let resources {
+                let resolved = resources.media(node)
+                if let warning = resolved.warning { warnings.append(warning) }
+                return resolved.html
+            }
             warnings.append(.init(code: "enex.mediaNotImported", message: "An ENEX resource reference was retained as a placeholder; resource import is not available in this reader.", kind: .contentLoss))
             let label = ["Resource", node.attribute("type"), node.attribute("hash"), node.attribute("alt")].compactMap { $0 }.joined(separator: " ")
             return "<span>" + Self.escaped("[" + label + "]") + "</span>"
@@ -40,6 +54,7 @@ struct ENMLConverter {
         default: break
         }
         guard Self.elements.contains(node.name) else { return unsupported(node) }
+        if ["br", "hr", "img", "col"].contains(node.name), !node.children.isEmpty || !node.text.isEmpty { return unsupported(node) }
         if node.name == "div", let style = node.attribute("style"),
            style.range(of: #"(?:^|;)\s*-{1,2}en-codeblock\s*:\s*true(?:\s*;|\s*$)"#, options: .regularExpression) != nil {
             return "<pre><code>" + Self.escaped(Self.codeText(node)) + "</code></pre>"
@@ -50,13 +65,22 @@ struct ENMLConverter {
         }
         if node.name == "img", let source = node.attribute("src") { attributes["src"] = source }
         if node.name == "a", let target = node.attribute("href") {
+            if let noteLinks {
+                switch noteLinks.resolve(target, markdownName: markdownName) {
+                case .resolved(let path): return "<a href=\"" + Self.escaped(path) + "\">" + (try children(node)) + "</a>"
+                case .unavailable(let warning):
+                    warnings.append(warning)
+                    return (try children(node)) + " (<code>" + Self.escaped(target) + "</code>)"
+                case .external: break
+                }
+            }
             let scheme = URLComponents(string: target)?.scheme?.lowercased()
             if ["http", "https", "mailto"].contains(scheme ?? ""),
                !target.unicodeScalars.contains(where: { CharacterSet.controlCharacters.contains($0) }) {
                 attributes["href"] = target
             } else {
                 warnings.append(.init(code: "enex.linkNotResolved", message: "An ENEX link target was retained as text because it cannot be resolved safely in this import.", kind: .approximation))
-                return (try children(node)) + " (" + Self.escaped(target) + ")"
+                return (try children(node)) + " (<code>" + Self.escaped(target) + "</code>)"
             }
         }
         var body = try children(node)

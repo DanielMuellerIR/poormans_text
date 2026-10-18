@@ -36,7 +36,7 @@ Benannte Profile lassen sich in der App verwalten und in Kurzbefehle auswählen.
 
 Reguläre MBOX-Dateien werden zu geordneten Nachrichtensammlungen mit Kopfzeilen, Körpern und lokalen Assets. [MBOX-Grenzen und Varianten](docs/MBOX.md) sind dokumentiert; Apple-Mail-Exportpakete bleiben offen.
 
-Begrenzte ENEX-Exporte werden zu geordneten Notizsammlungen mit Titeln, Tags, Daten und statischen Checkbox-/Aufgabeninhalten. Die [ENEX-Grenzen](docs/ENEX.md) beschreiben XML-Schutz und die derzeitigen Ressourcen-/Linkeinschränkungen.
+Begrenzte ENEX-Exporte werden zu geordneten Notizsammlungen mit Titeln, Tags, Daten und statischen Checkbox-/Aufgabeninhalten. Die [ENEX-Grenzen](docs/ENEX.md) beschreiben XML-Schutz, bytegetreue Ressourcen und die Grenzen interner Linkauflösung.
 
 Sammlungsadapter verwenden eine primäre Markdown-Übersicht, geordnete Einzeldokumente und getrennte Assets. Der [Sammlungsvertrag](docs/COLLECTIONS.md) beschreibt Library- und JSON-Felder, Textbundle-Ablage und stdout-Grenze. Er bildet die Grundlage für die MBOX- und ENEX-Leser; der Formatkatalog nennt die aktuell unterstützten Eingaben.
 
@@ -605,7 +605,7 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.36.0.
+Die aktuelle Version ist 0.37.0.
 
 ## Lizenz
 

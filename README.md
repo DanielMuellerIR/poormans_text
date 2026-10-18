@@ -34,7 +34,7 @@ Named profiles can be managed in the app and selected in Shortcuts. Empty Shortc
 
 Regular MBOX files become ordered message collections with headers, bodies and local assets. See the [MBOX limits and variant contract](docs/MBOX.md); Apple Mail export packages remain pending.
 
-Bounded ENEX exports become ordered note collections with titles, tags, dates and static checkbox/task content. [ENEX limits](docs/ENEX.md) describe XML safety and the current resource/link restrictions.
+Bounded ENEX exports become ordered note collections with titles, tags, dates and static checkbox/task content. [ENEX limits](docs/ENEX.md) describe XML safety, byte-preserving resources and the limits of internal link resolution.
 
 Collection adapters share a primary Markdown overview, ordered documents and isolated assets. The [collection contract](docs/COLLECTIONS.md) describes the library and JSON fields, Textbundle layout and stdout restriction. This provides the foundation for the MBOX and ENEX readers; the format catalog lists currently supported inputs.
 
@@ -573,7 +573,7 @@ and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compa
 their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current version is 0.36.0.
+The current version is 0.37.0.
 
 ## License
 

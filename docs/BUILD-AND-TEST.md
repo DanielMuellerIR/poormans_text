@@ -309,3 +309,8 @@ Notizexporte über denselben Sammlungsvertrag. `ENEXReaderTests` und
 `ENEXConversionTests` prüfen XML-Grenzen, Metadaten, statische Aufgaben,
 verschlüsselte/wörtliche Inhalte und atomare Ausgabe; [ENEX.md](ENEX.md)
 beschreibt unterstützte Varianten und offene Ressourcen-/Linkgrenzen.
+
+`ENEXResources` prüft und übernimmt Originalressourcen mit getrennten Ordinalpfaden;
+`ENEXNoteLinks` löst ausschließlich eindeutige explizite Identitäten auf.
+`ENEXResourceTests` decken Raster-/PDF-/Binärbytes, Dubletten, gefährliche Namen,
+Quellreferenzen, Identitätskonflikte, Budgets und atomaren Abbruch ab.

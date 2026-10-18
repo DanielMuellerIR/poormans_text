@@ -68,11 +68,12 @@ final class ENEXConversionTests: XCTestCase {
         }
         XCTAssertTrue(text.contains("hint=\"Hint\""))
         XCTAssertTrue(text.contains("evernote:///view/1/s1/missing/missing/"))
-        XCTAssertTrue(result.documents[0].assets.isEmpty)
+        XCTAssertEqual(result.documents[0].assets.count, 1)
+        XCTAssertEqual(try Data(contentsOf: XCTUnwrap(result.documents[0].assets.first)), Data([1, 2, 3]))
         let codes = Set(result.diagnostics.map(\.code))
-        XCTAssertTrue(codes.isSuperset(of: ["enex.encryptedContentRetained", "enex.unsupportedElementRetained", "enex.mediaNotImported", "enex.resourcesNotImported", "enex.linkNotResolved", "enex.unknownFieldsRetained"]))
+        XCTAssertTrue(codes.isSuperset(of: ["enex.encryptedContentRetained", "enex.unsupportedElementRetained", "enex.resourceMissing", "enex.internalLinkInvalid", "enex.unknownFieldsRetained"]))
         XCTAssertTrue(result.diagnostics.allSatisfy { $0.location?.note == "1" })
-        XCTAssertEqual(result.diagnostics.first { $0.code == "enex.resourcesNotImported" }?.omittedCount, 1)
+        XCTAssertEqual(result.diagnostics.first { $0.code == "enex.resourceMissing" }?.omittedCount, 1)
     }
 
     func testTasksKeepStaticStateTitleAndRawSourceFields() throws {

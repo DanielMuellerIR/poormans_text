@@ -22,27 +22,27 @@ struct ENEXAdapter: DocumentConversionAdapter {
         do {
             let data = try VerifiedFileStaging.contents(of: context.resolvedInputURL, maximumBytes: ENEXReader.maximumSourceBytes, describedAs: "the ENEX export")
             let archive = try ENEXReader.read(data)
+            let noteLinks = ENEXNoteLinks(notes: archive.notes)
+            var resourceBudget = ENEXResources.Budget()
             var writer = CollectionOutputWriter(context: context)
             for note in archive.notes {
                 try ConversionExecution.report(.init(phase: .converting, format: .enex, unit: .note, completed: note.index - 1, total: archive.notes.count))
                 try writer.append(title: note.title, metadata: note.metadata, location: .init(note: String(note.index))) { child in
-                    var normalizer = ENMLConverter()
+                    let resources = try ENEXResources.stage(note, context: child, budget: &resourceBudget)
+                    var normalizer = ENMLConverter(resources: resources, noteLinks: noteLinks,
+                        markdownName: child.inputURL.deletingPathExtension().lastPathComponent + ".md")
                     let html = try normalizer.convert(note.content)
                     let resolved = try HTMLImageSourceResolver.resolve(html: html, baseDirectory: nil, baseURL: nil,
-                        subresources: [:], workDirectory: child.workDirectory)
+                        subresources: resources.subresources, workDirectory: child.workDirectory)
                     let converted = try HTMLDocumentConverter.convert(html: resolved.html, inputURL: child.inputURL,
                         format: .enex, resourceDirectory: child.workDirectory, stagedOutputDirectory: child.stagedOutputDirectory,
                         pandocExecutable: PandocTool.resolve(child.options.pandocExecutable))
-                    var warnings = note.warnings + normalizer.warnings + [.htmlStructureSimplified]
-                    let resourceCount = note.node.elements("resource", namespace: "").count
-                    if resourceCount > 0 {
-                        warnings.append(.init(code: "enex.resourcesNotImported", message: "ENEX resources are not imported by this reader; their references remain visible.", kind: .contentLoss, omittedCount: resourceCount))
-                    }
+                    var warnings = note.warnings + (noteLinks.warnings[note.index] ?? []) + resources.warnings + normalizer.warnings + [.htmlStructureSimplified]
                     if resolved.remoteImagesKeptAsLinks > 0 { warnings.append(.remoteImagesKeptAsLinks(resolved.remoteImagesKeptAsLinks)) }
                     if resolved.missingImagesDropped > 0 { warnings.append(.missingImagesDropped(resolved.missingImagesDropped)) }
-                    let known: Set<String> = ["title", "content", "created", "updated", "tag", "note-attributes", "task", "resource"]
+                    let known: Set<String> = ["title", "content", "created", "updated", "tag", "note-attributes", "task", "resource", "guid"]
                     let unknown = note.node.children.filter { !known.contains($0.name) || !$0.namespace.isEmpty }
-                    if !unknown.isEmpty || !note.node.attributes.isEmpty { warnings.append(.init(code: "enex.unknownFieldsRetained", message: "Unknown ENEX fields were retained in the source metadata table.", kind: .approximation)) }
+                    if !unknown.isEmpty || !Set(note.node.attributes.keys).subtracting(["|guid"]).isEmpty { warnings.append(.init(code: "enex.unknownFieldsRetained", message: "Unknown ENEX fields were retained in the source metadata table.", kind: .approximation)) }
                     let url = child.stagedOutputDirectory.appendingPathComponent(converted.markdownRelativePath)
                     try ConversionPostprocessor.prepend("# " + MarkdownEscaping.inlineLiteral(note.title) + "\n\n" + (try Self.metadataTable(note.node, excluding: ["title", "content", "resource", "task"])), to: url)
                     let tasks = note.node.elements("task", namespace: "")
@@ -60,7 +60,13 @@ struct ENEXAdapter: DocumentConversionAdapter {
                         warnings.append(.init(code: "enex.tasksFlattened", message: "ENEX tasks were retained as static entries in export order with their source fields; grouping and task actions are not reproduced.", kind: .approximation))
                         try Data(markdown.utf8).write(to: url, options: .atomic)
                     }
-                    return .init(markdownRelativePath: converted.markdownRelativePath, assetRelativePaths: converted.assetRelativePaths,
+                    if !resources.appendix.isEmpty {
+                        var markdown = try String(contentsOf: url, encoding: .utf8)
+                        markdown += resources.appendix
+                        guard markdown.utf8.count <= CollectionLimits.maximumDocumentBytes else { throw ImportFailure("ENEX resource output exceeds its size limit") }
+                        try Data(markdown.utf8).write(to: url, options: .atomic)
+                    }
+                    return .init(markdownRelativePath: converted.markdownRelativePath, assetRelativePaths: converted.assetRelativePaths + resources.assetPaths,
                         warnings: warnings, metadata: note.metadata)
                 }
             }
@@ -69,7 +75,7 @@ struct ENEXAdapter: DocumentConversionAdapter {
         catch { throw ConversionError.invalidInput(context.inputURL, format: .enex, reason: error.localizedDescription) }
     }
 
-    private static func metadataTable(_ root: ImportXML, excluding: Set<String>) throws -> String {
+    static func metadataTable(_ root: ImportXML, excluding: Set<String>) throws -> String {
         var rows: [(String, String)] = []
         var bytes = 0
         func append(_ name: String, _ value: String) throws {

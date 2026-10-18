@@ -46,25 +46,60 @@ Exporten werden gelesen; doppelte eindeutige Felder werden abgewiesen.
   bleibt leer, der Originalwert steht in der Tabelle und `enex.invalidDate` meldet
   die Einschränkung. Leere Inhalte und leere Sammlungen bleiben explizit leer.
 
-## Noch offene Ressourcengrenze
+## Ressourcen und interne Verweise
 
-Exportierte `resource`-Elemente werden derzeit mit `enex.resourcesNotImported`
-und ihrer Anzahl diagnostiziert. `en-media` bleibt als sichtbarer Platzhalter mit
-vorhandenem Typ, Hash und Alt-Text erhalten. ENEX-Bilder und Anhänge sowie die
-auflösbaren internen Notizverweise werden in einem weiteren Schritt ergänzt.
-Eine Ausgabe mit solchen Diagnosen ist daher keine vollständige Ressourcenkopie.
-Die Quelle bleibt erhalten. Gewöhnliche lokale oder eingebettete HTML-Bilder
-unterliegen den bestehenden Bildgrenzen; entfernte Bilder werden niemals geladen.
+Ressourcen werden streng als kanonisches Base64 mit ASCII-Leerraum dekodiert.
+Der MD5 des dekodierten Körpers und sein MIME-Typ bestimmen die `en-media`-
+Zuordnung, wie in der [ENML-Spezifikation](https://dev.evernote.com/legacy/doc/articles/enml)
+beschrieben. Exportnamen bleiben sichtbare Beschriftungen: Nur Ordinal und
+geprüfter Typ bestimmen `attachments/resource-000001.png` und ähnliche Pfade.
+Jeder ursprüngliche Ressourcenrecord bleibt separat erhalten, auch bei gleichen
+Bytes, Namen oder Hashes. Mehrere Verweise auf identische Rasterbytes teilen sich
+zusätzlich eine gerenderte Bildkopie. Ein Hash mit unterschiedlichen Bytes ist
+mehrdeutig und erhält keine willkürliche Zuordnung.
 
-HTTP-, HTTPS- und Mailto-Links bleiben Links. Andere Ziele, darunter interne
-Evernote-Verweise, bleiben zunächst als Text mit `enex.linkNotResolved` erhalten.
-Es wird keine nicht exportierte Notizidentität erfunden.
+PNG, JPEG, HEIC, TIFF, GIF, BMP und WebP werden gegen den tatsächlichen Rastertyp
+und die Pixel-/Framegrenzen geprüft. Statische Rasterbilder werden eingebettet;
+ihre Originale bleiben zusätzlich als Anhänge erhalten. Mehrseitige oder aktive
+Bildformate wie SVG und unbekannte Typen bleiben als `.bin`-Anhänge bytegetreu
+erhalten und werden diagnostiziert. PDF-Anhänge werden als lokale PDF-Struktur
+geprüft und kopiert, nicht konvertiert oder ausgeführt. UTF-8-Text ohne NUL darf
+`.txt` verwenden; andere Typen bestimmen keine ausführbaren Dateiendungen.
+Alternative Binärdaten und vorhandener Erkennungstext werden als eigene sichere
+Dateien erhalten. Entfernte Ressourcen werden nicht geladen.
+
+Jeder `en-media`-Verweis bleibt einzeln sichtbar. Fehlende Hashzuordnung,
+widersprüchlicher Typ oder mehrdeutige Hashes behalten Typ/Hash/Alt-Text als
+Platzhalter mit konkreter Diagnose. Die sonstigen Originalanhänge bleiben dabei
+verfügbar. Defektes Base64 und ungültige deklarierte Raster-/PDF-Daten scheitern
+atomar, ebenso überschrittene Budgets.
+
+Die offiziellen [Note Links](https://dev.evernote.com/legacy/doc/articles/note_links)
+identifizieren ihr Ziel über eine GUID. Standard-ENEX lässt diese Notizidentitäten
+häufig weg. Der Leser nutzt nur tatsächlich enthaltene eindeutige Notiz-GUIDs:
+explizite `guid`-Attribute oder skalare `guid`-Felder direkt an einer Notiz werden
+als Exporterweiterung unterstützt. Die Standard-DTDs selbst versprechen diese
+Felder nicht. Gleiche oder sogar einzigartige Titel sind kein Identitätsbeleg.
+Klassische Evernote-Links und dokumentierte Web-Notizlinks können damit auf die
+nummerierte lokale Markdown-Datei zeigen. Fehlende, doppelte oder widersprüchliche
+Identitäten und verkürzte Links ohne Offline-Identität bleiben mit Linktext und
+wörtlichem Originalziel erhalten und werden diagnostiziert. Ohne exportierte
+Identitäten ist eine vollständige Linkmigration nicht möglich.
+
+Sonstige sichere HTTP-, HTTPS- und Mailto-Links bleiben Links. Andere Ziele werden
+als Text erhalten. Die native Auswahl einzelner Sammlungsdokumente ist noch offen;
+die bisherigen App-Aktionen verwenden die Übersicht.
 
 ## Sicherheits- und Größengrenzen
 
 Die gesamte ENEX-Datei ist auf 16 MiB begrenzt, der ENML-Inhalt einer Notiz auf
 8 MiB. Zusätzlich gelten 10.000 Notizen, 1.024 Tags und Aufgaben pro Notiz,
 64 KiB Metadaten pro Notiz sowie die gemeinsamen Ausgabe-/Assetgrenzen.
+Ressourcen sind auf 12 MiB je Binärpayload, 1.024 Records je Notiz,
+10.000 Records und 64 MiB dekodierte Ressourcen-/Begleitdaten je Archiv begrenzt.
+Ein gemeinsames Budget erlaubt 64 Millionen geprüfte Rasterpixel über alle
+Frames; bytegleiche Daten desselben Typs werden anhand SHA-256 nur einmal geprüft.
+Höchstens 1.000 Frames je Bild sind erlaubt.
 XML ist auf 128 Ebenen, 200.000 Knoten und Attribute insgesamt, 128 Attribute
 pro Element und 1.024 UTF-8-Bytes pro Elementname begrenzt. Der Prolog darf
 16 KiB und eine DOCTYPE-Deklaration 4 KiB nicht überschreiten.

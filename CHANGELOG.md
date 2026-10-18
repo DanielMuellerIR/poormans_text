@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.37.0 — 2026-10-18
+
+- Preserve bounded ENEX resource records byte for byte, validate canonical Base64 and raster/PDF types, and retain duplicates, alternate payloads and recognition source text. Use ordinal asset paths independent of export filenames; keep active or unknown types as binary attachments.
+- Resolve each en-media reference by the decoded payload's MD5 and MIME type; retain original files alongside rendered raster copies. Keep missing, mismatched or ambiguous references visible with specific diagnostics and enforce archive resource/pixel budgets.
+- Resolve local note links only from unique explicit exported GUIDs. Preserve absent, conflicting, duplicate and shortened targets as literal text with diagnostics; never infer identities from matching titles.
+
 ## 0.36.0 — 2026-10-18
 
 - Import bounded ENEX 2/3/4 exports as ordered note collections with titles, tags, source fields and available creation/modification dates. Retain invalid dates visibly with diagnostics.

@@ -12,6 +12,8 @@ public struct ConversionResult: Sendable {
     public let format: InputFormat
     public let outputDirectory: URL
     public let markdownFile: URL
+    /// Zusatzdateien des primären Einstiegs; bei Sammlungen auch die verlinkten
+    /// Markdown-Dokumente, damit bestehende Hosts alle benötigten Dateien übernehmen.
     public let assets: [URL]
     public let outputLifetime: ConversionOutputLifetime
     public let diagnostics: [ConversionWarning]
@@ -21,6 +23,8 @@ public struct ConversionResult: Sendable {
     public let sourceMappings: [ConversionSourceMapping]
     public let outputFiles: [ConversionOutputFile]
     public let reportFile: URL?
+    public let documents: [ConversionDocument]
+    public let isCollection: Bool
     public var diagnosticGroups: [ConversionDiagnosticGroup] { ConversionDiagnosticGroup.grouped(diagnostics) }
 
     /// Quellkompatible Textsicht für CLI, App und bisherige Library-Aufrufer.
@@ -43,7 +47,9 @@ public struct ConversionResult: Sendable {
         sourceIdentity: ConversionSourceIdentity? = nil,
         sourceMappings: [ConversionSourceMapping] = [],
         outputFiles: [ConversionOutputFile] = [],
-        reportFile: URL? = nil
+        reportFile: URL? = nil,
+        documents: [ConversionDocument]? = nil,
+        isCollection: Bool = false
     ) {
         self.inputURL = inputURL
         self.format = format
@@ -57,6 +63,9 @@ public struct ConversionResult: Sendable {
         self.sourceMappings = sourceMappings
         self.outputFiles = outputFiles
         self.reportFile = reportFile
+        self.documents = documents ?? [.init(sourceIndex: 1, title: metadata.title ?? inputURL.deletingPathExtension().lastPathComponent,
+            markdownFile: markdownFile, assets: assets, metadata: metadata)]
+        self.isCollection = isCollection
     }
 
 }

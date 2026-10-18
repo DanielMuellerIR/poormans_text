@@ -23,6 +23,22 @@ struct JSONMetadata: Encodable {
     }
 }
 
+struct JSONDocument: Encodable {
+    let sourceIndex: Int
+    let title: String
+    let markdownFile: String
+    let assets: [String]
+    let metadata: JSONMetadata
+
+    init(_ document: ConversionDocument) {
+        sourceIndex = document.sourceIndex
+        title = document.title
+        markdownFile = canonicalPath(document.markdownFile)
+        assets = document.assets.map(canonicalPath)
+        metadata = JSONMetadata(document.metadata)
+    }
+}
+
 struct JSONResponse: Encodable {
     let ok: Bool
     let version: String
@@ -37,6 +53,7 @@ struct JSONResponse: Encodable {
     var sourceMappings: [ConversionSourceMapping]? = nil
     var outputFiles: [ConversionOutputFile]? = nil
     var reportFile: String? = nil
+    var documents: [JSONDocument]? = nil
     let metadata: JSONMetadata?
     let error: String?
 
@@ -53,6 +70,7 @@ struct JSONResponse: Encodable {
         sourceMappings: [ConversionSourceMapping]? = nil,
         outputFiles: [ConversionOutputFile]? = nil,
         reportFile: String? = nil,
+        documents: [JSONDocument]? = nil,
         metadata: JSONMetadata? = nil,
         error: String? = nil
     ) {
@@ -69,6 +87,7 @@ struct JSONResponse: Encodable {
         self.sourceMappings = sourceMappings
         self.outputFiles = outputFiles
         self.reportFile = reportFile
+        self.documents = documents
         self.metadata = metadata
         self.error = error
     }
@@ -87,6 +106,7 @@ struct JSONResponse: Encodable {
             sourceMappings: result.sourceIdentity == nil ? nil : result.sourceMappings,
             outputFiles: result.sourceIdentity == nil ? nil : result.outputFiles,
             reportFile: result.reportFile.map(canonicalPath),
+            documents: result.documents.map(JSONDocument.init),
             metadata: JSONMetadata(result.metadata)
         )
     }
@@ -112,6 +132,7 @@ struct JSONBatchEntry: Encodable {
     var sourceMappings: [ConversionSourceMapping]? = nil
     var outputFiles: [ConversionOutputFile]? = nil
     var reportFile: String? = nil
+    var documents: [JSONDocument]? = nil
     let metadata: JSONMetadata?
     let error: String?
 
@@ -129,6 +150,7 @@ struct JSONBatchEntry: Encodable {
             sourceMappings: result.sourceIdentity == nil ? nil : result.sourceMappings,
             outputFiles: result.sourceIdentity == nil ? nil : result.outputFiles,
             reportFile: result.reportFile.map(canonicalPath),
+            documents: result.documents.map(JSONDocument.init),
             metadata: JSONMetadata(result.metadata),
             error: nil
         )

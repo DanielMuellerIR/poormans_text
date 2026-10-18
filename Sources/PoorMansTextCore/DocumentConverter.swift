@@ -367,7 +367,22 @@ public struct DocumentConverter: Sendable {
                 warnings.append(.metadataUnavailable)
             }
         }
-        if request.options.outputLayout == .textbundle {
+        if let documents = stagedResult.documents {
+            do {
+                warnings += try CollectionPostprocessor.prepare(documents, in: stagedOutput, primary: markdownRelativePath,
+                    assets: assetRelativePaths, frontmatter: request.options.frontmatter)
+                if request.options.outputLayout == .textbundle {
+                    markdownRelativePath = try CollectionPostprocessor.applyTextbundle(in: stagedOutput, primary: markdownRelativePath, documents: documents)
+                }
+            } catch let error as ConversionError { throw error }
+            catch let error as ImportFailure {
+                try ConversionExecution.check()
+                throw ConversionError.invalidInput(inputURL, format: format, reason: error.reason)
+            } catch {
+                try ConversionExecution.check()
+                throw ConversionError.fileSystemFailure(error.localizedDescription)
+            }
+        } else if request.options.outputLayout == .textbundle {
             (markdownRelativePath, assetRelativePaths) = try ConversionPostprocessor.applyTextbundleLayout(
                 in: stagedOutput,
                 markdownRelativePath: markdownRelativePath,
@@ -386,12 +401,16 @@ public struct DocumentConverter: Sendable {
                 sourceIdentity = try recording.identity(named: inputURL.lastPathComponent)
                 let markdownData = try Data(contentsOf: stagedOutput.appendingPathComponent(markdownRelativePath))
                 sourceMappings = try recording.mappings(file: markdownRelativePath, markdown: markdownData)
+                if let documents = stagedResult.documents {
+                    sourceMappings += try CollectionPostprocessor.mappings(documents, in: stagedOutput, frontmatter: request.options.frontmatter)
+                }
                 if recording.omittedMappingCount > 0 {
                     warnings.append(ConversionWarning(code: "sourceMap.limited", message: "\(recording.omittedMappingCount) further source mappings were omitted because of mapping bounds or text replacements.", kind: .information, omittedCount: recording.omittedMappingCount))
                 } else if sourceMappings.isEmpty {
                     warnings.append(ConversionWarning(code: "sourceMap.unavailable", message: "No verified source-to-text positions are available for this conversion.", kind: .information))
                 }
                 var files = [markdownRelativePath] + assetRelativePaths
+                files += stagedResult.documents?.map(\.markdownRelativePath) ?? []
                 if request.options.outputLayout == .textbundle { files.append("info.json") }
                 outputFiles = try files.sorted().map { path in
                     try ConversionExecution.check()
@@ -406,7 +425,9 @@ public struct DocumentConverter: Sendable {
                     let report = ConversionReport(schemaVersion: 1, converterVersion: ProductInfo.version, format: format,
                         source: sourceIdentity!, options: ConversionReport.Options(request.options), diagnostics: portableWarnings,
                         diagnosticGroups: ConversionDiagnosticGroup.grouped(portableWarnings), outputs: outputFiles,
-                        sourceMappings: sourceMappings, omittedMappingCount: recording.omittedMappingCount)
+                        sourceMappings: sourceMappings, omittedMappingCount: recording.omittedMappingCount,
+                        documents: stagedResult.documents?.map { .init(sourceIndex: $0.sourceIndex, title: $0.title,
+                            markdownFile: $0.markdownRelativePath, assets: $0.assetRelativePaths) })
                     reportRelativePath = try ConversionPostprocessor.write(report, in: stagedOutput)
                 }
             } catch let error as ConversionError { throw error }
@@ -446,14 +467,18 @@ public struct DocumentConverter: Sendable {
             format: format,
             outputDirectory: destination.url,
             markdownFile: destination.url.appendingPathComponent(markdownRelativePath),
-            assets: assetRelativePaths.map { destination.url.appendingPathComponent($0) },
+            assets: (assetRelativePaths + (stagedResult.documents?.map(\.markdownRelativePath) ?? [])).map { destination.url.appendingPathComponent($0) },
             outputLifetime: destination.lifetime,
             diagnostics: warnings,
             metadata: stagedResult.metadata,
             sourceIdentity: sourceIdentity,
             sourceMappings: sourceMappings,
             outputFiles: outputFiles,
-            reportFile: reportRelativePath.map { destination.url.appendingPathComponent($0) }
+            reportFile: reportRelativePath.map { destination.url.appendingPathComponent($0) },
+            documents: stagedResult.documents?.map { .init(sourceIndex: $0.sourceIndex, title: $0.title,
+                markdownFile: destination.url.appendingPathComponent($0.markdownRelativePath),
+                assets: $0.assetRelativePaths.map { destination.url.appendingPathComponent($0) }, metadata: $0.metadata) },
+            isCollection: stagedResult.documents != nil
         )
         ConversionExecution.current?.progress?(ConversionProgress(phase: .finished, format: format))
         return result
@@ -778,16 +803,19 @@ struct StagedConversionResult: Sendable {
     let assetRelativePaths: [String]
     let warnings: [ConversionWarning]
     let metadata: DocumentMetadata
+    let documents: [StagedConversionDocument]?
 
     init(
         markdownRelativePath: String,
         assetRelativePaths: [String],
         warnings: [ConversionWarning],
-        metadata: DocumentMetadata = DocumentMetadata()
+        metadata: DocumentMetadata = DocumentMetadata(),
+        documents: [StagedConversionDocument]? = nil
     ) {
         self.markdownRelativePath = markdownRelativePath
         self.assetRelativePaths = assetRelativePaths
         self.warnings = warnings
         self.metadata = metadata
+        self.documents = documents
     }
 }

@@ -34,6 +34,8 @@ Benannte Profile lassen sich in der App verwalten und in Kurzbefehle auswählen.
 
 ## Ausgabe
 
+Sammlungsadapter verwenden eine primäre Markdown-Übersicht, geordnete Einzeldokumente und getrennte Assets. Der [Sammlungsvertrag](docs/COLLECTIONS.md) beschreibt Library- und JSON-Felder, Textbundle-Ablage und stdout-Grenze. Er bildet die Grundlage für die geplanten MBOX- und ENEX-Leser; der Formatkatalog nennt die aktuell unterstützten Eingaben.
+
 Die Konvertierung einer unterstützten Eingabe erzeugt einen neuen Nachbarordner,
 ohne die Quelle zu verändern. Enthält die Eingabe extrahierbare Bilder, sieht das
 Ergebnis so aus:
@@ -599,7 +601,7 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.33.0.
+Die aktuelle Version ist 0.34.0.
 
 ## Lizenz
 

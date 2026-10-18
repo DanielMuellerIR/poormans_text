@@ -32,6 +32,8 @@ Named profiles can be managed in the app and selected in Shortcuts. Empty Shortc
 
 ## Output
 
+Collection adapters share a primary Markdown overview, ordered documents and isolated assets. The [collection contract](docs/COLLECTIONS.md) describes the library and JSON fields, Textbundle layout and stdout restriction. This provides the foundation for the planned MBOX and ENEX readers; the format catalog lists currently supported inputs.
+
 Converting a supported input creates a new sibling directory without changing
 the source. If the input contains extractable images, the result looks like this:
 
@@ -567,7 +569,7 @@ and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compa
 their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current version is 0.33.0.
+The current version is 0.34.0.
 
 ## License
 

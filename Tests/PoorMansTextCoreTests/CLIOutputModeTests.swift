@@ -36,6 +36,24 @@ final class CLIOutputModeTests: XCTestCase {
         XCTAssertTrue(result.standardOutput.contains("images/image01.png"))
     }
 
+    func testAdditiveDocumentJSONRetainsThePrimarySingleFileContract() throws {
+        let source = root.appendingPathComponent("single.csv")
+        try Data("Name,Value\nJSONBODY,42\n".utf8).write(to: source)
+        let run = try runCLI(["--json", "--report", source.path])
+        XCTAssertEqual(run.status, 0, run.standardError)
+        let response = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(run.standardOutput.utf8)) as? [String: Any])
+        let documents = try XCTUnwrap(response["documents"] as? [[String: Any]])
+        XCTAssertEqual(documents.count, 1)
+        XCTAssertEqual(documents[0]["sourceIndex"] as? Int, 1)
+        XCTAssertEqual(documents[0]["markdownFile"] as? String, response["markdownFile"] as? String)
+        XCTAssertEqual(documents[0]["assets"] as? [String], response["assets"] as? [String])
+        XCTAssertEqual(response["ok"] as? Bool, true)
+        XCTAssertNotNil(response["outputFiles"])
+        XCTAssertNotNil(response["reportFile"])
+        let path = try XCTUnwrap(response["markdownFile"] as? String)
+        XCTAssertEqual(try String(contentsOfFile: path, encoding: .utf8).components(separatedBy: "JSONBODY").count - 1, 1)
+    }
+
     func testDOCXChangeModesReachTheConverterAndCatalogRejectsTheOption() throws {
         let source = try DOCXReviewFixture.make(in: root)
         for mode in ["accept", "reject", "mark"] {

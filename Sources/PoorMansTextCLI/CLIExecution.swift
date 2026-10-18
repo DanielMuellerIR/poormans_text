@@ -10,7 +10,14 @@ func convertToStandardOutput(_ inputURL: URL, options: ConversionOptions, argume
         progress: progressHandler(arguments, input: inputURL), cancellation: cancellation, processTimeout: arguments.timeout
     )
     defer { try? FileManager.default.removeItem(at: result.outputDirectory) }
+    try writeToStandardOutput(result, cancellation: cancellation)
+}
+
+func writeToStandardOutput(_ result: ConversionResult, cancellation: ConversionCancellationToken) throws {
     try cancellation.checkCancellation()
+    guard !result.isCollection else {
+        throw CLIArgumentError.invalidConversionOption("--stdout cannot represent a document collection. Choose an output folder or Textbundle to retain its documents and links.")
+    }
     let markdown: Data
     do {
         markdown = try Data(contentsOf: result.markdownFile)

@@ -41,8 +41,6 @@ Kurzbefehle reichen die jeweils passenden Optionen weiter.
 - ENEX-Exporte mit einzelnen Notizen, Tags, Metadaten, Bildern und Anhängen
   importieren. Interne Verweise soweit anhand der Exportdaten möglich erhalten;
   nicht auflösbare Verweise diagnostizieren.
-- Sammlungen vollständig im temporären Bereich fertigstellen und als Ganzes
-  atomar veröffentlichen. Bestehende Einzeldatei-Ausgaben bleiben kompatibel.
 
 ## Mögliche spätere Erweiterung
 

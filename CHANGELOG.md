@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.34.0 — 2026-10-18
+
+- Add a shared collection result with a primary Markdown overview and an ordered document list, per-document metadata and isolated assets. Keep existing single-document results and JSON fields compatible.
+- Stage and publish complete collections atomically; validate output ownership, file paths and bounded content before publication. Textbundles retain one primary text.md with linked documents under assets/.
+- Include every document in source mappings, output manifests and the primary entry's assets so existing hosts can retain linked files. Keep app actions on the primary overview and reject collection stdout output before emitting temporary links.
+
 ## 0.33.0 — 2026-10-18
 
 - Select and manage named conversion profiles in the app; preserve current settings and show unsaved changes across restarts.

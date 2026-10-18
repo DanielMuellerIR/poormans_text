@@ -289,3 +289,12 @@ Kurzbefehle-Parameter, fehlende Auswahlübertragung, Abbruch und Quellenwechsel.
 Die verbindliche Quellenbindung wird auch ohne Bericht/Mapping geprüft. GUI-
 Auswahl und Kurzbefehle benötigen zusätzlich einen echten Lauf am notarisierten
 Bundle; Metadaten und Modelltests ersetzen diese Abnahme nicht.
+
+`CollectionOutputTests` verwendet echte MIME-Nachrichten in einem temporären
+ZIP-Testcontainer, einschließlich gleicher Titel/Assetnamen, Unicode, Bildern
+und Anhängen. Der Testadapter dient ausschließlich der gemeinsamen Ausgabe;
+er registriert kein öffentliches Eingabeformat. Beide Layouts, Frontmatter,
+Datei-/Quellenbelege, endgültige Bereiche, Abbruch und Zielkollision werden
+geprüft. Unsichere, fehlende, nicht gemeldete und übergroße Ergebnisse dürfen
+keine Sammlung veröffentlichen. CLI-Prüfungen erhalten die bestehenden
+Einzeldateifelder und prüfen die additive Dokumentliste.

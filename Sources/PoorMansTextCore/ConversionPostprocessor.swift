@@ -66,23 +66,27 @@ enum ConversionPostprocessor {
                 to: stagedOutput.appendingPathComponent("text.md"),
                 options: .atomic
             )
-            let info: [String: Any] = [
-                "version": 2,
-                "type": "net.daringfireball.markdown",
-                "transient": false,
-                "creatorIdentifier": "org.poormanstext.PoorMansText",
-            ]
-            let infoData = try JSONSerialization.data(
-                withJSONObject: info,
-                options: [.prettyPrinted, .sortedKeys]
-            )
-            try infoData.write(to: stagedOutput.appendingPathComponent("info.json"), options: .atomic)
+            try writeTextbundleInfo(in: stagedOutput)
         } catch let error as ConversionError {
             throw error
         } catch {
             throw ConversionError.fileSystemFailure(error.localizedDescription)
         }
         return ("text.md", newAssets)
+    }
+
+    static func writeTextbundleInfo(in stagedOutput: URL) throws {
+        let info: [String: Any] = [
+            "version": 2,
+            "type": "net.daringfireball.markdown",
+            "transient": false,
+            "creatorIdentifier": "org.poormanstext.PoorMansText",
+        ]
+        let infoData = try JSONSerialization.data(
+            withJSONObject: info,
+            options: [.prettyPrinted, .sortedKeys]
+        )
+        try infoData.write(to: stagedOutput.appendingPathComponent("info.json"), options: .withoutOverwriting)
     }
 
     static func portableDiagnostics(_ warnings: [ConversionWarning], paths: [(String, String)]) -> [ConversionWarning] {

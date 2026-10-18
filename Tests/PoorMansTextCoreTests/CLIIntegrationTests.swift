@@ -237,8 +237,11 @@ final class CLIIntegrationTests: XCTestCase {
         let successJSON = try decodeJSON(success.standardOutput)
         XCTAssertEqual(
             Set(successJSON.keys),
-            ["assets", "input", "markdownFile", "metadata", "ok", "outputDirectory", "version", "warnings"]
+            ["assets", "documents", "input", "markdownFile", "metadata", "ok", "outputDirectory", "version", "warnings"]
         )
+        let documents = try XCTUnwrap(successJSON["documents"] as? [[String: Any]])
+        XCTAssertEqual(documents.count, 1)
+        XCTAssertEqual(documents[0]["markdownFile"] as? String, successJSON["markdownFile"] as? String)
         XCTAssertEqual(successJSON["ok"] as? Bool, true)
         XCTAssertEqual(successJSON["version"] as? String, ProductInfo.version)
         for key in ["input", "outputDirectory", "markdownFile"] {

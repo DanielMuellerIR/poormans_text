@@ -58,6 +58,14 @@ public struct ConversionReport: Codable, Sendable {
     public let outputs: [ConversionOutputFile]
     public let sourceMappings: [ConversionSourceMapping]
     public let omittedMappingCount: Int
+    public private(set) var documents: [Document]? = nil
+
+    public struct Document: Codable, Sendable {
+        public let sourceIndex: Int
+        public let title: String
+        public let markdownFile: String
+        public let assets: [String]
+    }
 
     /// Portabler Optionsstand ohne absolute Werkzeug- oder Privatpfade.
     public struct Options: Codable, Sendable {

@@ -43,8 +43,11 @@ final class CLIBatchTests: XCTestCase {
         XCTAssertEqual(results.map { $0["ok"] as? Bool }, [true, false, true])
         XCTAssertEqual(
             Set(results[0].keys),
-            ["assets", "input", "markdownFile", "metadata", "ok", "outputDirectory", "warnings"]
+            ["assets", "documents", "input", "markdownFile", "metadata", "ok", "outputDirectory", "warnings"]
         )
+        let documents = try XCTUnwrap(results[0]["documents"] as? [[String: Any]])
+        XCTAssertEqual(documents.count, 1)
+        XCTAssertEqual(documents[0]["markdownFile"] as? String, results[0]["markdownFile"] as? String)
         XCTAssertEqual(Set(results[1].keys), ["error", "input", "ok"])
         XCTAssertEqual(results[1]["input"] as? String, broken.resolvingSymlinksInPath().path)
         // Der Fehler in der Mitte hat die dritte Eingabe nicht verhindert.

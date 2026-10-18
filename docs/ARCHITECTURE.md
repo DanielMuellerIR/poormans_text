@@ -241,6 +241,23 @@ defer { try? FileManager.default.removeItem(at: result.outputDirectory) }
 openMarkdown(result.markdownFile)
 ```
 
+## Dokumentensammlungen
+
+`CollectionOutputWriter` ist eine interne Schlussstrecke für Archivadapter. Er
+vergibt stabile nummerierte Dokumentordner unter `assets/documents`, hält
+Metadaten/Assets pro Dokument getrennt und erzeugt eine gemeinsame Übersicht.
+Er besitzt kein Veröffentlichungsziel und ruft keinen Batch-Konverter auf.
+`CollectionPostprocessor` validiert die vollständige Dateiliste und Budgets,
+ergänzt Frontmatter sowie endgültige Quellenbezüge und passt Textbundle-
+Rückverweise an. Erst danach veröffentlicht `DocumentConverter` die ganze Ausgabe
+mit seinem bestehenden atomaren Schritt.
+
+`ConversionResult.markdownFile` bleibt primär; `documents` und `isCollection`
+ergänzen den Ergebnisvertrag. CLI-JSON erhält eine geordnete Liste, der Bericht
+relative Dokumentpfade. Die bestehende App-Vorschau öffnet die Übersicht;
+stdout lehnt Sammlungen vor der ersten Textausgabe ab. Details und Grenzen:
+[Sammlungsausgabe](COLLECTIONS.md).
+
 ## Testgrenzen
 
 - Adaptertests verwenden echte temporär erzeugte RTF- und RTFD-Dokumente sowie

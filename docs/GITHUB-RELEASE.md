@@ -25,7 +25,11 @@ VERSION="$(sed -n 's/.*static let version = "\(.*\)".*/\1/p' \
   Sources/PoorMansTextCore/ProductInfo.swift)"
 ```
 
-1. Confirm that public contact and legal-notice requirements have been resolved
+1. Keep the product version aligned in `ProductInfo.swift`, `App/Info.plist`,
+   both READMEs and the changelog. Increase `CFBundleVersion` and update its
+   explicit expectation in `Tests/PoorMansTextCoreTests/ProductInfoTests.swift`;
+   run `swift test --filter ProductInfoTests` after changing version metadata.
+   Confirm that public contact and legal-notice requirements have been resolved
    for the intended form of publication. Never commit a private address merely
    to satisfy this checklist.
 2. Confirm that the author name, email address, and full Git history are intended

@@ -1,6 +1,6 @@
 # Poor Man’s Text und Microsoft MarkItDown
 
-Stand: 2026-10-18, Poor Man’s Text 0.41.3.
+Stand: 2026-10-18, Poor Man’s Text 0.41.4.
 
 [Microsoft MarkItDown](https://github.com/microsoft/markitdown#readme) beschreibt
 sich als Python-Werkzeug für Markdown-Aufbereitung in Sprachmodell- und

@@ -2,9 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.41.4 — 2026-10-18
+
+- Align the bundle-version regression check with release build 89 and document its required update during version changes.
+
 ## 0.41.3 — 2026-10-18
 
-- Declare the structured OCR mapper initializer explicitly so Swift 6.2 can compile its private budget state; recognition behavior and limits remain unchanged.
+- Declare the structured OCR mapper initializer explicitly so older Swift toolchains, including Swift 6.3.3, can compile its private budget state; recognition behavior and limits remain unchanged.
 
 ## 0.41.2 — 2026-10-18
 

@@ -387,3 +387,5 @@
 
 "message" = "Nachricht";
 "MBOX From quoting was retained because its original variant cannot be identified reliably." = "Die MBOX-Quotierung von From-Zeilen wurde erhalten, weil die ursprüngliche Variante nicht zuverlässig erkennbar ist.";
+
+"note" = "Notiz";

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.36.0 — 2026-10-18
+
+- Import bounded ENEX 2/3/4 exports as ordered note collections with titles, tags, source fields and available creation/modification dates. Retain invalid dates visibly with diagnostics.
+- Normalize ENML 2 locally through the shared HTML converter; retain code, static checkbox/task states, encrypted payloads and unsupported elements without executing them.
+- Remove known declarative DTD references before parsing, reject entity declarations and foreign namespaces, and enforce XML/normalization budgets before publication. Diagnose resource placeholders and unresolved internal links; binary resource import remains pending.
+
 ## 0.35.0 — 2026-10-18
 
 - Read regular MBOX archives as ordered document collections, retaining message headers, envelope lines, bodies and byte-identical images and attachments through the shared mail engine.

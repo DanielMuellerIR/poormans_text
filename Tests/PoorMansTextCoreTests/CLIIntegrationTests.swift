@@ -3,6 +3,37 @@ import XCTest
 @testable import PoorMansTextCore
 
 final class CLIIntegrationTests: XCTestCase {
+    func testENEXCollectionsRetainMetadataAndRejectStdout() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("PMTCLIENEX-\(UUID())")
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let source = root.appendingPathComponent("notes.enex")
+        let notes = (1...2).map { number in
+            "<note><title>Same title</title><content>&lt;en-note&gt;CLI_ENEX_BODY_\(number)&lt;/en-note&gt;</content><tag>Grüße</tag><created>20261018T051000Z</created></note>"
+        }.joined()
+        let bytes = Data(("<en-export>" + notes + "</en-export>").utf8)
+        try bytes.write(to: source)
+        let target = root.appendingPathComponent("notes.textbundle")
+        let run = try runCLI(["--json", "--report", "--textbundle", "--progress", "-o", target.path, source.path])
+        XCTAssertEqual(run.status, 0, run.standardError)
+        XCTAssertTrue(run.standardError.contains("converting note 0/2"))
+        XCTAssertTrue(run.standardError.contains("converting note 1/2"))
+        let response = try decodeJSON(run.standardOutput)
+        let documents = try XCTUnwrap(response["documents"] as? [[String: Any]])
+        XCTAssertEqual(documents.count, 2)
+        for (index, document) in documents.enumerated() {
+            let text = try String(contentsOfFile: XCTUnwrap(document["markdownFile"] as? String), encoding: .utf8)
+            XCTAssertEqual(text.components(separatedBy: "CLI_ENEX_BODY_\(index + 1)").count - 1, 1)
+            let metadata = try XCTUnwrap(document["metadata"] as? [String: Any])
+            XCTAssertEqual(metadata["keywords"] as? [String], ["Grüße"])
+            XCTAssertEqual(metadata["created"] as? String, "2026-10-18T05:10:00Z")
+        }
+        let stdout = try runCLI(["--stdout", source.path])
+        XCTAssertEqual(stdout.status, 64)
+        XCTAssertTrue(stdout.standardOutput.isEmpty)
+        XCTAssertEqual(try Data(contentsOf: source), bytes)
+    }
+
     func testMBOXCollectionJSONProgressAndStdoutBoundary() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent("PMTCLIMBOX-\(UUID())")
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)

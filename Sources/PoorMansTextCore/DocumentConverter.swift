@@ -19,6 +19,7 @@ public struct DocumentConverter: Sendable {
             PandocTextAdapter(),
             MailAdapter(),
             MBOXAdapter(),
+            ENEXAdapter(),
             MSGAdapter(),
         ])
     }

@@ -40,9 +40,9 @@ Kurzbefehle reichen die jeweils passenden Optionen weiter.
   in App, Dienst und Kurzbefehlen vollständig bedienen. Reguläre MBOX-Dateien
   sind als vollständige geordnete Sammlung bereits lesbar; Varianten und
   bewusste Grenzen stehen in [docs/MBOX.md](docs/MBOX.md).
-- ENEX-Exporte mit einzelnen Notizen, Tags, Metadaten, Bildern und Anhängen
-  importieren. Interne Verweise soweit anhand der Exportdaten möglich erhalten;
-  nicht auflösbare Verweise diagnostizieren.
+- ENEX-Bilder, Anhänge und auflösbare interne Verweise ergänzen; die erste
+  Notizsammlung mit Tags, Daten und statischen Checkboxen ist vorhanden.
+  Aktuelle Grenzen stehen in [docs/ENEX.md](docs/ENEX.md).
 
 ## Mögliche spätere Erweiterung
 

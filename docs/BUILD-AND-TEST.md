@@ -303,3 +303,9 @@ Reguläre MBOX-Dateien verwenden `MBOXReader`, `MBOXAdapter`, die vorhandene
 MIME-/Mail-Engine und den gemeinsamen Sammlungsvertrag. Varianten, Ressourcen-
 und Fehlergrenzen stehen in [MBOX.md](MBOX.md). `MBOXReaderTests` prüfen reale
 Dateien, Körper-/Headerbestand, Anhangsbytes, Zeilenenden und atomaren Abbruch.
+
+`ENEXReader`, `ENEXXML`, `ENMLConverter` und `ENEXAdapter` lesen begrenzte
+Notizexporte über denselben Sammlungsvertrag. `ENEXReaderTests` und
+`ENEXConversionTests` prüfen XML-Grenzen, Metadaten, statische Aufgaben,
+verschlüsselte/wörtliche Inhalte und atomare Ausgabe; [ENEX.md](ENEX.md)
+beschreibt unterstützte Varianten und offene Ressourcen-/Linkgrenzen.

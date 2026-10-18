@@ -15,7 +15,7 @@ alte Word-Dateien (`.doc`), ODS, XLSX (einschließlich XLSM und XLTX/XLTM), XLS,
 CSV und TSV, PPTX/PPTM/POTX- und ODP-Präsentationen, IPYNB-Notebooks,
 OpenDocument-Masterdokumente (`.odm`), PDFs, HTML und
 Safari-Webarchive, EPUB, LaTeX, DocBook, Org, MediaWiki, Textile,
-reStructuredText, FictionBook, EML, Apple Mail (`.emlx`), Outlook (`.msg`) und reguläre MBOX-Archive sowie PNG-, JPEG-, HEIC-, TIFF-, GIF-, BMP- und
+reStructuredText, FictionBook, EML, Apple Mail (`.emlx`), Outlook (`.msg`) und reguläre MBOX-Archive und begrenzte ENEX-Exporte sowie PNG-, JPEG-, HEIC-, TIFF-, GIF-, BMP- und
 WebP-Bilder in Ordner mit Markdown und gegebenenfalls separat gespeicherten
 Bildern um.
 
@@ -36,7 +36,9 @@ Benannte Profile lassen sich in der App verwalten und in Kurzbefehle auswählen.
 
 Reguläre MBOX-Dateien werden zu geordneten Nachrichtensammlungen mit Kopfzeilen, Körpern und lokalen Assets. [MBOX-Grenzen und Varianten](docs/MBOX.md) sind dokumentiert; Apple-Mail-Exportpakete bleiben offen.
 
-Sammlungsadapter verwenden eine primäre Markdown-Übersicht, geordnete Einzeldokumente und getrennte Assets. Der [Sammlungsvertrag](docs/COLLECTIONS.md) beschreibt Library- und JSON-Felder, Textbundle-Ablage und stdout-Grenze. Er bildet die Grundlage für den MBOX-Leser und den geplanten ENEX-Leser; der Formatkatalog nennt die aktuell unterstützten Eingaben.
+Begrenzte ENEX-Exporte werden zu geordneten Notizsammlungen mit Titeln, Tags, Daten und statischen Checkbox-/Aufgabeninhalten. Die [ENEX-Grenzen](docs/ENEX.md) beschreiben XML-Schutz und die derzeitigen Ressourcen-/Linkeinschränkungen.
+
+Sammlungsadapter verwenden eine primäre Markdown-Übersicht, geordnete Einzeldokumente und getrennte Assets. Der [Sammlungsvertrag](docs/COLLECTIONS.md) beschreibt Library- und JSON-Felder, Textbundle-Ablage und stdout-Grenze. Er bildet die Grundlage für die MBOX- und ENEX-Leser; der Formatkatalog nennt die aktuell unterstützten Eingaben.
 
 Die Konvertierung einer unterstützten Eingabe erzeugt einen neuen Nachbarordner,
 ohne die Quelle zu verändern. Enthält die Eingabe extrahierbare Bilder, sieht das
@@ -603,7 +605,7 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.35.0.
+Die aktuelle Version ist 0.36.0.
 
 ## Lizenz
 

@@ -153,7 +153,7 @@ public struct ConversionProgress: Equatable, Sendable {
         case finished
     }
 
-    public enum Unit: String, Equatable, Sendable { case file, page, sheet, frame, slide, chapter, cell, message }
+    public enum Unit: String, Equatable, Sendable { case file, page, sheet, frame, slide, chapter, cell, message, note }
     public let phase: Phase
     public let format: InputFormat?
     public let unit: Unit?

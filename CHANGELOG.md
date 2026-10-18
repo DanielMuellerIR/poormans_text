@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.41.2 — 2026-10-18
+
+- Register the native Evernote ENEX type alongside the fallback type, so Finder offers Open With and the conversion service when macOS prefers `com.evernote.enex`.
+
+## 0.41.1 — 2026-10-18
+
+- Select the first matching collection note or message with Return in the search field, and show an explicit empty-search state.
+- Keep local attachment preview headings aligned at the top, including unsupported files and unavailable previews; use the singular label for one note.
+
+## 0.41.0 — 2026-10-18
+
+- Integrate local ENEX exports in app opening, Finder services and both Shortcuts actions through the existing collection contract. Select, search, open, copy and preview numbered notes while keeping the overview and complete report reachable.
+- Preview registered local note attachments as bounded raster images, a PDF first-page image or UTF-8 text. Retain unknown types with an explicit notice; never activate links or PDF actions, follow symlinks or load remote resources.
+- Document Pandoc, per-note profile/frontmatter behavior, complete Textbundle output, and missing export identities/resources in help and the format catalog examples.
+
 ## 0.40.1 — 2026-10-18
 
 - Advertise the system services with an explicit application port and an empty required context, so macOS presents the file conversion service in Finder instead of merely registering it. Refresh the service catalog when the app starts after an update.

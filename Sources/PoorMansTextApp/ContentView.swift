@@ -538,19 +538,27 @@ struct ContentView: View {
     }
 
     private func collectionSelection(_ result: ConversionResult) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        let documents = result.documents.filter { collectionQuery.isEmpty || $0.title.localizedCaseInsensitiveContains(collectionQuery) || String($0.sourceIndex) == collectionQuery }
+        let countText = result.format == .enex && result.documents.count == 1
+            ? NSLocalizedString("1 note", comment: "")
+            : String(format: NSLocalizedString(result.format == .mbox ? "%d messages" : result.format == .enex ? "%d notes" : "%d documents", comment: ""), result.documents.count)
+        return VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text(String(format: NSLocalizedString(result.format == .mbox ? "%d messages" : "%d documents", comment: ""), result.documents.count)).font(.headline)
+                Text(countText).font(.headline)
                 Spacer()
                 Button("Overview") { model.selectCollectionDocument(nil) }
                     .accessibilityIdentifier("collectionOverview")
             }
-            TextField(LocalizedStringKey(result.format == .mbox ? "Find a message" : "Find a document"), text: $collectionQuery)
+            TextField(LocalizedStringKey(result.format == .mbox ? "Find a message" : result.format == .enex ? "Find a note" : "Find a document"), text: $collectionQuery)
                 .textFieldStyle(.roundedBorder)
                 .accessibilityIdentifier("collectionSearch")
+                .help("Press Return to select the first match.")
+                .onSubmit {
+                    if !collectionQuery.isEmpty, let document = documents.first { model.selectCollectionDocument(document.sourceIndex) }
+                }
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 4) {
-                    ForEach(result.documents.filter { collectionQuery.isEmpty || $0.title.localizedCaseInsensitiveContains(collectionQuery) || String($0.sourceIndex) == collectionQuery }, id: \.sourceIndex) { document in
+                    ForEach(documents, id: \.sourceIndex) { document in
                         Button { model.selectCollectionDocument(document.sourceIndex) } label: {
                             HStack(alignment: .firstTextBaseline, spacing: 8) {
                                 Text("\(document.sourceIndex).").monospacedDigit().foregroundStyle(.secondary)
@@ -564,6 +572,7 @@ struct ContentView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 5))
                         .accessibilityIdentifier("collectionDocument-\(document.sourceIndex)")
                     }
+                    if documents.isEmpty { Text("No matching documents.").foregroundStyle(.secondary) }
                 }
             }.frame(height: 110)
             Text(model.selectedDocument.map { "\($0.sourceIndex). \($0.title)" } ?? NSLocalizedString("Overview", comment: ""))
@@ -596,7 +605,7 @@ struct ContentView: View {
                     .controlSize(.small)
                 Text("Installing Pandoc…")
             } else {
-                Text("Pandoc for word-processing, HTML, e-book, and text-markup formats")
+                Text("Pandoc for text documents, mail, and ENEX")
             }
         }
         .font(.caption)

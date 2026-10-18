@@ -206,7 +206,7 @@ public final class AppModel: ObservableObject {
         return selectedResult?.documents.first { $0.sourceIndex == index }
     }
 
-    /// Die Vorschau löst Ressourcen relativ zur gewählten Nachricht auf.
+    /// Die Vorschau löst Ressourcen relativ zum gewählten Sammlungsdokument auf.
     public var selectedOutput: ConversionResult? {
         guard let result = selectedResult, let document = selectedDocument else { return selectedResult }
         return ConversionResult(inputURL: result.inputURL, format: result.format,

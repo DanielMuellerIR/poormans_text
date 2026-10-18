@@ -438,3 +438,17 @@
 "Open Report" = "Open Report";
 
 "The conversion report could not be opened." = "The conversion report could not be opened.";
+
+"%d notes" = "%d notes";
+"Find a note" = "Find a note";
+"Local files" = "Local files";
+"This local file is unavailable or exceeds the preview limit." = "This local file is unavailable or exceeds the preview limit.";
+"PDF preview: page 1 of %d. Links and actions are inactive." = "PDF preview: page 1 of %d. Links and actions are inactive.";
+"No safe preview is available for this file type. The original attachment remains in the output folder." = "No safe preview is available for this file type. The original attachment remains in the output folder.";
+"Pandoc for text documents, mail, and ENEX" = "Pandoc for text documents, mail, and ENEX";
+"The file list is limited to 1,024 entries. All files remain in the output folder." = "The file list is limited to 1,024 entries. All files remain in the output folder.";
+
+"Press Return to select the first match." = "Press Return to select the first match.";
+"No matching documents." = "No matching documents.";
+
+"1 note" = "1 note";

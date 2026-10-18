@@ -26,13 +26,6 @@ Kurzbefehle reichen die jeweils passenden Optionen weiter.
   Fotos erweitern; Inhaltsbestand, Zellzuordnung, Lesereihenfolge, Laufzeit
   und Speicherbedarf entscheiden über seinen Einsatz.
 
-### Mailarchive und Notizexporte
-
-- ENEX-Notizen in App, Dienst und Kurzbefehlen einzeln wählen, öffnen, kopieren
-  und vorschauen. Kern/CLI erhalten bereits Notizen, Metadaten, Ressourcen und
-  anhand expliziter Identitäten auflösbare Verweise; Grenzen stehen in
-  [docs/ENEX.md](docs/ENEX.md).
-
 ## Mögliche spätere Erweiterung
 
 Eine Vorplanung von Stapelläufen mit Zielübersicht und früher Auflösung von

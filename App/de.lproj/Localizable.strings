@@ -438,3 +438,17 @@
 "Open Report" = "Bericht öffnen";
 
 "The conversion report could not be opened." = "Der Konvertierungsbericht konnte nicht geöffnet werden.";
+
+"%d notes" = "%d Notizen";
+"Find a note" = "Notiz suchen";
+"Local files" = "Lokale Dateien";
+"This local file is unavailable or exceeds the preview limit." = "Diese lokale Datei ist nicht verfügbar oder überschreitet die Vorschaugrenze.";
+"PDF preview: page 1 of %d. Links and actions are inactive." = "PDF-Vorschau: Seite 1 von %d. Links und Aktionen sind inaktiv.";
+"No safe preview is available for this file type. The original attachment remains in the output folder." = "Für diesen Dateityp ist keine sichere Vorschau verfügbar. Der Originalanhang bleibt im Ausgabeordner erhalten.";
+"Pandoc for text documents, mail, and ENEX" = "Pandoc für Textdokumente, E-Mail und ENEX";
+"The file list is limited to 1,024 entries. All files remain in the output folder." = "Die Dateiliste ist auf 1.024 Einträge begrenzt. Alle Dateien bleiben im Ausgabeordner erhalten.";
+
+"Press Return to select the first match." = "Mit Return den ersten Treffer auswählen.";
+"No matching documents." = "Keine passenden Dokumente.";
+
+"1 note" = "1 Notiz";

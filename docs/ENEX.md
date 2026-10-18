@@ -87,8 +87,24 @@ wörtlichem Originalziel erhalten und werden diagnostiziert. Ohne exportierte
 Identitäten ist eine vollständige Linkmigration nicht möglich.
 
 Sonstige sichere HTTP-, HTTPS- und Mailto-Links bleiben Links. Andere Ziele werden
-als Text erhalten. Die native Auswahl einzelner Sammlungsdokumente ist noch offen;
-die bisherigen App-Aktionen verwenden die Übersicht.
+als Text erhalten. In der App bleibt die Übersicht erreichbar. Die nummerierte Notizwahl und
+Titelsuche gelten für Öffnen, Kopieren und Vorschau; gleiche Titel behalten ihre
+Exportnummer. Kopieren übernimmt Markdown, nicht die referenzierten Dateien.
+Der Bericht umfasst immer alle Notizen, Assets, Metadaten und Diagnosen.
+Profile und optionales Frontmatter gelten je Notiz in beiden Ausgabeformen.
+
+App, CLI, Finder-Dienst und beide Kurzbefehle-Aktionen benötigen Pandoc für ENEX.
+Kurzbefehle geben den vollständigen Ergebnisordner zuerst zurück, gefolgt von
+Diagnosen. ENEX ist eine einzelne lokale Datei, kein Ordnerpaket. Es gibt weder
+Evernote-Login noch Sync oder Cloud-Nachladen.
+
+**Lokale Dateien** in der Notizvorschau bietet die registrierten Bilder und
+Anhänge dieser Notiz an. Rasterbilder werden begrenzt gerendert, PDFs zeigen
+ausschließlich Seite 1 mit Seitenzahl, UTF-8-Text höchstens 256 KiB. Links und
+PDF-Aktionen sind inaktiv. Unbekannte/aktive Typen werden nicht ausgeführt; eine
+Meldung verweist auf das erhaltene Original im Ausgabeordner. Je Datei gilt
+eine Vorschaugrenze von 16 MiB, die Liste zeigt höchstens 1.024 Dateien mit
+explizitem Hinweis bei Begrenzung. Die vollständige Ausgabe bleibt erhalten.
 
 ## Sicherheits- und Größengrenzen
 

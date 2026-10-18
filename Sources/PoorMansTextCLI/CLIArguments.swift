@@ -56,7 +56,7 @@ let usage = """
 Usage: poormans-text [options] INPUT [INPUT ...]
        poormans-text --formats [--json] [--pandoc PATH]
 
-Convert documents, spreadsheets, presentations, notebooks, PDFs, or images into new Markdown folders.
+Convert documents, spreadsheets, presentations, notebooks, mail archives, ENEX notes, PDFs, or images into new Markdown folders.
 
 Options:
   -o, --output DIRECTORY  Set the new output directory.
@@ -100,7 +100,7 @@ Options:
       --source-map        Include verified source-to-Markdown byte ranges (requires --json or --report).
       --report            Save conversion-report.json with source/output hashes, options and source mappings.
       --stdout            Print the Markdown to standard output instead of writing a folder.
-      --progress          Report phases and page/sheet/slide/cell/message progress on stderr.
+      --progress          Report phases and page/sheet/slide/cell/message/note progress on stderr.
       --jobs 1..4         Convert up to four batch documents concurrently (default: 1); OCR stays serial.
       --timeout SECONDS   Limit each external tool process (positive seconds).
       --json              Write a machine-readable result to stdout.
@@ -128,11 +128,17 @@ lines, so scripts that parse the output should use --json.
 --frontmatter reads title, author, subject, keywords, and dates from OOXML
 core properties, OpenDocument meta.xml, the RTF info group, the PDF
 information dictionary, the OPF of an EPUB, the title-info of a FictionBook,
-or the HTML head; a source without any of them gets a warning instead of
+mail headers, ENEX note fields, or the HTML head; a source without any of them gets a warning instead of
 an empty header. --stdout converts exactly one document into a temporary place,
 prints its Markdown, and removes that place again; image assets are not kept and
 are reported on standard error. It cannot be combined with --json, --output,
 --textbundle, --jobs, several inputs, or a folder.
+
+MBOX and ENEX produce a complete collection folder: an overview, ordered documents,
+local assets and an optional report. --stdout cannot represent a collection.
+ENEX requires Pandoc, reads only local exports (up to 16 MiB), and never logs
+into Evernote or downloads resources. Internal note links need unique identities
+in the export; missing identities or resources produce diagnostics.
 
 --formats reports every format this build can read, its file extensions, whether
 it is a single file or a folder package, which external tools it needs, and

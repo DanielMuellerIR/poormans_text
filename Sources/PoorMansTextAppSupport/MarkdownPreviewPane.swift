@@ -17,6 +17,7 @@ public struct MarkdownPreviewPane: View {
     @State private var matchMissing = false
     @State private var imageFailed = false
     @State private var loading = true
+    @State private var selectedFile: LocalFileSelection?
     @FocusState private var searchFocused: Bool
 
     public init(preview: MarkdownPreview, result: ConversionResult, target: ConversionTextRange? = nil, targetRequest: Int = 0) {
@@ -28,6 +29,19 @@ public struct MarkdownPreviewPane: View {
             PreviewToolbarLayout {
                 modePicker
                 HStack(spacing: 10) { searchControls }
+            }
+            if let assets, !assets.localFiles.isEmpty {
+                DisclosureGroup("Local files") {
+                    ScrollView {
+                        LazyVStack(alignment: .leading, spacing: 6) {
+                            ForEach(assets.localFiles, id: \.self) { path in
+                                Button(path) { selectedFile = LocalFileSelection(path: path) }
+                                    .accessibilityIdentifier("previewFile-" + path)
+                            }
+                        }.frame(maxWidth: .infinity, alignment: .leading)
+                    }.frame(maxHeight: 100)
+                    if assets.filesTruncated { Text("The file list is limited to 1,024 entries. All files remain in the output folder.").font(.caption) }
+                }
             }
             ZStack {
                 if mode == 1 {
@@ -58,6 +72,9 @@ public struct MarkdownPreviewPane: View {
             }.font(.caption).foregroundStyle(.secondary)
         }
         .onChange(of: query) { _ in find(backwards: false) }
+        .sheet(item: $selectedFile) { file in
+            LocalFilePreviewPane(path: file.path, assets: assets)
+        }
         .task(id: preview.id) {
             loading = true; imageFailed = false; matchMissing = false
             let result = result, text = preview.text
@@ -101,6 +118,54 @@ public struct MarkdownPreviewPane: View {
     }
     private func find(backwards: Bool) {
         self.backwards = backwards; searchRequest += 1
+    }
+}
+
+private struct LocalFileSelection: Identifiable {
+    let path: String
+    var id: String { path }
+}
+
+private struct LocalFilePreviewPane: View {
+    let path: String
+    let assets: PreviewAssets?
+    @Environment(\.dismiss) private var dismiss
+    @State private var content: LocalFilePreview?
+    @State private var failed = false
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text(verbatim: path).font(.headline).textSelection(.enabled).lineLimit(2)
+                Spacer()
+                Button("Done") { dismiss() }.keyboardShortcut(.cancelAction)
+            }
+            if failed {
+                Text("This local file is unavailable or exceeds the preview limit.")
+            } else if let content {
+                switch content {
+                case .image(let data), .pdf(let data, _):
+                    if let image = NSImage(data: data) {
+                        Image(nsImage: image).resizable().scaledToFit().frame(maxWidth: .infinity, maxHeight: .infinity)
+                    }
+                    if case .pdf(_, let count) = content {
+                        Text(String(format: NSLocalizedString("PDF preview: page 1 of %d. Links and actions are inactive.", comment: ""), count))
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
+                case .text(let text, let truncated):
+                    ScrollView([.horizontal, .vertical]) { Text(verbatim: text).font(.system(.body, design: .monospaced)).textSelection(.enabled) }
+                    if truncated { Text("Preview limited to 256 KiB. Open the file to read all text.").font(.caption) }
+                case .unsupported:
+                    Text("No safe preview is available for this file type. The original attachment remains in the output folder.")
+                }
+            } else { ProgressView("Loading preview…") }
+        }
+        .padding(20).frame(minWidth: 440, idealWidth: 620, minHeight: 340, idealHeight: 500, alignment: .topLeading)
+        .task(id: path) {
+            let assets = assets, path = path
+            let result = await Task.detached(priority: .userInitiated) { try? assets?.previewFile(path) }.value
+            guard !Task.isCancelled else { return }
+            content = result; failed = result == nil
+        }
     }
 }
 

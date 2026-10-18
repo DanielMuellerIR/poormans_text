@@ -9,6 +9,7 @@ public final class PreviewAssets: @unchecked Sendable {
     public let token = UUID().uuidString.lowercased()
     private let directory: Int32
     private let paths: [String]
+    public let filesTruncated: Bool
     private let identifiers: [String: Int]
     private let lock = NSLock()
     private var cache: [Int: Data] = [:]
@@ -30,12 +31,55 @@ public final class PreviewAssets: @unchecked Sendable {
             identifiers[relative] = paths.count
             paths.append(relative)
         }
+        filesTruncated = assets.count > 1024
         directory = descriptor
         self.paths = paths
         self.identifiers = identifiers
     }
 
     deinit { close(directory) }
+
+    public var localFiles: [String] { paths }
+
+    public func previewFile(_ path: String) throws -> LocalFilePreview {
+        guard identifiers[path] != nil else { throw PreviewAssetError.unavailable }
+        if path.lowercased().hasSuffix(".txt") {
+            let data = try read(path)
+            guard !data.contains(0), String(data: data, encoding: .utf8) != nil else { return .unsupported }
+            return .text(String(decoding: data.prefix(262_144), as: UTF8.self), truncated: data.count > 262_144)
+        }
+        if path.lowercased().hasSuffix(".pdf") {
+            let data = try read(path)
+            guard data.starts(with: Data("%PDF-".utf8)), let provider = CGDataProvider(data: data as CFData),
+                  let document = CGPDFDocument(provider), !document.isEncrypted,
+                  let page = document.page(at: 1) else { return .unsupported }
+            let bounds = page.getBoxRect(.cropBox)
+            guard bounds.width.isFinite, bounds.height.isFinite, bounds.width > 0, bounds.height > 0 else { return .unsupported }
+            let scale = min(2048 / bounds.width, 2048 / bounds.height, 2)
+            let width = max(1, Int(bounds.width * scale)), height = max(1, Int(bounds.height * scale))
+            guard let context = CGContext(data: nil, width: width, height: height, bitsPerComponent: 8,
+                bytesPerRow: 0, space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { throw PreviewAssetError.limit }
+            context.setFillColor(CGColor(gray: 1, alpha: 1))
+            context.fill(CGRect(x: 0, y: 0, width: width, height: height))
+            context.concatenate(page.getDrawingTransform(.cropBox, rect: CGRect(x: 0, y: 0, width: width, height: height), rotate: 0, preserveAspectRatio: true))
+            // Nur die erste Seite zeichnen; PDF-Links und Aktionen nie an eine interaktive Ansicht geben.
+            context.drawPDFPage(page)
+            guard let image = context.makeImage() else { throw PreviewAssetError.unsupportedImage }
+            return .pdf(try Self.png(image), pageCount: document.numberOfPages)
+        }
+        guard let url = url(for: path.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? "") else { throw PreviewAssetError.unavailable }
+        let data = try read(path)
+        guard Self.hasRasterSignature(data) else { return .unsupported }
+        return .image(try thumbnail(for: url))
+    }
+
+    private static func png(_ image: CGImage) throws -> Data {
+        let data = NSMutableData()
+        guard let destination = CGImageDestinationCreateWithData(data, UTType.png.identifier as CFString, 1, nil) else { throw PreviewAssetError.unsupportedImage }
+        CGImageDestinationAddImage(destination, image, nil)
+        guard CGImageDestinationFinalize(destination), data.length <= maximumSourceBytes else { throw PreviewAssetError.limit }
+        return data as Data
+    }
 
     public func url(for target: String) -> URL? {
         guard !target.hasPrefix("/"), !target.contains("\\"), !target.contains("?"), !target.contains("#"),
@@ -128,3 +172,10 @@ public final class PreviewAssets: @unchecked Sendable {
 }
 
 public enum PreviewAssetError: Error { case unavailable, unsupportedImage, limit }
+
+public enum LocalFilePreview: Sendable {
+    case image(Data)
+    case pdf(Data, pageCount: Int)
+    case text(String, truncated: Bool)
+    case unsupported
+}

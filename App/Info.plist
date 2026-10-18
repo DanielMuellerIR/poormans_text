@@ -344,7 +344,7 @@
             <key>CFBundleTypeName</key><string>Evernote Export</string>
             <key>CFBundleTypeRole</key><string>Viewer</string>
             <key>LSHandlerRank</key><string>Alternate</string>
-            <key>LSItemContentTypes</key><array><string>org.poormanstext.enex</string></array>
+            <key>LSItemContentTypes</key><array><string>com.evernote.enex</string><string>org.poormanstext.enex</string></array>
         </dict>
         <dict>
             <key>CFBundleTypeExtensions</key><array><string>mbox</string></array>
@@ -412,9 +412,9 @@
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>0.40.1</string>
+    <string>0.41.2</string>
     <key>CFBundleVersion</key>
-    <string>82</string>
+    <string>87</string>
     <key>LSApplicationCategoryType</key>
     <string>public.app-category.utilities</string>
     <key>LSMinimumSystemVersion</key>
@@ -464,6 +464,7 @@
                 <string>com.apple.mail.emlx</string>
                 <string>org.poormanstext.mbox</string>
                 <string>com.apple.mail.mbox</string>
+                <string>com.evernote.enex</string>
                 <string>org.poormanstext.enex</string>
                 <string>com.microsoft.outlook.msg</string>
                 <string>org.idpf.epub-container</string>
@@ -495,6 +496,13 @@
     </array>
     <key>UTImportedTypeDeclarations</key>
     <array>
+        <dict>
+            <key>UTTypeIdentifier</key><string>com.evernote.enex</string>
+            <key>UTTypeDescription</key><string>Evernote Export</string>
+            <key>UTTypeConformsTo</key><array><string>public.xml</string></array>
+            <key>UTTypeTagSpecification</key>
+            <dict><key>public.filename-extension</key><array><string>enex</string></array></dict>
+        </dict>
         <dict>
             <key>UTTypeIdentifier</key><string>org.poormanstext.enex</string>
             <key>UTTypeDescription</key><string>Evernote Export</string>

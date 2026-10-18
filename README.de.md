@@ -36,7 +36,7 @@ Benannte Profile lassen sich in der App verwalten und in der Kurzbefehle-Aktion 
 
 Reguläre MBOX-Dateien und exportierte Apple-Mail-`.mbox`-Pakete werden zu geordneten Nachrichtensammlungen mit Kopfzeilen, Körpern und lokalen Assets. In der App die Übersicht oder eine nummerierte Nachricht zum Öffnen, Kopieren oder Vorschauen wählen; der optionale Bericht umfasst die vollständige Sammlung. App, CLI, Finder-Dienst und Kurzbefehle verwenden denselben Leser. [MBOX-Grenzen und Varianten](docs/MBOX.md) sind dokumentiert.
 
-Begrenzte ENEX-Exporte werden zu geordneten Notizsammlungen mit Titeln, Tags, Daten und statischen Checkbox-/Aufgabeninhalten. Die [ENEX-Grenzen](docs/ENEX.md) beschreiben XML-Schutz, bytegetreue Ressourcen und die Grenzen interner Linkauflösung.
+Begrenzte ENEX-Exporte werden zu geordneten Notizsammlungen mit Titeln, Tags, Daten und statischen Checkbox-/Aufgabeninhalten. In der App eine nummerierte Notiz oder die Übersicht wählen und öffnen, kopieren oder vorschauen. **Lokale Dateien** in der Vorschau zeigt die Bilder und Anhänge dieser Notiz; PDFs zeigen nur die erste Seite, Text ist auf 256 KiB begrenzt, unbekannte Typen bleiben mit ausdrücklichem Hinweis gespeichert. App-Öffnen, Finder-Dienst und beide Kurzbefehle-Aktionen liefern die vollständige Sammlung mit Profileinstellungen, optionalem Frontmatter je Notiz und Bericht. ENEX benötigt Pandoc und einen lokalen Export, kein Evernote-Konto und keinen Sync. Die [ENEX-Grenzen](docs/ENEX.md) beschreiben XML-Schutz, bytegetreue Ressourcen und die Grenzen interner Linkauflösung.
 
 Sammlungsadapter verwenden eine primäre Markdown-Übersicht, geordnete Einzeldokumente und getrennte Assets. Der [Sammlungsvertrag](docs/COLLECTIONS.md) beschreibt Library- und JSON-Felder, Textbundle-Ablage und stdout-Grenze. Er bildet die Grundlage für die MBOX- und ENEX-Leser; der Formatkatalog nennt die aktuell unterstützten Eingaben.
 
@@ -102,7 +102,7 @@ und Textbundle; dort liegen Anhänge unter `assets/`.
 ## Voraussetzungen
 
 - macOS 13 oder neuer
-- [Pandoc](https://pandoc.org/installing.html) für Textdokumente und ODM
+- [Pandoc](https://pandoc.org/installing.html) für Textdokumente, E-Mail, ENEX und ODM
 - Swift 6.2 oder neuer für den Bau aus dem Quellcode
 
 ODS, XLSX, XLS, CSV, TSV, PPTX/PPTM/POTX, ODP, IPYNB, PDF und Bilder werden
@@ -129,7 +129,7 @@ shasum -a 256 -c Poor-Mans-Text-0.16.12.dmg.sha256
 
 Danach das DMG öffnen und Poor Man's Text in den Programme-Ordner ziehen. Die
 App ist mit Developer ID signiert, von Apple notarisiert und enthält die passende
-universelle CLI. Pandoc bleibt für Textdokumente und ODM eine getrennte
+universelle CLI. Pandoc bleibt für Textdokumente, E-Mail, ENEX und ODM eine getrennte
 Voraussetzung und lässt sich beispielsweise mit `brew install pandoc`
 installieren.
 
@@ -274,36 +274,38 @@ eine einzelne Datei oder ein Ordner-Paket wie `.rtfd` ist, welche externen
 Werkzeuge nötig sind und ob diese gerade installiert sind:
 
 ```text
-rtf         .rtf                                              file     pandoc           available
-rtfd        .rtfd                                             package  pandoc+textutil  available
-docx        .docx .docm .dotx .dotm                           file     pandoc           available
-odt         .odt                                              file     pandoc           available
-doc         .doc                                              file     textutil+pandoc  available
-ods         .ods                                              file                      available
-xlsx        .xlsx .xlsm .xltx .xltm                           file                      available
-xls         .xls                                              file                      available
-odm         .odm                                              file     pandoc           available
-image       .png .jpg .jpeg .heic .tif .tiff .gif .bmp .webp  file                      available
-pdf         .pdf                                              file                      available
-pptx        .pptx .pptm .potx                                 file                      available
-odp         .odp                                              file                      available
-ipynb       .ipynb                                            file                      available
-csv         .csv .tsv                                         file                      available
-html        .html .htm .xhtml                                 file     pandoc           available
-webarchive  .webarchive                                       file     pandoc           available
-epub        .epub                                             file     pandoc           available
-latex       .tex .latex                                       file     pandoc           available
-docbook     .dbk .docbook                                     file     pandoc           available
-org         .org                                              file     pandoc           available
-mediawiki   .wiki .mediawiki                                  file     pandoc           available
-textile     .textile                                          file     pandoc           available
-rst         .rst                                              file     pandoc           available
-fb2         .fb2                                              file     pandoc           available
-eml         .eml .emlx                                        file     pandoc           available
-msg         .msg                                              file     pandoc           available
+rtf         .rtf                                              file          pandoc           available
+rtfd        .rtfd                                             package       pandoc+textutil  available
+docx        .docx .docm .dotx .dotm                           file          pandoc           available
+odt         .odt                                              file          pandoc           available
+doc         .doc                                              file          textutil+pandoc  available
+ods         .ods                                              file                           available
+xlsx        .xlsx .xlsm .xltx .xltm                           file                           available
+xls         .xls                                              file                           available
+odm         .odm                                              file          pandoc           available
+image       .png .jpg .jpeg .heic .tif .tiff .gif .bmp .webp  file                           available
+pdf         .pdf                                              file                           available
+pptx        .pptx .pptm .potx                                 file                           available
+odp         .odp                                              file                           available
+ipynb       .ipynb                                            file                           available
+csv         .csv .tsv                                         file                           available
+html        .html .htm .xhtml                                 file          pandoc           available
+webarchive  .webarchive                                       file          pandoc           available
+epub        .epub                                             file          pandoc           available
+latex       .tex .latex                                       file          pandoc           available
+docbook     .dbk .docbook                                     file          pandoc           available
+org         .org                                              file          pandoc           available
+mediawiki   .wiki .mediawiki                                  file          pandoc           available
+textile     .textile                                          file          pandoc           available
+rst         .rst                                              file          pandoc           available
+fb2         .fb2                                              file          pandoc           available
+eml         .eml .emlx                                        file          pandoc           available
+mbox        .mbox                                             file/package  pandoc           available
+enex        .enex                                             file          pandoc           available
+msg         .msg                                              file          pandoc           available
 ```
 
-Fehlt Pandoc, steht bei Textdokumenten, ODM, HTML, E-Books und den
+Fehlt Pandoc, steht bei Textdokumenten, ODM, HTML, E-Mail, ENEX, E-Books und den
 Textauszeichnungen `unavailable (missing required tool: pandoc)`; ODS, XLSX,
 XLS, CSV, TSV, PPTX/PPTM/POTX, ODP, IPYNB, PDF und Bilder bleiben verfügbar. Das für DOC und RTFD zusätzlich nötige `textutil` gehört zu macOS.
 
@@ -632,7 +634,7 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.40.1.
+Die aktuelle Version ist 0.41.2.
 
 ## Lizenz
 

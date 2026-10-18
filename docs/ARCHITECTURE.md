@@ -601,3 +601,8 @@ aufgelöst und tragen ihre Quellidentität bis in den Kern. Mehrfach-/Dienstaufr
 übernehmen keine Dokumentbindungen. `ShortcutProfileQuery` liefert lokale
 AppEntity-Namen. Optionale Intent-Werte unterscheiden unbelegt von explizit false;
 so bleiben Profilvorrang und die bisherigen Defaults eindeutig.
+
+Reguläre MBOX-Dateien verwenden `MBOXReader`, `MBOXAdapter`, die vorhandene
+MIME-/Mail-Engine und den gemeinsamen Sammlungsvertrag. Varianten, Ressourcen-
+und Fehlergrenzen stehen in [MBOX.md](MBOX.md). `MBOXReaderTests` prüfen reale
+Dateien, Körper-/Headerbestand, Anhangsbytes, Zeilenenden und atomaren Abbruch.

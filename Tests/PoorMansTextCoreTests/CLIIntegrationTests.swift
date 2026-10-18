@@ -3,6 +3,44 @@ import XCTest
 @testable import PoorMansTextCore
 
 final class CLIIntegrationTests: XCTestCase {
+    func testMBOXCollectionJSONProgressAndStdoutBoundary() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("PMTCLIMBOX-\(UUID())")
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let source = root.appendingPathComponent("archive.mbox")
+        let bytes = Data((1...2).map { number in
+            "From sender@example.test Sun Oct 18 06:00:00 2026\nSubject: Same title\nFrom: sender@example.test\nContent-Type: text/plain\n\nCLIMBOX_BODY_\(number)\n\n"
+        }.joined().utf8)
+        try bytes.write(to: source)
+        let target = root.appendingPathComponent("result")
+        let run = try runCLI(["--json", "--report", "--progress", "-o", target.path, source.path])
+        XCTAssertEqual(run.status, 0, run.standardError)
+        XCTAssertTrue(run.standardError.contains("converting message 0\n"))
+        XCTAssertTrue(run.standardError.contains("converting message 2/2"))
+        XCTAssertFalse(run.standardError.contains("message 1/0"))
+        let response = try decodeJSON(run.standardOutput)
+        let documents = try XCTUnwrap(response["documents"] as? [[String: Any]])
+        XCTAssertEqual(documents.count, 2)
+        for (index, document) in documents.enumerated() {
+            let text = try String(contentsOfFile: XCTUnwrap(document["markdownFile"] as? String), encoding: .utf8)
+            XCTAssertEqual(text.components(separatedBy: "CLIMBOX_BODY_\(index + 1)").count - 1, 1)
+            XCTAssertFalse(text.contains("CLIMBOX_BODY_\(index == 0 ? 2 : 1)"))
+        }
+        let stdout = try runCLI(["--stdout", source.path])
+        XCTAssertEqual(stdout.status, 64)
+        XCTAssertTrue(stdout.standardOutput.isEmpty)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("archive-markdown").path))
+        let collision = try runCLI(["--json", "-o", target.path, source.path])
+        XCTAssertEqual(collision.status, 73)
+        let package = root.appendingPathComponent("mail-export.mbox")
+        try FileManager.default.createDirectory(at: package, withIntermediateDirectories: false)
+        try Data("Subject: hidden mail\n\nUNEXPECTED_BODY\n".utf8).write(to: package.appendingPathComponent("hidden.eml"))
+        let unsupportedPackage = try runCLI(["--json", package.path])
+        XCTAssertEqual(unsupportedPackage.status, 65)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: package.appendingPathComponent("hidden-markdown").path))
+        XCTAssertEqual(try Data(contentsOf: source), bytes)
+    }
+
     func testEPUBOverviewSelectionAndChapterReports() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent("PMTCLIEPUB-\(UUID())")
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)

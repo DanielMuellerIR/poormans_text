@@ -100,7 +100,7 @@ Options:
       --source-map        Include verified source-to-Markdown byte ranges (requires --json or --report).
       --report            Save conversion-report.json with source/output hashes, options and source mappings.
       --stdout            Print the Markdown to standard output instead of writing a folder.
-      --progress          Report phases and known page/sheet/slide/cell progress on stderr.
+      --progress          Report phases and page/sheet/slide/cell/message progress on stderr.
       --jobs 1..4         Convert up to four batch documents concurrently (default: 1); OCR stays serial.
       --timeout SECONDS   Limit each external tool process (positive seconds).
       --json              Write a machine-readable result to stdout.

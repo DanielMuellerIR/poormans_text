@@ -36,8 +36,10 @@ Kurzbefehle reichen die jeweils passenden Optionen weiter.
 
 ### Mailarchive und Notizexporte
 
-- MBOX-Dateien und exportierte Apple-Mail-Postfächer in einzelne
-  Markdown-Nachrichten mit Anhängen und einer gemeinsamen Übersicht umwandeln.
+- Exportierte Apple-Mail-Postfachpakete ergänzen und einzelne Sammlungsdokumente
+  in App, Dienst und Kurzbefehlen vollständig bedienen. Reguläre MBOX-Dateien
+  sind als vollständige geordnete Sammlung bereits lesbar; Varianten und
+  bewusste Grenzen stehen in [docs/MBOX.md](docs/MBOX.md).
 - ENEX-Exporte mit einzelnen Notizen, Tags, Metadaten, Bildern und Anhängen
   importieren. Interne Verweise soweit anhand der Exportdaten möglich erhalten;
   nicht auflösbare Verweise diagnostizieren.

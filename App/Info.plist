@@ -340,6 +340,13 @@
             <array><string>com.apple.mail.email</string><string>com.apple.mail.emlx</string></array>
         </dict>
         <dict>
+            <key>CFBundleTypeExtensions</key><array><string>mbox</string></array>
+            <key>CFBundleTypeName</key><string>MBOX Mail Archive</string>
+            <key>CFBundleTypeRole</key><string>Viewer</string>
+            <key>LSHandlerRank</key><string>Alternate</string>
+            <key>LSItemContentTypes</key><array><string>org.poormanstext.mbox</string></array>
+        </dict>
+        <dict>
             <key>CFBundleTypeExtensions</key><array><string>msg</string></array>
             <key>CFBundleTypeName</key><string>Outlook Message</string>
             <key>CFBundleTypeRole</key><string>Viewer</string>
@@ -397,9 +404,9 @@
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>0.34.0</string>
+    <string>0.35.0</string>
     <key>CFBundleVersion</key>
-    <string>68</string>
+    <string>69</string>
     <key>LSApplicationCategoryType</key>
     <string>public.app-category.utilities</string>
     <key>LSMinimumSystemVersion</key>
@@ -443,6 +450,7 @@
                 <string>com.apple.webarchive</string>
                 <string>com.apple.mail.email</string>
                 <string>com.apple.mail.emlx</string>
+                <string>org.poormanstext.mbox</string>
                 <string>com.microsoft.outlook.msg</string>
                 <string>org.idpf.epub-container</string>
                 <string>public.folder</string>
@@ -468,6 +476,16 @@
     </array>
     <key>UTImportedTypeDeclarations</key>
     <array>
+        <dict>
+            <key>UTTypeIdentifier</key><string>org.poormanstext.mbox</string>
+            <key>UTTypeDescription</key><string>MBOX Mail Archive</string>
+            <key>UTTypeConformsTo</key><array><string>public.data</string></array>
+            <key>UTTypeTagSpecification</key>
+            <dict>
+                <key>public.filename-extension</key><array><string>mbox</string></array>
+                <key>public.mime-type</key><string>application/mbox</string>
+            </dict>
+        </dict>
         <dict>
             <key>UTTypeIdentifier</key><string>com.microsoft.outlook.msg</string>
             <key>UTTypeDescription</key><string>Outlook Message</string>

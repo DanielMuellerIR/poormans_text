@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.35.0 — 2026-10-18
+
+- Read regular MBOX archives as ordered document collections, retaining message headers, envelope lines, bodies and byte-identical images and attachments through the shared mail engine.
+- Stream bounded LF/CRLF archives, validate message separators and headers, and reject unsupported Content-Length variants or ambiguous boundaries without publishing partial results. Preserve From quoting with a diagnostic instead of guessing its original variant.
+- Keep per-message source locations, metadata and deterministic asset namespaces. Apple Mail export packages and dedicated collection controls remain pending.
+
 ## 0.34.0 — 2026-10-18
 
 - Add a shared collection result with a primary Markdown overview and an ordered document list, per-document metadata and isolated assets. Keep existing single-document results and JSON fields compatible.

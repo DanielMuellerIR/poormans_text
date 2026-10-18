@@ -13,7 +13,7 @@
 Poor Man's Text converts RTF, RTFD, DOCX (including DOCM and DOTX/DOTM), ODT,
 legacy Word (`.doc`), ODS, XLSX (including XLSM and XLTX/XLTM), XLS, CSV and
 TSV, PPTX/PPTM/POTX and ODP presentations, IPYNB notebooks, OpenDocument master (`.odm`), PDF, HTML and Safari web archives, EPUB,
-LaTeX, DocBook, Org, MediaWiki, Textile, reStructuredText, FictionBook, EML, Apple Mail (`.emlx`), Outlook (`.msg`), and
+LaTeX, DocBook, Org, MediaWiki, Textile, reStructuredText, FictionBook, EML, Apple Mail (`.emlx`), Outlook (`.msg`), regular MBOX archives, and
 PNG, JPEG, HEIC, TIFF, GIF, BMP, or WebP images into folders containing
 Markdown and any separately stored image assets.
 
@@ -32,7 +32,9 @@ Named profiles can be managed in the app and selected in Shortcuts. Empty Shortc
 
 ## Output
 
-Collection adapters share a primary Markdown overview, ordered documents and isolated assets. The [collection contract](docs/COLLECTIONS.md) describes the library and JSON fields, Textbundle layout and stdout restriction. This provides the foundation for the planned MBOX and ENEX readers; the format catalog lists currently supported inputs.
+Regular MBOX files become ordered message collections with headers, bodies and local assets. See the [MBOX limits and variant contract](docs/MBOX.md); Apple Mail export packages remain pending.
+
+Collection adapters share a primary Markdown overview, ordered documents and isolated assets. The [collection contract](docs/COLLECTIONS.md) describes the library and JSON fields, Textbundle layout and stdout restriction. This provides the foundation for the MBOX reader and planned ENEX reader; the format catalog lists currently supported inputs.
 
 Converting a supported input creates a new sibling directory without changing
 the source. If the input contains extractable images, the result looks like this:
@@ -569,7 +571,7 @@ and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compa
 their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current version is 0.34.0.
+The current version is 0.35.0.
 
 ## License
 

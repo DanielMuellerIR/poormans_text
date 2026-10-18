@@ -298,3 +298,8 @@ Datei-/Quellenbelege, endgültige Bereiche, Abbruch und Zielkollision werden
 geprüft. Unsichere, fehlende, nicht gemeldete und übergroße Ergebnisse dürfen
 keine Sammlung veröffentlichen. CLI-Prüfungen erhalten die bestehenden
 Einzeldateifelder und prüfen die additive Dokumentliste.
+
+Reguläre MBOX-Dateien verwenden `MBOXReader`, `MBOXAdapter`, die vorhandene
+MIME-/Mail-Engine und den gemeinsamen Sammlungsvertrag. Varianten, Ressourcen-
+und Fehlergrenzen stehen in [MBOX.md](MBOX.md). `MBOXReaderTests` prüfen reale
+Dateien, Körper-/Headerbestand, Anhangsbytes, Zeilenenden und atomaren Abbruch.

@@ -57,7 +57,7 @@ func convertBatch(_ inputs: [EnumeratedInput], arguments: ParsedArguments, optio
             // (AppModel.batchSequence), die CLI tat es nicht
             // (Review-Fund 2026-09-10).
             let value = event.documentProgress
-            let detail = value?.unit.map { " \($0.rawValue) \(value?.completed ?? 0)/\(value?.total ?? 0)" } ?? ""
+            let detail = conversionProgressDetail(value)
             CLIProgressOutput.write("Progress: \(event.inputURL.lastPathComponent): \(value?.phase.rawValue ?? "batch")\(detail); files \(event.completed)/\(event.total), running \(event.running.count)\n", sequence: event.sequence)
             }
         } else { handler = nil }
@@ -107,10 +107,15 @@ private enum CLIProgressOutput {
     }
 }
 
+private func conversionProgressDetail(_ value: ConversionProgress?) -> String {
+    guard let value, let unit = value.unit, let completed = value.completed else { return "" }
+    return " \(unit.rawValue) \(completed)" + (value.total.map { "/\($0)" } ?? "")
+}
+
 func progressHandler(_ arguments: ParsedArguments, input: URL) -> ConversionProgressHandler? {
     guard arguments.progress else { return nil }
     return { value in
-        let detail = value.unit.map { " \($0.rawValue) \(value.completed ?? 0)/\(value.total ?? 0)" } ?? ""
+        let detail = conversionProgressDetail(value)
         FileHandle.standardError.write(Data("Progress: \(input.lastPathComponent): \(value.phase.rawValue)\(detail)\n".utf8))
     }
 }

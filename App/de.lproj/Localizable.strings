@@ -384,3 +384,6 @@
 "Convert one document into a new folder or Textbundle, including its images. Existing results are never overwritten. The result is a list: the complete output folder's file URL first, followed by any conversion warnings. Empty option values use the selected profile or the existing defaults; explicit values override the profile." = "Wandelt ein Dokument einschließlich seiner Bilder in einen neuen Ordner oder ein Textbundle um. Vorhandene Ergebnisse werden nie überschrieben. Die Ergebnisliste enthält zuerst die lokale Datei-URL des vollständigen Ausgabeordners und danach mögliche Warnungen. Leere Optionswerte übernehmen das gewählte Profil oder die bisherigen Standards; gesetzte Werte überschreiben das Profil.";
 
 "Example profile added. Choose it in the profile menu." = "Beispielprofil hinzugefügt. Wähle es im Profilmenü aus.";
+
+"message" = "Nachricht";
+"MBOX From quoting was retained because its original variant cannot be identified reliably." = "Die MBOX-Quotierung von From-Zeilen wurde erhalten, weil die ursprüngliche Variante nicht zuverlässig erkennbar ist.";

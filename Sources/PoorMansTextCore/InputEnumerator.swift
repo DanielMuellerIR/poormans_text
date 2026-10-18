@@ -151,7 +151,10 @@ public struct InputEnumerator: Sendable {
     }
 
     private func isPackage(_ url: URL) -> Bool {
-        packageExtensions.contains(url.pathExtension.lowercased())
+        let ext = url.pathExtension.lowercased()
+        // Ein Apple-Mail-Paket darf bis zum eigenen Paketleser nicht als
+        // beliebiger Ordner mit scheinbar unabhängigen Nachrichten erscheinen.
+        return packageExtensions.contains(ext) || ext == "mbox" && fileExtensions.contains(ext)
     }
 
     private func isSupportedByExtension(_ url: URL) -> Bool {

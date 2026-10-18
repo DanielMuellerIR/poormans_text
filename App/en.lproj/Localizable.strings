@@ -384,3 +384,6 @@
 "Convert one document into a new folder or Textbundle, including its images. Existing results are never overwritten. The result is a list: the complete output folder's file URL first, followed by any conversion warnings. Empty option values use the selected profile or the existing defaults; explicit values override the profile." = "Convert one document into a new folder or Textbundle, including its images. Existing results are never overwritten. The result is a list: the complete output folder's file URL first, followed by any conversion warnings. Empty option values use the selected profile or the existing defaults; explicit values override the profile.";
 
 "Example profile added. Choose it in the profile menu." = "Example profile added. Choose it in the profile menu.";
+
+"message" = "message";
+"MBOX From quoting was retained because its original variant cannot be identified reliably." = "MBOX From quoting was retained because its original variant cannot be identified reliably.";

@@ -9,16 +9,11 @@ temporäre Veröffentlichung sind vorhanden. RTF, RTFD, DOCX/DOCM/DOTX/DOTM,
 ODT, DOC, ODS, XLSX/XLSM/XLTX/XLTM, XLS, CSV/TSV, ODM, PDF, PPTX/PPTM/POTX,
 ODP, IPYNB, HTML, Webarchive,
 EPUB, LaTeX, DocBook, Org, MediaWiki, Textile, reStructuredText, FictionBook
-sowie EML/Apple Mail und PNG, JPEG, HEIC, TIFF, GIF, BMP und WebP sind implementiert. Ihre Importwege stehen in
+sowie EML, MSG, Apple Mail, MBOX, ENEX und PNG, JPEG, HEIC, TIFF, GIF, BMP und
+WebP sind implementiert. Ihre Importwege stehen in
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-## Geplante Erweiterungen (Stand 2026-10-16)
-
-Die nächsten Erweiterungen verbessern die inhaltliche Treue, die Prüfung der
-Ergebnisse und die Auswahl der zu importierenden Inhalte. Neue Formatadapter
-verwenden weiterhin den gemeinsamen Formatkatalog und die bestehenden
-Sicherheitsgrenzen. Konvertierungslogik bleibt im Kern; App, CLI und
-Kurzbefehle reichen die jeweils passenden Optionen weiter.
+## Offene Qualitätsprüfung
 
 ### Strukturierte lokale Dokumenterkennung
 

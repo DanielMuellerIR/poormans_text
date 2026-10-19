@@ -137,6 +137,27 @@ final class ClipboardImageTests: XCTestCase {
         XCTAssertTrue(text.contains("LARGE"), text); XCTAssertTrue(text.contains("9531"), text)
     }
 
+    func testMultiFrameImageCopiesOnlyRecognizedTextAndKeepsTheSavedDocument() throws {
+        let data = NSMutableData()
+        let destination = try XCTUnwrap(CGImageDestinationCreateWithData(data, UTType.tiff.identifier as CFString, 3, nil))
+        for text in ["ALPHA 7129", "", "BETA 4386"] {
+            let source = try XCTUnwrap(CGImageSourceCreateWithData(try image(text: text) as CFData, nil))
+            CGImageDestinationAddImage(destination, try XCTUnwrap(CGImageSourceCreateImageAtIndex(source, 0, nil)), nil)
+        }
+        XCTAssertTrue(CGImageDestinationFinalize(destination))
+        let result = try convert(.init(kind: .image(.tiff), data: data as Data))
+        let original = try String(contentsOf: result.markdownFile, encoding: .utf8)
+        XCTAssertTrue(original.contains("### Frame 2"))
+        XCTAssertTrue(original.contains("_No text could be extracted from this image frame._"))
+        let copied = try RichTextClipboard.clipboardOutcome(from: result).markdown
+        XCTAssertTrue(copied.contains("ALPHA 7129"), copied)
+        XCTAssertTrue(copied.contains("BETA 4386"), copied)
+        XCTAssertFalse(copied.contains("### Frame"), copied)
+        XCTAssertFalse(copied.contains("No text could be extracted"), copied)
+        XCTAssertEqual(try String(contentsOf: result.markdownFile, encoding: .utf8), original)
+        XCTAssertEqual(try Data(contentsOf: result.assets[0]), data as Data)
+    }
+
     func testImageTextCopyOmitsDeadAssetReferenceAndCleansDraft() async throws {
         let pasteboard = board(); pasteboard.setData(try image(), forType: .png)
         let model = AppModel(defaults: .isolatedForAppTest())

@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.41.5 — 2026-10-19
+
+- Copy only recognized text from multi-frame images: frame headings and empty-frame notices stay in the saved document and no longer appear in the clipboard.
+
 ## 0.41.4 — 2026-10-18
 
 - Align the bundle-version regression check with release build 89 and document its required update during version changes.

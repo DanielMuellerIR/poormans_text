@@ -190,7 +190,7 @@ public enum RichTextClipboard {
                 .trimmingCharacters(in: .whitespacesAndNewlines)
             guard !content.isEmpty else { throw ClipboardError.noRecognizedText }
             warnings.append(NSLocalizedString("The image was omitted. Only recognized text was copied; save Markdown and Assets to keep the image.", comment: ""))
-            return ClipboardOutcome(markdown: text, warnings: warnings)
+            return ClipboardOutcome(markdown: content, warnings: warnings)
         }
         if !result.assets.isEmpty {
             // Der Hinweis landet direkt im Fenster, deshalb übersetzt: Vorher

@@ -38,6 +38,37 @@ weder auf Quellzeilen zu debuggen noch ein lokaler Absturz lesbar. Der
 Veröffentlichungsweg des Update-Feeds steht in
 [SPARKLE-RELEASE.md](SPARKLE-RELEASE.md).
 
+## Architekturprüfungen ohne Rosetta-Nutzung des Produkts
+
+Die beiden Universal-Slices lassen sich prüfen, ohne Intel-Code auszuführen:
+
+```sh
+lipo "Poor Man's Text.app/Contents/MacOS/PoorMansTextApp" -verify_arch arm64
+lipo "Poor Man's Text.app/Contents/MacOS/PoorMansTextApp" -verify_arch x86_64
+lipo "Poor Man's Text.app/Contents/Resources/poormans-text" -verify_arch arm64
+lipo "Poor Man's Text.app/Contents/Resources/poormans-text" -verify_arch x86_64
+```
+
+Normale Laufzeittests auf Apple Silicon verwenden die native ARM-Version. Bei
+einem gezielten CLI-Aufruf lässt sich das ausdrücklich festlegen:
+
+```sh
+/usr/bin/arch -arm64 "./Poor Man's Text.app/Contents/Resources/poormans-text" --formats --json
+```
+
+Die installierte App, ihre global verlinkte CLI und lokale Kopien mit derselben
+Produkt-Bundle-ID dürfen nicht durch erzwungene Intel-Aufrufe getestet werden.
+macOS speichert solche Läufe als Rosetta-Nutzung des Produkts. Dadurch kann eine
+Warnung über eine künftig inkompatible Komponente entstehen, obwohl App und CLI
+im normalen Betrieb nativ laufen. Der Zeitstempel der Warnung kann deutlich vor
+dem Zeitpunkt liegen, an dem sie bemerkt wird.
+
+Ein statischer Slice-Test beweist keine Intel-Laufzeitkompatibilität. Für deren
+Prüfung einen echten Intel-Mac oder ein isoliertes Testsystem verwenden;
+Rosetta-Test-Bundles brauchen dort eine eigene Test-Bundle-ID und einen eigenen
+Pfad. Bei einer Intel-Warnung zuerst die tatsächlich ausgeführte Architektur und
+die zugehörigen historischen Prozesse prüfen, bevor Produktcode geändert wird.
+
 ## App-Intents-Metadaten
 
 Der App-Build verwendet ausdrücklich den SwiftBuild-Backend von SwiftPM. Er

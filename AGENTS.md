@@ -35,6 +35,13 @@ Roadmap-Punkte beim Release ins Changelog überführen und aus der Roadmap entfe
 - Änderungen am Konverter brauchen Unit-Tests und mindestens ein echtes,
   temporär erzeugtes Dokumentfixture. Inhaltsverlust durch Zählungen oder
   unabhängige Output-Vergleiche ausschließen.
+- Universal-Slices mit `lipo -verify_arch` prüfen; normale Laufzeittests auf
+  Apple Silicon nativ ausführen. Installierte App, globale CLI und Kopien mit
+  der Produkt-Bundle-ID nie für erzwungene Rosetta-Tests verwenden: macOS
+  speichert diese als Intel-Nutzung des Produkts und kann später eine
+  irreführende Komponentenwarnung anzeigen. Intel-Laufzeittests auf einem
+  Intel-Mac oder einem isolierten Testsystem mit eigener Test-Bundle-ID und
+  eigenem Pfad durchführen. Details: `docs/BUILD-AND-TEST.md`.
 - Drei Einstiegspunkte, klar getrennt: `./build.sh` erzeugt nur lokale Artefakte
   im Repo-Root, `./install.sh` baut, notarisiert und installiert (kein DMG),
   `./release.sh` baut, notarisiert und packt das DMG (installiert nie). Beide

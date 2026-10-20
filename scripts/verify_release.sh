@@ -70,6 +70,8 @@ for app in "$root_app" "$installed_app"; do
         exit 65
     }
     "$script_directory/verify_bundle.sh" "$app" --notarized
+    # Statisch prüfen: Erzwungene Intel-Läufe würden macOS als Rosetta-Nutzung
+    # der installierten App gelten und eine Komponentenwarnung auslösen können.
     lipo "$app/Contents/MacOS/PoorMansTextApp" -verify_arch arm64
     lipo "$app/Contents/MacOS/PoorMansTextApp" -verify_arch x86_64
     lipo "$app/Contents/Resources/poormans-text" -verify_arch arm64

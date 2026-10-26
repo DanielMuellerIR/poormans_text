@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.41.6 — 2026-10-26
+
+- Convert Word RTF documents containing literal apostrophes next to hexadecimal escapes without a Pandoc parse failure.
+- Decode RTF text using document and font code pages, including Cyrillic and multibyte encodings, while preserving Unicode, embedded pictures and source bytes. Reject undecodable text instead of publishing corrupted characters.
+
 ## 0.41.5 — 2026-10-19
 
 - Copy only recognized text from multi-frame images: frame headings and empty-frame notices stay in the saved document and no longer appear in the clipboard.

@@ -29,6 +29,9 @@ sinnvoll sein. Beides gehört derzeit nicht zum Umsetzungsumfang.
 
 ## Weitere offene Produktarbeit
 
+- RTF: Fortlaufende Nummerierung über verschachtelte Aufzählungen hinweg
+  erhalten. Pandoc zerlegt solche Listen teilweise in getrennte Listen mit
+  erneutem Startwert; Text und Reihenfolge bleiben erhalten.
 - Homebrew-Cask veröffentlichen oder bei Homebrew einreichen. Ein geprüfter
   Entwurf liegt unter `packaging/homebrew/Casks/poor-mans-text.rb`.
 

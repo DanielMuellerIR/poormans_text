@@ -43,8 +43,10 @@ die begrenzte Worker-Schleife. CLI und App stellen deren Ergebnisse dar.
 Der Kern ist GUI-frei, aber das aktuelle Target bleibt macOS-spezifisch: Der
 Rich-Text-Adapter benutzt für die RTFD-Farbübernahme AppKit. RTF läuft wegen
 standardkonform eingebetteter Bilder über Pandoc; ein vorgeschalteter, begrenzter
-Unicode-Rewriter schützt UTF-16-Surrogatpaare und entfernt deren ANSI-Fallbacks
-nur in der temporären Eingabe. Im HTML werden die Zeichen als Zeichenreferenzen
+Unicode-Rewriter schützt UTF-16-Surrogatpaare, entfernt deren ANSI-Fallbacks
+und dekodiert Text nach Dokument- und Schrift-Codepage. Literale Apostrophe
+werden für Pandocs RTF-Leser eindeutig maskiert. Diese Vorbereitung verändert
+nur die temporäre Eingabe. Im HTML werden die Zeichen als Zeichenreferenzen
 wiederhergestellt. Ungültige Unicode-Folgen brechen die Konvertierung ab. Ein Cocoa-Roundtrip
 würde diese Bilder verwerfen. DOC benutzt den macOS-Systemimport über `textutil`.
 DOCX einschließlich DOCM/DOTX/DOTM und ODT teilen einen Pandoc-Paketadapter.

@@ -139,6 +139,24 @@ final class RTFUnicodeTests: XCTestCase {
         }
     }
 
+    func testEscapedShiftJISTrailBytesMatchHexEncoding() throws {
+        for (literal, hex, expected) in [(#"\\"#, "5c", "表"), (#"\{"#, "7b", "府"), (#"\}"#, "7d", "扶")] {
+            for tail in [literal, "\\'" + hex] {
+                try withDirectory { root in
+                    let rtf = "{\\rtf1\\ansi\\ansicpg932 \\'95" + tail + "}"
+                    let source = root.appendingPathComponent("source.rtf")
+                    let data = Data(rtf.utf8)
+                    XCTAssertEqual(try convert(rtf, in: root), expected)
+                    XCTAssertEqual(try Data(contentsOf: source), data)
+                    let reference = try ProcessRunner.run(executable: URL(fileURLWithPath: "/usr/bin/textutil"),
+                        arguments: ["-convert", "txt", "-stdout", source.path], currentDirectory: root, captureStandardOutput: true)
+                    XCTAssertEqual(reference.status, 0)
+                    XCTAssertEqual(reference.standardOutput.trimmingCharacters(in: .whitespacesAndNewlines), expected)
+                }
+            }
+        }
+    }
+
     func testHTMLCharactersAreRestoredAsTextAndUnicodeLinkRemainsSafe() throws {
         try withDirectory { root in
             let rtf = #"{\rtf1\ansi\uc0 A\u60 img\u62 \u38 B {\field{\*\fldinst HYPERLINK "https://example.com/\u55357\u56832"}{\fldrslt \u55357\u56832}}}"#

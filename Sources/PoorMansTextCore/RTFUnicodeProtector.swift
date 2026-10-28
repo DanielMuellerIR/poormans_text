@@ -141,6 +141,10 @@ struct RTFUnicodeProtector {
                     try literal(value, source: start..<index, escaped: true)
                     continue
                 }
+                if first == 92 || first == 123 || first == 125 {
+                    try literal(first, source: start..<index, escaped: true)
+                    continue
+                }
                 try flush()
                 // Ignorierte Destinationen tragen nichts zum sichtbaren UTF-16-Strom bei.
                 if first == 42 { state.ignored = true }

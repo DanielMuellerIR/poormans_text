@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.41.7 — 2026-10-28
+
+- Preserve Japanese RTF characters whose second Shift-JIS byte is an escaped backslash or brace, matching the equivalent hexadecimal encoding without changing the source.
+
 ## 0.41.6 — 2026-10-26
 
 - Convert Word RTF documents containing literal apostrophes next to hexadecimal escapes without a Pandoc parse failure.

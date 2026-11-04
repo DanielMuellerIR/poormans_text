@@ -1,0 +1,1948 @@
+{
+  "repoHead": "17328f17d63843025b33b45a87fa3d13db5e11d7",
+  "binarySHA256": "39da1018a09a76a801cf7c35c1670ffba0d28458d72343cb9f699df1f3e0ba3e",
+  "macOS": "26.7.2",
+  "arch": "arm64",
+  "fixtureRoot": "/fixture/pmt-p01",
+  "cases": {
+    "catalog": {
+      "args": [
+        "--formats",
+        "--json"
+      ],
+      "exit": 0,
+      "expectedExit": 0,
+      "stdout": "{\n  \"formats\" : [\n    {\n      \"available\" : true,\n      \"container\" : \"file\",\n      \"containers\" : [\n        \"file\"\n      ],\n      \"extensions\" : [\n        \"rtf\"\n      ],\n      \"format\" : \"rtf\",\n      \"requires\" : [\n        \"pandoc\"\n      ],\n      \"unavailableReason\" : null\n    },\n    {\n      \"available\" : true,\n      \"container\" : \"package\",\n      \"containers\" : [\n        \"package\"\n      ],\n      \"extensions\" : [\n        \"rtfd\"\n      ],\n      \"format\" : \"rtfd\",\n      \"requires\" : [\n        \"pandoc\",\n        \"textutil\"\n      ],\n      \"unavailableReason\" : null\n    },\n    {\n      \"available\" : true,\n      \"container\" : \"file\",\n      \"containers\" : [\n        \"file\"\n      ],\n      \"extensions\" : [\n        \"docx\",\n        \"docm\",\n        \"dotx\",\n        \"dotm\"\n      ],\n      \"format\" : \"docx\",\n      \"requires\" : [\n        \"pandoc\"\n      ],\n      \"unavailableReason\" : null\n    },\n    {\n      \"available\" : true,\n      \"container\" : \"file\",\n      \"containers\" : [\n        \"file\"\n      ],\n      \"extensions\" : [\n        \"odt\"\n      ],\n      \"format\" : \"odt\",\n      \"requires\" : [\n        \"pandoc\"\n      ],\n      \"unavailableReason\" : null\n    },\n    {\n      \"available\" : true,\n      \"container\" : \"file\",\n      \"containers\" : [\n        \"file\"\n      ],\n      \"extensions\" : [\n        \"doc\"\n      ],\n      \"format\" : \"doc\",\n      \"requires\" : [\n        \"textutil\",\n        \"pandoc\"\n      ],\n      \"unavailableReason\" : null\n    },\n    {\n      \"available\" : true,\n      \"container\" : \"file\",\n      \"containers\" : [\n        \"file\"\n      ],\n      \"extensions\" : [\n        \"ods\"\n      ],\n      \"format\" : \"ods\",\n      \"requires\" : [\n\n      ],\n      \"unavailableReason\" : null\n    },\n    {\n      \"available\" : true,\n      \"container\" : \"file\",\n      \"containers\" : [\n        \"file\"\n      ],\n      \"extensions\" : [\n        \"xlsx\",\n        \"xlsm\",\n        \"xltx\",\n        \"xltm\"\n      ],\n      \"format\" : \"xlsx\",\n      \"requires\" : [\n\n      ],\n      \"unavailableReason\" : null\n    },\n    {\n      \"available\" : true,\n      \"container\" : \"file\",\n      \"containers\" : [\n        \"file\"\n      ],\n      \"extensions\" : [\n        \"xls\"\n      ],\n      \"format\" : \"xls\",\n      \"requires\" : [\n\n      ],\n      \"unavailableReason\" : null\n    },\n    {\n      \"available\" : true,\n      \"container\" : \"file\",\n      \"containers\" : [\n        \"file\"\n      ],\n      \"extensions\" : [\n        \"odm\"\n      ],\n      \"format\" : \"odm\",\n      \"requires\" : [\n        \"pandoc\"\n      ],\n      \"unavailableReason\" : null\n    },\n    {\n      \"available\" : true,\n      \"container\" : \"file\",\n      \"containers\" : [\n        \"file\"\n      ],\n      \"extensions\" : [\n        \"png\",\n        \"jpg\",\n        \"jpeg\",\n        \"heic\",\n        \"tif\",\n        \"tiff\",\n        \"gif\",\n        \"bmp\",\n        \"webp\"\n      ],\n      \"format\" : \"image\",\n      \"requires\" : [\n\n      ],\n      \"unavailableReason\" : null\n    },\n    {\n      \"available\" : true,\n      \"container\" : \"file\",\n      \"containers\" : [\n        \"file\"\n      ],\n      \"extensions\" : [\n        \"pdf\"\n      ],\n      \"format\" : \"pdf\",\n      \"requires\" : [\n\n      ],\n      \"unavailableReason\" : null\n    },\n    {\n      \"available\" : true,\n      \"container\" : \"file\",\n      \"containers\" : [\n        \"file\"\n      ],\n      \"extensions\" : [\n        \"pptx\",\n        \"pptm\",\n        \"potx\"\n      ],\n      \"format\" : \"pptx\",\n      \"requires\" : [\n\n      ],\n      \"unavailableReason\" : null\n    },\n    {\n      \"available\" : true,\n      \"container\" : \"file\",\n      \"containers\" : [\n        \"file\"\n      ],\n      \"extensions\" : [\n        \"odp\"\n      ],\n      \"format\" : \"odp\",\n      \"requires\" : [\n\n      ],\n      \"unavailableReason\" : null\n    },\n    {\n      \"available\" : true,\n      \"container\" : \"file\",\n      \"containers\" : [\n        \"file\"\n      ],\n      \"extensions\" : [\n        \"ipynb\"\n      ],\n      \"format\" : \"ipynb\",\n      \"requires\" : [\n\n      ],\n      \"unavailableReason\" : null\n    },\n    {\n      \"available\" : true,\n      \"container\" : \"file\",\n      \"containers\" : [\n        \"file\"\n      ],\n      \"extensions\" : [\n        \"csv\",\n        \"tsv\"\n      ],\n      \"format\" : \"csv\",\n      \"requires\" : [\n\n      ],\n      \"unavailableReason\" : null\n    },\n    {\n      \"available\" : true,\n      \"container\" : \"file\",\n      \"containers\" : [\n        \"file\"\n      ],\n      \"extensions\" : [\n        \"html\",\n        \"htm\",\n        \"xhtml\"\n      ],\n      \"format\" : \"html\",\n      \"requires\" : [\n        \"pandoc\"\n      ],\n      \"unavailableReason\" : null\n    },\n    {\n      \"available\" : true,\n      \"container\" : \"file\",\n      \"containers\" : [\n        \"file\"\n      ],\n      \"extensions\" : [\n        \"webarchive\"\n      ],\n      \"format\" : \"webarchive\",\n      \"requires\" : [\n        \"pandoc\"\n      ],\n      \"unavailableReason\" : null\n    },\n    {\n      \"available\" : true,\n      \"container\" : \"file\",\n      \"containers\" : [\n        \"file\"\n      ],\n      \"extensions\" : [\n        \"epub\"\n      ],\n      \"format\" : \"epub\",\n      \"requires\" : [\n        \"pandoc\"\n      ],\n      \"unavailableReason\" : null\n    },\n    {\n      \"available\" : true,\n      \"container\" : \"file\",\n      \"containers\" : [\n        \"file\"\n      ],\n      \"extensions\" : [\n        \"tex\",\n        \"latex\"\n      ],\n      \"format\" : \"latex\",\n      \"requires\" : [\n        \"pandoc\"\n      ],\n      \"unavailableReason\" : null\n    },\n    {\n      \"available\" : true,\n      \"container\" : \"file\",\n      \"containers\" : [\n        \"file\"\n      ],\n      \"extensions\" : [\n        \"dbk\",\n        \"docbook\"\n      ],\n      \"format\" : \"docbook\",\n      \"requires\" : [\n        \"pandoc\"\n      ],\n      \"unavailableReason\" : null\n    },\n    {\n      \"available\" : true,\n      \"container\" : \"file\",\n      \"containers\" : [\n        \"file\"\n      ],\n      \"extensions\" : [\n        \"org\"\n      ],\n      \"format\" : \"org\",\n      \"requires\" : [\n        \"pandoc\"\n      ],\n      \"unavailableReason\" : null\n    },\n    {\n      \"available\" : true,\n      \"container\" : \"file\",\n      \"containers\" : [\n        \"file\"\n      ],\n      \"extensions\" : [\n        \"wiki\",\n        \"mediawiki\"\n      ],\n      \"format\" : \"mediawiki\",\n      \"requires\" : [\n        \"pandoc\"\n      ],\n      \"unavailableReason\" : null\n    },\n    {\n      \"available\" : true,\n      \"container\" : \"file\",\n      \"containers\" : [\n        \"file\"\n      ],\n      \"extensions\" : [\n        \"textile\"\n      ],\n      \"format\" : \"textile\",\n      \"requires\" : [\n        \"pandoc\"\n      ],\n      \"unavailableReason\" : null\n    },\n    {\n      \"available\" : true,\n      \"container\" : \"file\",\n      \"containers\" : [\n        \"file\"\n      ],\n      \"extensions\" : [\n        \"rst\"\n      ],\n      \"format\" : \"rst\",\n      \"requires\" : [\n        \"pandoc\"\n      ],\n      \"unavailableReason\" : null\n    },\n    {\n      \"available\" : true,\n      \"container\" : \"file\",\n      \"containers\" : [\n        \"file\"\n      ],\n      \"extensions\" : [\n        \"fb2\"\n      ],\n      \"format\" : \"fb2\",\n      \"requires\" : [\n        \"pandoc\"\n      ],\n      \"unavailableReason\" : null\n    },\n    {\n      \"available\" : true,\n      \"container\" : \"file\",\n      \"containers\" : [\n        \"file\"\n      ],\n      \"extensions\" : [\n        \"eml\",\n        \"emlx\"\n      ],\n      \"format\" : \"eml\",\n      \"requires\" : [\n        \"pandoc\"\n      ],\n      \"unavailableReason\" : null\n    },\n    {\n      \"available\" : true,\n      \"container\" : \"file\",\n      \"containers\" : [\n        \"file\",\n        \"package\"\n      ],\n      \"extensions\" : [\n        \"mbox\"\n      ],\n      \"format\" : \"mbox\",\n      \"requires\" : [\n        \"pandoc\"\n      ],\n      \"unavailableReason\" : null\n    },\n    {\n      \"available\" : true,\n      \"container\" : \"file\",\n      \"containers\" : [\n        \"file\"\n      ],\n      \"extensions\" : [\n        \"enex\"\n      ],\n      \"format\" : \"enex\",\n      \"requires\" : [\n        \"pandoc\"\n      ],\n      \"unavailableReason\" : null\n    },\n    {\n      \"available\" : true,\n      \"container\" : \"file\",\n      \"containers\" : [\n        \"file\"\n      ],\n      \"extensions\" : [\n        \"msg\"\n      ],\n      \"format\" : \"msg\",\n      \"requires\" : [\n        \"pandoc\"\n      ],\n      \"unavailableReason\" : null\n    }\n  ],\n  \"ok\" : true,\n  \"version\" : \"0.41.7\"\n}\n",
+      "stderr": "",
+      "json": {
+        "formats": [
+          {
+            "available": true,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "rtf"
+            ],
+            "format": "rtf",
+            "requires": [
+              "pandoc"
+            ],
+            "unavailableReason": null
+          },
+          {
+            "available": true,
+            "container": "package",
+            "containers": [
+              "package"
+            ],
+            "extensions": [
+              "rtfd"
+            ],
+            "format": "rtfd",
+            "requires": [
+              "pandoc",
+              "textutil"
+            ],
+            "unavailableReason": null
+          },
+          {
+            "available": true,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "docx",
+              "docm",
+              "dotx",
+              "dotm"
+            ],
+            "format": "docx",
+            "requires": [
+              "pandoc"
+            ],
+            "unavailableReason": null
+          },
+          {
+            "available": true,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "odt"
+            ],
+            "format": "odt",
+            "requires": [
+              "pandoc"
+            ],
+            "unavailableReason": null
+          },
+          {
+            "available": true,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "doc"
+            ],
+            "format": "doc",
+            "requires": [
+              "textutil",
+              "pandoc"
+            ],
+            "unavailableReason": null
+          },
+          {
+            "available": true,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "ods"
+            ],
+            "format": "ods",
+            "requires": [],
+            "unavailableReason": null
+          },
+          {
+            "available": true,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "xlsx",
+              "xlsm",
+              "xltx",
+              "xltm"
+            ],
+            "format": "xlsx",
+            "requires": [],
+            "unavailableReason": null
+          },
+          {
+            "available": true,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "xls"
+            ],
+            "format": "xls",
+            "requires": [],
+            "unavailableReason": null
+          },
+          {
+            "available": true,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "odm"
+            ],
+            "format": "odm",
+            "requires": [
+              "pandoc"
+            ],
+            "unavailableReason": null
+          },
+          {
+            "available": true,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "png",
+              "jpg",
+              "jpeg",
+              "heic",
+              "tif",
+              "tiff",
+              "gif",
+              "bmp",
+              "webp"
+            ],
+            "format": "image",
+            "requires": [],
+            "unavailableReason": null
+          },
+          {
+            "available": true,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "pdf"
+            ],
+            "format": "pdf",
+            "requires": [],
+            "unavailableReason": null
+          },
+          {
+            "available": true,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "pptx",
+              "pptm",
+              "potx"
+            ],
+            "format": "pptx",
+            "requires": [],
+            "unavailableReason": null
+          },
+          {
+            "available": true,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "odp"
+            ],
+            "format": "odp",
+            "requires": [],
+            "unavailableReason": null
+          },
+          {
+            "available": true,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "ipynb"
+            ],
+            "format": "ipynb",
+            "requires": [],
+            "unavailableReason": null
+          },
+          {
+            "available": true,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "csv",
+              "tsv"
+            ],
+            "format": "csv",
+            "requires": [],
+            "unavailableReason": null
+          },
+          {
+            "available": true,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "html",
+              "htm",
+              "xhtml"
+            ],
+            "format": "html",
+            "requires": [
+              "pandoc"
+            ],
+            "unavailableReason": null
+          },
+          {
+            "available": true,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "webarchive"
+            ],
+            "format": "webarchive",
+            "requires": [
+              "pandoc"
+            ],
+            "unavailableReason": null
+          },
+          {
+            "available": true,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "epub"
+            ],
+            "format": "epub",
+            "requires": [
+              "pandoc"
+            ],
+            "unavailableReason": null
+          },
+          {
+            "available": true,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "tex",
+              "latex"
+            ],
+            "format": "latex",
+            "requires": [
+              "pandoc"
+            ],
+            "unavailableReason": null
+          },
+          {
+            "available": true,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "dbk",
+              "docbook"
+            ],
+            "format": "docbook",
+            "requires": [
+              "pandoc"
+            ],
+            "unavailableReason": null
+          },
+          {
+            "available": true,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "org"
+            ],
+            "format": "org",
+            "requires": [
+              "pandoc"
+            ],
+            "unavailableReason": null
+          },
+          {
+            "available": true,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "wiki",
+              "mediawiki"
+            ],
+            "format": "mediawiki",
+            "requires": [
+              "pandoc"
+            ],
+            "unavailableReason": null
+          },
+          {
+            "available": true,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "textile"
+            ],
+            "format": "textile",
+            "requires": [
+              "pandoc"
+            ],
+            "unavailableReason": null
+          },
+          {
+            "available": true,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "rst"
+            ],
+            "format": "rst",
+            "requires": [
+              "pandoc"
+            ],
+            "unavailableReason": null
+          },
+          {
+            "available": true,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "fb2"
+            ],
+            "format": "fb2",
+            "requires": [
+              "pandoc"
+            ],
+            "unavailableReason": null
+          },
+          {
+            "available": true,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "eml",
+              "emlx"
+            ],
+            "format": "eml",
+            "requires": [
+              "pandoc"
+            ],
+            "unavailableReason": null
+          },
+          {
+            "available": true,
+            "container": "file",
+            "containers": [
+              "file",
+              "package"
+            ],
+            "extensions": [
+              "mbox"
+            ],
+            "format": "mbox",
+            "requires": [
+              "pandoc"
+            ],
+            "unavailableReason": null
+          },
+          {
+            "available": true,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "enex"
+            ],
+            "format": "enex",
+            "requires": [
+              "pandoc"
+            ],
+            "unavailableReason": null
+          },
+          {
+            "available": true,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "msg"
+            ],
+            "format": "msg",
+            "requires": [
+              "pandoc"
+            ],
+            "unavailableReason": null
+          }
+        ],
+        "ok": true,
+        "version": "0.41.7"
+      }
+    },
+    "help": {
+      "args": [
+        "--help"
+      ],
+      "exit": 0,
+      "expectedExit": 0,
+      "stdout": "Usage: poormans-text [options] INPUT [INPUT ...]\n       poormans-text --formats [--json] [--pandoc PATH]\n\nConvert documents, spreadsheets, presentations, notebooks, mail archives, ENEX notes, PDFs, or images into new Markdown folders.\n\nOptions:\n  -o, --output DIRECTORY  Set the new output directory.\n      --profile NAME      Apply a saved profile; explicit options take precedence.\n      --save-profile NAME Save options without converting an input.\n      --list-profiles     List profile names and scopes.\n      --import-profile FILE  Import a versioned profile without overwriting names.\n      --export-profile FILE  Export --profile NAME to a new file.\n      --profiles-directory DIR  Use another local profile store.\n      --profile-source FILE  Bind saved content selections to this exact document.\n      --profile-local     Explicitly permit local targets in profile operations.\n      --clear-profile-selection  Discard a chosen profile's bound content selection.\n      --no-frontmatter, --markdown-folder, --no-source-map, --no-report\n                          Explicitly disable profile output preferences.\n      --no-pdf-remove-headers-footers, --no-pdf-dehyphenate\n                          Explicitly disable profile PDF cleanup preferences.\n      --pandoc PATH       Use a specific Pandoc executable.\n      --formats           List the supported input formats instead of converting.\n      --spreadsheet-format table|tsv\n                          Render spreadsheets as a GFM table (default) or escaped TSV.\n      --sheets all|visible|RANGES  Select source sheet indices, e.g. 1,3-5.\n      --sheet-name NAME   Select an exact sheet name (repeatable; excludes --sheets).\n      --cell-range A1:B8  Select a cell rectangle on each selected sheet (repeatable).\n      --list-sheets       Inspect sheet names, indices and visibility without output folders.\n      --slides RANGES    Select source slides, e.g. 1,3-5 (PPTX/PPTM/POTX/ODP).\n      --notes on|off     Include presentation notes (default: on).\n      --list-slides      Inspect ordered slide titles and local notes references.\n      --epub-chapters RANGES  Select EPUB spine entries, e.g. 1,3-5.\n      --list-chapters     Inspect EPUB reading order and navigation without conversion.\n      --docx-changes accept|reject|mark  Choose tracked DOCX text (default: accept); comments are retained.\n      --image-ocr on|off  Add local OCR text for images (default) or preserve only the image asset.\n      --pdf-ocr auto|always|off  Choose local PDF OCR (default: auto).\n      --pdf-pages RANGES  Select source pages, e.g. 1,3-5 (PDF inputs only).\n      --ocr-method standard|structured  Local OCR method (structured: macOS 26+, with fallback).\n      --ocr-language CODES Comma-separated local OCR languages, e.g. de,en.\n      --pdf-layout auto|legacy  Reconstruct PDF structure or keep the previous extraction.\n      --pdf-remove-headers-footers  Remove repeated text at page margins.\n      --pdf-dehyphenate    Join conservative lowercase word breaks.\n      --frontmatter       Start the Markdown with a YAML header (title, author, dates) from the source.\n      --textbundle        Write INPUT.textbundle (text.md, assets/, info.json) instead of INPUT-markdown.\n      --source-map        Include verified source-to-Markdown byte ranges (requires --json or --report).\n      --report            Save conversion-report.json with source/output hashes, options and source mappings.\n      --stdout            Print the Markdown to standard output instead of writing a folder.\n      --progress          Report phases and page/sheet/slide/cell/message/note progress on stderr.\n      --jobs 1..4         Convert up to four batch documents concurrently (default: 1); OCR stays serial.\n      --timeout SECONDS   Limit each external tool process (positive seconds).\n      --json              Write a machine-readable result to stdout.\n  -h, --help              Show this help text.\n  -V, --version           Show the product version.\n\nThe default output directory is INPUT-markdown next to the source. Existing\noutput directories are never overwritten. Exit codes follow sysexits values:\n64 usage, 65 invalid data, 66 missing input, 69 missing dependency,\n70 conversion failure, 73 output collision, 74 file-system failure,\n124 tool timeout, and 130 cancelled (SIGINT/SIGTERM).\n\nWith several inputs, or with a folder as input, every document is converted in\nturn by default; --jobs 2 through 4 runs documents concurrently. Failures do not stop the others. A folder is searched recursively\nfor supported file extensions; packages such as .rtfd count as one document,\nand hidden entries, symbolic links, and earlier *-markdown results are skipped.\n--output then names a parent directory that receives one INPUT-markdown folder\nper document, mirroring the folder structure. Results retain input order, and\nthe first input reserves a colliding target. OCR runs one image at a time.\n--json reports a list under\n\"results\", and the exit code is that of the first failed input. Text mode prints\none result path per line; a path that itself contains a line break spans two\nlines, so scripts that parse the output should use --json.\n\n--frontmatter reads title, author, subject, keywords, and dates from OOXML\ncore properties, OpenDocument meta.xml, the RTF info group, the PDF\ninformation dictionary, the OPF of an EPUB, the title-info of a FictionBook,\nmail headers, ENEX note fields, or the HTML head; a source without any of them gets a warning instead of\nan empty header. --stdout converts exactly one document into a temporary place,\nprints its Markdown, and removes that place again; image assets are not kept and\nare reported on standard error. It cannot be combined with --json, --output,\n--textbundle, --jobs, several inputs, or a folder.\n\nMBOX and ENEX produce a complete collection folder: an overview, ordered documents,\nlocal assets and an optional report. --stdout cannot represent a collection.\nENEX requires Pandoc, reads only local exports (up to 16 MiB), and never logs\ninto Evernote or downloads resources. Internal note links need unique identities\nin the export; missing identities or resources produce diagnostics.\n\n--formats reports every format this build can read, its file extensions, whether\nit is a single file or a folder package, which external tools it needs, and\nwhether those tools are installed right now. It never inspects a document, and\na valid call always exits 0 — even when no format is currently available.\nCombining --formats with an input document, an output directory, or a\nconversion option such as --spreadsheet-format or --image-ocr is a usage error\nand exits 64.\n",
+      "stderr": ""
+    },
+    "table ä: probe.csv": {
+      "args": [
+        "--progress",
+        "--json",
+        "--report",
+        "--output",
+        "/fixture/pmt-p01/out0",
+        "--",
+        "/fixture/pmt-p01/table ä: probe.csv"
+      ],
+      "exit": 0,
+      "expectedExit": 0,
+      "stdout": "{\n  \"assets\" : [\n\n  ],\n  \"documents\" : [\n    {\n      \"assets\" : [\n\n      ],\n      \"markdownFile\" : \"/fixture/pmt-p01/out0/table ä: probe.md\",\n      \"metadata\" : {\n\n      },\n      \"sourceIndex\" : 1,\n      \"title\" : \"table ä: probe\"\n    }\n  ],\n  \"input\" : \"/fixture/pmt-p01/table ä: probe.csv\",\n  \"markdownFile\" : \"/fixture/pmt-p01/out0/table ä: probe.md\",\n  \"metadata\" : {\n\n  },\n  \"ok\" : true,\n  \"outputDirectory\" : \"/fixture/pmt-p01/out0\",\n  \"outputFiles\" : [\n    {\n      \"byteCount\" : 107,\n      \"path\" : \"table ä: probe.md\",\n      \"sha256\" : \"6f20d643f08379a70fc069a0ea66983d0c05b830086967d0b212e8158b464393\"\n    }\n  ],\n  \"reportFile\" : \"/fixture/pmt-p01/out0/conversion-report.json\",\n  \"sourceIdentity\" : {\n    \"byteCount\" : 27,\n    \"name\" : \"table ä: probe.csv\",\n    \"sha256\" : \"c38e58237e2ca16031372df159e7f81899eb5ad3e0be0e6011daf4faf79c349d\"\n  },\n  \"sourceMappings\" : [\n    {\n      \"output\" : {\n        \"file\" : \"table ä: probe.md\",\n        \"utf8Length\" : 4,\n        \"utf8Offset\" : 50\n      },\n      \"source\" : {\n        \"cell\" : \"A1\",\n        \"sheet\" : \"table ä: probe\"\n      }\n    },\n    {\n      \"output\" : {\n        \"file\" : \"table ä: probe.md\",\n        \"utf8Length\" : 5,\n        \"utf8Offset\" : 57\n      },\n      \"source\" : {\n        \"cell\" : \"B1\",\n        \"sheet\" : \"table ä: probe\"\n      }\n    },\n    {\n      \"output\" : {\n        \"file\" : \"table ä: probe.md\",\n        \"utf8Length\" : 5,\n        \"utf8Offset\" : 81\n      },\n      \"source\" : {\n        \"cell\" : \"A2\",\n        \"sheet\" : \"table ä: probe\"\n      }\n    },\n    {\n      \"output\" : {\n        \"file\" : \"table ä: probe.md\",\n        \"utf8Length\" : 1,\n        \"utf8Offset\" : 89\n      },\n      \"source\" : {\n        \"cell\" : \"B2\",\n        \"sheet\" : \"table ä: probe\"\n      }\n    },\n    {\n      \"output\" : {\n        \"file\" : \"table ä: probe.md\",\n        \"utf8Length\" : 5,\n        \"utf8Offset\" : 95\n      },\n      \"source\" : {\n        \"cell\" : \"A3\",\n        \"sheet\" : \"table ä: probe\"\n      }\n    },\n    {\n      \"output\" : {\n        \"file\" : \"table ä: probe.md\",\n        \"utf8Length\" : 1,\n        \"utf8Offset\" : 103\n      },\n      \"source\" : {\n        \"cell\" : \"B3\",\n        \"sheet\" : \"table ä: probe\"\n      }\n    }\n  ],\n  \"version\" : \"0.41.7\",\n  \"warnings\" : [\n\n  ]\n}\n",
+      "stderr": "Progress: table ä: probe.csv: detectingInput\nProgress: table ä: probe.csv: preparingOutput\nProgress: table ä: probe.csv: converting\nProgress: table ä: probe.csv: converting sheet 0/1\nProgress: table ä: probe.csv: publishing\nProgress: table ä: probe.csv: finished\n",
+      "json": {
+        "assets": [],
+        "documents": [
+          {
+            "assets": [],
+            "markdownFile": "/fixture/pmt-p01/out0/table ä: probe.md",
+            "metadata": {},
+            "sourceIndex": 1,
+            "title": "table ä: probe"
+          }
+        ],
+        "input": "/fixture/pmt-p01/table ä: probe.csv",
+        "markdownFile": "/fixture/pmt-p01/out0/table ä: probe.md",
+        "metadata": {},
+        "ok": true,
+        "outputDirectory": "/fixture/pmt-p01/out0",
+        "outputFiles": [
+          {
+            "byteCount": 107,
+            "path": "table ä: probe.md",
+            "sha256": "6f20d643f08379a70fc069a0ea66983d0c05b830086967d0b212e8158b464393"
+          }
+        ],
+        "reportFile": "/fixture/pmt-p01/out0/conversion-report.json",
+        "sourceIdentity": {
+          "byteCount": 27,
+          "name": "table ä: probe.csv",
+          "sha256": "c38e58237e2ca16031372df159e7f81899eb5ad3e0be0e6011daf4faf79c349d"
+        },
+        "sourceMappings": [
+          {
+            "output": {
+              "file": "table ä: probe.md",
+              "utf8Length": 4,
+              "utf8Offset": 50
+            },
+            "source": {
+              "cell": "A1",
+              "sheet": "table ä: probe"
+            }
+          },
+          {
+            "output": {
+              "file": "table ä: probe.md",
+              "utf8Length": 5,
+              "utf8Offset": 57
+            },
+            "source": {
+              "cell": "B1",
+              "sheet": "table ä: probe"
+            }
+          },
+          {
+            "output": {
+              "file": "table ä: probe.md",
+              "utf8Length": 5,
+              "utf8Offset": 81
+            },
+            "source": {
+              "cell": "A2",
+              "sheet": "table ä: probe"
+            }
+          },
+          {
+            "output": {
+              "file": "table ä: probe.md",
+              "utf8Length": 1,
+              "utf8Offset": 89
+            },
+            "source": {
+              "cell": "B2",
+              "sheet": "table ä: probe"
+            }
+          },
+          {
+            "output": {
+              "file": "table ä: probe.md",
+              "utf8Length": 5,
+              "utf8Offset": 95
+            },
+            "source": {
+              "cell": "A3",
+              "sheet": "table ä: probe"
+            }
+          },
+          {
+            "output": {
+              "file": "table ä: probe.md",
+              "utf8Length": 1,
+              "utf8Offset": 103
+            },
+            "source": {
+              "cell": "B3",
+              "sheet": "table ä: probe"
+            }
+          }
+        ],
+        "version": "0.41.7",
+        "warnings": []
+      },
+      "sourceUnchanged": true,
+      "sourceSHA256": "c38e58237e2ca16031372df159e7f81899eb5ad3e0be0e6011daf4faf79c349d",
+      "tree": {
+        "conversion-report.json": {
+          "bytes": 2375,
+          "sha256": "753750043db768aa629aa1eec4a95fd57776fd344154ac68acd603639eadfb11"
+        },
+        "table ä: probe.md": {
+          "bytes": 107,
+          "sha256": "6f20d643f08379a70fc069a0ea66983d0c05b830086967d0b212e8158b464393"
+        }
+      },
+      "markdown": {
+        "table ä: probe.md": "# table ä: probe\n\n## Sheet: table ä: probe\n\n| Name | Value |\n| --- | --- |\n| Alpha | 1 |\n| Béta | 2 |\n"
+      },
+      "expectedMarkersPresent": {
+        "Alpha": true,
+        "Béta": true,
+        "1": true,
+        "2": true
+      },
+      "report": {
+        "converterVersion": "0.41.7",
+        "diagnosticGroups": [],
+        "diagnostics": [],
+        "format": "csv",
+        "omittedMappingCount": 0,
+        "options": {
+          "conversionReport": true,
+          "customPandoc": false,
+          "docxChangeMode": "accept",
+          "frontmatter": false,
+          "imageTextRecognition": "enabled",
+          "ocrLanguages": [],
+          "ocrMethod": "standard",
+          "outputLayout": "markdownFolder",
+          "pdfDehyphenate": false,
+          "pdfLayout": "auto",
+          "pdfRemoveHeadersFooters": false,
+          "pdfTextRecognition": "auto",
+          "presentationIncludeNotes": true,
+          "sourceMapping": true,
+          "spreadsheetRendering": "markdownTable"
+        },
+        "outputs": [
+          {
+            "byteCount": 107,
+            "path": "table ä: probe.md",
+            "sha256": "6f20d643f08379a70fc069a0ea66983d0c05b830086967d0b212e8158b464393"
+          }
+        ],
+        "schemaVersion": 1,
+        "source": {
+          "byteCount": 27,
+          "name": "table ä: probe.csv",
+          "sha256": "c38e58237e2ca16031372df159e7f81899eb5ad3e0be0e6011daf4faf79c349d"
+        },
+        "sourceMappings": [
+          {
+            "output": {
+              "file": "table ä: probe.md",
+              "utf8Length": 4,
+              "utf8Offset": 50
+            },
+            "source": {
+              "cell": "A1",
+              "sheet": "table ä: probe"
+            }
+          },
+          {
+            "output": {
+              "file": "table ä: probe.md",
+              "utf8Length": 5,
+              "utf8Offset": 57
+            },
+            "source": {
+              "cell": "B1",
+              "sheet": "table ä: probe"
+            }
+          },
+          {
+            "output": {
+              "file": "table ä: probe.md",
+              "utf8Length": 5,
+              "utf8Offset": 81
+            },
+            "source": {
+              "cell": "A2",
+              "sheet": "table ä: probe"
+            }
+          },
+          {
+            "output": {
+              "file": "table ä: probe.md",
+              "utf8Length": 1,
+              "utf8Offset": 89
+            },
+            "source": {
+              "cell": "B2",
+              "sheet": "table ä: probe"
+            }
+          },
+          {
+            "output": {
+              "file": "table ä: probe.md",
+              "utf8Length": 5,
+              "utf8Offset": 95
+            },
+            "source": {
+              "cell": "A3",
+              "sheet": "table ä: probe"
+            }
+          },
+          {
+            "output": {
+              "file": "table ä: probe.md",
+              "utf8Length": 1,
+              "utf8Offset": 103
+            },
+            "source": {
+              "cell": "B3",
+              "sheet": "table ä: probe"
+            }
+          }
+        ]
+      }
+    },
+    "sheet.xlsx": {
+      "args": [
+        "--progress",
+        "--json",
+        "--report",
+        "--output",
+        "/fixture/pmt-p01/out1",
+        "--",
+        "/fixture/pmt-p01/sheet.xlsx"
+      ],
+      "exit": 0,
+      "expectedExit": 0,
+      "stdout": "{\n  \"assets\" : [\n\n  ],\n  \"documents\" : [\n    {\n      \"assets\" : [\n\n      ],\n      \"markdownFile\" : \"/fixture/pmt-p01/out1/sheet.md\",\n      \"metadata\" : {\n\n      },\n      \"sourceIndex\" : 1,\n      \"title\" : \"sheet\"\n    }\n  ],\n  \"input\" : \"/fixture/pmt-p01/sheet.xlsx\",\n  \"markdownFile\" : \"/fixture/pmt-p01/out1/sheet.md\",\n  \"metadata\" : {\n\n  },\n  \"ok\" : true,\n  \"outputDirectory\" : \"/fixture/pmt-p01/out1\",\n  \"outputFiles\" : [\n    {\n      \"byteCount\" : 67,\n      \"path\" : \"sheet.md\",\n      \"sha256\" : \"37c7ed56a6a427ccb527692f0abbc78ed5d5a7803049d80582c01c9a8676f6ca\"\n    }\n  ],\n  \"reportFile\" : \"/fixture/pmt-p01/out1/conversion-report.json\",\n  \"sourceIdentity\" : {\n    \"byteCount\" : 1357,\n    \"name\" : \"sheet.xlsx\",\n    \"sha256\" : \"f6be62fab0bd694ef8cffa159c9b1528e5c4efe47215c4a42807252b5519b5bf\"\n  },\n  \"sourceMappings\" : [\n    {\n      \"output\" : {\n        \"file\" : \"sheet.md\",\n        \"utf8Length\" : 5,\n        \"utf8Offset\" : 27\n      },\n      \"source\" : {\n        \"cell\" : \"A1\",\n        \"sheet\" : \"Data\"\n      }\n    },\n    {\n      \"output\" : {\n        \"file\" : \"sheet.md\",\n        \"utf8Length\" : 1,\n        \"utf8Offset\" : 35\n      },\n      \"source\" : {\n        \"cell\" : \"B1\",\n        \"sheet\" : \"Data\"\n      }\n    },\n    {\n      \"output\" : {\n        \"file\" : \"sheet.md\",\n        \"utf8Length\" : 5,\n        \"utf8Offset\" : 55\n      },\n      \"source\" : {\n        \"cell\" : \"A2\",\n        \"sheet\" : \"Data\"\n      }\n    },\n    {\n      \"output\" : {\n        \"file\" : \"sheet.md\",\n        \"utf8Length\" : 1,\n        \"utf8Offset\" : 63\n      },\n      \"source\" : {\n        \"cell\" : \"B2\",\n        \"sheet\" : \"Data\"\n      }\n    }\n  ],\n  \"version\" : \"0.41.7\",\n  \"warnings\" : [\n\n  ]\n}\n",
+      "stderr": "Progress: sheet.xlsx: detectingInput\nProgress: sheet.xlsx: converting sheet 0/1\nProgress: sheet.xlsx: preparingOutput\nProgress: sheet.xlsx: converting\nProgress: sheet.xlsx: converting sheet 0/1\nProgress: sheet.xlsx: converting sheet 0/1\nProgress: sheet.xlsx: publishing\nProgress: sheet.xlsx: finished\n",
+      "json": {
+        "assets": [],
+        "documents": [
+          {
+            "assets": [],
+            "markdownFile": "/fixture/pmt-p01/out1/sheet.md",
+            "metadata": {},
+            "sourceIndex": 1,
+            "title": "sheet"
+          }
+        ],
+        "input": "/fixture/pmt-p01/sheet.xlsx",
+        "markdownFile": "/fixture/pmt-p01/out1/sheet.md",
+        "metadata": {},
+        "ok": true,
+        "outputDirectory": "/fixture/pmt-p01/out1",
+        "outputFiles": [
+          {
+            "byteCount": 67,
+            "path": "sheet.md",
+            "sha256": "37c7ed56a6a427ccb527692f0abbc78ed5d5a7803049d80582c01c9a8676f6ca"
+          }
+        ],
+        "reportFile": "/fixture/pmt-p01/out1/conversion-report.json",
+        "sourceIdentity": {
+          "byteCount": 1357,
+          "name": "sheet.xlsx",
+          "sha256": "f6be62fab0bd694ef8cffa159c9b1528e5c4efe47215c4a42807252b5519b5bf"
+        },
+        "sourceMappings": [
+          {
+            "output": {
+              "file": "sheet.md",
+              "utf8Length": 5,
+              "utf8Offset": 27
+            },
+            "source": {
+              "cell": "A1",
+              "sheet": "Data"
+            }
+          },
+          {
+            "output": {
+              "file": "sheet.md",
+              "utf8Length": 1,
+              "utf8Offset": 35
+            },
+            "source": {
+              "cell": "B1",
+              "sheet": "Data"
+            }
+          },
+          {
+            "output": {
+              "file": "sheet.md",
+              "utf8Length": 5,
+              "utf8Offset": 55
+            },
+            "source": {
+              "cell": "A2",
+              "sheet": "Data"
+            }
+          },
+          {
+            "output": {
+              "file": "sheet.md",
+              "utf8Length": 1,
+              "utf8Offset": 63
+            },
+            "source": {
+              "cell": "B2",
+              "sheet": "Data"
+            }
+          }
+        ],
+        "version": "0.41.7",
+        "warnings": []
+      },
+      "sourceUnchanged": true,
+      "sourceSHA256": "f6be62fab0bd694ef8cffa159c9b1528e5c4efe47215c4a42807252b5519b5bf",
+      "tree": {
+        "sheet.md": {
+          "bytes": 67,
+          "sha256": "37c7ed56a6a427ccb527692f0abbc78ed5d5a7803049d80582c01c9a8676f6ca"
+        },
+        "conversion-report.json": {
+          "bytes": 1823,
+          "sha256": "cdb4b8a977695c5713f2d2a723e1ccfc9a92d9cafc9c9ac061952bd7e32b73d3"
+        }
+      },
+      "markdown": {
+        "sheet.md": "# sheet\n\n## Sheet: Data\n\n| Alpha | 1 |\n| --- | --- |\n| Béta | 2 |\n"
+      },
+      "expectedMarkersPresent": {
+        "Alpha": true,
+        "Béta": true,
+        "1": true,
+        "2": true
+      },
+      "report": {
+        "converterVersion": "0.41.7",
+        "diagnosticGroups": [],
+        "diagnostics": [],
+        "format": "xlsx",
+        "omittedMappingCount": 0,
+        "options": {
+          "conversionReport": true,
+          "customPandoc": false,
+          "docxChangeMode": "accept",
+          "frontmatter": false,
+          "imageTextRecognition": "enabled",
+          "ocrLanguages": [],
+          "ocrMethod": "standard",
+          "outputLayout": "markdownFolder",
+          "pdfDehyphenate": false,
+          "pdfLayout": "auto",
+          "pdfRemoveHeadersFooters": false,
+          "pdfTextRecognition": "auto",
+          "presentationIncludeNotes": true,
+          "sourceMapping": true,
+          "spreadsheetRendering": "markdownTable"
+        },
+        "outputs": [
+          {
+            "byteCount": 67,
+            "path": "sheet.md",
+            "sha256": "37c7ed56a6a427ccb527692f0abbc78ed5d5a7803049d80582c01c9a8676f6ca"
+          }
+        ],
+        "schemaVersion": 1,
+        "source": {
+          "byteCount": 1357,
+          "name": "sheet.xlsx",
+          "sha256": "f6be62fab0bd694ef8cffa159c9b1528e5c4efe47215c4a42807252b5519b5bf"
+        },
+        "sourceMappings": [
+          {
+            "output": {
+              "file": "sheet.md",
+              "utf8Length": 5,
+              "utf8Offset": 27
+            },
+            "source": {
+              "cell": "A1",
+              "sheet": "Data"
+            }
+          },
+          {
+            "output": {
+              "file": "sheet.md",
+              "utf8Length": 1,
+              "utf8Offset": 35
+            },
+            "source": {
+              "cell": "B1",
+              "sheet": "Data"
+            }
+          },
+          {
+            "output": {
+              "file": "sheet.md",
+              "utf8Length": 5,
+              "utf8Offset": 55
+            },
+            "source": {
+              "cell": "A2",
+              "sheet": "Data"
+            }
+          },
+          {
+            "output": {
+              "file": "sheet.md",
+              "utf8Length": 1,
+              "utf8Offset": 63
+            },
+            "source": {
+              "cell": "B2",
+              "sheet": "Data"
+            }
+          }
+        ]
+      }
+    },
+    "notebook.ipynb": {
+      "args": [
+        "--progress",
+        "--json",
+        "--report",
+        "--output",
+        "/fixture/pmt-p01/out2",
+        "--",
+        "/fixture/pmt-p01/notebook.ipynb"
+      ],
+      "exit": 0,
+      "expectedExit": 0,
+      "stdout": "{\n  \"assets\" : [\n\n  ],\n  \"diagnosticGroups\" : [\n    {\n      \"code\" : \"sourceMap.unavailable\",\n      \"count\" : 1,\n      \"kind\" : \"information\",\n      \"locations\" : [\n\n      ],\n      \"messages\" : [\n        \"No verified source-to-text positions are available for this conversion.\"\n      ],\n      \"omittedCount\" : 0\n    }\n  ],\n  \"diagnostics\" : [\n    {\n      \"code\" : \"sourceMap.unavailable\",\n      \"kind\" : \"information\",\n      \"message\" : \"No verified source-to-text positions are available for this conversion.\"\n    }\n  ],\n  \"documents\" : [\n    {\n      \"assets\" : [\n\n      ],\n      \"markdownFile\" : \"/fixture/pmt-p01/out2/notebook.md\",\n      \"metadata\" : {\n\n      },\n      \"sourceIndex\" : 1,\n      \"title\" : \"notebook\"\n    }\n  ],\n  \"input\" : \"/fixture/pmt-p01/notebook.ipynb\",\n  \"markdownFile\" : \"/fixture/pmt-p01/out2/notebook.md\",\n  \"metadata\" : {\n\n  },\n  \"ok\" : true,\n  \"outputDirectory\" : \"/fixture/pmt-p01/out2\",\n  \"outputFiles\" : [\n    {\n      \"byteCount\" : 68,\n      \"path\" : \"notebook.md\",\n      \"sha256\" : \"27b39c89295a28ae6f49ee3c3159e29ba385f49495909bddb29552e847e25413\"\n    }\n  ],\n  \"reportFile\" : \"/fixture/pmt-p01/out2/conversion-report.json\",\n  \"sourceIdentity\" : {\n    \"byteCount\" : 303,\n    \"name\" : \"notebook.ipynb\",\n    \"sha256\" : \"40068d5ffbd4d6debaa00ca3a2ccf337b27edd0b72834cf30f490a8bb7ddb3a5\"\n  },\n  \"sourceMappings\" : [\n\n  ],\n  \"version\" : \"0.41.7\",\n  \"warnings\" : [\n    \"No verified source-to-text positions are available for this conversion.\"\n  ]\n}\n",
+      "stderr": "Progress: notebook.ipynb: detectingInput\nProgress: notebook.ipynb: preparingOutput\nProgress: notebook.ipynb: converting\nProgress: notebook.ipynb: converting cell 0/2\nProgress: notebook.ipynb: converting cell 1/2\nProgress: notebook.ipynb: converting cell 2/2\nProgress: notebook.ipynb: publishing\nProgress: notebook.ipynb: finished\n",
+      "json": {
+        "assets": [],
+        "diagnosticGroups": [
+          {
+            "code": "sourceMap.unavailable",
+            "count": 1,
+            "kind": "information",
+            "locations": [],
+            "messages": [
+              "No verified source-to-text positions are available for this conversion."
+            ],
+            "omittedCount": 0
+          }
+        ],
+        "diagnostics": [
+          {
+            "code": "sourceMap.unavailable",
+            "kind": "information",
+            "message": "No verified source-to-text positions are available for this conversion."
+          }
+        ],
+        "documents": [
+          {
+            "assets": [],
+            "markdownFile": "/fixture/pmt-p01/out2/notebook.md",
+            "metadata": {},
+            "sourceIndex": 1,
+            "title": "notebook"
+          }
+        ],
+        "input": "/fixture/pmt-p01/notebook.ipynb",
+        "markdownFile": "/fixture/pmt-p01/out2/notebook.md",
+        "metadata": {},
+        "ok": true,
+        "outputDirectory": "/fixture/pmt-p01/out2",
+        "outputFiles": [
+          {
+            "byteCount": 68,
+            "path": "notebook.md",
+            "sha256": "27b39c89295a28ae6f49ee3c3159e29ba385f49495909bddb29552e847e25413"
+          }
+        ],
+        "reportFile": "/fixture/pmt-p01/out2/conversion-report.json",
+        "sourceIdentity": {
+          "byteCount": 303,
+          "name": "notebook.ipynb",
+          "sha256": "40068d5ffbd4d6debaa00ca3a2ccf337b27edd0b72834cf30f490a8bb7ddb3a5"
+        },
+        "sourceMappings": [],
+        "version": "0.41.7",
+        "warnings": [
+          "No verified source-to-text positions are available for this conversion."
+        ]
+      },
+      "sourceUnchanged": true,
+      "sourceSHA256": "40068d5ffbd4d6debaa00ca3a2ccf337b27edd0b72834cf30f490a8bb7ddb3a5",
+      "tree": {
+        "notebook.md": {
+          "bytes": 68,
+          "sha256": "27b39c89295a28ae6f49ee3c3159e29ba385f49495909bddb29552e847e25413"
+        },
+        "conversion-report.json": {
+          "bytes": 1486,
+          "sha256": "e5cb2808bffb6d1614113aa69e626e8adac2d73b567b4220290fdac4a4c0fed5"
+        }
+      },
+      "markdown": {
+        "notebook.md": "# notebook\n\nNotebook alpha ä\n\n```text\nprint(2)\n```\n\n```text\n2\n```\n\n"
+      },
+      "expectedMarkersPresent": {
+        "Notebook alpha ä": true,
+        "print(2)": true,
+        "2": true
+      },
+      "report": {
+        "converterVersion": "0.41.7",
+        "diagnosticGroups": [
+          {
+            "code": "sourceMap.unavailable",
+            "count": 1,
+            "kind": "information",
+            "locations": [],
+            "messages": [
+              "No verified source-to-text positions are available for this conversion."
+            ],
+            "omittedCount": 0
+          }
+        ],
+        "diagnostics": [
+          {
+            "code": "sourceMap.unavailable",
+            "kind": "information",
+            "message": "No verified source-to-text positions are available for this conversion."
+          }
+        ],
+        "format": "ipynb",
+        "omittedMappingCount": 0,
+        "options": {
+          "conversionReport": true,
+          "customPandoc": false,
+          "docxChangeMode": "accept",
+          "frontmatter": false,
+          "imageTextRecognition": "enabled",
+          "ocrLanguages": [],
+          "ocrMethod": "standard",
+          "outputLayout": "markdownFolder",
+          "pdfDehyphenate": false,
+          "pdfLayout": "auto",
+          "pdfRemoveHeadersFooters": false,
+          "pdfTextRecognition": "auto",
+          "presentationIncludeNotes": true,
+          "sourceMapping": true,
+          "spreadsheetRendering": "markdownTable"
+        },
+        "outputs": [
+          {
+            "byteCount": 68,
+            "path": "notebook.md",
+            "sha256": "27b39c89295a28ae6f49ee3c3159e29ba385f49495909bddb29552e847e25413"
+          }
+        ],
+        "schemaVersion": 1,
+        "source": {
+          "byteCount": 303,
+          "name": "notebook.ipynb",
+          "sha256": "40068d5ffbd4d6debaa00ca3a2ccf337b27edd0b72834cf30f490a8bb7ddb3a5"
+        },
+        "sourceMappings": []
+      }
+    },
+    "encoding.rtf": {
+      "args": [
+        "--progress",
+        "--json",
+        "--report",
+        "--output",
+        "/fixture/pmt-p01/out3",
+        "--",
+        "/fixture/pmt-p01/encoding.rtf"
+      ],
+      "exit": 0,
+      "expectedExit": 0,
+      "stdout": "{\n  \"assets\" : [\n\n  ],\n  \"diagnosticGroups\" : [\n    {\n      \"code\" : \"sourceMap.unavailable\",\n      \"count\" : 1,\n      \"kind\" : \"information\",\n      \"locations\" : [\n\n      ],\n      \"messages\" : [\n        \"No verified source-to-text positions are available for this conversion.\"\n      ],\n      \"omittedCount\" : 0\n    }\n  ],\n  \"diagnostics\" : [\n    {\n      \"code\" : \"sourceMap.unavailable\",\n      \"kind\" : \"information\",\n      \"message\" : \"No verified source-to-text positions are available for this conversion.\"\n    }\n  ],\n  \"documents\" : [\n    {\n      \"assets\" : [\n\n      ],\n      \"markdownFile\" : \"/fixture/pmt-p01/out3/encoding.md\",\n      \"metadata\" : {\n\n      },\n      \"sourceIndex\" : 1,\n      \"title\" : \"encoding\"\n    }\n  ],\n  \"input\" : \"/fixture/pmt-p01/encoding.rtf\",\n  \"markdownFile\" : \"/fixture/pmt-p01/out3/encoding.md\",\n  \"metadata\" : {\n\n  },\n  \"ok\" : true,\n  \"outputDirectory\" : \"/fixture/pmt-p01/out3\",\n  \"outputFiles\" : [\n    {\n      \"byteCount\" : 11,\n      \"path\" : \"encoding.md\",\n      \"sha256\" : \"10ec729ec2f2cf0f53c742249d679281129f30966283f99ebee1f07b8d1d1d27\"\n    }\n  ],\n  \"reportFile\" : \"/fixture/pmt-p01/out3/conversion-report.json\",\n  \"sourceIdentity\" : {\n    \"byteCount\" : 43,\n    \"name\" : \"encoding.rtf\",\n    \"sha256\" : \"8046e2f1f8f58f03fb19d7b4511704e6f980b7db049f1832e305f26ece0626db\"\n  },\n  \"sourceMappings\" : [\n\n  ],\n  \"version\" : \"0.41.7\",\n  \"warnings\" : [\n    \"No verified source-to-text positions are available for this conversion.\"\n  ]\n}\n",
+      "stderr": "Progress: encoding.rtf: detectingInput\nProgress: encoding.rtf: preparingOutput\nProgress: encoding.rtf: converting\nProgress: encoding.rtf: publishing\nProgress: encoding.rtf: finished\n",
+      "json": {
+        "assets": [],
+        "diagnosticGroups": [
+          {
+            "code": "sourceMap.unavailable",
+            "count": 1,
+            "kind": "information",
+            "locations": [],
+            "messages": [
+              "No verified source-to-text positions are available for this conversion."
+            ],
+            "omittedCount": 0
+          }
+        ],
+        "diagnostics": [
+          {
+            "code": "sourceMap.unavailable",
+            "kind": "information",
+            "message": "No verified source-to-text positions are available for this conversion."
+          }
+        ],
+        "documents": [
+          {
+            "assets": [],
+            "markdownFile": "/fixture/pmt-p01/out3/encoding.md",
+            "metadata": {},
+            "sourceIndex": 1,
+            "title": "encoding"
+          }
+        ],
+        "input": "/fixture/pmt-p01/encoding.rtf",
+        "markdownFile": "/fixture/pmt-p01/out3/encoding.md",
+        "metadata": {},
+        "ok": true,
+        "outputDirectory": "/fixture/pmt-p01/out3",
+        "outputFiles": [
+          {
+            "byteCount": 11,
+            "path": "encoding.md",
+            "sha256": "10ec729ec2f2cf0f53c742249d679281129f30966283f99ebee1f07b8d1d1d27"
+          }
+        ],
+        "reportFile": "/fixture/pmt-p01/out3/conversion-report.json",
+        "sourceIdentity": {
+          "byteCount": 43,
+          "name": "encoding.rtf",
+          "sha256": "8046e2f1f8f58f03fb19d7b4511704e6f980b7db049f1832e305f26ece0626db"
+        },
+        "sourceMappings": [],
+        "version": "0.41.7",
+        "warnings": [
+          "No verified source-to-text positions are available for this conversion."
+        ]
+      },
+      "sourceUnchanged": true,
+      "sourceSHA256": "8046e2f1f8f58f03fb19d7b4511704e6f980b7db049f1832e305f26ece0626db",
+      "tree": {
+        "encoding.md": {
+          "bytes": 11,
+          "sha256": "10ec729ec2f2cf0f53c742249d679281129f30966283f99ebee1f07b8d1d1d27"
+        },
+        "conversion-report.json": {
+          "bytes": 1481,
+          "sha256": "deb82419bbd8e2092ac5461dddeb7255cb9045d25f3e741694c7a0590e5a728f"
+        }
+      },
+      "markdown": {
+        "encoding.md": "Grüße α\n"
+      },
+      "expectedMarkersPresent": {
+        "Grüße": true,
+        "α": true
+      },
+      "report": {
+        "converterVersion": "0.41.7",
+        "diagnosticGroups": [
+          {
+            "code": "sourceMap.unavailable",
+            "count": 1,
+            "kind": "information",
+            "locations": [],
+            "messages": [
+              "No verified source-to-text positions are available for this conversion."
+            ],
+            "omittedCount": 0
+          }
+        ],
+        "diagnostics": [
+          {
+            "code": "sourceMap.unavailable",
+            "kind": "information",
+            "message": "No verified source-to-text positions are available for this conversion."
+          }
+        ],
+        "format": "rtf",
+        "omittedMappingCount": 0,
+        "options": {
+          "conversionReport": true,
+          "customPandoc": false,
+          "docxChangeMode": "accept",
+          "frontmatter": false,
+          "imageTextRecognition": "enabled",
+          "ocrLanguages": [],
+          "ocrMethod": "standard",
+          "outputLayout": "markdownFolder",
+          "pdfDehyphenate": false,
+          "pdfLayout": "auto",
+          "pdfRemoveHeadersFooters": false,
+          "pdfTextRecognition": "auto",
+          "presentationIncludeNotes": true,
+          "sourceMapping": true,
+          "spreadsheetRendering": "markdownTable"
+        },
+        "outputs": [
+          {
+            "byteCount": 11,
+            "path": "encoding.md",
+            "sha256": "10ec729ec2f2cf0f53c742249d679281129f30966283f99ebee1f07b8d1d1d27"
+          }
+        ],
+        "schemaVersion": 1,
+        "source": {
+          "byteCount": 43,
+          "name": "encoding.rtf",
+          "sha256": "8046e2f1f8f58f03fb19d7b4511704e6f980b7db049f1832e305f26ece0626db"
+        },
+        "sourceMappings": []
+      }
+    },
+    "picture.docx": {
+      "args": [
+        "--progress",
+        "--json",
+        "--report",
+        "--output",
+        "/fixture/pmt-p01/out4",
+        "--",
+        "/fixture/pmt-p01/picture.docx"
+      ],
+      "exit": 0,
+      "expectedExit": 0,
+      "stdout": "{\n  \"assets\" : [\n    \"/fixture/pmt-p01/out4/images/image01.png\"\n  ],\n  \"diagnosticGroups\" : [\n    {\n      \"code\" : \"sourceMap.unavailable\",\n      \"count\" : 1,\n      \"kind\" : \"information\",\n      \"locations\" : [\n\n      ],\n      \"messages\" : [\n        \"No verified source-to-text positions are available for this conversion.\"\n      ],\n      \"omittedCount\" : 0\n    }\n  ],\n  \"diagnostics\" : [\n    {\n      \"code\" : \"sourceMap.unavailable\",\n      \"kind\" : \"information\",\n      \"message\" : \"No verified source-to-text positions are available for this conversion.\"\n    }\n  ],\n  \"documents\" : [\n    {\n      \"assets\" : [\n        \"/fixture/pmt-p01/out4/images/image01.png\"\n      ],\n      \"markdownFile\" : \"/fixture/pmt-p01/out4/picture.md\",\n      \"metadata\" : {\n        \"created\" : \"2026-07-25T08:16:58Z\",\n        \"modified\" : \"2026-07-25T08:16:58Z\"\n      },\n      \"sourceIndex\" : 1,\n      \"title\" : \"picture\"\n    }\n  ],\n  \"input\" : \"/fixture/pmt-p01/picture.docx\",\n  \"markdownFile\" : \"/fixture/pmt-p01/out4/picture.md\",\n  \"metadata\" : {\n    \"created\" : \"2026-07-25T08:16:58Z\",\n    \"modified\" : \"2026-07-25T08:16:58Z\"\n  },\n  \"ok\" : true,\n  \"outputDirectory\" : \"/fixture/pmt-p01/out4\",\n  \"outputFiles\" : [\n    {\n      \"byteCount\" : 1739,\n      \"path\" : \"images/image01.png\",\n      \"sha256\" : \"161e77431664be88483d7fef7bdd0123c9ed53318cfc9d1c4fa84af80ea2ab28\"\n    },\n    {\n      \"byteCount\" : 406,\n      \"path\" : \"picture.md\",\n      \"sha256\" : \"6e5e57e3633c794a9023cb612c4ba16be76c48f32576d03168feea382ee4b0e8\"\n    }\n  ],\n  \"reportFile\" : \"/fixture/pmt-p01/out4/conversion-report.json\",\n  \"sourceIdentity\" : {\n    \"byteCount\" : 13518,\n    \"name\" : \"picture.docx\",\n    \"sha256\" : \"83638a13679f3d8851b50764b82ead9f91e665cfb42b5bde706fe7f8ac772b26\"\n  },\n  \"sourceMappings\" : [\n\n  ],\n  \"version\" : \"0.41.7\",\n  \"warnings\" : [\n    \"No verified source-to-text positions are available for this conversion.\"\n  ]\n}\n",
+      "stderr": "Progress: picture.docx: detectingInput\nProgress: picture.docx: preparingOutput\nProgress: picture.docx: converting\nProgress: picture.docx: publishing\nProgress: picture.docx: finished\n",
+      "json": {
+        "assets": [
+          "/fixture/pmt-p01/out4/images/image01.png"
+        ],
+        "diagnosticGroups": [
+          {
+            "code": "sourceMap.unavailable",
+            "count": 1,
+            "kind": "information",
+            "locations": [],
+            "messages": [
+              "No verified source-to-text positions are available for this conversion."
+            ],
+            "omittedCount": 0
+          }
+        ],
+        "diagnostics": [
+          {
+            "code": "sourceMap.unavailable",
+            "kind": "information",
+            "message": "No verified source-to-text positions are available for this conversion."
+          }
+        ],
+        "documents": [
+          {
+            "assets": [
+              "/fixture/pmt-p01/out4/images/image01.png"
+            ],
+            "markdownFile": "/fixture/pmt-p01/out4/picture.md",
+            "metadata": {
+              "created": "2026-07-25T08:16:58Z",
+              "modified": "2026-07-25T08:16:58Z"
+            },
+            "sourceIndex": 1,
+            "title": "picture"
+          }
+        ],
+        "input": "/fixture/pmt-p01/picture.docx",
+        "markdownFile": "/fixture/pmt-p01/out4/picture.md",
+        "metadata": {
+          "created": "2026-07-25T08:16:58Z",
+          "modified": "2026-07-25T08:16:58Z"
+        },
+        "ok": true,
+        "outputDirectory": "/fixture/pmt-p01/out4",
+        "outputFiles": [
+          {
+            "byteCount": 1739,
+            "path": "images/image01.png",
+            "sha256": "161e77431664be88483d7fef7bdd0123c9ed53318cfc9d1c4fa84af80ea2ab28"
+          },
+          {
+            "byteCount": 406,
+            "path": "picture.md",
+            "sha256": "6e5e57e3633c794a9023cb612c4ba16be76c48f32576d03168feea382ee4b0e8"
+          }
+        ],
+        "reportFile": "/fixture/pmt-p01/out4/conversion-report.json",
+        "sourceIdentity": {
+          "byteCount": 13518,
+          "name": "picture.docx",
+          "sha256": "83638a13679f3d8851b50764b82ead9f91e665cfb42b5bde706fe7f8ac772b26"
+        },
+        "sourceMappings": [],
+        "version": "0.41.7",
+        "warnings": [
+          "No verified source-to-text positions are available for this conversion."
+        ]
+      },
+      "sourceUnchanged": true,
+      "sourceSHA256": "83638a13679f3d8851b50764b82ead9f91e665cfb42b5bde706fe7f8ac772b26",
+      "tree": {
+        "picture.md": {
+          "bytes": 406,
+          "sha256": "6e5e57e3633c794a9023cb612c4ba16be76c48f32576d03168feea382ee4b0e8"
+        },
+        "conversion-report.json": {
+          "bytes": 1645,
+          "sha256": "17dfc5610fed3c4bc6e8d776f2a24194f1fbcf1d17930c7555ba7f2937b14c48"
+        },
+        "images/image01.png": {
+          "bytes": 1739,
+          "sha256": "161e77431664be88483d7fef7bdd0123c9ed53318cfc9d1c4fa84af80ea2ab28"
+        }
+      },
+      "markdown": {
+        "picture.md": "# Fixture heading ä\n\nThis paragraph contains **bold text**, *italic text*, and an [external link](https://example.com/document).\n\n- First list item\n- Second list item\n\n| Name   | Value |\n|--------|------:|\n| Äpfel  |    12 |\n| Birnen |     7 |\n\nThe footnote marker is here.[^1]\n\n![Embedded fixture image](images/image01.png)\n\nFinal paragraph: Grüße aus Köln.\n\n[^1]: Footnote content remains readable.\n"
+      },
+      "expectedMarkersPresent": {},
+      "report": {
+        "converterVersion": "0.41.7",
+        "diagnosticGroups": [
+          {
+            "code": "sourceMap.unavailable",
+            "count": 1,
+            "kind": "information",
+            "locations": [],
+            "messages": [
+              "No verified source-to-text positions are available for this conversion."
+            ],
+            "omittedCount": 0
+          }
+        ],
+        "diagnostics": [
+          {
+            "code": "sourceMap.unavailable",
+            "kind": "information",
+            "message": "No verified source-to-text positions are available for this conversion."
+          }
+        ],
+        "format": "docx",
+        "omittedMappingCount": 0,
+        "options": {
+          "conversionReport": true,
+          "customPandoc": false,
+          "docxChangeMode": "accept",
+          "frontmatter": false,
+          "imageTextRecognition": "enabled",
+          "ocrLanguages": [],
+          "ocrMethod": "standard",
+          "outputLayout": "markdownFolder",
+          "pdfDehyphenate": false,
+          "pdfLayout": "auto",
+          "pdfRemoveHeadersFooters": false,
+          "pdfTextRecognition": "auto",
+          "presentationIncludeNotes": true,
+          "sourceMapping": true,
+          "spreadsheetRendering": "markdownTable"
+        },
+        "outputs": [
+          {
+            "byteCount": 1739,
+            "path": "images/image01.png",
+            "sha256": "161e77431664be88483d7fef7bdd0123c9ed53318cfc9d1c4fa84af80ea2ab28"
+          },
+          {
+            "byteCount": 406,
+            "path": "picture.md",
+            "sha256": "6e5e57e3633c794a9023cb612c4ba16be76c48f32576d03168feea382ee4b0e8"
+          }
+        ],
+        "schemaVersion": 1,
+        "source": {
+          "byteCount": 13518,
+          "name": "picture.docx",
+          "sha256": "83638a13679f3d8851b50764b82ead9f91e665cfb42b5bde706fe7f8ac772b26"
+        },
+        "sourceMappings": []
+      }
+    },
+    "mail.mbox": {
+      "args": [
+        "--progress",
+        "--json",
+        "--report",
+        "--output",
+        "/fixture/pmt-p01/out5",
+        "--",
+        "/fixture/pmt-p01/mail.mbox"
+      ],
+      "exit": 0,
+      "expectedExit": 0,
+      "stdout": "{\n  \"assets\" : [\n    \"/fixture/pmt-p01/out5/assets/documents/000001/mail.md\",\n    \"/fixture/pmt-p01/out5/assets/documents/000002/mail.md\"\n  ],\n  \"documents\" : [\n    {\n      \"assets\" : [\n\n      ],\n      \"markdownFile\" : \"/fixture/pmt-p01/out5/assets/documents/000001/mail.md\",\n      \"metadata\" : {\n        \"author\" : \"a@example.invalid\",\n        \"subject\" : \"One\",\n        \"title\" : \"One\"\n      },\n      \"sourceIndex\" : 1,\n      \"title\" : \"One\"\n    },\n    {\n      \"assets\" : [\n\n      ],\n      \"markdownFile\" : \"/fixture/pmt-p01/out5/assets/documents/000002/mail.md\",\n      \"metadata\" : {\n        \"author\" : \"a@example.invalid\",\n        \"subject\" : \"Two\",\n        \"title\" : \"Two\"\n      },\n      \"sourceIndex\" : 2,\n      \"title\" : \"Two\"\n    }\n  ],\n  \"input\" : \"/fixture/pmt-p01/mail.mbox\",\n  \"markdownFile\" : \"/fixture/pmt-p01/out5/index.md\",\n  \"metadata\" : {\n    \"title\" : \"mail\"\n  },\n  \"ok\" : true,\n  \"outputDirectory\" : \"/fixture/pmt-p01/out5\",\n  \"outputFiles\" : [\n    {\n      \"byteCount\" : 248,\n      \"path\" : \"assets/documents/000001/mail.md\",\n      \"sha256\" : \"394fa123edc451f843c4757cff76fbf99d21180e0478a3e9786c5e784e43ce62\"\n    },\n    {\n      \"byteCount\" : 247,\n      \"path\" : \"assets/documents/000002/mail.md\",\n      \"sha256\" : \"82bdb8b77175ade29b6ee7629b8e8e687528e64f5c1857ec4a11070fe89edc4b\"\n    },\n    {\n      \"byteCount\" : 92,\n      \"path\" : \"index.md\",\n      \"sha256\" : \"052d21787af9f5a3d1f9a51280c20d15e9917611f71b00a8216e17a4f6726b00\"\n    }\n  ],\n  \"reportFile\" : \"/fixture/pmt-p01/out5/conversion-report.json\",\n  \"sourceIdentity\" : {\n    \"byteCount\" : 324,\n    \"name\" : \"mail.mbox\",\n    \"sha256\" : \"a50e0becddbf12ce6c84272a99b26c8ee78be29c43fcf14686e3afac401a1d48\"\n  },\n  \"sourceMappings\" : [\n    {\n      \"output\" : {\n        \"file\" : \"assets/documents/000001/mail.md\",\n        \"utf8Length\" : 248,\n        \"utf8Offset\" : 0\n      },\n      \"source\" : {\n        \"message\" : \"1\"\n      }\n    },\n    {\n      \"output\" : {\n        \"file\" : \"assets/documents/000002/mail.md\",\n        \"utf8Length\" : 247,\n        \"utf8Offset\" : 0\n      },\n      \"source\" : {\n        \"message\" : \"2\"\n      }\n    }\n  ],\n  \"version\" : \"0.41.7\",\n  \"warnings\" : [\n\n  ]\n}\n",
+      "stderr": "Progress: mail.mbox: detectingInput\nProgress: mail.mbox: preparingOutput\nProgress: mail.mbox: converting\nProgress: mail.mbox: converting message 0\nProgress: mail.mbox: converting message 1\nProgress: mail.mbox: converting message 2/2\nProgress: mail.mbox: publishing\nProgress: mail.mbox: finished\n",
+      "json": {
+        "assets": [
+          "/fixture/pmt-p01/out5/assets/documents/000001/mail.md",
+          "/fixture/pmt-p01/out5/assets/documents/000002/mail.md"
+        ],
+        "documents": [
+          {
+            "assets": [],
+            "markdownFile": "/fixture/pmt-p01/out5/assets/documents/000001/mail.md",
+            "metadata": {
+              "author": "a@example.invalid",
+              "subject": "One",
+              "title": "One"
+            },
+            "sourceIndex": 1,
+            "title": "One"
+          },
+          {
+            "assets": [],
+            "markdownFile": "/fixture/pmt-p01/out5/assets/documents/000002/mail.md",
+            "metadata": {
+              "author": "a@example.invalid",
+              "subject": "Two",
+              "title": "Two"
+            },
+            "sourceIndex": 2,
+            "title": "Two"
+          }
+        ],
+        "input": "/fixture/pmt-p01/mail.mbox",
+        "markdownFile": "/fixture/pmt-p01/out5/index.md",
+        "metadata": {
+          "title": "mail"
+        },
+        "ok": true,
+        "outputDirectory": "/fixture/pmt-p01/out5",
+        "outputFiles": [
+          {
+            "byteCount": 248,
+            "path": "assets/documents/000001/mail.md",
+            "sha256": "394fa123edc451f843c4757cff76fbf99d21180e0478a3e9786c5e784e43ce62"
+          },
+          {
+            "byteCount": 247,
+            "path": "assets/documents/000002/mail.md",
+            "sha256": "82bdb8b77175ade29b6ee7629b8e8e687528e64f5c1857ec4a11070fe89edc4b"
+          },
+          {
+            "byteCount": 92,
+            "path": "index.md",
+            "sha256": "052d21787af9f5a3d1f9a51280c20d15e9917611f71b00a8216e17a4f6726b00"
+          }
+        ],
+        "reportFile": "/fixture/pmt-p01/out5/conversion-report.json",
+        "sourceIdentity": {
+          "byteCount": 324,
+          "name": "mail.mbox",
+          "sha256": "a50e0becddbf12ce6c84272a99b26c8ee78be29c43fcf14686e3afac401a1d48"
+        },
+        "sourceMappings": [
+          {
+            "output": {
+              "file": "assets/documents/000001/mail.md",
+              "utf8Length": 248,
+              "utf8Offset": 0
+            },
+            "source": {
+              "message": "1"
+            }
+          },
+          {
+            "output": {
+              "file": "assets/documents/000002/mail.md",
+              "utf8Length": 247,
+              "utf8Offset": 0
+            },
+            "source": {
+              "message": "2"
+            }
+          }
+        ],
+        "version": "0.41.7",
+        "warnings": []
+      },
+      "sourceUnchanged": true,
+      "sourceSHA256": "a50e0becddbf12ce6c84272a99b26c8ee78be29c43fcf14686e3afac401a1d48",
+      "tree": {
+        "index.md": {
+          "bytes": 92,
+          "sha256": "052d21787af9f5a3d1f9a51280c20d15e9917611f71b00a8216e17a4f6726b00"
+        },
+        "conversion-report.json": {
+          "bytes": 2087,
+          "sha256": "e7f16c29ef14cddcc511faf7a20ef4a7cf42a3d0928096ab3652d486559a3fa7"
+        },
+        "assets/documents/000002/mail.md": {
+          "bytes": 247,
+          "sha256": "82bdb8b77175ade29b6ee7629b8e8e687528e64f5c1857ec4a11070fe89edc4b"
+        },
+        "assets/documents/000001/mail.md": {
+          "bytes": 248,
+          "sha256": "394fa123edc451f843c4757cff76fbf99d21180e0478a3e9786c5e784e43ce62"
+        }
+      },
+      "markdown": {
+        "index.md": "# mail\n\n1. [One](assets/documents/000001/mail.md)\n2. [Two](assets/documents/000002/mail.md)\n",
+        "assets/documents/000002/mail.md": "| Header | Value |\n| --- | --- |\n| mbox-envelope | From a@example.invalid Sun Jan  2 00:00:00 2022 |\n| from | a@example.invalid |\n| to | b@example.invalid |\n| subject | Two |\n| content-type | text/plain; charset=utf-8 |\n\n```text\nMessage beta\n\n```\n",
+        "assets/documents/000001/mail.md": "| Header | Value |\n| --- | --- |\n| mbox-envelope | From a@example.invalid Sat Jan  1 00:00:00 2022 |\n| from | a@example.invalid |\n| to | b@example.invalid |\n| subject | One |\n| content-type | text/plain; charset=utf-8 |\n\n```text\nMessage alpha\n\n```\n"
+      },
+      "expectedMarkersPresent": {
+        "Message alpha": true,
+        "Message beta": true
+      },
+      "report": {
+        "converterVersion": "0.41.7",
+        "diagnosticGroups": [],
+        "diagnostics": [],
+        "documents": [
+          {
+            "assets": [],
+            "markdownFile": "assets/documents/000001/mail.md",
+            "sourceIndex": 1,
+            "title": "One"
+          },
+          {
+            "assets": [],
+            "markdownFile": "assets/documents/000002/mail.md",
+            "sourceIndex": 2,
+            "title": "Two"
+          }
+        ],
+        "format": "mbox",
+        "omittedMappingCount": 0,
+        "options": {
+          "conversionReport": true,
+          "customPandoc": false,
+          "docxChangeMode": "accept",
+          "frontmatter": false,
+          "imageTextRecognition": "enabled",
+          "ocrLanguages": [],
+          "ocrMethod": "standard",
+          "outputLayout": "markdownFolder",
+          "pdfDehyphenate": false,
+          "pdfLayout": "auto",
+          "pdfRemoveHeadersFooters": false,
+          "pdfTextRecognition": "auto",
+          "presentationIncludeNotes": true,
+          "sourceMapping": true,
+          "spreadsheetRendering": "markdownTable"
+        },
+        "outputs": [
+          {
+            "byteCount": 248,
+            "path": "assets/documents/000001/mail.md",
+            "sha256": "394fa123edc451f843c4757cff76fbf99d21180e0478a3e9786c5e784e43ce62"
+          },
+          {
+            "byteCount": 247,
+            "path": "assets/documents/000002/mail.md",
+            "sha256": "82bdb8b77175ade29b6ee7629b8e8e687528e64f5c1857ec4a11070fe89edc4b"
+          },
+          {
+            "byteCount": 92,
+            "path": "index.md",
+            "sha256": "052d21787af9f5a3d1f9a51280c20d15e9917611f71b00a8216e17a4f6726b00"
+          }
+        ],
+        "schemaVersion": 1,
+        "source": {
+          "byteCount": 324,
+          "name": "mail.mbox",
+          "sha256": "a50e0becddbf12ce6c84272a99b26c8ee78be29c43fcf14686e3afac401a1d48"
+        },
+        "sourceMappings": [
+          {
+            "output": {
+              "file": "assets/documents/000001/mail.md",
+              "utf8Length": 248,
+              "utf8Offset": 0
+            },
+            "source": {
+              "message": "1"
+            }
+          },
+          {
+            "output": {
+              "file": "assets/documents/000002/mail.md",
+              "utf8Length": 247,
+              "utf8Offset": 0
+            },
+            "source": {
+              "message": "2"
+            }
+          }
+        ]
+      }
+    },
+    "notes.enex": {
+      "args": [
+        "--progress",
+        "--json",
+        "--report",
+        "--output",
+        "/fixture/pmt-p01/out6",
+        "--",
+        "/fixture/pmt-p01/notes.enex"
+      ],
+      "exit": 0,
+      "expectedExit": 0,
+      "stdout": "{\n  \"assets\" : [\n    \"/fixture/pmt-p01/out6/assets/documents/000001/notes.md\",\n    \"/fixture/pmt-p01/out6/assets/documents/000002/notes.md\"\n  ],\n  \"diagnosticGroups\" : [\n    {\n      \"code\" : \"html.structureSimplified\",\n      \"count\" : 2,\n      \"kind\" : \"approximation\",\n      \"locations\" : [\n        {\n          \"note\" : \"1\"\n        },\n        {\n          \"note\" : \"2\"\n        }\n      ],\n      \"messages\" : [\n        \"Scripts, styles, forms, and the page layout are not represented in the Markdown.\"\n      ],\n      \"omittedCount\" : 0\n    }\n  ],\n  \"diagnostics\" : [\n    {\n      \"code\" : \"html.structureSimplified\",\n      \"kind\" : \"approximation\",\n      \"location\" : {\n        \"note\" : \"1\"\n      },\n      \"message\" : \"Scripts, styles, forms, and the page layout are not represented in the Markdown.\"\n    },\n    {\n      \"code\" : \"html.structureSimplified\",\n      \"kind\" : \"approximation\",\n      \"location\" : {\n        \"note\" : \"2\"\n      },\n      \"message\" : \"Scripts, styles, forms, and the page layout are not represented in the Markdown.\"\n    }\n  ],\n  \"documents\" : [\n    {\n      \"assets\" : [\n\n      ],\n      \"markdownFile\" : \"/fixture/pmt-p01/out6/assets/documents/000001/notes.md\",\n      \"metadata\" : {\n        \"title\" : \"One\"\n      },\n      \"sourceIndex\" : 1,\n      \"title\" : \"One\"\n    },\n    {\n      \"assets\" : [\n\n      ],\n      \"markdownFile\" : \"/fixture/pmt-p01/out6/assets/documents/000002/notes.md\",\n      \"metadata\" : {\n        \"title\" : \"Two\"\n      },\n      \"sourceIndex\" : 2,\n      \"title\" : \"Two\"\n    }\n  ],\n  \"input\" : \"/fixture/pmt-p01/notes.enex\",\n  \"markdownFile\" : \"/fixture/pmt-p01/out6/index.md\",\n  \"metadata\" : {\n    \"title\" : \"notes\"\n  },\n  \"ok\" : true,\n  \"outputDirectory\" : \"/fixture/pmt-p01/out6\",\n  \"outputFiles\" : [\n    {\n      \"byteCount\" : 18,\n      \"path\" : \"assets/documents/000001/notes.md\",\n      \"sha256\" : \"669cd590e82eea365e4ad9b3762083225835600fbc3692c795330ce39cddebe5\"\n    },\n    {\n      \"byteCount\" : 17,\n      \"path\" : \"assets/documents/000002/notes.md\",\n      \"sha256\" : \"5afd42a747aaf6a079764c148154dc866be9430539bff28cc71a4778757fb054\"\n    },\n    {\n      \"byteCount\" : 95,\n      \"path\" : \"index.md\",\n      \"sha256\" : \"1c827fe2386e815d811b75246d659b1b9eda22e8f7c225ca029de62c8f7146ed\"\n    }\n  ],\n  \"reportFile\" : \"/fixture/pmt-p01/out6/conversion-report.json\",\n  \"sourceIdentity\" : {\n    \"byteCount\" : 397,\n    \"name\" : \"notes.enex\",\n    \"sha256\" : \"e182becf1fa24d92a90bd1186de3c085ccbd1c064ff942ae950dc13b6a9f46d3\"\n  },\n  \"sourceMappings\" : [\n    {\n      \"output\" : {\n        \"file\" : \"assets/documents/000001/notes.md\",\n        \"utf8Length\" : 18,\n        \"utf8Offset\" : 0\n      },\n      \"source\" : {\n        \"note\" : \"1\"\n      }\n    },\n    {\n      \"output\" : {\n        \"file\" : \"assets/documents/000002/notes.md\",\n        \"utf8Length\" : 17,\n        \"utf8Offset\" : 0\n      },\n      \"source\" : {\n        \"note\" : \"2\"\n      }\n    }\n  ],\n  \"version\" : \"0.41.7\",\n  \"warnings\" : [\n    \"Note 1: Scripts, styles, forms, and the page layout are not represented in the Markdown.\",\n    \"Note 2: Scripts, styles, forms, and the page layout are not represented in the Markdown.\"\n  ]\n}\n",
+      "stderr": "Progress: notes.enex: detectingInput\nProgress: notes.enex: preparingOutput\nProgress: notes.enex: converting\nProgress: notes.enex: converting note 0/2\nProgress: notes.enex: converting note 1/2\nProgress: notes.enex: publishing\nProgress: notes.enex: finished\n",
+      "json": {
+        "assets": [
+          "/fixture/pmt-p01/out6/assets/documents/000001/notes.md",
+          "/fixture/pmt-p01/out6/assets/documents/000002/notes.md"
+        ],
+        "diagnosticGroups": [
+          {
+            "code": "html.structureSimplified",
+            "count": 2,
+            "kind": "approximation",
+            "locations": [
+              {
+                "note": "1"
+              },
+              {
+                "note": "2"
+              }
+            ],
+            "messages": [
+              "Scripts, styles, forms, and the page layout are not represented in the Markdown."
+            ],
+            "omittedCount": 0
+          }
+        ],
+        "diagnostics": [
+          {
+            "code": "html.structureSimplified",
+            "kind": "approximation",
+            "location": {
+              "note": "1"
+            },
+            "message": "Scripts, styles, forms, and the page layout are not represented in the Markdown."
+          },
+          {
+            "code": "html.structureSimplified",
+            "kind": "approximation",
+            "location": {
+              "note": "2"
+            },
+            "message": "Scripts, styles, forms, and the page layout are not represented in the Markdown."
+          }
+        ],
+        "documents": [
+          {
+            "assets": [],
+            "markdownFile": "/fixture/pmt-p01/out6/assets/documents/000001/notes.md",
+            "metadata": {
+              "title": "One"
+            },
+            "sourceIndex": 1,
+            "title": "One"
+          },
+          {
+            "assets": [],
+            "markdownFile": "/fixture/pmt-p01/out6/assets/documents/000002/notes.md",
+            "metadata": {
+              "title": "Two"
+            },
+            "sourceIndex": 2,
+            "title": "Two"
+          }
+        ],
+        "input": "/fixture/pmt-p01/notes.enex",
+        "markdownFile": "/fixture/pmt-p01/out6/index.md",
+        "metadata": {
+          "title": "notes"
+        },
+        "ok": true,
+        "outputDirectory": "/fixture/pmt-p01/out6",
+        "outputFiles": [
+          {
+            "byteCount": 18,
+            "path": "assets/documents/000001/notes.md",
+            "sha256": "669cd590e82eea365e4ad9b3762083225835600fbc3692c795330ce39cddebe5"
+          },
+          {
+            "byteCount": 17,
+            "path": "assets/documents/000002/notes.md",
+            "sha256": "5afd42a747aaf6a079764c148154dc866be9430539bff28cc71a4778757fb054"
+          },
+          {
+            "byteCount": 95,
+            "path": "index.md",
+            "sha256": "1c827fe2386e815d811b75246d659b1b9eda22e8f7c225ca029de62c8f7146ed"
+          }
+        ],
+        "reportFile": "/fixture/pmt-p01/out6/conversion-report.json",
+        "sourceIdentity": {
+          "byteCount": 397,
+          "name": "notes.enex",
+          "sha256": "e182becf1fa24d92a90bd1186de3c085ccbd1c064ff942ae950dc13b6a9f46d3"
+        },
+        "sourceMappings": [
+          {
+            "output": {
+              "file": "assets/documents/000001/notes.md",
+              "utf8Length": 18,
+              "utf8Offset": 0
+            },
+            "source": {
+              "note": "1"
+            }
+          },
+          {
+            "output": {
+              "file": "assets/documents/000002/notes.md",
+              "utf8Length": 17,
+              "utf8Offset": 0
+            },
+            "source": {
+              "note": "2"
+            }
+          }
+        ],
+        "version": "0.41.7",
+        "warnings": [
+          "Note 1: Scripts, styles, forms, and the page layout are not represented in the Markdown.",
+          "Note 2: Scripts, styles, forms, and the page layout are not represented in the Markdown."
+        ]
+      },
+      "sourceUnchanged": true,
+      "sourceSHA256": "e182becf1fa24d92a90bd1186de3c085ccbd1c064ff942ae950dc13b6a9f46d3",
+      "tree": {
+        "index.md": {
+          "bytes": 95,
+          "sha256": "1c827fe2386e815d811b75246d659b1b9eda22e8f7c225ca029de62c8f7146ed"
+        },
+        "conversion-report.json": {
+          "bytes": 2931,
+          "sha256": "e885cca2e7a5b1785e873274122ab33a6901afca2c5827cb0d29c2aed23efa02"
+        },
+        "assets/documents/000002/notes.md": {
+          "bytes": 17,
+          "sha256": "5afd42a747aaf6a079764c148154dc866be9430539bff28cc71a4778757fb054"
+        },
+        "assets/documents/000001/notes.md": {
+          "bytes": 18,
+          "sha256": "669cd590e82eea365e4ad9b3762083225835600fbc3692c795330ce39cddebe5"
+        }
+      },
+      "markdown": {
+        "index.md": "# notes\n\n1. [One](assets/documents/000001/notes.md)\n2. [Two](assets/documents/000002/notes.md)\n",
+        "assets/documents/000002/notes.md": "# Two\n\nNote beta\n",
+        "assets/documents/000001/notes.md": "# One\n\nNote alpha\n"
+      },
+      "expectedMarkersPresent": {
+        "Note alpha": true,
+        "Note beta": true
+      },
+      "report": {
+        "converterVersion": "0.41.7",
+        "diagnosticGroups": [
+          {
+            "code": "html.structureSimplified",
+            "count": 2,
+            "kind": "approximation",
+            "locations": [
+              {
+                "note": "1"
+              },
+              {
+                "note": "2"
+              }
+            ],
+            "messages": [
+              "Scripts, styles, forms, and the page layout are not represented in the Markdown."
+            ],
+            "omittedCount": 0
+          }
+        ],
+        "diagnostics": [
+          {
+            "code": "html.structureSimplified",
+            "kind": "approximation",
+            "location": {
+              "note": "1"
+            },
+            "message": "Scripts, styles, forms, and the page layout are not represented in the Markdown."
+          },
+          {
+            "code": "html.structureSimplified",
+            "kind": "approximation",
+            "location": {
+              "note": "2"
+            },
+            "message": "Scripts, styles, forms, and the page layout are not represented in the Markdown."
+          }
+        ],
+        "documents": [
+          {
+            "assets": [],
+            "markdownFile": "assets/documents/000001/notes.md",
+            "sourceIndex": 1,
+            "title": "One"
+          },
+          {
+            "assets": [],
+            "markdownFile": "assets/documents/000002/notes.md",
+            "sourceIndex": 2,
+            "title": "Two"
+          }
+        ],
+        "format": "enex",
+        "omittedMappingCount": 0,
+        "options": {
+          "conversionReport": true,
+          "customPandoc": false,
+          "docxChangeMode": "accept",
+          "frontmatter": false,
+          "imageTextRecognition": "enabled",
+          "ocrLanguages": [],
+          "ocrMethod": "standard",
+          "outputLayout": "markdownFolder",
+          "pdfDehyphenate": false,
+          "pdfLayout": "auto",
+          "pdfRemoveHeadersFooters": false,
+          "pdfTextRecognition": "auto",
+          "presentationIncludeNotes": true,
+          "sourceMapping": true,
+          "spreadsheetRendering": "markdownTable"
+        },
+        "outputs": [
+          {
+            "byteCount": 18,
+            "path": "assets/documents/000001/notes.md",
+            "sha256": "669cd590e82eea365e4ad9b3762083225835600fbc3692c795330ce39cddebe5"
+          },
+          {
+            "byteCount": 17,
+            "path": "assets/documents/000002/notes.md",
+            "sha256": "5afd42a747aaf6a079764c148154dc866be9430539bff28cc71a4778757fb054"
+          },
+          {
+            "byteCount": 95,
+            "path": "index.md",
+            "sha256": "1c827fe2386e815d811b75246d659b1b9eda22e8f7c225ca029de62c8f7146ed"
+          }
+        ],
+        "schemaVersion": 1,
+        "source": {
+          "byteCount": 397,
+          "name": "notes.enex",
+          "sha256": "e182becf1fa24d92a90bd1186de3c085ccbd1c064ff942ae950dc13b6a9f46d3"
+        },
+        "sourceMappings": [
+          {
+            "output": {
+              "file": "assets/documents/000001/notes.md",
+              "utf8Length": 18,
+              "utf8Offset": 0
+            },
+            "source": {
+              "note": "1"
+            }
+          },
+          {
+            "output": {
+              "file": "assets/documents/000002/notes.md",
+              "utf8Length": 17,
+              "utf8Offset": 0
+            },
+            "source": {
+              "note": "2"
+            }
+          }
+        ]
+      }
+    },
+    "missing-input": {
+      "args": [
+        "--json",
+        "--",
+        "/fixture/pmt-p01/absent.csv"
+      ],
+      "exit": 66,
+      "expectedExit": 66,
+      "stdout": "{\n  \"error\" : \"Input does not exist: /fixture/pmt-p01/absent.csv\",\n  \"ok\" : false,\n  \"version\" : \"0.41.7\"\n}\n",
+      "stderr": "",
+      "json": {
+        "error": "Input does not exist: /fixture/pmt-p01/absent.csv",
+        "ok": false,
+        "version": "0.41.7"
+      }
+    },
+    "missing-tool": {
+      "args": [
+        "--json",
+        "--pandoc",
+        "/fixture/pmt-p01/not-pandoc",
+        "--",
+        "/fixture/pmt-p01/encoding.rtf"
+      ],
+      "exit": 69,
+      "expectedExit": 69,
+      "stdout": "{\n  \"error\" : \"Pandoc was not found. Install Pandoc or pass --pandoc PATH.\",\n  \"ok\" : false,\n  \"version\" : \"0.41.7\"\n}\n",
+      "stderr": "",
+      "json": {
+        "error": "Pandoc was not found. Install Pandoc or pass --pandoc PATH.",
+        "ok": false,
+        "version": "0.41.7"
+      }
+    },
+    "invalid-call": {
+      "args": [
+        "--json",
+        "--stdout",
+        "--",
+        "/fixture/pmt-p01/encoding.rtf"
+      ],
+      "exit": 64,
+      "expectedExit": 64,
+      "stdout": "{\n  \"error\" : \"--stdout cannot be combined with --json.\",\n  \"ok\" : false,\n  \"version\" : \"0.41.7\"\n}\n",
+      "stderr": "",
+      "json": {
+        "error": "--stdout cannot be combined with --json.",
+        "ok": false,
+        "version": "0.41.7"
+      }
+    },
+    "collision": {
+      "args": [
+        "--json",
+        "--output",
+        "/fixture/pmt-p01/out0",
+        "--",
+        "/fixture/pmt-p01/table ä: probe.csv"
+      ],
+      "exit": 73,
+      "expectedExit": 73,
+      "stdout": "{\n  \"error\" : \"Output already exists and will not be overwritten: /fixture/pmt-p01/out0\",\n  \"ok\" : false,\n  \"version\" : \"0.41.7\"\n}\n",
+      "stderr": "",
+      "json": {
+        "error": "Output already exists and will not be overwritten: /fixture/pmt-p01/out0",
+        "ok": false,
+        "version": "0.41.7"
+      }
+    },
+    "collection-stdout": {
+      "args": [
+        "--stdout",
+        "--",
+        "/fixture/pmt-p01/mail.mbox"
+      ],
+      "exit": 64,
+      "expectedExit": 65,
+      "stdout": "",
+      "stderr": "Error: --stdout cannot represent a document collection. Choose an output folder or Textbundle to retain its documents and links.\n\nUsage: poormans-text [options] INPUT [INPUT ...]\n       poormans-text --formats [--json] [--pandoc PATH]\n\nConvert documents, spreadsheets, presentations, notebooks, mail archives, ENEX notes, PDFs, or images into new Markdown folders.\n\nOptions:\n  -o, --output DIRECTORY  Set the new output directory.\n      --profile NAME      Apply a saved profile; explicit options take precedence.\n      --save-profile NAME Save options without converting an input.\n      --list-profiles     List profile names and scopes.\n      --import-profile FILE  Import a versioned profile without overwriting names.\n      --export-profile FILE  Export --profile NAME to a new file.\n      --profiles-directory DIR  Use another local profile store.\n      --profile-source FILE  Bind saved content selections to this exact document.\n      --profile-local     Explicitly permit local targets in profile operations.\n      --clear-profile-selection  Discard a chosen profile's bound content selection.\n      --no-frontmatter, --markdown-folder, --no-source-map, --no-report\n                          Explicitly disable profile output preferences.\n      --no-pdf-remove-headers-footers, --no-pdf-dehyphenate\n                          Explicitly disable profile PDF cleanup preferences.\n      --pandoc PATH       Use a specific Pandoc executable.\n      --formats           List the supported input formats instead of converting.\n      --spreadsheet-format table|tsv\n                          Render spreadsheets as a GFM table (default) or escaped TSV.\n      --sheets all|visible|RANGES  Select source sheet indices, e.g. 1,3-5.\n      --sheet-name NAME   Select an exact sheet name (repeatable; excludes --sheets).\n      --cell-range A1:B8  Select a cell rectangle on each selected sheet (repeatable).\n      --list-sheets       Inspect sheet names, indices and visibility without output folders.\n      --slides RANGES    Select source slides, e.g. 1,3-5 (PPTX/PPTM/POTX/ODP).\n      --notes on|off     Include presentation notes (default: on).\n      --list-slides      Inspect ordered slide titles and local notes references.\n      --epub-chapters RANGES  Select EPUB spine entries, e.g. 1,3-5.\n      --list-chapters     Inspect EPUB reading order and navigation without conversion.\n      --docx-changes accept|reject|mark  Choose tracked DOCX text (default: accept); comments are retained.\n      --image-ocr on|off  Add local OCR text for images (default) or preserve only the image asset.\n      --pdf-ocr auto|always|off  Choose local PDF OCR (default: auto).\n      --pdf-pages RANGES  Select source pages, e.g. 1,3-5 (PDF inputs only).\n      --ocr-method standard|structured  Local OCR method (structured: macOS 26+, with fallback).\n      --ocr-language CODES Comma-separated local OCR languages, e.g. de,en.\n      --pdf-layout auto|legacy  Reconstruct PDF structure or keep the previous extraction.\n      --pdf-remove-headers-footers  Remove repeated text at page margins.\n      --pdf-dehyphenate    Join conservative lowercase word breaks.\n      --frontmatter       Start the Markdown with a YAML header (title, author, dates) from the source.\n      --textbundle        Write INPUT.textbundle (text.md, assets/, info.json) instead of INPUT-markdown.\n      --source-map        Include verified source-to-Markdown byte ranges (requires --json or --report).\n      --report            Save conversion-report.json with source/output hashes, options and source mappings.\n      --stdout            Print the Markdown to standard output instead of writing a folder.\n      --progress          Report phases and page/sheet/slide/cell/message/note progress on stderr.\n      --jobs 1..4         Convert up to four batch documents concurrently (default: 1); OCR stays serial.\n      --timeout SECONDS   Limit each external tool process (positive seconds).\n      --json              Write a machine-readable result to stdout.\n  -h, --help              Show this help text.\n  -V, --version           Show the product version.\n\nThe default output directory is INPUT-markdown next to the source. Existing\noutput directories are never overwritten. Exit codes follow sysexits values:\n64 usage, 65 invalid data, 66 missing input, 69 missing dependency,\n70 conversion failure, 73 output collision, 74 file-system failure,\n124 tool timeout, and 130 cancelled (SIGINT/SIGTERM).\n\nWith several inputs, or with a folder as input, every document is converted in\nturn by default; --jobs 2 through 4 runs documents concurrently. Failures do not stop the others. A folder is searched recursively\nfor supported file extensions; packages such as .rtfd count as one document,\nand hidden entries, symbolic links, and earlier *-markdown results are skipped.\n--output then names a parent directory that receives one INPUT-markdown folder\nper document, mirroring the folder structure. Results retain input order, and\nthe first input reserves a colliding target. OCR runs one image at a time.\n--json reports a list under\n\"results\", and the exit code is that of the first failed input. Text mode prints\none result path per line; a path that itself contains a line break spans two\nlines, so scripts that parse the output should use --json.\n\n--frontmatter reads title, author, subject, keywords, and dates from OOXML\ncore properties, OpenDocument meta.xml, the RTF info group, the PDF\ninformation dictionary, the OPF of an EPUB, the title-info of a FictionBook,\nmail headers, ENEX note fields, or the HTML head; a source without any of them gets a warning instead of\nan empty header. --stdout converts exactly one document into a temporary place,\nprints its Markdown, and removes that place again; image assets are not kept and\nare reported on standard error. It cannot be combined with --json, --output,\n--textbundle, --jobs, several inputs, or a folder.\n\nMBOX and ENEX produce a complete collection folder: an overview, ordered documents,\nlocal assets and an optional report. --stdout cannot represent a collection.\nENEX requires Pandoc, reads only local exports (up to 16 MiB), and never logs\ninto Evernote or downloads resources. Internal note links need unique identities\nin the export; missing identities or resources produce diagnostics.\n\n--formats reports every format this build can read, its file extensions, whether\nit is a single file or a folder package, which external tools it needs, and\nwhether those tools are installed right now. It never inspects a document, and\na valid call always exits 0 — even when no format is currently available.\nCombining --formats with an input document, an output directory, or a\nconversion option such as --spreadsheet-format or --image-ocr is a usage error\nand exits 64.\n"
+    },
+    "cancel": {
+      "exit": 130,
+      "stdout": "{\n  \"error\" : \"Conversion cancelled.\",\n  \"ok\" : false,\n  \"version\" : \"0.41.7\"\n}\n",
+      "stderr": "Progress: large.csv: detectingInput\nProgress: large.csv: preparingOutput\nProgress: large.csv: converting\n",
+      "outputPublished": false,
+      "signal": "SIGTERM",
+      "descendantCleanupVerified": false
+    }
+  },
+  "fixtureCleanup": true
+}

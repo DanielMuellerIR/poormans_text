@@ -3,6 +3,22 @@
 Poor Man's Text hält Konvertierungslogik und Bedienoberflächen getrennt, damit
 derselbe Kern von CLI, eigener App und später Fastra benutzt werden kann.
 
+## Gewählte Architektur für Linux und macOS
+
+Seit 2026-11-04 ist **Swift als gemeinsamer Konvertierungskern gewählt**.
+Die P02-Proben belegen den vorhandenen Kern samt dynamischer Laufzeitlieferung
+auf CachyOS und Mint 22.2. Apple-spezifische Fähigkeiten erhalten Plattformadapter;
+die Linux-Oberfläche kann in Rust über die lokale CLI angebunden werden.
+Es ist kein vollständiger Rust-Neubau des Kerns vorgesehen. Fastra bleibt ein
+eigenständiger Verbraucher des [CLI-Vertrags](FASTRA-CONTRACT.md).
+
+Diese Architekturentscheidung ist keine Produktfreigabe und beginnt P05 nicht.
+Die sicheren Linux-Prozesse und die Veröffentlichung werden zunächst als
+isolierte P03-Proben nachgewiesen. Target-Trennung, produktive Adapter,
+gemeinsame Regressionstests und Laufzeitpaketierung werden erst nach einem
+gesonderten P05-Auftrag integriert. Belege und Grenzen stehen im
+[Entscheidungsbericht](LINUX-DECISION.md).
+
 ## Heutige Modulgrenzen
 
 - `PoorMansTextCore`: formatneutrale Anfrage, adaptereigene Formaterkennung, Adapterwahl,

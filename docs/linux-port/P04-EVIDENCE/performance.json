@@ -1,0 +1,12 @@
+{
+  "pdf": {
+    "exit": 0,
+    "elapsed": 0.014,
+    "maxrss_kib": 17476
+  },
+  "ocr": {
+    "exit": 0,
+    "elapsed": 0.726,
+    "maxrss_kib": 116028
+  }
+}

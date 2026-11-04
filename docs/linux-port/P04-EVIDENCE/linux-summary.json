@@ -1,0 +1,260 @@
+{
+  "pdf": {
+    "pages": [
+      {
+        "text": "ALPHA left column\nGAMMA next line\nBETA right",
+        "size": [
+          600.0,
+          800.0
+        ],
+        "layout_count": 44,
+        "layout_ok": true,
+        "first_box": [
+          40.0,
+          45.64,
+          53.34,
+          64.14
+        ],
+        "images": [
+          {
+            "id": 0,
+            "area": [
+              40.0,
+              150.0,
+              70.0,
+              190.0
+            ],
+            "size": [
+              2,
+              2
+            ]
+          }
+        ],
+        "link_count": 1,
+        "annotations": [
+          {
+            "type": "2",
+            "contents": null
+          },
+          {
+            "type": "1",
+            "contents": "NOTE annotation sentinel"
+          }
+        ]
+      },
+      {
+        "text": "DELTA page two",
+        "size": [
+          600.0,
+          800.0
+        ],
+        "layout_count": 14,
+        "layout_ok": true,
+        "first_box": [
+          40.0,
+          45.64,
+          54.44,
+          64.14
+        ],
+        "images": [],
+        "link_count": 0,
+        "annotations": []
+      }
+    ],
+    "broken": "poppler-quark: PDF document is damaged (4)",
+    "bbox": {
+      "exit": 0,
+      "stdout": "",
+      "stderr": "",
+      "seconds": 0.016
+    },
+    "images": {
+      "exit": 0,
+      "stdout": "",
+      "stderr": "",
+      "seconds": 0.013
+    },
+    "encrypt_fixture": {
+      "exit": 0,
+      "stdout": "",
+      "stderr": "",
+      "seconds": 0.014
+    },
+    "encrypted_error": {
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Command Line Error: Incorrect password\n",
+      "seconds": 0.026
+    }
+  },
+  "ocr": {
+    "ocr": {
+      "process": {
+        "exit": 0,
+        "stdout": "",
+        "stderr": "",
+        "seconds": 0.693
+      },
+      "text": "Invoice ALPHA 12345\nDie Rechnung kostet 42 Euro.\nGrüße aus München und schéne Grüße.\n\nThe quick brown fox jumps over the lazy dog.\n\nRotation sentinel ALPHA 12345\nRotation sentinel ALPHA 12345\nRotation sentinel ALPHA 12345\nRotation sentinel ALPHA 12345\nRotation sentinel ALPHA 12345\n",
+      "alpha_count": 6,
+      "german_preserved": true,
+      "tsv_word_rows": 43,
+      "hocr_has_bbox": true
+    },
+    "ocr-rotated": {
+      "process": {
+        "exit": 0,
+        "stdout": "",
+        "stderr": "",
+        "seconds": 0.918
+      },
+      "text": "Invoice ALPHA 12345\nDie Rechnung kostet 42 Euro.\nGrüße aus Minchen und schöne Grüße.\n\nThe quick brown fox jumps over the lazy dog.\n\nRotation sentinel ALPHA 12345\nRotation sentinel ALPHA 12345\nRotation sentinel ALPHA 12345\nRotation sentinel ALPHA 12345\nRotation sentinel ALPHA 12345\n",
+      "alpha_count": 6,
+      "german_preserved": false,
+      "tsv_word_rows": 43,
+      "hocr_has_bbox": true
+    },
+    "missing_language": {
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Error opening data file /usr/share/tessdata/zzz.traineddata\nPlease make sure the TESSDATA_PREFIX environment variable is set to your \"tessdata\" directory.\nFailed loading language 'zzz'\nTesseract couldn't load any languages!\nCould not initialize tesseract.\n",
+      "seconds": 0.013
+    }
+  },
+  "images": {
+    "basic.png": {
+      "size": [
+        80,
+        40
+      ],
+      "format": "PNG",
+      "frames": 1,
+      "orientation": null,
+      "verify": "success",
+      "frame_pixels": [
+        [
+          255,
+          0,
+          0
+        ]
+      ]
+    },
+    "basic.webp": {
+      "size": [
+        80,
+        40
+      ],
+      "format": "WEBP",
+      "frames": 1,
+      "orientation": null,
+      "verify": "success",
+      "frame_pixels": [
+        [
+          255,
+          0,
+          2
+        ]
+      ]
+    },
+    "basic.bmp": {
+      "size": [
+        80,
+        40
+      ],
+      "format": "BMP",
+      "frames": 1,
+      "orientation": null,
+      "verify": "success",
+      "frame_pixels": [
+        [
+          255,
+          0,
+          0
+        ]
+      ]
+    },
+    "oriented.jpg": {
+      "size": [
+        80,
+        40
+      ],
+      "format": "JPEG",
+      "frames": 1,
+      "orientation": 6,
+      "oriented_size": [
+        40,
+        80
+      ],
+      "verify": "success",
+      "frame_pixels": [
+        [
+          254,
+          0,
+          0
+        ]
+      ]
+    },
+    "frames.gif": {
+      "size": [
+        80,
+        40
+      ],
+      "format": "GIF",
+      "frames": 2,
+      "orientation": null,
+      "verify": "success",
+      "frame_pixels": [
+        [
+          255,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          255
+        ]
+      ]
+    },
+    "frames.tiff": {
+      "size": [
+        80,
+        40
+      ],
+      "format": "TIFF",
+      "frames": 2,
+      "orientation": null,
+      "verify": "success",
+      "frame_pixels": [
+        [
+          255,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          255
+        ]
+      ]
+    },
+    "broken.png": {
+      "error": "UnidentifiedImageError: cannot identify image file '/tmp/pmt-p04-replay/fixtures/broken.png'"
+    },
+    "huge.png": {
+      "error": "DecompressionBombError: Image size (10000000000 pixels) exceeds limit of 178956970 pixels, could be decompression bomb DOS attack."
+    },
+    "heic_write": {
+      "exit": 1,
+      "stdout": "",
+      "stderr": "magick: unable to open image 'HEIC:/tmp/pmt-p04-replay/fixtures/basic.heic': No such file or directory @ error/blob.c/OpenBlob/3684.\nmagick: WriteBlob Failed `HEIC:/tmp/pmt-p04-replay/fixtures/basic.heic' @ error/png.c/MagickPNGError/1308.\n",
+      "seconds": 0.011
+    },
+    "heic_identify": {
+      "exit": 1,
+      "stdout": "",
+      "stderr": "identify: unable to load module '/usr/lib/ImageMagick-7.1.2/modules-Q16HDRI/coders/heic.la': file not found @ error/module.c/OpenModule/1295.\nidentify: no decode delegate for this image format `/tmp/pmt-p04-replay/fixtures/basic.heic' @ error/constitute.c/ReadImageInternal/739.\n",
+      "seconds": 0.01
+    }
+  }
+}

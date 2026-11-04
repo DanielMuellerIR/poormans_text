@@ -1,7 +1,10 @@
 # Umsetzungsplan für Poor Man's Text auf Linux
 
 Stand: 2026-11-04. Planungsbasis: Version 0.41.7, Commit `919c575`.
-Status: Umsetzung geplant, noch nicht begonnen. Die Entscheidungstests sind offen.
+Status: P00–P04 als isolierte Proben durchgeführt. Swift-Durchstich samt
+Laufzeitpaketierung bestanden; Vertrags-, Sicherheits- und Backendgrenzen bleiben
+offen. P05 wurde nicht begonnen. Ergebnisse und nächste Entscheidungen stehen im
+[Entscheidungsbericht](LINUX-DECISION.md).
 Dieser Plan beauftragt selbst keinen Entwicklungsstart.
 
 Ziel ist eine eigenständig verwendbare Linux-App samt CLI für CachyOS mit
@@ -160,7 +163,9 @@ Die Auswahl einer Bibliothek allein ist kein bestandener Formatnachweis.
 
 ## Arbeitspakete
 
-Alle Pakete sind offen. Jedes Paket liefert eine abgegrenzte Funktion mit echten
+Die Produktpakete ab P05 sind offen. Der belegte Stand von P00–P04 steht im
+Entscheidungsbericht; erfolgreiche Einzelproben sind keine vollständige
+Produktabnahme. Jedes Paket liefert eine abgegrenzte Funktion mit echten
 Fixtures, gezielter Prüfung und eigenem zusammenhängenden Commit. Große
 Formatgruppen in dokumentierte Teilpakete zerlegen; keine ungetestete Endung
 freischalten. Bei Linux-Änderungen gemeinsame Mac-Pfade mitprüfen.

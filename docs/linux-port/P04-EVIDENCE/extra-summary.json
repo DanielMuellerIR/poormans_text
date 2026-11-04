@@ -1,0 +1,18 @@
+{
+  "structured": {
+    "exit": 0,
+    "stderr": "",
+    "text": "STRUCTURED DOCUMENT\n\nLEFT ALPHA paragraph RIGHT GAMMA paragraph\nLEFT BETA paragraph RIGHT DELTA paragraph\n\n1. First list item\n\n2. Second list item\n\nMERGED HEADER TOTAL\n\nAl Bl C1\n\nA2 B2 C2\n\n",
+    "semantic_table_tags": false
+  },
+  "mixed_digital": "DIGITAL HEADER 98765\n\n\f",
+  "mixed_render": {
+    "exit": 0,
+    "stderr": ""
+  },
+  "mixed_ocr": {
+    "exit": 0,
+    "stderr": "",
+    "text": "DIGITAL HEADER 98765\n\nInvoice ALPHA 12345\nDie Rechnung kostet 42 Euro.\nGrüße aus Munchen und schone GrulRe.\n\nThe quick brown fox jumps over the lazy dog.\n\nRotation sentinel ALPHA 12345\nRotation sentinel ALPHA 12345\nRotation sentinel ALPHA 12345\nRotation sentinel ALPHA 12345\nRotation sentinel ALPHA 12345\n"
+  }
+}

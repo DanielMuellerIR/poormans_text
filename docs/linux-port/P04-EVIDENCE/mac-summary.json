@@ -1,0 +1,120 @@
+{
+  "sample.pdf": {
+    "exit": 0,
+    "seconds": 0.37,
+    "assets": 0,
+    "diagnostics": [
+      "pdf.layoutNotPreserved",
+      "pdf.ocrApplied",
+      "pdf.annotationTextUnavailable",
+      "pdf.linkPreserved",
+      "pdf.annotationPreserved"
+    ]
+  },
+  "broken.pdf": {
+    "exit": 65,
+    "seconds": 0.017,
+    "assets": 0,
+    "diagnostics": []
+  },
+  "encoded.rtf": {
+    "exit": 0,
+    "seconds": 0.236,
+    "assets": 1,
+    "diagnostics": [
+      "sourceMap.unavailable"
+    ]
+  },
+  "encoded.doc": {
+    "exit": 0,
+    "seconds": 0.575,
+    "assets": 0,
+    "diagnostics": [
+      "legacyWord.potentialLoss",
+      "sourceMap.unavailable"
+    ]
+  },
+  "local.rtfd": {
+    "exit": 0,
+    "seconds": 0.179,
+    "assets": 1,
+    "diagnostics": [
+      "sourceMap.unavailable"
+    ]
+  },
+  "ocr.png": {
+    "exit": 0,
+    "seconds": 0.347,
+    "assets": 1,
+    "diagnostics": [
+      "image.ocrApplied"
+    ]
+  },
+  "ocr-rotated.png": {
+    "exit": 0,
+    "seconds": 0.448,
+    "assets": 1,
+    "diagnostics": [
+      "image.ocrApplied"
+    ]
+  },
+  "oriented.jpg": {
+    "exit": 0,
+    "seconds": 0.205,
+    "assets": 1,
+    "diagnostics": [
+      "image.ocrApplied",
+      "image.textUnavailable"
+    ]
+  },
+  "frames.gif": {
+    "exit": 0,
+    "seconds": 0.283,
+    "assets": 1,
+    "diagnostics": [
+      "image.ocrApplied",
+      "image.textUnavailable",
+      "image.textUnavailable"
+    ]
+  },
+  "frames.tiff": {
+    "exit": 0,
+    "seconds": 0.25,
+    "assets": 1,
+    "diagnostics": [
+      "image.ocrApplied",
+      "image.textUnavailable",
+      "image.textUnavailable"
+    ]
+  },
+  "structured": {
+    "exit": 0,
+    "seconds": 0.497,
+    "assets": 1,
+    "diagnostics": [
+      "image.ocrApplied",
+      "ocr.structuredApplied",
+      "ocr.tableSpansFlattened"
+    ]
+  },
+  "mixed": {
+    "exit": 0,
+    "seconds": 0.409,
+    "assets": 0,
+    "diagnostics": [
+      "pdf.layoutNotPreserved",
+      "pdf.ocrApplied"
+    ]
+  },
+  "pdf-off": {
+    "exit": 0,
+    "seconds": 0.04,
+    "assets": 0,
+    "diagnostics": [
+      "pdf.layoutNotPreserved",
+      "pdf.annotationTextUnavailable",
+      "pdf.linkPreserved",
+      "pdf.annotationPreserved"
+    ]
+  }
+}

@@ -1,0 +1,11 @@
+from pathlib import Path
+import os,sys
+from zipfile import ZipFile,ZIP_DEFLATED
+from PIL import Image
+root=Path(os.environ.get('PMT_P04_ROOT', sys.argv[1] if len(sys.argv)>1 else '/tmp/pmt-p04'));r=root/'fixtures';r.mkdir(parents=True,exist_ok=True); image=(r/'basic.png').read_bytes()
+rtf=r'''{\rtf1\ansi\ansicpg1252\deff0{\fonttbl{\f0 Arial;}}\f0\fs24 PMT DOC SENTINEL\par Gr\'fc\'dfe aus M\'fcnchen \u937?\par 1. First list item\par 2. Second list item\par {\pict\pngblip '''+image.hex()+r'''}\par {\field{\*\fldinst HYPERLINK "https://example.invalid/never-fetch"}{\fldrslt Local display link}}}'''
+(r/'encoded.rtf').write_bytes(rtf.encode('ascii'))
+pkg=r/'local.rtfd';pkg.mkdir(exist_ok=True);(pkg/'image.png').write_bytes(image);(pkg/'TXT.rtf').write_text(r'''{\rtf1\ansi\ansicpg1252 RTFD SENTINEL Gr\'fc\'dfe\par 1. Local item\par {\NeXTGraphic image.png \width80 \height40}}''')
+(r/'remote.fodt').write_text('''<?xml version="1.0" encoding="UTF-8"?><office:document xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0" xmlns:draw="urn:oasis:names:tc:opendocument:xmlns:drawing:1.0" xmlns:xlink="http://www.w3.org/1999/xlink" office:mimetype="application/vnd.oasis.opendocument.text" office:version="1.2"><office:body><office:text><text:p>REMOTE SENTINEL</text:p><text:p><draw:frame draw:name="remote"><draw:image xlink:href="http://127.0.0.1:47831/pmt-network-test.png" xlink:type="simple" xlink:show="embed" xlink:actuate="onLoad"/></draw:frame></text:p></office:text></office:body></office:document>''')
+p=root/'lo-profile/user';p.mkdir(parents=True,exist_ok=True)
+(p/'registrymodifications.xcu').write_text('''<?xml version="1.0" encoding="UTF-8"?><oor:items xmlns:oor="http://openoffice.org/2001/registry"><item oor:path="/org.openoffice.Office.Common/Security/Scripting"><prop oor:name="MacroSecurityLevel" oor:op="fuse"><value>3</value></prop><prop oor:name="DisableMacrosExecution" oor:op="fuse"><value>true</value></prop></item><item oor:path="/org.openoffice.Office.Common/Security/Scripting"><prop oor:name="SecureURL" oor:op="fuse"><value/></prop></item><item oor:path="/org.openoffice.Office.Writer/Content/Update"><prop oor:name="Link" oor:op="fuse"><value>2</value></prop></item></oor:items>''')

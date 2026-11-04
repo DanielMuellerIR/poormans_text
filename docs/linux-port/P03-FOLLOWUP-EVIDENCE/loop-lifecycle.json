@@ -1,0 +1,6 @@
+{
+  "atomicAutoClearAttach": true,
+  "attachHelperSigkillStatus": 137,
+  "mountHelperSigkillStatus": 137,
+  "bothFaultLoopsReleased": true
+}

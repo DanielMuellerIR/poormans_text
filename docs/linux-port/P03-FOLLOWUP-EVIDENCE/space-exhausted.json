@@ -1,0 +1,14 @@
+{
+  "errors": [
+    {
+      "operation": "write",
+      "errno": 28
+    }
+  ],
+  "newResultPublished": false,
+  "bytesWritten": 0,
+  "ownPartialRemoved": true,
+  "passResult": true,
+  "sourceHashUnchanged": true,
+  "oldTargetHashUnchanged": true
+}

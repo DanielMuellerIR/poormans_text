@@ -1,0 +1,261 @@
+{
+  "probe": "P03-lifetime-pipe-pid-namespace",
+  "owner": "Swift-Foundation-Process",
+  "bubblewrap": "bubblewrap 0.9.0",
+  "cases": [
+    {
+      "scenario": "runner-loss",
+      "trackedProcesses": 5,
+      "allTrackedExited": true,
+      "allChildrenReaped": true,
+      "writesStopped": true,
+      "tool": {
+        "pid": 2,
+        "processGroup": 1,
+        "session": 1,
+        "controlPipeAccessDenied": true
+      },
+      "escapedGrandchild": {
+        "pid": 4,
+        "processGroup": 3,
+        "session": 3,
+        "controlPipeAccessDenied": true
+      },
+      "observationSeconds": 0.0548,
+      "runnerExit": -9
+    },
+    {
+      "scenario": "cancel",
+      "trackedProcesses": 5,
+      "allTrackedExited": true,
+      "allChildrenReaped": true,
+      "writesStopped": true,
+      "tool": {
+        "pid": 2,
+        "processGroup": 1,
+        "session": 1,
+        "controlPipeAccessDenied": true
+      },
+      "escapedGrandchild": {
+        "pid": 4,
+        "processGroup": 3,
+        "session": 3,
+        "controlPipeAccessDenied": true
+      },
+      "observationSeconds": 0.1144,
+      "runnerExit": 130
+    },
+    {
+      "scenario": "timeout",
+      "trackedProcesses": 5,
+      "allTrackedExited": true,
+      "allChildrenReaped": true,
+      "writesStopped": true,
+      "tool": {
+        "pid": 2,
+        "processGroup": 1,
+        "session": 1,
+        "controlPipeAccessDenied": true
+      },
+      "escapedGrandchild": {
+        "pid": 4,
+        "processGroup": 3,
+        "session": 3,
+        "controlPipeAccessDenied": true
+      },
+      "observationSeconds": 0.2169,
+      "runnerExit": 130
+    },
+    {
+      "scenario": "main-exit",
+      "trackedProcesses": 3,
+      "allTrackedExited": true,
+      "allChildrenReaped": true,
+      "writesStopped": true,
+      "tool": null,
+      "escapedGrandchild": {
+        "pid": 4,
+        "processGroup": 3,
+        "session": 3,
+        "controlPipeAccessDenied": true
+      },
+      "observationSeconds": 0.1649,
+      "runnerExit": 0
+    },
+    {
+      "scenario": "guard-loss",
+      "trackedProcesses": 5,
+      "allTrackedExited": true,
+      "allChildrenReaped": true,
+      "writesStopped": true,
+      "tool": {
+        "pid": 2,
+        "processGroup": 1,
+        "session": 1,
+        "controlPipeAccessDenied": true
+      },
+      "escapedGrandchild": {
+        "pid": 4,
+        "processGroup": 3,
+        "session": 3,
+        "controlPipeAccessDenied": true
+      },
+      "observationSeconds": 0.1155,
+      "runnerExit": 137
+    },
+    {
+      "scenario": "wrapper-loss",
+      "trackedProcesses": 5,
+      "allTrackedExited": true,
+      "allChildrenReaped": true,
+      "writesStopped": true,
+      "tool": {
+        "pid": 2,
+        "processGroup": 1,
+        "session": 1,
+        "controlPipeAccessDenied": true
+      },
+      "escapedGrandchild": {
+        "pid": 4,
+        "processGroup": 3,
+        "session": 3,
+        "controlPipeAccessDenied": true
+      },
+      "observationSeconds": 0.1156,
+      "runnerExit": 137
+    },
+    {
+      "scenario": "startup-loss",
+      "trackedProcesses": 3,
+      "allTrackedExited": true,
+      "allChildrenReaped": true,
+      "writesStopped": true,
+      "tool": null,
+      "escapedGrandchild": null,
+      "observationSeconds": 0.0535,
+      "runnerExit": -9
+    },
+    {
+      "scenario": "startup-loss",
+      "trackedProcesses": 3,
+      "allTrackedExited": true,
+      "allChildrenReaped": true,
+      "writesStopped": true,
+      "tool": null,
+      "escapedGrandchild": null,
+      "observationSeconds": 0.0535,
+      "runnerExit": -9
+    },
+    {
+      "scenario": "startup-loss",
+      "trackedProcesses": 3,
+      "allTrackedExited": true,
+      "allChildrenReaped": true,
+      "writesStopped": true,
+      "tool": null,
+      "escapedGrandchild": null,
+      "observationSeconds": 0.0535,
+      "runnerExit": -9
+    },
+    {
+      "scenario": "startup-loss",
+      "trackedProcesses": 2,
+      "allTrackedExited": true,
+      "allChildrenReaped": true,
+      "writesStopped": true,
+      "tool": null,
+      "escapedGrandchild": null,
+      "observationSeconds": 0.054,
+      "runnerExit": -9
+    },
+    {
+      "scenario": "startup-loss",
+      "trackedProcesses": 3,
+      "allTrackedExited": true,
+      "allChildrenReaped": true,
+      "writesStopped": true,
+      "tool": null,
+      "escapedGrandchild": null,
+      "observationSeconds": 0.0534,
+      "runnerExit": -9
+    },
+    {
+      "scenario": "startup-loss",
+      "trackedProcesses": 3,
+      "allTrackedExited": true,
+      "allChildrenReaped": true,
+      "writesStopped": true,
+      "tool": null,
+      "escapedGrandchild": null,
+      "observationSeconds": 0.0541,
+      "runnerExit": -9
+    },
+    {
+      "scenario": "startup-loss",
+      "trackedProcesses": 3,
+      "allTrackedExited": true,
+      "allChildrenReaped": true,
+      "writesStopped": true,
+      "tool": null,
+      "escapedGrandchild": null,
+      "observationSeconds": 0.0536,
+      "runnerExit": -9
+    },
+    {
+      "scenario": "startup-loss",
+      "trackedProcesses": 2,
+      "allTrackedExited": true,
+      "allChildrenReaped": true,
+      "writesStopped": true,
+      "tool": null,
+      "escapedGrandchild": null,
+      "observationSeconds": 0.0536,
+      "runnerExit": -9
+    },
+    {
+      "scenario": "startup-loss",
+      "trackedProcesses": 3,
+      "allTrackedExited": true,
+      "allChildrenReaped": true,
+      "writesStopped": true,
+      "tool": null,
+      "escapedGrandchild": null,
+      "observationSeconds": 0.0535,
+      "runnerExit": -9
+    },
+    {
+      "scenario": "startup-loss",
+      "trackedProcesses": 3,
+      "allTrackedExited": true,
+      "allChildrenReaped": true,
+      "writesStopped": true,
+      "tool": null,
+      "escapedGrandchild": null,
+      "observationSeconds": 0.0538,
+      "runnerExit": -9
+    },
+    {
+      "scenario": "startup-loss",
+      "trackedProcesses": 2,
+      "allTrackedExited": true,
+      "allChildrenReaped": true,
+      "writesStopped": true,
+      "tool": null,
+      "escapedGrandchild": null,
+      "observationSeconds": 0.0536,
+      "runnerExit": -9
+    },
+    {
+      "scenario": "startup-loss",
+      "trackedProcesses": 3,
+      "allTrackedExited": true,
+      "allChildrenReaped": true,
+      "writesStopped": true,
+      "tool": null,
+      "escapedGrandchild": null,
+      "observationSeconds": 0.0535,
+      "runnerExit": -9
+    }
+  ],
+  "productIntegration": false
+}

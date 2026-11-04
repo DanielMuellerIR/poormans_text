@@ -2,8 +2,10 @@
 
 Stand: 2026-11-04. Planungsbasis: Version 0.41.7, Commit `919c575`.
 Status: P00–P04 als isolierte Proben durchgeführt. Swift-Durchstich samt
-Laufzeitpaketierung bestanden; Vertrags-, Sicherheits- und Backendgrenzen bleiben
-offen. P05 wurde nicht begonnen. Ergebnisse und nächste Entscheidungen stehen im
+Laufzeitpaketierung bestanden; die ergänzenden P03-Entscheidungsnachweise sind
+ebenfalls bestanden. Vertrags- und Backendgrenzen sowie die Sicherheitsintegration
+im Produkt bleiben offen. Swift ist als gemeinsamer Kern gewählt.
+P05 wird zur Freigabe empfohlen, wurde aber nicht begonnen. Ergebnisse stehen im
 [Entscheidungsbericht](LINUX-DECISION.md).
 Dieser Plan beauftragt selbst keinen Entwicklungsstart.
 
@@ -14,10 +16,12 @@ Die vorhandene native Mac-App und ihre CLI bleiben erhalten.
 
 ## Architekturentscheidung und ihre Bedingungen
 
-**Vorzugsweg:** Den vorhandenen Swift-Konvertierungskern auf Linux nutzbar machen,
+**Gewählte Architektur (2026-11-04):** Den vorhandenen Swift-Konvertierungskern auf Linux nutzbar machen,
 Apple-spezifische Backends abtrennen und eine Linux-Oberfläche in Rust über die
-lokale CLI anbinden. Erst P02 entscheidet anhand einer lauffähigen Probe, ob
-dieser Weg tragfähig ist. Rust ist keine Voraussetzung für jeden Konverter.
+lokale CLI anbinden. P02 hat diesen Weg anhand einer lauffähigen Probe samt
+Laufzeitlieferung auf beiden Linux-Zielen bestätigt. Swift ist als gemeinsamer
+Konvertierungskern festgelegt. Die Produktintegration bleibt P05 vorbehalten;
+Rust ist keine Voraussetzung für jeden Konverter.
 
 Der Bestand umfasst etwa 28.000 Zeilen in 107 Swift-Dateien unter dem Core-Target.
 GUI und CLI sind bereits weitgehend getrennt. Der Core ist jedoch nicht einfach
@@ -42,11 +46,10 @@ Regex/Encoding und Hashing bekommen ausdrücklich getestete Abhängigkeiten.
 Für Hashing eine portable bestehende Bibliothek prüfen; keine eigene Kryptografie.
 Ein neuer FFI-Layer zwischen Rust-GUI und Swift ist zunächst unnötig.
 
-Scheitert P02 trotz begrenzter gezielter Versuche, folgt eine Entscheidungsvorlage
-für einen Rust-Kern: betroffene Module, Fixture-Abdeckung, Migrationskosten und
-Mac-Anbindung. Keine automatische Generalumschreibung. Bei Wahl dieses Weges
-bleiben die fachlichen Pakete P03–P16 bestehen, ihre Implementierungssprache und
-Mac-Migration werden vor Beginn aktualisiert. Keine dauerhaften zwei Konverter.
+Der frühere Rust-Ausweichweg bei gescheitertem P02 ist durch den bestandenen
+Durchstich nicht ausgelöst. Eine spätere Abweichung von Swift braucht eine neue,
+belegte Architekturentscheidung. Keine automatische Generalumschreibung und
+keine dauerhaften zwei Konverter.
 
 ## Gemeinsam mit Fastra, aber in getrennten Repositories
 

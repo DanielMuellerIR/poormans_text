@@ -4,6 +4,11 @@ Diese Skripte bauen keine Linux-Produktversion und ändern weder Package.swift
 noch die Produktionsquellen. Entscheidung und offene Freigaben stehen in
 [LINUX-DECISION.md](../../docs/LINUX-DECISION.md).
 
+Die anschließenden [P03-Nachweise](../../docs/linux-port/P03-FOLLOWUP.md) unter
+`p03-followup/` belegen Swift-Prozessaufsicht mit PID-Namespace/Lebensdauer-Pipe,
+pidfd-Beobachtung, gebundene Veröffentlichung und echtes ext4/ENOSPC.
+Die älteren P03-Negativproben bleiben für den unveränderten Produktstand gültig.
+
 | Probe | Einstieg | Voraussetzung / Grenze |
 | --- | --- | --- |
 | P00 Mac-Referenz | `python3 contract/mac-baseline.py <PMT-Repo>` | Native Mac-CLI im Repo, Pandoc; eigenes temporäres Fixtureverzeichnis |

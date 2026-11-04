@@ -1,0 +1,29 @@
+{
+  "filesystem": "btrfs",
+  "checks": {
+    "basenameValidation": true,
+    "race64": {
+      "success": 1,
+      "EEXIST": 63
+    },
+    "existingFileDirectorySymlinkPreserved": true,
+    "before-bind": {
+      "foreignUnchanged": true,
+      "successReported": false
+    },
+    "before-precheck": {
+      "foreignUnchanged": true,
+      "successReported": false
+    },
+    "between-check-and-rename": {
+      "foreignUnchanged": true,
+      "successReported": false
+    },
+    "after-rename": {
+      "foreignUnchanged": true,
+      "successReported": false
+    },
+    "intermediateSymlinkRejected": true
+  },
+  "pass": true
+}

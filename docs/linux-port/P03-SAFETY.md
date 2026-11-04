@@ -1,7 +1,11 @@
 # P03: Linux-Dateien und Prozesse
 
 Stand: 2026-11-04. Geprüfter Produktstand: `17328f17d63843025b33b45a87fa3d13db5e11d7`.
-Die Proben sind von Produktadaptern getrennt. **P03 ist nicht bestanden.**
+Die Proben sind von Produktadaptern getrennt. Dieser Befund dokumentiert den
+ersten, damals nicht bestandenen Versuch. Die anschließenden
+[P03-Entscheidungsnachweise](P03-FOLLOWUP.md) sind bestanden; die Integration
+im Produkt steht weiterhin aus. Die hier belegte Lücke des unveränderten
+Produkt-Runners bleibt gültig.
 
 Die vorhandene Ausgabevorbereitung legt ihr privates Staging bereits neben dem
 Ziel an (`DocumentConverter.swift`, `temporaryRoot`). Das ist die richtige
@@ -33,7 +37,9 @@ Produktfälle nutzen Dateien für stdout/stderr statt Pipes; die Ausgabegrenze w
 regelmäßig kontrolliert. Das verhindert Pipe-Deadlocks, setzt aber kein hartes
 Dateisystemquota: Zwischen Kontrollen kann mehr geschrieben werden.
 
-Für einen sicheren Linux-Adapter bleiben vor Freigabe erforderlich:
+Aus diesem ersten Versuch ergaben sich folgende Nachweise und Integrationsaufgaben.
+Die isolierten Nachweise wurden im Anschluss erbracht (siehe P03-FOLLOWUP);
+die Produktadapter sind weiterhin nicht integriert:
 
 - Explizit kontrollierter Gruppenstart und eine Lebensdauerbindung, die auch
   Besitzerverlust und abgelöste Nachkommen abdeckt, etwa ein begrenzter

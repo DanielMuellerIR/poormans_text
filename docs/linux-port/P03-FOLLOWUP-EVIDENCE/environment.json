@@ -1,0 +1,24 @@
+{
+  "sourceBaseCommit": "5293eb6ce013512e791d9b7c7a5b89dd438c92ac",
+  "productCodeChanged": false,
+  "productIntegrationTested": false,
+  "supervisionBudgetHours": 4,
+  "startedUTC": "2026-11-04T19:41:29Z",
+  "finishedUTC": "2026-11-04T20:10:58+00:00",
+  "cachyosKernel": "7.3.1-1-cachyos",
+  "mintKernel": "7.0.0-38-generic",
+  "swiftVersion": "6.2.1",
+  "sourceSHA256": {
+    "namespace_guard.c": "a2f816aee492080de2d9077314a020c68221e79d92c929a2af3c303df8bb1bca",
+    "process_tree.py": "d5281f95646ad5e52ff074b7673e2b97fca708097025e85cbb5c575ea523c434",
+    "supervision.py": "1203b400c0426945b73f72c0a862678756333299c09ae05318ad4cb5b27c3504",
+    "swift_owner.swift": "ff5bb5d8ecad5de6bbb3861cffd95a0042b65bfc40ba19ace73bcc771fe64cd7",
+    "pidfd_bridge.c": "76948c254aa7bf1ff9e5e7cf9fba3eab8521ef24c4f1120f2e846ca2454c8789",
+    "fd_publication.py": "aa9393438d2b3ae66d0c7afe7ba1de448350f09396796d8f4b0894f130c9b45b",
+    "Dockerfile": "b578f506f31c8a1d1e15cf8423e0e9051f1313818599cd9d4ae947449a83407d",
+    "ext4.sh": "a8d23ad324dc0542aa4ae550edcaa7a75c58add68663186a5c1a2d6d4f8134c0",
+    "inside_ext4.sh": "2d6d28f86487d2319ed4eca0bf27bcbc6878a4c63e2af386b11d0b80f59f6ee7",
+    "build_swift_owner.sh": "617bd605a3f9ad751f6ce383ab6fd844ca503c252ce1f52fc0553f19f8b49f57",
+    "loop_mount.c": "234fd20342b04d1d9ed0141ccf729ba01efe33a3f431e2078248d9e8d673beaa"
+  }
+}

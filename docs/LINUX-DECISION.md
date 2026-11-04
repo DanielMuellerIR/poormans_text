@@ -6,7 +6,7 @@ Stand: 2026-11-04. Basis: PMT `17328f17d63843025b33b45a87fa3d13db5e11d7`
 Target-Auftrennung. **P05 wurde nicht begonnen. Ein vollständiger Rust-Neubau
 ist durch die Befunde nicht begründet.**
 
-Die Empfehlung ist, den vorhandenen Swift-Kern weiterzuverwenden. Der reale
+Swift ist als gemeinsamer Konvertierungskern gewählt. Der reale
 Linux-Durchstich und seine Laufzeitlieferung funktionieren. Die verbleibenden
 Sicherheits- und Backendprobleme müssen unabhängig von der Kernsprache gelöst
 werden. Eine vollständige Linux-Version ist noch nicht freigegeben.
@@ -16,7 +16,7 @@ werden. Eine vollständige Linux-Version ist noch nicht freigegeben.
 | [P00 Referenz](linux-port/P00-BASELINE.md) | Alle 29 Katalogformate und Querschnittsfähigkeiten zugeordnet; sieben reale Mac-Konvertierungen unabhängig geprüft | Kleiner Referenzkorpus; vorhandenes Mac-Binary durch Version/Hash identifiziert, Zuordnung zum Quellcommit ohne neues Buildmanifest offen |
 | [P01 Vertrag](linux-port/P01-CONTRACT.md) | Echte Producer-Goldens und Original-Fastra-Consumer geprüft; 33 Beobachtungschecks | Reeller falscher Sammlungspfad; echte App-zu-App-/Tabwechsel-/vollständige Baumabnahme offen; daher nicht vollständig abgenommen |
 | [P02 Swift/Laufzeit](linux-port/P02-SWIFT.md) | **Machbarkeit bestanden:** fünf Formate auf beiden Zielsystemen ohne Swift-SDK | Separater CLI-Harness, ausgewählte Adapter; keine Freigabe des vollständigen Produkt-CLI-Vertrags oder der ausgeschlossenen Backends |
-| [P03 Sicherheit](linux-port/P03-SAFETY.md) | Kernelprimitive und normaler Runner-Abbruch funktionieren; Besitzerverlust reproduziert | **Nicht bestanden:** Werkzeug überlebt harten Runnerverlust; ext4, echter voller Datenträger und Produkt-End-to-End fehlen |
+| [P03 Sicherheit](linux-port/P03-FOLLOWUP.md) | **Entscheidungsproben bestanden:** Swift-Prozessaufsicht auf beiden Zielen, gebundene Veröffentlichung auf Btrfs/ext4 und echtes ENOSPC | Produktadapter und Konverter-End-to-End bleiben unintegriert; ursprünglicher Produkt-Runner unverändert |
 | [P04 Backends](linux-port/P04-BACKENDS.md) | Reale Linux-Proben mit gepaartem Mac-Vergleich | **Nicht bestanden:** RTFD-Bilder, HEIC und strukturierte OCR offen; Makro-Ereignistest fehlt |
 
 ## Swift und Laufzeitpaketierung
@@ -52,15 +52,25 @@ Es gibt keinen Anlass, die vorhandenen Parser vorsorglich in Rust neu zu schreib
 `renameat2(RENAME_NOREPLACE)` besteht auf Btrfs und tmpfs einen Versuch mit 64
 konkurrierenden Veröffentlichungen. Ein bestehendes Ziel und ein Ziel-Symlink
 bleiben erhalten. Gehaltener Quelldeskriptor, FIFO-/Symlinkabwehr, Rechtefehler
-und der EXDEV-Fehler über Dateisystemgrenzen sind belegt. ENOSPC wurde nur mit
-`/dev/full` geprüft; beide erreichbaren Zielsysteme verwenden Btrfs.
+und der EXDEV-Fehler über Dateisystemgrenzen sind belegt. Im ersten Versuch
+wurde ENOSPC nur mit `/dev/full` geprüft; die ergänzende echte ext4-Probe
+ist nachfolgend beschrieben. Beide erreichbaren Zielsysteme verwenden Btrfs.
 
-Der tatsächliche Swift-ProcessRunner mit ausschließlich ersetztem Systemimport
+Der ursprüngliche Swift-ProcessRunner mit ausschließlich ersetztem Systemimport
 besteht Timeout, Abbruch, wörtlichen Argumenttransport, Ausgabegrenze und
 Capture-Cleanup. Die Prozessgruppe überlebt jedoch einen harten Verlust des
 Runners. Vor sicherem Produktbetrieb braucht es eine kontrollierte Bindung des
 gesamten Prozessbaums an den Auftrag. Eine Gruppen-ID allein reicht nicht.
-Die Produktveröffentlichung benötigt eine ausdrückliche atomare No-Replace-
+Die ergänzenden [P03-Proben](linux-port/P03-FOLLOWUP.md) schließen die
+Entscheidungsnachweise: PID-Namespace mit Lebensdauer-Pipe und pidfd beendet
+auch abgelöste Nachkommen beim Runnerverlust; ein eigenständiger Swift-Harness
+besteht 18 Fälle je Zielsystem. Deskriptorbasierte Veröffentlichung besteht
+auf Btrfs und echtem Kernel-ext4 einschließlich ausgetauschter Elternpfade.
+Ein tatsächlich gefülltes ext4-Testimage liefert ENOSPC; dieselbe Funktion
+veröffentlicht bei freiem Platz vollständig und bewahrt bei Platzmangel Quelle
+und Altausgabe, ohne ein neues Ergebnis zu veröffentlichen.
+
+Die Produktveröffentlichung benötigt weiterhin eine ausdrückliche atomare No-Replace-
 Operation und gebundene Zielverzeichnisse; die bestehende Vorprüfung allein ist
 keine Linux-Freigabe. Auf nicht belegten Wechsel-/Netzlaufwerken muss sie
 verständlich scheitern. Diese Arbeit wurde nicht als P05 vorgezogen.
@@ -100,13 +110,16 @@ Grenze des Textfortschritts. Ungültige UTF-8-Pfade sollen vor der künftigen
 Linux-Konvertierung kontrolliert abgewiesen werden. Diese Validierung ist noch
 nicht produktiv implementiert.
 
-Empfohlene nächste Entscheidung: Swift als Kern beibehalten und den beschriebenen
-Restaufwand für P03 sowie die begrenzten Backendfähigkeiten gezielt freigeben.
+Empfohlene nächste Entscheidung: **P05 zur Integration auf Grundlage des gewählten
+Swift-Kerns und der bestandenen P03-Proben freigeben.** P05 wurde nicht begonnen;
+Produktadapter und gemeinsame Mac-/Linux-Regressionen stehen noch aus.
 Für den späteren Umfang gibt es zwei belegte Alternativen: auf vollständiger
 strukturierter OCR bestehen und P11 weiter offen halten, oder eine ausdrücklich
 begrenzte Linux-Teilversion planen. Eine Teilversion darf strukturierte Erkennung,
 RTFD und HEIC erst nach eigenen bestandenen Nachweisen anbieten. Die jetzigen
-Befunde geben P05 weder automatisch frei noch ändern sie die bestehende Roadmap.
+Befunde starten P05 nicht automatisch. Der Fastra-Consumerfehler wird im
+Fastra-Chat bearbeitet; sein aktueller Stand wurde im P03-Auftrag nicht erneut
+geprüft und das Fastra-Repository nicht verändert.
 
 Die [Reproduktionsübersicht](../scripts/linux-probes/README.md) nennt Proben,
 Abhängigkeiten und Grenzen. Dauerhaft bleiben nur Generatoren, kleine

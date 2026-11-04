@@ -1,3 +1,4 @@
+#if os(macOS)
 import CoreGraphics
 import PDFKit
 
@@ -139,3 +140,4 @@ enum PDFTableGeometry {
         }
     }
 }
+#endif

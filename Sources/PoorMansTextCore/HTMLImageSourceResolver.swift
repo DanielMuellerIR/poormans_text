@@ -1,5 +1,7 @@
 import Foundation
+#if os(macOS)
 import ImageIO
+#endif
 
 /// Bereitet die Bildverweise fremder HTML-Quellen für `HTMLImageRewriter` vor.
 ///
@@ -360,6 +362,7 @@ enum HTMLImageSourceResolver {
     private static func publishVerifiedImage(
         _ staged: URL, as stem: String, fileManager: FileManager
     ) throws -> String? {
+        #if os(macOS)
         guard let source = CGImageSourceCreateWithURL(staged as CFURL, [kCGImageSourceShouldCache: false] as CFDictionary),
               let typeIdentifier = CGImageSourceGetType(source) as String?,
               let format = ImageFileFormat(typeIdentifier: typeIdentifier),
@@ -375,12 +378,22 @@ enum HTMLImageSourceResolver {
             try? fileManager.removeItem(at: staged)
             return nil
         }
+        let fileExtension = format.fileExtension
+        #else
+        let bytes = try VerifiedFileStaging.contents(of: staged, maximumBytes: maximumLocalImageBytes,
+                                                    describedAs: "the staged image")
+        guard let inspected = try? RasterImageBackend.validate(bytes) else {
+            try? fileManager.removeItem(at: staged)
+            return nil
+        }
+        let fileExtension = inspected.fileExtension
+        #endif
         let directory = staged.deletingLastPathComponent()
-        var name = stem + "." + format.fileExtension
+        var name = stem + "." + fileExtension
         // Paketmedien können bereits unter demselben generierten Namen liegen.
         // Die geprüfte Kopie darf diese fremde Datei weder ersetzen noch blockieren.
         if fileManager.fileExists(atPath: directory.appendingPathComponent(name).path) {
-            name = stem + "-" + UUID().uuidString + "." + format.fileExtension
+            name = stem + "-" + UUID().uuidString + "." + fileExtension
         }
         do {
             try fileManager.moveItem(at: staged, to: staged.deletingLastPathComponent().appendingPathComponent(name))

@@ -1,5 +1,7 @@
 import Foundation
+#if canImport(Darwin)
 import Darwin
+#endif
 
 package struct ProcessResult: Sendable {
     package let status: Int32
@@ -21,8 +23,19 @@ package enum ProcessRunner {
         timeout: TimeInterval? = nil,
         cancellation: ConversionCancellationToken? = nil,
         terminationGrace: TimeInterval = 0.25,
-        maximumCapturedBytes: Int = 16 * 1024 * 1024
+        maximumCapturedBytes: Int = 16 * 1024 * 1024,
+        processGuardExecutable: URL? = nil,
+        readOnlyPaths: [URL] = [],
+        writeScope: URL? = nil
     ) throws -> ProcessResult {
+        #if os(Linux)
+        return try LinuxProcessRunner.run(
+            executable: executable, arguments: arguments, currentDirectory: currentDirectory,
+            captureStandardOutput: captureStandardOutput, timeout: timeout, cancellation: cancellation,
+            terminationGrace: terminationGrace, maximumCapturedBytes: maximumCapturedBytes,
+            processGuardExecutable: processGuardExecutable, readOnlyPaths: readOnlyPaths, writeScope: writeScope
+        )
+        #else
         let token = cancellation.map { ConversionCancellationToken(parent: $0) }
             ?? ConversionExecution.current?.cancellation ?? ConversionCancellationToken()
         let timeout = timeout ?? ConversionExecution.current?.processTimeout
@@ -166,5 +179,6 @@ package enum ProcessRunner {
             standardOutput: String(decoding: outputData, as: UTF8.self),
             standardError: String(decoding: errorData, as: UTF8.self)
         )
+        #endif
     }
 }

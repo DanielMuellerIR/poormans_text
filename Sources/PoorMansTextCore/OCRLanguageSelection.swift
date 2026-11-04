@@ -1,5 +1,7 @@
 import Foundation
+#if os(macOS)
 import Vision
+#endif
 
 /// Löst kurze Sprachkürzel gegen die lokal verfügbare Vision-Version auf.
 /// Leere Auswahl bedeutet automatische Spracherkennung; es wird nichts geladen.
@@ -7,6 +9,7 @@ public enum OCRLanguageSelection {
     public static func resolve(_ languages: [String]) throws -> [String] {
         guard !languages.isEmpty else { return [] }
         guard languages.count <= 8 else { throw SelectionError("Choose at most eight OCR languages.") }
+        #if os(macOS)
         let supported = try VNRecognizeTextRequest().supportedRecognitionLanguages()
         var resolved: [String] = []
         for language in languages {
@@ -23,6 +26,9 @@ public enum OCRLanguageSelection {
             if !resolved.contains(match) { resolved.append(match) }
         }
         return resolved
+        #else
+        throw PlatformBackendUnavailable("OCR language selection")
+        #endif
     }
 
     public struct SelectionError: LocalizedError, Sendable {

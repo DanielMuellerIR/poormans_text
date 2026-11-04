@@ -1,7 +1,15 @@
 import Foundation
+#if os(Linux)
+import Crypto
+#else
 import CryptoKit
+#endif
+#if os(macOS)
 import ImageIO
+#endif
+#if os(macOS)
 import UniformTypeIdentifiers
+#endif
 
 struct PresentationSlide {
     var blocks: [PresentationBlock] = []
@@ -92,6 +100,7 @@ final class ImportMediaStore {
     func save(_ data: Data) throws -> String {
         try ConversionExecution.check()
         guard data.count <= 16 * 1_024 * 1_024 else { throw ImportFailure("image exceeds the 16 MiB asset limit") }
+        #if os(macOS)
         guard let source = CGImageSourceCreateWithData(data as CFData, [kCGImageSourceShouldCache: false] as CFDictionary),
               CGImageSourceGetCount(source) > 0, let type = CGImageSourceGetType(source),
               let ext = UTType(type as String)?.preferredFilenameExtension,
@@ -103,6 +112,9 @@ final class ImportMediaStore {
               image.dataProvider?.data != nil else {
             throw ImportFailure("image format is not supported by the local image decoder")
         }
+        #else
+        let ext = try RasterImageBackend.validate(data).fileExtension
+        #endif
         let hash = SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
         if let path = hashes[hash] { return path }
         guard paths.count < 1_024, data.count <= 128 * 1_024 * 1_024 - total else { throw ImportFailure("images exceed the document asset budget") }

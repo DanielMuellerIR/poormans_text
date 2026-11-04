@@ -1,5 +1,14 @@
 import Foundation
+#if os(Linux)
+import Glibc
+#else
+import Darwin
+#endif
+#if os(Linux)
+import Crypto
+#else
 import CryptoKit
+#endif
 
 /// Eine Quelldatei, die GENAU EINMAL geöffnet wurde und über denselben
 /// Deskriptor beschrieben ist.
@@ -103,7 +112,11 @@ struct VerifiedFile {
         flags: Int32,
         failure: @escaping (Failure) -> Error
     ) throws -> Owned {
+        #if os(Linux)
+        let descriptor = Glibc.open(url.path, flags)
+        #else
         let descriptor = Darwin.open(url.path, flags)
+        #endif
         guard descriptor >= 0 else {
             throw failure(.couldNotOpen(String(cString: strerror(errno))))
         }

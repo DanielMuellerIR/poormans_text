@@ -1,14 +1,8 @@
+#if os(macOS)
 import CoreGraphics
 import Foundation
 import ImageIO
 import Vision
-
-/// Ergebnis einer lokalen Vision-Erkennung. Unsichere Zeilen bleiben sichtbar,
-/// damit der Nutzer sie im Kontext des erhaltenen Originalbildes prüfen kann.
-struct VisionTextRecognition: Sendable {
-    let text: String
-    let lines: [VisionTextRecognizer.OCRLine]
-}
 
 /// Gemeinsame Vision-Konfiguration für Bildimport und PDF-OCR. Beide Wege
 /// erkennen nur lokale Pixel und laden keine Inhalte nach.
@@ -17,7 +11,7 @@ enum VisionTextRecognizer {
         in image: CGImage,
         orientation: CGImagePropertyOrientation = .up,
         languages: [String] = []
-    ) throws -> VisionTextRecognition {
+    ) throws -> TextRecognition {
         try ConversionExecution.check()
         let request = VNRecognizeTextRequest()
         request.recognitionLevel = .accurate
@@ -99,21 +93,6 @@ enum VisionTextRecognizer {
     private static let minimumConfidence: Float = 0.55
     private static let lineGroupingTolerance: CGFloat = 0.015
 
-    struct OCRLine: Sendable {
-        /// Wie die Zeile im Markdown steht — bei geringer Konfidenz mit dem
-        /// Hinweis in Klammern.
-        let text: String
-        /// Was Vision tatsächlich gelesen hat, ohne Hinweis. Der
-        /// Dublettenvergleich braucht diesen Wert: Mit dem dekorierten Text
-        /// traf er eine unsichere Zeile nie, und derselbe Satz stand danach
-        /// zweimal im Markdown (Review-Fund 2026-09-10).
-        let recognized: String
-        let bounds: CGRect
-
-        init(text: String, recognized: String? = nil, bounds: CGRect) {
-            self.text = text
-            self.recognized = recognized ?? text
-            self.bounds = bounds
-        }
-    }
+    typealias OCRLine = RecognizedTextLine
 }
+#endif

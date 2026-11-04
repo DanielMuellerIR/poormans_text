@@ -1,0 +1,74 @@
+{
+  "success": {
+    "passed": true,
+    "runner_exit": 0,
+    "seconds": 0.114,
+    "output": "RESULT 0 literal=$HOME;$(touch BAD) ALPHA\n diagnostic BETA\n\n",
+    "stderr": "",
+    "pipe_reopen_denied": false
+  },
+  "error": {
+    "passed": true,
+    "runner_exit": 0,
+    "seconds": 0.115,
+    "output": "RESULT 7 literal=$HOME;$(touch BAD) ALPHA\n diagnostic BETA\n\n",
+    "stderr": "",
+    "pipe_reopen_denied": false
+  },
+  "flood": {
+    "passed": true,
+    "runner_exit": 0,
+    "seconds": 0.126,
+    "output": "ERROR File-system operation failed: the conversion tool exceeded its output limit\n",
+    "stderr": "",
+    "pipe_reopen_denied": false
+  },
+  "timeout": {
+    "passed": true,
+    "runner_exit": 0,
+    "seconds": 0.779,
+    "output": "ERROR The conversion tool exceeded its time limit.\n",
+    "stderr": "",
+    "pipe_reopen_denied": true
+  },
+  "cancel": {
+    "passed": true,
+    "runner_exit": 0,
+    "seconds": 0.769,
+    "output": "ERROR Conversion cancelled.\n",
+    "stderr": "",
+    "pipe_reopen_denied": true
+  },
+  "main-exit": {
+    "passed": true,
+    "runner_exit": 0,
+    "seconds": 0.528,
+    "output": "RESULT 0 literal=$HOME;$(touch BAD) ALPHA\n diagnostic BETA\n\n",
+    "stderr": "",
+    "pipe_reopen_denied": true
+  },
+  "runner-loss": {
+    "passed": true,
+    "runner_exit": -9,
+    "seconds": 0.218,
+    "output": "",
+    "stderr": "",
+    "pipe_reopen_denied": true
+  },
+  "wrapper-loss": {
+    "passed": true,
+    "runner_exit": 0,
+    "seconds": 0.216,
+    "output": "ERROR File-system operation failed: the Linux sandbox wrapper ended before its PID namespace\n",
+    "stderr": "",
+    "pipe_reopen_denied": true
+  },
+  "guard-loss": {
+    "passed": true,
+    "runner_exit": 0,
+    "seconds": 0.261,
+    "output": "RESULT 137 literal=$HOME;$(touch BAD) ALPHA\n diagnostic BETA\n\n",
+    "stderr": "",
+    "pipe_reopen_denied": true
+  }
+}

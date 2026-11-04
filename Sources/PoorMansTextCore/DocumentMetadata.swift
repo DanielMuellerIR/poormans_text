@@ -1,4 +1,7 @@
 import Foundation
+#if os(Linux)
+import FoundationXML
+#endif
 
 /// Beschreibende Angaben aus dem Quelldokument, soweit das Format sie kennt.
 ///

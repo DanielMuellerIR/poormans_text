@@ -1,4 +1,9 @@
 import Foundation
+#if os(Linux)
+import Glibc
+#else
+import Darwin
+#endif
 import zlib
 
 struct ZIPPackageContents {
@@ -990,11 +995,16 @@ enum ZIPArchiveInspector {
     /// selbst geschriebene Arbeitskopie abgebildet; fremde Originale werden
     /// gelesen (Review-Fund 2026-08-20).
     private static func isOnALocalVolume(_ descriptor: Int32) -> Bool {
+        #if os(Linux)
+        // Ohne portable Mountklassifikation bleibt der bestehende lesende Fallback aktiv.
+        return false
+        #else
         var fileSystem = statfs()
         guard fstatfs(descriptor, &fileSystem) == 0 else {
             return false
         }
         return fileSystem.f_flags & UInt32(MNT_LOCAL) != 0
+        #endif
     }
 
     /// Ein zulässiges Archiv darf 1 GiB groß sein, und der Parser liest daraus nur

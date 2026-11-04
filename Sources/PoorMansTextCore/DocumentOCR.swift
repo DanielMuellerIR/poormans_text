@@ -1,3 +1,4 @@
+#if os(macOS)
 import CoreGraphics
 import Foundation
 import ImageIO
@@ -132,3 +133,4 @@ enum OCRAsyncBridge {
         return try completion.get()
     }
 }
+#endif

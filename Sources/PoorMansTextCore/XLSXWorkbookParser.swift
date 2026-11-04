@@ -1,4 +1,7 @@
 import Foundation
+#if os(Linux)
+import FoundationXML
+#endif
 
 /// Die vier OOXML-Tabellenarten, unterschieden allein über den Inhaltstyp von
 /// `xl/workbook.xml`.

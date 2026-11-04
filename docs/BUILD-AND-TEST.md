@@ -1,5 +1,8 @@
 # Bauen, testen und installieren
 
+Für den Linux-Entwicklungsbuild gelten [Build und Laufzeit](LINUX-BUILD.md).
+Die folgenden Bundle-, Signatur- und Installationsschritte betreffen macOS.
+
 ## Lokaler Build
 
 Vom Repo-Root:

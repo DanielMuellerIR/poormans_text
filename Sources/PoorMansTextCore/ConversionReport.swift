@@ -1,5 +1,9 @@
 import Foundation
+#if os(Linux)
+import Crypto
+#else
 import CryptoKit
+#endif
 
 public struct ConversionSourceIdentity: Codable, Hashable, Sendable {
     public let name: String

@@ -63,6 +63,13 @@ struct RichTextAdapter: DocumentConversionAdapter {
         ),
     ]
 
+    func unavailableReason(for format: InputFormat) -> String? {
+        #if os(Linux)
+        if format == .rtfd { return PlatformBackendUnavailable("RTFD").localizedDescription }
+        #endif
+        return nil
+    }
+
     func inspectInput(at inputURL: URL) throws -> AdapterInputDetection {
         let fileManager = FileManager.default
         let resolvedInputURL = inputURL.resolvingSymlinksInPath()

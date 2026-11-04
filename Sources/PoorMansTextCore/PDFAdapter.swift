@@ -1,3 +1,4 @@
+#if os(macOS)
 import CoreGraphics
 import Foundation
 import PDFKit
@@ -6,14 +7,7 @@ import PDFKit
 /// bei PDFKit; nur Seiten ohne ausreichend eingebetteten Text werden lokal
 /// gerendert und durch Vision gelesen.
 struct PDFAdapter: DocumentConversionAdapter {
-    let supportedFormatDescriptors: [SupportedFormat] = [
-        SupportedFormat(
-            format: .pdf,
-            fileExtensions: ["pdf"],
-            containerKind: .file,
-            requiredTools: []
-        )
-    ]
+    let supportedFormatDescriptors: [SupportedFormat] = [PlatformFormatDescriptors.pdf]
 
     func inspectInput(at inputURL: URL) throws -> AdapterInputDetection {
         let hasPDFExtension = inputURL.pathExtension.lowercased() == "pdf"
@@ -654,3 +648,4 @@ private struct PDFAdapterError: LocalizedError {
 
     var errorDescription: String? { reason }
 }
+#endif

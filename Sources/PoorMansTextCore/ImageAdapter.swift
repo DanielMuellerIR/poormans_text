@@ -1,3 +1,4 @@
+#if os(macOS)
 import CoreGraphics
 import Foundation
 import ImageIO
@@ -7,14 +8,7 @@ import UniformTypeIdentifiers
 /// Wunsch lokal erkannten Text. Das Original bleibt die maßgebliche Darstellung;
 /// OCR ist immer ein zusätzliches, überprüfbares Hilfsmittel.
 struct ImageAdapter: DocumentConversionAdapter {
-    let supportedFormatDescriptors: [SupportedFormat] = [
-        SupportedFormat(
-            format: .image,
-            fileExtensions: ["png", "jpg", "jpeg", "heic", "tif", "tiff", "gif", "bmp", "webp"],
-            containerKind: .file,
-            requiredTools: []
-        )
-    ]
+    let supportedFormatDescriptors: [SupportedFormat] = [PlatformFormatDescriptors.image]
 
     func inspectInput(at inputURL: URL) throws -> AdapterInputDetection {
         let hasImageExtension = Self.imageExtensions.contains(inputURL.pathExtension.lowercased())
@@ -460,3 +454,4 @@ struct ImageAdapterError: LocalizedError {
 
     var errorDescription: String? { reason }
 }
+#endif

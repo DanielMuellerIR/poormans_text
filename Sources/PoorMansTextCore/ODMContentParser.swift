@@ -1,4 +1,7 @@
 import Foundation
+#if os(Linux)
+import FoundationXML
+#endif
 
 enum ODMContentItem: Equatable {
     case markdown(String)

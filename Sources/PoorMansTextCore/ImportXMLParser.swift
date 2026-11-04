@@ -1,4 +1,7 @@
 import Foundation
+#if os(Linux)
+import FoundationXML
+#endif
 
 /// Ein `XMLParser`, wie ihn jeder Leser eines fremden Dokumentpakets braucht.
 ///

@@ -1,4 +1,7 @@
 import Foundation
+#if os(Linux)
+import FoundationXML
+#endif
 
 public struct EPUBChapterSummary: Codable, Hashable, Sendable {
     public let number: Int

@@ -28,6 +28,7 @@ enum ConversionExecution {
         var protectedInputs: [URL] = []
         var plannedSources: [String: URL] = [:]
         var recording: ConversionRecording? = nil
+        var processWriteScope: URL? = nil
     }
     @TaskLocal static var current: Context?
 

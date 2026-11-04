@@ -1,5 +1,9 @@
 import Foundation
+#if os(Linux)
+import Glibc
+#else
 import Darwin
+#endif
 
 /// Benannte Profile liegen lokal; Publikation per Hardlink überschreibt auch
 /// bei konkurrierenden Schreibern oder Symlinks kein vorhandenes Ziel.
@@ -46,7 +50,11 @@ public struct ConversionProfileStore: Sendable {
         var data = Data(), buffer = [UInt8](repeating: 0, count: 16_384)
         while true {
             try ConversionExecution.check()
+            #if os(Linux)
+            let count = Glibc.read(fd, &buffer, buffer.count)
+            #else
             let count = Darwin.read(fd, &buffer, buffer.count)
+            #endif
             if count == 0 { break }
             if count < 0, errno == EINTR { continue }
             guard count > 0 else { throw ConversionProfileError("A profile could not be read.", kind: .fileSystem) }

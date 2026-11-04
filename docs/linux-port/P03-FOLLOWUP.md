@@ -1,5 +1,8 @@
 # P03: abgeschlossene Entscheidungsnachweise
 
+Dieser Bericht beschreibt die isolierten Proben vor dem P05-Auftrag.
+Die anschließende Produktintegration steht im [P05-Bericht](P05-INTEGRATION.md).
+
 Stand: 2026-11-04. Ausgangsstand `5293eb6`; Produktquellen unverändert.
 **Die beauftragten P03-Entscheidungsproben sind bestanden. Die Integration und
 Abnahme im Produkt stehen aus. P05 wurde nicht begonnen.**

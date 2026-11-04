@@ -1,3 +1,4 @@
+#if os(macOS)
 import Foundation
 
 /// Eigenständiger Importweg für das alte OLE-basierte Word-DOC-Format.
@@ -17,15 +18,7 @@ struct LegacyWordAdapter: DocumentConversionAdapter {
         )
     }
 
-    let supportedFormatDescriptors: [SupportedFormat] = [
-        SupportedFormat(
-            format: .doc,
-            fileExtensions: ["doc"],
-            containerKind: .file,
-            // Erst `textutil` nach HTML, danach dieselbe Pandoc-Stufe wie RTF.
-            requiredTools: [.textutil, .pandoc]
-        )
-    ]
+    let supportedFormatDescriptors: [SupportedFormat] = [PlatformFormatDescriptors.doc]
 
     func inspectInput(at inputURL: URL) throws -> AdapterInputDetection {
         let hasDOCExtension = inputURL.pathExtension.lowercased() == "doc"
@@ -349,3 +342,4 @@ struct LegacyWordAdapter: DocumentConversionAdapter {
         }
     }
 }
+#endif

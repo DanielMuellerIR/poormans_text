@@ -1,4 +1,9 @@
 import Foundation
+#if os(Linux)
+import Glibc
+#else
+import Darwin
+#endif
 
 /// Kopiert eine Eingabedatei in den Arbeitsordner — und zwar so, dass zwischen
 /// Prüfung und Kopie nichts ausgetauscht werden kann.
@@ -250,7 +255,7 @@ enum VerifiedFileStaging {
             guard file.info.st_size <= Int64(maximumBytes) else {
                 throw StagingError(.source, "\(subject) exceeds the supported size limit")
             }
-            return try body(file, file.info.st_size)
+            return try body(file, Int64(file.info.st_size))
         }
         if followSourceSymlink {
             return try VerifiedFile.open(

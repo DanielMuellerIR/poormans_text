@@ -1,3 +1,4 @@
+#if os(macOS)
 import AppKit
 
 /// TextEdit-Dokumente können Aufzählungen als gewöhnliche Absätze mit „• “ oder „- “
@@ -54,3 +55,4 @@ enum RTFDLiteralListNormalizer {
         character == 0x20 || character == 0x09 || character == 0xA0
     }
 }
+#endif

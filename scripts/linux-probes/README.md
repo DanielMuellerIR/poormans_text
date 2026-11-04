@@ -1,5 +1,13 @@
 # Isolierte Entscheidungstests P00–P04
 
+Die spätere Produktversion wird getrennt geprüft:
+`python3 scripts/linux-probes/verify_product.py ./poormans-text --pandoc /pfad/zu/pandoc`.
+Dieser Lauf verwendet die echte gebaute CLI, erzeugt fünf synthetische Dokumente,
+prüft Text-/Assetbestand, Hashes, Kollision, Timeout, SIGTERM und ungültiges UTF-8
+und entfernt seinen temporären Bereich. Er benötigt Linux mit funktionierendem
+Bubblewrap und den neben der CLI gebauten PMT-Guard; keine Teststubs.
+Siehe [P05-Integrationsbericht](../../docs/linux-port/P05-INTEGRATION.md).
+
 Diese Skripte bauen keine Linux-Produktversion und ändern weder Package.swift
 noch die Produktionsquellen. Entscheidung und offene Freigaben stehen in
 [LINUX-DECISION.md](../../docs/LINUX-DECISION.md).

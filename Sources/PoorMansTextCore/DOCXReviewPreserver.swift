@@ -1,4 +1,7 @@
 import Foundation
+#if os(Linux)
+import FoundationXML
+#endif
 
 /// Anmerkungen werden vor Pandoc in der verifizierten privaten Kopie verankert.
 /// Erst nach der HTML-Schlussstrecke entstehen sichtbare Markdown-Markierungen;

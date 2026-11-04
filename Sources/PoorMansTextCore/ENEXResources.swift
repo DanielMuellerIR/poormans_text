@@ -1,7 +1,15 @@
+#if os(Linux)
+import Crypto
+#else
 import CryptoKit
+#endif
+#if os(macOS)
 import CoreGraphics
+#endif
 import Foundation
+#if os(macOS)
 import ImageIO
+#endif
 
 struct ENEXResources {
     static let maximumResourceBytes = 12 * 1_048_576
@@ -168,6 +176,7 @@ struct ENEXResources {
     private static func inspectedType(_ data: Data, mime: String, budget: inout Budget) throws -> (fileExtension: String, image: Bool) {
         let raster: [String: String] = ["image/png": "png", "image/jpeg": "jpg", "image/gif": "gif", "image/tiff": "tiff", "image/webp": "webp", "image/bmp": "bmp", "image/heic": "heic"]
         if let expected = raster[mime] {
+            #if os(macOS)
             guard let source = CGImageSourceCreateWithData(data as CFData, [kCGImageSourceShouldCache: false] as CFDictionary),
                   let identifier = CGImageSourceGetType(source) as String?, let format = ImageFileFormat(typeIdentifier: identifier), format.fileExtension == expected else {
                 throw ImportFailure("an ENEX image resource does not match its declared type")
@@ -186,13 +195,28 @@ struct ENEXResources {
                 throw ImportFailure("an ENEX image resource cannot be decoded")
             }
             return count == 1 ? (expected, true) : ("bin", false)
+            #else
+            let image = try RasterImageBackend.validate(data)
+            guard image.fileExtension == expected else {
+                throw ImportFailure("an ENEX image resource does not match its declared type")
+            }
+            guard image.width <= budget.pixels / image.height else {
+                throw ImportFailure("the ENEX image resources exceed their total pixel budget")
+            }
+            budget.pixels -= image.width * image.height
+            return (expected, true)
+            #endif
         }
         if mime == "application/pdf" {
+            #if os(macOS)
             guard data.starts(with: Data("%PDF-".utf8)), let provider = CGDataProvider(data: data as CFData),
                   let document = CGPDFDocument(provider), document.numberOfPages > 0 || document.isEncrypted else {
                 throw ImportFailure("an ENEX PDF attachment does not match its declared type")
             }
             return ("pdf", false)
+            #else
+            throw PlatformBackendUnavailable("PDF attachment validation")
+            #endif
         }
         if mime == "text/plain", String(data: data, encoding: .utf8) != nil, !data.contains(0) { return ("txt", false) }
         return ("bin", false)

@@ -1,4 +1,5 @@
 import Foundation
+import CoreFoundation
 
 /// Liest ein Safari-Webarchiv: eine Property-List mit der Hauptressource
 /// (HTML samt Adresse und Zeichensatz) und den Nebenressourcen (Bilder,
@@ -83,7 +84,14 @@ enum WebArchiveReader {
 extension String.Encoding {
     /// IANA-Namen wie `utf-8` oder `iso-8859-1` in Foundation-Kodierungen.
     init?(ianaCharSetName name: String) {
+        #if os(Linux)
+        guard let identifier = CFStringCreateWithCString(nil, name, CFStringBuiltInEncodings.UTF8.rawValue) else {
+            return nil
+        }
+        let cfEncoding = CFStringConvertIANACharSetNameToEncoding(identifier)
+        #else
         let cfEncoding = CFStringConvertIANACharSetNameToEncoding(name as CFString)
+        #endif
         guard cfEncoding != kCFStringEncodingInvalidId else {
             return nil
         }

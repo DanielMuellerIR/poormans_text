@@ -1,4 +1,7 @@
 import Foundation
+#if os(Linux)
+import FoundationXML
+#endif
 
 /// Kleiner begrenzter XML-Baum für einzelne Folien/Metadaten. Externe Entitäten
 /// werden nie aufgelöst; der Parser prüft Abbruch auch während langer Textläufe.

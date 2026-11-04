@@ -1,4 +1,7 @@
 import Foundation
+#if os(Linux)
+import FoundationXML
+#endif
 
 /// ODF-Styles werden vor dem Tabellenkörper begrenzt gesammelt. Die gemeinsame
 /// Formatierung erhält nur die belegbar entsprechende Excel-Teilmenge.

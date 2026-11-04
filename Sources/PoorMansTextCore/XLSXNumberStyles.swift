@@ -1,4 +1,7 @@
 import Foundation
+#if os(Linux)
+import FoundationXML
+#endif
 
 struct XLSXNumberStyles: Sendable {
     private let formats: [SpreadsheetNumberFormat]

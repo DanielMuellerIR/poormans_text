@@ -1,3 +1,4 @@
+#if os(macOS)
 import Foundation
 import ImageIO
 
@@ -77,3 +78,4 @@ final class VerifiedImageSource {
         }
     }
 }
+#endif

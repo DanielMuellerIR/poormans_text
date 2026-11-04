@@ -1,14 +1,8 @@
+#if os(macOS)
 import Foundation
 import PDFKit
 import AppKit
 
-struct PDFTextLine {
-    let text: String
-    let bounds: CGRect
-    var fontSize: CGFloat? = nil
-    var isBold: Bool = false
-    var sourceLine: Int = 0
-}
 
 /// Positionsbezogene Textverarbeitung. Sie entfernt keine Wörter: Ein unsicherer
 /// Positionslauf fällt auf PDFKit-Text zurück; Layoutverluste bleiben diagnostiziert.
@@ -220,3 +214,4 @@ enum PDFTextLayout {
             with: "$1$2", options: .regularExpression)
     }
 }
+#endif

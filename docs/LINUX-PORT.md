@@ -1,11 +1,13 @@
 # Umsetzungsplan für Poor Man's Text auf Linux
 
 Stand: 2026-11-04. Planungsbasis: Version 0.41.7, Commit `919c575`.
-Status: P00–P04 als isolierte Proben durchgeführt. Swift-Durchstich samt
-Laufzeitpaketierung bestanden; die ergänzenden P03-Entscheidungsnachweise sind
-ebenfalls bestanden. Vertrags- und Backendgrenzen sowie die Sicherheitsintegration
-im Produkt bleiben offen. Swift ist als gemeinsamer Kern gewählt.
-P05 wird zur Freigabe empfohlen, wurde aber nicht begonnen. Ergebnisse stehen im
+Status: P00–P04 als isolierte Proben durchgeführt. P05 ist im Produkt als
+Linux-Entwicklungsbuild umgesetzt: gemeinsamer Swift-Kern, getrennte
+Plattformbackends, Prozessaufsicht, gebundene Ausgabe und Laufzeitpaketierung.
+Prüfungen und verbleibende Abnahmegrenzen stehen im
+[P05-Integrationsbericht](linux-port/P05-INTEGRATION.md). Der vollständige
+P06-Formatdurchstich und die Linux-Backendpakete bleiben offen. Swift bleibt
+der gemeinsame Kern. Die früheren Entscheidungsproben stehen im
 [Entscheidungsbericht](LINUX-DECISION.md).
 Dieser Plan beauftragt selbst keinen Entwicklungsstart.
 
@@ -20,7 +22,7 @@ Die vorhandene native Mac-App und ihre CLI bleiben erhalten.
 Apple-spezifische Backends abtrennen und eine Linux-Oberfläche in Rust über die
 lokale CLI anbinden. P02 hat diesen Weg anhand einer lauffähigen Probe samt
 Laufzeitlieferung auf beiden Linux-Zielen bestätigt. Swift ist als gemeinsamer
-Konvertierungskern festgelegt. Die Produktintegration bleibt P05 vorbehalten;
+Konvertierungskern festgelegt. Die erste Produktintegration steht im P05-Bericht;
 Rust ist keine Voraussetzung für jeden Konverter.
 
 Der Bestand umfasst etwa 28.000 Zeilen in 107 Swift-Dateien unter dem Core-Target.
@@ -166,7 +168,7 @@ Die Auswahl einer Bibliothek allein ist kein bestandener Formatnachweis.
 
 ## Arbeitspakete
 
-Die Produktpakete ab P05 sind offen. Der belegte Stand von P00–P04 steht im
+Die weiteren Produktpakete ab P06 sind offen. Der belegte Stand von P00–P04 steht im
 Entscheidungsbericht; erfolgreiche Einzelproben sind keine vollständige
 Produktabnahme. Jedes Paket liefert eine abgegrenzte Funktion mit echten
 Fixtures, gezielter Prüfung und eigenem zusammenhängenden Commit. Große
@@ -200,6 +202,10 @@ P03 darf als Sicherheitsprüfung parallel zur Sprachauswahl entworfen werden;
 Produktadapter erst nach der Entscheidung festlegen.
 
 ### P05 Portablen Kern und Plattformgrenzen herstellen
+
+**Implementiert in 0.41.8 als Entwicklungsstand.** Gemeinsame Tests, echte
+CLI-Konvertierungen und Grenzen der Mac-/Linux-Abnahme sind im
+[Integrationsbericht](linux-port/P05-INTEGRATION.md) getrennt aufgeführt.
 
 **Abhängigkeit:** P02 bestanden oder ausdrücklich geänderter Architekturplan.
 SwiftPM-Targets, Backend-Protokolle, gemeinsame Modelle, Erkennung, Markdown-

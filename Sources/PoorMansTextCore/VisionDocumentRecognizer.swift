@@ -1,3 +1,4 @@
+#if os(macOS)
 import CoreGraphics
 import Foundation
 import ImageIO
@@ -188,3 +189,4 @@ enum VisionDocumentRecognizer {
         }
     }
 }
+#endif

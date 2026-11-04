@@ -325,6 +325,7 @@ func exitCode(for error: Error) -> CLIExitCode {
             return .inputOutput
         }
     }
+    if error is PlatformBackendUnavailable { return .unavailable }
     guard let conversionError = error as? ConversionError else {
         return error is CLIArgumentError ? .usage : .software
     }

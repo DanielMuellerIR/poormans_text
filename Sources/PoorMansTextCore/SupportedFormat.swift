@@ -38,7 +38,13 @@ public struct SupportedFormat: Sendable, Equatable {
         self.fileExtensions = fileExtensions
         self.containerKind = containerKind
         self.containerKinds = [containerKind] + additionalContainerKinds.filter { $0 != containerKind }
+        #if os(Linux)
+        self.requiredTools = requiredTools.contains(.pandoc)
+            ? requiredTools + [.bubblewrap, .processGuard].filter { !requiredTools.contains($0) }
+            : requiredTools
+        #else
         self.requiredTools = requiredTools
+        #endif
     }
 }
 
@@ -56,6 +62,8 @@ public struct ExternalTool: RawRepresentable, Codable, Hashable, Sendable {
 
     public static let pandoc = ExternalTool(rawValue: "pandoc")
     public static let textutil = ExternalTool(rawValue: "textutil")
+    public static let bubblewrap = ExternalTool(rawValue: "bwrap")
+    public static let processGuard = ExternalTool(rawValue: "poormans-text-process-guard")
 }
 
 /// Ein Format samt aktueller Verfügbarkeit auf DIESEM Rechner.
@@ -104,6 +112,15 @@ public struct ExternalToolResolver {
             return (try? PandocTool.resolve(pandocExecutable, fileManager: fileManager)) != nil
         case .textutil:
             return fileManager.isExecutableFile(atPath: LegacyWordAdapter.textutilPath)
+        #if os(Linux)
+        case .bubblewrap:
+            return fileManager.isExecutableFile(atPath: "/usr/bin/bwrap")
+        case .processGuard:
+            guard let host = Bundle.main.executableURL else { return false }
+            let path = host.resolvingSymlinksInPath().deletingLastPathComponent()
+                .appendingPathComponent(ExternalTool.processGuard.rawValue).path
+            return fileManager.isExecutableFile(atPath: path)
+        #endif
         default:
             // Ein neues Werkzeug ohne Prüfweg gilt als NICHT verfügbar. Das ist
             // die sichere Richtung: lieber ein Format zu wenig anbieten als eine

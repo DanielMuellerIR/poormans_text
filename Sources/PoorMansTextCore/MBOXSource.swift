@@ -1,5 +1,9 @@
 import Foundation
+#if os(Linux)
+import Glibc
+#else
 import Darwin
+#endif
 
 /// Apple Mail exportiert das Postfach als direktes Mitglied `mbox`. Andere
 /// Paketdateien (etwa table_of_contents) sind keine Nachrichtenquellen.

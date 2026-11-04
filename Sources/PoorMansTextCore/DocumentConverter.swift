@@ -5,23 +5,28 @@ public struct DocumentConverter: Sendable {
     private let adapters: [any DocumentConversionAdapter]
 
     public init() {
-        self.init(adapters: [
-            RichTextAdapter(),
-            WordProcessingPackageAdapter(),
-            LegacyWordAdapter(),
-            SpreadsheetAdapter(),
-            OpenDocumentMasterAdapter(),
-            ImageAdapter(),
-            PDFAdapter(),
-            PresentationAdapter(),
-            NotebookAdapter(),
-            DelimitedTextAdapter(),
-            PandocTextAdapter(),
-            MailAdapter(),
-            MBOXAdapter(),
-            ENEXAdapter(),
-            MSGAdapter(),
-        ])
+        var registered: [any DocumentConversionAdapter] = [
+            RichTextAdapter(), WordProcessingPackageAdapter(),
+        ]
+        #if os(macOS)
+        registered.append(LegacyWordAdapter())
+        #else
+        registered.append(UnavailablePlatformAdapter(descriptor: PlatformFormatDescriptors.doc))
+        #endif
+        registered += [SpreadsheetAdapter(), OpenDocumentMasterAdapter()]
+        #if os(macOS)
+        registered += [ImageAdapter(), PDFAdapter()]
+        #else
+        registered += [
+            UnavailablePlatformAdapter(descriptor: PlatformFormatDescriptors.image),
+            UnavailablePlatformAdapter(descriptor: PlatformFormatDescriptors.pdf),
+        ]
+        #endif
+        registered += [
+            PresentationAdapter(), NotebookAdapter(), DelimitedTextAdapter(), PandocTextAdapter(),
+            MailAdapter(), MBOXAdapter(), ENEXAdapter(), MSGAdapter(),
+        ]
+        self.init(adapters: registered)
     }
 
     init(adapters: [any DocumentConversionAdapter]) {
@@ -67,13 +72,15 @@ public struct DocumentConverter: Sendable {
                 checked[tool] = available
                 return !available
             }
+            let backendReason = adapters.first { $0.supportedFormats.contains(descriptor.format) }?
+                .unavailableReason(for: descriptor.format)
             return FormatAvailability(
                 format: descriptor,
-                isAvailable: missing.isEmpty,
-                unavailableReason: missing.isEmpty
+                isAvailable: missing.isEmpty && backendReason == nil,
+                unavailableReason: backendReason ?? (missing.isEmpty
                     ? nil
                     : "missing required tool: "
-                        + missing.map(\.rawValue).joined(separator: ", "),
+                        + missing.map(\.rawValue).joined(separator: ", ")),
                 missingTools: missing
             )
         }
@@ -119,6 +126,7 @@ public struct DocumentConverter: Sendable {
         cancellation: ConversionCancellationToken? = nil,
         processTimeout: TimeInterval? = nil
     ) throws -> PDFContentSummary {
+        #if os(macOS)
         try withDetectionContext(cancellation, processTimeout) {
             do { return try PDFAdapter().inspectContents(at: inputURL.standardizedFileURL, maximumPages: maximumPages) }
             catch {
@@ -126,6 +134,9 @@ public struct DocumentConverter: Sendable {
                 throw ConversionError.invalidInput(inputURL, format: .pdf, reason: error.localizedDescription)
             }
         }
+        #else
+        throw PlatformBackendUnavailable("PDF")
+        #endif
     }
 
     /// Liest die vollständig geprüfte Arbeitsmappe ohne Ausgabeordner. Die
@@ -290,6 +301,16 @@ public struct DocumentConverter: Sendable {
         if request.options.epubChapters != nil, format != .epub {
             throw ConversionError.invalidInput(inputURL, format: format, reason: "EPUB chapter selection can only be used with EPUB input")
         }
+        if detected.adapter.unavailableReason(for: format) != nil {
+            throw PlatformBackendUnavailable(format.rawValue.uppercased())
+        }
+        #if os(Linux)
+        let required = detected.adapter.supportedFormatDescriptors.first { $0.format == format }?.requiredTools ?? []
+        let resolver = ExternalToolResolver(pandocExecutable: request.options.pandocExecutable)
+        for tool in required where tool == .bubblewrap || tool == .processGuard {
+            guard resolver.isAvailable(tool) else { throw PlatformBackendUnavailable(tool.rawValue) }
+        }
+        #endif
         let resolvedInputURL = inputURL.resolvingSymlinksInPath()
         guard resolvedInputURL == resolvedBeforeDetection else {
             throw ConversionError.invalidInput(
@@ -310,13 +331,16 @@ public struct DocumentConverter: Sendable {
             fileManager: fileManager
         )
 
+        #if os(Linux)
+        let publication = try LinuxOutputPublication(outputURL: destination.url)
+        let temporaryRoot = publication.temporaryRoot
+        defer { publication.cleanup() }
+        #else
         let outputParent = destination.url.deletingLastPathComponent()
         let temporaryRoot = outputParent.appendingPathComponent(
             ".poormans-text-\(UUID().uuidString).tmp",
             isDirectory: true
         )
-        let workDirectory = temporaryRoot.appendingPathComponent("work", isDirectory: true)
-        let stagedOutput = temporaryRoot.appendingPathComponent("result", isDirectory: true)
 
         // Der Arbeitsbereich liegt neben dem Ziel, möglicherweise in einem
         // gemeinsam lesbaren Ordner. Bis zur Veröffentlichung bleibt er privat.
@@ -324,6 +348,9 @@ public struct DocumentConverter: Sendable {
             throw ConversionError.fileSystemFailure(String(cString: strerror(errno)))
         }
         defer { try? fileManager.removeItem(at: temporaryRoot) }
+        #endif
+        let workDirectory = temporaryRoot.appendingPathComponent("work", isDirectory: true)
+        let stagedOutput = temporaryRoot.appendingPathComponent("result", isDirectory: true)
         do {
             try fileManager.createDirectory(at: workDirectory, withIntermediateDirectories: false)
             try fileManager.createDirectory(at: stagedOutput, withIntermediateDirectories: false)
@@ -332,16 +359,21 @@ public struct DocumentConverter: Sendable {
         }
 
         try ConversionExecution.report(ConversionProgress(phase: .converting, format: format))
-        let stagedResult = try detected.adapter.convert(
-            AdapterConversionContext(
-                inputURL: inputURL,
-                resolvedInputURL: resolvedInputURL,
-                format: format,
-                workDirectory: workDirectory,
-                stagedOutputDirectory: stagedOutput,
-                options: request.options
+        var execution = ConversionExecution.current ?? ConversionExecution.Context(
+            cancellation: ConversionCancellationToken(), progress: nil, processTimeout: nil)
+        execution.processWriteScope = temporaryRoot
+        let stagedResult = try ConversionExecution.$current.withValue(execution) {
+            try detected.adapter.convert(
+                AdapterConversionContext(
+                    inputURL: inputURL,
+                    resolvedInputURL: resolvedInputURL,
+                    format: format,
+                    workDirectory: workDirectory,
+                    stagedOutputDirectory: stagedOutput,
+                    options: request.options
+                )
             )
-        )
+        }
 
         try ConversionExecution.check()
         var markdownRelativePath = try validateRelativePath(stagedResult.markdownRelativePath)
@@ -457,12 +489,16 @@ public struct DocumentConverter: Sendable {
             }
             sourceIdentity = actual
         }
+        #if os(Linux)
+        try publication.publish()
+        #else
         try publish(
             stagedOutput,
             to: destination.url,
             resolvedInputURL: resolvedInputURL,
             fileManager: fileManager
         )
+        #endif
 
         let result = ConversionResult(
             inputURL: inputURL,
@@ -563,6 +599,14 @@ public struct DocumentConverter: Sendable {
                 )
             }
             return detected
+        }
+
+        for adapter in adapters {
+            if let descriptor = adapter.supportedFormatDescriptors.first(where: {
+                $0.fileExtensions.contains(inputURL.pathExtension.lowercased())
+            }), adapter.unavailableReason(for: descriptor.format) != nil {
+                throw PlatformBackendUnavailable(descriptor.format.rawValue.uppercased())
+            }
         }
 
         if let invalid = invalidInputs.max(by: { $0.priority < $1.priority }) {
@@ -728,10 +772,13 @@ protocol DocumentConversionAdapter: Sendable {
     var supportedFormatDescriptors: [SupportedFormat] { get }
 
     func inspectInput(at inputURL: URL) throws -> AdapterInputDetection
+    func unavailableReason(for format: InputFormat) -> String?
     func convert(_ context: AdapterConversionContext) throws -> StagedConversionResult
 }
 
 extension DocumentConversionAdapter {
+    func unavailableReason(for format: InputFormat) -> String? { nil }
+
     var supportedFormats: Set<InputFormat> {
         Set(supportedFormatDescriptors.map(\.format))
     }

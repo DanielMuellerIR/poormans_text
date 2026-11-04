@@ -1,3 +1,4 @@
+#if os(macOS)
 import CoreGraphics
 import PDFKit
 
@@ -68,3 +69,4 @@ enum PDFImageResources {
         }
     }
 }
+#endif

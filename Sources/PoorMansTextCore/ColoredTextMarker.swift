@@ -1,9 +1,12 @@
+#if os(macOS)
 import AppKit
+#endif
 import Foundation
 
 /// Übersetzt chromatische Vordergrundfarben in die von Fastra verstandene `==`-Notation.
 enum ColoredTextMarker {
     static func containsChromaticText(inRTF inputURL: URL) -> Bool {
+        #if os(macOS)
         guard let document = try? NSAttributedString(
             url: inputURL,
             options: [.documentType: NSAttributedString.DocumentType.rtf],
@@ -34,8 +37,15 @@ enum ColoredTextMarker {
             return false
         }
         return containsChromaticBackgroundControl(in: rtf)
+        #else
+        guard let data = try? VerifiedFileStaging.contents(of: inputURL,
+                maximumBytes: RichTextLimits.maximumSourceSize, describedAs: "the RTF source"),
+              let rtf = String(data: data, encoding: .isoLatin1) else { return false }
+        return containsChromaticBackgroundControl(in: rtf, includeForeground: true)
+        #endif
     }
 
+    #if os(macOS)
     /// Fügt Marker rückwärts ein, damit die zuvor ermittelten NSRanges stabil bleiben.
     @discardableResult
     static func insertMarkers(in document: NSMutableAttributedString) -> Int {
@@ -130,9 +140,11 @@ enum ColoredTextMarker {
         return maximum - minimum > 0.02
     }
 
+    #endif
+
     /// Ordnet rohe Hintergrund-Steuerwörter ihrem Eintrag in `\\colortbl`
     /// zu. Dadurch werden Grauwerte nicht fälschlich als chromatisch gemeldet.
-    private static func containsChromaticBackgroundControl(in rtf: String) -> Bool {
+    private static func containsChromaticBackgroundControl(in rtf: String, includeForeground: Bool = false) -> Bool {
         guard let tableRange = rtf.range(
             of: #"\{\\colortbl(?:[^{}]|\{[^{}]*\})*\}"#,
             options: .regularExpression
@@ -154,7 +166,9 @@ enum ColoredTextMarker {
         )
         guard !chromaticIndexes.isEmpty,
               let expression = try? NSRegularExpression(
-                pattern: #"\\(?:highlight|chcbpat|cb)([1-9][0-9]*)\b"#
+                pattern: includeForeground
+                    ? #"\\(?:cf|highlight|chcbpat|cb)([1-9][0-9]*)\b"#
+                    : #"\\(?:highlight|chcbpat|cb)([1-9][0-9]*)\b"#
               ) else {
             return false
         }
@@ -180,6 +194,7 @@ enum ColoredTextMarker {
         return Int(component)
     }
 
+    #if os(macOS)
     private static func neutralMarkerAttributes(
         in document: NSAttributedString,
         at location: Int
@@ -198,4 +213,5 @@ enum ColoredTextMarker {
         }
         return attributes
     }
+    #endif
 }

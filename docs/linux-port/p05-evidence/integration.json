@@ -1,0 +1,42 @@
+{
+  "date": "2026-11-04",
+  "baseCommit": "c18b903ae9e80f6a1fdd7e483e4d8e1f4a148176",
+  "productVersion": "0.41.8",
+  "buildNumber": 93,
+  "linuxTests": {
+    "executed": 14,
+    "failures": 0
+  },
+  "macTests": {
+    "executed": 1058,
+    "skipped": 9,
+    "failures": 0,
+    "excluded": [
+      "StructuredOCRTests.testSynchronousBridgeRunsFromCooperativeTasksAndPropagatesContext"
+    ]
+  },
+  "nativeCLI": {
+    "CachyOS": {
+      "swiftSDKInstalled": false,
+      "fiveFixturesPassed": true,
+      "textCountsSourceHashesImageBytesPassed": true,
+      "outputFileHashesCollisionTimeoutSIGTERMInvalidUTF8Passed": true
+    },
+    "Mint22.2": {
+      "swiftSDKInstalled": false,
+      "fiveFixturesPassed": true,
+      "textCountsSourceHashesImageBytesPassed": true,
+      "outputFileHashesCollisionTimeoutSIGTERMInvalidUTF8Passed": true
+    }
+  },
+  "binaries": {
+    "poormans-text": "97f7206143ac00b7637a8131f3017fb64dfe7e786add628e8df7a71846689d03",
+    "poormans-text-process-guard": "8e03558c1d41fadf9a47bad0e825734e76c9f02399dfb410a3075a2f8b7ac57d"
+  },
+  "pandocFixtureTool": {
+    "version": "3.1.3",
+    "source": "https://github.com/jgm/pandoc/releases/tag/3.1.3",
+    "sha256": "5a953bcbcdc7c36fcb0c263fbb09db8c7b84cfa9ca58e48e321d7edf857a7ee7",
+    "bundledInProduct": false
+  }
+}

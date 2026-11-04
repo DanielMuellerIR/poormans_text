@@ -1,0 +1,18 @@
+{
+  "rename-race": {
+    "passed": true,
+    "own_output_read": true,
+    "foreign_tree_preserved": true,
+    "replacement_captures_preserved": true,
+    "output": "RESULT 0 literal=$HOME;$(touch BAD) ALPHA\nOWN OUTPUT AFTER SWAP\n diagnostic BETA\nOWN STDERR AFTER SWAP",
+    "stderr": ""
+  },
+  "replace-captures": {
+    "passed": true,
+    "own_output_read": true,
+    "foreign_tree_preserved": true,
+    "replacement_captures_preserved": true,
+    "output": "RESULT 0 literal=$HOME;$(touch BAD) ALPHA\nOWN OUTPUT AFTER SWAP\n diagnostic BETA\nOWN STDERR AFTER SWAP",
+    "stderr": ""
+  }
+}

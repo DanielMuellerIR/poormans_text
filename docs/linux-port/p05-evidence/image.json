@@ -1,0 +1,16 @@
+{
+  "decoder": "libpng",
+  "validPNG": {
+    "width": 24,
+    "height": 24,
+    "frames": 1
+  },
+  "rejected": {
+    "corruptDeflateWithValidCRC": "invalid",
+    "truncatedPNG": "invalid",
+    "oversized100000x100000": "exceedsLimits",
+    "APNG": "unavailable",
+    "JPEG": "unavailable"
+  },
+  "scope": "isolated actual decoder source; not full image/OCR backend"
+}

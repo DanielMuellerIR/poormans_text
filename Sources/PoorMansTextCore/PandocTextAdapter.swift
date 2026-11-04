@@ -1,4 +1,7 @@
 import Foundation
+#if os(Linux)
+import FoundationXML
+#endif
 
 /// Formate, die Pandoc liest und die keinen eigenen nativen Leser brauchen:
 /// HTML und Webarchive, EPUB sowie die Textformate LaTeX, DocBook, Org,

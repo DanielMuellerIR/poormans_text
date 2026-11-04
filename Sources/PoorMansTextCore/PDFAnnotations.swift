@@ -1,3 +1,4 @@
+#if os(macOS)
 import Foundation
 import PDFKit
 
@@ -372,3 +373,4 @@ final class PDFAnnotations {
         diagnostics.append(.init(code: code, message: message, location: location, kind: kind))
     }
 }
+#endif

@@ -1,0 +1,22 @@
+{
+  "fd-scope": {
+    "passed": true,
+    "output": "RESULT 0 literal=$HOME;$(touch BAD) ALPHA\nSCOPE_OK\n diagnostic BETA",
+    "stderr": ""
+  },
+  "readonly": {
+    "passed": true,
+    "output": "RESULT 0 literal=$HOME;$(touch BAD) ALPHA\nREADONLY_OK\n diagnostic BETA",
+    "stderr": ""
+  },
+  "no-capture": {
+    "passed": true,
+    "output": "RESULT 0  diagnostic BETA",
+    "stderr": ""
+  },
+  "missing-guard": {
+    "passed": true,
+    "output": "ERROR File-system operation failed: the required local executable is missing: pmt-guard",
+    "stderr": ""
+  }
+}

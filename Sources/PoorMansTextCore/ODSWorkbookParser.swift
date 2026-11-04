@@ -1,4 +1,7 @@
 import Foundation
+#if os(Linux)
+import FoundationXML
+#endif
 
 enum ODSWorkbookParser {
     static func parse(_ xml: Data, styles: Data? = nil, maximumTextBytes: Int = SpreadsheetLimits.maximumOutputBytes) throws -> SpreadsheetWorkbook {

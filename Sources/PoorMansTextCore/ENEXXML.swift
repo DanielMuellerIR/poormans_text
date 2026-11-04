@@ -1,4 +1,7 @@
 import Foundation
+#if os(Linux)
+import FoundationXML
+#endif
 
 enum ENEXXML {
     static func prepared(_ source: String, root: String) throws -> String {

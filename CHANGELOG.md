@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.41.8 — 2026-11-04
+
+- Build the shared Swift core and CLI on Linux without resolving the native Mac app or Sparkle dependencies.
+- Add Linux process isolation with PID namespaces and lifetime supervision, plus descriptor-bound output staging and atomic publication without overwriting existing results.
+- Validate static PNG assets locally on Linux; report the still missing PDF, OCR, legacy DOC and RTFD backends as unavailable. The native Mac converters retain their existing paths.
+- Add shared parser, source-preservation and output-safety regression tests for Linux and macOS.
+
 ## 0.41.7 — 2026-10-28
 
 - Preserve Japanese RTF characters whose second Shift-JIS byte is an escaped backslash or brace, matching the equivalent hexadecimal encoding without changing the source.

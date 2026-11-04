@@ -1,3 +1,4 @@
+#if os(macOS)
 import Foundation
 import PDFKit
 
@@ -92,3 +93,4 @@ enum PDFStructuredLayout {
         return Page(markdown: output.joined(separator: "\n\n"), ambiguous: ambiguous)
     }
 }
+#endif

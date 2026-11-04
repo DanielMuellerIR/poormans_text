@@ -1,4 +1,7 @@
 import Foundation
+#if os(Linux)
+import FoundationXML
+#endif
 
 /// Die im Dokument deklarierten Namensraum-Präfixe, solange sie gelten.
 ///

@@ -1,4 +1,8 @@
 <p align="center">
+
+## Linux development preview
+
+The shared Swift core now has a Linux CLI development build. This is not yet the full Linux app; PDF, OCR, legacy DOC and RTFD remain unavailable. See [Linux build and limits](docs/LINUX-BUILD.md).
   <img src="Assets/AppIcon.png" width="128" alt="Poor Man's Text app icon">
 </p>
 
@@ -117,7 +121,7 @@ Download the DMG and its `.sha256` file from the
 directory, verify the download before opening it:
 
 ```sh
-shasum -a 256 -c Poor-Mans-Text-0.41.7.dmg.sha256
+shasum -a 256 -c Poor-Mans-Text-0.41.8.dmg.sha256
 ```
 
 Open the DMG and drag Poor Man's Text to Applications. The app is signed with
@@ -664,7 +668,7 @@ and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compa
 their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current version is 0.41.7.
+The current version is 0.41.8.
 
 ## License
 

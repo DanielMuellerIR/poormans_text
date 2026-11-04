@@ -1,6 +1,10 @@
 import Foundation
 import Dispatch
+#if os(Linux)
+import Glibc
+#else
 import Darwin
+#endif
 import PoorMansTextCore
 
 private let cancellation = ConversionCancellationToken()
@@ -22,6 +26,14 @@ do {
     // Der wertbewusste Vorabscan legt den Ausgabemodus fest, bevor der Parser
     // an einem früheren Argument scheitern kann.
     parsedArguments.json = requestsJSONOutput(rawArguments)
+    #if os(Linux)
+    // CommandLine.arguments würde ungültige UTF-8-Bytes bereits ersetzen.
+    for index in 1..<Int(CommandLine.argc) {
+        guard let value = CommandLine.unsafeArgv[index], String(validatingCString: value) != nil else {
+            throw CLIArgumentError.invalidConversionOption("Paths and arguments must contain valid UTF-8 bytes.")
+        }
+    }
+    #endif
     try parseArguments(rawArguments, into: &parsedArguments)
 
     if parsedArguments.showHelp {

@@ -1,3 +1,4 @@
+#if os(macOS)
 import AppKit
 
 /// Gemeinsame Vorbereitung vor dem HTML-Export durch Cocoa.
@@ -38,3 +39,4 @@ enum RTFDInputPreparation {
     }
 
 }
+#endif

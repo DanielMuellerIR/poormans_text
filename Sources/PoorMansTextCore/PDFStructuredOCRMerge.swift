@@ -47,7 +47,7 @@ enum PDFStructuredOCRMerge {
         return rendered.joined(separator: "\n\n")
     }
 
-    static func supplementaryLines(_ recognized: VisionTextRecognition, original: [PDFTextLine], bounds: CGRect)
+    static func supplementaryLines(_ recognized: TextRecognition, original: [PDFTextLine], bounds: CGRect)
         throws -> (lines: [PDFTextLine], conflict: Bool) {
         try ConversionExecution.check()
         var lines: [PDFTextLine] = []

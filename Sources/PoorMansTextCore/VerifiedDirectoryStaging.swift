@@ -1,4 +1,9 @@
 import Foundation
+#if os(Linux)
+import Glibc
+#else
+import Darwin
+#endif
 
 /// Kopiert ein Verzeichnispaket ohne symbolische Verweise oder Sonderdateien in
 /// einen privaten Arbeitsbaum. Jeder Quellknoten wird relativ zum bereits
@@ -21,7 +26,7 @@ enum VerifiedDirectoryStaging {
         maximumEntries: Int,
         describedAs subject: String
     ) throws {
-        let sourceDescriptor = Darwin.open(
+        let sourceDescriptor = open(
             sourceURL.path,
             O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_NONBLOCK
         )
@@ -231,7 +236,7 @@ enum VerifiedDirectoryStaging {
             throw StagingError(reason: "\(subject) exceeds the supported size limit")
         }
 
-        let destination = Darwin.open(
+        let destination = open(
             destinationURL.path,
             O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW,
             0o600

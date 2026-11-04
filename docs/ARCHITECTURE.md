@@ -12,12 +12,22 @@ die Linux-Oberfläche kann in Rust über die lokale CLI angebunden werden.
 Es ist kein vollständiger Rust-Neubau des Kerns vorgesehen. Fastra bleibt ein
 eigenständiger Verbraucher des [CLI-Vertrags](FASTRA-CONTRACT.md).
 
-Diese Architekturentscheidung ist keine Produktfreigabe und beginnt P05 nicht.
-Die sicheren Linux-Prozesse und die Veröffentlichung werden zunächst als
-isolierte P03-Proben nachgewiesen. Target-Trennung, produktive Adapter,
-gemeinsame Regressionstests und Laufzeitpaketierung werden erst nach einem
-gesonderten P05-Auftrag integriert. Belege und Grenzen stehen im
-[Entscheidungsbericht](LINUX-DECISION.md).
+P05 integriert diese Entscheidung seit Version 0.41.8 als Linux-Entwicklungsbuild.
+SwiftPM löst auf Linux weder Sparkle noch die Mac-Oberfläche auf. FoundationXML,
+zlib und Swift Crypto tragen den gemeinsamen Parser-/Berichtspfad; Apple-Adapter
+bleiben auf macOS. Rasterassets werden auf Linux zunächst nur als statische
+PNGs mit libpng tatsächlich dekodiert. PDF, OCR, Legacy-DOC und RTFD melden
+fehlende Plattformbackends ausdrücklich.
+
+Der Linux-Prozessadapter verwendet Bubblewrap mit privatem PID-/Netz-Namespace,
+einem C-Guard als PID 1 und einem ausschließlich vom Runner gehaltenen
+Lebensdauerkanal. pidfds binden Wrapper und Namespace-Ende vor dem Cleanup.
+Explizite Schreibbereiche, Eingaben und Captures werden über gehaltene FDs
+gebunden. Der Publikationsadapter hält Zielverzeichnisse und verwendet
+renameat2(RENAME_NOREPLACE); ein ausgetauschter Elternpfad ergibt ESTALE und
+erhält das vollständige Ergebnis zur Wiederherstellung. macOS behält seine
+bisherigen Adapter. Build und Laufzeit stehen in [LINUX-BUILD.md](LINUX-BUILD.md),
+Produktprüfungen und Grenzen im [P05-Bericht](linux-port/P05-INTEGRATION.md).
 
 ## Heutige Modulgrenzen
 

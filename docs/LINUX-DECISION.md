@@ -1,5 +1,10 @@
 # Entscheidung nach P00–P04
 
+Historischer Entscheidungsstand vor dem Entwicklungsauftrag. Die anschließende
+Produktintegration ab 0.41.8 steht im
+[P05-Integrationsbericht](linux-port/P05-INTEGRATION.md); die untenstehenden
+Proben sind davon getrennt zu lesen.
+
 Stand: 2026-11-04. Basis: PMT `17328f17d63843025b33b45a87fa3d13db5e11d7`
 (Produkt 0.41.7), Fastra `55ca70579861954a21cfbd22d96e12059fec68db`
 (Produkt 1.157.1). Untersucht wurden isolierte Proben, keine produktive

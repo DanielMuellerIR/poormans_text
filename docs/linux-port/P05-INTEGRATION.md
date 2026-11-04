@@ -6,9 +6,10 @@ Fastra und der dort bearbeitete Consumerfehler gehören nicht zu diesem Block.
 
 **P05 ist als Entwicklungsbuild implementiert.** Der vollständige Kern baut auf
 Linux ohne Apple-Frameworks, Sparkle oder Ersatzparser. Echte Konvertierungen und
-die SDK-freie Laufzeit sind auf beiden Linux-Zielen geprüft. Die unten genannte
-Mac-OCR-Prüflücke verhindert eine uneingeschränkte Regressionsfreigabe. P06 ist
-nicht vollständig umgesetzt; seine Sicherheitsgrundlage ist bereits angebunden.
+die SDK-freie Laufzeit sind auf beiden Linux-Zielen geprüft. Die auch im
+Basisstand reproduzierte Mac-OCR-Blockade verhindert eine uneingeschränkte
+Regressionsfreigabe. P06 ist nicht vollständig umgesetzt; seine
+Sicherheitsgrundlage ist bereits angebunden.
 Eine öffentliche Linux-Version oder ein vollständiger Rust-Neubau ist damit
 nicht beauftragt oder geliefert.
 
@@ -92,16 +93,24 @@ Der vollständige Mac-Lauf blieb in
 stehen. Die Stackprobe zeigt wartende kooperative Tasks in `OCRAsyncBridge.run`.
 Die Brücke und der Testkörper sind gegenüber dem Basiscommit unverändert;
 `DocumentOCR.swift` erhielt ausschließlich die Mac-Plattformklammer.
-Der gesonderte Lauf ohne diesen Fall bestand. Ein ausgeführter Vergleich gegen
-den unveränderten Basisstand ist noch offen; deshalb wird keine vollständige
-Mac-Regressionsfreigabe oder bereits bewiesene Altfehlerzuordnung behauptet.
+Der gesonderte Lauf ohne diesen Fall bestand. Der anschließend ausgeführte
+Vergleich am unveränderten Basiscommit baute erfolgreich und blieb im selben
+einzeln gestarteten Test ebenfalls bis zur 90-Sekunden-Grenze stehen. Eine
+einsekündige Stackprobe zeigt auch dort den Test in `OCRAsyncBridge.run`.
+Damit ist die Blockade in der geprüften Mac-Umgebung bereits vor P05
+reproduziert; die genaue Ursache und ihre Korrektur sind weiterhin offen.
+Der begrenzte Vergleich ist keine bestandene Testausführung und keine
+vollständige Mac-Regressionsfreigabe. Der
+[kleine Ergebnisbeleg](p05-evidence/ocr-baseline.json) hält Compiler,
+Betriebssystem, Frist und Cleanup fest. Beide Teststände sowie alle eigenen
+temporären Mac-Kopien wurden nach der Prüfung entfernt.
 GUI, Universal-Bundle, Notarisierung und Installation wurden nicht geprüft.
 
 **Empfehlung:** P06 als nächsten begrenzten Produktblock bearbeiten: den
 CLI-/Formatvertrag systematisch auf beiden Linux-Zielen abnehmen, die produktive
 ext4-/ENOSPC-/Runnerverlust-Matrix wiederholen und dann die weiteren
-Pandoc-Formate samt Assets/Diagnosen freigeben. Die Mac-OCR-Prüflücke separat
-klären, bevor eine uneingeschränkte plattformübergreifende Freigabe erfolgt.
+Pandoc-Formate samt Assets/Diagnosen freigeben. Die bestehende Mac-OCR-Blockade
+separat beheben, bevor eine uneingeschränkte plattformübergreifende Freigabe erfolgt.
 P07–P16 bleiben eigenständige Arbeitspakete; PDF/OCR/DOC/RTFD sind weiterhin
 ausdrücklich offen. Temporäre Testinstallationen und Arbeitskopien werden nach
 Sicherung der kleinen Belege entfernt.

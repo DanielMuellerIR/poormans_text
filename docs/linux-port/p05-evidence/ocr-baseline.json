@@ -1,0 +1,24 @@
+{
+  "baseCommit": "c18b903ae9e80f6a1fdd7e483e4d8e1f4a148176",
+  "buildExit": 0,
+  "testLimitSeconds": 90,
+  "timedOut": true,
+  "testExit": -15,
+  "elapsedSeconds": 90.05,
+  "date": "2026-11-04",
+  "test": "StructuredOCRTests.testSynchronousBridgeRunsFromCooperativeTasksAndPropagatesContext",
+  "environment": {
+    "architecture": "arm64",
+    "macOS": "26.7.2",
+    "swift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx26.0"
+  },
+  "bridgeBodyUnchangedInP05": true,
+  "testFileUnchangedInP05": true,
+  "stackContainsOCRAsyncBridgeRun": true,
+  "stackContainsTestMethod": true,
+  "cleanup": {
+    "ownMacTestDirectoryRemoved": true,
+    "ownTestProcessesRemaining": false
+  },
+  "conclusion": "Existing stall reproduced in the unchanged baseline on the same Mac environment; bounded interruption, not a passed test. Root cause unresolved."
+}

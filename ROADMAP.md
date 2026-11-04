@@ -13,6 +13,15 @@ sowie EML, MSG, Apple Mail, MBOX, ENEX und PNG, JPEG, HEIC, TIFF, GIF, BMP und
 WebP sind implementiert. Ihre Importwege stehen in
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
+## Linux-Portierung
+
+Die Linux-App und CLI entstehen im bestehenden Repository. Zuerst wird die
+Wiederverwendung des Swift-Konvertierungskerns geprüft; eine Rust-Oberfläche
+nutzt denselben lokalen CLI-Vertrag wie Fastra. Entscheidungstests, Formatpakete
+und Abnahmekriterien stehen im [Linux-Umsetzungsplan](docs/LINUX-PORT.md), die
+App-Grenze im [Fastra-CLI-Vertrag](docs/FASTRA-CONTRACT.md).
+Die Umsetzung hat noch nicht begonnen.
+
 ## Offene Qualitätsprüfung
 
 ### Strukturierte lokale Dokumenterkennung

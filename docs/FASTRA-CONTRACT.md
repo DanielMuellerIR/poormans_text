@@ -1,9 +1,16 @@
 # CLI-Vertrag zwischen Poor Man's Text und Fastra
 
-Stand: 2026-11-04. Dokumentationsstand 1; **keine neue Protokollversion**.
+Stand: 2026-11-04. Dokumentationsstand 2; **keine neue Protokollversion**.
 Bestandsbasis: Poor Man's Text `919c575` (0.41.7), Fastra `6f59816` (1.157.1).
 Diese Datei dokumentiert den vorhandenen Vertrag und trennt geplante
 Linux-Abnahmen davon. Sie implementiert keine neue Schnittstelle.
+
+P00/P01 wurden gegen PMT `17328f17` und Fastra `55ca7057` untersucht.
+Die [Vertragsprüfung](linux-port/P01-CONTRACT.md) enthält reale Mac-Producer-
+Antworten und ausführbare Prüfungen des originalen Fastra-Verbrauchers. Dabei
+wurde ein falscher Öffnungspfad bei Sammlungen nachgewiesen; die vollständige
+App-zu-App-Abnahme bleibt offen. Der [Entscheidungsbericht](LINUX-DECISION.md)
+fasst P00–P04 zusammen. P05 wurde nicht begonnen.
 
 ## Zuständigkeit
 
@@ -70,6 +77,15 @@ verliert Inhalte. Bei Stapelaufrufen liefert die CLI `ok`, `version` und `result
 ein Fehler beendet nicht zwingend die Bearbeitung der weiteren Eingaben. Fastras
 bisheriger Importpfad startet eine einzelne Quelle.
 
+Historische Besonderheit: `assets` des Sammlungsergebnisses enthält auch dessen
+Markdown-Unterdokumente, nicht ausschließlich Bilder oder Anhänge. Der vorhandene
+Fastra-Verbraucher entscheidet anhand dieser Liste, ob er den ganzen Baum
+übernimmt. Producer dürfen diese Einträge nicht still entfernen. Bei der
+Übernahme muss der tatsächlich gemeldete relative Markdownpfad erhalten bleiben:
+Sammlungen verwenden `index.md`, nicht `<quellname>.md`. Der aktuelle Fastra-
+Service berechnet nach dem Verschieben den falschen Öffnungspfad; die Proben
+weisen den Fehler für MBOX und ENEX nach, während der Baum erhalten bleibt.
+
 Bei `--json` gehört die finale JSON-Antwort auf stdout, Fortschritt auf stderr.
 `--stdout` ist ein anderer Modus und nicht mit `--json` kombinierbar. Sammlungen
 werden im stdout-Modus vor der ersten Markdown-Ausgabe abgewiesen.
@@ -110,6 +126,10 @@ nicht alle diese Einheiten; P01 muss unbekannte Einheiten kontrolliert behandeln
 Fortschritt kann unvollständig sein; Ausbleiben einer Zeile bedeutet keinen
 Stillstand. Unbekannte stderr-Zeilen sind Diagnosetext, kein Erfolgssignal.
 Dateinamen können Trennzeichen enthalten: Parser-Fixtures müssen das abdecken.
+Die P01-Proben bestätigen Doppelpunkt und fragmentierte UTF-8-Übertragung.
+Unbekannte Einheiten und Zähler ohne Gesamtzahl werden von Fastra ignoriert;
+generische Phasen bleiben nutzbar. Ein LF im Dateinamen lässt sich im vorhandenen
+Zeilenprotokoll nicht zuverlässig darstellen. Das ändert nicht die JSON-Ausgabe.
 
 Abbruch wird über SIGINT/SIGTERM angefordert. Der Prozessrunner beendet externe
 Werkzeuge einschließlich ihrer Nachkommen und räumt seine temporären Daten auf.
@@ -153,6 +173,9 @@ Die Quelle wird nie ersetzt. Ergebnisdateien dürfen weder fremde Dateien
 einschleusen noch beim Aufräumen fremde Verzeichnisse löschen. Linux-Pfade mit
 ungültigem UTF-8 brauchen eine ausdrückliche Fehler-/Transportentscheidung in
 P01; keine stille Ersetzung von Bytes im JSON-Pfad.
+Die Entscheidung für den späteren Linux-Einstieg ist die kontrollierte Ablehnung
+solcher Pfade vor der Konvertierung. Diese Prüfung ist noch nicht implementiert;
+der isolierte P02-Harness ist keine freigegebene Linux-Produkt-CLI.
 
 ## Geplante Ergänzungen und Kompatibilitätsabnahme
 

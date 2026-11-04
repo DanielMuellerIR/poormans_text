@@ -1,0 +1,54 @@
+{
+  "assets": [],
+  "diagnosticGroups": [
+    {
+      "code": "sourceMap.unavailable",
+      "count": 1,
+      "kind": "information",
+      "locations": [],
+      "messages": [
+        "No verified source-to-text positions are available for this conversion."
+      ],
+      "omittedCount": 0
+    }
+  ],
+  "diagnostics": [
+    {
+      "code": "sourceMap.unavailable",
+      "kind": "information",
+      "message": "No verified source-to-text positions are available for this conversion."
+    }
+  ],
+  "documents": [
+    {
+      "assets": [],
+      "markdownFile": "/fixture/pmt-p01/out3/encoding.md",
+      "metadata": {},
+      "sourceIndex": 1,
+      "title": "encoding"
+    }
+  ],
+  "input": "/fixture/pmt-p01/encoding.rtf",
+  "markdownFile": "/fixture/pmt-p01/out3/encoding.md",
+  "metadata": {},
+  "ok": true,
+  "outputDirectory": "/fixture/pmt-p01/out3",
+  "outputFiles": [
+    {
+      "byteCount": 11,
+      "path": "encoding.md",
+      "sha256": "10ec729ec2f2cf0f53c742249d679281129f30966283f99ebee1f07b8d1d1d27"
+    }
+  ],
+  "reportFile": "/fixture/pmt-p01/out3/conversion-report.json",
+  "sourceIdentity": {
+    "byteCount": 43,
+    "name": "encoding.rtf",
+    "sha256": "8046e2f1f8f58f03fb19d7b4511704e6f980b7db049f1832e305f26ece0626db"
+  },
+  "sourceMappings": [],
+  "version": "0.41.7",
+  "warnings": [
+    "No verified source-to-text positions are available for this conversion."
+  ]
+}

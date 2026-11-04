@@ -1,0 +1,12 @@
+{
+  "ok": true,
+  "version": "0.41.7",
+  "futureField": {
+    "ignored": true
+  },
+  "markdownFile": "/synthetic-fixture/out/source.md",
+  "assets": [],
+  "warnings": [
+    "Verlustprobe"
+  ]
+}

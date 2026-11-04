@@ -1,0 +1,100 @@
+{
+  "assets": [],
+  "documents": [
+    {
+      "assets": [],
+      "markdownFile": "/fixture/pmt-p01/out0/table ä: probe.md",
+      "metadata": {},
+      "sourceIndex": 1,
+      "title": "table ä: probe"
+    }
+  ],
+  "input": "/fixture/pmt-p01/table ä: probe.csv",
+  "markdownFile": "/fixture/pmt-p01/out0/table ä: probe.md",
+  "metadata": {},
+  "ok": true,
+  "outputDirectory": "/fixture/pmt-p01/out0",
+  "outputFiles": [
+    {
+      "byteCount": 107,
+      "path": "table ä: probe.md",
+      "sha256": "6f20d643f08379a70fc069a0ea66983d0c05b830086967d0b212e8158b464393"
+    }
+  ],
+  "reportFile": "/fixture/pmt-p01/out0/conversion-report.json",
+  "sourceIdentity": {
+    "byteCount": 27,
+    "name": "table ä: probe.csv",
+    "sha256": "c38e58237e2ca16031372df159e7f81899eb5ad3e0be0e6011daf4faf79c349d"
+  },
+  "sourceMappings": [
+    {
+      "output": {
+        "file": "table ä: probe.md",
+        "utf8Length": 4,
+        "utf8Offset": 50
+      },
+      "source": {
+        "cell": "A1",
+        "sheet": "table ä: probe"
+      }
+    },
+    {
+      "output": {
+        "file": "table ä: probe.md",
+        "utf8Length": 5,
+        "utf8Offset": 57
+      },
+      "source": {
+        "cell": "B1",
+        "sheet": "table ä: probe"
+      }
+    },
+    {
+      "output": {
+        "file": "table ä: probe.md",
+        "utf8Length": 5,
+        "utf8Offset": 81
+      },
+      "source": {
+        "cell": "A2",
+        "sheet": "table ä: probe"
+      }
+    },
+    {
+      "output": {
+        "file": "table ä: probe.md",
+        "utf8Length": 1,
+        "utf8Offset": 89
+      },
+      "source": {
+        "cell": "B2",
+        "sheet": "table ä: probe"
+      }
+    },
+    {
+      "output": {
+        "file": "table ä: probe.md",
+        "utf8Length": 5,
+        "utf8Offset": 95
+      },
+      "source": {
+        "cell": "A3",
+        "sheet": "table ä: probe"
+      }
+    },
+    {
+      "output": {
+        "file": "table ä: probe.md",
+        "utf8Length": 1,
+        "utf8Offset": 103
+      },
+      "source": {
+        "cell": "B3",
+        "sheet": "table ä: probe"
+      }
+    }
+  ],
+  "version": "0.41.7",
+  "warnings": []
+}

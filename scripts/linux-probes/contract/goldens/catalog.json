@@ -1,0 +1,39 @@
+{
+  "ok": true,
+  "version": "0.41.7",
+  "futureField": {
+    "ignored": true
+  },
+  "formats": [
+    {
+      "format": "mbox",
+      "extensions": [
+        "mbox"
+      ],
+      "container": "file",
+      "containers": [
+        "file",
+        "package"
+      ],
+      "requires": [
+        "pandoc"
+      ],
+      "available": true,
+      "unavailableReason": null,
+      "futureField": 1
+    },
+    {
+      "format": "doc",
+      "extensions": [
+        "doc"
+      ],
+      "container": "file",
+      "requires": [
+        "pandoc",
+        "textutil"
+      ],
+      "available": false,
+      "unavailableReason": "missing required tool: textutil"
+    }
+  ]
+}

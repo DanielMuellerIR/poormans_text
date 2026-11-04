@@ -1,0 +1,26 @@
+{
+  "ok": true,
+  "version": "0.41.7",
+  "futureField": {
+    "ignored": true
+  },
+  "markdownFile": "/synthetic-fixture/out/source.md",
+  "assets": [],
+  "warnings": [],
+  "documents": [
+    {
+      "sourceIndex": 1,
+      "title": "one",
+      "markdownFile": "/synthetic-fixture/out/documents/one.md",
+      "assets": [],
+      "metadata": {}
+    },
+    {
+      "sourceIndex": 2,
+      "title": "two",
+      "markdownFile": "/synthetic-fixture/out/documents/two.md",
+      "assets": [],
+      "metadata": {}
+    }
+  ]
+}

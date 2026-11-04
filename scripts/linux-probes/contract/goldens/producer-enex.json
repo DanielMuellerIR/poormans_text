@@ -1,0 +1,120 @@
+{
+  "assets": [
+    "/fixture/pmt-p01/out6/assets/documents/000001/notes.md",
+    "/fixture/pmt-p01/out6/assets/documents/000002/notes.md"
+  ],
+  "diagnosticGroups": [
+    {
+      "code": "html.structureSimplified",
+      "count": 2,
+      "kind": "approximation",
+      "locations": [
+        {
+          "note": "1"
+        },
+        {
+          "note": "2"
+        }
+      ],
+      "messages": [
+        "Scripts, styles, forms, and the page layout are not represented in the Markdown."
+      ],
+      "omittedCount": 0
+    }
+  ],
+  "diagnostics": [
+    {
+      "code": "html.structureSimplified",
+      "kind": "approximation",
+      "location": {
+        "note": "1"
+      },
+      "message": "Scripts, styles, forms, and the page layout are not represented in the Markdown."
+    },
+    {
+      "code": "html.structureSimplified",
+      "kind": "approximation",
+      "location": {
+        "note": "2"
+      },
+      "message": "Scripts, styles, forms, and the page layout are not represented in the Markdown."
+    }
+  ],
+  "documents": [
+    {
+      "assets": [],
+      "markdownFile": "/fixture/pmt-p01/out6/assets/documents/000001/notes.md",
+      "metadata": {
+        "title": "One"
+      },
+      "sourceIndex": 1,
+      "title": "One"
+    },
+    {
+      "assets": [],
+      "markdownFile": "/fixture/pmt-p01/out6/assets/documents/000002/notes.md",
+      "metadata": {
+        "title": "Two"
+      },
+      "sourceIndex": 2,
+      "title": "Two"
+    }
+  ],
+  "input": "/fixture/pmt-p01/notes.enex",
+  "markdownFile": "/fixture/pmt-p01/out6/index.md",
+  "metadata": {
+    "title": "notes"
+  },
+  "ok": true,
+  "outputDirectory": "/fixture/pmt-p01/out6",
+  "outputFiles": [
+    {
+      "byteCount": 18,
+      "path": "assets/documents/000001/notes.md",
+      "sha256": "669cd590e82eea365e4ad9b3762083225835600fbc3692c795330ce39cddebe5"
+    },
+    {
+      "byteCount": 17,
+      "path": "assets/documents/000002/notes.md",
+      "sha256": "5afd42a747aaf6a079764c148154dc866be9430539bff28cc71a4778757fb054"
+    },
+    {
+      "byteCount": 95,
+      "path": "index.md",
+      "sha256": "1c827fe2386e815d811b75246d659b1b9eda22e8f7c225ca029de62c8f7146ed"
+    }
+  ],
+  "reportFile": "/fixture/pmt-p01/out6/conversion-report.json",
+  "sourceIdentity": {
+    "byteCount": 397,
+    "name": "notes.enex",
+    "sha256": "e182becf1fa24d92a90bd1186de3c085ccbd1c064ff942ae950dc13b6a9f46d3"
+  },
+  "sourceMappings": [
+    {
+      "output": {
+        "file": "assets/documents/000001/notes.md",
+        "utf8Length": 18,
+        "utf8Offset": 0
+      },
+      "source": {
+        "note": "1"
+      }
+    },
+    {
+      "output": {
+        "file": "assets/documents/000002/notes.md",
+        "utf8Length": 17,
+        "utf8Offset": 0
+      },
+      "source": {
+        "note": "2"
+      }
+    }
+  ],
+  "version": "0.41.7",
+  "warnings": [
+    "Note 1: Scripts, styles, forms, and the page layout are not represented in the Markdown.",
+    "Note 2: Scripts, styles, forms, and the page layout are not represented in the Markdown."
+  ]
+}

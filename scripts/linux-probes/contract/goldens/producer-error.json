@@ -1,0 +1,5 @@
+{
+  "error": "Pandoc was not found. Install Pandoc or pass --pandoc PATH.",
+  "ok": false,
+  "version": "0.41.7"
+}

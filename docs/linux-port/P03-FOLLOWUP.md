@@ -2,6 +2,9 @@
 
 Dieser Bericht beschreibt die isolierten Proben vor dem P05-Auftrag.
 Die anschließende Produktintegration steht im [P05-Bericht](P05-INTEGRATION.md).
+Der spätere [P06-Produktnachweis](P06-INTEGRATION.md) prüft ENOSPC zusätzlich
+mit synchronen kleinen Schreibzugriffen bis zu null verfügbaren Blöcken;
+ein gescheiterter großer Write allein ließ im Produktversuch noch Restplatz.
 
 Stand: 2026-11-04. Ausgangsstand `5293eb6`; Produktquellen unverändert.
 **Die beauftragten P03-Entscheidungsproben sind bestanden. Die Integration und

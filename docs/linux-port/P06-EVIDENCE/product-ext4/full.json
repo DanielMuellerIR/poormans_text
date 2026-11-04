@@ -1,0 +1,12 @@
+{
+  "phase": "full",
+  "nonRootUID": 65534,
+  "passed": true,
+  "sourceUnchanged": true,
+  "existingOutputUnchanged": true,
+  "availableBlocks": 0,
+  "enospcObserved": true,
+  "noNewOutput": true,
+  "noStagingLeft": true,
+  "failureExit": 74
+}

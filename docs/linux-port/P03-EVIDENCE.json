@@ -1,0 +1,65 @@
+{
+  "btrfs": {
+    "probe": "P03-kernel-primitives",
+    "results": {
+      "held_source_after_path_exchange": true,
+      "symlink_rejected": true,
+      "fifo_rejected": true,
+      "atomic_collision_64_contenders": true,
+      "destination_symlink_preserved": true,
+      "permission_denied": true,
+      "enospc_device": true,
+      "original_preserved": true,
+      "cross_device_fails_closed": true,
+      "timeout_owns_group": true,
+      "timeout_descendants_reaped": true,
+      "cancel_owns_group": true,
+      "cancel_descendants_reaped": true,
+      "literal_arguments": true
+    },
+    "limits": [
+      "Kein Produktadapter",
+      "Kein Stromausfalltest",
+      "ENOSPC nur /dev/full",
+      "Kein Schutz vor setsid-Flucht oder Supervisorverlust belegt",
+      "Kein ext4-/Netzlaufwerksnachweis ohne gesonderten Lauf"
+    ]
+  },
+  "tmpfs": {
+    "probe": "P03-kernel-primitives",
+    "results": {
+      "held_source_after_path_exchange": true,
+      "symlink_rejected": true,
+      "fifo_rejected": true,
+      "atomic_collision_64_contenders": true,
+      "destination_symlink_preserved": true,
+      "permission_denied": true,
+      "enospc_device": true,
+      "original_preserved": true,
+      "timeout_owns_group": true,
+      "timeout_descendants_reaped": true,
+      "cancel_owns_group": true,
+      "cancel_descendants_reaped": true,
+      "literal_arguments": true
+    },
+    "limits": [
+      "Kein Produktadapter",
+      "Kein Stromausfalltest",
+      "ENOSPC nur /dev/full",
+      "Kein Schutz vor setsid-Flucht oder Supervisorverlust belegt",
+      "Kein ext4-/Netzlaufwerksnachweis ohne gesonderten Lauf"
+    ]
+  },
+  "foundation": {
+    "argv": true,
+    "cancel": true,
+    "captureCleanup": true,
+    "outputLimit": true,
+    "timeout": true
+  },
+  "parentLossNegative": {
+    "runnerKilled": true,
+    "toolStillRunning": true,
+    "expectedSafetyGapReproduced": true
+  }
+}

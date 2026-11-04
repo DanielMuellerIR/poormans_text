@@ -1,0 +1,13 @@
+OUTPUT=/tmp/pmt-p02/runtime-output.lSQmD1
+OK csv assets=0 markdown=/tmp/pmt-p02/runtime-output.lSQmD1/table.csv/table.md
+OK xlsx assets=0 markdown=/tmp/pmt-p02/runtime-output.lSQmD1/table.xlsx/table.md
+OK ipynb assets=0 markdown=/tmp/pmt-p02/runtime-output.lSQmD1/notebook.ipynb/notebook.md
+OK docx assets=1 markdown=/tmp/pmt-p02/runtime-output.lSQmD1/picture.docx/picture.md
+OK rtf assets=0 markdown=/tmp/pmt-p02/runtime-output.lSQmD1/encoding.rtf/encoding.md
+{
+  "wallSeconds": 0.22020483600135776,
+  "childUserSeconds": 0.119028,
+  "childSystemSeconds": 0.068899,
+  "maximumChildRSSKiB": 39988,
+  "exitStatus": 0
+}

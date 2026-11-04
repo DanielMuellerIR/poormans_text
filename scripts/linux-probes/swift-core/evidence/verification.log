@@ -1,0 +1,6 @@
+table.csv: text counts, source hash PASS
+table.xlsx: text counts, source hash PASS
+notebook.ipynb: text counts, source hash PASS
+picture.docx: text counts, source hash, image bytes PASS
+encoding.rtf: text counts, source hash PASS
+Sources unchanged PASS

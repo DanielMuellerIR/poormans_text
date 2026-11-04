@@ -1,0 +1,12 @@
+OUTPUT=[probe]/runtime-output.oAO4Co
+OK csv assets=0 markdown=[probe]/runtime-output.oAO4Co/table.csv/table.md
+OK xlsx assets=0 markdown=[probe]/runtime-output.oAO4Co/table.xlsx/table.md
+OK ipynb assets=0 markdown=[probe]/runtime-output.oAO4Co/notebook.ipynb/notebook.md
+OK docx assets=1 markdown=[probe]/runtime-output.oAO4Co/picture.docx/picture.md
+OK rtf assets=0 markdown=[probe]/runtime-output.oAO4Co/encoding.rtf/encoding.md
+table.csv: OK
+table.xlsx: OK
+notebook.ipynb: OK
+picture.docx: OK
+encoding.rtf: OK
+fixture.png: OK

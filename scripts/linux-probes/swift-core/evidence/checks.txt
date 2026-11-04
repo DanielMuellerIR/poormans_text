@@ -1,0 +1,2 @@
+Fehler/Abbruch: kein publiziertes Ergebnis (outputs/invalid und outputs/cancelled fehlen).
+Generator: alle erzeugten aktiven Core-Swift-Dateien byteidentisch mit getesteter Probe.

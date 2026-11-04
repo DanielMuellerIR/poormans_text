@@ -1,0 +1,211 @@
+--- a/Sources/PoorMansTextCore/ConversionProfileStore.swift
++++ b/Sources/PoorMansTextCore/ConversionProfileStore.swift
+@@ -2 +2 @@
+-import Darwin
++import Glibc
+@@ -49 +49 @@
+-            let count = Darwin.read(fd, &buffer, buffer.count)
++            let count = Glibc.read(fd, &buffer, buffer.count)
+--- a/Sources/PoorMansTextCore/ConversionReport.swift
++++ b/Sources/PoorMansTextCore/ConversionReport.swift
+@@ -2 +2 @@
+-import CryptoKit
++import Crypto
+@@ -15,8 +15 @@
+-        if let memberPath {
+-            guard memberPath == "mbox" else { return false }
+-            return try MBOXSource.withMailbox(at: url) { file, package in
+-                guard package else { return false }
+-                let actual = try ConversionFileFingerprint.read(file)
+-                return actual.sha256 == sha256 && actual.byteCount == byteCount
+-            }
+-        }
++        if memberPath != nil { throw P02Unavailable() }
+--- a/Sources/PoorMansTextCore/DOCXReviewPreserver.swift
++++ b/Sources/PoorMansTextCore/DOCXReviewPreserver.swift
+@@ -1,0 +2 @@
++import FoundationXML
+--- a/Sources/PoorMansTextCore/DocumentConverter.swift
++++ b/Sources/PoorMansTextCore/DocumentConverter.swift
+@@ -11 +10,0 @@
+-            LegacyWordAdapter(),
+@@ -13,4 +11,0 @@
+-            OpenDocumentMasterAdapter(),
+-            ImageAdapter(),
+-            PDFAdapter(),
+-            PresentationAdapter(),
+@@ -19,5 +13,0 @@
+-            PandocTextAdapter(),
+-            MailAdapter(),
+-            MBOXAdapter(),
+-            ENEXAdapter(),
+-            MSGAdapter(),
+@@ -116,15 +105,0 @@
+-    public func inspectPDFContents(
+-        _ inputURL: URL,
+-        maximumPages: Int = 200,
+-        cancellation: ConversionCancellationToken? = nil,
+-        processTimeout: TimeInterval? = nil
+-    ) throws -> PDFContentSummary {
+-        try withDetectionContext(cancellation, processTimeout) {
+-            do { return try PDFAdapter().inspectContents(at: inputURL.standardizedFileURL, maximumPages: maximumPages) }
+-            catch {
+-                try ConversionExecution.check()
+-                throw ConversionError.invalidInput(inputURL, format: .pdf, reason: error.localizedDescription)
+-            }
+-        }
+-    }
+-
+@@ -143,18 +117,0 @@
+-            catch {
+-                try ConversionExecution.check()
+-                throw ConversionError.invalidInput(inputURL, format: format, reason: error.localizedDescription)
+-            }
+-        }
+-    }
+-
+-    public func inspectPresentationContents(
+-        _ inputURL: URL,
+-        maximumSlides: Int = 200,
+-        cancellation: ConversionCancellationToken? = nil,
+-        processTimeout: TimeInterval? = nil
+-    ) throws -> PresentationContentSummary {
+-        try withDetectionContext(cancellation, processTimeout) {
+-            let detected = try detectInput(at: inputURL.standardizedFileURL)
+-            let format = detected.inspection.format
+-            guard [InputFormat.pptx, .odp].contains(format) else { throw ConversionError.unsupportedInput(inputURL) }
+-            do { return try PresentationAdapter().inspectContents(at: inputURL.standardizedFileURL, maximumSlides: maximumSlides) }
+@@ -238 +195 @@
+-        options.ocrLanguages = try OCRLanguageSelection.resolve(options.ocrLanguages)
++        // OCR ist außerhalb der P02-Probe.
+--- a/Sources/PoorMansTextCore/DocumentMetadata.swift
++++ b/Sources/PoorMansTextCore/DocumentMetadata.swift
+@@ -1,0 +2 @@
++import FoundationXML
+--- a/Sources/PoorMansTextCore/EPUBSelection.swift
++++ b/Sources/PoorMansTextCore/EPUBSelection.swift
+@@ -1,0 +2 @@
++import FoundationXML
+--- a/Sources/PoorMansTextCore/ImportXML.swift
++++ b/Sources/PoorMansTextCore/ImportXML.swift
+@@ -1,0 +2 @@
++import FoundationXML
+--- a/Sources/PoorMansTextCore/ImportXMLParser.swift
++++ b/Sources/PoorMansTextCore/ImportXMLParser.swift
+@@ -1,0 +2 @@
++import FoundationXML
+--- a/Sources/PoorMansTextCore/NamespacePrefixTracker.swift
++++ b/Sources/PoorMansTextCore/NamespacePrefixTracker.swift
+@@ -1,0 +2 @@
++import FoundationXML
+--- a/Sources/PoorMansTextCore/ODMContentParser.swift
++++ b/Sources/PoorMansTextCore/ODMContentParser.swift
+@@ -1,0 +2 @@
++import FoundationXML
+--- a/Sources/PoorMansTextCore/ODSNumberStyles.swift
++++ b/Sources/PoorMansTextCore/ODSNumberStyles.swift
+@@ -1,0 +2 @@
++import FoundationXML
+--- a/Sources/PoorMansTextCore/ODSWorkbookParser.swift
++++ b/Sources/PoorMansTextCore/ODSWorkbookParser.swift
+@@ -1,0 +2 @@
++import FoundationXML
+--- /dev/null
++++ b/Sources/PoorMansTextCore/P02Stubs.swift
+@@ -0,0 +1,32 @@
++import Foundation
++struct P02Unavailable: Error {}
++enum ColoredTextMarker {
++ static func containsChromaticText(inRTF inputURL: URL) -> Bool { false }
++}
++enum RTFDInputPreparation {
++ static func prepare(from inputURL: URL, outputURL: URL) throws -> URL { throw P02Unavailable() }
++}
++enum LegacyWordAdapter { static let textutilPath = "/P02-unavailable/textutil" }
++extension DocumentConverter {
++ public func inspectPDFContents(_ url: URL, maximumPages: Int = 200) throws -> PDFContentSummary { throw P02Unavailable() }
++ public func inspectPresentationContents(_ url: URL, maximumSlides: Int = 200) throws -> PresentationContentSummary { throw P02Unavailable() }
++}
++
++enum ImportPackagePath {
++    static func resolve(_ target: String, relativeTo part: String) throws -> String {
++        guard let decoded = target.removingPercentEncoding, !decoded.isEmpty,
++              !decoded.hasPrefix("/"), !decoded.contains("\\"), !decoded.contains(":"),
++              !decoded.contains("?"), !decoded.contains("#"), !decoded.unicodeScalars.contains(where: { $0.value < 32 }) else { throw ImportFailure("unsafe or external package reference: \(target)") }
++        var components = part.split(separator: "/").dropLast().map(String.init)
++        for component in decoded.split(separator: "/") {
++            if component == "." { continue }
++            if component == ".." { guard !components.isEmpty else { throw ImportFailure("package reference escapes the archive") }; components.removeLast() }
++            else { components.append(String(component)) }
++        }
++        guard !components.isEmpty else { throw ImportFailure("empty package reference") }
++        return components.joined(separator: "/")
++    }
++}
++
++enum OCRLanguageSelection { static func resolve(_ languages: [String]) throws -> [String] { languages } }
++func autoreleasepool<T>(invoking body: () throws -> T) rethrows -> T { try body() }
+--- a/Sources/PoorMansTextCore/PresentationDocument.swift
++++ b/Sources/PoorMansTextCore/PresentationDocument.swift
+@@ -2,3 +2 @@
+-import CryptoKit
+-import ImageIO
+-import UniformTypeIdentifiers
++import Crypto
+@@ -95 +93,2 @@
+-        guard let source = CGImageSourceCreateWithData(data as CFData, [kCGImageSourceShouldCache: false] as CFDictionary),
++        throw ImportFailure("image decoder excluded from P02 notebook probe")
++        /*        guard let source = CGImageSourceCreateWithData(data as CFData, [kCGImageSourceShouldCache: false] as CFDictionary),
+@@ -105,0 +105 @@
++*/
+@@ -109 +109 @@
+-        let path = "images/image\(paths.count + 1).\(ext)"
++        let path = "images/image\(paths.count + 1).png"
+--- a/Sources/PoorMansTextCore/ProcessRunner.swift
++++ b/Sources/PoorMansTextCore/ProcessRunner.swift
+@@ -2 +2 @@
+-import Darwin
++import Glibc
+--- a/Sources/PoorMansTextCore/VerifiedDirectoryStaging.swift
++++ b/Sources/PoorMansTextCore/VerifiedDirectoryStaging.swift
+@@ -24 +24 @@
+-        let sourceDescriptor = Darwin.open(
++        let sourceDescriptor = Glibc.open(
+@@ -234 +234 @@
+-        let destination = Darwin.open(
++        let destination = Glibc.open(
+--- a/Sources/PoorMansTextCore/VerifiedFile.swift
++++ b/Sources/PoorMansTextCore/VerifiedFile.swift
+@@ -2 +2 @@
+-import CryptoKit
++import Crypto
+@@ -106 +106 @@
+-        let descriptor = Darwin.open(url.path, flags)
++        let descriptor = Glibc.open(url.path, flags)
+--- a/Sources/PoorMansTextCore/VerifiedFileStaging.swift
++++ b/Sources/PoorMansTextCore/VerifiedFileStaging.swift
+@@ -253 +253 @@
+-            return try body(file, file.info.st_size)
++            return try body(file, Int64(file.info.st_size))
+--- a/Sources/PoorMansTextCore/WordProcessingPackageInspector.swift
++++ b/Sources/PoorMansTextCore/WordProcessingPackageInspector.swift
+@@ -1,0 +2 @@
++import FoundationXML
+--- a/Sources/PoorMansTextCore/XLSXNumberStyles.swift
++++ b/Sources/PoorMansTextCore/XLSXNumberStyles.swift
+@@ -1,0 +2 @@
++import FoundationXML
+--- a/Sources/PoorMansTextCore/XLSXWorkbookParser.swift
++++ b/Sources/PoorMansTextCore/XLSXWorkbookParser.swift
+@@ -1,0 +2 @@
++import FoundationXML
+--- a/Sources/PoorMansTextCore/ZIPArchiveInspector.swift
++++ b/Sources/PoorMansTextCore/ZIPArchiveInspector.swift
+@@ -993,5 +993,2 @@
+-        var fileSystem = statfs()
+-        guard fstatfs(descriptor, &fileSystem) == 0 else {
+-            return false
+-        }
+-        return fileSystem.f_flags & UInt32(MNT_LOCAL) != 0
++        return false // P02: mmap-Fallback deaktiviert; Linux-Mountprüfung ist P03.
++

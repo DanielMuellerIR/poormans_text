@@ -1,0 +1,6 @@
+OUTPUT=/tmp/pmt-p02.vY01vU/runtime-output.HBf1ej
+OK csv assets=0 markdown=/tmp/pmt-p02.vY01vU/runtime-output.HBf1ej/table.csv/table.md
+OK xlsx assets=0 markdown=/tmp/pmt-p02.vY01vU/runtime-output.HBf1ej/table.xlsx/table.md
+OK ipynb assets=0 markdown=/tmp/pmt-p02.vY01vU/runtime-output.HBf1ej/notebook.ipynb/notebook.md
+OK docx assets=1 markdown=/tmp/pmt-p02.vY01vU/runtime-output.HBf1ej/picture.docx/picture.md
+OK rtf assets=0 markdown=/tmp/pmt-p02.vY01vU/runtime-output.HBf1ej/encoding.rtf/encoding.md

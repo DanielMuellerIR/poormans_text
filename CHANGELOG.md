@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## 0.41.17 — 2026-11-05
 
+- Add explicit Linux build, release, signing, verification and native-install entry points, ZIP packages and opt-in OpenPGP signatures without changing macOS distribution.
+
 - Add opt-in Linux structured OCR through a pinned offline Docling/TableFormer runtime and the shared Swift renderer, preserving original assets and source resolution.
 - Provide a safe local runtime installer with bound directories, complete hash verification and atomic publication without overwriting; fix stale directory enumeration observed on Btrfs.
 - Keep optional models and retained GUI build copies out of base packages.

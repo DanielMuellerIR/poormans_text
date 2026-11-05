@@ -11,13 +11,17 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import zipfile
+import time
+from linux_release_signing import sign_file, fingerprint
 
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('--format', choices=['deb', 'arch', 'tar', 'all'], default='all')
+parser.add_argument('--format', choices=['deb', 'arch', 'tar', 'zip', 'all'], default='all')
 parser.add_argument('--configuration', choices=['debug', 'release'], default='release')
 parser.add_argument('--no-build', action='store_true')
 parser.add_argument('--with-gui', action='store_true', help='Include the GTK interface built on the Ubuntu baseline.')
 parser.add_argument('--output-directory', type=Path)
+parser.add_argument('--sign-key', type=fingerprint, help='Explicit full GPG fingerprint; create detached .sig files.')
 args = parser.parse_args()
 arch_gui_dependencies = 'depend = gtk4>=4.12\ndepend = dconf' if args.with_gui else ''
 repo = Path(__file__).resolve().parent.parent
@@ -91,12 +95,13 @@ try:
 except BaseException:
     os.close(parent)
     raise
-formats = ['deb', 'arch', 'tar'] if args.format == 'all' else [args.format]
+formats = ['deb', 'arch', 'tar', 'zip'] if args.format == 'all' else [args.format]
 epoch = int(os.environ.get('SOURCE_DATE_EPOCH', subprocess.check_output(
     ['git', '-C', str(repo), 'show', '-s', '--format=%ct', 'HEAD'], text=True).strip()))
 names = {'deb': f'poormans-text_{version}~linuxpreview1_amd64.deb',
          'arch': f'poormans-text-{version}-1-x86_64.pkg.tar.zst',
-         'tar': f'poormans-text-{version}-linux-x86_64.tar.zst'}
+         'tar': f'poormans-text-{version}-linux-x86_64.tar.zst',
+         'zip': f'poormans-text-{version}-linux-x86_64.zip'}
 
 
 def require_unchanged_parent():
@@ -128,7 +133,7 @@ def publish(source, name):
 
 try:
     for kind in formats:
-        for name in [names[kind], names[kind] + '.sha256']:
+        for name in [names[kind], names[kind] + '.sha256', *([names[kind] + '.sig'] if args.sign_key else [])]:
             try:
                 os.stat(name, dir_fd=parent, follow_symlinks=False)
             except FileNotFoundError:
@@ -206,6 +211,21 @@ Description: Local document conversion with a shared Swift core (Linux preview)
                 (control / 'control').chmod(0o644)
                 subprocess.run(['dpkg-deb', '--root-owner-group', '--threads-max=2', '-Zzstd', '-z5',
                                 '--build', str(stage), str(package)], check=True, pass_fds=(parent,))
+            elif kind == 'zip':
+                timestamp = time.gmtime(max(315532800, min(epoch, 4354819198)))[:6]
+                with zipfile.ZipFile(package, 'x', compression=zipfile.ZIP_DEFLATED, compresslevel=6) as archive:
+                    for path in sorted(stage.rglob('*')):
+                        is_directory = path.is_dir()
+                        info = zipfile.ZipInfo(str(path.relative_to(stage)) + ('/' if is_directory else ''), timestamp)
+                        info.create_system = 3
+                        info.external_attr = ((0o040000 if is_directory else 0o100000) | (path.stat().st_mode & 0o777)) << 16
+                        if is_directory:
+                            info.external_attr |= 0x10
+                            archive.writestr(info, b'')
+                            continue
+                        info.compress_type = zipfile.ZIP_DEFLATED
+                        with path.open('rb') as source, archive.open(info, 'w') as target:
+                            shutil.copyfileobj(source, target)
             else:
                 if kind == 'arch':
                     (stage / '.PKGINFO').write_text(f'''pkgname = poormans-text
@@ -243,8 +263,11 @@ optdepend = ffmpeg: optional runtime for distro libheif plugins
             checksum = work / (names[kind] + '.sha256')
             checksum.write_text(digest + '  ' + names[kind] + '\n')
             checksum.chmod(0o644)
+            signature = sign_file(package, args.sign_key) if args.sign_key else None
             publish(package, names[kind])
             publish(checksum, names[kind] + '.sha256')
+            if signature:
+                publish(signature, names[kind] + '.sig')
 finally:
     os.close(parent)
     os.close(build_lock)

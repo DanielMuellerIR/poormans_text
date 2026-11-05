@@ -5,7 +5,7 @@ P05 stellt Build und Plattformgrenzen her; dies ist noch keine vollständige
 Linux-App oder Distributionsfreigabe. PDF, Standard-OCR und Bilder verwenden
 explizite lokale Backends; RTFD unterstützt zunächst geprüfte lokale statische
 PNG-, JPEG-, TIFF-, GIF-, BMP-, WebP- und optionale HEIC-Anhänge. Mehrframes
-werden abgewiesen; TIFF/HEIC bleiben Originaldateien mit Viewer-Kompatibilitätshinweis. Legacy-DOC verwendet optional LibreOffice mit expliziten sicheren UNO-Ladeparametern. HEIC verwendet optional den lokalen libheif-HEVC-Decoder; strukturierte OCR bleibt nicht verfügbar.
+werden abgewiesen; TIFF/HEIC bleiben Originaldateien mit Viewer-Kompatibilitätshinweis. Legacy-DOC verwendet optional LibreOffice mit expliziten sicheren UNO-Ladeparametern. HEIC verwendet optional den lokalen libheif-HEVC-Decoder. Strukturierte OCR ist mit einer ausdrücklich bereitgestellten, gepinnten Offline-Modelllaufzeit optional verfügbar; bekannte Qualitätsgrenzen bleiben unten dokumentiert.
 Die vorhandene Mac-App bleibt nativ.
 
 ## Lokal bauen
@@ -60,9 +60,9 @@ vergleichen; Anpassen und 25–400 % manueller Zoom verwenden dieselben begrenzt
 Vorschaupixel ohne neue Konvertierung. Clipboardoriginale liegen bis 64 MiB in versiegelten memfds; die
 gebundene private Quelle ist für Konvertierung, Profile und Vergleich dieselbe.
 Der gesamte private /dev-Baum ist für die äußere CLI schreibgeschützt.
-Die Vorschau führt weder HTML noch Links aus. Allgemeine GUI-Einstellungen
-werden noch nicht automatisch gespeichert; Profile können bewusst gespeichert
-werden. Dies ist eine Entwicklungsvorschau, keine vollständige Desktopabnahme.
+Die Vorschau führt weder HTML noch Links aus. Allgemeine GUI-Einstellungen und Fensterzustand werden über das mitgelieferte
+GSettings-Schema gespeichert; Dokumentpfade und dokumentbezogene Auswahlen bleiben
+auf die Sitzung begrenzt. Profile können bewusst gespeichert werden. Dies ist eine Entwicklungsvorschau, keine vollständige Desktopabnahme.
 
 Für den nativen Bau sind Rust ab 1.92, GTK 4 ab 4.12 und dessen
 Entwicklungsbibliotheken nötig. Der qualifizierte Ubuntu-24.04-Bau verwendet
@@ -94,9 +94,89 @@ samt Hashindex sowie die Hinweise der tatsächlich verwendeten Rust-Toolchain.
 GTK und seine GNOME-Systembibliotheken bleiben separat lizenzierte Abhängigkeiten.
 
 GUI-Pakete ergänzen `poormans-text-app` und eine `.desktop`-Datei; sie setzen
-keine Dateityp-Standardzuordnungen. Ohne `--with-gui` bleiben CLI-Pakete unabhängig
-von GTK installierbar. `./install.sh` installiert unter Linux bewusst nichts;
-die erzeugten nativen Pakete sind ausdrücklich mit dem Paketmanager zu verwalten.
+keine Dateityp-Standardzuordnungen. Mit `--cli-only` bleiben die neuen Linux-Wrapper unabhängig von GTK nutzbar.
+`./install.sh` delegiert unter Linux an den unten beschriebenen nativen Installer.
+
+## Build-, Paket- und Signaturskripte
+
+Die expliziten Linux-Einstiege bauen standardmäßig CLI und GTK-Oberfläche:
+
+| Skript | Wirkung |
+| --- | --- |
+| `./build-linux.sh [debug|release]` | Nur lokale Laufzeit bauen; keine Installation. |
+| `./release-linux.sh` | Bauen und DEB, Arch-Paket, Tar-Zstandard und ZIP erzeugen. |
+| `./sign-linux.sh DATEI --key FINGERPRINT` | Vorhandenes Artefakt mit einer separaten OpenPGP-Signatur `.sig` versehen. |
+| `./verify-linux-release.sh DATEI --keyring SCHLÜSSELRING --fingerprint FINGERPRINT` | Signatur gegen einen expliziten öffentlichen Schlüssel und vollständigen Fingerprint prüfen. |
+| `./install-linux.sh` | Ein natives Paket bauen und über apt beziehungsweise pacman installieren. |
+
+`build-linux.sh`, `release-linux.sh` und `install-linux.sh` akzeptieren `--cli-only`.
+Die älteren Linux-Einstiege `build.sh` und `release.sh` behalten ihren CLI-Standard;
+dort aktiviert `--with-gui` die Oberfläche. Die macOS-Abläufe bleiben unverändert.
+DMG und Apple-Notarisierung gehören ausschließlich zu macOS. Unter Linux dienen
+ZIP und Tar als portable Archive; DEB und `.pkg.tar.zst` sind native Pakete.
+
+```sh
+PMT_LINUX_BUILD_IMAGE=pmt-linux-builder PMT_LINUX_GUI_BUILD_IMAGE=pmt-linux-gui-builder ./build-linux.sh release
+# Vorhandene qualifizierte Laufzeit paketieren, ohne erneut zu bauen:
+./release-linux.sh --no-build --format all --output-directory .build/meine-linux-pakete
+# Alternativ einzelne Formate: deb, arch, tar oder zip.
+```
+
+Jedes Paket erhält eine SHA-256-Datei. Vorhandene Ausgaben werden nicht
+überschrieben; bei Kollision ist ein neues Ausgabeverzeichnis zu wählen.
+Optionale Modelllaufzeiten werden separat bereitgestellt und bleiben außerhalb
+der Basispakete. Portable Archive mit `tar --zstd -xf DATEI` beziehungsweise
+`unzip DATEI` entpacken; anschließend `usr/bin/poormans-text` oder
+`usr/bin/poormans-text-app` starten. Das Entpackwerkzeug muss Unix-Ausführungsrechte
+wiederherstellen; Python `zipfile.extractall` tut dies nicht automatisch.
+
+Signieren ist optional und benötigt GnuPG sowie einen bereits eingerichteten
+eigenen Signierschlüssel. Es gibt keinen eingebauten Schlüssel und keine
+Verwendung des Apple-/Sparkle-Schlüssels. Der vollständige öffentliche Fingerprint
+wird bewusst angegeben; die private Schlüsselverwaltung bleibt bei GnuPG und
+seinem Agenten. Zum Prüfen genügt `gpgv` mit einem exportierten öffentlichen
+Schlüsselring. Den erwarteten Fingerprint über einen vertrauenswürdigen Weg prüfen.
+
+```sh
+# PMT_SIGNING_KEY enthält den vollständigen eigenen öffentlichen Fingerprint.
+./release-linux.sh --no-build --format zip --output-directory .build/signierte-linux-pakete --sign-key "$PMT_SIGNING_KEY"
+# Alternativ ein vorhandenes Paket signieren:
+./sign-linux.sh /pfad/paket.zip --key "$PMT_SIGNING_KEY"
+gpg --export "$PMT_SIGNING_KEY" > /pfad/pmt-release-key.gpg
+./verify-linux-release.sh /pfad/paket.zip --keyring /pfad/pmt-release-key.gpg --fingerprint "$PMT_SIGNING_KEY"
+```
+
+Die `.sig` authentifiziert die Paketbytes. Eine reine Prüfsumme ersetzt diese
+Signaturprüfung nicht. apt prüft eine danebenliegende `.sig` bei lokalen DEBs
+nicht automatisch. Der Installer kann diese Prüfung vor dem Aufruf des
+Paketmanagers ausdrücklich durchführen:
+
+```sh
+./install-linux.sh --package /pfad/paket.deb --keyring /pfad/pmt-release-key.gpg --fingerprint "$PMT_SIGNING_KEY"
+# Nur Befehle anzeigen; weder bauen noch installieren:
+./install-linux.sh --no-build --dry-run
+# Vorhandene Laufzeit als natives GUI-Paket bauen und installieren:
+./install-linux.sh --no-build
+```
+
+Ohne `--package` wählt der Installer apt oder pacman anhand des Systems;
+`--package-manager apt|pacman` überschreibt diese Wahl. Er verwendet eine eigene
+temporäre Paketkopie für Prüfung und Installation und räumt sie anschließend auf.
+Er verlangt bei Bedarf `sudo`, übernimmt die interaktive Bestätigung des
+Paketmanagers und verändert dessen Signaturrichtlinien oder Schlüsselvertrauen
+nicht. pacman erhält eine vorhandene `.sig` neben dem Paket und wendet zusätzlich
+seine native Vertrauensrichtlinie an. Ohne `--keyring` erfolgt keine zusätzliche
+PMT-Signaturprüfung. Es gibt keine automatische Veröffentlichung.
+
+Automatische Werkzeugtests: `python3 scripts/test_linux_release.py`.
+Der Paketprüflauf für alle vier Formate lautet:
+
+```sh
+python3 scripts/linux-probes/p15/verify_packages.py --packages .build/meine-linux-pakete --packager scripts/package_linux.sh
+```
+
+Der konkrete Prüfstand und die verbleibende Installationsgrenze stehen in
+[LINUX-RELEASE-TOOLS.md](linux-port/LINUX-RELEASE-TOOLS.md).
 
 ## Laufzeit und Grenzen
 

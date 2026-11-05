@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prüft drei lokale Paketformate, verschobene Laufzeit und Publikationsfehler."""
+"""Prüft vier lokale Paketformate, verschobene Laufzeit und Publikationsfehler."""
 import argparse
 import hashlib
 import json
@@ -16,8 +16,8 @@ parser.add_argument('--build-umask', choices=['022', '077'], help='Nur mit unabh
 args = parser.parse_args()
 packages = args.packages.resolve()
 packager = args.packager.resolve()
-files = sorted(p for p in packages.iterdir() if not p.name.endswith('.sha256'))
-assert len(files) == 3
+files = sorted(p for p in packages.iterdir() if not p.name.endswith(('.sha256', '.sig')))
+assert len(files) == 4
 records = {}
 def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -32,6 +32,8 @@ for package in files:
         destination.mkdir()
         if package.suffix == '.deb':
             subprocess.run(['dpkg-deb', '--extract', str(package), str(destination)], check=True)
+        elif package.suffix == '.zip':
+            subprocess.run(['unzip', '-q', str(package), '-d', str(destination)], check=True)
         else:
             subprocess.run(['tar', '--zstd', '--same-permissions', '-xf', str(package), '-C', str(destination)], check=True)
         for directory in ['usr', 'usr/bin', 'usr/lib', 'usr/share', 'usr/share/doc']:

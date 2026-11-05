@@ -1,0 +1,11 @@
+{
+  "gtkConversion": "pass",
+  "canonicalSourcePair": "pass",
+  "cancelCleanup": "pass",
+  "closeWaitsForCleanup": "pass",
+  "sourceHashes": "unchanged",
+  "startupArguments": "pass",
+  "secondInstanceOpen": "pass",
+  "busyFileOpen": "rejected without changing generation/source",
+  "invalidUTF8Argument": "rejected without sibling substitution"
+}

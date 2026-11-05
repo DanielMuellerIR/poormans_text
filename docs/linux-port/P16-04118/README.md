@@ -39,6 +39,24 @@ CLI, Guard, GUI und Schema sind in [artifacts.json](artifacts.json) gebunden.
 Die Container-Proben verwenden keine Hostdisplay-, Host-DBus- oder
 Host-Wayland-Sockets. Die GUI nutzt die Bibliotheken der jeweiligen Distribution.
 
+## Ergänzte Prüfwerkzeuge
+
+Die erweiterten instrumentierten GTK-Prüfungen bestehen ebenfalls:
+[Start, zweite Instanz und Abbruch](gui-selftest.json) sowie
+[neun Clipboardkodierungen, versiegelte Originalbytes, echte Konvertierung,
+Kopieren, Freigabebarrieren und Profile](gui-p14.json). Der Testbau verwendet
+unveränderte .18-Rust-Produktquellen mit zusätzlichem ui-self-test-Feature;
+er ersetzt nicht die oben getrennt nachgewiesene Produktions-GUI.
+
+Zwei veraltete Prüfer wurden korrigiert: Der Startprüfer wartet begrenzt auf das
+Ende des asynchronen Formatkatalogs statt nur eine Sekunde. Der P14-Prüfer liefert
+nun auch das echte HEIC-Fixture, verlangt neun erfolgreich erhaltene Kodierungen
+und prüft die inzwischen implementierte versiegelte Speicherquelle anstelle
+entfernter Temporärdateien. Es wurde kein Formatfall ausgelassen.
+
+Die [aktuelle RTFD-Matrix](rtfd-summary.json) besteht einschließlich statischer
+HEIC-Anhänge, Originalbytes und kontrollierter Mehrbildablehnung auf Arch.
+
 ## Qualität und Grenzen
 
 Die [vollständig wiederholte Qualitätsmatrix](quality.json) besteht die zehn

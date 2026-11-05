@@ -90,10 +90,11 @@ busy_log=root/'busy-open.log'
 with busy_log.open('w') as log_file:
     server=subprocess.Popen([os.path.abspath(args.binary)],env=env,stdout=log_file,stderr=log_file)
     try:
-        for _ in range(100):
+        deadline = time.monotonic() + 15
+        while time.monotonic() < deadline and server.poll() is None:
             if 'PMT_UI_TEST_JOB_STARTED conversion=true' in busy_log.read_text():break
             time.sleep(.01)
-        else:raise AssertionError('conversion did not start')
+        else:raise AssertionError('conversion did not start: ' + busy_log.read_text())
         client=subprocess.run([os.path.abspath(args.binary),str(replacement)],env=env,capture_output=True,timeout=10)
         server.wait(timeout=20)
         text=busy_log.read_text()

@@ -1,0 +1,6 @@
+{
+  "cases": 25,
+  "allAssertionsPassed": true,
+  "heicSingleAndMultipleIncluded": true,
+  "scope": "Current CLI, real generated RTFD packages, original source and asset bytes, strict positive/negative cases; no new macOS parity claim."
+}

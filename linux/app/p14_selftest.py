@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """P14-Tests ausschließlich mit synthetischen Daten, Xvfb und abgeschirmter GTK-Sitzung."""
-import argparse, hashlib, json, os, pathlib, pwd, re, subprocess, zipfile
+import argparse, hashlib, json, os, pathlib, pwd, re, subprocess, zipfile, shutil
 
 parser=argparse.ArgumentParser()
 parser.add_argument('--binary',required=True)
@@ -8,6 +8,7 @@ parser.add_argument('--cli',required=True)
 parser.add_argument('--guard',required=True)
 parser.add_argument('--support-root',required=True,help='Read-only root containing the CLI launcher and its complete runtime')
 parser.add_argument('--display',required=True,help='Dedicated Xvfb display, e.g. :2')
+parser.add_argument('--heic-fixture', type=pathlib.Path, default=pathlib.Path(__file__).resolve().parents[2]/'docs/linux-port/P16-04112/preview/heic-fixtures/single.heic')
 parser.add_argument('--work-directory',required=True)
 args=parser.parse_args()
 display=re.fullmatch(r':([0-9]+)',args.display)
@@ -27,6 +28,7 @@ image=Image.new('RGB',(24,16),(10,30,240));second=Image.new('RGB',(24,16),(240,3
 for ext,fmt in [('png','PNG'),('jpg','JPEG'),('gif','GIF'),('tiff','TIFF'),('bmp','BMP'),('webp','WEBP')]:
     options={'save_all':True,'append_images':[second]} if ext in ('gif','tiff') else {}
     image.save(fixtures/f'source.{ext}',format=fmt,**options)
+shutil.copyfile(args.heic_fixture, fixtures/'source.heic')
 (fixtures/'source.html').write_bytes(b'<p>PRIVATE_CLIPBOARD_SYNTHETIC</p>')
 (fixtures/'source.rtf').write_bytes(b'{\\rtf1\\ansi\\ansicpg1252 ORIGINAL_\xe4_BYTES}')
 for filename,token in [('profile.xlsx','PROFILE_UI_MARKER'),('profile-changed.xlsx','CHANGED_UI_MARKER')]:
@@ -65,14 +67,14 @@ def run(mode,settings):
     assert 'FAILURE' not in text and 'panicked at' not in text,text
     return text
 clipboard=run('clipboard',{'PMT_UI_TEST_CLIPBOARD':'/probe/fixtures'})
-assert clipboard.count('exact-bytes-and-cleanup')==8,clipboard
-for marker in ['64MiB-rejected','cancelled-and-cleaned','during-real-cli-job','complete-real-md-exact','clear-cleaned-after-real-job','PMT_UI_TEST_CLIPBOARD_CLOSE cleaned=true']:assert marker in clipboard,(marker,clipboard)
+assert clipboard.count('exact-bytes-sealed-no-host-file')==9,clipboard
+for marker in ['64MiB-rejected','cancelled-and-cleaned','during-real-cli-job','complete-real-md-exact','clear-cleaned-after-real-job','PMT_UI_TEST_CLIPBOARD_CLOSE released-after-job-barrier']:assert marker in clipboard,(marker,clipboard)
 result=json.loads(next(line.split(' ',1)[1] for line in clipboard.splitlines() if line.startswith('PMT_UI_TEST_RESULT ')))
 assert result['ok'] is True and result['sourceIdentity']['sha256']==hashlib.sha256((fixtures/'source.png').read_bytes()).hexdigest(),result
 close=run('clipboard-close',{'PMT_UI_TEST_CLIPBOARD':'/probe/fixtures','PMT_UI_TEST_CLIPBOARD_CLOSE_DURING_JOB':'1'})
-assert 'cleanup-finished closing=true' in close and 'PMT_UI_TEST_CLIPBOARD_CLOSE cleaned=true' in close and 'PMT_UI_TEST_RESULT ' not in close,close
+assert 'cleanup-finished closing=true' in close and 'PMT_UI_TEST_CLIPBOARD_CLOSE released-after-job-barrier' in close and 'PMT_UI_TEST_RESULT ' not in close,close
 profiles=run('profiles',{'PMT_UI_TEST_PROFILES':'/probe/fixtures'})
 for marker in ['PMT_UI_TEST_PROFILE_DEFAULTS','changed-source-rejected','rejected-without-consent','explicitly-authorized-save-only','export-import-list-exact-name','PMT_UI_TEST_PROFILE_COMPLETE']:assert marker in profiles,(marker,profiles)
-summary={'originalClipboardEncodings':8,'readLimit':'64 MiB+1 rejected','clipboardCancel':'pass','clipboardRealConversionAndHash':'pass','copyCompleteRealMarkdown':'pass','clearCleanup':'pass','closeCleanupAfterJobBarrier':'pass','profileDefaultsNotOverridden':'pass','boundSourceMismatch':'rejected','localProfileConsent':'required','profileExportImport':'pass'}
+summary={'originalClipboardEncodings':9,'readLimit':'64 MiB+1 rejected','clipboardCancel':'pass','clipboardRealConversionAndHash':'pass','copyCompleteRealMarkdown':'pass','clearCleanup':'pass','closeCleanupAfterJobBarrier':'pass','profileDefaultsNotOverridden':'pass','boundSourceMismatch':'rejected','localProfileConsent':'required','profileExportImport':'pass'}
 (work/'summary.json').write_text(json.dumps(summary,indent=2))
 print(json.dumps(summary))

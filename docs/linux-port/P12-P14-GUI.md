@@ -1,6 +1,7 @@
 # P12/P14: GTK-Oberfläche über dem gemeinsamen Swift-Kern
 
-Stand: 2026-11-05, Entwicklungsvorschau 0.41.10. Die Oberfläche ist ein dünner
+Stand: 2026-11-05, Entwicklungsvorschau 0.41.12.
+Die [finalen Produktnachweise](P16-04112/README.md) ergänzen die unten ausdrücklich historischen Erstproben. Die Oberfläche ist ein dünner
 Rust-/GTK-Adapter; sie enthält keinen zweiten Konverter. GTK4 ist seit 2026-11-05 die gemeinsame reversible Entwicklungswahl mit Fastra.
 Die gesonderte endgültige Desktopabnahme blockiert diese Oberfläche nicht.
 Die nachfolgenden bestandenen Proben sind keine vollständige Desktopabnahme.
@@ -22,12 +23,14 @@ Assets bleiben als Dateien im Ergebnisbaum erhalten. Berichte und rohe
 JSON-Details bleiben verfügbar.
 
 Clipboardübernahme erfolgt ausschließlich auf Klick und mit expliziter Auswahl
-einer tatsächlich angebotenen Kodierung: PNG, JPEG, GIF, TIFF, BMP, WebP, HTML
-oder RTF. Originalbytes werden bis maximal 64 MiB gelesen und in einem privaten
-0700-Verzeichnis/0600-Datei gehalten. Kein stiller Texture-/Plaintext-Ersatz.
-Eine Konvertierung verlangt ein ausdrücklich gewähltes neues Ziel außerhalb
-dieses privaten Bereichs. Abbruch/Schließen wartet auf die Prozessbarriere vor
-Quellcleanup; unerwartete fertige Dateien werden nicht rekursiv entfernt.
+einer tatsächlich angebotenen Kodierung: PNG, JPEG, GIF, TIFF, BMP, WebP, HEIC,
+HTML oder RTF. Originalbytes werden bis maximal 64 MiB in einer versiegelten
+memfd gehalten. Jeder neue Leser öffnet einen unabhängigen, identitätsgeprüften
+FD; `--ro-bind-data` bindet ihn an die private CLI-Quelle. Keine benannte
+UI-Quelldatei oder namensbasierte Drop-Löschung, kein stiller Plaintext-Ersatz.
+Der private /dev-Baum ist danach vollständig read-only, auch gegen Zielaliases
+mit `..` und profil-lokale Ziele. Abbruch/Schließen wartet auf die Prozessbarriere.
+Der Vergleich hält dieselbe Quelle und gibt deren FDs nach Clear/Close frei.
 
 Profile werden über die vorhandenen Core-CLI-Operationen gelistet, gewählt,
 gespeichert, importiert und exportiert. Im Profilmodus werden ausgegraute
@@ -55,7 +58,7 @@ Rename tatsächlich bewegte Inode wird nochmals geprüft. Fremde/veränderte
 Verzeichnisse bleiben erhalten. Rust-Crate- und Toolchain-Lizenzen werden aus
 dem tatsächlich verwendeten Cache/Builder beigefügt.
 
-## Bestandene Proben
+## Historische Erstproben 0.41.10
 
 - 28 Rust-Unit-Tests und 15 gesonderte Hosttests der Bridge bestanden. Die
   Bridgeproben prüfen unter anderem sofortiges Fork/setsid/Exit, UI-Verlust vor
@@ -90,8 +93,9 @@ steht in `scripts/linux-probes/p15/verify_gui_build_safety.py`.
 
 Offen bleiben echte KDE/Wayland- und Cinnamon/X11-Bedienung, Dateimanager-Drops,
 externe Standardanwendungen, Skalierung, Fokus, Eingabemethoden und Barrierefreiheit.
-PDF-/Bildrastervergleich, paketinterne Quellströme und allgemeine GUI-Präferenzen
-sind nicht vollständig integriert. Eine visuelle Xvfb-Probe ersetzt diese Systemabnahmen nicht.
+PDF-/Bildrastervergleich und Clipboardquellströme sind inzwischen integriert;
+paketinterne Quellströme, Koordinatenoverlays und allgemeine GUI-Präferenzen
+bleiben offen. Eine visuelle Xvfb-Probe ersetzt diese Systemabnahmen nicht.
 
 ## Verifizierter Textvergleich und gemeinsame Dateizugriffe
 
@@ -115,8 +119,9 @@ regelmäßig abgebrochen. [Belege](P12-P14-EVIDENCE/source-comparison.json).
 
 Externes Öffnen prüft unmittelbar vor GIO erneut. Die anschließende Übergabe
 eines normalen Dateipfades an eine fremde Anwendung besitzt weiterhin ein
-Austauschfenster; eine atomare Fremdapp-Öffnung wird nicht behauptet. Ein tatsächlicher
-Start eines Standardeditors ist noch keine ausgeführte Abnahme.
+Austauschfenster; eine atomare Fremdapp-Öffnung wird nicht behauptet. Die tatsächliche
+Übergabe an Fastra samt frischem Reopen ist inzwischen für DOCX mit PNG belegt;
+Details stehen im [P13-Bericht](P13-FASTRA.md).
 
 Der finale Release-Build besteht zusätzlich einen englischen SDK-freien
 Xvfb-Bedienweg bei zweifacher Skalierung und 700×850 logischen Pixeln.
@@ -131,3 +136,27 @@ Unbekannte Dateien/Links und nachträgliche Ersetzungen bleiben erhalten.
 Fehlgeschlagene Stages und alte Laufzeit-/GUI-Backups werden für gesonderten
 Cleanup behalten. Elf gezielte zusätzliche Raceproben bestehen; die regulären
 CLI-/GTK-Containerbuilds wurden danach tatsächlich wiederholt.
+
+Die Produktions-GUI 0.41.11 besteht außerdem einen tatsächlichen nativen
+[Wayland-Bedienweg](P15-CLI-PACKAGES.md#native-wayland-probe) unter privatem
+Weston Headless/Pixman: ohne DISPLAY, mit AT-SPI-Konvertierung bis Completed
+und visuell geprüfter nativer Aufnahme. Das erweitert die isolierten X11-Proben;
+die oben genannten realen Desktop-/Portal-/Clipboardgrenzen bleiben bestehen.
+
+## Integrierter Rastervergleich 0.41.12
+
+Der Swift-Kern bietet eine getrennte begrenzte SourcePreview-Leseoperation für
+PDF-Seiten und Rasterframes. Die CLI liefert kanonisches PNG, Quellidentität,
+Hash und Maße; die GUI prüft diese vor GDK-Dekodierung. Snapshots sind auf128MiB,
+PNGs auf5MiB/1024² begrenzt; Seiten-/Frameindex höchstens1000. Originale bleiben
+unverändert, EXIF wird angewendet, Metadaten werden entfernt, Alpha wird weiß.
+PDF-Anmerkungsdarstellung ist ausdrücklich ausgeschlossen. Eine Quelle bleibt
+nicht versehentlich als Markdown- oder Ausgabeerfolg im Konvertierungsvertrag.
+
+Generation, Abbruch und Fensterschließen warten auf laufende Namespacejobs.
+Clipboardvergleiche verwenden dieselben versiegelten Originalbytes. Ohne
+Core-Mappings werden keine Quellpositionen oder Koordinatenrechtecke erfunden.
+GTK-Referenzen, Raster und Quellen werden beim Close nach der Barriere freigegeben;
+echte offene Source-FDs gehen nach Clear/Close von mindestens1 auf0 zurück.
+[Finale Previewbelege](P16-04112/preview/README.md),
+[Clipboard-/Kernel-/Freigabebelege](P16-04112/clipboard/README.md).

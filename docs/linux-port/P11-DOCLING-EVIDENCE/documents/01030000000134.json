@@ -1,0 +1,236 @@
+{
+  "schema_name": "DoclingDocument",
+  "version": "1.11.0",
+  "name": "01030000000134",
+  "origin": {
+    "mimetype": "application/pdf",
+    "binary_hash": 6721236994622970537,
+    "filename": "01030000000134.pdf"
+  },
+  "furniture": {
+    "self_ref": "#/furniture",
+    "children": [],
+    "content_layer": "furniture",
+    "name": "_root_",
+    "label": "unspecified"
+  },
+  "body": {
+    "self_ref": "#/body",
+    "children": [
+      {
+        "$ref": "#/texts/0"
+      },
+      {
+        "$ref": "#/pictures/0"
+      },
+      {
+        "$ref": "#/pictures/1"
+      },
+      {
+        "$ref": "#/texts/3"
+      }
+    ],
+    "content_layer": "body",
+    "name": "_root_",
+    "label": "unspecified"
+  },
+  "groups": [],
+  "texts": [
+    {
+      "self_ref": "#/texts/0",
+      "parent": {
+        "$ref": "#/body"
+      },
+      "children": [],
+      "content_layer": "body",
+      "label": "text",
+      "prov": [
+        {
+          "page_no": 1,
+          "bbox": {
+            "l": 56.6929,
+            "t": 659.3131,
+            "r": 519.3073000000002,
+            "b": 595.2971954274354,
+            "coord_origin": "BOTTOMLEFT"
+          },
+          "charspan": [
+            0,
+            557
+          ]
+        }
+      ],
+      "orig": "What's unique about the growth of Alligator Gars is their fast growth in the first years of life followed by slower growth (Figure 8.6; Figure 8.7). Juvenile Alligator Gars quickly transition to fish-eating habits (Butler et al. 2018). A fish diet means the juveniles grow at 4-5 mm per day in the first three months of life, so that by the end of the first growing season they may reach 1.5 to 2 feet in length (~40-70 cm) and 8-10 pounds in weight (Sakaris et al. 2019). Despite their fast growth, young Alligator Gars are preyed upon by many larger fish.",
+      "text": "What's unique about the growth of Alligator Gars is their fast growth in the first years of life followed by slower growth (Figure 8.6; Figure 8.7). Juvenile Alligator Gars quickly transition to fish-eating habits (Butler et al. 2018). A fish diet means the juveniles grow at 4-5 mm per day in the first three months of life, so that by the end of the first growing season they may reach 1.5 to 2 feet in length (~40-70 cm) and 8-10 pounds in weight (Sakaris et al. 2019). Despite their fast growth, young Alligator Gars are preyed upon by many larger fish."
+    },
+    {
+      "self_ref": "#/texts/1",
+      "parent": {
+        "$ref": "#/pictures/0"
+      },
+      "children": [],
+      "content_layer": "body",
+      "label": "caption",
+      "prov": [
+        {
+          "page_no": 1,
+          "bbox": {
+            "l": 114.0,
+            "t": 367.4041,
+            "r": 458.632,
+            "b": 350.71871761858665,
+            "coord_origin": "BOTTOMLEFT"
+          },
+          "charspan": [
+            0,
+            129
+          ]
+        }
+      ],
+      "orig": "Figure 8.6: Growth in length of Alligator Gar in Texas. Figure 8.7: Growth in weight of Alligator Gar in Texas. Long description.",
+      "text": "Figure 8.6: Growth in length of Alligator Gar in Texas. Figure 8.7: Growth in weight of Alligator Gar in Texas. Long description."
+    },
+    {
+      "self_ref": "#/texts/2",
+      "parent": {
+        "$ref": "#/pictures/1"
+      },
+      "children": [],
+      "content_layer": "body",
+      "label": "caption",
+      "prov": [
+        {
+          "page_no": 1,
+          "bbox": {
+            "l": 121.125,
+            "t": 100.37850000000003,
+            "r": 316.87699999999995,
+            "b": 93.29311761858662,
+            "coord_origin": "BOTTOMLEFT"
+          },
+          "charspan": [
+            0,
+            55
+          ]
+        }
+      ],
+      "orig": "Figure 8.7: Growth in weight of Alligator Gar in Texas.",
+      "text": "Figure 8.7: Growth in weight of Alligator Gar in Texas."
+    },
+    {
+      "self_ref": "#/texts/3",
+      "parent": {
+        "$ref": "#/body"
+      },
+      "children": [],
+      "content_layer": "furniture",
+      "label": "page_footer",
+      "prov": [
+        {
+          "page_no": 1,
+          "bbox": {
+            "l": 308.8431,
+            "t": 45.418499999999995,
+            "r": 519.3071,
+            "b": 38.29325149105364,
+            "coord_origin": "BOTTOMLEFT"
+          },
+          "charspan": [
+            0,
+            56
+          ]
+        }
+      ],
+      "orig": "Angling and Conservation of Living Fishy Dinosaurs | 171",
+      "text": "Angling and Conservation of Living Fishy Dinosaurs | 171"
+    }
+  ],
+  "pictures": [
+    {
+      "self_ref": "#/pictures/0",
+      "parent": {
+        "$ref": "#/body"
+      },
+      "children": [
+        {
+          "$ref": "#/texts/1"
+        }
+      ],
+      "content_layer": "body",
+      "label": "picture",
+      "prov": [
+        {
+          "page_no": 1,
+          "bbox": {
+            "l": 121.35043334960938,
+            "t": 576.8476867675781,
+            "r": 453.30810546875,
+            "b": 380.4562683105469,
+            "coord_origin": "BOTTOMLEFT"
+          },
+          "charspan": [
+            0,
+            0
+          ]
+        }
+      ],
+      "captions": [
+        {
+          "$ref": "#/texts/1"
+        }
+      ],
+      "references": [],
+      "footnotes": [],
+      "annotations": []
+    },
+    {
+      "self_ref": "#/pictures/1",
+      "parent": {
+        "$ref": "#/body"
+      },
+      "children": [
+        {
+          "$ref": "#/texts/2"
+        }
+      ],
+      "content_layer": "body",
+      "label": "picture",
+      "prov": [
+        {
+          "page_no": 1,
+          "bbox": {
+            "l": 128.01258850097656,
+            "t": 300.0258483886719,
+            "r": 449.61572265625,
+            "b": 112.07769775390625,
+            "coord_origin": "BOTTOMLEFT"
+          },
+          "charspan": [
+            0,
+            0
+          ]
+        }
+      ],
+      "captions": [
+        {
+          "$ref": "#/texts/2"
+        }
+      ],
+      "references": [],
+      "footnotes": [],
+      "annotations": []
+    }
+  ],
+  "tables": [],
+  "key_value_items": [],
+  "form_items": [],
+  "pages": {
+    "1": {
+      "size": {
+        "width": 576.0,
+        "height": 720.0
+      },
+      "page_no": 1
+    }
+  }
+}

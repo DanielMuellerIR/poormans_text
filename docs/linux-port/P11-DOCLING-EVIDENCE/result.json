@@ -1,0 +1,1916 @@
+{
+  "productIntegrated": false,
+  "modelAndSetupMetadata": "metadata/",
+  "cases": [
+    {
+      "source": "01030000000132-render.png",
+      "sourceSHA256": "dfe0a1d9bc07db406080ab22b92632f512f94aef6b32aa2a199d2efe4b101db3",
+      "sourceUnchanged": true,
+      "seconds": 9.859078533001593,
+      "status": "ConversionStatus.SUCCESS",
+      "expectedTables": 1,
+      "predictedTables": 1,
+      "tables": [
+        [
+          {
+            "row": 0,
+            "column": 0,
+            "rowspan": 1,
+            "colspan": 2,
+            "text": "Fish species on IUCN Red List"
+          },
+          {
+            "row": 1,
+            "column": 0,
+            "rowspan": 1,
+            "colspan": 1,
+            "text": "Potosi Pupfish"
+          },
+          {
+            "row": 1,
+            "column": 1,
+            "rowspan": 1,
+            "colspan": 1,
+            "text": "Cyprinodon alvarezi"
+          },
+          {
+            "row": 2,
+            "column": 0,
+            "rowspan": 1,
+            "colspan": 1,
+            "text": "La Palma Pupfish"
+          },
+          {
+            "row": 2,
+            "column": 1,
+            "rowspan": 1,
+            "colspan": 1,
+            "text": "Cyprinodon longidorsalis"
+          },
+          {
+            "row": 3,
+            "column": 0,
+            "rowspan": 1,
+            "colspan": 1,
+            "text": "Butterfly Splitfin"
+          },
+          {
+            "row": 3,
+            "column": 1,
+            "rowspan": 1,
+            "colspan": 1,
+            "text": "Ameca splendens"
+          },
+          {
+            "row": 4,
+            "column": 0,
+            "rowspan": 1,
+            "colspan": 1,
+            "text": "Golden Skiffia"
+          },
+          {
+            "row": 4,
+            "column": 1,
+            "rowspan": 1,
+            "colspan": 1,
+            "text": "Skiffia francesae"
+          }
+        ]
+      ],
+      "quality": {
+        "expectedCells": 9,
+        "predictedCells": 9,
+        "textExactAtCell": 9,
+        "spansExactAtCell": 9,
+        "expectedMergedCells": 1,
+        "mergedExactAtCell": 1,
+        "orderedCellTextExact": true,
+        "expectedWordCount": 23,
+        "missingWords": [],
+        "extraWords": [],
+        "cellDetails": [
+          {
+            "expected": {
+              "row": 0,
+              "column": 0,
+              "rowspan": 1,
+              "colspan": 2,
+              "text": "Fish species on IUCN Red List"
+            },
+            "predicted": {
+              "row": 0,
+              "column": 0,
+              "rowspan": 1,
+              "colspan": 2,
+              "text": "Fish species on IUCN Red List"
+            },
+            "textExact": true,
+            "spanExact": true
+          },
+          {
+            "expected": {
+              "row": 1,
+              "column": 0,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "Potosi Pupfish"
+            },
+            "predicted": {
+              "row": 1,
+              "column": 0,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "Potosi Pupfish"
+            },
+            "textExact": true,
+            "spanExact": true
+          },
+          {
+            "expected": {
+              "row": 1,
+              "column": 1,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "Cyprinodon alvarezi"
+            },
+            "predicted": {
+              "row": 1,
+              "column": 1,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "Cyprinodon alvarezi"
+            },
+            "textExact": true,
+            "spanExact": true
+          },
+          {
+            "expected": {
+              "row": 2,
+              "column": 0,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "La Palma Pupfish"
+            },
+            "predicted": {
+              "row": 2,
+              "column": 0,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "La Palma Pupfish"
+            },
+            "textExact": true,
+            "spanExact": true
+          },
+          {
+            "expected": {
+              "row": 2,
+              "column": 1,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "Cyprinodon longidorsalis"
+            },
+            "predicted": {
+              "row": 2,
+              "column": 1,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "Cyprinodon longidorsalis"
+            },
+            "textExact": true,
+            "spanExact": true
+          },
+          {
+            "expected": {
+              "row": 3,
+              "column": 0,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "Butterfly Splitfin"
+            },
+            "predicted": {
+              "row": 3,
+              "column": 0,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "Butterfly Splitfin"
+            },
+            "textExact": true,
+            "spanExact": true
+          },
+          {
+            "expected": {
+              "row": 3,
+              "column": 1,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "Ameca splendens"
+            },
+            "predicted": {
+              "row": 3,
+              "column": 1,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "Ameca splendens"
+            },
+            "textExact": true,
+            "spanExact": true
+          },
+          {
+            "expected": {
+              "row": 4,
+              "column": 0,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "Golden Skiffia"
+            },
+            "predicted": {
+              "row": 4,
+              "column": 0,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "Golden Skiffia"
+            },
+            "textExact": true,
+            "spanExact": true
+          },
+          {
+            "expected": {
+              "row": 4,
+              "column": 1,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "Skiffia francesae"
+            },
+            "predicted": {
+              "row": 4,
+              "column": 1,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "Skiffia francesae"
+            },
+            "textExact": true,
+            "spanExact": true
+          }
+        ]
+      },
+      "markdownSHA256": "3795fdc3de21a65a443e0039799348c048becfe842b2bff0b481ada6d14d33b7",
+      "jsonSHA256": "ec5c7aba7c650dcb48312dfa048c739e74762824b4071fdae4a3e8e26d7f55d3",
+      "maxRSSKiB": 1137888,
+      "memoryPeakBytes": 1703956480,
+      "OCR": "system Tesseract eng/full-page",
+      "remoteServices": false,
+      "manualROIOrThresholdChanges": false,
+      "layoutPreset": "layout_heron_default",
+      "tableMode": "accurate",
+      "markdownContainsExplicitSpans": false,
+      "markdownAnalysis": {
+        "wordInventory": {
+          "expected": 339,
+          "actual": 315,
+          "matched": 307,
+          "missing": {
+            "in": 2,
+            "the": 1,
+            "public": 1,
+            "aquariums": 1,
+            "their": 1,
+            "house": 1,
+            "and": 2,
+            "s": 1,
+            "lake": 1,
+            "sturgeon": 1,
+            "acipenser": 1,
+            "rubicundus": 1,
+            "le": 1,
+            "p": 1,
+            "drawing": 1,
+            "by": 2,
+            "h": 1,
+            "l": 1,
+            "from": 1,
+            "no": 1,
+            "national": 1,
+            "museum": 1,
+            "j": 1,
+            "w": 1,
+            "132": 1,
+            "role": 1,
+            "education": 1,
+            "science": 1,
+            "conservation": 1
+          },
+          "extra": {
+            "fish": 1,
+            "species": 1,
+            "on": 1,
+            "iucn": 1,
+            "red": 1,
+            "list": 1,
+            "inhouse": 1,
+            "_": 1
+          }
+        },
+        "nfkcVariantNotPrimary": {
+          "expected": 339,
+          "actual": 315,
+          "matched": 307,
+          "missing": {
+            "in": 2,
+            "the": 1,
+            "public": 1,
+            "aquariums": 1,
+            "their": 1,
+            "house": 1,
+            "and": 2,
+            "s": 1,
+            "lake": 1,
+            "sturgeon": 1,
+            "acipenser": 1,
+            "rubicundus": 1,
+            "le": 1,
+            "p": 1,
+            "drawing": 1,
+            "by": 2,
+            "h": 1,
+            "l": 1,
+            "from": 1,
+            "no": 1,
+            "national": 1,
+            "museum": 1,
+            "j": 1,
+            "w": 1,
+            "132": 1,
+            "role": 1,
+            "education": 1,
+            "science": 1,
+            "conservation": 1
+          },
+          "extra": {
+            "fish": 1,
+            "species": 1,
+            "on": 1,
+            "iucn": 1,
+            "red": 1,
+            "list": 1,
+            "inhouse": 1,
+            "_": 1
+          }
+        },
+        "elements": [
+          {
+            "id": 0,
+            "category": "Table",
+            "anchor": [
+              "fish",
+              "species",
+              "on",
+              "iucn",
+              "red",
+              "list",
+              "potosi",
+              "pupfish"
+            ],
+            "anchorOffset": 24,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 1,
+            "category": "Caption",
+            "anchor": [
+              "table",
+              "6",
+              "1",
+              "four",
+              "fish",
+              "species",
+              "on",
+              "iucn"
+            ],
+            "anchorOffset": 0,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 2,
+            "category": "Paragraph",
+            "anchor": [
+              "public",
+              "aquariums",
+              "because",
+              "of",
+              "their",
+              "in",
+              "house",
+              "expertise"
+            ],
+            "anchorOffset": null,
+            "entireElementContiguous": false
+          },
+          {
+            "id": 3,
+            "category": "Figure",
+            "anchor": [],
+            "anchorOffset": null,
+            "entireElementContiguous": false
+          },
+          {
+            "id": 4,
+            "category": "Caption",
+            "anchor": [
+              "figure",
+              "6",
+              "3",
+              "photo",
+              "of",
+              "the",
+              "critically",
+              "endangered"
+            ],
+            "anchorOffset": 117,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 5,
+            "category": "Paragraph",
+            "anchor": [
+              "the",
+              "breeding",
+              "colonies",
+              "of",
+              "the",
+              "butterfly",
+              "splitfin",
+              "figure"
+            ],
+            "anchorOffset": 129,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 6,
+            "category": "Figure",
+            "anchor": [
+              "the",
+              "lake",
+              "sturgeon",
+              "acipenser",
+              "rubicundus",
+              "le",
+              "s",
+              "p"
+            ],
+            "anchorOffset": null,
+            "entireElementContiguous": false
+          },
+          {
+            "id": 7,
+            "category": "Caption",
+            "anchor": [
+              "figure",
+              "6",
+              "4",
+              "lake",
+              "sturgeon",
+              "acipenser",
+              "fulvescens"
+            ],
+            "anchorOffset": 256,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 8,
+            "category": "Paragraph",
+            "anchor": [
+              "the",
+              "banggai",
+              "cardinalfish",
+              "pterapogon",
+              "kauderni",
+              "a",
+              "small",
+              "endangered"
+            ],
+            "anchorOffset": 263,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 9,
+            "category": "Footer",
+            "anchor": [
+              "132",
+              "public",
+              "aquariums",
+              "and",
+              "their",
+              "role",
+              "in",
+              "education"
+            ],
+            "anchorOffset": null,
+            "entireElementContiguous": false
+          }
+        ],
+        "foundAnchorsInGTOrder": false,
+        "tableStructurePresent": true,
+        "colspanPresent": false,
+        "cellScope": "Not scored: PMT-specific pre-caption table scope is not valid for Docling output; raw document JSON cells are scored separately."
+      },
+      "allJSONTextInventory": {
+        "expected": 339,
+        "actual": 319,
+        "matched": 317,
+        "missing": {
+          "in": 1,
+          "the": 1,
+          "house": 1,
+          "a": 1,
+          "s": 1,
+          "lake": 1,
+          "sturgeon": 1,
+          "acipenser": 1,
+          "rubicundus": 1,
+          "le": 1,
+          "p": 1,
+          "drawing": 1,
+          "by": 2,
+          "h": 1,
+          "l": 1,
+          "from": 1,
+          "no": 1,
+          "national": 1,
+          "museum": 1,
+          "j": 1,
+          "w": 1
+        },
+        "extra": {
+          "inhouse": 1,
+          "a_": 1
+        }
+      },
+      "allJSONOriginalInventory": {
+        "expected": 339,
+        "actual": 319,
+        "matched": 317,
+        "missing": {
+          "in": 1,
+          "the": 1,
+          "house": 1,
+          "a": 1,
+          "s": 1,
+          "lake": 1,
+          "sturgeon": 1,
+          "acipenser": 1,
+          "rubicundus": 1,
+          "le": 1,
+          "p": 1,
+          "drawing": 1,
+          "by": 2,
+          "h": 1,
+          "l": 1,
+          "from": 1,
+          "no": 1,
+          "national": 1,
+          "museum": 1,
+          "j": 1,
+          "w": 1
+        },
+        "extra": {
+          "inhouse": 1,
+          "a_": 1
+        }
+      }
+    },
+    {
+      "source": "01030000000132.pdf",
+      "sourceSHA256": "eded7804127acce26e4b9e7138aa8c95d0d8886280a21148efb0ae9519941ede",
+      "sourceUnchanged": true,
+      "seconds": 5.3409118939889595,
+      "status": "ConversionStatus.SUCCESS",
+      "expectedTables": 1,
+      "predictedTables": 1,
+      "tables": [
+        [
+          {
+            "row": 0,
+            "column": 0,
+            "rowspan": 1,
+            "colspan": 2,
+            "text": "Fish species on IUCN Red List"
+          },
+          {
+            "row": 1,
+            "column": 0,
+            "rowspan": 1,
+            "colspan": 1,
+            "text": "Potosi Pupfish"
+          },
+          {
+            "row": 1,
+            "column": 1,
+            "rowspan": 1,
+            "colspan": 1,
+            "text": "Cyprinodon alvarezi"
+          },
+          {
+            "row": 2,
+            "column": 0,
+            "rowspan": 1,
+            "colspan": 1,
+            "text": "La Palma Pupfish"
+          },
+          {
+            "row": 2,
+            "column": 1,
+            "rowspan": 1,
+            "colspan": 1,
+            "text": "Cyprinodon longidorsalis"
+          },
+          {
+            "row": 3,
+            "column": 0,
+            "rowspan": 1,
+            "colspan": 1,
+            "text": "Butterfly Splitfin"
+          },
+          {
+            "row": 3,
+            "column": 1,
+            "rowspan": 1,
+            "colspan": 1,
+            "text": "Ameca splendens"
+          },
+          {
+            "row": 4,
+            "column": 0,
+            "rowspan": 1,
+            "colspan": 1,
+            "text": "Golden Skiffia"
+          },
+          {
+            "row": 4,
+            "column": 1,
+            "rowspan": 1,
+            "colspan": 1,
+            "text": "Skiffia francesae"
+          }
+        ]
+      ],
+      "quality": {
+        "expectedCells": 9,
+        "predictedCells": 9,
+        "textExactAtCell": 9,
+        "spansExactAtCell": 9,
+        "expectedMergedCells": 1,
+        "mergedExactAtCell": 1,
+        "orderedCellTextExact": true,
+        "expectedWordCount": 23,
+        "missingWords": [],
+        "extraWords": [],
+        "cellDetails": [
+          {
+            "expected": {
+              "row": 0,
+              "column": 0,
+              "rowspan": 1,
+              "colspan": 2,
+              "text": "Fish species on IUCN Red List"
+            },
+            "predicted": {
+              "row": 0,
+              "column": 0,
+              "rowspan": 1,
+              "colspan": 2,
+              "text": "Fish species on IUCN Red List"
+            },
+            "textExact": true,
+            "spanExact": true
+          },
+          {
+            "expected": {
+              "row": 1,
+              "column": 0,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "Potosi Pupfish"
+            },
+            "predicted": {
+              "row": 1,
+              "column": 0,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "Potosi Pupfish"
+            },
+            "textExact": true,
+            "spanExact": true
+          },
+          {
+            "expected": {
+              "row": 1,
+              "column": 1,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "Cyprinodon alvarezi"
+            },
+            "predicted": {
+              "row": 1,
+              "column": 1,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "Cyprinodon alvarezi"
+            },
+            "textExact": true,
+            "spanExact": true
+          },
+          {
+            "expected": {
+              "row": 2,
+              "column": 0,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "La Palma Pupfish"
+            },
+            "predicted": {
+              "row": 2,
+              "column": 0,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "La Palma Pupfish"
+            },
+            "textExact": true,
+            "spanExact": true
+          },
+          {
+            "expected": {
+              "row": 2,
+              "column": 1,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "Cyprinodon longidorsalis"
+            },
+            "predicted": {
+              "row": 2,
+              "column": 1,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "Cyprinodon longidorsalis"
+            },
+            "textExact": true,
+            "spanExact": true
+          },
+          {
+            "expected": {
+              "row": 3,
+              "column": 0,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "Butterfly Splitfin"
+            },
+            "predicted": {
+              "row": 3,
+              "column": 0,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "Butterfly Splitfin"
+            },
+            "textExact": true,
+            "spanExact": true
+          },
+          {
+            "expected": {
+              "row": 3,
+              "column": 1,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "Ameca splendens"
+            },
+            "predicted": {
+              "row": 3,
+              "column": 1,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "Ameca splendens"
+            },
+            "textExact": true,
+            "spanExact": true
+          },
+          {
+            "expected": {
+              "row": 4,
+              "column": 0,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "Golden Skiffia"
+            },
+            "predicted": {
+              "row": 4,
+              "column": 0,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "Golden Skiffia"
+            },
+            "textExact": true,
+            "spanExact": true
+          },
+          {
+            "expected": {
+              "row": 4,
+              "column": 1,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "Skiffia francesae"
+            },
+            "predicted": {
+              "row": 4,
+              "column": 1,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "Skiffia francesae"
+            },
+            "textExact": true,
+            "spanExact": true
+          }
+        ]
+      },
+      "markdownSHA256": "18215d0cf817734211ffc7abd509ed34f4602c0d9a0bfb929cee5908768ee7d1",
+      "jsonSHA256": "4104dfe1d2a426276fb8d62857e03aa9665f969d5f57e7c1d13cef180cc495c1",
+      "maxRSSKiB": 1050172,
+      "memoryPeakBytes": 839299072,
+      "OCR": "off; digital PDF words",
+      "remoteServices": false,
+      "manualROIOrThresholdChanges": false,
+      "layoutPreset": "layout_heron_default",
+      "tableMode": "accurate",
+      "markdownContainsExplicitSpans": false,
+      "markdownAnalysis": {
+        "wordInventory": {
+          "expected": 339,
+          "actual": 314,
+          "matched": 306,
+          "missing": {
+            "in": 2,
+            "the": 1,
+            "public": 1,
+            "aquariums": 1,
+            "their": 1,
+            "house": 1,
+            "and": 2,
+            "rio": 1,
+            "s": 1,
+            "lake": 1,
+            "sturgeon": 1,
+            "acipenser": 1,
+            "rubicundus": 1,
+            "le": 1,
+            "p": 1,
+            "drawing": 1,
+            "by": 2,
+            "h": 1,
+            "l": 1,
+            "from": 1,
+            "no": 1,
+            "national": 1,
+            "museum": 1,
+            "j": 1,
+            "w": 1,
+            "132": 1,
+            "role": 1,
+            "education": 1,
+            "science": 1,
+            "conservation": 1
+          },
+          "extra": {
+            "fish": 1,
+            "species": 1,
+            "on": 1,
+            "iucn": 1,
+            "red": 1,
+            "list": 1,
+            "inhouse": 1,
+            "río": 1
+          }
+        },
+        "nfkcVariantNotPrimary": {
+          "expected": 339,
+          "actual": 314,
+          "matched": 306,
+          "missing": {
+            "in": 2,
+            "the": 1,
+            "public": 1,
+            "aquariums": 1,
+            "their": 1,
+            "house": 1,
+            "and": 2,
+            "rio": 1,
+            "s": 1,
+            "lake": 1,
+            "sturgeon": 1,
+            "acipenser": 1,
+            "rubicundus": 1,
+            "le": 1,
+            "p": 1,
+            "drawing": 1,
+            "by": 2,
+            "h": 1,
+            "l": 1,
+            "from": 1,
+            "no": 1,
+            "national": 1,
+            "museum": 1,
+            "j": 1,
+            "w": 1,
+            "132": 1,
+            "role": 1,
+            "education": 1,
+            "science": 1,
+            "conservation": 1
+          },
+          "extra": {
+            "fish": 1,
+            "species": 1,
+            "on": 1,
+            "iucn": 1,
+            "red": 1,
+            "list": 1,
+            "inhouse": 1,
+            "río": 1
+          }
+        },
+        "elements": [
+          {
+            "id": 0,
+            "category": "Table",
+            "anchor": [
+              "fish",
+              "species",
+              "on",
+              "iucn",
+              "red",
+              "list",
+              "potosi",
+              "pupfish"
+            ],
+            "anchorOffset": 6,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 1,
+            "category": "Caption",
+            "anchor": [
+              "table",
+              "6",
+              "1",
+              "four",
+              "fish",
+              "species",
+              "on",
+              "iucn"
+            ],
+            "anchorOffset": 29,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 2,
+            "category": "Paragraph",
+            "anchor": [
+              "public",
+              "aquariums",
+              "because",
+              "of",
+              "their",
+              "in",
+              "house",
+              "expertise"
+            ],
+            "anchorOffset": null,
+            "entireElementContiguous": false
+          },
+          {
+            "id": 3,
+            "category": "Figure",
+            "anchor": [],
+            "anchorOffset": null,
+            "entireElementContiguous": false
+          },
+          {
+            "id": 4,
+            "category": "Caption",
+            "anchor": [
+              "figure",
+              "6",
+              "3",
+              "photo",
+              "of",
+              "the",
+              "critically",
+              "endangered"
+            ],
+            "anchorOffset": 116,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 5,
+            "category": "Paragraph",
+            "anchor": [
+              "the",
+              "breeding",
+              "colonies",
+              "of",
+              "the",
+              "butterfly",
+              "splitfin",
+              "figure"
+            ],
+            "anchorOffset": 128,
+            "entireElementContiguous": false
+          },
+          {
+            "id": 6,
+            "category": "Figure",
+            "anchor": [
+              "the",
+              "lake",
+              "sturgeon",
+              "acipenser",
+              "rubicundus",
+              "le",
+              "s",
+              "p"
+            ],
+            "anchorOffset": null,
+            "entireElementContiguous": false
+          },
+          {
+            "id": 7,
+            "category": "Caption",
+            "anchor": [
+              "figure",
+              "6",
+              "4",
+              "lake",
+              "sturgeon",
+              "acipenser",
+              "fulvescens"
+            ],
+            "anchorOffset": 255,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 8,
+            "category": "Paragraph",
+            "anchor": [
+              "the",
+              "banggai",
+              "cardinalfish",
+              "pterapogon",
+              "kauderni",
+              "a",
+              "small",
+              "endangered"
+            ],
+            "anchorOffset": 262,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 9,
+            "category": "Footer",
+            "anchor": [
+              "132",
+              "public",
+              "aquariums",
+              "and",
+              "their",
+              "role",
+              "in",
+              "education"
+            ],
+            "anchorOffset": null,
+            "entireElementContiguous": false
+          }
+        ],
+        "foundAnchorsInGTOrder": true,
+        "tableStructurePresent": true,
+        "colspanPresent": false,
+        "cellScope": "Not scored: PMT-specific pre-caption table scope is not valid for Docling output; raw document JSON cells are scored separately."
+      },
+      "allJSONTextInventory": {
+        "expected": 339,
+        "actual": 319,
+        "matched": 317,
+        "missing": {
+          "in": 1,
+          "the": 1,
+          "house": 1,
+          "rio": 1,
+          "s": 1,
+          "lake": 1,
+          "sturgeon": 1,
+          "acipenser": 1,
+          "rubicundus": 1,
+          "le": 1,
+          "p": 1,
+          "drawing": 1,
+          "by": 2,
+          "h": 1,
+          "l": 1,
+          "from": 1,
+          "no": 1,
+          "national": 1,
+          "museum": 1,
+          "j": 1,
+          "w": 1
+        },
+        "extra": {
+          "inhouse": 1,
+          "río": 1
+        }
+      },
+      "allJSONOriginalInventory": {
+        "expected": 339,
+        "actual": 319,
+        "matched": 317,
+        "missing": {
+          "in": 1,
+          "the": 1,
+          "house": 1,
+          "rio": 1,
+          "s": 1,
+          "lake": 1,
+          "sturgeon": 1,
+          "acipenser": 1,
+          "rubicundus": 1,
+          "le": 1,
+          "p": 1,
+          "drawing": 1,
+          "by": 2,
+          "h": 1,
+          "l": 1,
+          "from": 1,
+          "no": 1,
+          "national": 1,
+          "museum": 1,
+          "j": 1,
+          "w": 1
+        },
+        "extra": {
+          "inhouse": 1,
+          "río": 1
+        }
+      }
+    },
+    {
+      "source": "01030000000134.pdf",
+      "sourceSHA256": "4a6baa0f883743ec25b853bae06a49d230ec010c973501945d46a16f9bb75aa9",
+      "sourceUnchanged": true,
+      "seconds": 4.023117621996789,
+      "status": "ConversionStatus.SUCCESS",
+      "expectedTables": 0,
+      "predictedTables": 0,
+      "tables": [],
+      "quality": null,
+      "markdownSHA256": "96b978807b2e8d8f110f1794e9c96a5e4e3a51ae07011634c6be2c6fb82f0f42",
+      "jsonSHA256": "2525402e61f5ea3cd51ae0d0f669da9837e7b156f8f3ecf924281db259a1fac9",
+      "maxRSSKiB": 1044624,
+      "memoryPeakBytes": 803651584,
+      "OCR": "off; digital PDF words",
+      "remoteServices": false,
+      "manualROIOrThresholdChanges": false,
+      "layoutPreset": "layout_heron_default",
+      "tableMode": "accurate",
+      "markdownContainsExplicitSpans": false,
+      "markdownAnalysis": {
+        "wordInventory": {
+          "expected": 237,
+          "actual": 144,
+          "matched": 144,
+          "missing": {
+            "of": 3,
+            "alligator": 1,
+            "in": 2,
+            "years": 2,
+            "by": 2,
+            "fish": 2,
+            "length": 2,
+            "40": 4,
+            "70": 2,
+            "cm": 2,
+            "and": 3,
+            "10": 2,
+            "weight": 2,
+            "gar": 3,
+            "age": 4,
+            "120": 2,
+            "300": 2,
+            "100": 4,
+            "250": 2,
+            "80": 4,
+            "200": 2,
+            "60": 4,
+            "150": 2,
+            "20": 4,
+            "50": 4,
+            "0": 6,
+            "30": 2,
+            "90": 2,
+            "texas": 1,
+            "ibs": 1,
+            "kg": 2,
+            "140": 1,
+            "rod": 1,
+            "reel": 1,
+            "record": 1,
+            "279": 1,
+            "lbs": 2,
+            "angling": 1,
+            "conservation": 1,
+            "living": 1,
+            "fishy": 1,
+            "dinosaurs": 1,
+            "171": 1
+          },
+          "extra": {}
+        },
+        "nfkcVariantNotPrimary": {
+          "expected": 237,
+          "actual": 144,
+          "matched": 144,
+          "missing": {
+            "of": 3,
+            "alligator": 1,
+            "in": 2,
+            "years": 2,
+            "by": 2,
+            "fish": 2,
+            "length": 2,
+            "40": 4,
+            "70": 2,
+            "cm": 2,
+            "and": 3,
+            "10": 2,
+            "weight": 2,
+            "gar": 3,
+            "age": 4,
+            "120": 2,
+            "300": 2,
+            "100": 4,
+            "250": 2,
+            "80": 4,
+            "200": 2,
+            "60": 4,
+            "150": 2,
+            "20": 4,
+            "50": 4,
+            "0": 6,
+            "30": 2,
+            "90": 2,
+            "texas": 1,
+            "ibs": 1,
+            "kg": 2,
+            "140": 1,
+            "rod": 1,
+            "reel": 1,
+            "record": 1,
+            "279": 1,
+            "lbs": 2,
+            "angling": 1,
+            "conservation": 1,
+            "living": 1,
+            "fishy": 1,
+            "dinosaurs": 1,
+            "171": 1
+          },
+          "extra": {}
+        },
+        "elements": [
+          {
+            "id": 0,
+            "category": "Paragraph",
+            "anchor": [
+              "what",
+              "s",
+              "unique",
+              "about",
+              "the",
+              "growth",
+              "of",
+              "alligator"
+            ],
+            "anchorOffset": 0,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 1,
+            "category": "Chart",
+            "anchor": [
+              "in",
+              "cm",
+              "length",
+              "of",
+              "gar",
+              "fish",
+              "by",
+              "age"
+            ],
+            "anchorOffset": null,
+            "entireElementContiguous": false
+          },
+          {
+            "id": 2,
+            "category": "Caption",
+            "anchor": [
+              "figure",
+              "8",
+              "6",
+              "growth",
+              "in",
+              "length",
+              "of",
+              "alligator"
+            ],
+            "anchorOffset": 109,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 3,
+            "category": "Chart",
+            "anchor": [
+              "ibs",
+              "kg",
+              "weight",
+              "of",
+              "gar",
+              "fish",
+              "by",
+              "age"
+            ],
+            "anchorOffset": null,
+            "entireElementContiguous": false
+          },
+          {
+            "id": 4,
+            "category": "Caption",
+            "anchor": [
+              "figure",
+              "8",
+              "7",
+              "growth",
+              "in",
+              "weight",
+              "of",
+              "alligator"
+            ],
+            "anchorOffset": 120,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 5,
+            "category": "Footer",
+            "anchor": [
+              "angling",
+              "and",
+              "conservation",
+              "of",
+              "living",
+              "fishy",
+              "dinosaurs",
+              "171"
+            ],
+            "anchorOffset": null,
+            "entireElementContiguous": false
+          }
+        ],
+        "foundAnchorsInGTOrder": true,
+        "tableStructurePresent": false,
+        "colspanPresent": false,
+        "cellScope": "Not scored: PMT-specific pre-caption table scope is not valid for Docling output; raw document JSON cells are scored separately."
+      },
+      "allJSONTextInventory": {
+        "expected": 237,
+        "actual": 152,
+        "matched": 152,
+        "missing": {
+          "of": 2,
+          "alligator": 1,
+          "in": 2,
+          "years": 2,
+          "by": 2,
+          "fish": 2,
+          "length": 2,
+          "40": 4,
+          "70": 2,
+          "cm": 2,
+          "and": 2,
+          "10": 2,
+          "weight": 2,
+          "gar": 3,
+          "age": 4,
+          "120": 2,
+          "300": 2,
+          "100": 4,
+          "250": 2,
+          "80": 4,
+          "200": 2,
+          "60": 4,
+          "150": 2,
+          "20": 4,
+          "50": 4,
+          "0": 6,
+          "30": 2,
+          "90": 2,
+          "texas": 1,
+          "ibs": 1,
+          "kg": 2,
+          "140": 1,
+          "rod": 1,
+          "reel": 1,
+          "record": 1,
+          "279": 1,
+          "lbs": 2
+        },
+        "extra": {}
+      },
+      "allJSONOriginalInventory": {
+        "expected": 237,
+        "actual": 152,
+        "matched": 152,
+        "missing": {
+          "of": 2,
+          "alligator": 1,
+          "in": 2,
+          "years": 2,
+          "by": 2,
+          "fish": 2,
+          "length": 2,
+          "40": 4,
+          "70": 2,
+          "cm": 2,
+          "and": 2,
+          "10": 2,
+          "weight": 2,
+          "gar": 3,
+          "age": 4,
+          "120": 2,
+          "300": 2,
+          "100": 4,
+          "250": 2,
+          "80": 4,
+          "200": 2,
+          "60": 4,
+          "150": 2,
+          "20": 4,
+          "50": 4,
+          "0": 6,
+          "30": 2,
+          "90": 2,
+          "texas": 1,
+          "ibs": 1,
+          "kg": 2,
+          "140": 1,
+          "rod": 1,
+          "reel": 1,
+          "record": 1,
+          "279": 1,
+          "lbs": 2
+        },
+        "extra": {}
+      }
+    },
+    {
+      "source": "01030000000135.pdf",
+      "sourceSHA256": "ed941b5cde32cfc778c225dcfa90c334d9995d70c46e7f508635073a3227784b",
+      "sourceUnchanged": true,
+      "seconds": 3.895486086010351,
+      "status": "ConversionStatus.SUCCESS",
+      "expectedTables": 0,
+      "predictedTables": 0,
+      "tables": [],
+      "quality": null,
+      "markdownSHA256": "7c0bdecb0d30d407c8eb88c93619a5a2c348c98b829a254cf808a06a1094bf12",
+      "jsonSHA256": "f8acaee10fd2d557572eb0e8a6a5611e162eceae68f43358f8a28aa391374956",
+      "maxRSSKiB": 1046060,
+      "memoryPeakBytes": 886308864,
+      "OCR": "off; digital PDF words",
+      "remoteServices": false,
+      "manualROIOrThresholdChanges": false,
+      "layoutPreset": "layout_heron_default",
+      "tableMode": "accurate",
+      "markdownContainsExplicitSpans": false,
+      "markdownAnalysis": {
+        "wordInventory": {
+          "expected": 561,
+          "actual": 555,
+          "matched": 554,
+          "missing": {
+            "fly": 1,
+            "conservation": 1,
+            "for": 1,
+            "fishing": 1,
+            "legacy": 1,
+            "s": 1,
+            "191": 1
+          },
+          "extra": {
+            "1": 1
+          }
+        },
+        "nfkcVariantNotPrimary": {
+          "expected": 561,
+          "actual": 555,
+          "matched": 554,
+          "missing": {
+            "fly": 1,
+            "conservation": 1,
+            "for": 1,
+            "fishing": 1,
+            "legacy": 1,
+            "s": 1,
+            "191": 1
+          },
+          "extra": {
+            "1": 1
+          }
+        },
+        "elements": [
+          {
+            "id": 0,
+            "category": "Paragraph",
+            "anchor": [
+              "fly",
+              "fishers",
+              "targeting",
+              "trout",
+              "had",
+              "an",
+              "important",
+              "influence"
+            ],
+            "anchorOffset": 0,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 1,
+            "category": "Paragraph",
+            "anchor": [
+              "trout",
+              "and",
+              "salmon",
+              "are",
+              "the",
+              "only",
+              "sport",
+              "fish"
+            ],
+            "anchorOffset": 115,
+            "entireElementContiguous": false
+          },
+          {
+            "id": 2,
+            "category": "Paragraph",
+            "anchor": [
+              "the",
+              "first",
+              "trout",
+              "fishers",
+              "were",
+              "native",
+              "americans",
+              "native"
+            ],
+            "anchorOffset": 264,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 3,
+            "category": "Paragraph",
+            "anchor": [
+              "the",
+              "story",
+              "of",
+              "rocky",
+              "mountain",
+              "trout",
+              "fishing",
+              "begins"
+            ],
+            "anchorOffset": 389,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 4,
+            "category": "Footnote",
+            "anchor": [
+              "1",
+              "although",
+              "maclean",
+              "and",
+              "other",
+              "writers",
+              "use",
+              "the"
+            ],
+            "anchorOffset": 535,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 5,
+            "category": "Footer",
+            "anchor": [
+              "fly",
+              "fishing",
+              "s",
+              "legacy",
+              "for",
+              "conservation",
+              "191"
+            ],
+            "anchorOffset": null,
+            "entireElementContiguous": false
+          }
+        ],
+        "foundAnchorsInGTOrder": true,
+        "tableStructurePresent": false,
+        "colspanPresent": false,
+        "cellScope": "Not scored: PMT-specific pre-caption table scope is not valid for Docling output; raw document JSON cells are scored separately."
+      },
+      "allJSONTextInventory": {
+        "expected": 561,
+        "actual": 561,
+        "matched": 561,
+        "missing": {},
+        "extra": {}
+      },
+      "allJSONOriginalInventory": {
+        "expected": 561,
+        "actual": 562,
+        "matched": 561,
+        "missing": {},
+        "extra": {
+          "1": 1
+        }
+      }
+    },
+    {
+      "source": "structured.png",
+      "sourceSHA256": "e37ca92cf5b8ad22e228eed1c1065177bbbdc6b865b9e027965660353f934369",
+      "sourceUnchanged": true,
+      "seconds": 6.0778988570091315,
+      "status": "ConversionStatus.SUCCESS",
+      "expectedTables": 1,
+      "predictedTables": 1,
+      "tables": [
+        [
+          {
+            "row": 0,
+            "column": 0,
+            "rowspan": 1,
+            "colspan": 2,
+            "text": "MERGED HEADER"
+          },
+          {
+            "row": 0,
+            "column": 2,
+            "rowspan": 1,
+            "colspan": 1,
+            "text": "TOTAL"
+          },
+          {
+            "row": 1,
+            "column": 0,
+            "rowspan": 1,
+            "colspan": 1,
+            "text": "Al"
+          },
+          {
+            "row": 1,
+            "column": 1,
+            "rowspan": 1,
+            "colspan": 1,
+            "text": "Bl"
+          },
+          {
+            "row": 1,
+            "column": 2,
+            "rowspan": 1,
+            "colspan": 1,
+            "text": "Cl"
+          },
+          {
+            "row": 2,
+            "column": 0,
+            "rowspan": 1,
+            "colspan": 1,
+            "text": "A2"
+          },
+          {
+            "row": 2,
+            "column": 1,
+            "rowspan": 1,
+            "colspan": 1,
+            "text": "B2"
+          },
+          {
+            "row": 2,
+            "column": 2,
+            "rowspan": 1,
+            "colspan": 1,
+            "text": "C2"
+          }
+        ]
+      ],
+      "quality": {
+        "expectedCells": 8,
+        "predictedCells": 8,
+        "textExactAtCell": 5,
+        "spansExactAtCell": 8,
+        "expectedMergedCells": 1,
+        "mergedExactAtCell": 1,
+        "orderedCellTextExact": false,
+        "expectedWordCount": 9,
+        "missingWords": [
+          "A1",
+          "B1",
+          "C1"
+        ],
+        "extraWords": [
+          "Al",
+          "Bl",
+          "Cl"
+        ],
+        "cellDetails": [
+          {
+            "expected": {
+              "row": 0,
+              "column": 0,
+              "rowspan": 1,
+              "colspan": 2,
+              "text": "MERGED HEADER"
+            },
+            "predicted": {
+              "row": 0,
+              "column": 0,
+              "rowspan": 1,
+              "colspan": 2,
+              "text": "MERGED HEADER"
+            },
+            "textExact": true,
+            "spanExact": true
+          },
+          {
+            "expected": {
+              "row": 0,
+              "column": 2,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "TOTAL"
+            },
+            "predicted": {
+              "row": 0,
+              "column": 2,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "TOTAL"
+            },
+            "textExact": true,
+            "spanExact": true
+          },
+          {
+            "expected": {
+              "row": 1,
+              "column": 0,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "A1"
+            },
+            "predicted": {
+              "row": 1,
+              "column": 0,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "Al"
+            },
+            "textExact": false,
+            "spanExact": true
+          },
+          {
+            "expected": {
+              "row": 1,
+              "column": 1,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "B1"
+            },
+            "predicted": {
+              "row": 1,
+              "column": 1,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "Bl"
+            },
+            "textExact": false,
+            "spanExact": true
+          },
+          {
+            "expected": {
+              "row": 1,
+              "column": 2,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "C1"
+            },
+            "predicted": {
+              "row": 1,
+              "column": 2,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "Cl"
+            },
+            "textExact": false,
+            "spanExact": true
+          },
+          {
+            "expected": {
+              "row": 2,
+              "column": 0,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "A2"
+            },
+            "predicted": {
+              "row": 2,
+              "column": 0,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "A2"
+            },
+            "textExact": true,
+            "spanExact": true
+          },
+          {
+            "expected": {
+              "row": 2,
+              "column": 1,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "B2"
+            },
+            "predicted": {
+              "row": 2,
+              "column": 1,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "B2"
+            },
+            "textExact": true,
+            "spanExact": true
+          },
+          {
+            "expected": {
+              "row": 2,
+              "column": 2,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "C2"
+            },
+            "predicted": {
+              "row": 2,
+              "column": 2,
+              "rowspan": 1,
+              "colspan": 1,
+              "text": "C2"
+            },
+            "textExact": true,
+            "spanExact": true
+          }
+        ]
+      },
+      "markdownSHA256": "b5e890a5b9c97cfe083f430ba12b3023cd9f83c4eb4f9270860c9076e00d7399",
+      "jsonSHA256": "6f94d7da760a3c28f6098313f509c598371898fd036c84fc589c3337c752bc54",
+      "maxRSSKiB": 1132840,
+      "memoryPeakBytes": 916471808,
+      "OCR": "system Tesseract eng/full-page",
+      "remoteServices": false,
+      "manualROIOrThresholdChanges": false,
+      "layoutPreset": "layout_heron_default",
+      "tableMode": "accurate",
+      "markdownContainsExplicitSpans": false
+    }
+  ],
+  "limits": "Five bounded cases; no general corpus, vertical-span, release-license or safe product-runtime integration approval.",
+  "setup": {
+    "capBytes": 1073741824,
+    "accountedBytes": 847739690,
+    "wheelBytes": 382503908,
+    "modelBytes": 384428156,
+    "packages": 72
+  },
+  "inferenceEnvironment": {
+    "UID": 1000,
+    "network": "none",
+    "readonlyRoot": true,
+    "modelsReadOnly": true,
+    "cpus": 2,
+    "memoryBytes": 4294967296,
+    "pids": 256,
+    "perCaseSeconds": 180,
+    "outputTmpfsBytes": 67108864
+  },
+  "decision": "Candidate for typed recognition JSON only; no product integration, no default Markdown replacement or distribution approval."
+}

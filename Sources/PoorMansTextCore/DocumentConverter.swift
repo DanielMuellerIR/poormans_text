@@ -136,6 +136,22 @@ public struct DocumentConverter: Sendable {
         }
     }
 
+    /// Liefert einen begrenzten passiven Rasterausschnitt ohne öffentliche Ausgabedateien.
+    public func renderSourcePreview(
+        _ inputURL: URL,
+        selection: SourcePreviewSelection,
+        cancellation: ConversionCancellationToken? = nil,
+        processTimeout: TimeInterval? = nil
+    ) throws -> SourcePreview {
+        #if os(Linux)
+        return try withDetectionContext(cancellation, processTimeout) {
+            try LinuxSourcePreview.render(inputURL, selection: selection)
+        }
+        #else
+        throw PlatformBackendUnavailable("CLI source raster preview; the macOS app uses its native source viewer")
+        #endif
+    }
+
     public func inspectPDFContents(
         _ inputURL: URL,
         maximumPages: Int = 200,

@@ -46,6 +46,26 @@ do {
         exit(CLIExitCode.success.rawValue)
     }
 
+    if let selection = parsedArguments.sourcePreview {
+        let arguments = parsedArguments
+        guard arguments.json, arguments.inputURLs.count == 1, arguments.outputURL == nil,
+              arguments.profileExplicit.isEmpty, arguments.profileName == nil, arguments.saveProfileName == nil,
+              arguments.importProfileURL == nil, arguments.exportProfileURL == nil, !arguments.listProfiles,
+              arguments.profileDirectory == nil, arguments.profileSource == nil, !arguments.allowLocalProfile, !arguments.clearProfileSelection,
+              arguments.epubChapters == nil, arguments.presentationSelection == nil,
+              !arguments.listFormats, !arguments.listSheets, !arguments.listSlides, !arguments.listChapters,
+              !arguments.setsSpreadsheetSelection, !arguments.setsSpreadsheetRendering, !arguments.setsImageTextRecognition,
+              !arguments.setsPDFOptions, !arguments.setsDOCXChangeMode, !arguments.setsJobs, arguments.pandocURL == nil,
+              !arguments.writeToStandardOutput, !arguments.frontmatter, !arguments.sourceMapping,
+              !arguments.conversionReport, !arguments.progress, arguments.outputLayout == .markdownFolder else {
+            throw CLIArgumentError.invalidConversionOption("a source preview requires --json and one source, without output, profile or conversion options")
+        }
+        let preview = try DocumentConverter().renderSourcePreview(arguments.inputURLs[0], selection: selection,
+            cancellation: cancellation, processTimeout: arguments.timeout)
+        writeJSON(JSONSourcePreview(preview: preview))
+        exit(CLIExitCode.success.rawValue)
+    }
+
     if try prepareProfiles(&parsedArguments, cancellation: cancellation) { exit(CLIExitCode.success.rawValue) }
     let arguments = parsedArguments
 

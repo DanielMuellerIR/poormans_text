@@ -19,7 +19,11 @@ Die Linux-Portierung behält Swift als gemeinsamen Konvertierungskern. Offene
 Backend-, Desktop-, Paket- und Mac-Regressionsabnahmen stehen im
 [Linux-Umsetzungsplan](docs/LINUX-PORT.md); die App-Grenze steht im
 [Fastra-CLI-Vertrag](docs/FASTRA-CONTRACT.md). Strukturierte OCR, breitere HEIC-Qualitätsabnahme,
-PDF-/Bildquellvergleich und die vollständige Zielsystemmatrix bleiben offen.
+Quellkoordinatenoverlays und die vollständige Zielsystemmatrix bleiben offen.
+Der passive PDF-/Bildframevergleich ist integriert. Docling/TableFormer ist ein
+teilgeprüfter Kandidat; sicherer Produktadapter, breiter Korpus und Modell-/
+Lizenzpaketierung fehlen. Die bekannte native Mac-OCR-Testblockade verhindert
+weiterhin eine uneingeschränkte Gesamtregressionsaussage.
 Eine öffentliche Linux-Veröffentlichung ist gesondert freizugeben.
 
 ## Offene Qualitätsprüfung

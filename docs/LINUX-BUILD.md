@@ -54,6 +54,10 @@ Der Prüflauf erzeugt seine Dokumente temporär und räumt sie selbst auf.
 Die Oberfläche ist ein dünner Rust-/GTK-Adapter derselben lokalen CLI. Sie bietet
 Datei-/Ordnerauswahl, mehrere Quellen, Optionen, sichere Textvorschau,
 Fortschritt/Abbruch, Diagnosen, Assets, Clipboardformate und CLI-Profile.
+PDF-Seiten und Bildframes lassen sich passiv neben verifizierten UTF8-Referenzen
+vergleichen. Clipboardoriginale liegen bis 64 MiB in versiegelten memfds; die
+gebundene private Quelle ist für Konvertierung, Profile und Vergleich dieselbe.
+Der gesamte private /dev-Baum ist für die äußere CLI schreibgeschützt.
 Die Vorschau führt weder HTML noch Links aus. Allgemeine GUI-Einstellungen
 werden noch nicht automatisch gespeichert; Profile können bewusst gespeichert
 werden. Dies ist eine Entwicklungsvorschau, keine vollständige Desktopabnahme.

@@ -1,0 +1,37 @@
+[
+  {
+    "repo": "docling-project/docling-models",
+    "revision": "fc0f2d45e2218ea24bce5045f58a389aed16dc23",
+    "file": "model_artifacts/tableformer/accurate/tableformer_accurate.safetensors",
+    "bytes": 212758388,
+    "sha256": "2a7d6c924b3cd12fb99a09280ca9c33a89c5d60b93253617d2e088c1a40374d9"
+  },
+  {
+    "repo": "docling-project/docling-models",
+    "revision": "fc0f2d45e2218ea24bce5045f58a389aed16dc23",
+    "file": "model_artifacts/tableformer/accurate/tm_config.json",
+    "bytes": 7060,
+    "sha256": "984e122ceb8ccf84d84c9d2882f6f2302a44b4f1e577babd6289892c36f3cffd"
+  },
+  {
+    "repo": "docling-project/docling-layout-heron",
+    "revision": "8f39ad3c0b4c58e9c2d2c84a38465abf757272d8",
+    "file": "model.safetensors",
+    "bytes": 171658996,
+    "sha256": "00333a43451945aaf89db8ca9c0a17e75d1537c17db60fdb91aa95f4c7929e0c"
+  },
+  {
+    "repo": "docling-project/docling-layout-heron",
+    "revision": "8f39ad3c0b4c58e9c2d2c84a38465abf757272d8",
+    "file": "config.json",
+    "bytes": 3268,
+    "sha256": "fdea30805ce2f5666b147fca941dcdd27ad468e27d6ed21902207d3da056a97d"
+  },
+  {
+    "repo": "docling-project/docling-layout-heron",
+    "revision": "8f39ad3c0b4c58e9c2d2c84a38465abf757272d8",
+    "file": "preprocessor_config.json",
+    "bytes": 444,
+    "sha256": "cd38cd59999e7a95d68e487fbe5132df3d4e5c32a0836add57e6126ba0c4eaf1"
+  }
+]

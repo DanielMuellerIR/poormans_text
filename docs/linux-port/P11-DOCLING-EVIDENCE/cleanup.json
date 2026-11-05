@@ -1,0 +1,11 @@
+{
+  "completedUTC": "2026-11-05T05:06:00Z",
+  "scope": "Own disposable Docling probe container and both own probe images only",
+  "containerRemoved": true,
+  "imagesRemoved": [
+    "pmt-p11-docling-probe:20261105",
+    "pmt-p11-docling-probe:20261105-core"
+  ],
+  "weightsOrWheelsCommitted": false,
+  "foreignImagesPruned": false
+}

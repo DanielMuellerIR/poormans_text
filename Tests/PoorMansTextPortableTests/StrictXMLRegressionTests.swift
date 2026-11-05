@@ -7,9 +7,14 @@ import XCTest
 
 final class StrictXMLRegressionTests: XCTestCase {
     private final class Delegate: NSObject, XMLParserDelegate {}
+    private func parseWithRetainedDelegate(_ data: Data) -> Bool {
+        let delegate = Delegate()
+        let parser = ImportXMLParser.make(data, delegate: delegate)
+        return withExtendedLifetime(delegate) { parser.parse() }
+    }
     func testMalformedXMLAndENMLAreRejected() throws {
         for text in ["<root><p>broken</root>", "<root><p>unfinished", "<root/ junk>"] {
-            XCTAssertFalse(ImportXMLParser.make(Data(text.utf8), delegate: Delegate()).parse(), text)
+            XCTAssertFalse(parseWithRetainedDelegate(Data(text.utf8)), text)
             XCTAssertThrowsError(try ImportXML.parse(Data(text.utf8)), text)
         }
         XCTAssertThrowsError(try ENEXXML.parse("<en-note><p>broken</en-note>", root: "en-note"))
@@ -20,7 +25,7 @@ final class StrictXMLRegressionTests: XCTestCase {
         for encoding in [String.Encoding.utf8, .utf16LittleEndian, .utf16BigEndian, .utf32LittleEndian, .utf32BigEndian] {
             let data = try XCTUnwrap(source.data(using: encoding))
             #if os(Linux)
-            XCTAssertFalse(ImportXMLParser.make(data, delegate: Delegate()).parse())
+            XCTAssertFalse(parseWithRetainedDelegate(data))
             #endif
             XCTAssertThrowsError(try ImportXML.parse(data))
         }
@@ -49,8 +54,9 @@ final class StrictXMLRegressionTests: XCTestCase {
         let shiftedDocument = "<?xml version='1.0' encoding='UTF-7'?>+ADwAIQBEAE8AQwBUAFkAUABFACAAcgBvAG8AdAAgAFsAPAAhAEUATgBUAEkAVABZACAAYgBvAGQAeQAgACcARQBYAFAAQQBOAEQARQBEACcAPgBdAD4APAByAG8AbwB0AD4AJgBiAG8AZAB5ADsAPAAvAHIAbwBvAHQAPg-"
         let ebcdic = try XCTUnwrap(Data(base64Encoded: "TG+nlJNApYWZoomWlX598UvwfUCFlYOWhImVh359ycLU8PP3fW9uTFrE1sPj6NfFQJmWlqNAukxaxdXjyePoQIKWhKhAfcXn18HVxMXEfW67bkyZlpajblCCloSoXkxhmZaWo24="))
         for bytes in [Data(shiftedBracket.utf8), Data(shiftedDocument.utf8), ebcdic] {
-            let parser = ImportXMLParser.make(bytes, delegate: Delegate())
-            XCTAssertFalse(parser.parse())
+            let delegate = Delegate()
+            let parser = ImportXMLParser.make(bytes, delegate: delegate)
+            XCTAssertFalse(withExtendedLifetime(delegate) { parser.parse() })
             XCTAssertTrue(parser.parserError?.localizedDescription.contains("unsupported XML encoding") == true)
             XCTAssertThrowsError(try ImportXML.parse(bytes))
         }
@@ -85,8 +91,9 @@ final class StrictXMLRegressionTests: XCTestCase {
     func testUnsupportedUTF32LittleEndianHasAnExplicitDiagnostic() throws {
         for (name, encoding) in [("UTF-32LE", String.Encoding.utf32LittleEndian), ("UTF-32", .utf32), ("UTF-32", .utf32BigEndian)] {
             let data = try XCTUnwrap(("<?xml version='1.0' encoding='\(name)'?><root>text</root>").data(using: encoding))
-            let parser = ImportXMLParser.make(data, delegate: Delegate())
-            XCTAssertFalse(parser.parse())
+            let delegate = Delegate()
+            let parser = ImportXMLParser.make(data, delegate: delegate)
+            XCTAssertFalse(withExtendedLifetime(delegate) { parser.parse() })
             XCTAssertTrue(parser.parserError?.localizedDescription.contains("unsupported XML encoding") == true)
         }
     }

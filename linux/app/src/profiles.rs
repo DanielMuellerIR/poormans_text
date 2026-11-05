@@ -345,7 +345,18 @@ pub(crate) fn attach(state: &Shared, view: &View, bridge: Rc<Bridge>) {
                 args.extend(["--profile-source".into(), sources[0].as_os_str().to_owned()]);
             }
             popup.popdown();
-            launch_completed(&state, &view, bridge.start_operation(args), false, None);
+            let operation_bridge = if bind.is_active() {
+                crate::source_bridge(&bridge, &state)
+            } else {
+                bridge.as_ref().clone()
+            };
+            launch_completed(
+                &state,
+                &view,
+                operation_bridge.start_operation(args),
+                false,
+                None,
+            );
         });
     }
     for (button, exporting) in [(import, false), (export, true)] {

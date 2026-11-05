@@ -29,6 +29,7 @@ struct ParsedArguments {
     var showHelp = false
     var showVersion = false
     var listFormats = false
+    var sourcePreview: SourcePreviewSelection?
     var listChapters = false
     var epubChapters: IndexSelection?
     var listSlides = false
@@ -94,6 +95,7 @@ Options:
       --list-chapters     Inspect EPUB reading order and navigation without conversion.
       --docx-changes accept|reject|mark  Choose tracked DOCX text (default: accept); comments are retained.
       --image-ocr on|off  Add local OCR text for images (default) or preserve only the image asset.
+      --preview-page N / --preview-frame N  Return one bounded passive source PNG as JSON (Linux only; requires --json).
       --pdf-ocr auto|always|off  Choose local PDF OCR (default: auto).
       --pdf-pages RANGES  Select source pages, e.g. 1,3-5 (PDF inputs only).
       --ocr-method standard|structured  \(ocrMethodHelp)
@@ -162,7 +164,7 @@ and exits 64.
 let valueOptions: Set<String> = [
     "--profile", "--save-profile", "--import-profile", "--export-profile", "--profiles-directory", "--profile-source",
     "-o", "--output", "--pandoc", "--timeout", "--jobs", "--spreadsheet-format",
-    "--docx-changes", "--image-ocr", "--ocr-method", "--pdf-ocr", "--pdf-layout", "--ocr-language", "--pdf-pages", "--sheets", "--sheet-name", "--cell-range", "--slides", "--notes", "--epub-chapters",
+    "--preview-page", "--preview-frame", "--docx-changes", "--image-ocr", "--ocr-method", "--pdf-ocr", "--pdf-layout", "--ocr-language", "--pdf-pages", "--sheets", "--sheet-name", "--cell-range", "--slides", "--notes", "--epub-chapters",
 ]
 
 /// Sagt VOR dem Parsen, ob `--json` als Option vorkommt, damit auch ein
@@ -286,6 +288,11 @@ private func apply(option: String, value: String, to parsed: inout ParsedArgumen
         guard let mode = DOCXChangeMode(rawValue: value) else { throw CLIArgumentError.invalidConversionOption("--docx-changes requires accept, reject, or mark") }
         parsed.docxChangeMode = mode
         parsed.setsDOCXChangeMode = true
+    case "--preview-page", "--preview-frame":
+        guard parsed.sourcePreview == nil, let index = Int(value), (1...1000).contains(index) else {
+            throw CLIArgumentError.invalidConversionOption("a source preview requires exactly one page or frame index between 1 and 1000")
+        }
+        parsed.sourcePreview = option == "--preview-page" ? .page(index) : .frame(index)
     case "--pdf-ocr":
         parsed.setsPDFOptions = true
         guard let mode = PDFTextRecognition(rawValue: value) else { throw CLIArgumentError.invalidConversionOption("--pdf-ocr requires auto, always, or off") }

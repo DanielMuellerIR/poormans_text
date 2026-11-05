@@ -1,0 +1,7 @@
+#!/bin/sh
+if [ "$1" = '--list-langs' ]; then
+ printf 'List of available languages (1):\neng\n'
+ exit 0
+fi
+printf 'IOFaultMarker controlled recognition failure\n' >&2
+exit 2

@@ -1,0 +1,245 @@
+{
+  "source": "structured.png",
+  "sourceSHA256": "e37ca92cf5b8ad22e228eed1c1065177bbbdc6b865b9e027965660353f934369",
+  "sourceUnchanged": true,
+  "seconds": 6.0778988570091315,
+  "status": "ConversionStatus.SUCCESS",
+  "expectedTables": 1,
+  "predictedTables": 1,
+  "tables": [
+    [
+      {
+        "row": 0,
+        "column": 0,
+        "rowspan": 1,
+        "colspan": 2,
+        "text": "MERGED HEADER"
+      },
+      {
+        "row": 0,
+        "column": 2,
+        "rowspan": 1,
+        "colspan": 1,
+        "text": "TOTAL"
+      },
+      {
+        "row": 1,
+        "column": 0,
+        "rowspan": 1,
+        "colspan": 1,
+        "text": "Al"
+      },
+      {
+        "row": 1,
+        "column": 1,
+        "rowspan": 1,
+        "colspan": 1,
+        "text": "Bl"
+      },
+      {
+        "row": 1,
+        "column": 2,
+        "rowspan": 1,
+        "colspan": 1,
+        "text": "Cl"
+      },
+      {
+        "row": 2,
+        "column": 0,
+        "rowspan": 1,
+        "colspan": 1,
+        "text": "A2"
+      },
+      {
+        "row": 2,
+        "column": 1,
+        "rowspan": 1,
+        "colspan": 1,
+        "text": "B2"
+      },
+      {
+        "row": 2,
+        "column": 2,
+        "rowspan": 1,
+        "colspan": 1,
+        "text": "C2"
+      }
+    ]
+  ],
+  "quality": {
+    "expectedCells": 8,
+    "predictedCells": 8,
+    "textExactAtCell": 5,
+    "spansExactAtCell": 8,
+    "expectedMergedCells": 1,
+    "mergedExactAtCell": 1,
+    "orderedCellTextExact": false,
+    "expectedWordCount": 9,
+    "missingWords": [
+      "A1",
+      "B1",
+      "C1"
+    ],
+    "extraWords": [
+      "Al",
+      "Bl",
+      "Cl"
+    ],
+    "cellDetails": [
+      {
+        "expected": {
+          "row": 0,
+          "column": 0,
+          "rowspan": 1,
+          "colspan": 2,
+          "text": "MERGED HEADER"
+        },
+        "predicted": {
+          "row": 0,
+          "column": 0,
+          "rowspan": 1,
+          "colspan": 2,
+          "text": "MERGED HEADER"
+        },
+        "textExact": true,
+        "spanExact": true
+      },
+      {
+        "expected": {
+          "row": 0,
+          "column": 2,
+          "rowspan": 1,
+          "colspan": 1,
+          "text": "TOTAL"
+        },
+        "predicted": {
+          "row": 0,
+          "column": 2,
+          "rowspan": 1,
+          "colspan": 1,
+          "text": "TOTAL"
+        },
+        "textExact": true,
+        "spanExact": true
+      },
+      {
+        "expected": {
+          "row": 1,
+          "column": 0,
+          "rowspan": 1,
+          "colspan": 1,
+          "text": "A1"
+        },
+        "predicted": {
+          "row": 1,
+          "column": 0,
+          "rowspan": 1,
+          "colspan": 1,
+          "text": "Al"
+        },
+        "textExact": false,
+        "spanExact": true
+      },
+      {
+        "expected": {
+          "row": 1,
+          "column": 1,
+          "rowspan": 1,
+          "colspan": 1,
+          "text": "B1"
+        },
+        "predicted": {
+          "row": 1,
+          "column": 1,
+          "rowspan": 1,
+          "colspan": 1,
+          "text": "Bl"
+        },
+        "textExact": false,
+        "spanExact": true
+      },
+      {
+        "expected": {
+          "row": 1,
+          "column": 2,
+          "rowspan": 1,
+          "colspan": 1,
+          "text": "C1"
+        },
+        "predicted": {
+          "row": 1,
+          "column": 2,
+          "rowspan": 1,
+          "colspan": 1,
+          "text": "Cl"
+        },
+        "textExact": false,
+        "spanExact": true
+      },
+      {
+        "expected": {
+          "row": 2,
+          "column": 0,
+          "rowspan": 1,
+          "colspan": 1,
+          "text": "A2"
+        },
+        "predicted": {
+          "row": 2,
+          "column": 0,
+          "rowspan": 1,
+          "colspan": 1,
+          "text": "A2"
+        },
+        "textExact": true,
+        "spanExact": true
+      },
+      {
+        "expected": {
+          "row": 2,
+          "column": 1,
+          "rowspan": 1,
+          "colspan": 1,
+          "text": "B2"
+        },
+        "predicted": {
+          "row": 2,
+          "column": 1,
+          "rowspan": 1,
+          "colspan": 1,
+          "text": "B2"
+        },
+        "textExact": true,
+        "spanExact": true
+      },
+      {
+        "expected": {
+          "row": 2,
+          "column": 2,
+          "rowspan": 1,
+          "colspan": 1,
+          "text": "C2"
+        },
+        "predicted": {
+          "row": 2,
+          "column": 2,
+          "rowspan": 1,
+          "colspan": 1,
+          "text": "C2"
+        },
+        "textExact": true,
+        "spanExact": true
+      }
+    ]
+  },
+  "markdownSHA256": "b5e890a5b9c97cfe083f430ba12b3023cd9f83c4eb4f9270860c9076e00d7399",
+  "jsonSHA256": "6f94d7da760a3c28f6098313f509c598371898fd036c84fc589c3337c752bc54",
+  "maxRSSKiB": 1132840,
+  "memoryPeakBytes": 916471808,
+  "OCR": "system Tesseract eng/full-page",
+  "remoteServices": false,
+  "manualROIOrThresholdChanges": false,
+  "layoutPreset": "layout_heron_default",
+  "tableMode": "accurate",
+  "markdownContainsExplicitSpans": false
+}

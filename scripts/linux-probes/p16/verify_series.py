@@ -151,6 +151,9 @@ def main():
         parser.add_argument('--' + arg, required=True, type=Path)
     args = parser.parse_args()
     cli, repo, pandoc = [getattr(args, x).resolve(strict=True) for x in ['cli', 'repo', 'pandoc']]
+    import re
+    expected_version = re.search(r'public static let version = "([^"]+)"',
+        (repo / 'Sources/PoorMansTextCore/ProductInfo.swift').read_text()).group(1)
     root = args.root.absolute()
     root.mkdir(mode=0o700)
     root = root.resolve()
@@ -238,7 +241,7 @@ def main():
             try:
                 response = json.loads(out.read_text())
                 record['version'] = response.get('version')
-                checks['version0.41.10'] = response.get('version') == '0.41.10'
+                checks['expectedVersion:' + expected_version] = response.get('version') == expected_version
                 checks['expectedJSON'] = response.get('ok') is (expected == 0)
                 if expected == 0:
                     record['analysis'] = validate(response, hashes)

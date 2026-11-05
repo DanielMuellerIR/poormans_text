@@ -351,3 +351,10 @@ func exitCode(for error: Error) -> CLIExitCode {
     }
 }
 
+
+struct JSONSourcePreview: Encodable {
+    let ok = true
+    let version = ProductInfo.version
+    let operation = "source-preview"
+    let preview: SourcePreview
+}

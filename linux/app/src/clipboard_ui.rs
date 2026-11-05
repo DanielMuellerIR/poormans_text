@@ -263,11 +263,7 @@ pub(crate) fn self_test(state: &Shared, view: &View, fixtures: PathBuf) {
             if state.borrow().is_busy() {
                 return glib::ControlFlow::Continue;
             }
-            let root = state
-                .borrow()
-                .clipboard_source
-                .as_ref()
-                .map(|source| source.root().to_path_buf());
+            let root = state.borrow().clipboard_source.as_ref().map(Arc::downgrade);
             let Some(root) = root else {
                 eprintln!("PMT_UI_TEST_CLIPBOARD_FAILURE source-not-installed");
                 view.window.close();
@@ -287,7 +283,7 @@ pub(crate) fn self_test(state: &Shared, view: &View, fixtures: PathBuf) {
             ));
             view.destination.set_text(output.to_str().unwrap());
             view.convert.emit_clicked();
-            if !state.borrow().is_busy() || !root.exists() {
+            if !state.borrow().is_busy() || root.upgrade().is_none() {
                 eprintln!("PMT_UI_TEST_CLIPBOARD_FAILURE source-not-held-at-start");
                 view.window.close();
                 return glib::ControlFlow::Break;
@@ -304,7 +300,7 @@ pub(crate) fn self_test(state: &Shared, view: &View, fixtures: PathBuf) {
                 if state.borrow().is_busy() {
                     return glib::ControlFlow::Continue;
                 }
-                if !root.exists() {
+                if root.upgrade().is_none() {
                     eprintln!("PMT_UI_TEST_CLIPBOARD_FAILURE source-removed-before-clear");
                     view.window.close();
                     return glib::ControlFlow::Break;
@@ -320,6 +316,12 @@ pub(crate) fn self_test(state: &Shared, view: &View, fixtures: PathBuf) {
                     view.window.close();
                     return glib::ControlFlow::Break;
                 };
+                if selected.source_origin != crate::model::SourceOrigin::Clipboard {
+                    eprintln!("PMT_UI_TEST_CLIPBOARD_FAILURE missing-source-origin");
+                    view.window.close();
+                    return glib::ControlFlow::Break;
+                }
+                view.compare.emit_clicked();
                 let expected = std::fs::read_to_string(selected.path).unwrap();
                 copy_markdown(&state, &view);
                 let state = state.clone();
@@ -343,30 +345,40 @@ pub(crate) fn self_test(state: &Shared, view: &View, fixtures: PathBuf) {
                             return;
                         }
                         eprintln!("PMT_UI_TEST_CLIPBOARD_COPY complete-real-md-exact");
-                        set_sources(&state, &view, vec![]);
-                        if root.exists() {
-                            eprintln!("PMT_UI_TEST_CLIPBOARD_FAILURE clear-did-not-clean");
-                            view.window.close();
-                            return;
-                        }
-                        eprintln!("PMT_UI_TEST_CLIPBOARD_UI clear-cleaned-after-real-job");
-                        let clipboard = view.window.clipboard();
-                        clipboard
-                            .set_content(Some(&gtk::gdk::ContentProvider::for_bytes(
-                                "image/png",
-                                &glib::Bytes::from_owned(
-                                    std::fs::read(fixtures.join("source.png")).unwrap(),
-                                ),
-                            )))
-                            .unwrap();
-                        begin_clipboard(&state, &view, clipboard::Offer::new("image/png").unwrap());
-                        let state = state.clone();
-                        let view = view.clone();
-                        glib::timeout_add_local(Duration::from_millis(50), move || {
+                        glib::timeout_add_local(Duration::from_millis(25), move || {
                             if state.borrow().is_busy() {
                                 return glib::ControlFlow::Continue;
                             }
-                            view.window.close();
+                            set_sources(&state, &view, vec![]);
+                            if root.upgrade().is_some() {
+                                eprintln!("PMT_UI_TEST_CLIPBOARD_FAILURE clear-did-not-clean");
+                                view.window.close();
+                                return glib::ControlFlow::Break;
+                            }
+                            eprintln!("PMT_UI_TEST_CLIPBOARD_UI clear-cleaned-after-real-job");
+                            let clipboard = view.window.clipboard();
+                            clipboard
+                                .set_content(Some(&gtk::gdk::ContentProvider::for_bytes(
+                                    "image/png",
+                                    &glib::Bytes::from_owned(
+                                        std::fs::read(fixtures.join("source.png")).unwrap(),
+                                    ),
+                                )))
+                                .unwrap();
+                            begin_clipboard(
+                                &state,
+                                &view,
+                                clipboard::Offer::new("image/png").unwrap(),
+                            );
+                            let state = state.clone();
+                            let view = view.clone();
+                            glib::timeout_add_local(Duration::from_millis(50), move || {
+                                if state.borrow().is_busy() {
+                                    return glib::ControlFlow::Continue;
+                                }
+                                view.window.close();
+                                glib::ControlFlow::Break
+                            });
                             glib::ControlFlow::Break
                         });
                     });

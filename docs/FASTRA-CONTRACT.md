@@ -1,6 +1,6 @@
 # CLI-Vertrag zwischen Poor Man's Text und Fastra
 
-Stand: 2026-11-05. Dokumentationsstand 3; **keine neue Protokollversion**.
+Stand: 2026-11-05. Dokumentationsstand 4; **keine neue Protokollversion**.
 Bestandsbasis: Poor Man's Text `919c575` (0.41.7), Fastra `6f59816` (1.157.1).
 Diese Datei dokumentiert den vorhandenen Vertrag und trennt geplante
 Linux-Abnahmen davon. Sie implementiert keine neue Schnittstelle.
@@ -17,7 +17,19 @@ GTK-Oberfläche bei unverändertem CLI-Vertrag. Ein vorhandener echter
 Fastra-Rust-Consumer und die tatsächliche GTK-Anwendung bestehen CSV-/MBOX-
 beziehungsweise MBOX-Replays gegen 0.41.10. Die Artefakte sind per SHA256 benannt;
 eine unabhängig gesicherte aktuelle Consumer-Commitbindung und die vollständige
-App-zu-App-Matrix fehlen weiterhin. Bestandene Proben sind keine Gesamtfreigabe.
+App-zu-App-Matrix fehlen weiterhin. Der finale .12-Produzent besteht zusätzlich
+einen echten GIO-Öffnungs-/Editor-/Reopen-Lauf mit Fastra1.158.0 und DOCX mit PNG;
+[Artefakte und Grenzen](linux-port/P16-04112/arch-fastra/REPORT.md). Bestandene
+Proben sind keine Gesamtfreigabe.
+
+Die .12-Operation `--json --preview-page N -- quelle.pdf` beziehungsweise
+`--json --preview-frame N -- bild` ist eine getrennte passive Leseoperation.
+Sie liefert PNG-Base64, Hash, Maße, Auswahl und Quellidentität; weder
+`outputDirectory` noch ein künstlicher Markdown-Konvertierungserfolg werden
+erzeugt. Ein Consumer muss sie ausdrücklich aufrufen; der bestehende
+Konvertierungsvertrag und dessen Erfolgsauswertung bleiben unverändert. Mac
+meldet diese Linux-Previewfähigkeit kontrolliert mit69 als nicht verfügbar.
+[SourcePreview-Nachweis](linux-port/P16-04112/preview/README.md).
 
 ## Zuständigkeit
 
@@ -180,7 +192,8 @@ darf nicht als bestätigte Gleichheit gelten. Details:
 Die Quelle wird nie ersetzt. Ergebnisdateien dürfen weder fremde Dateien
 einschleusen noch beim Aufräumen fremde Verzeichnisse löschen. Linux-Pfade mit
 ungültigem UTF-8 werden vom Linux-Producer vor der Konvertierung kontrolliert
-abgewiesen. Verzeichnislesen, Aliasziele und Ausgabeeltern ersetzen solche Bytes
+abgewiesen: direkte ungültige argv-Bytes mit64, ungültige Einträge innerhalb
+eines gelesenen Quellordners mit74. Verzeichnislesen, Aliasziele und Ausgabeeltern ersetzen solche Bytes
 nicht still im JSON-Pfad; die Produktregressionen stehen in der P06-Abnahme.
 Der frühe isolierte P02-Harness wird dafür nicht als Produktbeleg verwendet.
 

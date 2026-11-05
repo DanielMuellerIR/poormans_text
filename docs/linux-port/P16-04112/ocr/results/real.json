@@ -1,0 +1,109 @@
+[
+  {
+    "case": "blank",
+    "source": "blank.png",
+    "sourceSHA256": "e6c1b77f53191625cb96289940e11361f943997ad26799f95900659278d34a45",
+    "sourceUnchanged": true,
+    "exit": 0,
+    "seconds": 0.714816484003677,
+    "published": true,
+    "controlledRecognitionSleepObserved": false,
+    "response": {
+      "assets": [
+        "/probe/results/real-blank-1793855555105948882/images/image01.png"
+      ],
+      "diagnosticGroups": [
+        {
+          "code": "ocr.languageDefault",
+          "count": 1,
+          "kind": "information",
+          "locations": [],
+          "messages": [
+            "Linux standard OCR uses the installed language data: eng. Select OCR languages explicitly for other text."
+          ],
+          "omittedCount": 0
+        },
+        {
+          "code": "image.textUnavailable",
+          "count": 1,
+          "kind": "information",
+          "locations": [
+            {
+              "frame": 1
+            }
+          ],
+          "messages": [
+            "No text could be extracted from at least one image frame."
+          ],
+          "omittedCount": 0
+        }
+      ],
+      "diagnostics": [
+        {
+          "code": "ocr.languageDefault",
+          "kind": "information",
+          "message": "Linux standard OCR uses the installed language data: eng. Select OCR languages explicitly for other text."
+        },
+        {
+          "code": "image.textUnavailable",
+          "kind": "information",
+          "location": {
+            "frame": 1
+          },
+          "message": "No text could be extracted from at least one image frame."
+        }
+      ],
+      "documents": [
+        {
+          "assets": [
+            "/probe/results/real-blank-1793855555105948882/images/image01.png"
+          ],
+          "markdownFile": "/probe/results/real-blank-1793855555105948882/blank.md",
+          "metadata": {},
+          "sourceIndex": 1,
+          "title": "blank"
+        }
+      ],
+      "input": "/probe/fixtures/blank.png",
+      "markdownFile": "/probe/results/real-blank-1793855555105948882/blank.md",
+      "metadata": {},
+      "ok": true,
+      "outputDirectory": "/probe/results/real-blank-1793855555105948882",
+      "outputFiles": [
+        {
+          "byteCount": 104,
+          "path": "blank.md",
+          "sha256": "52a999431b1e536cad7c2d8d1c2b1c86f68a12c7b297a4d4972e074d7396dca2"
+        },
+        {
+          "byteCount": 606,
+          "path": "images/image01.png",
+          "sha256": "e6c1b77f53191625cb96289940e11361f943997ad26799f95900659278d34a45"
+        }
+      ],
+      "sourceIdentity": {
+        "byteCount": 606,
+        "name": "blank.png",
+        "sha256": "e6c1b77f53191625cb96289940e11361f943997ad26799f95900659278d34a45"
+      },
+      "sourceMappings": [
+        {
+          "output": {
+            "file": "blank.md",
+            "utf8Length": 53,
+            "utf8Offset": 50
+          },
+          "source": {
+            "frame": 1
+          }
+        }
+      ],
+      "version": "0.41.12",
+      "warnings": [
+        "Linux standard OCR uses the installed language data: eng. Select OCR languages explicitly for other text.",
+        "Frame 1: No text could be extracted from at least one image frame."
+      ]
+    },
+    "stderr": ""
+  }
+]

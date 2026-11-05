@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.41.12 — 2026-11-05
+
+- Fail requested Linux OCR without publishing when its backend is missing, times out or reports an I/O failure; only report image OCR text when text was actually added.
+- Restore native macOS DTD rejection while preserving Linux XML handling.
+- Bind Linux clipboard originals through sealed read-only memory files, protect the private device tree from output publication and release comparison inputs after the job barrier.
+- Add bounded passive Linux PDF-page and image-frame previews through the shared Swift CLI, with source fingerprint checks, canonical PNG transport and cancellation barriers.
+- Show original page/frame rasters beside verified UTF-8 output references; close comparison windows only after preview jobs finish, without inventing source-coordinate overlays.
+
 ## 0.41.11 — 2026-11-05
 
 - Add optional Linux HEIC decoding through the local distro libheif/HEVC backend, preserving original bytes alongside portable RGBA PNG frames with explicit rendering limits.

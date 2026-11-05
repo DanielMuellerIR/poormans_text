@@ -1,0 +1,8 @@
+Test Suite 'Selected tests' started at 2026-11-05 05:15:27.896
+Test Suite 'LinuxOCRTests' started at 2026-11-05 05:15:27.898
+Test Case 'LinuxOCRTests.testMissingOCRBackendCannotPublishAnImageResult' started at 2026-11-05 05:15:27.898
+Test Case 'LinuxOCRTests.testMissingOCRBackendCannotPublishAnImageResult' passed (0.312 seconds)
+Test Suite 'LinuxOCRTests' passed at 2026-11-05 05:15:28.209
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.312 (0.312) seconds
+Test Suite 'Selected tests' passed at 2026-11-05 05:15:28.209
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.312 (0.312) seconds

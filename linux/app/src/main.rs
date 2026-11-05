@@ -4,6 +4,7 @@ mod comparison;
 mod model;
 mod profiles;
 mod read_output;
+mod source_raster;
 use gtk::{gio, glib, prelude::*};
 use model::{Options, OutputFile, tr};
 use pmt_bridge::{Bridge, ErrorKind, Event, Job, JobHandle};
@@ -15,6 +16,7 @@ struct State {
     sources: Vec<PathBuf>,
     generation: u64,
     active: Option<JobHandle>,
+    raster_jobs: Vec<(u64, JobHandle)>,
     cancelled: bool,
     closing: bool,
     files: Vec<OutputFile>,
@@ -25,10 +27,12 @@ struct State {
     test_response: Option<Value>,
     #[cfg(feature = "ui-self-test")]
     test_conversion_args: Vec<OsString>,
+    #[cfg(feature = "ui-self-test")]
+    test_clear: Option<Box<dyn FnOnce()>>,
 }
 impl State {
     fn is_busy(&self) -> bool {
-        self.active.is_some() || self.clipboard_read.is_some()
+        self.active.is_some() || self.clipboard_read.is_some() || !self.raster_jobs.is_empty()
     }
 }
 #[derive(Clone)]
@@ -639,6 +643,7 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
         sources: vec![],
         generation: 0,
         active: None,
+        raster_jobs: vec![],
         cancelled: false,
         closing: false,
         files: vec![],
@@ -649,6 +654,8 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
         test_response: None,
         #[cfg(feature = "ui-self-test")]
         test_conversion_args: vec![],
+        #[cfg(feature = "ui-self-test")]
+        test_clear: None,
     }));
     let bridge = Bridge::new(cli_path());
     let bridge = Rc::new(if let Some(path) = std::env::var_os("PMT_PROCESS_GUARD") {
@@ -670,6 +677,7 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
         let state = state.clone();
         let view = view.clone();
         view.compare.clone().connect_clicked(move |_| {
+            if state.borrow().is_busy(){view.rejection.set_text(tr("Bitte den laufenden Auftrag beenden, bevor ein weiterer Vergleich geöffnet wird.","Finish the active job before opening another comparison."));return;}
             let selected = state
                 .borrow()
                 .files
@@ -677,7 +685,7 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
                 .cloned()
                 .filter(|file| file.preview);
             if let Some(file) = selected {
-                comparison::open(&view.window, file);
+                comparison::open(&view.window, file, &state);
             }
         });
     }
@@ -735,7 +743,12 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
                     {
                         state.borrow_mut().test_conversion_args = args.clone();
                     }
-                    launch(&state, &view, bridge.start_conversion(args), true);
+                    launch(
+                        &state,
+                        &view,
+                        source_bridge(&bridge, &state).start_conversion(args),
+                        true,
+                    );
                 }
                 Err(error) => view.rejection.set_text(&error),
             }
@@ -790,7 +803,12 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
                     OsString::from("--"),
                     source.into_os_string(),
                 ];
-                launch(&state, &view, bridge.start_operation(args), false);
+                launch(
+                    &state,
+                    &view,
+                    source_bridge(&bridge, &state).start_operation(args),
+                    false,
+                );
             } else {
                 view.status.set_text(tr(
                     "Bitte zuerst eine Quelle wählen.",
@@ -857,14 +875,20 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
                 cancel_job(&state, &view);
                 glib::Propagation::Stop
             } else {
+                // Vergleichsfenster sind ebenfalls Application-Fenster und halten sonst
+                // nach dem Hauptfenster den Prozess trotz abgeschlossener Jobs offen.
+                if let Some(application) = view.window.application() {
+                    let main = view.window.clone().upcast::<gtk::Window>();
+                    for child in application.windows() {
+                        if child != main {
+                            child.close();
+                        }
+                    }
+                }
                 let source = state.borrow_mut().clipboard_source.take();
-                #[cfg(feature = "ui-self-test")]
-                let root = source.as_ref().map(|source| source.root().to_path_buf());
                 std::mem::drop(source);
                 #[cfg(feature = "ui-self-test")]
-                if let Some(root) = root {
-                    eprintln!("PMT_UI_TEST_CLIPBOARD_CLOSE cleaned={}", !root.exists());
-                }
+                eprintln!("PMT_UI_TEST_CLIPBOARD_CLOSE released-after-job-barrier");
                 glib::Propagation::Proceed
             }
         });
@@ -935,6 +959,120 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
         });
     }
     #[cfg(feature = "ui-self-test")]
+    if let Some(path) = std::env::var_os("PMT_UI_TEST_BOUND_SOURCE") {
+        let state = state.clone();
+        let view = view.clone();
+        let bridge = bridge.clone();
+        let path = PathBuf::from(path);
+        let mut started = false;
+        glib::timeout_add_local(Duration::from_millis(50), move || {
+            if started || state.borrow().is_busy() {
+                return glib::ControlFlow::Continue;
+            }
+            started = true;
+            let bytes = std::fs::read(&path).unwrap();
+            let ext = path.extension().unwrap().to_str().unwrap();
+            let input = pmt_bridge::BoundInput::new(
+                &bytes,
+                pmt_bridge::InputName::new(&format!("clipboard.{ext}")).unwrap(),
+            )
+            .unwrap();
+            let output = path.parent().unwrap().join(format!(
+                "bound-compare-{}",
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap()
+                    .as_nanos()
+            ));
+            let mut args = vec![
+                "--image-ocr".into(),
+                "off".into(),
+                "--source-map".into(),
+                "--output".into(),
+                output.into_os_string(),
+                "--".into(),
+                input.path().into_os_string(),
+            ];
+            if let Some(pandoc) = std::env::var_os("PMT_UI_TEST_BOUND_PANDOC") {
+                args.splice(0..0, ["--pandoc".into(), pandoc]);
+            }
+            let job = bridge
+                .as_ref()
+                .clone()
+                .with_input(input.clone())
+                .start_conversion(args);
+            let next_state = state.clone();
+            let next_view = view.clone();
+            launch_completed(
+                &state,
+                &view,
+                job,
+                true,
+                Some(Box::new(move |value| {
+                    let mut file = model::outputs(value).remove(0);
+                    file.bound_input = Some(input);
+                    file.source_origin = model::SourceOrigin::Clipboard;
+                    glib::idle_add_local_once(move || {
+                        let error_probe = std::env::var_os("PMT_UI_TEST_BOUND_ERROR").is_some();
+                        let identity = {
+                            use std::os::unix::fs::MetadataExt;
+                            let reader = file.bound_input.as_ref().unwrap().reader().unwrap();
+                            let m = reader.metadata().unwrap();
+                            (m.dev(), m.ino())
+                        };
+                        if error_probe {
+                            let mut value = (**file.context.as_ref().unwrap()).clone();
+                            value["outputFiles"][0]["byteCount"] =
+                                serde_json::json!(16 * 1024 * 1024 + 1);
+                            file.context = Some(Arc::new(read_output::Context::new(value)));
+                        }
+                        next_state.borrow_mut().files = vec![file.clone()];
+                        if std::env::var_os("PMT_UI_TEST_BOUND_RELEASE").is_some() {
+                            let state = next_state.clone();
+                            let view = next_view.clone();
+                            next_state.borrow_mut().test_clear =
+                                Some(Box::new(move || set_sources(&state, &view, vec![])));
+                        }
+                        comparison::open(&next_view.window, file, &next_state);
+                        if error_probe {
+                            glib::timeout_add_local_once(Duration::from_millis(50), move || {
+                                set_sources(&next_state, &next_view, vec![]);
+                                let main = next_view.window.clone().upcast::<gtk::Window>();
+                                for child in next_view.window.application().unwrap().windows() {
+                                    if child != main {
+                                        child.close();
+                                    }
+                                }
+                                glib::timeout_add_local_once(
+                                    Duration::from_millis(50),
+                                    move || {
+                                        use std::os::unix::fs::MetadataExt;
+                                        assert!(next_view.window.is_visible());
+                                        let count = std::fs::read_dir("/proc/self/fd")
+                                            .unwrap()
+                                            .filter_map(Result::ok)
+                                            .filter_map(|e| std::fs::metadata(e.path()).ok())
+                                            .filter(|m| (m.dev(), m.ino()) == identity)
+                                            .count();
+                                        assert_eq!(
+                                            count, 0,
+                                            "failed comparison retained sealed source"
+                                        );
+                                        eprintln!(
+                                            "PMT_UI_TEST_BOUND_ERROR_RELEASE app-open-source-cleared-fds=0"
+                                        );
+                                        next_view.window.close();
+                                    },
+                                );
+                            });
+                        }
+                    });
+                })),
+            );
+            glib::ControlFlow::Break
+        });
+    }
+    #[cfg(feature = "ui-self-test")]
     if let Some(fixtures) = std::env::var_os("PMT_UI_TEST_CLIPBOARD") {
         let state = state.clone();
         let view = view.clone();
@@ -988,7 +1126,57 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
                 .find(|file| file.preview)
                 .cloned()
                 .expect("Real CLI result missing");
-            comparison::open(&view.window, file);
+            comparison::open(&view.window, file, &state);
+            glib::ControlFlow::Break
+        });
+    }
+    #[cfg(feature = "ui-self-test")]
+    if let Some(input) = std::env::var_os("PMT_UI_TEST_RASTER") {
+        let state = state.clone();
+        let view = view.clone();
+        let mut started = false;
+        glib::timeout_add_local(Duration::from_millis(50), move || {
+            if state.borrow().is_busy() {
+                return glib::ControlFlow::Continue;
+            }
+            if !started {
+                let input = PathBuf::from(&input);
+                let directory = input.parent().unwrap();
+                set_sources(&state, &view, vec![input.clone()]);
+                for (flag, check) in &view.controls.flags {
+                    if flag == "--source-map" {
+                        check.set_active(true);
+                    }
+                }
+                for (flag, choice, values) in &view.controls.choices {
+                    if flag == "--pdf-ocr" {
+                        choice.set_selected(values.iter().position(|v| v == "off").unwrap() as u32);
+                    }
+                }
+                view.destination.set_text(
+                    directory
+                        .join(format!(
+                            "raster-ui-{}",
+                            std::time::SystemTime::now()
+                                .duration_since(std::time::UNIX_EPOCH)
+                                .unwrap()
+                                .as_nanos()
+                        ))
+                        .to_str()
+                        .unwrap(),
+                );
+                view.convert.emit_clicked();
+                started = true;
+                return glib::ControlFlow::Continue;
+            }
+            let file = state
+                .borrow()
+                .files
+                .iter()
+                .find(|file| file.preview)
+                .cloned()
+                .expect("Real raster conversion result missing");
+            comparison::open(&view.window, file, &state);
             glib::ControlFlow::Break
         });
     }
@@ -1115,15 +1303,25 @@ fn choose_sources(state: &Shared, view: &View, folder: bool) {
     }
 }
 fn cancel_job(state: &Shared, view: &View) {
-    let (job, clipboard) = {
+    let (job, clipboard, rasters) = {
         let mut s = state.borrow_mut();
         if !s.is_busy() {
             return;
         }
         s.cancelled = true;
         s.generation += 1;
-        (s.active.clone(), s.clipboard_read.clone())
+        (
+            s.active.clone(),
+            s.clipboard_read.clone(),
+            s.raster_jobs
+                .iter()
+                .map(|(_, handle)| handle.clone())
+                .collect::<Vec<_>>(),
+        )
     };
+    for handle in rasters {
+        handle.cancel();
+    }
     if let Some(job) = job {
         job.cancel();
     }
@@ -1361,7 +1559,13 @@ fn load_preview(state: &Shared, view: &View, file: model::OutputFile) {
 }
 
 fn show_files(state: &Shared, view: &View, value: &Value) {
-    let files = model::outputs(value);
+    let mut files = model::outputs(value);
+    if let Some(source) = &state.borrow().clipboard_source {
+        for file in &mut files {
+            file.source_origin = model::SourceOrigin::Clipboard;
+            file.bound_input = Some(source.binding.clone());
+        }
+    }
     state.borrow_mut().files = files.clone();
     view.files.set_sensitive(false);
     view.files.set_model(Some(&gtk::StringList::new(&[tr(
@@ -1449,12 +1653,25 @@ fn bounded_dropdown(dropdown: &gtk::DropDown) {
     dropdown.set_list_factory(Some(&factory));
 }
 
-fn conversion_arguments(state: &Shared, view: &View) -> Result<Vec<OsString>, String> {
+fn source_bridge(bridge: &Bridge, state: &Shared) -> Bridge {
     if let Some(source) = &state.borrow().clipboard_source {
+        bridge.clone().with_input(source.binding.clone())
+    } else {
+        bridge.clone()
+    }
+}
+
+fn conversion_arguments(state: &Shared, view: &View) -> Result<Vec<OsString>, String> {
+    if state.borrow().clipboard_source.is_some() {
         let destination = view.destination.text();
-        if destination.trim().is_empty() || clipboard::destination_is_private(source, &destination)
+        if destination.trim().is_empty()
+            || std::path::Path::new(destination.as_str()).starts_with("/dev/pmt-input")
         {
-            return Err(tr("Für die Zwischenablage bitte einen neuen Zielordner außerhalb des privaten Quellordners wählen.","For clipboard content, choose a new target folder outside the private source folder.").into());
+            return Err(tr(
+                "Für die Zwischenablage bitte einen neuen Zielordner für das Ergebnis wählen.",
+                "For clipboard content, choose a new target folder for the result.",
+            )
+            .into());
         }
     }
     let profile = state.borrow().profile.clone();

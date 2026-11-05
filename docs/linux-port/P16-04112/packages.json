@@ -1,0 +1,31 @@
+{
+  "formats": {
+    "poormans-text-0.41.12-1-x86_64.pkg.tar.zst": {
+      "sha256": "fe70d9b1b949eb311801dbb704f25804399f2ee0c06d86fd68ec4a4ee7acb591",
+      "version": "Poor Man's Text 0.41.12",
+      "publicFileModes": true,
+      "relocatedUnicodeLauncher": true,
+      "actualCSVConversion": true,
+      "sourceAndOutputHashes": true
+    },
+    "poormans-text-0.41.12-linux-x86_64.tar.zst": {
+      "sha256": "9de77db3ab446a34068387fcb7d90db3685203998c5fa6eced4018af716f1490",
+      "version": "Poor Man's Text 0.41.12",
+      "publicFileModes": true,
+      "relocatedUnicodeLauncher": true,
+      "actualCSVConversion": true,
+      "sourceAndOutputHashes": true
+    },
+    "poormans-text_0.41.12~linuxpreview1_amd64.deb": {
+      "sha256": "3b095a895c49b956d9522d81549d3342480864702d0593f56e3a02ae06590488",
+      "version": "Poor Man's Text 0.41.12",
+      "publicFileModes": true,
+      "relocatedUnicodeLauncher": true,
+      "actualCSVConversion": true,
+      "sourceAndOutputHashes": true
+    }
+  },
+  "builtUnderUmask": "077",
+  "existingPackagesUnchangedOnCollision73": true,
+  "symlinkParentRejectedWithoutOutput": true
+}

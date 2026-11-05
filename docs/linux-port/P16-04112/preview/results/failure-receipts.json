@@ -1,0 +1,57 @@
+[
+  {
+    "case": "timeout",
+    "exit": 124,
+    "response": {
+      "error": "The conversion tool exceeded its time limit.",
+      "ok": false,
+      "version": "0.41.12"
+    },
+    "sourceSHA256": "e39959bdf5370645ff491c11c7425fa259b0772c33df74335fbcb13704fcd4b8",
+    "sourceUnchanged": true
+  },
+  {
+    "case": "cancel",
+    "exit": 130,
+    "response": {
+      "error": "Conversion cancelled.",
+      "ok": false,
+      "version": "0.41.12"
+    },
+    "sourceSHA256": "e39959bdf5370645ff491c11c7425fa259b0772c33df74335fbcb13704fcd4b8",
+    "sourceUnchanged": true
+  },
+  {
+    "case": "usage-2",
+    "exit": 64,
+    "response": {
+      "error": "a source preview requires exactly one page or frame index between 1 and 1000",
+      "ok": false,
+      "version": "0.41.12"
+    },
+    "sourceSHA256": "e39959bdf5370645ff491c11c7425fa259b0772c33df74335fbcb13704fcd4b8",
+    "sourceUnchanged": true
+  },
+  {
+    "case": "usage-3",
+    "exit": 64,
+    "response": {
+      "error": "a source preview requires exactly one page or frame index between 1 and 1000",
+      "ok": false,
+      "version": "0.41.12"
+    },
+    "sourceSHA256": "e39959bdf5370645ff491c11c7425fa259b0772c33df74335fbcb13704fcd4b8",
+    "sourceUnchanged": true
+  },
+  {
+    "case": "usage-4",
+    "exit": 64,
+    "response": {
+      "error": "a source preview requires --json and one source, without output, profile or conversion options",
+      "ok": false,
+      "version": "0.41.12"
+    },
+    "sourceSHA256": "e39959bdf5370645ff491c11c7425fa259b0772c33df74335fbcb13704fcd4b8",
+    "sourceUnchanged": true
+  }
+]

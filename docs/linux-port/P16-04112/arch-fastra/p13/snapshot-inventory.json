@@ -1,0 +1,1251 @@
+{
+  "pmt": {
+    "bin/PoorMansText_PoorMansTextCore.resources/LinuxBackends/heif.py": {
+      "sha256": "be3eb12e3934a3a7c5045f26b376b30cd57523da804fa5c8f188cded3ecd478e"
+    },
+    "bin/PoorMansText_PoorMansTextCore.resources/LinuxBackends/legacy_doc.py": {
+      "sha256": "a520e7c9ad8dacf9eae857f30ce04e4fbbc2e0f00a132deed68f81b826374f76"
+    },
+    "bin/PoorMansText_PoorMansTextCore.resources/LinuxBackends/poppler.py": {
+      "sha256": "7236b6c3b9cc4779395c170f716db5eea9b8c2ef626254d2589265667aff1425"
+    },
+    "bin/PoorMansText_PoorMansTextCore.resources/LinuxBackends/raster.py": {
+      "sha256": "3a12816a31bef60aa93012c5628b2e0c268d13877eb0325754ca92a17b0a7513"
+    },
+    "bin/poormans-text": {
+      "sha256": "2f49d54ecd6d9bae4962fcdb7f968ea4eef9c3844701d278a9a507e3e84db07c"
+    },
+    "bin/poormans-text-process-guard": {
+      "sha256": "cf677f9be88095a27423ceedb9db2b85667f7775d167857cfb52002ff5dda520"
+    },
+    "cli-ldd.txt": {
+      "sha256": "3e883af5da768a87b6e6897b9a6ad9ec7e9c239ecbd7018384ab3ae9dd0eb39f"
+    },
+    "guard-ldd.txt": {
+      "sha256": "9b665ee8e497737d5f20eb3cbb48766c7d9ae9a8f5e03f7096ef12e2e79012a4"
+    },
+    "host-tools.txt": {
+      "sha256": "c64e7f598f3ffb89143abc2a38be69247d340a8b535de4e375266752940af496"
+    },
+    "lib/libBlocksRuntime.so": {
+      "sha256": "854f7f01ddf854117eb674c5c81fa126ca8c4ad12fea440bf6e329c313550797"
+    },
+    "lib/libFoundation.so": {
+      "sha256": "729f40c8bae7bb6bef71e1ebaae5b1b10f576ed4f105efc430e8869e79db3486"
+    },
+    "lib/libFoundationEssentials.so": {
+      "sha256": "f3b5974e1a63bdce3e31c7167b6e9fe800d675fa352978f487268ecbf2cc15ab"
+    },
+    "lib/libFoundationInternationalization.so": {
+      "sha256": "a77c2a13d56cd4fe1d30c9ce69f5bc0babb18b615a557c344915c40ba6e78e4e"
+    },
+    "lib/libFoundationXML.so": {
+      "sha256": "41d657f136f2153c6e46389a93c55269f4e01fcde878be84de286c4154f9b179"
+    },
+    "lib/lib_FoundationICU.so": {
+      "sha256": "6463c566300feea43c37a430201bffd67354a22374b5a9c6c6bba2f7b6b7f0e7"
+    },
+    "lib/libdispatch.so": {
+      "sha256": "82506303a5dfa7d2b57d91f71539fdedcce5ef4e3d152aeb684b8963f078c5b9"
+    },
+    "lib/libicudata.so.74": {
+      "sha256": "ddbb3718b8bd9cbd780e5ab08b4503c30a6c4fa0706ebe5d074ed6b596c1714e"
+    },
+    "lib/libicuuc.so.74": {
+      "sha256": "7560aadde38e5f4237a47a1ddd5891f9b36768a77a60faae30beee003ac01901"
+    },
+    "lib/liblzma.so.5": {
+      "sha256": "a9793942a8a5f6f4d0f523ef9e0a5be4f0033f2c6c28520cd2b4e706d53c6e17"
+    },
+    "lib/libpng16.so.16": {
+      "sha256": "89c0c6569a8c00480d451401ad4c0a74942e62dc57f229a970592fdc5adb29e8"
+    },
+    "lib/libswiftCore.so": {
+      "sha256": "a2b87638e07a166a481df28c22bc11b3b205278391b066305f9f76defe974134"
+    },
+    "lib/libswiftDispatch.so": {
+      "sha256": "479a7523cfcc596578aabb338b539d985f02fd08045496918c9d89a9fc7207c2"
+    },
+    "lib/libswiftGlibc.so": {
+      "sha256": "8f2dab49d158a6674758cbbf661fa08472c64890c5624fe9eba3f7835525b19b"
+    },
+    "lib/libswiftSynchronization.so": {
+      "sha256": "abe5ee45ed19a0438a37cf1bccd670002d0acd8cc0a19a5e22f900be1d63a094"
+    },
+    "lib/libswift_Concurrency.so": {
+      "sha256": "1c44700fdb77495ab8d59015d7837d36d714322446fdeb73bc2077d720886037"
+    },
+    "lib/libswift_RegexParser.so": {
+      "sha256": "d86e4ca8a52f32d086e6eabdf452ee20f6ece62be9e9f000835fcf4b50550f9c"
+    },
+    "lib/libswift_StringProcessing.so": {
+      "sha256": "0dcde92e47df929767a012bdf042e1bcf84e23d7edcd6f3bf8c137a75dcebe43"
+    },
+    "lib/libxml2.so.2": {
+      "sha256": "0ec89f65e1868cb79caa8a4cd5f47194ce95ac09f7a1d49e76049f391254a3a3"
+    },
+    "lib/libz.so.1": {
+      "sha256": "f61677c7bdb7c2aa2a243ea781bfd16afcb361cede7b4ef76127a9d8eb9a5242"
+    },
+    "licenses/libicu74-copyright": {
+      "sha256": "5bbff5f646ce750ac0a347e7f91793279b7422a1119820b5f75d98879c201c68"
+    },
+    "licenses/liblzma5-copyright": {
+      "sha256": "a2dc8fac0f496e1c58aff67018cf0c6b88336316afa5642f9335b71642e28aa8"
+    },
+    "licenses/libpng16-16t64-copyright": {
+      "sha256": "4620d402b97601a910946acccbbe2e15bdffac11615bf9046520990d3b00f2b9"
+    },
+    "licenses/libxml2-copyright": {
+      "sha256": "ee746b96cfa5be73c3ea3e4cfb1285e9b315d4c9267f99b2ee9c5d911d9fe3f4"
+    },
+    "licenses/swift-LICENSE.txt": {
+      "sha256": "770af8291f708538d8ff885a0bbc4e045cd700531741c4f99528d435c14d7f55"
+    },
+    "licenses/swift-asn1-LICENSE.txt": {
+      "sha256": "8c6db340475136df3c1201d458fa5755698eace76e510471ecc9d857d6083dac"
+    },
+    "licenses/swift-asn1-NOTICE.txt": {
+      "sha256": "11dd3b3b783e6ec26098dd38ebc962986ea109b85447e28e62867b83bd0f8c5b"
+    },
+    "licenses/swift-crypto-LICENSE.txt": {
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    "licenses/swift-crypto-NOTICE.txt": {
+      "sha256": "b3ddc2ae068e76b3beb71be03c0400f90090f9469aa491bf7b1ac42320af37b8"
+    },
+    "licenses/zlib1g-copyright": {
+      "sha256": "9e5b96d63773a5d177ba264254390f792be07e41748ebd94730981c6cac31cc6"
+    },
+    "system-libraries.txt": {
+      "sha256": "135e1b11f27e5800f4dd4b77208855ba056327382b103463c14b17cd9719bfe1"
+    },
+    "ui/THIRD-PARTY-NOTICES.txt": {
+      "sha256": "0f8f264a187483ffa557d67650c1555ae0166a2c184889ca4f20f6ccc5e3386c"
+    },
+    "ui/build-info.json": {
+      "sha256": "d5cca7171f7555631068e4e997a1049771495011c41d0680e44ba28b18d91597"
+    },
+    "ui/poormans-text": {
+      "sha256": "f093fe7d8af4d32a98698519347411d3fce36adabfd8fb7f51d1e27bb5e8c7b5"
+    },
+    "ui/poormans-text-app": {
+      "sha256": "918a8d2bdd3658a92494a1e278d3ac6b1c241fa9536f5a3dbf9f63638998f2ed"
+    },
+    "ui/poormans-text-process-guard": {
+      "sha256": "cf677f9be88095a27423ceedb9db2b85667f7775d167857cfb52002ff5dda520"
+    }
+  },
+  "fastra": {
+    "bin/fastra": {
+      "sha256": "a7bc065fc9db379057cd0b994b729d0458e8b76b37036e97aed28989240fb02e"
+    },
+    "lib/libicudata.so.78": {
+      "symlink": "libicudata.so.78.3"
+    },
+    "lib/libicudata.so.78.3": {
+      "sha256": "a72a1339550421b83e103397ad1b0349287c44aefe4897124e7871b1f16876b0"
+    },
+    "lib/libicui18n.so.78": {
+      "symlink": "libicui18n.so.78.3"
+    },
+    "lib/libicui18n.so.78.3": {
+      "sha256": "e9fa4bd60586d8daf3eee98b2fa95ea1eaff5b076d0a5a58d7c763c5b4bdd14f"
+    },
+    "lib/libicuuc.so.78": {
+      "symlink": "libicuuc.so.78.3"
+    },
+    "lib/libicuuc.so.78.3": {
+      "sha256": "b6302f896a825751470e4b7340abd9928e33f28a5309228507aff9f13b332e29"
+    },
+    "libexec/fastra-linux": {
+      "sha256": "e83f7e59677a39db95f60a5b9501746a3a8df492b0fcd086f7fa356480e03582"
+    },
+    "manifest.json": {
+      "sha256": "a7be7869ef5a4bb9724a90846b95488ef790ced2faa2d6f62699e34f2f09a199"
+    },
+    "share/applications/fastra.desktop": {
+      "sha256": "1ffd492cd44b81d862e2839066defd420ccfc25f0d6c05b9349664f9cc06ad20"
+    },
+    "share/icons/hicolor/256x256/apps/fastra.png": {
+      "sha256": "03dc491c0fa12b41c34500f7eae88ba08fdfab23d4782cc7bb209abd34912079"
+    },
+    "share/licenses/fastra/LICENSE": {
+      "sha256": "7b33de192fe8c6b1fb4de516671d2ff44eb30f6ffba4126a215f0933f13e55d2"
+    },
+    "share/licenses/fastra/THIRD-PARTY-NOTICES-upstream.md": {
+      "sha256": "583e163dc58550e8a1ac4611d6451a1a1ef78f11585dd7e6c0478dcf768dcf1c"
+    },
+    "share/licenses/fastra/THIRD-PARTY-NOTICES.txt": {
+      "sha256": "245a6a03ab7dc664a07decdaeaa8b99fec06e5efb3796d0d797858922e8f6d1e"
+    },
+    "share/licenses/fastra/icu78.3/LICENSE": {
+      "sha256": "e55522d81edc687a341a4411e0776e54ca654e90147f354a90458aaced4116af"
+    },
+    "share/licenses/fastra/javascript/SOURCES.md": {
+      "sha256": "72ef5068f047947137c7b56d3e878bb041f5ef05a1abfbdb61d648bb0a229fef"
+    },
+    "share/licenses/fastra/javascript/js/@antfu_install-pkg-1.1.0/LICENSE": {
+      "sha256": "67cd5e903c1f908edfa27c25606fa806ce629d9a8ddb7d83019d9fd1f83f7fde"
+    },
+    "share/licenses/fastra/javascript/js/@antfu_utils-9.2.0/LICENSE": {
+      "sha256": "67cd5e903c1f908edfa27c25606fa806ce629d9a8ddb7d83019d9fd1f83f7fde"
+    },
+    "share/licenses/fastra/javascript/js/@braintree_sanitize-url-7.1.2/LICENSE": {
+      "sha256": "0984740e0c3d725c8044dec7edcefe1dbce180ef5a7bc710c251e19607000158"
+    },
+    "share/licenses/fastra/javascript/js/@chevrotain_cst-dts-gen-11.1.2/LICENSE.txt": {
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    "share/licenses/fastra/javascript/js/@chevrotain_gast-11.1.2/LICENSE.txt": {
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    "share/licenses/fastra/javascript/js/@chevrotain_regexp-to-ast-11.1.2/LICENSE.txt": {
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    "share/licenses/fastra/javascript/js/@chevrotain_types-11.1.2/LICENSE.txt": {
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    "share/licenses/fastra/javascript/js/@chevrotain_utils-11.1.2/LICENSE.txt": {
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    "share/licenses/fastra/javascript/js/@iconify_types-2.0.0/license.txt": {
+      "sha256": "045ce74712fc613fdd74d1c55f5140a08d623836ff2aca44132b38d68fbc67ad"
+    },
+    "share/licenses/fastra/javascript/js/@iconify_utils-3.0.2/lib/misc/licenses.d.ts": {
+      "sha256": "25cb51f2c80fabe8849f6d41857509759c0a40b1af8d0ee99afe0e17c861192f"
+    },
+    "share/licenses/fastra/javascript/js/@iconify_utils-3.0.2/lib/misc/licenses.js": {
+      "sha256": "afc12ef269e75ef1143c87d8e65de94896fd7894d3f535b2b956283455ba41df"
+    },
+    "share/licenses/fastra/javascript/js/@iconify_utils-3.0.2/license.txt": {
+      "sha256": "a86793ac023162ce98b91899601c15f6712f44943163c4f92a0a4bf89152b3bf"
+    },
+    "share/licenses/fastra/javascript/js/@mermaid-js_parser-1.2.0/LICENSE": {
+      "sha256": "d374061c40bfb6f99c5033290caefda97a9b3e7e477e5ee02f487143ef2177e8"
+    },
+    "share/licenses/fastra/javascript/js/@types_d3-7.4.3/LICENSE": {
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+    },
+    "share/licenses/fastra/javascript/js/@types_d3-array-3.2.2/LICENSE": {
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+    },
+    "share/licenses/fastra/javascript/js/@types_d3-axis-3.0.6/LICENSE": {
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+    },
+    "share/licenses/fastra/javascript/js/@types_d3-brush-3.0.6/LICENSE": {
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+    },
+    "share/licenses/fastra/javascript/js/@types_d3-chord-3.0.6/LICENSE": {
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+    },
+    "share/licenses/fastra/javascript/js/@types_d3-color-3.1.3/LICENSE": {
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+    },
+    "share/licenses/fastra/javascript/js/@types_d3-contour-3.0.6/LICENSE": {
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+    },
+    "share/licenses/fastra/javascript/js/@types_d3-delaunay-6.0.4/LICENSE": {
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+    },
+    "share/licenses/fastra/javascript/js/@types_d3-dispatch-3.0.7/LICENSE": {
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+    },
+    "share/licenses/fastra/javascript/js/@types_d3-drag-3.0.7/LICENSE": {
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+    },
+    "share/licenses/fastra/javascript/js/@types_d3-dsv-3.0.7/LICENSE": {
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+    },
+    "share/licenses/fastra/javascript/js/@types_d3-ease-3.0.2/LICENSE": {
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+    },
+    "share/licenses/fastra/javascript/js/@types_d3-fetch-3.0.7/LICENSE": {
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+    },
+    "share/licenses/fastra/javascript/js/@types_d3-force-3.0.10/LICENSE": {
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+    },
+    "share/licenses/fastra/javascript/js/@types_d3-format-3.0.4/LICENSE": {
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+    },
+    "share/licenses/fastra/javascript/js/@types_d3-geo-3.1.0/LICENSE": {
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+    },
+    "share/licenses/fastra/javascript/js/@types_d3-hierarchy-3.1.7/LICENSE": {
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+    },
+    "share/licenses/fastra/javascript/js/@types_d3-interpolate-3.0.4/LICENSE": {
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+    },
+    "share/licenses/fastra/javascript/js/@types_d3-path-3.1.1/LICENSE": {
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+    },
+    "share/licenses/fastra/javascript/js/@types_d3-polygon-3.0.2/LICENSE": {
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+    },
+    "share/licenses/fastra/javascript/js/@types_d3-quadtree-3.0.6/LICENSE": {
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+    },
+    "share/licenses/fastra/javascript/js/@types_d3-random-3.0.3/LICENSE": {
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+    },
+    "share/licenses/fastra/javascript/js/@types_d3-scale-4.0.9/LICENSE": {
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+    },
+    "share/licenses/fastra/javascript/js/@types_d3-scale-chromatic-3.1.0/LICENSE": {
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+    },
+    "share/licenses/fastra/javascript/js/@types_d3-selection-3.0.11/LICENSE": {
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+    },
+    "share/licenses/fastra/javascript/js/@types_d3-shape-3.1.8/LICENSE": {
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+    },
+    "share/licenses/fastra/javascript/js/@types_d3-time-3.0.4/LICENSE": {
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+    },
+    "share/licenses/fastra/javascript/js/@types_d3-time-format-4.0.3/LICENSE": {
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+    },
+    "share/licenses/fastra/javascript/js/@types_d3-timer-3.0.2/LICENSE": {
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+    },
+    "share/licenses/fastra/javascript/js/@types_d3-transition-3.0.9/LICENSE": {
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+    },
+    "share/licenses/fastra/javascript/js/@types_d3-zoom-3.0.8/LICENSE": {
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+    },
+    "share/licenses/fastra/javascript/js/@types_geojson-7946.0.16/LICENSE": {
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+    },
+    "share/licenses/fastra/javascript/js/@types_trusted-types-2.0.7/LICENSE": {
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+    },
+    "share/licenses/fastra/javascript/js/@upsetjs_venn.js-2.0.0/LICENSE": {
+      "sha256": "6a3508febf2cfccfee96597394543a6154a4bb0b1f91f28404be42c09e9fcb54"
+    },
+    "share/licenses/fastra/javascript/js/acorn-8.16.0/LICENSE": {
+      "sha256": "76a876cf886ff9be2a8b5e2e86514fed06223c8c9f0c1e9ee9606e93841e00b7"
+    },
+    "share/licenses/fastra/javascript/js/argparse-2.0.1/LICENSE": {
+      "sha256": "de4d1f2d2ad5ad0cfd1657a106476b31cb5db5ef9d1ff842b237c0c81f0c8a23"
+    },
+    "share/licenses/fastra/javascript/js/chevrotain-11.1.2/LICENSE.txt": {
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    "share/licenses/fastra/javascript/js/chevrotain-allstar-0.3.1/LICENSE": {
+      "sha256": "1db2cfbc7ce5fa3b82699b4ac4badce8984084d25b5308ece00f5c9b1381a0a5"
+    },
+    "share/licenses/fastra/javascript/js/commander-7.2.0/LICENSE": {
+      "sha256": "04512a63dce4d2d506ad612dc0bd7681ccf6e3655f7b6eaef7dfac8323d1ec0b"
+    },
+    "share/licenses/fastra/javascript/js/commander-8.3.0/LICENSE": {
+      "sha256": "04512a63dce4d2d506ad612dc0bd7681ccf6e3655f7b6eaef7dfac8323d1ec0b"
+    },
+    "share/licenses/fastra/javascript/js/confbox-0.1.8/LICENSE": {
+      "sha256": "2b2bbe4244586c068b33c4aba13f06cda14d66b076e474141d92c4a4f5910992"
+    },
+    "share/licenses/fastra/javascript/js/confbox-0.2.2/LICENSE": {
+      "sha256": "b745584e685e10a0a44d19f3e915a4257e5189761d1e0a495592fcf5d29e53d4"
+    },
+    "share/licenses/fastra/javascript/js/cose-base-1.0.3/LICENSE": {
+      "sha256": "5fb3cf4a14c3c5af6e473a192df8bca10c77754e3a0c6492c79fb92a76a5478a"
+    },
+    "share/licenses/fastra/javascript/js/cose-base-2.2.0/LICENSE": {
+      "sha256": "5fb3cf4a14c3c5af6e473a192df8bca10c77754e3a0c6492c79fb92a76a5478a"
+    },
+    "share/licenses/fastra/javascript/js/cytoscape-3.33.3/LICENSE": {
+      "sha256": "eb319c6e6f233607f71e8e2f450391751883cfc0eeb3ca7ef574c13d1d9c2203"
+    },
+    "share/licenses/fastra/javascript/js/cytoscape-3.33.3/license-update.mjs": {
+      "sha256": "4a5a644717fc90d678e8fbbc537a08452d0566726710eef47b196abd6363e635"
+    },
+    "share/licenses/fastra/javascript/js/cytoscape-cose-bilkent-4.1.0/LICENSE": {
+      "sha256": "440fc58a56a12814e417d2b341da89b050da052dc75bdb235607d37ec5fe74ef"
+    },
+    "share/licenses/fastra/javascript/js/cytoscape-fcose-2.2.0/LICENSE": {
+      "sha256": "2837634f403949215760fcdd2fa1ed0c64875d02099ecc8318c704b852f1421d"
+    },
+    "share/licenses/fastra/javascript/js/d3-7.9.0/LICENSE": {
+      "sha256": "3e6849627f74ff73c257a3ae1efb574015d94fc1035c05ec3c15805165efcbc4"
+    },
+    "share/licenses/fastra/javascript/js/d3-array-2.12.1/LICENSE": {
+      "sha256": "0747bebeb06b10954913149be9b9a8bdf6fad3e6fdcbd9f9524e7a94c13d2cea"
+    },
+    "share/licenses/fastra/javascript/js/d3-array-3.2.4/LICENSE": {
+      "sha256": "3e6849627f74ff73c257a3ae1efb574015d94fc1035c05ec3c15805165efcbc4"
+    },
+    "share/licenses/fastra/javascript/js/d3-axis-3.0.0/LICENSE": {
+      "sha256": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee"
+    },
+    "share/licenses/fastra/javascript/js/d3-brush-3.0.0/LICENSE": {
+      "sha256": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee"
+    },
+    "share/licenses/fastra/javascript/js/d3-chord-3.0.1/LICENSE": {
+      "sha256": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee"
+    },
+    "share/licenses/fastra/javascript/js/d3-color-3.1.0/LICENSE": {
+      "sha256": "faa682e3e430941f958d26180458f5934a62f58dac4d70ccdd15608c15d0f884"
+    },
+    "share/licenses/fastra/javascript/js/d3-contour-4.0.2/LICENSE": {
+      "sha256": "e51cba0e4fa1d8c078e15319868f2b90188f413f9ce9dac1043b62db32901e93"
+    },
+    "share/licenses/fastra/javascript/js/d3-delaunay-6.0.4/LICENSE": {
+      "sha256": "582c3022bd01942336095f92b58a90b1be624dc547d987555c6c956512dd24c1"
+    },
+    "share/licenses/fastra/javascript/js/d3-dispatch-3.0.1/LICENSE": {
+      "sha256": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee"
+    },
+    "share/licenses/fastra/javascript/js/d3-drag-3.0.0/LICENSE": {
+      "sha256": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee"
+    },
+    "share/licenses/fastra/javascript/js/d3-dsv-3.0.1/LICENSE": {
+      "sha256": "7842a82012622e5a37bfe4f6c1b67cd3bae6350716b5bf87f36cea0bdc1319dc"
+    },
+    "share/licenses/fastra/javascript/js/d3-ease-3.0.1/LICENSE": {
+      "sha256": "b989d9085148d21ff64a75e14462aefa06b2589a55553b07b1460c70081c7d08"
+    },
+    "share/licenses/fastra/javascript/js/d3-fetch-3.0.1/LICENSE": {
+      "sha256": "ffdc17dc9040006bddeb891c95bfbb492e86d6bc64a4a4233666febab1be35e0"
+    },
+    "share/licenses/fastra/javascript/js/d3-force-3.0.0/LICENSE": {
+      "sha256": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee"
+    },
+    "share/licenses/fastra/javascript/js/d3-format-3.1.0/LICENSE": {
+      "sha256": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee"
+    },
+    "share/licenses/fastra/javascript/js/d3-geo-3.1.1/LICENSE": {
+      "sha256": "3e3edc1224eec9c39cd26491a21304a62883c1e5b6a65c5283ccc7a6cc94baee"
+    },
+    "share/licenses/fastra/javascript/js/d3-hierarchy-3.1.2/LICENSE": {
+      "sha256": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee"
+    },
+    "share/licenses/fastra/javascript/js/d3-interpolate-3.0.1/LICENSE": {
+      "sha256": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee"
+    },
+    "share/licenses/fastra/javascript/js/d3-path-1.0.9/LICENSE": {
+      "sha256": "b8265327ab678f554800e71188b1cc6b1ff57522e292d2b1c0be66f27cf328b6"
+    },
+    "share/licenses/fastra/javascript/js/d3-path-3.1.0/LICENSE": {
+      "sha256": "a09b0d6d76e768fca2085fad05743ee81ddd11946bcda160a3cf5e1081a479aa"
+    },
+    "share/licenses/fastra/javascript/js/d3-polygon-3.0.1/LICENSE": {
+      "sha256": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee"
+    },
+    "share/licenses/fastra/javascript/js/d3-quadtree-3.0.1/LICENSE": {
+      "sha256": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee"
+    },
+    "share/licenses/fastra/javascript/js/d3-random-3.0.1/LICENSE": {
+      "sha256": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee"
+    },
+    "share/licenses/fastra/javascript/js/d3-sankey-0.12.3/LICENSE": {
+      "sha256": "2bf785e778d67a4f5266cffcd4f2cc5bb98cde73791666e7efeb8002ba32dfa5"
+    },
+    "share/licenses/fastra/javascript/js/d3-scale-4.0.2/LICENSE": {
+      "sha256": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee"
+    },
+    "share/licenses/fastra/javascript/js/d3-scale-chromatic-3.1.0/LICENSE": {
+      "sha256": "0986d93944902cca9af86824b6a641b4b7c2d10602fc510c433a8bcd443919fe"
+    },
+    "share/licenses/fastra/javascript/js/d3-selection-3.0.0/LICENSE": {
+      "sha256": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee"
+    },
+    "share/licenses/fastra/javascript/js/d3-shape-1.3.7/LICENSE": {
+      "sha256": "7eea8533ea92bd8c32a901e89ecb0305890905bb12711449565ddff96891146d"
+    },
+    "share/licenses/fastra/javascript/js/d3-shape-3.2.0/LICENSE": {
+      "sha256": "faa682e3e430941f958d26180458f5934a62f58dac4d70ccdd15608c15d0f884"
+    },
+    "share/licenses/fastra/javascript/js/d3-time-3.1.0/LICENSE": {
+      "sha256": "faa682e3e430941f958d26180458f5934a62f58dac4d70ccdd15608c15d0f884"
+    },
+    "share/licenses/fastra/javascript/js/d3-time-format-4.1.0/LICENSE": {
+      "sha256": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee"
+    },
+    "share/licenses/fastra/javascript/js/d3-timer-3.0.1/LICENSE": {
+      "sha256": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee"
+    },
+    "share/licenses/fastra/javascript/js/d3-transition-3.0.1/LICENSE": {
+      "sha256": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee"
+    },
+    "share/licenses/fastra/javascript/js/d3-zoom-3.0.0/LICENSE": {
+      "sha256": "e008c5e25a6be382593089c29bfabbc553c6378eee02895aec46ce396cc404ee"
+    },
+    "share/licenses/fastra/javascript/js/dagre-d3-es-7.0.14/LICENSE.md": {
+      "sha256": "d01eb84ccce437dbf5fd40853bceea0f287930920acea066597a4a25ead63858"
+    },
+    "share/licenses/fastra/javascript/js/dayjs-1.11.20/LICENSE": {
+      "sha256": "5faab7526d055651be3aab769d58897be6bd91f3d39d137f25f12dba1b31d5dc"
+    },
+    "share/licenses/fastra/javascript/js/debug-4.4.3/LICENSE": {
+      "sha256": "3a61c6c96caf5c1d9b623fb9b04c822b783dfcb78aa7e49c76a3f643e6ed7f95"
+    },
+    "share/licenses/fastra/javascript/js/delaunator-5.0.1/LICENSE": {
+      "sha256": "b8878372a0d7d1c303f48659ddbd6881807cd2196e4af2f548d8da0c0f7c4d71"
+    },
+    "share/licenses/fastra/javascript/js/dompurify-3.4.0/LICENSE": {
+      "sha256": "1b02e03c3fb4f87d476c128f0eb9def1f5a1709d28b180465228bd41574623b7"
+    },
+    "share/licenses/fastra/javascript/js/es-toolkit-1.45.1/LICENSE": {
+      "sha256": "ed68888a2a28f32a05e88f24d4d4ee75075a1bda2b6372a1f2e00fa0576a5524"
+    },
+    "share/licenses/fastra/javascript/js/exsolve-1.0.7/LICENSE": {
+      "sha256": "d37af134e0d0b998393188394202052e2ff6cd5d18efb2fcc81ba7b00ad77b75"
+    },
+    "share/licenses/fastra/javascript/js/globals-15.15.0/license": {
+      "sha256": "5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3"
+    },
+    "share/licenses/fastra/javascript/js/hachure-fill-0.5.2/LICENSE": {
+      "sha256": "5e807b516a9be9229ed459880bf353a336e2d947867247290680d437017be391"
+    },
+    "share/licenses/fastra/javascript/js/highlight.js-11.11.1/LICENSE": {
+      "sha256": "6c081431591d9df696c82dc598fe1423765b8a299b200ed00b281afd0f64c490"
+    },
+    "share/licenses/fastra/javascript/js/iconv-lite-0.6.3/LICENSE": {
+      "sha256": "ac779f7314c74f232ef847ea86e714abe25cf6eeb5cc97b69451b74e2af6492d"
+    },
+    "share/licenses/fastra/javascript/js/internmap-1.0.1/LICENSE": {
+      "sha256": "9ea8903938dab5f12c4572d60725069bec2d1b0dc3bcc210b09bae946a5ebb1f"
+    },
+    "share/licenses/fastra/javascript/js/internmap-2.0.3/LICENSE": {
+      "sha256": "9ea8903938dab5f12c4572d60725069bec2d1b0dc3bcc210b09bae946a5ebb1f"
+    },
+    "share/licenses/fastra/javascript/js/js-yaml-4.1.1/LICENSE": {
+      "sha256": "a07bc24468b9654ce76a547d47a2db282d07733b715db4c73a98bd63961f9550"
+    },
+    "share/licenses/fastra/javascript/js/katex-0.16.45/LICENSE": {
+      "sha256": "766ccc1f306c885aa45542a9846bbd0a505b27a0374f146778171c2254ce18e3"
+    },
+    "share/licenses/fastra/javascript/js/katex-0.17.0/LICENSE": {
+      "sha256": "766ccc1f306c885aa45542a9846bbd0a505b27a0374f146778171c2254ce18e3"
+    },
+    "share/licenses/fastra/javascript/js/khroma-2.1.0/license": {
+      "sha256": "66b333b0f66759a0b710459e03f7029abe17f4358114a128d2c972e642961b49"
+    },
+    "share/licenses/fastra/javascript/js/kolorist-1.8.0/LICENSE": {
+      "sha256": "34633a99cb90325a8d0d343a1b34eede6d355fcc11dafcff845a854c3719bc70"
+    },
+    "share/licenses/fastra/javascript/js/langium-4.2.0/LICENSE": {
+      "sha256": "599bf70b4e55f06250571d103dbd8441e0c47cb7f858c0147ca312ce38e9ef2a"
+    },
+    "share/licenses/fastra/javascript/js/layout-base-1.0.2/LICENSE": {
+      "sha256": "eabb762d8a95109a39c9be3247325529a5239a7aca327d909c3ccdc41f3a06bf"
+    },
+    "share/licenses/fastra/javascript/js/layout-base-2.0.1/LICENSE": {
+      "sha256": "eabb762d8a95109a39c9be3247325529a5239a7aca327d909c3ccdc41f3a06bf"
+    },
+    "share/licenses/fastra/javascript/js/local-pkg-1.1.2/LICENSE": {
+      "sha256": "67cd5e903c1f908edfa27c25606fa806ce629d9a8ddb7d83019d9fd1f83f7fde"
+    },
+    "share/licenses/fastra/javascript/js/lodash-es-4.17.23/LICENSE": {
+      "sha256": "f71e8ed126b46346494aad5486874cd8f0aafe95092ed67d2e3cb6110f939abc"
+    },
+    "share/licenses/fastra/javascript/js/lodash-es-4.18.1/LICENSE": {
+      "sha256": "f71e8ed126b46346494aad5486874cd8f0aafe95092ed67d2e3cb6110f939abc"
+    },
+    "share/licenses/fastra/javascript/js/manifest.json": {
+      "sha256": "0a5dbf3ac664e0e38f33bbbe009255ac749c751e2d9966dea8b230f5e1865d78"
+    },
+    "share/licenses/fastra/javascript/js/marked-16.3.0/LICENSE.md": {
+      "sha256": "8e3a3f82f59a60958f56ca08f445647c32a4733dc7ca6c2c46f6eb898471ab9c"
+    },
+    "share/licenses/fastra/javascript/js/mermaid-11.16.0/LICENSE": {
+      "sha256": "ec9fb67dcb25eccc416ed56e1aab819222c805a2a4bfe4cb19e7556bf2ffde80"
+    },
+    "share/licenses/fastra/javascript/js/mlly-1.8.0/LICENSE": {
+      "sha256": "46231df5a7733c3f52f11b71f3df61813007745b62b09031acfb45fb42d75082"
+    },
+    "share/licenses/fastra/javascript/js/ms-2.1.3/license.md": {
+      "sha256": "1662fae9b5314d11cf51284e2dcd1f006a354f7343f08712a730fcff9a359801"
+    },
+    "share/licenses/fastra/javascript/js/package-manager-detector-1.3.0/LICENSE": {
+      "sha256": "05c365176db3cc00e951c44b921c809c75b8e99d2d724f7daf00381e26fb0850"
+    },
+    "share/licenses/fastra/javascript/js/path-data-parser-0.1.0/LICENSE": {
+      "sha256": "e9754a00aebde654e80f40bcf41dab667d6a41dfbbd2912bcf14fb07d468bf71"
+    },
+    "share/licenses/fastra/javascript/js/pathe-2.0.3/LICENSE": {
+      "sha256": "52e92576851154bad7737e90cc72818936f43665cb0e3f7428ed8edc8cc5709b"
+    },
+    "share/licenses/fastra/javascript/js/pkg-types-1.3.1/LICENSE": {
+      "sha256": "cb00dc7c358014d300dba2462e57d3f477299c169c7ab14d8fe5e347eca44f48"
+    },
+    "share/licenses/fastra/javascript/js/pkg-types-2.3.0/LICENSE": {
+      "sha256": "cb00dc7c358014d300dba2462e57d3f477299c169c7ab14d8fe5e347eca44f48"
+    },
+    "share/licenses/fastra/javascript/js/points-on-curve-0.2.0/LICENSE": {
+      "sha256": "e9754a00aebde654e80f40bcf41dab667d6a41dfbbd2912bcf14fb07d468bf71"
+    },
+    "share/licenses/fastra/javascript/js/points-on-path-0.2.1/LICENSE": {
+      "sha256": "b6fc1f7f1d96a48bc97176f3dcef959e364c5c17ba44167511de421500a86c6c"
+    },
+    "share/licenses/fastra/javascript/js/quansync-0.2.11/LICENSE.md": {
+      "sha256": "fd8a6a9b107d6591b3efe305f0a4b2344d3c3d9e90a0420c78733c958e564714"
+    },
+    "share/licenses/fastra/javascript/js/robust-predicates-3.0.2/LICENSE": {
+      "sha256": "88d9b4eb60579c191ec391ca04c16130572d7eedc4a86daa58bf28c6e14c9bcd"
+    },
+    "share/licenses/fastra/javascript/js/roughjs-4.6.6/LICENSE": {
+      "sha256": "dca9a392272606ac748ac0976a2a1133f14eef841c27beaa51a844d53c56a09d"
+    },
+    "share/licenses/fastra/javascript/js/rw-1.3.3/LICENSE": {
+      "sha256": "e273680c43c2ab5bb3b50af28de6a08000b333396834db7bf6129cd6f130c9cd"
+    },
+    "share/licenses/fastra/javascript/js/safer-buffer-2.1.2/LICENSE": {
+      "sha256": "4bc935e71be198c67ddf3c2b5fddb195f6edc182bfc155a96a6db61b44b494b9"
+    },
+    "share/licenses/fastra/javascript/js/stylis-4.3.6/LICENSE": {
+      "sha256": "88c579c6ee44b41137a21321190d177982e5b17d4fa1b83a4a2e3ea325a8fc9a"
+    },
+    "share/licenses/fastra/javascript/js/tinyexec-1.0.1/LICENSE": {
+      "sha256": "f95f668fe64081ddb4153b322e34fdd719b991285ed08177d5ad7133b7988d92"
+    },
+    "share/licenses/fastra/javascript/js/ts-dedent-2.2.0/LICENSE": {
+      "sha256": "eff13095d9d762c3bd9dda74370c81e2130c28f2691bc455603abf973bac25b9"
+    },
+    "share/licenses/fastra/javascript/js/ufo-1.6.1/LICENSE": {
+      "sha256": "46231df5a7733c3f52f11b71f3df61813007745b62b09031acfb45fb42d75082"
+    },
+    "share/licenses/fastra/javascript/js/uuid-14.0.0/LICENSE.md": {
+      "sha256": "beaa6b04fb82e41dd2ad679e19e27953afb5999b1abbb455b6564e78ebfeb332"
+    },
+    "share/licenses/fastra/javascript/js/vscode-jsonrpc-8.2.0/License.txt": {
+      "sha256": "ec9ee83580841e8eb687aca9867f221503809ba6426c7f876ede17d91b9fcfd0"
+    },
+    "share/licenses/fastra/javascript/js/vscode-languageserver-9.0.1/License.txt": {
+      "sha256": "ec9ee83580841e8eb687aca9867f221503809ba6426c7f876ede17d91b9fcfd0"
+    },
+    "share/licenses/fastra/javascript/js/vscode-languageserver-protocol-3.17.5/License.txt": {
+      "sha256": "ec9ee83580841e8eb687aca9867f221503809ba6426c7f876ede17d91b9fcfd0"
+    },
+    "share/licenses/fastra/javascript/js/vscode-languageserver-textdocument-1.0.12/License.txt": {
+      "sha256": "ec9ee83580841e8eb687aca9867f221503809ba6426c7f876ede17d91b9fcfd0"
+    },
+    "share/licenses/fastra/javascript/js/vscode-languageserver-types-3.17.5/License.txt": {
+      "sha256": "ec9ee83580841e8eb687aca9867f221503809ba6426c7f876ede17d91b9fcfd0"
+    },
+    "share/licenses/fastra/javascript/js/vscode-uri-3.1.0/LICENSE.md": {
+      "sha256": "c669138cb1eb01fbb745e8e460b291e4f2869c14a40061390b6095d845ed4c82"
+    },
+    "share/licenses/fastra/javascript/js-assets.json": {
+      "sha256": "259a8fc2ab1232bcbfcddf792652a64a1e93e5ad4dd1cb9435b40b9b759fa463"
+    },
+    "share/licenses/fastra/javascript/js-licenses.lock.json": {
+      "sha256": "cb1af4190b14ecd425aaac7013d0add8ea3564238621f291d05a232cf1efbfa8"
+    },
+    "share/licenses/fastra/javascript/vendor/LICENSE-KaTeX.txt": {
+      "sha256": "766ccc1f306c885aa45542a9846bbd0a505b27a0374f146778171c2254ce18e3"
+    },
+    "share/licenses/fastra/javascript/vendor/LICENSE-Mermaid.txt": {
+      "sha256": "ec9fb67dcb25eccc416ed56e1aab819222c805a2a4bfe4cb19e7556bf2ffde80"
+    },
+    "share/licenses/fastra/javascript/vendor/LICENSE-Turndown.txt": {
+      "sha256": "a055e3a15db4b4cbb5af381230eba085603126d7d5d8c4dae45ee85b877a9729"
+    },
+    "share/licenses/fastra/javascript/vendor/LICENSE-highlight.js.txt": {
+      "sha256": "6c081431591d9df696c82dc598fe1423765b8a299b200ed00b281afd0f64c490"
+    },
+    "share/licenses/fastra/javascript/vendor/highlight-11.11.1.min.js.bundled-notices.txt": {
+      "sha256": "327f1633aa9b8ec716e4d27d3f3ab601eab79fe2feface4229698dfe3fba6dc7"
+    },
+    "share/licenses/fastra/javascript/vendor/mermaid-11.16.0.min.js.bundled-notices.txt": {
+      "sha256": "76bbca712fa3b8ab227473fb24d92ead50ffa530179e4c103f4966403998f38e"
+    },
+    "share/licenses/fastra/rust/autocfg-1.5.1/LICENSE-APACHE": {
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2"
+    },
+    "share/licenses/fastra/rust/autocfg-1.5.1/LICENSE-MIT": {
+      "sha256": "27995d58ad5c1145c1a8cd86244ce844886958a35eb2b78c6b772748669999ac"
+    },
+    "share/licenses/fastra/rust/bitflags-2.13.2/LICENSE-APACHE": {
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2"
+    },
+    "share/licenses/fastra/rust/bitflags-2.13.2/LICENSE-MIT": {
+      "sha256": "6485b8ed310d3f0340bf1ad1f47645069ce4069dcc6bb46c7d5c6faf41de1fdb"
+    },
+    "share/licenses/fastra/rust/block-buffer-0.10.4/LICENSE-APACHE": {
+      "sha256": "a9040321c3712d8fd0b09cf52b17445de04a23a10165049ae187cd39e5c86be5"
+    },
+    "share/licenses/fastra/rust/block-buffer-0.10.4/LICENSE-MIT": {
+      "sha256": "d5c22aa3118d240e877ad41c5d9fa232f9c77d757d4aac0c2f943afc0a95e0ef"
+    },
+    "share/licenses/fastra/rust/cairo-rs-0.22.9/COPYRIGHT": {
+      "sha256": "dae402989de65164815b7e2b6bc2b9576285434c3785934c8b6ece0fa055960d"
+    },
+    "share/licenses/fastra/rust/cairo-rs-0.22.9/LICENSE": {
+      "sha256": "8cf56d10131ce201cf69ab74b111d3ebac1acca3833d7efb39ae357224b70edb"
+    },
+    "share/licenses/fastra/rust/cairo-sys-rs-0.22.9/LICENSE": {
+      "sha256": "8cf56d10131ce201cf69ab74b111d3ebac1acca3833d7efb39ae357224b70edb"
+    },
+    "share/licenses/fastra/rust/cfg-expr-0.20.10/LICENSE-APACHE": {
+      "sha256": "8173d5c29b4f956d532781d2b86e4e30f83e6b7878dce18c919451d6ba707c90"
+    },
+    "share/licenses/fastra/rust/cfg-expr-0.20.10/LICENSE-MIT": {
+      "sha256": "090a294a492ab2f41388252312a65cf2f0e423330b721a68c6665ac64766753b"
+    },
+    "share/licenses/fastra/rust/cfg-if-1.0.5/LICENSE-APACHE": {
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2"
+    },
+    "share/licenses/fastra/rust/cfg-if-1.0.5/LICENSE-MIT": {
+      "sha256": "378f5840b258e2779c39418f3f2d7b2ba96f1c7917dd6be0713f88305dbda397"
+    },
+    "share/licenses/fastra/rust/cpufeatures-0.2.17/LICENSE-APACHE": {
+      "sha256": "a9040321c3712d8fd0b09cf52b17445de04a23a10165049ae187cd39e5c86be5"
+    },
+    "share/licenses/fastra/rust/cpufeatures-0.2.17/LICENSE-MIT": {
+      "sha256": "ae9baa7beea910273c2f384c2a6b721fb7bd02bda3436074a1072e4ee689f985"
+    },
+    "share/licenses/fastra/rust/crypto-common-0.1.7/LICENSE-APACHE": {
+      "sha256": "a9040321c3712d8fd0b09cf52b17445de04a23a10165049ae187cd39e5c86be5"
+    },
+    "share/licenses/fastra/rust/crypto-common-0.1.7/LICENSE-MIT": {
+      "sha256": "3521672491a3479422d5fe1aca6645dd2984090f85da6e5205abfb18fb7a6897"
+    },
+    "share/licenses/fastra/rust/digest-0.10.7/LICENSE-APACHE": {
+      "sha256": "a9040321c3712d8fd0b09cf52b17445de04a23a10165049ae187cd39e5c86be5"
+    },
+    "share/licenses/fastra/rust/digest-0.10.7/LICENSE-MIT": {
+      "sha256": "9e0dfd2dd4173a530e238cb6adb37aa78c34c6bc7444e0e10c1ab5d8881f63ba"
+    },
+    "share/licenses/fastra/rust/equivalent-1.0.3/LICENSE-APACHE": {
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2"
+    },
+    "share/licenses/fastra/rust/equivalent-1.0.3/LICENSE-MIT": {
+      "sha256": "7365cc8878a1d7ce155a58c4ca09c3d7a6be413efa5334a80ea842912b669349"
+    },
+    "share/licenses/fastra/rust/errno-0.3.14/LICENSE-APACHE": {
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2"
+    },
+    "share/licenses/fastra/rust/errno-0.3.14/LICENSE-MIT": {
+      "sha256": "8764a597675778ddfd4e25f81b08a05dbcf089ac05662df7613fe67f150e3aa2"
+    },
+    "share/licenses/fastra/rust/fastrand-2.5.0/LICENSE-APACHE": {
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2"
+    },
+    "share/licenses/fastra/rust/fastrand-2.5.0/LICENSE-MIT": {
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+    },
+    "share/licenses/fastra/rust/field-offset-0.3.6/LICENSE-APACHE": {
+      "sha256": "a6cba85bc92e0cff7a450b1d873c0eaa2e9fc96bf472df0247a26bec77bf3ff9"
+    },
+    "share/licenses/fastra/rust/field-offset-0.3.6/LICENSE-MIT": {
+      "sha256": "9dd44491b4cf95dcfa2963943b3ae91bff9a78d13049a9e0b53e0d0b0a9c8f4e"
+    },
+    "share/licenses/fastra/rust/futures-channel-0.3.34/LICENSE-APACHE": {
+      "sha256": "275c491d6d1160553c32fd6127061d7f9606c3ea25abfad6ca3f6ed088785427"
+    },
+    "share/licenses/fastra/rust/futures-channel-0.3.34/LICENSE-MIT": {
+      "sha256": "6652c868f35dfe5e8ef636810a4e576b9d663f3a17fb0f5613ad73583e1b88fd"
+    },
+    "share/licenses/fastra/rust/futures-core-0.3.34/LICENSE-APACHE": {
+      "sha256": "275c491d6d1160553c32fd6127061d7f9606c3ea25abfad6ca3f6ed088785427"
+    },
+    "share/licenses/fastra/rust/futures-core-0.3.34/LICENSE-MIT": {
+      "sha256": "6652c868f35dfe5e8ef636810a4e576b9d663f3a17fb0f5613ad73583e1b88fd"
+    },
+    "share/licenses/fastra/rust/futures-executor-0.3.34/LICENSE-APACHE": {
+      "sha256": "275c491d6d1160553c32fd6127061d7f9606c3ea25abfad6ca3f6ed088785427"
+    },
+    "share/licenses/fastra/rust/futures-executor-0.3.34/LICENSE-MIT": {
+      "sha256": "6652c868f35dfe5e8ef636810a4e576b9d663f3a17fb0f5613ad73583e1b88fd"
+    },
+    "share/licenses/fastra/rust/futures-io-0.3.34/LICENSE-APACHE": {
+      "sha256": "275c491d6d1160553c32fd6127061d7f9606c3ea25abfad6ca3f6ed088785427"
+    },
+    "share/licenses/fastra/rust/futures-io-0.3.34/LICENSE-MIT": {
+      "sha256": "6652c868f35dfe5e8ef636810a4e576b9d663f3a17fb0f5613ad73583e1b88fd"
+    },
+    "share/licenses/fastra/rust/futures-macro-0.3.34/LICENSE-APACHE": {
+      "sha256": "275c491d6d1160553c32fd6127061d7f9606c3ea25abfad6ca3f6ed088785427"
+    },
+    "share/licenses/fastra/rust/futures-macro-0.3.34/LICENSE-MIT": {
+      "sha256": "6652c868f35dfe5e8ef636810a4e576b9d663f3a17fb0f5613ad73583e1b88fd"
+    },
+    "share/licenses/fastra/rust/futures-task-0.3.34/LICENSE-APACHE": {
+      "sha256": "275c491d6d1160553c32fd6127061d7f9606c3ea25abfad6ca3f6ed088785427"
+    },
+    "share/licenses/fastra/rust/futures-task-0.3.34/LICENSE-MIT": {
+      "sha256": "6652c868f35dfe5e8ef636810a4e576b9d663f3a17fb0f5613ad73583e1b88fd"
+    },
+    "share/licenses/fastra/rust/futures-util-0.3.34/LICENSE-APACHE": {
+      "sha256": "275c491d6d1160553c32fd6127061d7f9606c3ea25abfad6ca3f6ed088785427"
+    },
+    "share/licenses/fastra/rust/futures-util-0.3.34/LICENSE-MIT": {
+      "sha256": "6652c868f35dfe5e8ef636810a4e576b9d663f3a17fb0f5613ad73583e1b88fd"
+    },
+    "share/licenses/fastra/rust/gdk-pixbuf-0.22.0/COPYRIGHT": {
+      "sha256": "dae402989de65164815b7e2b6bc2b9576285434c3785934c8b6ece0fa055960d"
+    },
+    "share/licenses/fastra/rust/gdk-pixbuf-0.22.0/LICENSE": {
+      "sha256": "8cf56d10131ce201cf69ab74b111d3ebac1acca3833d7efb39ae357224b70edb"
+    },
+    "share/licenses/fastra/rust/gdk-pixbuf-sys-0.22.9/LICENSE": {
+      "sha256": "8cf56d10131ce201cf69ab74b111d3ebac1acca3833d7efb39ae357224b70edb"
+    },
+    "share/licenses/fastra/rust/gdk4-0.11.5/COPYRIGHT": {
+      "sha256": "dae402989de65164815b7e2b6bc2b9576285434c3785934c8b6ece0fa055960d"
+    },
+    "share/licenses/fastra/rust/gdk4-0.11.5/LICENSE": {
+      "sha256": "8cf56d10131ce201cf69ab74b111d3ebac1acca3833d7efb39ae357224b70edb"
+    },
+    "share/licenses/fastra/rust/gdk4-sys-0.11.5/LICENSE": {
+      "sha256": "8cf56d10131ce201cf69ab74b111d3ebac1acca3833d7efb39ae357224b70edb"
+    },
+    "share/licenses/fastra/rust/generic-array-0.14.7/LICENSE": {
+      "sha256": "c09aae9d3c77b531f56351a9947bc7446511d6b025b3255312d3e3442a9a7583"
+    },
+    "share/licenses/fastra/rust/getopts-0.2.24/LICENSE-APACHE": {
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2"
+    },
+    "share/licenses/fastra/rust/getopts-0.2.24/LICENSE-MIT": {
+      "sha256": "6485b8ed310d3f0340bf1ad1f47645069ce4069dcc6bb46c7d5c6faf41de1fdb"
+    },
+    "share/licenses/fastra/rust/getrandom-0.3.4/LICENSE-APACHE": {
+      "sha256": "aaff376532ea30a0cd5330b9502ad4a4c8bf769c539c87ffe78819d188a18ebf"
+    },
+    "share/licenses/fastra/rust/getrandom-0.3.4/LICENSE-MIT": {
+      "sha256": "29e9fe5074bd27e0e5d5d110394fbbcd841baee2651a3c4b4560a632702cede4"
+    },
+    "share/licenses/fastra/rust/gio-0.22.10/COPYRIGHT": {
+      "sha256": "dae402989de65164815b7e2b6bc2b9576285434c3785934c8b6ece0fa055960d"
+    },
+    "share/licenses/fastra/rust/gio-0.22.10/LICENSE": {
+      "sha256": "8cf56d10131ce201cf69ab74b111d3ebac1acca3833d7efb39ae357224b70edb"
+    },
+    "share/licenses/fastra/rust/gio-sys-0.22.9/LICENSE": {
+      "sha256": "8cf56d10131ce201cf69ab74b111d3ebac1acca3833d7efb39ae357224b70edb"
+    },
+    "share/licenses/fastra/rust/glib-0.22.10/COPYRIGHT": {
+      "sha256": "dae402989de65164815b7e2b6bc2b9576285434c3785934c8b6ece0fa055960d"
+    },
+    "share/licenses/fastra/rust/glib-0.22.10/LICENSE": {
+      "sha256": "8cf56d10131ce201cf69ab74b111d3ebac1acca3833d7efb39ae357224b70edb"
+    },
+    "share/licenses/fastra/rust/glib-macros-0.22.9/COPYRIGHT": {
+      "sha256": "dae402989de65164815b7e2b6bc2b9576285434c3785934c8b6ece0fa055960d"
+    },
+    "share/licenses/fastra/rust/glib-macros-0.22.9/LICENSE": {
+      "sha256": "8cf56d10131ce201cf69ab74b111d3ebac1acca3833d7efb39ae357224b70edb"
+    },
+    "share/licenses/fastra/rust/glib-sys-0.22.9/LICENSE": {
+      "sha256": "8cf56d10131ce201cf69ab74b111d3ebac1acca3833d7efb39ae357224b70edb"
+    },
+    "share/licenses/fastra/rust/gobject-sys-0.22.9/LICENSE": {
+      "sha256": "8cf56d10131ce201cf69ab74b111d3ebac1acca3833d7efb39ae357224b70edb"
+    },
+    "share/licenses/fastra/rust/graphene-rs-0.22.8/COPYRIGHT": {
+      "sha256": "dae402989de65164815b7e2b6bc2b9576285434c3785934c8b6ece0fa055960d"
+    },
+    "share/licenses/fastra/rust/graphene-rs-0.22.8/LICENSE": {
+      "sha256": "8cf56d10131ce201cf69ab74b111d3ebac1acca3833d7efb39ae357224b70edb"
+    },
+    "share/licenses/fastra/rust/graphene-sys-0.22.9/LICENSE": {
+      "sha256": "8cf56d10131ce201cf69ab74b111d3ebac1acca3833d7efb39ae357224b70edb"
+    },
+    "share/licenses/fastra/rust/gsk4-0.11.5/COPYRIGHT": {
+      "sha256": "dae402989de65164815b7e2b6bc2b9576285434c3785934c8b6ece0fa055960d"
+    },
+    "share/licenses/fastra/rust/gsk4-0.11.5/LICENSE": {
+      "sha256": "8cf56d10131ce201cf69ab74b111d3ebac1acca3833d7efb39ae357224b70edb"
+    },
+    "share/licenses/fastra/rust/gsk4-sys-0.11.5/LICENSE": {
+      "sha256": "8cf56d10131ce201cf69ab74b111d3ebac1acca3833d7efb39ae357224b70edb"
+    },
+    "share/licenses/fastra/rust/gtk4-0.11.5/COPYRIGHT": {
+      "sha256": "dae402989de65164815b7e2b6bc2b9576285434c3785934c8b6ece0fa055960d"
+    },
+    "share/licenses/fastra/rust/gtk4-0.11.5/LICENSE": {
+      "sha256": "8cf56d10131ce201cf69ab74b111d3ebac1acca3833d7efb39ae357224b70edb"
+    },
+    "share/licenses/fastra/rust/gtk4-macros-0.11.5/COPYRIGHT": {
+      "sha256": "dae402989de65164815b7e2b6bc2b9576285434c3785934c8b6ece0fa055960d"
+    },
+    "share/licenses/fastra/rust/gtk4-macros-0.11.5/LICENSE": {
+      "sha256": "8cf56d10131ce201cf69ab74b111d3ebac1acca3833d7efb39ae357224b70edb"
+    },
+    "share/licenses/fastra/rust/gtk4-sys-0.11.5/LICENSE": {
+      "sha256": "8cf56d10131ce201cf69ab74b111d3ebac1acca3833d7efb39ae357224b70edb"
+    },
+    "share/licenses/fastra/rust/hashbrown-0.17.1/LICENSE-APACHE": {
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2"
+    },
+    "share/licenses/fastra/rust/hashbrown-0.17.1/LICENSE-MIT": {
+      "sha256": "ff8f68cb076caf8cefe7a6430d4ac086ce6af2ca8ce2c4e5a2004d4552ef52a2"
+    },
+    "share/licenses/fastra/rust/heck-0.5.0/LICENSE-APACHE": {
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2"
+    },
+    "share/licenses/fastra/rust/heck-0.5.0/LICENSE-MIT": {
+      "sha256": "7b63ecd5f1902af1b63729947373683c32745c16a10e8e6292e2e2dcd7e90ae0"
+    },
+    "share/licenses/fastra/rust/indexmap-2.14.2/LICENSE-APACHE": {
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2"
+    },
+    "share/licenses/fastra/rust/indexmap-2.14.2/LICENSE-MIT": {
+      "sha256": "ecc269ef87fd38a1d98e30bfac9ba964a9dbd9315c3770fed98d4d7cb5882055"
+    },
+    "share/licenses/fastra/rust/itoa-1.0.15/LICENSE-APACHE": {
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a"
+    },
+    "share/licenses/fastra/rust/itoa-1.0.15/LICENSE-MIT": {
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+    },
+    "share/licenses/fastra/rust/javascriptcore6-0.6.0/LICENSE": {
+      "sha256": "44dad7b2e199b0d355adf4437df5c9bb18633d47804242f24dab5a633faba5f7"
+    },
+    "share/licenses/fastra/rust/javascriptcore6-0.6.0/SOURCE.txt": {
+      "sha256": "357508634987aa2be2f6edcc1044ba9ecb81b53c49acb0daf95276ccf1d82d2b"
+    },
+    "share/licenses/fastra/rust/javascriptcore6-sys-0.6.0/LICENSE": {
+      "sha256": "44dad7b2e199b0d355adf4437df5c9bb18633d47804242f24dab5a633faba5f7"
+    },
+    "share/licenses/fastra/rust/javascriptcore6-sys-0.6.0/SOURCE.txt": {
+      "sha256": "357508634987aa2be2f6edcc1044ba9ecb81b53c49acb0daf95276ccf1d82d2b"
+    },
+    "share/licenses/fastra/rust/libc-0.2.176/LICENSE-APACHE": {
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a"
+    },
+    "share/licenses/fastra/rust/libc-0.2.176/LICENSE-MIT": {
+      "sha256": "a8d47ff51ca256f56a8932dba07660672dbfe3004257ca8de708aac1415937a1"
+    },
+    "share/licenses/fastra/rust/linux-raw-sys-0.11.0/COPYRIGHT": {
+      "sha256": "3290ae0fbc9ddb77d2239121d710f0bb9d31b3b4744e6d97fe01e652b4c1870b"
+    },
+    "share/licenses/fastra/rust/linux-raw-sys-0.11.0/LICENSE-APACHE": {
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2"
+    },
+    "share/licenses/fastra/rust/linux-raw-sys-0.11.0/LICENSE-Apache-2.0_WITH_LLVM-exception": {
+      "sha256": "268872b9816f90fd8e85db5a28d33f8150ebb8dd016653fb39ef1f94f2686bc5"
+    },
+    "share/licenses/fastra/rust/linux-raw-sys-0.11.0/LICENSE-MIT": {
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+    },
+    "share/licenses/fastra/rust/memchr-2.8.3/COPYING": {
+      "sha256": "01c266bced4a434da0051174d6bee16a4c82cf634e2679b6155d40d75012390f"
+    },
+    "share/licenses/fastra/rust/memchr-2.8.3/LICENSE-MIT": {
+      "sha256": "0f96a83840e146e43c0ec96a22ec1f392e0680e6c1226e6f3ba87e0740af850f"
+    },
+    "share/licenses/fastra/rust/memoffset-0.9.1/LICENSE": {
+      "sha256": "3234ac55816264ee7b6c7ee27efd61cf0a1fe775806870e3d9b4c41ea73c5cb1"
+    },
+    "share/licenses/fastra/rust/once_cell-1.21.4/LICENSE-APACHE": {
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2"
+    },
+    "share/licenses/fastra/rust/once_cell-1.21.4/LICENSE-MIT": {
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+    },
+    "share/licenses/fastra/rust/pango-0.22.9/COPYRIGHT": {
+      "sha256": "dae402989de65164815b7e2b6bc2b9576285434c3785934c8b6ece0fa055960d"
+    },
+    "share/licenses/fastra/rust/pango-0.22.9/LICENSE": {
+      "sha256": "8cf56d10131ce201cf69ab74b111d3ebac1acca3833d7efb39ae357224b70edb"
+    },
+    "share/licenses/fastra/rust/pango-sys-0.22.9/LICENSE": {
+      "sha256": "8cf56d10131ce201cf69ab74b111d3ebac1acca3833d7efb39ae357224b70edb"
+    },
+    "share/licenses/fastra/rust/pin-project-lite-0.2.17/LICENSE-APACHE": {
+      "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594"
+    },
+    "share/licenses/fastra/rust/pin-project-lite-0.2.17/LICENSE-MIT": {
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+    },
+    "share/licenses/fastra/rust/pkg-config-0.3.34/LICENSE-APACHE": {
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2"
+    },
+    "share/licenses/fastra/rust/pkg-config-0.3.34/LICENSE-MIT": {
+      "sha256": "378f5840b258e2779c39418f3f2d7b2ba96f1c7917dd6be0713f88305dbda397"
+    },
+    "share/licenses/fastra/rust/proc-macro-crate-3.5.0/LICENSE-APACHE": {
+      "sha256": "8ada45cd9f843acf64e4722ae262c622a2b3b3007c7310ef36ac1061a30f6adb"
+    },
+    "share/licenses/fastra/rust/proc-macro-crate-3.5.0/LICENSE-MIT": {
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+    },
+    "share/licenses/fastra/rust/proc-macro2-1.0.101/LICENSE-APACHE": {
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a"
+    },
+    "share/licenses/fastra/rust/proc-macro2-1.0.101/LICENSE-MIT": {
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+    },
+    "share/licenses/fastra/rust/pulldown-cmark-0.13.1/LICENSE": {
+      "sha256": "c4f10f55904bdb9f27d3fbf94c354926d6cfe8b982276e556238c258941b243b"
+    },
+    "share/licenses/fastra/rust/pulldown-cmark-escape-0.11.0/LICENSE": {
+      "sha256": "c4f10f55904bdb9f27d3fbf94c354926d6cfe8b982276e556238c258941b243b"
+    },
+    "share/licenses/fastra/rust/quote-1.0.40/LICENSE-APACHE": {
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a"
+    },
+    "share/licenses/fastra/rust/quote-1.0.40/LICENSE-MIT": {
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+    },
+    "share/licenses/fastra/rust/rustc_version-0.4.1/LICENSE-APACHE": {
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2"
+    },
+    "share/licenses/fastra/rust/rustc_version-0.4.1/LICENSE-MIT": {
+      "sha256": "c9a75f18b9ab2927829a208fc6aa2cf4e63b8420887ba29cdb265d6619ae82d5"
+    },
+    "share/licenses/fastra/rust/rustix-1.1.2/COPYRIGHT": {
+      "sha256": "377c2e7c53250cc5905c0b0532d35973392af16ffb9596a41d99d202cf3617c9"
+    },
+    "share/licenses/fastra/rust/rustix-1.1.2/LICENSE-APACHE": {
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2"
+    },
+    "share/licenses/fastra/rust/rustix-1.1.2/LICENSE-Apache-2.0_WITH_LLVM-exception": {
+      "sha256": "268872b9816f90fd8e85db5a28d33f8150ebb8dd016653fb39ef1f94f2686bc5"
+    },
+    "share/licenses/fastra/rust/rustix-1.1.2/LICENSE-MIT": {
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+    },
+    "share/licenses/fastra/rust/ryu-1.0.20/LICENSE-APACHE": {
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a"
+    },
+    "share/licenses/fastra/rust/ryu-1.0.20/LICENSE-BOOST": {
+      "sha256": "c9bff75738922193e67fa726fa225535870d2aa1059f91452c411736284ad566"
+    },
+    "share/licenses/fastra/rust/semver-1.0.28/LICENSE-APACHE": {
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a"
+    },
+    "share/licenses/fastra/rust/semver-1.0.28/LICENSE-MIT": {
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+    },
+    "share/licenses/fastra/rust/serde-1.0.228/LICENSE-APACHE": {
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a"
+    },
+    "share/licenses/fastra/rust/serde-1.0.228/LICENSE-MIT": {
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+    },
+    "share/licenses/fastra/rust/serde_core-1.0.228/LICENSE-APACHE": {
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a"
+    },
+    "share/licenses/fastra/rust/serde_core-1.0.228/LICENSE-MIT": {
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+    },
+    "share/licenses/fastra/rust/serde_derive-1.0.228/LICENSE-APACHE": {
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a"
+    },
+    "share/licenses/fastra/rust/serde_derive-1.0.228/LICENSE-MIT": {
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+    },
+    "share/licenses/fastra/rust/serde_json-1.0.145/LICENSE-APACHE": {
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a"
+    },
+    "share/licenses/fastra/rust/serde_json-1.0.145/LICENSE-MIT": {
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+    },
+    "share/licenses/fastra/rust/serde_spanned-1.1.2/LICENSE-APACHE": {
+      "sha256": "249fdb6694467dd615b259f7ddde07be3f8ae5a72cecebb0e24f6629af4215fe"
+    },
+    "share/licenses/fastra/rust/serde_spanned-1.1.2/LICENSE-MIT": {
+      "sha256": "6efb0476a1cc085077ed49357026d8c173bf33017278ef440f222fb9cbcb66e6"
+    },
+    "share/licenses/fastra/rust/sha2-0.10.9/LICENSE-APACHE": {
+      "sha256": "a9040321c3712d8fd0b09cf52b17445de04a23a10165049ae187cd39e5c86be5"
+    },
+    "share/licenses/fastra/rust/sha2-0.10.9/LICENSE-MIT": {
+      "sha256": "b4eb00df6e2a4d22518fcaa6a2b4646f249b3a3c9814509b22bd2091f1392ff1"
+    },
+    "share/licenses/fastra/rust/slab-0.4.12/LICENSE": {
+      "sha256": "8ce0830173fdac609dfb4ea603fdc002c2f4af0dc9b1a005653f5da9cf534b18"
+    },
+    "share/licenses/fastra/rust/smallvec-1.16.4/LICENSE-APACHE": {
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2"
+    },
+    "share/licenses/fastra/rust/smallvec-1.16.4/LICENSE-MIT": {
+      "sha256": "0b28172679e0009b655da42797c03fd163a3379d5cfa67ba1f1655e974a2a1a9"
+    },
+    "share/licenses/fastra/rust/soup3-0.9.0/LICENSE": {
+      "sha256": "7ade43ec5e1a5e43000aa871d290dff4c0e9e2e16b7f6bea2ecf091e3d056d31"
+    },
+    "share/licenses/fastra/rust/soup3-sys-0.9.0/LICENSE": {
+      "sha256": "7ade43ec5e1a5e43000aa871d290dff4c0e9e2e16b7f6bea2ecf091e3d056d31"
+    },
+    "share/licenses/fastra/rust/sourceview5-0.11.2/LICENSE": {
+      "sha256": "8cf56d10131ce201cf69ab74b111d3ebac1acca3833d7efb39ae357224b70edb"
+    },
+    "share/licenses/fastra/rust/sourceview5-sys-0.11.2/LICENSE": {
+      "sha256": "8cf56d10131ce201cf69ab74b111d3ebac1acca3833d7efb39ae357224b70edb"
+    },
+    "share/licenses/fastra/rust/syn-2.0.106/LICENSE-APACHE": {
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a"
+    },
+    "share/licenses/fastra/rust/syn-2.0.106/LICENSE-MIT": {
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+    },
+    "share/licenses/fastra/rust/syn-3.0.9/LICENSE-APACHE": {
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a"
+    },
+    "share/licenses/fastra/rust/syn-3.0.9/LICENSE-MIT": {
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+    },
+    "share/licenses/fastra/rust/system-deps-7.0.8/LICENSE-APACHE": {
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2"
+    },
+    "share/licenses/fastra/rust/system-deps-7.0.8/LICENSE-MIT": {
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+    },
+    "share/licenses/fastra/rust/system-deps-9.0.1/LICENSE-APACHE": {
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2"
+    },
+    "share/licenses/fastra/rust/system-deps-9.0.1/LICENSE-MIT": {
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+    },
+    "share/licenses/fastra/rust/target-lexicon-0.13.5/LICENSE": {
+      "sha256": "268872b9816f90fd8e85db5a28d33f8150ebb8dd016653fb39ef1f94f2686bc5"
+    },
+    "share/licenses/fastra/rust/tempfile-3.23.0/LICENSE-APACHE": {
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2"
+    },
+    "share/licenses/fastra/rust/tempfile-3.23.0/LICENSE-MIT": {
+      "sha256": "8b427f5bc501764575e52ba4f9d95673cf8f6d80a86d0d06599852e1a9a20a36"
+    },
+    "share/licenses/fastra/rust/tinyvec-1.13.3/LICENSE-APACHE.md": {
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    "share/licenses/fastra/rust/tinyvec-1.13.3/LICENSE-MIT.md": {
+      "sha256": "fd80a26fbb3f644af1fa994134446702932968519797227e07a1368dea80f0bc"
+    },
+    "share/licenses/fastra/rust/tinyvec-1.13.3/LICENSE-ZLIB.md": {
+      "sha256": "84b34dd7608f7fb9b17bd588a6bf392bf7de504e2716f024a77d89f1b145a151"
+    },
+    "share/licenses/fastra/rust/toml-1.2.0+spec-1.1.0/LICENSE-APACHE": {
+      "sha256": "249fdb6694467dd615b259f7ddde07be3f8ae5a72cecebb0e24f6629af4215fe"
+    },
+    "share/licenses/fastra/rust/toml-1.2.0+spec-1.1.0/LICENSE-MIT": {
+      "sha256": "6efb0476a1cc085077ed49357026d8c173bf33017278ef440f222fb9cbcb66e6"
+    },
+    "share/licenses/fastra/rust/toml_datetime-1.1.2+spec-1.1.0/LICENSE-APACHE": {
+      "sha256": "249fdb6694467dd615b259f7ddde07be3f8ae5a72cecebb0e24f6629af4215fe"
+    },
+    "share/licenses/fastra/rust/toml_datetime-1.1.2+spec-1.1.0/LICENSE-MIT": {
+      "sha256": "6efb0476a1cc085077ed49357026d8c173bf33017278ef440f222fb9cbcb66e6"
+    },
+    "share/licenses/fastra/rust/toml_edit-0.25.18+spec-1.1.0/LICENSE-APACHE": {
+      "sha256": "249fdb6694467dd615b259f7ddde07be3f8ae5a72cecebb0e24f6629af4215fe"
+    },
+    "share/licenses/fastra/rust/toml_edit-0.25.18+spec-1.1.0/LICENSE-MIT": {
+      "sha256": "6efb0476a1cc085077ed49357026d8c173bf33017278ef440f222fb9cbcb66e6"
+    },
+    "share/licenses/fastra/rust/toml_parser-1.1.5+spec-1.1.0/LICENSE-APACHE": {
+      "sha256": "249fdb6694467dd615b259f7ddde07be3f8ae5a72cecebb0e24f6629af4215fe"
+    },
+    "share/licenses/fastra/rust/toml_parser-1.1.5+spec-1.1.0/LICENSE-MIT": {
+      "sha256": "6efb0476a1cc085077ed49357026d8c173bf33017278ef440f222fb9cbcb66e6"
+    },
+    "share/licenses/fastra/rust/toml_writer-1.2.0+spec-1.1.0/LICENSE-APACHE": {
+      "sha256": "249fdb6694467dd615b259f7ddde07be3f8ae5a72cecebb0e24f6629af4215fe"
+    },
+    "share/licenses/fastra/rust/toml_writer-1.2.0+spec-1.1.0/LICENSE-MIT": {
+      "sha256": "6efb0476a1cc085077ed49357026d8c173bf33017278ef440f222fb9cbcb66e6"
+    },
+    "share/licenses/fastra/rust/typenum-1.20.1/LICENSE": {
+      "sha256": "db11fec9946737df39ca3898d9cd8c10ec6f6c3a884a6802b0ad0b81b4e8f23a"
+    },
+    "share/licenses/fastra/rust/typenum-1.20.1/LICENSE-APACHE": {
+      "sha256": "516b24e051bf5630880ebbd55c40a25ce9552ebaf8970a53e8976eb70e522406"
+    },
+    "share/licenses/fastra/rust/typenum-1.20.1/LICENSE-MIT": {
+      "sha256": "a825bd853ab71619a4923d7b4311221427848070ff44d990da39b0b274c1683f"
+    },
+    "share/licenses/fastra/rust/unicase-2.10.0/LICENSE-APACHE": {
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2"
+    },
+    "share/licenses/fastra/rust/unicase-2.10.0/LICENSE-MIT": {
+      "sha256": "4f6bd11a0f17fe5b085ace1daaedb7b002a08316850dd9577c246c6a68a68e8c"
+    },
+    "share/licenses/fastra/rust/unicode-ident-1.0.19/LICENSE-APACHE": {
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a"
+    },
+    "share/licenses/fastra/rust/unicode-ident-1.0.19/LICENSE-MIT": {
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+    },
+    "share/licenses/fastra/rust/unicode-ident-1.0.19/LICENSE-UNICODE": {
+      "sha256": "f7db81051789b729fea528a63ec4c938fdcb93d9d61d97dc8cc2e9df6d47f2a1"
+    },
+    "share/licenses/fastra/rust/unicode-normalization-0.1.25/COPYRIGHT": {
+      "sha256": "23860c2a7b5d96b21569afedf033469bab9fe14a1b24a35068b8641c578ce24d"
+    },
+    "share/licenses/fastra/rust/unicode-normalization-0.1.25/LICENSE-APACHE": {
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2"
+    },
+    "share/licenses/fastra/rust/unicode-normalization-0.1.25/LICENSE-MIT": {
+      "sha256": "7b63ecd5f1902af1b63729947373683c32745c16a10e8e6292e2e2dcd7e90ae0"
+    },
+    "share/licenses/fastra/rust/unicode-width-0.2.3/COPYRIGHT": {
+      "sha256": "23860c2a7b5d96b21569afedf033469bab9fe14a1b24a35068b8641c578ce24d"
+    },
+    "share/licenses/fastra/rust/unicode-width-0.2.3/LICENSE-APACHE": {
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2"
+    },
+    "share/licenses/fastra/rust/unicode-width-0.2.3/LICENSE-MIT": {
+      "sha256": "7b63ecd5f1902af1b63729947373683c32745c16a10e8e6292e2e2dcd7e90ae0"
+    },
+    "share/licenses/fastra/rust/version-compare-0.2.1/LICENSE": {
+      "sha256": "cedfcc7ace1639adb054bd4a19b6f8585ccb2429a60b4bf51bfeb0601058c22c"
+    },
+    "share/licenses/fastra/rust/version_check-0.9.5/LICENSE-APACHE": {
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2"
+    },
+    "share/licenses/fastra/rust/version_check-0.9.5/LICENSE-MIT": {
+      "sha256": "b7e650f3fce5c53249d1cdc608b54df156a97edd636cf9d23498d0cfe7aec63e"
+    },
+    "share/licenses/fastra/rust/webkit6-0.6.1/LICENSE": {
+      "sha256": "44dad7b2e199b0d355adf4437df5c9bb18633d47804242f24dab5a633faba5f7"
+    },
+    "share/licenses/fastra/rust/webkit6-0.6.1/SOURCE.txt": {
+      "sha256": "f77a703d8f5b0a18d4f2d8944458806a6e9ed4730b8fc437c584ee5bb276c0e2"
+    },
+    "share/licenses/fastra/rust/webkit6-sys-0.6.0/LICENSE": {
+      "sha256": "44dad7b2e199b0d355adf4437df5c9bb18633d47804242f24dab5a633faba5f7"
+    },
+    "share/licenses/fastra/rust/webkit6-sys-0.6.0/SOURCE.txt": {
+      "sha256": "357508634987aa2be2f6edcc1044ba9ecb81b53c49acb0daf95276ccf1d82d2b"
+    },
+    "share/licenses/fastra/rust/winnow-1.0.4/LICENSE-MIT": {
+      "sha256": "cb5aedb296c5246d1f22e9099f925a65146f9f0d6b4eebba97fd27a6cdbbab2d"
+    },
+    "share/licenses/fastra/rust-standard-library/COPYRIGHT-library.html": {
+      "sha256": "5647be074c8edf7339fd863055923a8fc80bc5610a8d4661ec3b767b9d392c27"
+    },
+    "share/licenses/fastra/rust-standard-library/licenses/Apache-2.0.txt": {
+      "sha256": "074e6e32c86a4c0ef8b3ed25b721ca23aca83df277cd88106ef7177c354615ff"
+    },
+    "share/licenses/fastra/rust-standard-library/licenses/BSD-2-Clause.txt": {
+      "sha256": "f32fb3b417a194167cfad068223fc975ba96c5960513a10f66a3c28720aec1df"
+    },
+    "share/licenses/fastra/rust-standard-library/licenses/CC-BY-SA-4.0.txt": {
+      "sha256": "23ee78c8bae49cf08ea2f0c84945c66b987ebe4520881fb51b3dad4fb43d07c2"
+    },
+    "share/licenses/fastra/rust-standard-library/licenses/GCC-exception-3.1.txt": {
+      "sha256": "a3966c9410ef94a1efbfa9ec04e9c1994026a70623fbf0885ce36737bfba3b54"
+    },
+    "share/licenses/fastra/rust-standard-library/licenses/GPL-2.0-only.txt": {
+      "sha256": "54b212ba1f97f6948fa5486239ab505dd820b02e50cbfd296b4062c8609a70af"
+    },
+    "share/licenses/fastra/rust-standard-library/licenses/GPL-3.0-or-later.txt": {
+      "sha256": "05315fce6c35f79b8a35454828995fa26336f235895ac64557abc028f4ffcea2"
+    },
+    "share/licenses/fastra/rust-standard-library/licenses/ISC.txt": {
+      "sha256": "0ff61769b238634e042ab759dddfd104a8e69d091e3600ae3410e401a6164381"
+    },
+    "share/licenses/fastra/rust-standard-library/licenses/LLVM-exception.txt": {
+      "sha256": "e34c58338bd89d43e709e226610d8f32b3e3c47f4ad9a99a8dc1d4ac7842488e"
+    },
+    "share/licenses/fastra/rust-standard-library/licenses/MIT.txt": {
+      "sha256": "b85dcd3e453d05982552c52b5fc9e0bdd6d23c6f8e844b984a88af32570b0cc0"
+    },
+    "share/licenses/fastra/rust-standard-library/licenses/NCSA.txt": {
+      "sha256": "39cb0234065c92b9e6cee3830cbb52b1aa289aa8fe9ba2e66730fec5cf05c630"
+    },
+    "share/licenses/fastra/rust-standard-library/licenses/OFL-1.1.txt": {
+      "sha256": "8eea8287e5876b539670cadb82e99f9a7afddec6f6730811be1daf25d2e9bcfd"
+    },
+    "share/licenses/fastra/rust-standard-library/licenses/Unicode-3.0.txt": {
+      "sha256": "f5062c9a188d81dfe66b56db4182dcf9e4b17c0d9b0d311a8e20b3a1b075c443"
+    }
+  }
+}

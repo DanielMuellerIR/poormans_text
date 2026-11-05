@@ -1,0 +1,10 @@
+{
+  "liveUID1000ProcessesAfterProbe": 0,
+  "networkInterfacesDuringProductPhase": [
+    "lo"
+  ],
+  "DISPLAYWasAbsent": true,
+  "ownTestContainerRemoved": true,
+  "ownPackageCopiesRemoved": true,
+  "newImageRetained": "sha256:c7c5cf572d4eceb44472b05fc51c4cdc74cec6f929f048c8a06af876654bf189"
+}

@@ -33,6 +33,44 @@ final class LinuxOCRTests: XCTestCase {
         XCTAssertEqual(result.lines[0].recognized, "ALPHA")
         XCTAssertEqual(result.text, "[OCR uncertain: ALPHA]")
     }
+    func testMissingOCRBackendCannotPublishAnImageResult() throws {
+        guard !FileManager.default.isExecutableFile(atPath: LinuxOCR.executable.path) else {
+            throw XCTSkip("Run this fixture in the isolated missing-Tesseract environment")
+        }
+        try withBlankImage { source, output, bytes in
+            XCTAssertThrowsError(try DocumentConverter().convert(.init(inputURL: source,
+                destination: .directory(output), options: .init(imageTextRecognition: .enabled)))) {
+                XCTAssertTrue($0 is PlatformBackendUnavailable, "\($0)")
+            }
+            XCTAssertFalse(FileManager.default.fileExists(atPath: output.path))
+            XCTAssertEqual(try Data(contentsOf: source), bytes)
+        }
+    }
+
+    func testBlankImageDoesNotClaimAddedOCRText() throws {
+        guard FileManager.default.isExecutableFile(atPath: LinuxOCR.executable.path) else {
+            throw XCTSkip("Local Tesseract is required for the blank-image fixture")
+        }
+        try withBlankImage { source, output, bytes in
+            let result = try DocumentConverter().convert(.init(inputURL: source,
+                destination: .directory(output), options: .init(imageTextRecognition: .enabled)))
+            XCTAssertFalse(result.diagnostics.contains { $0.code == "image.ocrApplied" })
+            XCTAssertTrue(result.diagnostics.contains { $0.code == "image.textUnavailable" })
+            XCTAssertEqual(try Data(contentsOf: source), bytes)
+            XCTAssertEqual(try Data(contentsOf: XCTUnwrap(result.assets.first)), bytes)
+        }
+    }
+
+    private func withBlankImage(_ body: (URL, URL, Data) throws -> Void) throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("PMT-OCR-Failure-\(UUID())")
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let bytes = try XCTUnwrap(Data(base64Encoded: "iVBORw0KGgoAAAANSUhEUgAAACAAAAAYCAIAAAAUMWhjAAAAM0lEQVR4nO3RwQ0AMAjDQMr+O6cjmE9+vgGCZF6Sadrq+njgwB8gEyETIRMhEyEToXqiDwu6Ay07tmdtAAAAAElFTkSuQmCC"))
+        let source = root.appendingPathComponent("blank.png")
+        try bytes.write(to: source)
+        try body(source, root.appendingPathComponent("result"), bytes)
+    }
+
     func testActualLocalRasterRecognition() throws {
         guard let fixture = ProcessInfo.processInfo.environment["PMT_OCR_FIXTURE"] else { throw XCTSkip("Host OCR fixture not selected") }
         let result = try LinuxOCR.recognize(pngURL: URL(fileURLWithPath: fixture), languages: ["de", "en"])

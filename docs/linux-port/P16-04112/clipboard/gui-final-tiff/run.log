@@ -1,0 +1,10 @@
+MESA-EGL: warning: DRI3 error: Could not get DRI3 device
+MESA-EGL: warning: Ensure your X server supports DRI3 to get accelerated rendering
+PMT_UI_TEST_JOB_STARTED conversion=false
+PMT_UI_TEST_OPERATION_FINISHED conversion=false cancelled=false
+PMT_UI_TEST_JOB_STARTED conversion=true
+PMT_UI_TEST_OPERATION_FINISHED conversion=true cancelled=false
+PMT_UI_TEST_RESULT {"assets":["/clip-fixtures/bound-compare-1793853953071398594/images/image01.tiff"],"diagnosticGroups":[{"code":"sourceMap.unavailable","count":1,"kind":"information","locations":[],"messages":["No verified source-to-text positions are available for this conversion."],"omittedCount":0}],"diagnostics":[{"code":"sourceMap.unavailable","kind":"information","message":"No verified source-to-text positions are available for this conversion."}],"documents":[{"assets":["/clip-fixtures/bound-compare-1793853953071398594/images/image01.tiff"],"markdownFile":"/clip-fixtures/bound-compare-1793853953071398594/clipboard.md","metadata":{},"sourceIndex":1,"title":"clipboard"}],"input":"/dev/pmt-input/clipboard.tiff","markdownFile":"/clip-fixtures/bound-compare-1793853953071398594/clipboard.md","metadata":{},"ok":true,"outputDirectory":"/clip-fixtures/bound-compare-1793853953071398594","outputFiles":[{"byteCount":47,"path":"clipboard.md","sha256":"f53485276f3d4edffba117023995d5f98d2e6f6a4c160aafb8915cd56da75568"},{"byteCount":16784,"path":"images/image01.tiff","sha256":"db11ee17be045471eae6dfcb9f3b11f7065e8a8fb7e00f08d98dbfbee4d9313d"}],"sourceIdentity":{"byteCount":16784,"name":"clipboard.tiff","sha256":"db11ee17be045471eae6dfcb9f3b11f7065e8a8fb7e00f08d98dbfbee4d9313d"},"sourceMappings":[],"version":"0.41.11","warnings":["No verified source-to-text positions are available for this conversion."]}
+PMT_UI_TEST_BOUND_SOURCE_VERIFIED positions=0
+PMT_UI_TEST_BOUND_RASTER_COMPLETE original-frame-valid-hash index=2
+PMT_UI_TEST_CLIPBOARD_CLOSE released-after-job-barrier

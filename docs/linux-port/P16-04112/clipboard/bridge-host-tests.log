@@ -1,0 +1,35 @@
+   Compiling pmt-bridge v0.41.11 (/tmp/pmt-p14-clipboard-compare/linux/bridge)
+    Finished `test` profile [unoptimized] target(s) in 0.69s
+     Running unittests src/lib.rs (.build/linux-ui-target/debug/deps/pmt_bridge-2e98fd243776e809)
+
+running 16 tests
+test tests::batch_entries_inherit_version_and_partial_results_are_kept ... ok
+test tests::cancel_waits_for_detached_descendant_and_does_not_signal_unrelated_process ... ok
+test tests::contradictory_error_response_cannot_become_success ... ok
+test tests::immediate_exit_cannot_escape_namespace_barrier ... ok
+test tests::json_must_be_complete_and_stdout_is_bounded ... ok
+test tests::missing_binary_and_false_success_are_errors_with_raw_response ... ok
+test tests::parent_loss_kills_real_cli_and_swift_namespace ... ok
+test tests::pidfd_emfile_fails_before_workload_start ...
+running 1 test
+test tests::pidfd_failure_process ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 20 filtered out; finished in 0.01s
+
+ok
+test tests::real_cancel_waits_for_swift_namespace ... ok
+test tests::real_catalog_csv_folder_and_hashes ... ok
+test tests::real_readonly_source_and_fifo ... ok
+test tests::sealed_input_reaches_two_jobs_with_independent_offsets ... ok
+test tests::stderr_and_event_queue_remain_bounded_without_a_consumer ... ok
+test tests::timeout_and_dropped_handles_cancel_the_owned_child ... ok
+test tests::ui_loss_before_ack_starts_no_workload ... ok
+test tests::unknown_fields_and_os_arguments_are_preserved ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 8.01s
+
+   Doc-tests pmt_bridge
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

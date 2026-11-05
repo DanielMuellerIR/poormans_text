@@ -1,0 +1,112 @@
+{
+  "frozenUTC": "2026-11-05T05:07:10.689827+00:00",
+  "files": {
+    "private-dev-ro.patch": "dcf1bb86499388a6dd03deae7ce3594fd606d1040bc3d8db0373715c23824b48",
+    "bound-comparison-final.patch": "b8aeac09e9f301fe8caa54bdab997a14760ff575933009c250bf0d5eeeaf83ff",
+    "retention-review-final.patch": "47d19a4f1ed06c8c3b1c230e3e275fc76c30d5a29961a61996d64a207ed5b68f",
+    "README.md": "e4873ac1bfaa81a080162e132de9c3e6702becf9a4b46d0f095cc854877caf4b",
+    "freeze.py": "6e31e53e7d9cc1dbb5dc92cf44e04b095ca3d86b033fd327aaa837bdce417627",
+    "unit-tests.log": "595a691addb8c3e5da686c42ec1d60db7274ba756fe184120a918b1d3acbcf17",
+    "bridge-host-tests.log": "d93cc487db0904bca181d811a91d518f5668065f315d19f6865255906eeaf78d",
+    "clippy.log": "ba8072e687ba041a191509c3ebc819ee336f60df1a6c6d91a2acc49fa938874a",
+    "clippy-default.log": "db4a044f36e6d763f73e5c2167b6e10e61dada161e0a36f9f21c3634d39ce1f6",
+    "gui_runner.py": "c7759f30bf0ba5fd3f32f53dbbe2cb9e227e7804108de27b5b47e36438d2b261",
+    "gui-final-png/run.log": "001a6ea752efd28175592a8e7eb6e34b2731eb357dc323ad08d80191bf1267d4",
+    "gui-final-tiff/run.log": "42346db7d5a8ba7b72d3321dc3553b1bad739466de849fc33ccb57038da0d598",
+    "gui-final-rtf/run.log": "4b99ebfba99a258144bd1f88fb7011bd7d12195603ac6a78b24817a318ff8a77",
+    "gui-bound-html/run.log": "9f39cc79b6fa96213b548397305085d1d255f63936be1c6eae1d1b84cb665c21",
+    "gui-release-final/run.log": "568b9dddf3b05b915fc394b662c0fa29926fde471ab7bdaf7e7c6e87134fa961",
+    "gui-error-release-final/run.log": "6c402c4a525534c003c0bdb4b7e020b7b34bb25240179748dbb572405b779d21",
+    "gui-close-final/run.log": "4f46bafef906130f1b61703cc9a95802ba5f1dd7eed2cd8b51a6456851ca645f",
+    "gui-clipboard-final/run.log": "3f8150607451e84cc81ecc1103b766c36c39dc35d771695da8e4945bb14805ce",
+    "gui-final-profiles/run.log": "d4e9cc9ebb150eb972ac60cf99562b9f7f5b4bc5af22638f899faaad6d865424",
+    "gui-normal-unicode-final/run.log": "0dc7138ec46c77a1a91daa9e31262ab4f25168ff815732ac60a134d100708324",
+    "gui-normal-pdf-final/run.log": "04705c57456bc7fd04e2075e8394767d3e3dc8276bedbfae9164d6bc4bd6857d",
+    "gui-visual-final/run.log": "d5aa776f5d950431f6ece41541ef557cc339ba42fabdccc0a99f6618f65e0a8d",
+    "gui-visual-final/screenshot.png": "4f2e5261a12dccd7462d659c8f564264534568d06eef8a3835f63ec4c77b31e8",
+    "proof/run_container.sh": "24fe63d475e23be019572e590eea51fc07717e093c0db21c3099faee2fd479c5",
+    "proof/bound_probe.rs": "9acfb248e94cc12eead7192f1ff8abc9f463339dd9c138a28b58ffa1d4fc4976",
+    "proof/uno-devro.json": "0b890f813430d0268db203fe29bcca44834bd0698d30139f4a00259d24ecbc63",
+    "proof/uno_devro.py": "ef0de6dd7e712d335d2a264a0b9edaa3a75b21aeca750219533d9d3162cfd020",
+    "proof/backend-devro.json": "db6d0d9f9e5e8c89abbf9ddfd44ee175a0a145ec940e226f7529ee562a378e31",
+    "proof/backend_devro.py": "c37143aa044715a0eaa0fb7629413dda8064641120ab34e60b551f243215b4d7",
+    "proof/devro.json": "faa867dcf333c7b6d1d249e984d68ba8e553cdf7ea52f2ce881453b6c239c52d",
+    "proof/devro.py": "db72357907742bd88d5be5c8dba6a928f245dd74f0726c60e51c55662e62862c",
+    "samples/Vergleich-é.csv": "59e08b460e8b890b44d51fa008b0caa0bde399855a33c9eb7d4bc9ada3dfc12d",
+    "samples/pages.pdf": "ff6058a7b3ebee3bb63e26a5680c1224009858b648b2d88c5b2054bf338a71d6",
+    "samples/frames.tiff": "db11ee17be045471eae6dfcb9f3b11f7065e8a8fb7e00f08d98dbfbee4d9313d",
+    "samples/profile.xlsx": "a439a9b0d54f45663381d32f9cc50fb8b36c068552392db8bd0d5c72f3804cba",
+    "samples/profile-changed.xlsx": "8d419bdc083b1b3aca175c13cc6d12619c2028370ab211e76cf8c7d96dd13be9",
+    "samples/source.webp": "ba7f66a991e338dd2a04d820caf2293f9dbc75fd3deb4eda925528988261231c",
+    "samples/source.tiff": "6b997f4a58b7df94c7a86f757b92e174d68c3669ee1748d64790b92f73246e9a",
+    "samples/source.rtf": "d319b1d41c695b175419f2ac8613558a26c37db14c91c2fc162c767bf2731afb",
+    "samples/source.png": "f73bf0b40f5f29de5fc19c1efebd20a3881489991c6f13c0e0652e15b1db5aff",
+    "samples/source.jpg": "97406ec045403bb67860df902e62fa3daa503640dd26bc5a12d5c8c37cbcd40a",
+    "samples/source.html": "0c51465c7db264c3a33b5328c45c73ae4d18e259fb46802db44b405227afe1f6",
+    "samples/source.heic": "d3ba28ae03b0459390e6db6df595c67136f66c6bc1aa12457efefa003a24192b",
+    "samples/source.gif": "8d5d581bcffd0a23e9be9daf981efd4808bd3512efab6f16f77a2d1f0c0ccd8d",
+    "samples/source.csv": "fce2f62e44ab8bc23a74d03cc02a96e5ccb446259ff6141b288f722270cad46c",
+    "samples/source.bmp": "c1fcbc5bea170d7e029fc23d98bb9ad096a271717c55a334be97b076293eb7d2"
+  },
+  "sourceFiles": {
+    "linux/app/src/model.rs": "f07cd599050fb9d9e1bcc60324a72b204c605af26d6e38365fe306e5c4793bc8",
+    "linux/app/src/main.rs": "3c7a0cccf480904ddce667eea7039e9d68f23e0e6882cc20e05e0957e8eeeeda",
+    "linux/app/src/comparison.rs": "bfc19b6a30226d77065ad7630844b93550c49c2c2eaf5db847b3195f6f915adc",
+    "linux/app/src/source_raster.rs": "6d719d144e79be4f1262f3ba23019882b2726aa20f3baa989a9cfb5147a60ff0",
+    "linux/app/src/clipboard_ui.rs": "105b35b39a66bb2d4a5c023521d3fa1e7e4cc2d8b7db7a70221306718d52f428",
+    "linux/bridge/src/lib.rs": "51b8d69fcfdc893e30ec0258f6b5b41ae395c59c2b58cb888f51a071df4e94a4"
+  },
+  "candidateCLI": {
+    "sha256": "a16bbe27d21e1e6f8890bd1c45acfbd8b58a9c943465ffbb3ab90e6150aad4b3",
+    "version": "0.41.11",
+    "guardSHA256": "cf677f9be88095a27423ceedb9db2b85667f7775d167857cfb52002ff5dda520"
+  },
+  "images": {
+    "pmt-heic-probe:local": "sha256:c6c14c83dd5f81703172f5cbb766af5a47c76a9cb638a88efba7bd31226f0481",
+    "pmt-linux-office-test": "sha256:3aad39b46074e634fd7be6535aaa3f63315a34d05a1712195ebbfc842a9af6e9"
+  },
+  "checks": {
+    "gtkUnits": 35,
+    "bridgeUnits": 3,
+    "explicitHostBridgeTests": 16,
+    "allTargetsAllFeaturesClippy": true,
+    "defaultClippy": true,
+    "sourceFDRelease": {
+      "before": 1,
+      "after": 0,
+      "mainAppStillOpen": true,
+      "normalAndErrorPopup": true,
+      "actualSourceClear": true,
+      "weakWindowReleased": true,
+      "weakTextureReleased": true
+    },
+    "privateDevTargets": "five clipboard aliases + local profile =74; ordinary shm=74; missing ordinary pmt-input parent=73",
+    "deviceIO": true,
+    "backendRegressions": [
+      "bound HEIC preview",
+      "PDF page2 preview",
+      "full PDF conversion",
+      "one safe UNO-DOC conversion"
+    ],
+    "gui": [
+      "bound PNG",
+      "bound TIFF frame2",
+      "bound RTF",
+      "HTML verified text",
+      "bound framejob cancel/close no stale commit",
+      "existing clipboard and close",
+      "profiles",
+      "Unicode live-file comparison",
+      "normal PDF raster comparison"
+    ],
+    "visual700px": true
+  },
+  "limits": [
+    "No invented mappings: actual OCR-off clipboard examples have zero positions",
+    "Native GTK HEIC decode path not run; qualified container bound HEIC preview verified",
+    "Ordinary source-clear generation still conservatively blocks raster display",
+    "No Mac/Core/Guard/manifest/version changes"
+  ],
+  "supersededCandidate": "73d8b5fdaee29d43e8ee241f6fb90f1514d6b4caec922fa95bbe68096be90c4e: do not integrate",
+  "display2Released": true
+}

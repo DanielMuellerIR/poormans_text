@@ -1,0 +1,2200 @@
+{
+  "cliSHA256Before": "2f49d54ecd6d9bae4962fcdb7f968ea4eef9c3844701d278a9a507e3e84db07c",
+  "cases": [
+    {
+      "case": "version",
+      "expectedExit": 0,
+      "executedCLIHash": "2f49d54ecd6d9bae4962fcdb7f968ea4eef9c3844701d278a9a507e3e84db07c",
+      "exit": 0,
+      "stderr": "",
+      "checks": {
+        "expectedExit": true,
+        "sameRuntime": true,
+        "noOwnChildren": true
+      },
+      "json": null,
+      "adoptedExitedChildren": 0,
+      "remainingOwnChildren": [],
+      "version": "Poor Man's Text 0.41.12"
+    },
+    {
+      "case": "catalog",
+      "expectedExit": 0,
+      "executedCLIHash": "2f49d54ecd6d9bae4962fcdb7f968ea4eef9c3844701d278a9a507e3e84db07c",
+      "exit": 0,
+      "stderr": "",
+      "checks": {
+        "expectedExit": true,
+        "sameRuntime": true,
+        "noOwnChildren": true,
+        "all29Rows": true
+      },
+      "json": {
+        "formats": [
+          {
+            "available": false,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "rtf"
+            ],
+            "format": "rtf",
+            "requires": [
+              "pandoc",
+              "bwrap",
+              "poormans-text-process-guard"
+            ],
+            "unavailableReason": "missing required tool: pandoc"
+          },
+          {
+            "available": false,
+            "container": "package",
+            "containers": [
+              "package"
+            ],
+            "extensions": [
+              "rtfd"
+            ],
+            "format": "rtfd",
+            "requires": [
+              "pandoc",
+              "bwrap",
+              "poormans-text-process-guard"
+            ],
+            "unavailableReason": "missing required tool: pandoc"
+          },
+          {
+            "available": false,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "docx",
+              "docm",
+              "dotx",
+              "dotm"
+            ],
+            "format": "docx",
+            "requires": [
+              "pandoc",
+              "bwrap",
+              "poormans-text-process-guard"
+            ],
+            "unavailableReason": "missing required tool: pandoc"
+          },
+          {
+            "available": false,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "odt"
+            ],
+            "format": "odt",
+            "requires": [
+              "pandoc",
+              "bwrap",
+              "poormans-text-process-guard"
+            ],
+            "unavailableReason": "missing required tool: pandoc"
+          },
+          {
+            "available": false,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "doc"
+            ],
+            "format": "doc",
+            "requires": [
+              "libreoffice",
+              "python3-uno",
+              "pandoc",
+              "bwrap",
+              "poormans-text-process-guard"
+            ],
+            "unavailableReason": "missing required tool: pandoc"
+          },
+          {
+            "available": true,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "ods"
+            ],
+            "format": "ods",
+            "requires": [],
+            "unavailableReason": null
+          },
+          {
+            "available": true,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "xlsx",
+              "xlsm",
+              "xltx",
+              "xltm"
+            ],
+            "format": "xlsx",
+            "requires": [],
+            "unavailableReason": null
+          },
+          {
+            "available": true,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "xls"
+            ],
+            "format": "xls",
+            "requires": [],
+            "unavailableReason": null
+          },
+          {
+            "available": false,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "odm"
+            ],
+            "format": "odm",
+            "requires": [
+              "pandoc",
+              "bwrap",
+              "poormans-text-process-guard"
+            ],
+            "unavailableReason": "missing required tool: pandoc"
+          },
+          {
+            "available": true,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "png",
+              "jpg",
+              "jpeg",
+              "tif",
+              "tiff",
+              "gif",
+              "bmp",
+              "webp",
+              "heic"
+            ],
+            "format": "image",
+            "requires": [
+              "python3-pillow",
+              "bwrap",
+              "poormans-text-process-guard"
+            ],
+            "unavailableReason": null
+          },
+          {
+            "available": false,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "pdf"
+            ],
+            "format": "pdf",
+            "requires": [
+              "python3-gi-poppler",
+              "bwrap",
+              "poormans-text-process-guard"
+            ],
+            "unavailableReason": "The Python GI Poppler/Cairo PDF backend is not available in this build."
+          },
+          {
+            "available": true,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "pptx",
+              "pptm",
+              "potx"
+            ],
+            "format": "pptx",
+            "requires": [],
+            "unavailableReason": null
+          },
+          {
+            "available": true,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "odp"
+            ],
+            "format": "odp",
+            "requires": [],
+            "unavailableReason": null
+          },
+          {
+            "available": true,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "ipynb"
+            ],
+            "format": "ipynb",
+            "requires": [],
+            "unavailableReason": null
+          },
+          {
+            "available": true,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "csv",
+              "tsv"
+            ],
+            "format": "csv",
+            "requires": [],
+            "unavailableReason": null
+          },
+          {
+            "available": false,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "html",
+              "htm",
+              "xhtml"
+            ],
+            "format": "html",
+            "requires": [
+              "pandoc",
+              "bwrap",
+              "poormans-text-process-guard"
+            ],
+            "unavailableReason": "missing required tool: pandoc"
+          },
+          {
+            "available": false,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "webarchive"
+            ],
+            "format": "webarchive",
+            "requires": [
+              "pandoc",
+              "bwrap",
+              "poormans-text-process-guard"
+            ],
+            "unavailableReason": "missing required tool: pandoc"
+          },
+          {
+            "available": false,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "epub"
+            ],
+            "format": "epub",
+            "requires": [
+              "pandoc",
+              "bwrap",
+              "poormans-text-process-guard"
+            ],
+            "unavailableReason": "missing required tool: pandoc"
+          },
+          {
+            "available": false,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "tex",
+              "latex"
+            ],
+            "format": "latex",
+            "requires": [
+              "pandoc",
+              "bwrap",
+              "poormans-text-process-guard"
+            ],
+            "unavailableReason": "missing required tool: pandoc"
+          },
+          {
+            "available": false,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "dbk",
+              "docbook"
+            ],
+            "format": "docbook",
+            "requires": [
+              "pandoc",
+              "bwrap",
+              "poormans-text-process-guard"
+            ],
+            "unavailableReason": "missing required tool: pandoc"
+          },
+          {
+            "available": false,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "org"
+            ],
+            "format": "org",
+            "requires": [
+              "pandoc",
+              "bwrap",
+              "poormans-text-process-guard"
+            ],
+            "unavailableReason": "missing required tool: pandoc"
+          },
+          {
+            "available": false,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "wiki",
+              "mediawiki"
+            ],
+            "format": "mediawiki",
+            "requires": [
+              "pandoc",
+              "bwrap",
+              "poormans-text-process-guard"
+            ],
+            "unavailableReason": "missing required tool: pandoc"
+          },
+          {
+            "available": false,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "textile"
+            ],
+            "format": "textile",
+            "requires": [
+              "pandoc",
+              "bwrap",
+              "poormans-text-process-guard"
+            ],
+            "unavailableReason": "missing required tool: pandoc"
+          },
+          {
+            "available": false,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "rst"
+            ],
+            "format": "rst",
+            "requires": [
+              "pandoc",
+              "bwrap",
+              "poormans-text-process-guard"
+            ],
+            "unavailableReason": "missing required tool: pandoc"
+          },
+          {
+            "available": false,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "fb2"
+            ],
+            "format": "fb2",
+            "requires": [
+              "pandoc",
+              "bwrap",
+              "poormans-text-process-guard"
+            ],
+            "unavailableReason": "missing required tool: pandoc"
+          },
+          {
+            "available": false,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "eml",
+              "emlx"
+            ],
+            "format": "eml",
+            "requires": [
+              "pandoc",
+              "bwrap",
+              "poormans-text-process-guard"
+            ],
+            "unavailableReason": "missing required tool: pandoc"
+          },
+          {
+            "available": false,
+            "container": "file",
+            "containers": [
+              "file",
+              "package"
+            ],
+            "extensions": [
+              "mbox"
+            ],
+            "format": "mbox",
+            "requires": [
+              "pandoc",
+              "bwrap",
+              "poormans-text-process-guard"
+            ],
+            "unavailableReason": "missing required tool: pandoc"
+          },
+          {
+            "available": false,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "enex"
+            ],
+            "format": "enex",
+            "requires": [
+              "pandoc",
+              "bwrap",
+              "poormans-text-process-guard"
+            ],
+            "unavailableReason": "missing required tool: pandoc"
+          },
+          {
+            "available": false,
+            "container": "file",
+            "containers": [
+              "file"
+            ],
+            "extensions": [
+              "msg"
+            ],
+            "format": "msg",
+            "requires": [
+              "pandoc",
+              "bwrap",
+              "poormans-text-process-guard"
+            ],
+            "unavailableReason": "missing required tool: pandoc"
+          }
+        ],
+        "ok": true,
+        "version": "0.41.12"
+      },
+      "adoptedExitedChildren": 0,
+      "remainingOwnChildren": []
+    },
+    {
+      "case": "csv-0",
+      "expectedExit": 0,
+      "executedCLIHash": "2f49d54ecd6d9bae4962fcdb7f968ea4eef9c3844701d278a9a507e3e84db07c",
+      "exit": 0,
+      "stderr": "",
+      "checks": {
+        "expectedExit": true,
+        "sameRuntime": true,
+        "noOwnChildren": true,
+        "sourceUnchanged": true,
+        "manifest-Café.md": true,
+        "independentCSVValues": true
+      },
+      "json": {
+        "assets": [],
+        "documents": [
+          {
+            "assets": [],
+            "markdownFile": "$WORK/outputs/csv-0/Café.md",
+            "metadata": {},
+            "sourceIndex": 1,
+            "title": "Café"
+          }
+        ],
+        "input": "$WORK/fixtures/Café.csv",
+        "markdownFile": "$WORK/outputs/csv-0/Café.md",
+        "metadata": {},
+        "ok": true,
+        "outputDirectory": "$WORK/outputs/csv-0",
+        "outputFiles": [
+          {
+            "byteCount": 77,
+            "path": "Café.md",
+            "sha256": "53940412e88ecc5f7ad35f2b80cf4c6e27b72920d5ad291568f43659fdcbbc16"
+          }
+        ],
+        "reportFile": "$WORK/outputs/csv-0/conversion-report.json",
+        "sourceIdentity": {
+          "byteCount": 25,
+          "name": "Café.csv",
+          "sha256": "c6d0a3d337683a7c579449462c98b651392f4e6e375c6cbc2fc5ab03cdb50cb1"
+        },
+        "sourceMappings": [
+          {
+            "output": {
+              "file": "Café.md",
+              "utf8Length": 4,
+              "utf8Offset": 28
+            },
+            "source": {
+              "cell": "A1",
+              "sheet": "Café"
+            }
+          },
+          {
+            "output": {
+              "file": "Café.md",
+              "utf8Length": 5,
+              "utf8Offset": 35
+            },
+            "source": {
+              "cell": "B1",
+              "sheet": "Café"
+            }
+          },
+          {
+            "output": {
+              "file": "Café.md",
+              "utf8Length": 10,
+              "utf8Offset": 59
+            },
+            "source": {
+              "cell": "A2",
+              "sheet": "Café"
+            }
+          },
+          {
+            "output": {
+              "file": "Café.md",
+              "utf8Length": 2,
+              "utf8Offset": 72
+            },
+            "source": {
+              "cell": "B2",
+              "sheet": "Café"
+            }
+          }
+        ],
+        "version": "0.41.12",
+        "warnings": []
+      },
+      "adoptedExitedChildren": 0,
+      "remainingOwnChildren": [],
+      "sourceSHA256": "c6d0a3d337683a7c579449462c98b651392f4e6e375c6cbc2fc5ab03cdb50cb1",
+      "markdown": "# Café\n\n## Sheet: Café\n\n| Name | Value |\n| --- | --- |\n| Grüße β | 42 |\n",
+      "outputs": [
+        {
+          "byteCount": 77,
+          "path": "Café.md",
+          "sha256": "53940412e88ecc5f7ad35f2b80cf4c6e27b72920d5ad291568f43659fdcbbc16"
+        }
+      ]
+    },
+    {
+      "case": "csv-1",
+      "expectedExit": 0,
+      "executedCLIHash": "2f49d54ecd6d9bae4962fcdb7f968ea4eef9c3844701d278a9a507e3e84db07c",
+      "exit": 0,
+      "stderr": "",
+      "checks": {
+        "expectedExit": true,
+        "sameRuntime": true,
+        "noOwnChildren": true,
+        "sourceUnchanged": true,
+        "manifest-Café.md": true,
+        "independentCSVValues": true
+      },
+      "json": {
+        "assets": [],
+        "documents": [
+          {
+            "assets": [],
+            "markdownFile": "$WORK/outputs/csv-1/Café.md",
+            "metadata": {},
+            "sourceIndex": 1,
+            "title": "Café"
+          }
+        ],
+        "input": "$WORK/fixtures/Café.csv",
+        "markdownFile": "$WORK/outputs/csv-1/Café.md",
+        "metadata": {},
+        "ok": true,
+        "outputDirectory": "$WORK/outputs/csv-1",
+        "outputFiles": [
+          {
+            "byteCount": 79,
+            "path": "Café.md",
+            "sha256": "c6cd1fac986b6a108360ece7c3a0cec814004e21e2eb9431a4d4af4ae64fe5d2"
+          }
+        ],
+        "reportFile": "$WORK/outputs/csv-1/conversion-report.json",
+        "sourceIdentity": {
+          "byteCount": 25,
+          "name": "Café.csv",
+          "sha256": "c6d0a3d337683a7c579449462c98b651392f4e6e375c6cbc2fc5ab03cdb50cb1"
+        },
+        "sourceMappings": [
+          {
+            "output": {
+              "file": "Café.md",
+              "utf8Length": 4,
+              "utf8Offset": 30
+            },
+            "source": {
+              "cell": "A1",
+              "sheet": "Café"
+            }
+          },
+          {
+            "output": {
+              "file": "Café.md",
+              "utf8Length": 5,
+              "utf8Offset": 37
+            },
+            "source": {
+              "cell": "B1",
+              "sheet": "Café"
+            }
+          },
+          {
+            "output": {
+              "file": "Café.md",
+              "utf8Length": 10,
+              "utf8Offset": 61
+            },
+            "source": {
+              "cell": "A2",
+              "sheet": "Café"
+            }
+          },
+          {
+            "output": {
+              "file": "Café.md",
+              "utf8Length": 2,
+              "utf8Offset": 74
+            },
+            "source": {
+              "cell": "B2",
+              "sheet": "Café"
+            }
+          }
+        ],
+        "version": "0.41.12",
+        "warnings": []
+      },
+      "adoptedExitedChildren": 0,
+      "remainingOwnChildren": [],
+      "sourceSHA256": "c6d0a3d337683a7c579449462c98b651392f4e6e375c6cbc2fc5ab03cdb50cb1",
+      "markdown": "# Café\n\n## Sheet: Café\n\n| Name | Value |\n| --- | --- |\n| Grüße β | 42 |\n",
+      "outputs": [
+        {
+          "byteCount": 79,
+          "path": "Café.md",
+          "sha256": "c6cd1fac986b6a108360ece7c3a0cec814004e21e2eb9431a4d4af4ae64fe5d2"
+        }
+      ]
+    },
+    {
+      "case": "csv-2",
+      "expectedExit": 0,
+      "executedCLIHash": "2f49d54ecd6d9bae4962fcdb7f968ea4eef9c3844701d278a9a507e3e84db07c",
+      "exit": 0,
+      "stderr": "",
+      "checks": {
+        "expectedExit": true,
+        "sameRuntime": true,
+        "noOwnChildren": true,
+        "sourceUnchanged": true,
+        "manifest-Case.md": true,
+        "independentCSVValues": true
+      },
+      "json": {
+        "assets": [],
+        "documents": [
+          {
+            "assets": [],
+            "markdownFile": "$WORK/outputs/csv-2/Case.md",
+            "metadata": {},
+            "sourceIndex": 1,
+            "title": "Case"
+          }
+        ],
+        "input": "$WORK/fixtures/Case.csv",
+        "markdownFile": "$WORK/outputs/csv-2/Case.md",
+        "metadata": {},
+        "ok": true,
+        "outputDirectory": "$WORK/outputs/csv-2",
+        "outputFiles": [
+          {
+            "byteCount": 75,
+            "path": "Case.md",
+            "sha256": "67c7e0179fc9a21976186ae849af753e12001f423bf9e2c07e0d34a672657412"
+          }
+        ],
+        "reportFile": "$WORK/outputs/csv-2/conversion-report.json",
+        "sourceIdentity": {
+          "byteCount": 25,
+          "name": "Case.csv",
+          "sha256": "c6d0a3d337683a7c579449462c98b651392f4e6e375c6cbc2fc5ab03cdb50cb1"
+        },
+        "sourceMappings": [
+          {
+            "output": {
+              "file": "Case.md",
+              "utf8Length": 4,
+              "utf8Offset": 26
+            },
+            "source": {
+              "cell": "A1",
+              "sheet": "Case"
+            }
+          },
+          {
+            "output": {
+              "file": "Case.md",
+              "utf8Length": 5,
+              "utf8Offset": 33
+            },
+            "source": {
+              "cell": "B1",
+              "sheet": "Case"
+            }
+          },
+          {
+            "output": {
+              "file": "Case.md",
+              "utf8Length": 10,
+              "utf8Offset": 57
+            },
+            "source": {
+              "cell": "A2",
+              "sheet": "Case"
+            }
+          },
+          {
+            "output": {
+              "file": "Case.md",
+              "utf8Length": 2,
+              "utf8Offset": 70
+            },
+            "source": {
+              "cell": "B2",
+              "sheet": "Case"
+            }
+          }
+        ],
+        "version": "0.41.12",
+        "warnings": []
+      },
+      "adoptedExitedChildren": 0,
+      "remainingOwnChildren": [],
+      "sourceSHA256": "c6d0a3d337683a7c579449462c98b651392f4e6e375c6cbc2fc5ab03cdb50cb1",
+      "markdown": "# Case\n\n## Sheet: Case\n\n| Name | Value |\n| --- | --- |\n| Grüße β | 42 |\n",
+      "outputs": [
+        {
+          "byteCount": 75,
+          "path": "Case.md",
+          "sha256": "67c7e0179fc9a21976186ae849af753e12001f423bf9e2c07e0d34a672657412"
+        }
+      ]
+    },
+    {
+      "case": "csv-3",
+      "expectedExit": 0,
+      "executedCLIHash": "2f49d54ecd6d9bae4962fcdb7f968ea4eef9c3844701d278a9a507e3e84db07c",
+      "exit": 0,
+      "stderr": "",
+      "checks": {
+        "expectedExit": true,
+        "sameRuntime": true,
+        "noOwnChildren": true,
+        "sourceUnchanged": true,
+        "manifest-case.md": true,
+        "independentCSVValues": true
+      },
+      "json": {
+        "assets": [],
+        "documents": [
+          {
+            "assets": [],
+            "markdownFile": "$WORK/outputs/csv-3/case.md",
+            "metadata": {},
+            "sourceIndex": 1,
+            "title": "case"
+          }
+        ],
+        "input": "$WORK/fixtures/case.csv",
+        "markdownFile": "$WORK/outputs/csv-3/case.md",
+        "metadata": {},
+        "ok": true,
+        "outputDirectory": "$WORK/outputs/csv-3",
+        "outputFiles": [
+          {
+            "byteCount": 75,
+            "path": "case.md",
+            "sha256": "bafdb9e998cd79f54d8c4b59b87f7953491d71c1733447be3d6ed17eb20476ee"
+          }
+        ],
+        "reportFile": "$WORK/outputs/csv-3/conversion-report.json",
+        "sourceIdentity": {
+          "byteCount": 25,
+          "name": "case.csv",
+          "sha256": "c6d0a3d337683a7c579449462c98b651392f4e6e375c6cbc2fc5ab03cdb50cb1"
+        },
+        "sourceMappings": [
+          {
+            "output": {
+              "file": "case.md",
+              "utf8Length": 4,
+              "utf8Offset": 26
+            },
+            "source": {
+              "cell": "A1",
+              "sheet": "case"
+            }
+          },
+          {
+            "output": {
+              "file": "case.md",
+              "utf8Length": 5,
+              "utf8Offset": 33
+            },
+            "source": {
+              "cell": "B1",
+              "sheet": "case"
+            }
+          },
+          {
+            "output": {
+              "file": "case.md",
+              "utf8Length": 10,
+              "utf8Offset": 57
+            },
+            "source": {
+              "cell": "A2",
+              "sheet": "case"
+            }
+          },
+          {
+            "output": {
+              "file": "case.md",
+              "utf8Length": 2,
+              "utf8Offset": 70
+            },
+            "source": {
+              "cell": "B2",
+              "sheet": "case"
+            }
+          }
+        ],
+        "version": "0.41.12",
+        "warnings": []
+      },
+      "adoptedExitedChildren": 0,
+      "remainingOwnChildren": [],
+      "sourceSHA256": "c6d0a3d337683a7c579449462c98b651392f4e6e375c6cbc2fc5ab03cdb50cb1",
+      "markdown": "# case\n\n## Sheet: case\n\n| Name | Value |\n| --- | --- |\n| Grüße β | 42 |\n",
+      "outputs": [
+        {
+          "byteCount": 75,
+          "path": "case.md",
+          "sha256": "bafdb9e998cd79f54d8c4b59b87f7953491d71c1733447be3d6ed17eb20476ee"
+        }
+      ]
+    },
+    {
+      "case": "xlsx",
+      "expectedExit": 0,
+      "executedCLIHash": "2f49d54ecd6d9bae4962fcdb7f968ea4eef9c3844701d278a9a507e3e84db07c",
+      "exit": 0,
+      "stderr": "",
+      "checks": {
+        "expectedExit": true,
+        "sameRuntime": true,
+        "noOwnChildren": true,
+        "sourceUnchanged": true,
+        "manifest-cells.md": true,
+        "independentXLSXValues": true
+      },
+      "json": {
+        "assets": [],
+        "documents": [
+          {
+            "assets": [],
+            "markdownFile": "$WORK/outputs/xlsx/cells.md",
+            "metadata": {},
+            "sourceIndex": 1,
+            "title": "cells"
+          }
+        ],
+        "input": "$WORK/fixtures/cells.xlsx",
+        "markdownFile": "$WORK/outputs/xlsx/cells.md",
+        "metadata": {},
+        "ok": true,
+        "outputDirectory": "$WORK/outputs/xlsx",
+        "outputFiles": [
+          {
+            "byteCount": 82,
+            "path": "cells.md",
+            "sha256": "8c62fd555a4d5a6368c4d0d21d3016f9d02efe285094542d472d726109c7f035"
+          }
+        ],
+        "reportFile": "$WORK/outputs/xlsx/conversion-report.json",
+        "sourceIdentity": {
+          "byteCount": 2127,
+          "name": "cells.xlsx",
+          "sha256": "21c80f4c5e7f8b6bcb504e9f17d08dd55347e696b370ca2f3af053e8c7b4c773"
+        },
+        "sourceMappings": [
+          {
+            "output": {
+              "file": "cells.md",
+              "utf8Length": 4,
+              "utf8Offset": 33
+            },
+            "source": {
+              "cell": "A1",
+              "sheet": "Grüße β"
+            }
+          },
+          {
+            "output": {
+              "file": "cells.md",
+              "utf8Length": 5,
+              "utf8Offset": 40
+            },
+            "source": {
+              "cell": "B1",
+              "sheet": "Grüße β"
+            }
+          },
+          {
+            "output": {
+              "file": "cells.md",
+              "utf8Length": 10,
+              "utf8Offset": 64
+            },
+            "source": {
+              "cell": "A2",
+              "sheet": "Grüße β"
+            }
+          },
+          {
+            "output": {
+              "file": "cells.md",
+              "utf8Length": 2,
+              "utf8Offset": 77
+            },
+            "source": {
+              "cell": "B2",
+              "sheet": "Grüße β"
+            }
+          }
+        ],
+        "version": "0.41.12",
+        "warnings": []
+      },
+      "adoptedExitedChildren": 0,
+      "remainingOwnChildren": [],
+      "sourceSHA256": "21c80f4c5e7f8b6bcb504e9f17d08dd55347e696b370ca2f3af053e8c7b4c773",
+      "markdown": "# cells\n\n## Sheet: Grüße β\n\n| Name | Value |\n| --- | --- |\n| Grüße β | 42 |\n",
+      "outputs": [
+        {
+          "byteCount": 82,
+          "path": "cells.md",
+          "sha256": "8c62fd555a4d5a6368c4d0d21d3016f9d02efe285094542d472d726109c7f035"
+        }
+      ]
+    },
+    {
+      "case": "image.png",
+      "expectedExit": 0,
+      "executedCLIHash": "2f49d54ecd6d9bae4962fcdb7f968ea4eef9c3844701d278a9a507e3e84db07c",
+      "exit": 0,
+      "stderr": "",
+      "checks": {
+        "expectedExit": true,
+        "sameRuntime": true,
+        "noOwnChildren": true,
+        "sourceUnchanged": true,
+        "manifest-image.md": true,
+        "manifest-images/image01.png": true,
+        "originalAssetByteIdentity": true
+      },
+      "json": {
+        "assets": [
+          "$WORK/outputs/image.png/images/image01.png"
+        ],
+        "diagnosticGroups": [
+          {
+            "code": "sourceMap.unavailable",
+            "count": 1,
+            "kind": "information",
+            "locations": [],
+            "messages": [
+              "No verified source-to-text positions are available for this conversion."
+            ],
+            "omittedCount": 0
+          }
+        ],
+        "diagnostics": [
+          {
+            "code": "sourceMap.unavailable",
+            "kind": "information",
+            "message": "No verified source-to-text positions are available for this conversion."
+          }
+        ],
+        "documents": [
+          {
+            "assets": [
+              "$WORK/outputs/image.png/images/image01.png"
+            ],
+            "markdownFile": "$WORK/outputs/image.png/image.md",
+            "metadata": {},
+            "sourceIndex": 1,
+            "title": "image"
+          }
+        ],
+        "input": "$WORK/fixtures/image.png",
+        "markdownFile": "$WORK/outputs/image.png/image.md",
+        "metadata": {},
+        "ok": true,
+        "outputDirectory": "$WORK/outputs/image.png",
+        "outputFiles": [
+          {
+            "byteCount": 38,
+            "path": "image.md",
+            "sha256": "336e229b1a2fbd7681a4d353e6d3c710a3cbf4e35c76c20a87eee87c0f0c26e1"
+          },
+          {
+            "byteCount": 648,
+            "path": "images/image01.png",
+            "sha256": "cb5172f7d18c450708a1cb954403c9da2fe8e4d2f7393a70a5c9abbfacec3185"
+          }
+        ],
+        "reportFile": "$WORK/outputs/image.png/conversion-report.json",
+        "sourceIdentity": {
+          "byteCount": 648,
+          "name": "image.png",
+          "sha256": "cb5172f7d18c450708a1cb954403c9da2fe8e4d2f7393a70a5c9abbfacec3185"
+        },
+        "sourceMappings": [],
+        "version": "0.41.12",
+        "warnings": [
+          "No verified source-to-text positions are available for this conversion."
+        ]
+      },
+      "adoptedExitedChildren": 0,
+      "remainingOwnChildren": [],
+      "sourceSHA256": "cb5172f7d18c450708a1cb954403c9da2fe8e4d2f7393a70a5c9abbfacec3185",
+      "markdown": "# image\n\n![image](images/image01.png)\n",
+      "outputs": [
+        {
+          "byteCount": 38,
+          "path": "image.md",
+          "sha256": "336e229b1a2fbd7681a4d353e6d3c710a3cbf4e35c76c20a87eee87c0f0c26e1"
+        },
+        {
+          "byteCount": 648,
+          "path": "images/image01.png",
+          "sha256": "cb5172f7d18c450708a1cb954403c9da2fe8e4d2f7393a70a5c9abbfacec3185"
+        }
+      ]
+    },
+    {
+      "case": "single.heic",
+      "expectedExit": 0,
+      "executedCLIHash": "2f49d54ecd6d9bae4962fcdb7f968ea4eef9c3844701d278a9a507e3e84db07c",
+      "exit": 0,
+      "stderr": "",
+      "checks": {
+        "expectedExit": true,
+        "sameRuntime": true,
+        "noOwnChildren": true,
+        "sourceUnchanged": true,
+        "manifest-images/frame-1.png": true,
+        "manifest-images/image01.heic": true,
+        "manifest-single.md": true,
+        "originalAssetByteIdentity": true,
+        "allPortableFrames": true
+      },
+      "json": {
+        "assets": [
+          "$WORK/outputs/single.heic/images/image01.heic",
+          "$WORK/outputs/single.heic/images/frame-1.png"
+        ],
+        "diagnosticGroups": [
+          {
+            "code": "image.heicRender",
+            "count": 1,
+            "kind": "approximation",
+            "locations": [],
+            "messages": [
+              "HEIC previews use 8-bit RGBA PNG. Original HEIC bytes are retained; HDR/color profiles, auxiliary images and metadata are not fully represented in previews."
+            ],
+            "omittedCount": 0
+          },
+          {
+            "code": "sourceMap.unavailable",
+            "count": 1,
+            "kind": "information",
+            "locations": [],
+            "messages": [
+              "No verified source-to-text positions are available for this conversion."
+            ],
+            "omittedCount": 0
+          }
+        ],
+        "diagnostics": [
+          {
+            "code": "image.heicRender",
+            "kind": "approximation",
+            "message": "HEIC previews use 8-bit RGBA PNG. Original HEIC bytes are retained; HDR/color profiles, auxiliary images and metadata are not fully represented in previews."
+          },
+          {
+            "code": "sourceMap.unavailable",
+            "kind": "information",
+            "message": "No verified source-to-text positions are available for this conversion."
+          }
+        ],
+        "documents": [
+          {
+            "assets": [
+              "$WORK/outputs/single.heic/images/image01.heic",
+              "$WORK/outputs/single.heic/images/frame-1.png"
+            ],
+            "markdownFile": "$WORK/outputs/single.heic/single.md",
+            "metadata": {},
+            "sourceIndex": 1,
+            "title": "single"
+          }
+        ],
+        "input": "$WORK/fixtures/single.heic",
+        "markdownFile": "$WORK/outputs/single.heic/single.md",
+        "metadata": {},
+        "ok": true,
+        "outputDirectory": "$WORK/outputs/single.heic",
+        "outputFiles": [
+          {
+            "byteCount": 648,
+            "path": "images/frame-1.png",
+            "sha256": "cb5172f7d18c450708a1cb954403c9da2fe8e4d2f7393a70a5c9abbfacec3185"
+          },
+          {
+            "byteCount": 3333,
+            "path": "images/image01.heic",
+            "sha256": "d3ba28ae03b0459390e6db6df595c67136f66c6bc1aa12457efefa003a24192b"
+          },
+          {
+            "byteCount": 87,
+            "path": "single.md",
+            "sha256": "a6c717fd72d8cd55e6a04bc0cd23317afb2661810d9606ad3358820fb67ed7e9"
+          }
+        ],
+        "reportFile": "$WORK/outputs/single.heic/conversion-report.json",
+        "sourceIdentity": {
+          "byteCount": 3333,
+          "name": "single.heic",
+          "sha256": "d3ba28ae03b0459390e6db6df595c67136f66c6bc1aa12457efefa003a24192b"
+        },
+        "sourceMappings": [],
+        "version": "0.41.12",
+        "warnings": [
+          "HEIC previews use 8-bit RGBA PNG. Original HEIC bytes are retained; HDR/color profiles, auxiliary images and metadata are not fully represented in previews.",
+          "No verified source-to-text positions are available for this conversion."
+        ]
+      },
+      "adoptedExitedChildren": 0,
+      "remainingOwnChildren": [],
+      "sourceSHA256": "d3ba28ae03b0459390e6db6df595c67136f66c6bc1aa12457efefa003a24192b",
+      "markdown": "# single\n\n[Original HEIC](images/image01.heic)\n\n![single, frame 1](images/frame-1.png)\n",
+      "outputs": [
+        {
+          "byteCount": 648,
+          "path": "images/frame-1.png",
+          "sha256": "cb5172f7d18c450708a1cb954403c9da2fe8e4d2f7393a70a5c9abbfacec3185"
+        },
+        {
+          "byteCount": 3333,
+          "path": "images/image01.heic",
+          "sha256": "d3ba28ae03b0459390e6db6df595c67136f66c6bc1aa12457efefa003a24192b"
+        },
+        {
+          "byteCount": 87,
+          "path": "single.md",
+          "sha256": "a6c717fd72d8cd55e6a04bc0cd23317afb2661810d9606ad3358820fb67ed7e9"
+        }
+      ]
+    },
+    {
+      "case": "multi.heic",
+      "expectedExit": 0,
+      "executedCLIHash": "2f49d54ecd6d9bae4962fcdb7f968ea4eef9c3844701d278a9a507e3e84db07c",
+      "exit": 0,
+      "stderr": "",
+      "checks": {
+        "expectedExit": true,
+        "sameRuntime": true,
+        "noOwnChildren": true,
+        "sourceUnchanged": true,
+        "manifest-images/frame-1.png": true,
+        "manifest-images/frame-2.png": true,
+        "manifest-images/image01.heic": true,
+        "manifest-multi.md": true,
+        "originalAssetByteIdentity": true,
+        "allPortableFrames": true
+      },
+      "json": {
+        "assets": [
+          "$WORK/outputs/multi.heic/images/image01.heic",
+          "$WORK/outputs/multi.heic/images/frame-1.png",
+          "$WORK/outputs/multi.heic/images/frame-2.png"
+        ],
+        "diagnosticGroups": [
+          {
+            "code": "image.heicRender",
+            "count": 1,
+            "kind": "approximation",
+            "locations": [],
+            "messages": [
+              "HEIC previews use 8-bit RGBA PNG. Original HEIC bytes are retained; HDR/color profiles, auxiliary images and metadata are not fully represented in previews."
+            ],
+            "omittedCount": 0
+          },
+          {
+            "code": "sourceMap.unavailable",
+            "count": 1,
+            "kind": "information",
+            "locations": [],
+            "messages": [
+              "No verified source-to-text positions are available for this conversion."
+            ],
+            "omittedCount": 0
+          }
+        ],
+        "diagnostics": [
+          {
+            "code": "image.heicRender",
+            "kind": "approximation",
+            "message": "HEIC previews use 8-bit RGBA PNG. Original HEIC bytes are retained; HDR/color profiles, auxiliary images and metadata are not fully represented in previews."
+          },
+          {
+            "code": "sourceMap.unavailable",
+            "kind": "information",
+            "message": "No verified source-to-text positions are available for this conversion."
+          }
+        ],
+        "documents": [
+          {
+            "assets": [
+              "$WORK/outputs/multi.heic/images/image01.heic",
+              "$WORK/outputs/multi.heic/images/frame-1.png",
+              "$WORK/outputs/multi.heic/images/frame-2.png"
+            ],
+            "markdownFile": "$WORK/outputs/multi.heic/multi.md",
+            "metadata": {},
+            "sourceIndex": 1,
+            "title": "multi"
+          }
+        ],
+        "input": "$WORK/fixtures/multi.heic",
+        "markdownFile": "$WORK/outputs/multi.heic/multi.md",
+        "metadata": {},
+        "ok": true,
+        "outputDirectory": "$WORK/outputs/multi.heic",
+        "outputFiles": [
+          {
+            "byteCount": 648,
+            "path": "images/frame-1.png",
+            "sha256": "cb5172f7d18c450708a1cb954403c9da2fe8e4d2f7393a70a5c9abbfacec3185"
+          },
+          {
+            "byteCount": 847,
+            "path": "images/frame-2.png",
+            "sha256": "ca1b885bb6098362c14749c377c94207bf517049e4eabe58667c626824279d36"
+          },
+          {
+            "byteCount": 7089,
+            "path": "images/image01.heic",
+            "sha256": "e531ca1e681768f23545661935e50569b952c7dda5bf4b23476f828a8113e6de"
+          },
+          {
+            "byteCount": 124,
+            "path": "multi.md",
+            "sha256": "ea35cf1f0dcda11fd0d282312d95f9e4e3458987b336c00216109eab1205e90e"
+          }
+        ],
+        "reportFile": "$WORK/outputs/multi.heic/conversion-report.json",
+        "sourceIdentity": {
+          "byteCount": 7089,
+          "name": "multi.heic",
+          "sha256": "e531ca1e681768f23545661935e50569b952c7dda5bf4b23476f828a8113e6de"
+        },
+        "sourceMappings": [],
+        "version": "0.41.12",
+        "warnings": [
+          "HEIC previews use 8-bit RGBA PNG. Original HEIC bytes are retained; HDR/color profiles, auxiliary images and metadata are not fully represented in previews.",
+          "No verified source-to-text positions are available for this conversion."
+        ]
+      },
+      "adoptedExitedChildren": 0,
+      "remainingOwnChildren": [],
+      "sourceSHA256": "e531ca1e681768f23545661935e50569b952c7dda5bf4b23476f828a8113e6de",
+      "markdown": "# multi\n\n[Original HEIC](images/image01.heic)\n\n![multi, frame 1](images/frame-1.png)\n\n![multi, frame 2](images/frame-2.png)\n",
+      "outputs": [
+        {
+          "byteCount": 648,
+          "path": "images/frame-1.png",
+          "sha256": "cb5172f7d18c450708a1cb954403c9da2fe8e4d2f7393a70a5c9abbfacec3185"
+        },
+        {
+          "byteCount": 847,
+          "path": "images/frame-2.png",
+          "sha256": "ca1b885bb6098362c14749c377c94207bf517049e4eabe58667c626824279d36"
+        },
+        {
+          "byteCount": 7089,
+          "path": "images/image01.heic",
+          "sha256": "e531ca1e681768f23545661935e50569b952c7dda5bf4b23476f828a8113e6de"
+        },
+        {
+          "byteCount": 124,
+          "path": "multi.md",
+          "sha256": "ea35cf1f0dcda11fd0d282312d95f9e4e3458987b336c00216109eab1205e90e"
+        }
+      ]
+    },
+    {
+      "case": "preview-image.png",
+      "expectedExit": 0,
+      "executedCLIHash": "2f49d54ecd6d9bae4962fcdb7f968ea4eef9c3844701d278a9a507e3e84db07c",
+      "exit": 0,
+      "stderr": "",
+      "checks": {
+        "expectedExit": true,
+        "sameRuntime": true,
+        "noOwnChildren": true,
+        "previewSourceIdentity": true,
+        "previewPNGHash": true,
+        "previewSelection": true,
+        "previewDimensions": true
+      },
+      "json": {
+        "ok": true,
+        "operation": "source-preview",
+        "preview": {
+          "byteCount": 524,
+          "count": 1,
+          "diagnostics": [
+            {
+              "code": "preview.passiveRaster",
+              "kind": "information",
+              "message": "This bounded source raster is passive. Source metadata is removed, transparent pixels appear on white, and interactive source actions are unavailable."
+            }
+          ],
+          "height": 24,
+          "index": 1,
+          "kind": "frame",
+          "sha256": "c7f350bf60a8ed02bc6480831473b4f87624ad10d9e617dffee89c6881707e7f",
+          "sourceIdentity": {
+            "byteCount": 648,
+            "name": "image.png",
+            "sha256": "cb5172f7d18c450708a1cb954403c9da2fe8e4d2f7393a70a5c9abbfacec3185"
+          },
+          "width": 32,
+          "pngBase64OmittedFromEvidence": true
+        },
+        "version": "0.41.12"
+      },
+      "adoptedExitedChildren": 0,
+      "remainingOwnChildren": []
+    },
+    {
+      "case": "preview-single.heic",
+      "expectedExit": 0,
+      "executedCLIHash": "2f49d54ecd6d9bae4962fcdb7f968ea4eef9c3844701d278a9a507e3e84db07c",
+      "exit": 0,
+      "stderr": "",
+      "checks": {
+        "expectedExit": true,
+        "sameRuntime": true,
+        "noOwnChildren": true,
+        "previewSourceIdentity": true,
+        "previewPNGHash": true,
+        "previewSelection": true,
+        "previewDimensions": true
+      },
+      "json": {
+        "ok": true,
+        "operation": "source-preview",
+        "preview": {
+          "byteCount": 524,
+          "count": 1,
+          "diagnostics": [
+            {
+              "code": "preview.passiveRaster",
+              "kind": "information",
+              "message": "This bounded source raster is passive. Source metadata is removed, transparent pixels appear on white, and interactive source actions are unavailable."
+            }
+          ],
+          "height": 24,
+          "index": 1,
+          "kind": "frame",
+          "sha256": "c7f350bf60a8ed02bc6480831473b4f87624ad10d9e617dffee89c6881707e7f",
+          "sourceIdentity": {
+            "byteCount": 3333,
+            "name": "single.heic",
+            "sha256": "d3ba28ae03b0459390e6db6df595c67136f66c6bc1aa12457efefa003a24192b"
+          },
+          "width": 32,
+          "pngBase64OmittedFromEvidence": true
+        },
+        "version": "0.41.12"
+      },
+      "adoptedExitedChildren": 0,
+      "remainingOwnChildren": []
+    },
+    {
+      "case": "preview-multi.heic",
+      "expectedExit": 0,
+      "executedCLIHash": "2f49d54ecd6d9bae4962fcdb7f968ea4eef9c3844701d278a9a507e3e84db07c",
+      "exit": 0,
+      "stderr": "",
+      "checks": {
+        "expectedExit": true,
+        "sameRuntime": true,
+        "noOwnChildren": true,
+        "previewSourceIdentity": true,
+        "previewPNGHash": true,
+        "previewSelection": true,
+        "previewDimensions": true
+      },
+      "json": {
+        "ok": true,
+        "operation": "source-preview",
+        "preview": {
+          "byteCount": 690,
+          "count": 2,
+          "diagnostics": [
+            {
+              "code": "preview.passiveRaster",
+              "kind": "information",
+              "message": "This bounded source raster is passive. Source metadata is removed, transparent pixels appear on white, and interactive source actions are unavailable."
+            }
+          ],
+          "height": 24,
+          "index": 2,
+          "kind": "frame",
+          "sha256": "561217d1b00065a9d0bff04195c490eaae2f95c8e35101c6ba33214d7e2d173f",
+          "sourceIdentity": {
+            "byteCount": 7089,
+            "name": "multi.heic",
+            "sha256": "e531ca1e681768f23545661935e50569b952c7dda5bf4b23476f828a8113e6de"
+          },
+          "width": 40,
+          "pngBase64OmittedFromEvidence": true
+        },
+        "version": "0.41.12"
+      },
+      "adoptedExitedChildren": 0,
+      "remainingOwnChildren": []
+    },
+    {
+      "case": "pdf-page2",
+      "expectedExit": 69,
+      "executedCLIHash": "2f49d54ecd6d9bae4962fcdb7f968ea4eef9c3844701d278a9a507e3e84db07c",
+      "exit": 69,
+      "stderr": "",
+      "checks": {
+        "expectedExit": true,
+        "sameRuntime": true,
+        "noOwnChildren": true
+      },
+      "json": {
+        "error": "The local source preview renderer backend is not available in this build.",
+        "ok": false,
+        "version": "0.41.12"
+      },
+      "adoptedExitedChildren": 0,
+      "remainingOwnChildren": []
+    },
+    {
+      "case": "missing-docx",
+      "expectedExit": 69,
+      "executedCLIHash": "2f49d54ecd6d9bae4962fcdb7f968ea4eef9c3844701d278a9a507e3e84db07c",
+      "exit": 69,
+      "stderr": "",
+      "checks": {
+        "expectedExit": true,
+        "sameRuntime": true,
+        "noOutput": true,
+        "noOwnChildren": true,
+        "sourceUnchanged": true
+      },
+      "json": {
+        "error": "Pandoc was not found. Install Pandoc or pass --pandoc PATH.",
+        "ok": false,
+        "version": "0.41.12"
+      },
+      "adoptedExitedChildren": 0,
+      "remainingOwnChildren": [],
+      "sourceSHA256": "959c76a5d957f704319c918a17324b32eb5c0b8deb207175d71fa2ddbf53057d"
+    },
+    {
+      "case": "missing-ocr",
+      "expectedExit": 69,
+      "executedCLIHash": "2f49d54ecd6d9bae4962fcdb7f968ea4eef9c3844701d278a9a507e3e84db07c",
+      "exit": 69,
+      "stderr": "",
+      "checks": {
+        "expectedExit": true,
+        "sameRuntime": true,
+        "noOutput": true,
+        "noOwnChildren": true,
+        "sourceUnchanged": true
+      },
+      "json": {
+        "error": "The local Tesseract OCR backend is not available in this build.",
+        "ok": false,
+        "version": "0.41.12"
+      },
+      "adoptedExitedChildren": 0,
+      "remainingOwnChildren": [],
+      "sourceSHA256": "cb5172f7d18c450708a1cb954403c9da2fe8e4d2f7393a70a5c9abbfacec3185"
+    },
+    {
+      "case": "invalid-utf8",
+      "expectedExit": 64,
+      "executedCLIHash": "2f49d54ecd6d9bae4962fcdb7f968ea4eef9c3844701d278a9a507e3e84db07c",
+      "exit": 64,
+      "stderr": "",
+      "checks": {
+        "expectedExit": true,
+        "sameRuntime": true,
+        "noOutput": true,
+        "noOwnChildren": true
+      },
+      "json": {
+        "error": "Paths and arguments must contain valid UTF-8 bytes.",
+        "ok": false,
+        "version": "0.41.12"
+      },
+      "adoptedExitedChildren": 0,
+      "remainingOwnChildren": []
+    },
+    {
+      "case": "invalid-utf8-directory-entry",
+      "expectedExit": 74,
+      "executedCLIHash": "2f49d54ecd6d9bae4962fcdb7f968ea4eef9c3844701d278a9a507e3e84db07c",
+      "exit": 74,
+      "stderr": "",
+      "checks": {
+        "expectedExit": true,
+        "sameRuntime": true,
+        "noOutput": true,
+        "noOwnChildren": true
+      },
+      "json": {
+        "error": "Could not read the folder $WORK/fixtures/bad-entry: an entry name is not valid UTF-8",
+        "ok": false,
+        "version": "0.41.12"
+      },
+      "adoptedExitedChildren": 0,
+      "remainingOwnChildren": []
+    },
+    {
+      "case": "existing-target",
+      "expectedExit": 73,
+      "executedCLIHash": "2f49d54ecd6d9bae4962fcdb7f968ea4eef9c3844701d278a9a507e3e84db07c",
+      "exit": 73,
+      "stderr": "",
+      "checks": {
+        "expectedExit": true,
+        "sameRuntime": true,
+        "noOwnChildren": true,
+        "oldTargetBytes": true
+      },
+      "json": {
+        "error": "Output already exists and will not be overwritten: $WORK/outputs/existing",
+        "ok": false,
+        "version": "0.41.12"
+      },
+      "adoptedExitedChildren": 0,
+      "remainingOwnChildren": []
+    },
+    {
+      "case": "symlink-parent",
+      "expectedExit": 74,
+      "executedCLIHash": "2f49d54ecd6d9bae4962fcdb7f968ea4eef9c3844701d278a9a507e3e84db07c",
+      "exit": 74,
+      "stderr": "",
+      "checks": {
+        "expectedExit": true,
+        "sameRuntime": true,
+        "noOutput": true,
+        "noOwnChildren": true,
+        "foreignParentEmpty": true
+      },
+      "json": {
+        "error": "File-system operation failed: Not a directory (errno 20)",
+        "ok": false,
+        "version": "0.41.12"
+      },
+      "adoptedExitedChildren": 0,
+      "remainingOwnChildren": []
+    }
+  ],
+  "failures": [],
+  "environment": {
+    "osRelease": "NAME=\"Linux Mint\"\nVERSION=\"22.2 (Zara)\"\nID=linuxmint\nID_LIKE=\"ubuntu debian\"\nPRETTY_NAME=\"Linux Mint 22.2\"\nVERSION_ID=\"22.2\"\nHOME_URL=\"https://www.linuxmint.com/\"\nSUPPORT_URL=\"https://forums.linuxmint.com/\"\nBUG_REPORT_URL=\"http://linuxmint-troubleshooting-guide.readthedocs.io/en/latest/\"\nPRIVACY_POLICY_URL=\"https://www.linuxmint.com/\"\nVERSION_CODENAME=zara\nUBUNTU_CODENAME=noble\n",
+    "architecture": "x86_64",
+    "tools": {
+      "swift": null,
+      "pandoc": null,
+      "tesseract": null,
+      "python3": "/usr/bin/python3",
+      "bwrap": "/usr/bin/bwrap"
+    }
+  },
+  "catalog": [
+    {
+      "available": false,
+      "container": "file",
+      "containers": [
+        "file"
+      ],
+      "extensions": [
+        "rtf"
+      ],
+      "format": "rtf",
+      "requires": [
+        "pandoc",
+        "bwrap",
+        "poormans-text-process-guard"
+      ],
+      "unavailableReason": "missing required tool: pandoc"
+    },
+    {
+      "available": false,
+      "container": "package",
+      "containers": [
+        "package"
+      ],
+      "extensions": [
+        "rtfd"
+      ],
+      "format": "rtfd",
+      "requires": [
+        "pandoc",
+        "bwrap",
+        "poormans-text-process-guard"
+      ],
+      "unavailableReason": "missing required tool: pandoc"
+    },
+    {
+      "available": false,
+      "container": "file",
+      "containers": [
+        "file"
+      ],
+      "extensions": [
+        "docx",
+        "docm",
+        "dotx",
+        "dotm"
+      ],
+      "format": "docx",
+      "requires": [
+        "pandoc",
+        "bwrap",
+        "poormans-text-process-guard"
+      ],
+      "unavailableReason": "missing required tool: pandoc"
+    },
+    {
+      "available": false,
+      "container": "file",
+      "containers": [
+        "file"
+      ],
+      "extensions": [
+        "odt"
+      ],
+      "format": "odt",
+      "requires": [
+        "pandoc",
+        "bwrap",
+        "poormans-text-process-guard"
+      ],
+      "unavailableReason": "missing required tool: pandoc"
+    },
+    {
+      "available": false,
+      "container": "file",
+      "containers": [
+        "file"
+      ],
+      "extensions": [
+        "doc"
+      ],
+      "format": "doc",
+      "requires": [
+        "libreoffice",
+        "python3-uno",
+        "pandoc",
+        "bwrap",
+        "poormans-text-process-guard"
+      ],
+      "unavailableReason": "missing required tool: pandoc"
+    },
+    {
+      "available": true,
+      "container": "file",
+      "containers": [
+        "file"
+      ],
+      "extensions": [
+        "ods"
+      ],
+      "format": "ods",
+      "requires": [],
+      "unavailableReason": null
+    },
+    {
+      "available": true,
+      "container": "file",
+      "containers": [
+        "file"
+      ],
+      "extensions": [
+        "xlsx",
+        "xlsm",
+        "xltx",
+        "xltm"
+      ],
+      "format": "xlsx",
+      "requires": [],
+      "unavailableReason": null
+    },
+    {
+      "available": true,
+      "container": "file",
+      "containers": [
+        "file"
+      ],
+      "extensions": [
+        "xls"
+      ],
+      "format": "xls",
+      "requires": [],
+      "unavailableReason": null
+    },
+    {
+      "available": false,
+      "container": "file",
+      "containers": [
+        "file"
+      ],
+      "extensions": [
+        "odm"
+      ],
+      "format": "odm",
+      "requires": [
+        "pandoc",
+        "bwrap",
+        "poormans-text-process-guard"
+      ],
+      "unavailableReason": "missing required tool: pandoc"
+    },
+    {
+      "available": true,
+      "container": "file",
+      "containers": [
+        "file"
+      ],
+      "extensions": [
+        "png",
+        "jpg",
+        "jpeg",
+        "tif",
+        "tiff",
+        "gif",
+        "bmp",
+        "webp",
+        "heic"
+      ],
+      "format": "image",
+      "requires": [
+        "python3-pillow",
+        "bwrap",
+        "poormans-text-process-guard"
+      ],
+      "unavailableReason": null
+    },
+    {
+      "available": false,
+      "container": "file",
+      "containers": [
+        "file"
+      ],
+      "extensions": [
+        "pdf"
+      ],
+      "format": "pdf",
+      "requires": [
+        "python3-gi-poppler",
+        "bwrap",
+        "poormans-text-process-guard"
+      ],
+      "unavailableReason": "The Python GI Poppler/Cairo PDF backend is not available in this build."
+    },
+    {
+      "available": true,
+      "container": "file",
+      "containers": [
+        "file"
+      ],
+      "extensions": [
+        "pptx",
+        "pptm",
+        "potx"
+      ],
+      "format": "pptx",
+      "requires": [],
+      "unavailableReason": null
+    },
+    {
+      "available": true,
+      "container": "file",
+      "containers": [
+        "file"
+      ],
+      "extensions": [
+        "odp"
+      ],
+      "format": "odp",
+      "requires": [],
+      "unavailableReason": null
+    },
+    {
+      "available": true,
+      "container": "file",
+      "containers": [
+        "file"
+      ],
+      "extensions": [
+        "ipynb"
+      ],
+      "format": "ipynb",
+      "requires": [],
+      "unavailableReason": null
+    },
+    {
+      "available": true,
+      "container": "file",
+      "containers": [
+        "file"
+      ],
+      "extensions": [
+        "csv",
+        "tsv"
+      ],
+      "format": "csv",
+      "requires": [],
+      "unavailableReason": null
+    },
+    {
+      "available": false,
+      "container": "file",
+      "containers": [
+        "file"
+      ],
+      "extensions": [
+        "html",
+        "htm",
+        "xhtml"
+      ],
+      "format": "html",
+      "requires": [
+        "pandoc",
+        "bwrap",
+        "poormans-text-process-guard"
+      ],
+      "unavailableReason": "missing required tool: pandoc"
+    },
+    {
+      "available": false,
+      "container": "file",
+      "containers": [
+        "file"
+      ],
+      "extensions": [
+        "webarchive"
+      ],
+      "format": "webarchive",
+      "requires": [
+        "pandoc",
+        "bwrap",
+        "poormans-text-process-guard"
+      ],
+      "unavailableReason": "missing required tool: pandoc"
+    },
+    {
+      "available": false,
+      "container": "file",
+      "containers": [
+        "file"
+      ],
+      "extensions": [
+        "epub"
+      ],
+      "format": "epub",
+      "requires": [
+        "pandoc",
+        "bwrap",
+        "poormans-text-process-guard"
+      ],
+      "unavailableReason": "missing required tool: pandoc"
+    },
+    {
+      "available": false,
+      "container": "file",
+      "containers": [
+        "file"
+      ],
+      "extensions": [
+        "tex",
+        "latex"
+      ],
+      "format": "latex",
+      "requires": [
+        "pandoc",
+        "bwrap",
+        "poormans-text-process-guard"
+      ],
+      "unavailableReason": "missing required tool: pandoc"
+    },
+    {
+      "available": false,
+      "container": "file",
+      "containers": [
+        "file"
+      ],
+      "extensions": [
+        "dbk",
+        "docbook"
+      ],
+      "format": "docbook",
+      "requires": [
+        "pandoc",
+        "bwrap",
+        "poormans-text-process-guard"
+      ],
+      "unavailableReason": "missing required tool: pandoc"
+    },
+    {
+      "available": false,
+      "container": "file",
+      "containers": [
+        "file"
+      ],
+      "extensions": [
+        "org"
+      ],
+      "format": "org",
+      "requires": [
+        "pandoc",
+        "bwrap",
+        "poormans-text-process-guard"
+      ],
+      "unavailableReason": "missing required tool: pandoc"
+    },
+    {
+      "available": false,
+      "container": "file",
+      "containers": [
+        "file"
+      ],
+      "extensions": [
+        "wiki",
+        "mediawiki"
+      ],
+      "format": "mediawiki",
+      "requires": [
+        "pandoc",
+        "bwrap",
+        "poormans-text-process-guard"
+      ],
+      "unavailableReason": "missing required tool: pandoc"
+    },
+    {
+      "available": false,
+      "container": "file",
+      "containers": [
+        "file"
+      ],
+      "extensions": [
+        "textile"
+      ],
+      "format": "textile",
+      "requires": [
+        "pandoc",
+        "bwrap",
+        "poormans-text-process-guard"
+      ],
+      "unavailableReason": "missing required tool: pandoc"
+    },
+    {
+      "available": false,
+      "container": "file",
+      "containers": [
+        "file"
+      ],
+      "extensions": [
+        "rst"
+      ],
+      "format": "rst",
+      "requires": [
+        "pandoc",
+        "bwrap",
+        "poormans-text-process-guard"
+      ],
+      "unavailableReason": "missing required tool: pandoc"
+    },
+    {
+      "available": false,
+      "container": "file",
+      "containers": [
+        "file"
+      ],
+      "extensions": [
+        "fb2"
+      ],
+      "format": "fb2",
+      "requires": [
+        "pandoc",
+        "bwrap",
+        "poormans-text-process-guard"
+      ],
+      "unavailableReason": "missing required tool: pandoc"
+    },
+    {
+      "available": false,
+      "container": "file",
+      "containers": [
+        "file"
+      ],
+      "extensions": [
+        "eml",
+        "emlx"
+      ],
+      "format": "eml",
+      "requires": [
+        "pandoc",
+        "bwrap",
+        "poormans-text-process-guard"
+      ],
+      "unavailableReason": "missing required tool: pandoc"
+    },
+    {
+      "available": false,
+      "container": "file",
+      "containers": [
+        "file",
+        "package"
+      ],
+      "extensions": [
+        "mbox"
+      ],
+      "format": "mbox",
+      "requires": [
+        "pandoc",
+        "bwrap",
+        "poormans-text-process-guard"
+      ],
+      "unavailableReason": "missing required tool: pandoc"
+    },
+    {
+      "available": false,
+      "container": "file",
+      "containers": [
+        "file"
+      ],
+      "extensions": [
+        "enex"
+      ],
+      "format": "enex",
+      "requires": [
+        "pandoc",
+        "bwrap",
+        "poormans-text-process-guard"
+      ],
+      "unavailableReason": "missing required tool: pandoc"
+    },
+    {
+      "available": false,
+      "container": "file",
+      "containers": [
+        "file"
+      ],
+      "extensions": [
+        "msg"
+      ],
+      "format": "msg",
+      "requires": [
+        "pandoc",
+        "bwrap",
+        "poormans-text-process-guard"
+      ],
+      "unavailableReason": "missing required tool: pandoc"
+    }
+  ],
+  "fixtureHashesUnchanged": true,
+  "cliSHA256After": "2f49d54ecd6d9bae4962fcdb7f968ea4eef9c3844701d278a9a507e3e84db07c",
+  "finished": true,
+  "seconds": 3.352,
+  "transportArchiveSHA256": "146e25b02c6c8a7677ecfe904e53913a6bc89b0d3d09b6e093c63ce706e8204b"
+}

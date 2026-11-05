@@ -1,0 +1,262 @@
+{
+  "source": "01030000000132.pdf",
+  "sourceSHA256": "eded7804127acce26e4b9e7138aa8c95d0d8886280a21148efb0ae9519941ede",
+  "sourceUnchanged": true,
+  "seconds": 5.3409118939889595,
+  "status": "ConversionStatus.SUCCESS",
+  "expectedTables": 1,
+  "predictedTables": 1,
+  "tables": [
+    [
+      {
+        "row": 0,
+        "column": 0,
+        "rowspan": 1,
+        "colspan": 2,
+        "text": "Fish species on IUCN Red List"
+      },
+      {
+        "row": 1,
+        "column": 0,
+        "rowspan": 1,
+        "colspan": 1,
+        "text": "Potosi Pupfish"
+      },
+      {
+        "row": 1,
+        "column": 1,
+        "rowspan": 1,
+        "colspan": 1,
+        "text": "Cyprinodon alvarezi"
+      },
+      {
+        "row": 2,
+        "column": 0,
+        "rowspan": 1,
+        "colspan": 1,
+        "text": "La Palma Pupfish"
+      },
+      {
+        "row": 2,
+        "column": 1,
+        "rowspan": 1,
+        "colspan": 1,
+        "text": "Cyprinodon longidorsalis"
+      },
+      {
+        "row": 3,
+        "column": 0,
+        "rowspan": 1,
+        "colspan": 1,
+        "text": "Butterfly Splitfin"
+      },
+      {
+        "row": 3,
+        "column": 1,
+        "rowspan": 1,
+        "colspan": 1,
+        "text": "Ameca splendens"
+      },
+      {
+        "row": 4,
+        "column": 0,
+        "rowspan": 1,
+        "colspan": 1,
+        "text": "Golden Skiffia"
+      },
+      {
+        "row": 4,
+        "column": 1,
+        "rowspan": 1,
+        "colspan": 1,
+        "text": "Skiffia francesae"
+      }
+    ]
+  ],
+  "quality": {
+    "expectedCells": 9,
+    "predictedCells": 9,
+    "textExactAtCell": 9,
+    "spansExactAtCell": 9,
+    "expectedMergedCells": 1,
+    "mergedExactAtCell": 1,
+    "orderedCellTextExact": true,
+    "expectedWordCount": 23,
+    "missingWords": [],
+    "extraWords": [],
+    "cellDetails": [
+      {
+        "expected": {
+          "row": 0,
+          "column": 0,
+          "rowspan": 1,
+          "colspan": 2,
+          "text": "Fish species on IUCN Red List"
+        },
+        "predicted": {
+          "row": 0,
+          "column": 0,
+          "rowspan": 1,
+          "colspan": 2,
+          "text": "Fish species on IUCN Red List"
+        },
+        "textExact": true,
+        "spanExact": true
+      },
+      {
+        "expected": {
+          "row": 1,
+          "column": 0,
+          "rowspan": 1,
+          "colspan": 1,
+          "text": "Potosi Pupfish"
+        },
+        "predicted": {
+          "row": 1,
+          "column": 0,
+          "rowspan": 1,
+          "colspan": 1,
+          "text": "Potosi Pupfish"
+        },
+        "textExact": true,
+        "spanExact": true
+      },
+      {
+        "expected": {
+          "row": 1,
+          "column": 1,
+          "rowspan": 1,
+          "colspan": 1,
+          "text": "Cyprinodon alvarezi"
+        },
+        "predicted": {
+          "row": 1,
+          "column": 1,
+          "rowspan": 1,
+          "colspan": 1,
+          "text": "Cyprinodon alvarezi"
+        },
+        "textExact": true,
+        "spanExact": true
+      },
+      {
+        "expected": {
+          "row": 2,
+          "column": 0,
+          "rowspan": 1,
+          "colspan": 1,
+          "text": "La Palma Pupfish"
+        },
+        "predicted": {
+          "row": 2,
+          "column": 0,
+          "rowspan": 1,
+          "colspan": 1,
+          "text": "La Palma Pupfish"
+        },
+        "textExact": true,
+        "spanExact": true
+      },
+      {
+        "expected": {
+          "row": 2,
+          "column": 1,
+          "rowspan": 1,
+          "colspan": 1,
+          "text": "Cyprinodon longidorsalis"
+        },
+        "predicted": {
+          "row": 2,
+          "column": 1,
+          "rowspan": 1,
+          "colspan": 1,
+          "text": "Cyprinodon longidorsalis"
+        },
+        "textExact": true,
+        "spanExact": true
+      },
+      {
+        "expected": {
+          "row": 3,
+          "column": 0,
+          "rowspan": 1,
+          "colspan": 1,
+          "text": "Butterfly Splitfin"
+        },
+        "predicted": {
+          "row": 3,
+          "column": 0,
+          "rowspan": 1,
+          "colspan": 1,
+          "text": "Butterfly Splitfin"
+        },
+        "textExact": true,
+        "spanExact": true
+      },
+      {
+        "expected": {
+          "row": 3,
+          "column": 1,
+          "rowspan": 1,
+          "colspan": 1,
+          "text": "Ameca splendens"
+        },
+        "predicted": {
+          "row": 3,
+          "column": 1,
+          "rowspan": 1,
+          "colspan": 1,
+          "text": "Ameca splendens"
+        },
+        "textExact": true,
+        "spanExact": true
+      },
+      {
+        "expected": {
+          "row": 4,
+          "column": 0,
+          "rowspan": 1,
+          "colspan": 1,
+          "text": "Golden Skiffia"
+        },
+        "predicted": {
+          "row": 4,
+          "column": 0,
+          "rowspan": 1,
+          "colspan": 1,
+          "text": "Golden Skiffia"
+        },
+        "textExact": true,
+        "spanExact": true
+      },
+      {
+        "expected": {
+          "row": 4,
+          "column": 1,
+          "rowspan": 1,
+          "colspan": 1,
+          "text": "Skiffia francesae"
+        },
+        "predicted": {
+          "row": 4,
+          "column": 1,
+          "rowspan": 1,
+          "colspan": 1,
+          "text": "Skiffia francesae"
+        },
+        "textExact": true,
+        "spanExact": true
+      }
+    ]
+  },
+  "markdownSHA256": "18215d0cf817734211ffc7abd509ed34f4602c0d9a0bfb929cee5908768ee7d1",
+  "jsonSHA256": "4104dfe1d2a426276fb8d62857e03aa9665f969d5f57e7c1d13cef180cc495c1",
+  "maxRSSKiB": 1050172,
+  "memoryPeakBytes": 839299072,
+  "OCR": "off; digital PDF words",
+  "remoteServices": false,
+  "manualROIOrThresholdChanges": false,
+  "layoutPreset": "layout_heron_default",
+  "tableMode": "accurate",
+  "markdownContainsExplicitSpans": false
+}

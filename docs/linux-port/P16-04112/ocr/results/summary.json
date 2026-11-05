@@ -1,0 +1,473 @@
+{
+  "total": 11,
+  "expectedFailureNoPublication": 8,
+  "success": 3,
+  "allSourcesUnchanged": true,
+  "cases": [
+    {
+      "case": "png",
+      "source": "ocr.png",
+      "sourceSHA256": "f0ad2acc24a663fcbc6d16bc1f4d59956e627e8fd355833b228c7511c53880e0",
+      "sourceUnchanged": true,
+      "exit": 69,
+      "seconds": 0.4850378640112467,
+      "published": false,
+      "response": {
+        "error": "The local Tesseract OCR backend is not available in this build.",
+        "ok": false,
+        "version": "0.41.12"
+      },
+      "stderr": ""
+    },
+    {
+      "case": "pdf",
+      "source": "sample.pdf",
+      "sourceSHA256": "a182895247779a29e215de2236d6d547612746aab7705aae3e2b9e5ea6b08640",
+      "sourceUnchanged": true,
+      "exit": 69,
+      "seconds": 0.780849793998641,
+      "published": false,
+      "response": {
+        "error": "The local Tesseract OCR backend is not available in this build.",
+        "ok": false,
+        "version": "0.41.12"
+      },
+      "stderr": ""
+    },
+    {
+      "case": "png-off",
+      "source": "ocr.png",
+      "sourceSHA256": "f0ad2acc24a663fcbc6d16bc1f4d59956e627e8fd355833b228c7511c53880e0",
+      "sourceUnchanged": true,
+      "exit": 0,
+      "seconds": 0.34572548099095,
+      "published": true,
+      "response": {
+        "assets": [
+          "/probe/results/nonexec-png-off/images/image01.png"
+        ],
+        "diagnosticGroups": [
+          {
+            "code": "sourceMap.unavailable",
+            "count": 1,
+            "kind": "information",
+            "locations": [],
+            "messages": [
+              "No verified source-to-text positions are available for this conversion."
+            ],
+            "omittedCount": 0
+          }
+        ],
+        "diagnostics": [
+          {
+            "code": "sourceMap.unavailable",
+            "kind": "information",
+            "message": "No verified source-to-text positions are available for this conversion."
+          }
+        ],
+        "documents": [
+          {
+            "assets": [
+              "/probe/results/nonexec-png-off/images/image01.png"
+            ],
+            "markdownFile": "/probe/results/nonexec-png-off/ocr.md",
+            "metadata": {},
+            "sourceIndex": 1,
+            "title": "ocr"
+          }
+        ],
+        "input": "/probe/fixtures/ocr.png",
+        "markdownFile": "/probe/results/nonexec-png-off/ocr.md",
+        "metadata": {},
+        "ok": true,
+        "outputDirectory": "/probe/results/nonexec-png-off",
+        "outputFiles": [
+          {
+            "byteCount": 76635,
+            "path": "images/image01.png",
+            "sha256": "f0ad2acc24a663fcbc6d16bc1f4d59956e627e8fd355833b228c7511c53880e0"
+          },
+          {
+            "byteCount": 34,
+            "path": "ocr.md",
+            "sha256": "c71816fd18adc7554afd273448c0b5988ed69d8d8d32d16aaa4b18ec635c8e38"
+          }
+        ],
+        "sourceIdentity": {
+          "byteCount": 76635,
+          "name": "ocr.png",
+          "sha256": "f0ad2acc24a663fcbc6d16bc1f4d59956e627e8fd355833b228c7511c53880e0"
+        },
+        "sourceMappings": [],
+        "version": "0.41.12",
+        "warnings": [
+          "No verified source-to-text positions are available for this conversion."
+        ]
+      },
+      "stderr": ""
+    },
+    {
+      "case": "pdf-off",
+      "source": "sample.pdf",
+      "sourceSHA256": "a182895247779a29e215de2236d6d547612746aab7705aae3e2b9e5ea6b08640",
+      "sourceUnchanged": true,
+      "exit": 0,
+      "seconds": 0.5992171309917467,
+      "published": true,
+      "response": {
+        "assets": [
+          "/probe/results/nonexec-pdf-off/images/page-1-image-1.png"
+        ],
+        "diagnosticGroups": [
+          {
+            "code": "pdf.layoutNotPreserved",
+            "count": 1,
+            "kind": "approximation",
+            "locations": [],
+            "messages": [
+              "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+            ],
+            "omittedCount": 0
+          },
+          {
+            "code": "pdf.vectorGraphicsNotExtracted",
+            "count": 1,
+            "kind": "contentLoss",
+            "locations": [],
+            "messages": [
+              "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF."
+            ],
+            "omittedCount": 0
+          },
+          {
+            "code": "pdf.linuxLayoutApproximation",
+            "count": 1,
+            "kind": "approximation",
+            "locations": [],
+            "messages": [
+              "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed."
+            ],
+            "omittedCount": 0
+          },
+          {
+            "code": "pdf.annotationMetadataApproximation",
+            "count": 1,
+            "kind": "approximation",
+            "locations": [
+              {
+                "page": 1
+              }
+            ],
+            "messages": [
+              "Readable annotation text, author, modification date and page rectangle were retained; advanced annotation fields and exact text references are not reconstructed."
+            ],
+            "omittedCount": 0
+          },
+          {
+            "code": "pdf.imagesRasterized",
+            "count": 1,
+            "kind": "approximation",
+            "locations": [],
+            "messages": [
+              "Embedded PDF images were retained as local PNG assets; their original compression and page placement were not preserved."
+            ],
+            "omittedCount": 0
+          }
+        ],
+        "diagnostics": [
+          {
+            "code": "pdf.layoutNotPreserved",
+            "kind": "approximation",
+            "message": "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+          },
+          {
+            "code": "pdf.vectorGraphicsNotExtracted",
+            "kind": "contentLoss",
+            "message": "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF."
+          },
+          {
+            "code": "pdf.linuxLayoutApproximation",
+            "kind": "approximation",
+            "message": "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed."
+          },
+          {
+            "code": "pdf.annotationMetadataApproximation",
+            "kind": "approximation",
+            "location": {
+              "page": 1
+            },
+            "message": "Readable annotation text, author, modification date and page rectangle were retained; advanced annotation fields and exact text references are not reconstructed."
+          },
+          {
+            "code": "pdf.imagesRasterized",
+            "kind": "approximation",
+            "message": "Embedded PDF images were retained as local PNG assets; their original compression and page placement were not preserved."
+          }
+        ],
+        "documents": [
+          {
+            "assets": [
+              "/probe/results/nonexec-pdf-off/images/page-1-image-1.png"
+            ],
+            "markdownFile": "/probe/results/nonexec-pdf-off/sample.md",
+            "metadata": {},
+            "sourceIndex": 1,
+            "title": "sample"
+          }
+        ],
+        "input": "/probe/fixtures/sample.pdf",
+        "markdownFile": "/probe/results/nonexec-pdf-off/sample.md",
+        "metadata": {},
+        "ok": true,
+        "outputDirectory": "/probe/results/nonexec-pdf-off",
+        "outputFiles": [
+          {
+            "byteCount": 96,
+            "path": "images/page-1-image-1.png",
+            "sha256": "33f060aed76bb7c18098d0e6313e3b388655aa1cab796fe8630b27c26dc81613"
+          },
+          {
+            "byteCount": 427,
+            "path": "sample.md",
+            "sha256": "888d38764dd389243549ad0762806b37ff9677fe5a68c9748021beaf04cf0f78"
+          }
+        ],
+        "sourceIdentity": {
+          "byteCount": 1486,
+          "name": "sample.pdf",
+          "sha256": "a182895247779a29e215de2236d6d547612746aab7705aae3e2b9e5ea6b08640"
+        },
+        "sourceMappings": [
+          {
+            "output": {
+              "file": "sample.md",
+              "utf8Length": 362,
+              "utf8Offset": 8
+            },
+            "source": {
+              "page": 1
+            }
+          },
+          {
+            "output": {
+              "file": "sample.md",
+              "utf8Length": 56,
+              "utf8Offset": 370
+            },
+            "source": {
+              "page": 2
+            }
+          }
+        ],
+        "version": "0.41.12",
+        "warnings": [
+          "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review.",
+          "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF.",
+          "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed.",
+          "Page 1: Readable annotation text, author, modification date and page rectangle were retained; advanced annotation fields and exact text references are not reconstructed.",
+          "Embedded PDF images were retained as local PNG assets; their original compression and page placement were not preserved."
+        ]
+      },
+      "stderr": ""
+    },
+    {
+      "case": "png",
+      "source": "ocr.png",
+      "sourceSHA256": "f0ad2acc24a663fcbc6d16bc1f4d59956e627e8fd355833b228c7511c53880e0",
+      "sourceUnchanged": true,
+      "exit": 69,
+      "seconds": 0.5495300400070846,
+      "published": false,
+      "response": {
+        "error": "The installed Tesseract recognition language data backend is not available in this build.",
+        "ok": false,
+        "version": "0.41.12"
+      },
+      "stderr": ""
+    },
+    {
+      "case": "pdf",
+      "source": "sample.pdf",
+      "sourceSHA256": "a182895247779a29e215de2236d6d547612746aab7705aae3e2b9e5ea6b08640",
+      "sourceUnchanged": true,
+      "exit": 69,
+      "seconds": 0.8031567460129736,
+      "published": false,
+      "response": {
+        "error": "The installed Tesseract recognition language data backend is not available in this build.",
+        "ok": false,
+        "version": "0.41.12"
+      },
+      "stderr": ""
+    },
+    {
+      "case": "png",
+      "source": "ocr.png",
+      "sourceSHA256": "f0ad2acc24a663fcbc6d16bc1f4d59956e627e8fd355833b228c7511c53880e0",
+      "sourceUnchanged": true,
+      "exit": 74,
+      "seconds": 0.6421051189972786,
+      "published": false,
+      "response": {
+        "error": "File-system operation failed: local Tesseract OCR failed: IOFaultMarker controlled recognition failure\n",
+        "ok": false,
+        "version": "0.41.12"
+      },
+      "stderr": ""
+    },
+    {
+      "case": "pdf",
+      "source": "sample.pdf",
+      "sourceSHA256": "a182895247779a29e215de2236d6d547612746aab7705aae3e2b9e5ea6b08640",
+      "sourceUnchanged": true,
+      "exit": 74,
+      "seconds": 0.9008655060024466,
+      "published": false,
+      "response": {
+        "error": "File-system operation failed: local Tesseract OCR failed: IOFaultMarker controlled recognition failure\n",
+        "ok": false,
+        "version": "0.41.12"
+      },
+      "stderr": ""
+    },
+    {
+      "case": "png",
+      "source": "ocr.png",
+      "sourceSHA256": "f0ad2acc24a663fcbc6d16bc1f4d59956e627e8fd355833b228c7511c53880e0",
+      "sourceUnchanged": true,
+      "exit": 124,
+      "seconds": 1.1153736209962517,
+      "published": false,
+      "controlledRecognitionSleepObserved": true,
+      "response": {
+        "error": "The conversion tool exceeded its time limit.",
+        "ok": false,
+        "version": "0.41.12"
+      },
+      "stderr": ""
+    },
+    {
+      "case": "pdf",
+      "source": "sample.pdf",
+      "sourceSHA256": "a182895247779a29e215de2236d6d547612746aab7705aae3e2b9e5ea6b08640",
+      "sourceUnchanged": true,
+      "exit": 124,
+      "seconds": 1.4078246330027469,
+      "published": false,
+      "controlledRecognitionSleepObserved": true,
+      "response": {
+        "error": "The conversion tool exceeded its time limit.",
+        "ok": false,
+        "version": "0.41.12"
+      },
+      "stderr": ""
+    },
+    {
+      "case": "blank",
+      "source": "blank.png",
+      "sourceSHA256": "e6c1b77f53191625cb96289940e11361f943997ad26799f95900659278d34a45",
+      "sourceUnchanged": true,
+      "exit": 0,
+      "seconds": 0.714816484003677,
+      "published": true,
+      "controlledRecognitionSleepObserved": false,
+      "response": {
+        "assets": [
+          "/probe/results/real-blank-1793855555105948882/images/image01.png"
+        ],
+        "diagnosticGroups": [
+          {
+            "code": "ocr.languageDefault",
+            "count": 1,
+            "kind": "information",
+            "locations": [],
+            "messages": [
+              "Linux standard OCR uses the installed language data: eng. Select OCR languages explicitly for other text."
+            ],
+            "omittedCount": 0
+          },
+          {
+            "code": "image.textUnavailable",
+            "count": 1,
+            "kind": "information",
+            "locations": [
+              {
+                "frame": 1
+              }
+            ],
+            "messages": [
+              "No text could be extracted from at least one image frame."
+            ],
+            "omittedCount": 0
+          }
+        ],
+        "diagnostics": [
+          {
+            "code": "ocr.languageDefault",
+            "kind": "information",
+            "message": "Linux standard OCR uses the installed language data: eng. Select OCR languages explicitly for other text."
+          },
+          {
+            "code": "image.textUnavailable",
+            "kind": "information",
+            "location": {
+              "frame": 1
+            },
+            "message": "No text could be extracted from at least one image frame."
+          }
+        ],
+        "documents": [
+          {
+            "assets": [
+              "/probe/results/real-blank-1793855555105948882/images/image01.png"
+            ],
+            "markdownFile": "/probe/results/real-blank-1793855555105948882/blank.md",
+            "metadata": {},
+            "sourceIndex": 1,
+            "title": "blank"
+          }
+        ],
+        "input": "/probe/fixtures/blank.png",
+        "markdownFile": "/probe/results/real-blank-1793855555105948882/blank.md",
+        "metadata": {},
+        "ok": true,
+        "outputDirectory": "/probe/results/real-blank-1793855555105948882",
+        "outputFiles": [
+          {
+            "byteCount": 104,
+            "path": "blank.md",
+            "sha256": "52a999431b1e536cad7c2d8d1c2b1c86f68a12c7b297a4d4972e074d7396dca2"
+          },
+          {
+            "byteCount": 606,
+            "path": "images/image01.png",
+            "sha256": "e6c1b77f53191625cb96289940e11361f943997ad26799f95900659278d34a45"
+          }
+        ],
+        "sourceIdentity": {
+          "byteCount": 606,
+          "name": "blank.png",
+          "sha256": "e6c1b77f53191625cb96289940e11361f943997ad26799f95900659278d34a45"
+        },
+        "sourceMappings": [
+          {
+            "output": {
+              "file": "blank.md",
+              "utf8Length": 53,
+              "utf8Offset": 50
+            },
+            "source": {
+              "frame": 1
+            }
+          }
+        ],
+        "version": "0.41.12",
+        "warnings": [
+          "Linux standard OCR uses the installed language data: eng. Select OCR languages explicitly for other text.",
+          "Frame 1: No text could be extracted from at least one image frame."
+        ]
+      },
+      "stderr": ""
+    }
+  ]
+}

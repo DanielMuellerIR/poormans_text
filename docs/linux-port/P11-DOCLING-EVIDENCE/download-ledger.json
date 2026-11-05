@@ -1,0 +1,10 @@
+{
+  "cap": 1073741824,
+  "accountedBytes": 847739690,
+  "wheelBytes": 382503908,
+  "modelBytes": 384428156,
+  "accounting": "Pip cache files including metadata, apt lists on disk plus 10MiB reserve, then exact model bytes; wheels recovered from verified pip cache without second download.",
+  "coreExtra": "Official convert-core extra adds rtree/scipy after first pipeline reported missing spatial index",
+  "initialWheelBytes": 346652065,
+  "wheelFieldCorrectedFromResolvedManifest": true
+}

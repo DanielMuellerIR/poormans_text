@@ -1,0 +1,37 @@
+{
+  "documentBinding" : {
+    "byteCount" : 2130,
+    "selection" : {
+      "spreadsheet" : {
+        "cellRanges" : [
+
+        ],
+        "sheets" : "1"
+      }
+    },
+    "sha256" : "a439a9b0d54f45663381d32f9cc50fb8b36c068552392db8bd0d5c72f3804cba"
+  },
+  "localTargets" : {
+    "outputDirectory" : "/dev/shm/profile-1793853521200025519"
+  },
+  "name" : "Private dev target",
+  "options" : {
+    "conversionReport" : false,
+    "docxChangeMode" : "accept",
+    "frontmatter" : false,
+    "imageTextRecognition" : "enabled",
+    "ocrLanguages" : [
+
+    ],
+    "ocrMethod" : "standard",
+    "outputLayout" : "markdownFolder",
+    "pdfDehyphenate" : false,
+    "pdfLayout" : "auto",
+    "pdfRemoveHeadersFooters" : false,
+    "pdfTextRecognition" : "auto",
+    "presentationIncludeNotes" : true,
+    "sourceMapping" : false,
+    "spreadsheetRendering" : "markdownTable"
+  },
+  "schemaVersion" : 1
+}

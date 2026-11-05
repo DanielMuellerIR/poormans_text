@@ -1,0 +1,1 @@
+{"cleaned": true, "method": "held parent/root directory descriptors; nofollow recursive own-tree deletion", "identityVerified": true, "rootDevice": 33, "rootInode": 28983366, "all45RuntimeHashesUnchanged": true, "remainingOwnProcesses": [], "removed": {"files": 206, "directories": 124}, "rootAbsent": true, "timeUTC": "2026-11-05T05:17:49.780829+00:00"}

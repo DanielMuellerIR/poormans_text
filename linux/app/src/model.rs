@@ -67,8 +67,58 @@ impl Options {
         Ok(result)
     }
 }
+pub type SignalHandlers =
+    std::rc::Rc<std::cell::RefCell<Vec<(gtk::glib::Object, gtk::glib::SignalHandlerId)>>>;
+pub fn disconnect_handlers(handlers: &SignalHandlers) {
+    use gtk::prelude::ObjectExt;
+    let handlers = handlers.clone();
+    gtk::glib::idle_add_local_once(move || {
+        for (object, id) in handlers.borrow_mut().drain(..) {
+            object.disconnect(id);
+        }
+    });
+}
+
+#[derive(Clone, Debug)]
+pub struct InputSlot {
+    bound: bool,
+    input: std::sync::Arc<std::sync::Mutex<Option<pmt_bridge::BoundInput>>>,
+}
+impl InputSlot {
+    pub fn new(input: Option<pmt_bridge::BoundInput>) -> Self {
+        Self {
+            bound: input.is_some(),
+            input: std::sync::Arc::new(std::sync::Mutex::new(input)),
+        }
+    }
+    pub fn is_bound(&self) -> bool {
+        self.bound
+    }
+    pub fn get(&self) -> Option<pmt_bridge::BoundInput> {
+        self.input.lock().ok().and_then(|v| v.clone())
+    }
+    pub fn clear(&self) {
+        match self.input.lock() {
+            Ok(mut input) => {
+                input.take();
+            }
+            Err(poison) => {
+                poison.into_inner().take();
+            }
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SourceOrigin {
+    File,
+    Clipboard,
+}
+
 #[derive(Clone, Debug)]
 pub struct OutputFile {
+    pub bound_input: Option<pmt_bridge::BoundInput>,
+    pub source_origin: SourceOrigin,
     pub label: String,
     pub path: PathBuf,
     pub preview: bool,
@@ -105,6 +155,8 @@ pub fn outputs(value: &Value) -> Vec<OutputFile> {
             .unwrap_or_else(|| std::sync::Arc::new(crate::read_output::Context::new(v.clone())));
         if let Some(path) = v.get("markdownFile").and_then(Value::as_str) {
             out.push(OutputFile {
+                bound_input: None,
+                source_origin: SourceOrigin::File,
                 label: format!("Markdown · {}", display_path(path)),
                 path: path.into(),
                 preview: true,
@@ -120,6 +172,8 @@ pub fn outputs(value: &Value) -> Vec<OutputFile> {
             for item in items {
                 if let Some(path) = item.as_str() {
                     out.push(OutputFile {
+                        bound_input: None,
+                        source_origin: SourceOrigin::File,
                         label: format!("Asset · {}", display_path(path)),
                         path: path.into(),
                         preview: false,

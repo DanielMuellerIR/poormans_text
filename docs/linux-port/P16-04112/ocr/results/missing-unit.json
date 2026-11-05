@@ -1,0 +1,8 @@
+{
+  "test": "PoorMansTextLinuxTests.LinuxOCRTests/testMissingOCRBackendCannotPublishAnImageResult",
+  "exit": 0,
+  "executed": 1,
+  "failures": 0,
+  "skipped": 0,
+  "controlledNonExecutableTesseract": true
+}

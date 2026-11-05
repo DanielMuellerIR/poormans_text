@@ -1,0 +1,13 @@
+MESA-EGL: warning: DRI3 error: Could not get DRI3 device
+MESA-EGL: warning: Ensure your X server supports DRI3 to get accelerated rendering
+PMT_UI_TEST_JOB_STARTED conversion=false
+PMT_UI_TEST_OPERATION_FINISHED conversion=false cancelled=false
+PMT_UI_TEST_JOB_STARTED conversion=true
+PMT_UI_TEST_OPERATION_FINISHED conversion=true cancelled=false
+PMT_UI_TEST_RESULT {"assets":["/clip-fixtures/bound-compare-1793855055799945676/images/image01.png"],"diagnosticGroups":[{"code":"sourceMap.unavailable","count":1,"kind":"information","locations":[],"messages":["No verified source-to-text positions are available for this conversion."],"omittedCount":0}],"diagnostics":[{"code":"sourceMap.unavailable","kind":"information","message":"No verified source-to-text positions are available for this conversion."}],"documents":[{"assets":["/clip-fixtures/bound-compare-1793855055799945676/images/image01.png"],"markdownFile":"/clip-fixtures/bound-compare-1793855055799945676/clipboard.md","metadata":{},"sourceIndex":1,"title":"clipboard"}],"input":"/dev/pmt-input/clipboard.png","markdownFile":"/clip-fixtures/bound-compare-1793855055799945676/clipboard.md","metadata":{},"ok":true,"outputDirectory":"/clip-fixtures/bound-compare-1793855055799945676","outputFiles":[{"byteCount":46,"path":"clipboard.md","sha256":"8a9f3ee2d03fbfea0683a3a6ac7aee0904c75c6e1a7ddb019f3c5aa6a5be3b9e"},{"byteCount":92,"path":"images/image01.png","sha256":"f73bf0b40f5f29de5fc19c1efebd20a3881489991c6f13c0e0652e15b1db5aff"}],"sourceIdentity":{"byteCount":92,"name":"clipboard.png","sha256":"f73bf0b40f5f29de5fc19c1efebd20a3881489991c6f13c0e0652e15b1db5aff"},"sourceMappings":[],"version":"0.41.11","warnings":["No verified source-to-text positions are available for this conversion."]}
+PMT_UI_TEST_BOUND_SOURCE_VERIFIED positions=0
+PMT_UI_TEST_BOUND_FD_BASELINE 1
+PMT_UI_TEST_SOURCES []
+PMT_UI_TEST_BOUND_WIDGET_RELEASE window-and-texture-dropped
+PMT_UI_TEST_BOUND_RELEASE_COMPLETE app-open-source-cleared-fds=0
+PMT_UI_TEST_CLIPBOARD_CLOSE released-after-job-barrier

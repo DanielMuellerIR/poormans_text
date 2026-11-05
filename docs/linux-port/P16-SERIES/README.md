@@ -87,3 +87,13 @@ keine lebenden oder ungeernteten eigenen Nachkommen. Dies ist der zusätzliche
 Beleg nach dem eng read-only eingebundenen `/etc/libreoffice`; die erste Serie
 wird nicht nachträglich umetikettiert. Ein später erneut geänderter ELF benötigt
 einen eigenen Nachweis.
+
+## Finale Wiederholung 0.41.12
+
+[Finaler Beleg](../P16-04112/series.json): derselbe 48-Fall-Umfang besteht am
+CLI-ELF `2f49d54ecd6d9bae4962fcdb7f968ea4eef9c3844701d278a9a507e3e84db07c`
+in25,800s; 374/374 Prüfungen, unveränderte Quellen, keine Restnachkommen.
+Der Prüfer liest die erwartete Version jetzt aus dem ausdrücklich gewählten Repo,
+statt historische .10 fest vorauszusetzen. Eine neue Runtime darf weiterhin
+nicht während der Serie ausgetauscht werden. Der erste neue Sandboxversuch war
+kein Produktbeleg; [Einordnung](../P16-04112/README.md).

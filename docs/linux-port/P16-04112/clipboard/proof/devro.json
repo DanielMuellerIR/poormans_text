@@ -1,0 +1,61 @@
+{
+  "kernel": {
+    "writes": {
+      "/dev/shm/pmt-canary": 30,
+      "/dev/pmt-input/out": 30,
+      "/dev/../dev/shm/alias": 30,
+      "relative": 30
+    },
+    "devices": true
+  },
+  "cli": [
+    {
+      "target": "/probe/proof/normal-1793854132309950292",
+      "success": true,
+      "error": ""
+    },
+    {
+      "target": "/dev/shm/out-1793854132309950292",
+      "success": false,
+      "error": "File-system operation failed: Read-only file system (errno 30) CORE_EXIT=Some(74)\n"
+    },
+    {
+      "target": "/dev/pmt-input/out-1793854132309950292",
+      "success": false,
+      "error": "File-system operation failed: Read-only file system (errno 30) CORE_EXIT=Some(74)\n"
+    },
+    {
+      "target": "/dev/../dev/pmt-input/out-1793854132309950292",
+      "success": false,
+      "error": "File-system operation failed: Read-only file system (errno 30) CORE_EXIT=Some(74)\n"
+    },
+    {
+      "target": "/dev/shm/../shm/out-1793854132309950292",
+      "success": false,
+      "error": "File-system operation failed: Read-only file system (errno 30) CORE_EXIT=Some(74)\n"
+    },
+    {
+      "target": "dev/shm/out-1793854132309950292",
+      "success": false,
+      "error": "File-system operation failed: Read-only file system (errno 30) CORE_EXIT=Some(74)\n"
+    },
+    {
+      "profileTarget": "/dev/shm/profile-1793854132309950292",
+      "success": false,
+      "error": "File-system operation failed: Read-only file system (errno 30) CORE_EXIT=Some(74)\n"
+    },
+    {
+      "noClipboardTarget": "/dev/shm/no-clipboard-1793854132309950292",
+      "coreExit": 74,
+      "success": false,
+      "error": "File-system operation failed: Read-only file system (errno 30) CORE_EXIT=Some(74)\n"
+    },
+    {
+      "noClipboardTarget": "/dev/../dev/pmt-input/no-clipboard-1793854132309950292",
+      "coreExit": 73,
+      "success": false,
+      "error": "The output parent directory does not exist: /dev/pmt-input CORE_EXIT=Some(73)\n"
+    }
+  ],
+  "sourceUnchanged": true
+}

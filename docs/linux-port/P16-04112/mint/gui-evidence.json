@@ -1,0 +1,22 @@
+{
+  "uid": 1000,
+  "productionGUI": true,
+  "privateXvfbAndDBus": true,
+  "GTKUsesDistroLibraries": true,
+  "realAccessibleConvertAction": true,
+  "GUIFinishedReceivingResult": true,
+  "CSVMarkerAndUnicode": true,
+  "sourceUnchanged": true,
+  "completedStateObserved": true,
+  "sourceSHA256": "c71d2c12a671843a308d39d4e5b55ceb2020aec2089772debc42dd7046fd8727",
+  "markdownSHA256": "133ab1361b4eaa94838e21845e531ea884f1b861496243984e4990211335c71b",
+  "markdown": "# Quelle \u00fc\n\n## Sheet: Quelle \u00fc\n\n| Key | Value |\n| --- | --- |\n| ARCHGUIMARKER | Gr\u00fc\u00dfe |\n",
+  "all45RuntimeHashesUnchanged": true,
+  "runtimeExpected": {
+    "bin/poormans-text": "2f49d54ecd6d9bae4962fcdb7f968ea4eef9c3844701d278a9a507e3e84db07c",
+    "ui/poormans-text-app": "918a8d2bdd3658a92494a1e278d3ac6b1c241fa9536f5a3dbf9f63638998f2ed",
+    "ui/poormans-text-process-guard": "cf677f9be88095a27423ceedb9db2b85667f7775d167857cfb52002ff5dda520"
+  },
+  "GUIExit": 0,
+  "screenshotSHA256": "a6e26c874f422c57e10e50312b9f23e48fcfa67c020153dbb21ae3db036079c9"
+}

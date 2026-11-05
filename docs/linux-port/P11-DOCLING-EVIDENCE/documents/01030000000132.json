@@ -1,0 +1,758 @@
+{
+  "schema_name": "DoclingDocument",
+  "version": "1.11.0",
+  "name": "01030000000132",
+  "origin": {
+    "mimetype": "application/pdf",
+    "binary_hash": 17271496526368349918,
+    "filename": "01030000000132.pdf"
+  },
+  "furniture": {
+    "self_ref": "#/furniture",
+    "children": [],
+    "content_layer": "furniture",
+    "name": "_root_",
+    "label": "unspecified"
+  },
+  "body": {
+    "self_ref": "#/body",
+    "children": [
+      {
+        "$ref": "#/tables/0"
+      },
+      {
+        "$ref": "#/texts/0"
+      },
+      {
+        "$ref": "#/texts/1"
+      },
+      {
+        "$ref": "#/pictures/0"
+      },
+      {
+        "$ref": "#/texts/3"
+      },
+      {
+        "$ref": "#/pictures/1"
+      },
+      {
+        "$ref": "#/texts/5"
+      },
+      {
+        "$ref": "#/texts/6"
+      }
+    ],
+    "content_layer": "body",
+    "name": "_root_",
+    "label": "unspecified"
+  },
+  "groups": [],
+  "texts": [
+    {
+      "self_ref": "#/texts/0",
+      "parent": {
+        "$ref": "#/body"
+      },
+      "children": [],
+      "content_layer": "body",
+      "label": "text",
+      "prov": [
+        {
+          "page_no": 1,
+          "bbox": {
+            "l": 56.6929,
+            "t": 563.1757,
+            "r": 364.9579000000002,
+            "b": 556.533154017425,
+            "coord_origin": "BOTTOMLEFT"
+          },
+          "charspan": [
+            0,
+            93
+          ]
+        }
+      ],
+      "orig": "Table 6.1: Four fish species on IUCN Red List \"Extinct in the Wild\" held in public aquariums.",
+      "text": "Table 6.1: Four fish species on IUCN Red List \"Extinct in the Wild\" held in public aquariums."
+    },
+    {
+      "self_ref": "#/texts/1",
+      "parent": {
+        "$ref": "#/body"
+      },
+      "children": [],
+      "content_layer": "body",
+      "label": "text",
+      "prov": [
+        {
+          "page_no": 1,
+          "bbox": {
+            "l": 56.6929,
+            "t": 517.7778999999999,
+            "r": 232.8072,
+            "b": 341.76199542743535,
+            "coord_origin": "BOTTOMLEFT"
+          },
+          "charspan": [
+            0,
+            473
+          ]
+        }
+      ],
+      "orig": "Public aquariums, because of their inhouse expertise, can act quickly to collect and breed rare fish. Actions to prevent the extinction of the Barrens Topminnow include monitoring populations and propagating and stocking juveniles into existing or newly created spring habitats. The Tennessee Aquarium assisted with propagations and developed a program called \"Keeper Kids,\" where students on spring break help feed the Barrens Topminnows in a behind-the-scenes experience.",
+      "text": "Public aquariums, because of their inhouse expertise, can act quickly to collect and breed rare fish. Actions to prevent the extinction of the Barrens Topminnow include monitoring populations and propagating and stocking juveniles into existing or newly created spring habitats. The Tennessee Aquarium assisted with propagations and developed a program called \"Keeper Kids,\" where students on spring break help feed the Barrens Topminnows in a behind-the-scenes experience."
+    },
+    {
+      "self_ref": "#/texts/2",
+      "parent": {
+        "$ref": "#/pictures/0"
+      },
+      "children": [],
+      "content_layer": "body",
+      "label": "caption",
+      "prov": [
+        {
+          "page_no": 1,
+          "bbox": {
+            "l": 241.8071,
+            "t": 363.0436,
+            "r": 495.16709999999995,
+            "b": 346.35821761858665,
+            "coord_origin": "BOTTOMLEFT"
+          },
+          "charspan": [
+            0,
+            83
+          ]
+        }
+      ],
+      "orig": "Figure 6.3: Photo of the critically endangered Butterfly Splitfin (Ameca spendens).",
+      "text": "Figure 6.3: Photo of the critically endangered Butterfly Splitfin (Ameca spendens)."
+    },
+    {
+      "self_ref": "#/texts/3",
+      "parent": {
+        "$ref": "#/body"
+      },
+      "children": [],
+      "content_layer": "body",
+      "label": "text",
+      "prov": [
+        {
+          "page_no": 1,
+          "bbox": {
+            "l": 56.6929,
+            "t": 326.7779,
+            "r": 519.3071871999999,
+            "b": 220.64049542743538,
+            "coord_origin": "BOTTOMLEFT"
+          },
+          "charspan": [
+            0,
+            789
+          ]
+        }
+      ],
+      "orig": "The breeding colonies of the Butterfly Splitfin (Figure 6.3) at the London Zoo and elsewhere serve as ark populations essential to the survival of this species. Butterfly Splitfins are endemic to the Río Ameca in western Mexico and almost extinct in the wild. Actions such as nonnative fish removal, stream restoration, and sanctuary designation may take decades before eventual introduction and survival in the wild. The Tennessee Aquarium is part of a large partnership to guide hatchery augmentation and recovery of the rarest darter in North America (U.S. Fish and Wildlife Service 2019). The Conasauga Logperch (Percina jenkinsi), a federally endangered darter (Percidae), is found only in a 30-mile (48 km) stretch of the Conasauga River in Georgia and Tennessee (Moyer et al. 2015).",
+      "text": "The breeding colonies of the Butterfly Splitfin (Figure 6.3) at the London Zoo and elsewhere serve as ark populations essential to the survival of this species. Butterfly Splitfins are endemic to the Río Ameca in western Mexico and almost extinct in the wild. Actions such as nonnative fish removal, stream restoration, and sanctuary designation may take decades before eventual introduction and survival in the wild. The Tennessee Aquarium is part of a large partnership to guide hatchery augmentation and recovery of the rarest darter in North America (U.S. Fish and Wildlife Service 2019). The Conasauga Logperch (Percina jenkinsi), a federally endangered darter (Percidae), is found only in a 30-mile (48 km) stretch of the Conasauga River in Georgia and Tennessee (Moyer et al. 2015)."
+    },
+    {
+      "self_ref": "#/texts/4",
+      "parent": {
+        "$ref": "#/pictures/1"
+      },
+      "children": [],
+      "content_layer": "body",
+      "label": "caption",
+      "prov": [
+        {
+          "page_no": 1,
+          "bbox": {
+            "l": 56.6929,
+            "t": 113.13990000000001,
+            "r": 231.63689999999994,
+            "b": 106.0545176185866,
+            "coord_origin": "BOTTOMLEFT"
+          },
+          "charspan": [
+            0,
+            49
+          ]
+        }
+      ],
+      "orig": "Figure 6.4: Lake Sturgeon (Acipenser fulvescens).",
+      "text": "Figure 6.4: Lake Sturgeon (Acipenser fulvescens)."
+    },
+    {
+      "self_ref": "#/texts/5",
+      "parent": {
+        "$ref": "#/body"
+      },
+      "children": [],
+      "content_layer": "body",
+      "label": "text",
+      "prov": [
+        {
+          "page_no": 1,
+          "bbox": {
+            "l": 335.6929,
+            "t": 205.5349,
+            "r": 519.3071537,
+            "b": 85.39749542743539,
+            "coord_origin": "BOTTOMLEFT"
+          },
+          "charspan": [
+            0,
+            365
+          ]
+        }
+      ],
+      "orig": "The Banggai Cardinalfish (Pterapogon kauderni), a small, endangered tropical cardinalfish in the family Apogonidae, is now bred and displayed in numerous public aquariums after overharvest in the wild drove wild populations to near extinction. Consequently, most Banggai Cardinalfish sold to hobbyists in the United States and European Union today are captive bred.",
+      "text": "The Banggai Cardinalfish (Pterapogon kauderni), a small, endangered tropical cardinalfish in the family Apogonidae, is now bred and displayed in numerous public aquariums after overharvest in the wild drove wild populations to near extinction. Consequently, most Banggai Cardinalfish sold to hobbyists in the United States and European Union today are captive bred."
+    },
+    {
+      "self_ref": "#/texts/6",
+      "parent": {
+        "$ref": "#/body"
+      },
+      "children": [],
+      "content_layer": "furniture",
+      "label": "page_footer",
+      "prov": [
+        {
+          "page_no": 1,
+          "bbox": {
+            "l": 56.6929,
+            "t": 45.418499999999995,
+            "r": 351.3009,
+            "b": 38.29325149105364,
+            "coord_origin": "BOTTOMLEFT"
+          },
+          "charspan": [
+            0,
+            77
+          ]
+        }
+      ],
+      "orig": "132 | Public Aquariums and Their Role in Education, Science, and Conservation",
+      "text": "132 | Public Aquariums and Their Role in Education, Science, and Conservation"
+    }
+  ],
+  "pictures": [
+    {
+      "self_ref": "#/pictures/0",
+      "parent": {
+        "$ref": "#/body"
+      },
+      "children": [
+        {
+          "$ref": "#/texts/2"
+        }
+      ],
+      "content_layer": "body",
+      "label": "picture",
+      "prov": [
+        {
+          "page_no": 1,
+          "bbox": {
+            "l": 241.30206298828125,
+            "t": 527.1806640625,
+            "r": 519.5667724609375,
+            "b": 369.10205078125,
+            "coord_origin": "BOTTOMLEFT"
+          },
+          "charspan": [
+            0,
+            0
+          ]
+        }
+      ],
+      "captions": [
+        {
+          "$ref": "#/texts/2"
+        }
+      ],
+      "references": [],
+      "footnotes": [],
+      "annotations": []
+    },
+    {
+      "self_ref": "#/pictures/1",
+      "parent": {
+        "$ref": "#/body"
+      },
+      "children": [
+        {
+          "$ref": "#/texts/4"
+        }
+      ],
+      "content_layer": "body",
+      "label": "picture",
+      "prov": [
+        {
+          "page_no": 1,
+          "bbox": {
+            "l": 56.08390808105469,
+            "t": 214.88699340820312,
+            "r": 326.89208984375,
+            "b": 119.32635498046875,
+            "coord_origin": "BOTTOMLEFT"
+          },
+          "charspan": [
+            0,
+            0
+          ]
+        }
+      ],
+      "captions": [
+        {
+          "$ref": "#/texts/4"
+        }
+      ],
+      "references": [],
+      "footnotes": [],
+      "annotations": []
+    }
+  ],
+  "tables": [
+    {
+      "self_ref": "#/tables/0",
+      "parent": {
+        "$ref": "#/body"
+      },
+      "children": [],
+      "content_layer": "body",
+      "label": "table",
+      "prov": [
+        {
+          "page_no": 1,
+          "bbox": {
+            "l": 55.663063049316406,
+            "t": 664.489688873291,
+            "r": 228.5349884033203,
+            "b": 580.3888244628906,
+            "coord_origin": "BOTTOMLEFT"
+          },
+          "charspan": [
+            0,
+            0
+          ]
+        }
+      ],
+      "captions": [],
+      "references": [],
+      "footnotes": [],
+      "data": {
+        "table_cells": [
+          {
+            "bbox": {
+              "l": 60.3379,
+              "t": 62.83750000000009,
+              "r": 175.67380000000003,
+              "b": 70.05181411530816,
+              "coord_origin": "TOPLEFT"
+            },
+            "row_span": 1,
+            "col_span": 2,
+            "start_row_offset_idx": 0,
+            "end_row_offset_idx": 1,
+            "start_col_offset_idx": 0,
+            "end_col_offset_idx": 2,
+            "text": "Fish species on IUCN Red List",
+            "column_header": false,
+            "row_header": false,
+            "row_section": false,
+            "fillable": false
+          },
+          {
+            "bbox": {
+              "l": 60.3379,
+              "t": 79.09220000000005,
+              "r": 114.1219,
+              "b": 86.30651411530812,
+              "coord_origin": "TOPLEFT"
+            },
+            "row_span": 1,
+            "col_span": 1,
+            "start_row_offset_idx": 1,
+            "end_row_offset_idx": 2,
+            "start_col_offset_idx": 0,
+            "end_col_offset_idx": 1,
+            "text": "Potosi Pupfish",
+            "column_header": false,
+            "row_header": false,
+            "row_section": false,
+            "fillable": false
+          },
+          {
+            "bbox": {
+              "l": 131.7718,
+              "t": 79.14690000000007,
+              "r": 206.794,
+              "b": 86.32084966118111,
+              "coord_origin": "TOPLEFT"
+            },
+            "row_span": 1,
+            "col_span": 1,
+            "start_row_offset_idx": 1,
+            "end_row_offset_idx": 2,
+            "start_col_offset_idx": 1,
+            "end_col_offset_idx": 2,
+            "text": "Cyprinodon alvarezi",
+            "column_header": false,
+            "row_header": false,
+            "row_section": false,
+            "fillable": false
+          },
+          {
+            "bbox": {
+              "l": 60.3379,
+              "t": 95.40150000000006,
+              "r": 124.4818,
+              "b": 102.61581411530813,
+              "coord_origin": "TOPLEFT"
+            },
+            "row_span": 1,
+            "col_span": 1,
+            "start_row_offset_idx": 2,
+            "end_row_offset_idx": 3,
+            "start_col_offset_idx": 0,
+            "end_col_offset_idx": 1,
+            "text": "La Palma Pupfish",
+            "column_header": false,
+            "row_header": false,
+            "row_section": false,
+            "fillable": false
+          },
+          {
+            "bbox": {
+              "l": 131.7718,
+              "t": 95.45620000000008,
+              "r": 224.42770000000002,
+              "b": 102.63014966118112,
+              "coord_origin": "TOPLEFT"
+            },
+            "row_span": 1,
+            "col_span": 1,
+            "start_row_offset_idx": 2,
+            "end_row_offset_idx": 3,
+            "start_col_offset_idx": 1,
+            "end_col_offset_idx": 2,
+            "text": "Cyprinodon longidorsalis",
+            "column_header": false,
+            "row_header": false,
+            "row_section": false,
+            "fillable": false
+          },
+          {
+            "bbox": {
+              "l": 60.3379,
+              "t": 111.71090000000004,
+              "r": 123.0157,
+              "b": 118.92521411530811,
+              "coord_origin": "TOPLEFT"
+            },
+            "row_span": 1,
+            "col_span": 1,
+            "start_row_offset_idx": 3,
+            "end_row_offset_idx": 4,
+            "start_col_offset_idx": 0,
+            "end_col_offset_idx": 1,
+            "text": "Butterfly Splitfin",
+            "column_header": false,
+            "row_header": false,
+            "row_section": false,
+            "fillable": false
+          },
+          {
+            "bbox": {
+              "l": 131.7718,
+              "t": 111.76560000000006,
+              "r": 194.21470000000005,
+              "b": 118.9395496611811,
+              "coord_origin": "TOPLEFT"
+            },
+            "row_span": 1,
+            "col_span": 1,
+            "start_row_offset_idx": 3,
+            "end_row_offset_idx": 4,
+            "start_col_offset_idx": 1,
+            "end_col_offset_idx": 2,
+            "text": "Ameca splendens",
+            "column_header": false,
+            "row_header": false,
+            "row_section": false,
+            "fillable": false
+          },
+          {
+            "bbox": {
+              "l": 60.3379,
+              "t": 128.02020000000005,
+              "r": 112.9879,
+              "b": 135.23451411530812,
+              "coord_origin": "TOPLEFT"
+            },
+            "row_span": 1,
+            "col_span": 1,
+            "start_row_offset_idx": 4,
+            "end_row_offset_idx": 5,
+            "start_col_offset_idx": 0,
+            "end_col_offset_idx": 1,
+            "text": "Golden Skiffia",
+            "column_header": false,
+            "row_header": false,
+            "row_section": false,
+            "fillable": false
+          },
+          {
+            "bbox": {
+              "l": 131.7718,
+              "t": 128.07490000000007,
+              "r": 192.67570000000006,
+              "b": 135.2488496611811,
+              "coord_origin": "TOPLEFT"
+            },
+            "row_span": 1,
+            "col_span": 1,
+            "start_row_offset_idx": 4,
+            "end_row_offset_idx": 5,
+            "start_col_offset_idx": 1,
+            "end_col_offset_idx": 2,
+            "text": "Skiffia francesae",
+            "column_header": false,
+            "row_header": false,
+            "row_section": false,
+            "fillable": false
+          }
+        ],
+        "num_rows": 5,
+        "num_cols": 2,
+        "orientation": "rot_0",
+        "grid": [
+          [
+            {
+              "bbox": {
+                "l": 60.3379,
+                "t": 62.83750000000009,
+                "r": 175.67380000000003,
+                "b": 70.05181411530816,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 2,
+              "start_row_offset_idx": 0,
+              "end_row_offset_idx": 1,
+              "start_col_offset_idx": 0,
+              "end_col_offset_idx": 2,
+              "text": "Fish species on IUCN Red List",
+              "column_header": false,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            },
+            {
+              "bbox": {
+                "l": 60.3379,
+                "t": 62.83750000000009,
+                "r": 175.67380000000003,
+                "b": 70.05181411530816,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 2,
+              "start_row_offset_idx": 0,
+              "end_row_offset_idx": 1,
+              "start_col_offset_idx": 0,
+              "end_col_offset_idx": 2,
+              "text": "Fish species on IUCN Red List",
+              "column_header": false,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            }
+          ],
+          [
+            {
+              "bbox": {
+                "l": 60.3379,
+                "t": 79.09220000000005,
+                "r": 114.1219,
+                "b": 86.30651411530812,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 1,
+              "end_row_offset_idx": 2,
+              "start_col_offset_idx": 0,
+              "end_col_offset_idx": 1,
+              "text": "Potosi Pupfish",
+              "column_header": false,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            },
+            {
+              "bbox": {
+                "l": 131.7718,
+                "t": 79.14690000000007,
+                "r": 206.794,
+                "b": 86.32084966118111,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 1,
+              "end_row_offset_idx": 2,
+              "start_col_offset_idx": 1,
+              "end_col_offset_idx": 2,
+              "text": "Cyprinodon alvarezi",
+              "column_header": false,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            }
+          ],
+          [
+            {
+              "bbox": {
+                "l": 60.3379,
+                "t": 95.40150000000006,
+                "r": 124.4818,
+                "b": 102.61581411530813,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 2,
+              "end_row_offset_idx": 3,
+              "start_col_offset_idx": 0,
+              "end_col_offset_idx": 1,
+              "text": "La Palma Pupfish",
+              "column_header": false,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            },
+            {
+              "bbox": {
+                "l": 131.7718,
+                "t": 95.45620000000008,
+                "r": 224.42770000000002,
+                "b": 102.63014966118112,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 2,
+              "end_row_offset_idx": 3,
+              "start_col_offset_idx": 1,
+              "end_col_offset_idx": 2,
+              "text": "Cyprinodon longidorsalis",
+              "column_header": false,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            }
+          ],
+          [
+            {
+              "bbox": {
+                "l": 60.3379,
+                "t": 111.71090000000004,
+                "r": 123.0157,
+                "b": 118.92521411530811,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 3,
+              "end_row_offset_idx": 4,
+              "start_col_offset_idx": 0,
+              "end_col_offset_idx": 1,
+              "text": "Butterfly Splitfin",
+              "column_header": false,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            },
+            {
+              "bbox": {
+                "l": 131.7718,
+                "t": 111.76560000000006,
+                "r": 194.21470000000005,
+                "b": 118.9395496611811,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 3,
+              "end_row_offset_idx": 4,
+              "start_col_offset_idx": 1,
+              "end_col_offset_idx": 2,
+              "text": "Ameca splendens",
+              "column_header": false,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            }
+          ],
+          [
+            {
+              "bbox": {
+                "l": 60.3379,
+                "t": 128.02020000000005,
+                "r": 112.9879,
+                "b": 135.23451411530812,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 4,
+              "end_row_offset_idx": 5,
+              "start_col_offset_idx": 0,
+              "end_col_offset_idx": 1,
+              "text": "Golden Skiffia",
+              "column_header": false,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            },
+            {
+              "bbox": {
+                "l": 131.7718,
+                "t": 128.07490000000007,
+                "r": 192.67570000000006,
+                "b": 135.2488496611811,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 4,
+              "end_row_offset_idx": 5,
+              "start_col_offset_idx": 1,
+              "end_col_offset_idx": 2,
+              "text": "Skiffia francesae",
+              "column_header": false,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            }
+          ]
+        ]
+      },
+      "annotations": []
+    }
+  ],
+  "key_value_items": [],
+  "form_items": [],
+  "pages": {
+    "1": {
+      "size": {
+        "width": 576.0,
+        "height": 720.0
+      },
+      "page_no": 1
+    }
+  }
+}

@@ -1,9 +1,11 @@
 use crate::model::tr;
 use gtk::{gdk, gio, glib, prelude::*};
+use pmt_bridge::{BoundInput, InputName};
+#[cfg(any(test, feature = "ui-self-test"))]
+use std::fs;
+#[cfg(any(test, feature = "ui-self-test"))]
+use std::io::Read;
 use std::{
-    fs::{self, OpenOptions},
-    io::{Read, Write},
-    os::unix::fs::{DirBuilderExt, OpenOptionsExt},
     path::{Path, PathBuf},
     sync::{
         Arc,
@@ -29,6 +31,7 @@ impl Offer {
             "image/tiff" => "tiff",
             "image/bmp" | "image/x-bmp" | "image/x-ms-bmp" => "bmp",
             "image/webp" => "webp",
+            "image/heic" => "heic",
             _ => return None,
         };
         Some(Self {
@@ -48,7 +51,7 @@ pub fn offers(clipboard: &gdk::Clipboard) -> Vec<Offer> {
 
 #[derive(Debug)]
 pub struct Source {
-    root: PathBuf,
+    pub binding: BoundInput,
     path: PathBuf,
     pub mime: String,
 }
@@ -56,47 +59,25 @@ impl Source {
     pub fn path(&self) -> &Path {
         &self.path
     }
-    pub fn root(&self) -> &Path {
-        &self.root
-    }
     fn stage(data: &[u8], offer: &Offer) -> Result<Self, String> {
-        let mut random = [0u8; 16];
-        fs::File::open("/dev/urandom")
-            .and_then(|mut f| f.read_exact(&mut random))
-            .map_err(|e| e.to_string())?;
-        let name = random
-            .iter()
-            .map(|b| format!("{b:02x}"))
-            .collect::<String>();
-        let root = std::env::temp_dir().join(format!("poormans-text-clipboard-{name}"));
-        fs::DirBuilder::new()
-            .mode(0o700)
-            .create(&root)
-            .map_err(|e| e.to_string())?;
-        let root = root.canonicalize().map_err(|e| e.to_string())?;
-        let source = Self {
-            path: root.join(format!("clipboard.{}", offer.extension)),
-            root,
+        let name =
+            InputName::new(&format!("clipboard.{}", offer.extension)).map_err(|e| e.to_string())?;
+        let binding = BoundInput::new(data, name).map_err(|e| e.to_string())?;
+        Ok(Self {
+            path: binding.path(),
+            binding,
             mime: offer.mime.clone(),
-        };
-        let mut file = OpenOptions::new()
-            .write(true)
-            .create_new(true)
-            .mode(0o600)
-            .open(&source.path)
-            .map_err(|e| e.to_string())?;
-        file.write_all(data)
-            .and_then(|_| file.sync_all())
-            .map_err(|e| e.to_string())?;
-        Ok(source)
+        })
     }
-}
-impl Drop for Source {
-    fn drop(&mut self) {
-        // Nur die eigene Quelle entfernen. Fremde oder bereits fertige Ausgaben
-        // dürfen auch bei einer ungewöhnlichen Zielwahl niemals mitgelöscht werden.
-        let _ = fs::remove_file(&self.path);
-        let _ = fs::remove_dir(&self.root);
+    #[cfg(any(test, feature = "ui-self-test"))]
+    pub fn bytes(&self) -> Result<Vec<u8>, String> {
+        let mut data = Vec::new();
+        self.binding
+            .reader()
+            .map_err(|e| e.to_string())?
+            .read_to_end(&mut data)
+            .map_err(|e| e.to_string())?;
+        Ok(data)
     }
 }
 #[derive(Clone)]
@@ -236,50 +217,6 @@ fn stage_async(data: Vec<u8>, offer: Offer, cancelled: Arc<AtomicBool>, done: Co
     });
 }
 
-/// Nur Eigentumsgrenze des temporären Clipboard-Verzeichnisses; keine Formatlogik.
-pub fn destination_is_private(source: &Source, path: &str) -> bool {
-    let mut existing = PathBuf::from(path);
-    if !existing.is_absolute() {
-        let Ok(cwd) = std::env::current_dir() else {
-            return true;
-        };
-        existing = cwd.join(existing);
-    }
-    let mut tail = Vec::new();
-    while !existing.exists() {
-        let Some(name) = existing.file_name().map(|s| s.to_os_string()) else {
-            return true;
-        };
-        tail.push(name);
-        if !existing.pop() {
-            return true;
-        }
-    }
-    let Ok(mut resolved) = existing.canonicalize() else {
-        return true;
-    };
-    for name in tail.iter().rev() {
-        resolved.push(name);
-    }
-    resolved.starts_with(source.root())
-}
-
-#[cfg(test)]
-pub fn markdown_text(path: &Path) -> Result<String, String> {
-    let file = fs::File::open(path).map_err(|e| e.to_string())?;
-    let mut data = Vec::new();
-    file.take(16 * 1024 * 1024 + 1)
-        .read_to_end(&mut data)
-        .map_err(|e| e.to_string())?;
-    if data.len() > 16 * 1024 * 1024 {
-        return Err(tr(
-            "Markdown überschreitet die Zwischenablagegrenze von 16 MiB.",
-            "Markdown exceeds the 16 MiB clipboard limit.",
-        )
-        .into());
-    }
-    String::from_utf8(data).map_err(|e| e.to_string())
-}
 #[cfg(feature = "ui-self-test")]
 pub fn self_test(
     clipboard: &gdk::Clipboard,
@@ -294,6 +231,7 @@ pub fn self_test(
         ("image/tiff", "tiff"),
         ("image/bmp", "bmp"),
         ("image/webp", "webp"),
+        ("image/heic", "heic"),
         ("text/html", "html"),
         ("application/rtf", "rtf"),
     ]
@@ -335,19 +273,15 @@ pub fn self_test(
         let next_clipboard = clipboard.clone();
         read(&clipboard, offer.clone(), move |result| {
             let checked = result.and_then(|source| {
-                if fs::read(source.path()).map_err(|e| e.to_string())? != expected {
+                if source.bytes()? != expected {
                     return Err("Clipboard bytes changed".into());
                 }
-                let root = source.root().to_path_buf();
                 if source.path().extension().and_then(|s| s.to_str()) != Some(offer.extension) {
                     return Err("Clipboard extension changed".into());
                 }
                 drop(source);
-                if root.exists() {
-                    return Err("Clipboard source was not removed".into());
-                }
                 eprintln!(
-                    "PMT_UI_TEST_CLIPBOARD_ENCODING {} exact-bytes-and-cleanup",
+                    "PMT_UI_TEST_CLIPBOARD_ENCODING {} exact-bytes-sealed-no-host-file",
                     offer.mime
                 );
                 Ok(())
@@ -423,7 +357,6 @@ pub fn self_test(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::os::unix::fs::PermissionsExt;
     #[test]
     fn only_real_supported_encodings_are_offered() {
         for mime in [
@@ -433,50 +366,91 @@ mod tests {
             "image/tiff",
             "image/bmp",
             "image/webp",
+            "image/heic",
             "text/html;charset=utf-8",
             "application/rtf",
         ] {
             assert!(Offer::new(mime).is_some());
         }
-        for mime in ["text/plain", "text/richtext", "application/octet-stream"] {
+        for mime in [
+            "text/plain",
+            "text/richtext",
+            "application/octet-stream",
+            "image/heif",
+            "image/heic-sequence",
+            "image/heif-sequence",
+        ] {
             assert!(Offer::new(mime).is_none());
         }
     }
     #[test]
-    fn private_source_preserves_bytes_and_cleans_itself() {
+    fn adversarial_tmpdir_parent_swap_never_touches_canary() {
+        use std::os::unix::fs::symlink;
+        if std::env::var_os("PMT_CLIPBOARD_CANARY_CHILD").is_some() {
+            let root = std::env::temp_dir();
+            let moved = root.with_file_name("moved");
+            let foreign = root.with_file_name("foreign");
+            let first = Source::stage(b"PRIVATE_FIRST", &Offer::new("text/html").unwrap()).unwrap();
+            fs::rename(&root, &moved).unwrap();
+            symlink(&foreign, &root).unwrap();
+            let second =
+                Source::stage(b"PRIVATE_SECOND", &Offer::new("text/html").unwrap()).unwrap();
+            assert_eq!(first.bytes().unwrap(), b"PRIVATE_FIRST");
+            assert_eq!(second.bytes().unwrap(), b"PRIVATE_SECOND");
+            drop(first);
+            drop(second);
+            assert_eq!(
+                fs::read(foreign.join("clipboard.html")).unwrap(),
+                b"FOREIGN_CANARY"
+            );
+            assert_eq!(
+                fs::read(moved.join("sentinel")).unwrap(),
+                b"ORIGINAL_PARENT"
+            );
+            assert_eq!(fs::read_dir(&foreign).unwrap().count(), 1);
+            assert_eq!(fs::read_dir(&moved).unwrap().count(), 1);
+            return;
+        }
+        let base = std::path::PathBuf::from("/tmp").join(format!(
+            "pmt-clipboard-canary-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        fs::create_dir(&base).unwrap();
+        let root = base.join("tmpdir");
+        let foreign = base.join("foreign");
+        fs::create_dir(&root).unwrap();
+        fs::create_dir(&foreign).unwrap();
+        fs::write(root.join("sentinel"), b"ORIGINAL_PARENT").unwrap();
+        fs::write(foreign.join("clipboard.html"), b"FOREIGN_CANARY").unwrap();
+        let status = std::process::Command::new(std::env::current_exe().unwrap())
+            .args([
+                "--exact",
+                "clipboard::tests::adversarial_tmpdir_parent_swap_never_touches_canary",
+                "--nocapture",
+            ])
+            .env("TMPDIR", &root)
+            .env("PMT_CLIPBOARD_CANARY_CHILD", "1")
+            .status()
+            .unwrap();
+        assert!(status.success());
+        fs::remove_file(&root).unwrap();
+        fs::remove_file(base.join("moved/sentinel")).unwrap();
+        fs::remove_dir(base.join("moved")).unwrap();
+        fs::remove_file(foreign.join("clipboard.html")).unwrap();
+        fs::remove_dir(foreign).unwrap();
+        fs::remove_dir(base).unwrap();
+    }
+    #[test]
+    fn private_source_preserves_original_bytes_without_a_host_path() {
         let bytes = b"{\\rtf1 ORIGINAL_BYTES}";
         let source = Source::stage(bytes, &Offer::new("application/rtf").unwrap()).unwrap();
-        let root = source.root.clone();
-        assert_eq!(fs::read(source.path()).unwrap(), bytes);
-        assert_eq!(
-            fs::metadata(source.root()).unwrap().permissions().mode() & 0o777,
-            0o700
-        );
-        drop(source);
-        assert!(!root.exists());
-    }
-    #[test]
-    fn copy_reads_the_complete_file_and_rejects_over_16_mib() {
-        let source = Source::stage(
-            b"# Complete\n![asset](asset.png)\n",
-            &Offer::new("text/html").unwrap(),
-        )
-        .unwrap();
-        assert_eq!(
-            markdown_text(source.path()).unwrap(),
-            "# Complete\n![asset](asset.png)\n"
-        );
-        fs::write(source.path(), vec![42u8; 16 * 1024 * 1024 + 1]).unwrap();
-        assert!(markdown_text(source.path()).is_err());
-    }
-    #[test]
-    fn source_cleanup_preserves_an_unexpected_file() {
-        let source = Source::stage(b"x", &Offer::new("text/html").unwrap()).unwrap();
-        let root = source.root.clone();
-        fs::write(root.join("user-output"), b"KEEP").unwrap();
-        drop(source);
-        assert_eq!(fs::read(root.join("user-output")).unwrap(), b"KEEP");
-        fs::remove_file(root.join("user-output")).unwrap();
-        fs::remove_dir(root).unwrap();
+        assert_eq!(source.bytes().unwrap(), bytes);
+        assert_eq!(source.path(), Path::new("/dev/pmt-input/clipboard.rtf"));
+        assert!(!source.path().exists());
+        assert_eq!(source.bytes().unwrap(), bytes);
     }
 }

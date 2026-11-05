@@ -1,0 +1,80 @@
+{
+  "pid": 22539,
+  "parentPid": 22494,
+  "exception": {
+    "codes": "0x0000000000000001, 0x000000018909bc88",
+    "rawCodes": [
+      1,
+      6594083976
+    ],
+    "type": "EXC_BREAKPOINT",
+    "signal": "SIGTRAP"
+  },
+  "frames": [
+    {
+      "symbol": "objc_opt_respondsToSelector"
+    },
+    {
+      "symbol": "_startDocument"
+    },
+    {
+      "symbol": "xmlParseTryOrFinish"
+    },
+    {
+      "symbol": "xmlParseChunk"
+    },
+    {
+      "symbol": "-[NSXMLParser parseData:]"
+    },
+    {
+      "symbol": "-[NSXMLParser parseData:]"
+    },
+    {
+      "symbol": "-[NSXMLParser parseFromStream]"
+    },
+    {
+      "symbol": "implicit closure #1 in StrictXMLRegressionTests.testMalformedXMLAndENMLAreRejected()",
+      "sourceFile": "/<compiler-generated>"
+    },
+    {
+      "symbol": "partial apply for implicit closure #1 in StrictXMLRegressionTests.testMalformedXMLAndENMLAreRejected()",
+      "sourceFile": "/<compiler-generated>"
+    },
+    {
+      "symbol": "<deduplicated_symbol>"
+    },
+    {
+      "symbol": "<deduplicated_symbol>"
+    },
+    {
+      "symbol": "<deduplicated_symbol>"
+    },
+    {
+      "symbol": "closure #1 in _XCTRunThrowableBlock(_:)"
+    },
+    {
+      "symbol": "thunk for @callee_guaranteed () -> ()"
+    },
+    {
+      "symbol": "thunk for @escaping @callee_guaranteed () -> ()"
+    },
+    {
+      "symbol": "_XCTRunThrowableBlockBridge"
+    },
+    {
+      "symbol": "_XCTRunThrowableBlock(_:)"
+    },
+    {
+      "symbol": "XCTAssertFalse(_:_:file:line:)"
+    },
+    {
+      "symbol": "StrictXMLRegressionTests.testMalformedXMLAndENMLAreRejected()",
+      "sourceFile": "StrictXMLRegressionTests.swift",
+      "sourceLine": 12
+    },
+    {
+      "symbol": "@objc StrictXMLRegressionTests.testMalformedXMLAndENMLAreRejected()",
+      "sourceFile": "/<compiler-generated>"
+    }
+  ]
+}

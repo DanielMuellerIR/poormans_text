@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-05",
+  "ownTestImageTagsRemoved": [
+    "pmt-p11-tatr-probe:20261105-fixed",
+    "pmt-p11-tatr-probe:20261105"
+  ],
+  "modelWeightsNotStoredInRepository": true,
+  "retained": "Pinned reproduction sources, hashes and small result evidence."
+}

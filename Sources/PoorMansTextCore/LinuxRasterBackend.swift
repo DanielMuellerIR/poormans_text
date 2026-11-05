@@ -56,6 +56,10 @@ enum LinuxRasterBackend {
             readOnlyPaths: (heif.map { [$0] } ?? []) + (input.map { [$0] } ?? []), timeout: timeout)
     }
 
+    static func preview(source: URL, index: Int, directory: URL) throws -> ProcessResult {
+        try runRaster(arguments: ["preview", source.path, "--index", String(index)], in: directory, input: source)
+    }
+
     static func inspect(_ data: Data) throws -> RasterImageInfo {
         guard data.count <= 256 * 1024 * 1024 else { throw RasterImageValidationError.exceedsLimits }
         return try LinuxBackendWorkDirectory.withTemporaryDirectory { directory in

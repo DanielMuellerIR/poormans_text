@@ -1,0 +1,54 @@
+SpiRegistry daemon is running with well-known name - org.a11y.atspi.Registry
+PMT_ARCH_GUI_RESULT {"uid": 1000, "productionGUI": true, "privateXvfbAndDBus": true, "GTKUsesDistroLibraries": true, "realAccessibleConvertAction": true, "GUIFinishedReceivingResult": true, "CSVMarkerAndUnicode": true, "sourceUnchanged": true, "completedStateObserved": true, "sourceSHA256": "c71d2c12a671843a308d39d4e5b55ceb2020aec2089772debc42dd7046fd8727", "markdownSHA256": "133ab1361b4eaa94838e21845e531ea884f1b861496243984e4990211335c71b", "markdown": "# Quelle \u00fc\n\n## Sheet: Quelle \u00fc\n\n| Key | Value |\n| --- | --- |\n| ARCHGUIMARKER | Gr\u00fc\u00dfe |\n"}
+
+
+STDERR
+dbus-daemon[7]: [session uid=1000 pid=7] Activating service name='org.a11y.Bus' requested by ':1.0' (uid=1000 pid=8 comm="/usr/bin/python3 -I /tmp/pmt-mint-current-final-i_" label="unconfined")
+dbus-daemon[7]: [session uid=1000 pid=7] Successfully activated service 'org.a11y.Bus'
+dbus-daemon[17]: Activating service name='org.a11y.atspi.Registry' requested by ':1.0' (uid=1000 pid=8 comm="/usr/bin/python3 -I /tmp/pmt-mint-current-final-i_" label="unconfined")
+dbus-daemon[17]: Successfully activated service 'org.a11y.atspi.Registry'
+dbus-daemon[7]: [session uid=1000 pid=7] Activating service name='org.freedesktop.portal.Desktop' requested by ':1.2' (uid=1000 pid=9 comm="$WORK/runtime/ui/po" label="unconfined")
+dbus-daemon[7]: [session uid=1000 pid=7] Activating service name='org.freedesktop.impl.portal.PermissionStore' requested by ':1.4' (uid=1000 pid=61 comm="/usr/libexec/xdg-desktop-portal" label="unconfined")
+dbus-daemon[7]: [session uid=1000 pid=7] Successfully activated service 'org.freedesktop.impl.portal.PermissionStore'
+dbus-daemon[7]: [session uid=1000 pid=7] Activating service name='org.freedesktop.portal.Documents' requested by ':1.4' (uid=1000 pid=61 comm="/usr/libexec/xdg-desktop-portal" label="unconfined")
+dbus-daemon[7]: [session uid=1000 pid=7] Successfully activated service 'org.freedesktop.portal.Documents'
+fusermount3: fuse device not found, try 'modprobe fuse' first
+error: fuse init failed: Can't mount path $WORK/session/doc
+
+(/usr/libexec/xdg-desktop-portal:61): xdg-desktop-portal-WARNING **: 06:15:23.353: Choosing gtk.portal for org.freedesktop.impl.portal.Lockdown as a last-resort fallback
+dbus-daemon[7]: [session uid=1000 pid=7] Activating service name='org.freedesktop.impl.portal.desktop.gtk' requested by ':1.4' (uid=1000 pid=61 comm="/usr/libexec/xdg-desktop-portal" label="unconfined")
+
+(xdg-desktop-portal-gtk:82): xdg-desktop-portal-gtk-WARNING **: 06:15:23.389: error: Could not connect: No such file or directory
+
+dbus-daemon[7]: [session uid=1000 pid=7] Activating service name='org.gtk.vfs.Daemon' requested by ':1.7' (uid=1000 pid=82 comm="/usr/libexec/xdg-desktop-portal-gtk" label="unconfined")
+dbus-daemon[7]: [session uid=1000 pid=7] Successfully activated service 'org.gtk.vfs.Daemon'
+dbus-daemon[7]: [session uid=1000 pid=7] Successfully activated service 'org.freedesktop.impl.portal.desktop.gtk'
+fuse: device not found, try 'modprobe fuse' first
+
+(/usr/libexec/xdg-desktop-portal:61): xdg-desktop-portal-WARNING **: 06:15:23.413: Failed to create RealtimeKit proxy: Could not connect: No such file or directory
+
+(/usr/libexec/xdg-desktop-portal:61): xdg-desktop-portal-WARNING **: 06:15:23.413: Choosing gtk.portal for org.freedesktop.impl.portal.Settings as a last-resort fallback
+
+(/usr/libexec/xdg-desktop-portal:61): xdg-desktop-portal-WARNING **: 06:15:23.414: Choosing gtk.portal for org.freedesktop.impl.portal.FileChooser as a last-resort fallback
+
+(/usr/libexec/xdg-desktop-portal:61): xdg-desktop-portal-WARNING **: 06:15:23.414: Choosing gtk.portal for org.freedesktop.impl.portal.AppChooser as a last-resort fallback
+
+(/usr/libexec/xdg-desktop-portal:61): xdg-desktop-portal-WARNING **: 06:15:23.415: Choosing gtk.portal for org.freedesktop.impl.portal.Print as a last-resort fallback
+
+(/usr/libexec/xdg-desktop-portal:61): xdg-desktop-portal-WARNING **: 06:15:23.415: Choosing gtk.portal for org.freedesktop.impl.portal.Notification as a last-resort fallback
+
+(/usr/libexec/xdg-desktop-portal:61): xdg-desktop-portal-WARNING **: 06:15:23.415: Choosing gtk.portal for org.freedesktop.impl.portal.Inhibit as a last-resort fallback
+
+(/usr/libexec/xdg-desktop-portal:61): xdg-desktop-portal-WARNING **: 06:15:23.416: Choosing gtk.portal for org.freedesktop.impl.portal.Access as a last-resort fallback
+
+(/usr/libexec/xdg-desktop-portal:61): xdg-desktop-portal-WARNING **: 06:15:23.418: Failed connect to PipeWire: Couldn't connect to PipeWire
+
+(/usr/libexec/xdg-desktop-portal:61): xdg-desktop-portal-WARNING **: 06:15:23.418: Choosing gtk.portal for org.freedesktop.impl.portal.Account as a last-resort fallback
+
+(/usr/libexec/xdg-desktop-portal:61): xdg-desktop-portal-WARNING **: 06:15:23.419: Choosing gtk.portal for org.freedesktop.impl.portal.Email as a last-resort fallback
+
+(/usr/libexec/xdg-desktop-portal:61): xdg-desktop-portal-WARNING **: 06:15:23.419: Choosing gtk.portal for org.freedesktop.impl.portal.DynamicLauncher as a last-resort fallback
+dbus-daemon[7]: [session uid=1000 pid=7] Successfully activated service 'org.freedesktop.portal.Desktop'
+
+(process:8): dbind-WARNING **: 06:15:24.110: AT-SPI: Error in GetItems, sender=:1.3, error=Object does not exist at path “/org/a11y/atspi/cache”
+A connection to the bus can't be made

@@ -51,19 +51,35 @@ def save_frame(image, metadata, index, count, portable):
     width, height = image.size
     if portable:
         image.save(Path.cwd() / f'asset-frame-{index + 1}.png', format='PNG')
+    raster, downscaled = render_frame(image, min(16_000_000, 64_000_000 // count))
+    metadata.update({'ocrWidth': raster.width, 'ocrHeight': raster.height, 'downscaled': downscaled})
+    raster.save(Path.cwd() / f'frame-{index + 1}.png', format='PNG')
+
+
+def render_frame(image, budget, maximum_edge=None):
+    from PIL import Image, ImageOps
     oriented = ImageOps.exif_transpose(image)
-    budget = min(16_000_000, 64_000_000 // count)
-    downscaled = oriented.width * oriented.height > budget
-    if downscaled:
+    original = oriented.size
+    if maximum_edge is not None:
+        oriented.thumbnail((maximum_edge, maximum_edge))
+    elif oriented.width * oriented.height > budget:
         scale = math.sqrt(budget / (oriented.width * oriented.height))
         oriented.thumbnail((max(1, math.floor(oriented.width * scale)), max(1, math.floor(oriented.height * scale))))
     if oriented.width * oriented.height > budget:
-        raise ValueError('image thumbnail exceeds the OCR pixel limit')
-    metadata.update({'ocrWidth': oriented.width, 'ocrHeight': oriented.height, 'downscaled': downscaled})
+        raise ValueError('image thumbnail exceeds the pixel limit')
     rgba = oriented.convert('RGBA')
+    # Eine neue Pixelfläche übernimmt weder ICC/XMP/EXIF noch PNG-Textchunks.
     raster = Image.new('RGB', rgba.size, 'white')
     raster.paste(rgba, mask=rgba.getchannel('A'))
-    raster.save(Path.cwd() / f'frame-{index + 1}.png', format='PNG')
+    return raster, original != raster.size
+
+
+def save_preview(image, index, count):
+    if not 1 <= index <= count:
+        raise ValueError('preview frame is outside the source frame range')
+    raster, downscaled = render_frame(image, 1024 * 1024, 1024)
+    raster.save(Path.cwd() / 'preview.png', format='PNG')
+    return dict(kind='frame', index=index, count=count, width=raster.width, height=raster.height, downscaled=downscaled)
 
 
 def main():
@@ -72,8 +88,9 @@ def main():
     warnings.simplefilter('error', Image.DecompressionBombWarning)
     formats = {'PNG': 'png', 'JPEG': 'jpg', 'GIF': 'gif', 'TIFF': 'tiff', 'BMP': 'bmp', 'WEBP': 'webp'}
     parser = argparse.ArgumentParser()
-    parser.add_argument('mode', choices=['capabilities', 'inspect', 'frames'])
+    parser.add_argument('mode', choices=['capabilities', 'inspect', 'frames', 'preview'])
     parser.add_argument('source', nargs='?')
+    parser.add_argument('--index', type=int)
     parser.add_argument('--heif-helper')
     parser.add_argument('--probe-heic', action='store_true')
     args = parser.parse_args()
@@ -91,16 +108,25 @@ def main():
         return
     if args.source is None or os.stat(args.source).st_size > 1_073_741_824:
         raise ValueError('image exceeds the source byte limit')
+    if args.mode == 'preview' and (args.index is None or args.index < 1 or os.stat(args.source).st_size > 128 * 1024**2):
+        raise ValueError('preview frame or source byte limit is invalid')
     with open(args.source, 'rb') as source:
         is_heic = heic_header(source.read(4096))
     frames = []
     if is_heic:
         with heic_decoder(args.heif_helper) as decoder:
-            with closing(decoder.frames(args.source, args.mode == 'frames')) as sequence:
+            with closing(decoder.frames(args.source, args.mode in ['frames', 'preview'])) as sequence:
                 for index, (metadata, image) in enumerate(sequence):
                     if image is not None:
                         try:
-                            save_frame(image, metadata, index, metadata['frameCount'], True)
+                            if args.mode == 'preview':
+                                if args.index > metadata['frameCount']:
+                                    raise ValueError('preview frame is outside the source frame range')
+                                if index + 1 == args.index:
+                                    print(json.dumps(save_preview(image, args.index, metadata['frameCount'])))
+                                    return
+                            else:
+                                save_frame(image, metadata, index, metadata['frameCount'], True)
                         finally:
                             image.close()
                     frames.append(metadata)
@@ -113,6 +139,8 @@ def main():
             count = getattr(image, 'n_frames', 1)
             if not 1 <= count <= 1000:
                 raise ValueError('image exceeds the frame limit')
+            if args.mode == 'preview' and args.index > count:
+                raise ValueError('preview frame is outside the source frame range')
             total_pixels = 0
             for index in range(count):
                 image.seek(index)
@@ -124,9 +152,14 @@ def main():
                     raise ValueError('image exceeds the total decoded pixel limit')
                 image.load()
                 metadata = {'width': width, 'height': height}
+                if args.mode == 'preview' and index + 1 == args.index:
+                    print(json.dumps(save_preview(image, args.index, count)))
+                    return
                 if args.mode == 'frames':
                     save_frame(image, metadata, index, count, False)
                 frames.append(metadata)
+    if args.mode == 'preview':
+        raise ValueError('preview frame is unavailable')
     print(json.dumps({'fileExtension': extension, 'width': frames[0]['width'],
                       'height': frames[0]['height'], 'frameCount': len(frames), 'frames': frames}))
 

@@ -1,8 +1,8 @@
-# P13: vorhandene Fastra-Belege und Replay mit PMT 0.41.10
+# P13: Consumer-Replays und echter PMT-/Fastra-Öffnungslauf
 
 Stand: 2026-11-05. Der Replay änderte kein Fastra-Repository. Vorhandene echte Consumer-/GTK-Binärdateien wurden unverändert in einen eigenen temporären Bereich kopiert; kein Consumer wurde neu gebaut. Sämtliche Fixtures, HOME-/XDG-Verzeichnisse und der GUI-DBus/Xvfb waren privat. Kein Produktdesktop wurde benutzt.
 
-## Jetzt tatsächlich wiederholt
+## Historische Consumer-Replays gegen0.41.10
 
 [replay.json](P13-EVIDENCE/replay.json): Der vorhandene `fastra-import`-Treiber `examples/check_cli` läuft erfolgreich gegen PMT 0.41.10. Katalog: 29 Formate. CSV: eine Datei/ein Dokument, Einstieg `table.md`. MBOX: drei Dateien/zwei Dokumente, Einstieg `index.md`. Der originale Treiber prüft Adoption und unveränderte Quelldaten; seine temporären Verzeichnisse waren anschließend leer. Das ist ein echter Consumer-/Producer-Lauf, keine GUI-Abnahme.
 
@@ -28,9 +28,9 @@ Fastra `docs/linux-port/F13-IMPORT.md:127–183` dokumentiert außerdem reale Li
 
 Der aktuelle Status ist im [CLI-Vertrag](../FASTRA-CONTRACT.md) berichtigt: historische P01-Befunde bleiben als Historie erhalten, der dort noch offen beschriebene Sammlungsfix und die angeblich nicht implementierte Nicht-UTF8-Abweisung sind jedoch überholt. Letztere ist im aktuellen CLI-Vorabscan und in der P06-Abnahme implementiert. Der Linux-Rust-Consumer bewahrt Diagnosen, Dokumente, Berichte und Zusatzfelder bereits; die alte Aussage über hauptsächlich markdownFile/assets/warnings muss nach Mac- und Linux-Consumer getrennt werden. Ein neues Protokoll ist dafür nicht nötig.
 
-Fastra besitzt die noch offene formatunabhängige Öffnungsintegration, den Katalogcache, Live-Fortschritt, Zieltab-/Projektbesitz und die Prozessaufsicht seines Imports. Der aktuelle gemeinsame Runner benutzt Prozessgruppen (`fastra-process/src/lib.rs:203–233,295–341`), keinen äußeren Namespace-/pidfd-Lifetimekanal. Daher ist eine neue gemeinsame Abnahme für harten GUI-Verlust und Namespace-Ende erforderlich; der hier erfolgreiche normale Import beweist diese Grenze nicht. PMT muss seine eigenen Schutzgrenzen dafür nicht abschwächen.
+Fastra besitzt die noch offene formatunabhängige Öffnungsintegration, den Katalogcache, Live-Fortschritt, Zieltab-/Projektbesitz und die Prozessaufsicht seines Imports. Der beim historischen .10-Replay gelesene gemeinsame Runner benutzte Prozessgruppen (`fastra-process/src/lib.rs:203–233,295–341`), keinen äußeren Namespace-/pidfd-Lifetimekanal. Daher ist eine neue gemeinsame Abnahme für harten GUI-Verlust und Namespace-Ende erforderlich; der hier erfolgreiche normale Import beweist diese Grenze nicht. PMT muss seine eigenen Schutzgrenzen dafür nicht abschwächen.
 
-P13 bleibt insgesamt teilweise offen: DOCX mit Bild, Tabelle, RTF-Encoding, ENEX, Verlust-/Missingtool-Fälle und Abbruch mit tatsächlichen Kindern gegen benannte aktuelle Consumerartefakte, gezieltes Öffnen aus PMT in Fastra und frisches Öffnen mit Assets nach Ende beider Apps. PMTs GTK-Öffnen startet gegenwärtig die Standard-App, nicht zwingend Fastra (`linux/app/src/main.rs:794–805`). Eine gemeinsame Abnahme kann eine explizite private Testzuordnung verwenden; daraus folgt kein automatischer Auftrag für eine neue PMT-Schnittstelle.
+P13 bleibt insgesamt teilweise offen: vollständige Tabellen-/RTF-Encoding-/ENEX-/Verlust-/Missingtool-Matrix und Abbruch mit tatsächlichen Kindern gegen benannte aktuelle Consumerartefakte. DOCX mit PNG, gezieltes Öffnen aus PMT und frisches Öffnen nach Ende beider Apps sind inzwischen am .12-Artefakt belegt (unten). PMTs GTK-Öffnen startet gegenwärtig die Standard-App, nicht zwingend Fastra (`linux/app/src/main.rs:794–805`). Eine gemeinsame Abnahme kann eine explizite private Testzuordnung verwenden; daraus folgt kein automatischer Auftrag für eine neue PMT-Schnittstelle.
 
 Der vorhandene `check_cli` nimmt nur den CLI-Pfad entgegen und erzeugt fest CSV sowie Plaintext-MBOX (`fastra-import/examples/check_cli.rs`). DOCX-/ENEX-/Fehlerfixtures können ihm nicht legitim als zusätzliche Argumente übergeben werden. Ein Wrapper, der Quelle/JSON umschreibt, wäre kein gleichwertiger echter Producer-/Consumerbeleg. Weitere Consumerfälle benötigen einen vorhandenen passenden GUI-Bedienweg oder eine gesondert beauftragte Erweiterung des Testtreibers durch dessen Eigentümer; ein neuer Ersatzconsumer wurde hier nicht gebaut.
 
@@ -41,3 +41,23 @@ P16 benötigt weiterhin die vereinbarte aktuelle Format-/Funktionsmatrix auf bei
 Der Originaltreiber wird mit genau einem Argument gestartet: `check_cli /absoluter/pfad/zur/poormans-text`. HOME, TMPDIR und XDG-Verzeichnisse vorher auf einen eigenen temporären Bereich setzen; die PMT-CLI braucht ihren zugehörigen Guard und Runtime. `check_cli` erzeugt seine CSV-/MBOX-Fixtures selbst.
 
 Die Dateien unter `scripts/linux-probes/p13/` (`gui-run.sh`, `test-dbus.conf` und `source.mbox`) sind die tatsächlich verwendeten kleinen GTK-Harnessdaten. Der Runner erwartet im privaten Container den eigenen Arbeitsbereich `/work`, das vorhandene GUI-Artefakt `/app/fastra-linux` samt benötigter privater ICU unter `/app/lib`, den passenden PMT-Launcher `/work/poormans-text`, dessen Runtime und das explizit gewählte Pandoc in `/work/bin`. Unter `/work/gui-fixture` liegen Quelle, neuer Zielordner und ein CLI-Launcher namens `poormans-text`. Der äußere Lauf verwendet ein bereits vorhandenes passendes GUI-Builderimage, `--network none`, einen eigenen Benutzer, `--ulimit core=0` und nur diese privaten Mounts. Die im verwendeten Image nötigen Docker-Ausnahmen `seccomp=unconfined` und `systempaths=unconfined` erlauben die inneren bwrap-Namespaces; WebKits eigene Sandbox wird nicht deaktiviert. Der Runner benutzt eigenständiges Xvfb und DBus und setzt den geforderten `FASTRA_ISOLATED_DISPLAY=1`-Marker nur in dieser tatsächlich privaten Umgebung. `published/` bewahrt die drei kleinen realen Ergebnisdateien nach Prozessende, keine Binärdateien oder Entwicklungsruntime.
+
+## Finaler Produktionslauf0.41.12 → Fastra1.158.0
+
+[Bericht samt Nachweisen](P16-04112/arch-fastra/REPORT.md): Produktions-PMT
+konvertiert ein echtes DOCX mit PNG, Tabelle und Unicode. Der tatsächliche
+GIO-Button öffnet die Markdown-Datei über eine ausschließlich private
+Standard-App-Zuordnung im neuen echten Fastra-PID. Der vollständig gelesene
+Editorpuffer entspricht bytegenau dem Markdown; Bildlink und Original-PNGhash
+sind geprüft. Nach Ende beider Apps ergibt ein normaler argv-Neustart und
+zusätzlich ein neuer Home-/Displaylauf mit vorher leerer Clipboard denselben
+Puffer. `first.png` nach Copy (selektierter Editor) und `fresh-before-copy.png` vor
+Copy wurden visuell geprüft; die spätere schwarze Aufnahme ist kein Bildbeleg. Bildrenderung und
+semantische Formatparität werden daraus nicht abgeleitet.
+
+PMT-CLI2f49d54e… und GTK918a8d2b… stehen im Bericht vollständig; Fastra-ELF
+`e83f7e59677a39db95f60a5b9501746a3a8df492b0fcd086f7fa356480e03582`
+(1.158.0/366) wurde nicht neu gebaut. Alle45 PMT- und370 Fastraeinträge bleiben
+hashgleich, alle eigenen Container und großen Kopien sind entfernt. Das
+Fastra-source_sha256-Feld ersetzt keine unabhängig bewiesene Gitcommitbindung.
+Fastraquellen wurden nicht geändert; Consumerarbeit bleibt beim Fastra-Chat.

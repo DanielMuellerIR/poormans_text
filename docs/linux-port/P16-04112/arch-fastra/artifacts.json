@@ -1,0 +1,15 @@
+{
+  "image": "pmt-linux-wayland-test:20261105",
+  "imageID": "sha256:c7c5cf572d4eceb44472b05fc51c4cdc74cec6f929f048c8a06af876654bf189",
+  "heicFixturesSHA256": {
+    "multi.heic": "e531ca1e681768f23545661935e50569b952c7dda5bf4b23476f828a8113e6de",
+    "rotated.heic": "28fb572d69fcae89a8ae92c3ffd8dd78724ccf8a1f102ddd7bf2f0e431ca1e7a",
+    "single.heic": "d3ba28ae03b0459390e6db6df595c67136f66c6bc1aa12457efefa003a24192b"
+  },
+  "packageCopiesSHA256": {
+    "poormans-text-0.41.11-1-x86_64.pkg.tar.zst": "be532ac71569eaf1d1e538813c9abf15376982efdcdaf491d0585262afb16260",
+    "poormans-text-0.41.12-1-x86_64.pkg.tar.zst": "fe70d9b1b949eb311801dbb704f25804399f2ee0c06d86fd68ec4a4ee7acb591"
+  },
+  "FastraImage": "fastra-linux-webkit-builder:local",
+  "FastraImageID": "sha256:9ed5f3243fa091d3e20c26f9768736b5bc9e248e86e76f17d617bb5078cf9d40"
+}

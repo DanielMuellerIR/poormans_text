@@ -13,7 +13,8 @@ enum LinuxOCR {
         }
         return try LinuxBackendWorkDirectory.withTemporaryDirectory { directory in
             let result = try ProcessRunner.run(executable: executable, arguments: ["--list-langs"],
-                currentDirectory: directory, captureStandardOutput: true, timeout: 10,
+                currentDirectory: directory, captureStandardOutput: true,
+                timeout: min(10, ConversionExecution.current?.processTimeout ?? 10),
                 maximumCapturedBytes: 65_536, writeScope: directory)
             guard result.status == 0 else { throw PlatformBackendUnavailable("installed Tesseract language data") }
             return result.standardOutput.split(whereSeparator: \.isNewline).dropFirst().map(String.init).filter {

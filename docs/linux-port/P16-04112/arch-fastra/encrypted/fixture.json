@@ -1,0 +1,17 @@
+{
+  "generator": "Host qpdf 12.4.2",
+  "command": [
+    "qpdf",
+    "--encrypt",
+    "fixture",
+    "fixture",
+    "256",
+    "--",
+    "source.pdf",
+    "encrypted.pdf"
+  ],
+  "sourceSHA256": "a182895247779a29e215de2236d6d547612746aab7705aae3e2b9e5ea6b08640",
+  "encryptedSHA256": "a1c204cc047ea32d84b6779c3cc385f0b6371fb5ca6185d9f279dd661f7fb90a",
+  "syntheticFixturePasswordsPublic": true,
+  "containerRemoved": true
+}

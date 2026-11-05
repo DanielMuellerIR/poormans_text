@@ -1,0 +1,3 @@
+
+STDERR
+bwrap: Can't mkdir /work: Read-only file system

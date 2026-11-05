@@ -1,0 +1,12 @@
+{
+  "test": "StructuredOCRTests.testSynchronousBridgeRunsFromCooperativeTasksAndPropagatesContext",
+  "findings": [
+    "+           1470 OCRAsyncBridge.Executor.work()  (in PoorMansTextCoreTests) + 300  [address]  DocumentOCR.swift:97",
+    "+           1470 closure #1 in closure #1 in closure #1 in StructuredOCRTests.testSynchronousBridgeRunsFromCooperativeTasksAndPropagatesContext()  (in PoorMansTextCoreTests) + 140  [address]  StructuredOCRTests.swift:180",
+    "+             1470 static OCRAsyncBridge.run<A>(_:)  (in PoorMansTextCoreTests) + 1016  [address]  DocumentOCR.swift:126",
+    "+             1469 static OCRAsyncBridge.run<A>(_:)  (in PoorMansTextCoreTests) + 1016  [address]  DocumentOCR.swift:126",
+    "18       closure #1 in closure #1 in closure #1 in StructuredOCRTests.testSynchronousBridgeRunsFromCooperativeTasksAndPropagatesContext()  (in PoorMansTextCoreTests) + 140  [address]  StructuredOCRTests.swift:180",
+    "18       static OCRAsyncBridge.run<A>(_:)  (in PoorMansTextCoreTests) + 1016  [address]  DocumentOCR.swift:126"
+  ],
+  "classification": "Already reproduced against unchanged baseline; not newly attributed to Linux port."
+}

@@ -1,0 +1,20 @@
+{
+  "version": "0.41.12",
+  "uid": 1000,
+  "exit": 65,
+  "response": {
+    "error": "Invalid PDF input at /proof/encrypted.pdf: Local PDF backend: poppler-quark: Document is encrypted (1)\n",
+    "ok": false,
+    "version": "0.41.12"
+  },
+  "noPublication": true,
+  "sourceSHA256": "a1c204cc047ea32d84b6779c3cc385f0b6371fb5ca6185d9f279dd661f7fb90a",
+  "sourceUnchanged": true,
+  "noSwiftSDK": true,
+  "networkInterfaces": [
+    "lo"
+  ],
+  "signaturePolicyUnchanged": true,
+  "CLIsha256": "2f49d54ecd6d9bae4962fcdb7f968ea4eef9c3844701d278a9a507e3e84db07c",
+  "packageRemoved": true
+}

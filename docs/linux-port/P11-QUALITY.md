@@ -118,3 +118,12 @@ Die anschließende [CPU-/Offline-TATR-Probe](P11-TATR-DECISION.md) ist technisch
 ausführbar, scheitert jedoch an natürlicher Kopfzelle/Span, einem FalsePositive
 und synthetischer Zellrekonstruktion. Das ist ein belegter weiterer Ausschluss,
 keine Produktintegration oder pauschale Aussage über andere Modelle.
+
+## Weiterer begrenzter Kandidatenversuch
+
+Der [Docling-/TableFormer-Versuch](P11-DOCLING.md) erzielt auf einer natürlichen
+Digital- und deren Rasterseite jeweils9/9 rohe Zelltupel exakt. Er belegt keine
+Gesamtdokumentparität: synthetisch5/8 Zelltexte, Markdown mit dupliziertem Header
+und ausgelassenen Textteilen. Empfehlung: typisierte Erkennungsdaten zum Swift-
+Renderer weiterprüfen; kein Ersatz des PDF-Imports durch Docling-Markdown.
+Produktintegration, breiter Scan-/Fotokorpus und Distribution bleiben offen.

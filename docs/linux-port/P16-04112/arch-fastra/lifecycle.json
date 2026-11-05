@@ -1,0 +1,63 @@
+{
+  "package": {
+    "version": "0.41.12-1",
+    "sha256": "fe70d9b1b949eb311801dbb704f25804399f2ee0c06d86fd68ec4a4ee7acb591"
+  },
+  "previousPackage": {
+    "version": "0.41.11-1",
+    "sha256": "be532ac71569eaf1d1e538813c9abf15376982efdcdaf491d0585262afb16260"
+  },
+  "freshArchContainer": true,
+  "regularDependencyResolution": true,
+  "signaturePolicyUnchanged": true,
+  "localPackageSignaturePolicy": "Unmodified official-image LocalFileSigLevel Optional TrustedOnly; checksum-verified local PMT test artifact",
+  "noSwiftSDK": true,
+  "transactions": [
+    {
+      "operation": "install-previous",
+      "installed": "poormans-text 0.41.11-1"
+    },
+    {
+      "operation": "upgrade",
+      "installed": "poormans-text 0.41.12-1"
+    },
+    {
+      "operation": "remove",
+      "packageFilesAbsent": true,
+      "userDataUnchanged": true
+    }
+  ],
+  "installedCLISHA256": "2f49d54ecd6d9bae4962fcdb7f968ea4eef9c3844701d278a9a507e3e84db07c",
+  "unprivilegedRuntimeUID": 1000,
+  "unicodeCSVAndReportHashes": true,
+  "installedArchHEICOffAndOn": 6,
+  "HEICOriginalBytesAndPNGs": true,
+  "gui": {
+    "uid": 1000,
+    "productionGUI": true,
+    "privateHeadlessWeston": true,
+    "compositorRenderer": "pixman",
+    "clientRenderer": "software GL",
+    "DISPLAYAbsent": true,
+    "GDKBackendForcedWayland": true,
+    "realWaylandProtocol": true,
+    "realAccessibleConvertAction": true,
+    "GUIFinishedReceivingResult": true,
+    "CSVMarkerAndUnicode": true,
+    "sourceSHA256": "1da55ac06c652d43cc89dba8444b83ce1b1ba10936cb3c4283c5b9889b19cd12",
+    "sourceUnchanged": true,
+    "markdownSHA256": "1ef023c0b873933c4c2868f49f2b3c568cb0a9c5c42b5555aa46e4795f3058f0",
+    "outputFiles": {
+      "Quelle \u00fc.md": "1ef023c0b873933c4c2868f49f2b3c568cb0a9c5c42b5555aa46e4795f3058f0"
+    },
+    "nativeCaptureExit": 0,
+    "nativeScreenshot": true,
+    "captureStderr": "",
+    "screenshotSHA256": "a6dddbd19932982399b7f2654cbdc81409d5d7d5594f601b58084a32ce076b8d",
+    "GUIAndWestonWaitedAfterTermination": true
+  },
+  "installedGUISHA256": "918a8d2bdd3658a92494a1e278d3ac6b1c241fa9536f5a3dbf9f63638998f2ed",
+  "rasterCases": 15,
+  "pdfCases": 12,
+  "pdfEncryptedFixtureExcluded": "qpdf absent; no setup download"
+}

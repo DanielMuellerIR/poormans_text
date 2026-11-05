@@ -128,9 +128,12 @@ struct LinuxPDFAdapter: DocumentConversionAdapter {
                         if conflict {
                             warnings.append(ConversionWarning(code: "pdf.ocrConflict", message: "OCR text overlapping different embedded text was omitted to protect digital source text.", location: location, kind: .contentLoss))
                         }
+                    } catch let error as PlatformBackendUnavailable {
+                        throw error
                     } catch {
                         try ConversionExecution.check()
                         if case ConversionError.processTimedOut = error { throw error }
+                        if case ConversionError.fileSystemFailure = error { throw error }
                         warnings.append(.pdfOCRFailed.at(location))
                         warnings.append(ConversionWarning(code: "pdf.ocrFailureDetail", message: error.localizedDescription, location: location, kind: .contentLoss))
                     }

@@ -1,6 +1,9 @@
 //! Dünne Linux-Anbindung an eine ausdrücklich gewählte lokale PMT-CLI.
 //! Keine Konvertierungslogik; vollständiges JSON bleibt einschließlich unbekannter Felder erhalten.
 
+mod bound_input;
+pub use bound_input::{BoundInput, InputName};
+
 use serde_json::Value;
 use std::{
     ffi::OsString,
@@ -114,6 +117,7 @@ pub struct Bridge {
     cli: PathBuf,
     guard: Option<PathBuf>,
     policy: Policy,
+    input: Option<BoundInput>,
 }
 #[derive(Debug, Clone, Copy)]
 enum Operation {
@@ -126,6 +130,7 @@ impl Bridge {
         Self {
             cli: cli.into(),
             guard: None,
+            input: None,
             policy: Policy::default(),
         }
     }
@@ -133,11 +138,16 @@ impl Bridge {
         Self {
             cli: cli.into(),
             guard: None,
+            input: None,
             policy,
         }
     }
     pub fn with_guard(mut self, guard: impl Into<PathBuf>) -> Self {
         self.guard = Some(guard.into());
+        self
+    }
+    pub fn with_input(mut self, input: BoundInput) -> Self {
+        self.input = Some(input);
         self
     }
     pub fn cli_path(&self) -> &Path {
@@ -250,6 +260,8 @@ impl Bridge {
         let (lifetime_read, lifetime_write) = pipe()?;
         let (info_read, info_write) = pipe()?;
         let info_source = info_write.as_raw_fd();
+        let bound_file = self.input.as_ref().map(BoundInput::reader).transpose()?;
+        let bound_fd = bound_file.as_ref().map(AsRawFd::as_raw_fd);
         let mut command = Command::new("/usr/bin/bwrap");
         command
             .args([
@@ -267,8 +279,14 @@ impl Bridge {
                 "/dev",
                 "--info-fd",
             ])
-            .arg(info_source.to_string())
-            .arg("--");
+            .arg(info_source.to_string());
+        if let (Some(input), Some(fd)) = (&self.input, bound_fd) {
+            command
+                .args(["--dir", "/dev/pmt-input", "--ro-bind-data"])
+                .arg(fd.to_string())
+                .arg(input.path());
+        }
+        command.args(["--remount-ro", "/dev", "--"]);
         command
             .arg(&guard)
             .arg("--pmt-ui-guard-v1")
@@ -293,6 +311,11 @@ impl Bridge {
                 if libc::getppid() != parent {
                     return Err(io::Error::from_raw_os_error(libc::ECANCELED));
                 }
+                if let Some(fd) = bound_fd {
+                    if libc::fcntl(fd, libc::F_SETFD, 0) < 0 {
+                        return Err(io::Error::last_os_error());
+                    }
+                }
                 if libc::fcntl(info_source, libc::F_SETFD, 0) < 0 {
                     return Err(io::Error::last_os_error());
                 }
@@ -306,6 +329,7 @@ impl Bridge {
             )
         })?;
         drop(info_write);
+        drop(bound_file);
         let mut owner = NamespaceOwner::new(child, lifetime_write, info_read);
         let output =
             owner.child.stdout.take().ok_or_else(|| {
@@ -1047,6 +1071,29 @@ mod tests {
             assert!(Instant::now() < deadline, "fixture state not reached");
             thread::sleep(Duration::from_millis(5));
         }
+    }
+    #[test]
+    #[ignore = "requires explicit built guard and host namespaces"]
+    fn sealed_input_reaches_two_jobs_with_independent_offsets() {
+        let root = Root::new();
+        let cli=root.script("import json,sys,os\np=sys.argv[-1]\nb=open(p,'rb').read()\ntry:\n open(p,'wb'); writable=True\nexcept OSError: writable=False\nprint(json.dumps({'ok':True,'version':'fixture','bytes':b.hex(),'regular':__import__('stat').S_ISREG(os.stat(p).st_mode),'writable':writable}))");
+        let input = BoundInput::new(
+            b"PRIVATE_ORIGINAL_\x00\xff",
+            InputName::new("clipboard.html").unwrap(),
+        )
+        .unwrap();
+        for _ in 0..2 {
+            let value = finished(
+                &short(cli.clone())
+                    .with_input(input.clone())
+                    .start_operation(vec![input.path().into_os_string()]),
+            )
+            .unwrap();
+            assert_eq!(value["bytes"], "505249564154455f4f524947494e414c5f00ff");
+            assert_eq!(value["regular"], true);
+            assert_eq!(value["writable"], false);
+        }
+        assert!(!Path::new("/dev/pmt-input").exists());
     }
     #[test]
     #[ignore = "requires explicit built guard, real CLI and host namespaces"]

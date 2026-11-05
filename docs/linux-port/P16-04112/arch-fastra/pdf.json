@@ -1,0 +1,1333 @@
+{
+  "dates": {
+    "exit": 0,
+    "result": {
+      "assets": [
+        "$WORK/pdf-regression/outputs/dates/images/page-1-image-1.png"
+      ],
+      "diagnosticGroups": [
+        {
+          "code": "pdf.layoutNotPreserved",
+          "count": 1,
+          "kind": "approximation",
+          "locations": [],
+          "messages": [
+            "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+          ],
+          "omittedCount": 0
+        },
+        {
+          "code": "pdf.vectorGraphicsNotExtracted",
+          "count": 1,
+          "kind": "contentLoss",
+          "locations": [],
+          "messages": [
+            "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF."
+          ],
+          "omittedCount": 0
+        },
+        {
+          "code": "pdf.linuxLayoutApproximation",
+          "count": 1,
+          "kind": "approximation",
+          "locations": [],
+          "messages": [
+            "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed."
+          ],
+          "omittedCount": 0
+        },
+        {
+          "code": "pdf.annotationMetadataApproximation",
+          "count": 1,
+          "kind": "approximation",
+          "locations": [
+            {
+              "page": 1
+            }
+          ],
+          "messages": [
+            "Readable annotation text, author, modification date and page rectangle were retained; advanced annotation fields and exact text references are not reconstructed."
+          ],
+          "omittedCount": 0
+        },
+        {
+          "code": "pdf.imagesRasterized",
+          "count": 1,
+          "kind": "approximation",
+          "locations": [],
+          "messages": [
+            "Embedded PDF images were retained as local PNG assets; their original compression and page placement were not preserved."
+          ],
+          "omittedCount": 0
+        }
+      ],
+      "diagnostics": [
+        {
+          "code": "pdf.layoutNotPreserved",
+          "kind": "approximation",
+          "message": "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+        },
+        {
+          "code": "pdf.vectorGraphicsNotExtracted",
+          "kind": "contentLoss",
+          "message": "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF."
+        },
+        {
+          "code": "pdf.linuxLayoutApproximation",
+          "kind": "approximation",
+          "message": "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed."
+        },
+        {
+          "code": "pdf.annotationMetadataApproximation",
+          "kind": "approximation",
+          "location": {
+            "page": 1
+          },
+          "message": "Readable annotation text, author, modification date and page rectangle were retained; advanced annotation fields and exact text references are not reconstructed."
+        },
+        {
+          "code": "pdf.imagesRasterized",
+          "kind": "approximation",
+          "message": "Embedded PDF images were retained as local PNG assets; their original compression and page placement were not preserved."
+        }
+      ],
+      "documents": [
+        {
+          "assets": [
+            "$WORK/pdf-regression/outputs/dates/images/page-1-image-1.png"
+          ],
+          "markdownFile": "$WORK/pdf-regression/outputs/dates/dates.md",
+          "metadata": {
+            "created": "1969-01-02T03:04:05Z",
+            "modified": "2020-01-02T03:04:05Z",
+            "title": "Date metadata"
+          },
+          "sourceIndex": 1,
+          "title": "Date metadata"
+        }
+      ],
+      "input": "$WORK/pdf-regression/fixtures/dates.pdf",
+      "markdownFile": "$WORK/pdf-regression/outputs/dates/dates.md",
+      "metadata": {
+        "created": "1969-01-02T03:04:05Z",
+        "modified": "2020-01-02T03:04:05Z",
+        "title": "Date metadata"
+      },
+      "ok": true,
+      "outputDirectory": "$WORK/pdf-regression/outputs/dates",
+      "outputFiles": [
+        {
+          "byteCount": 518,
+          "path": "dates.md",
+          "sha256": "588eb808ade341a70c67284e0365f9860f2e2b20ef1ad4e7dd99134be4971833"
+        },
+        {
+          "byteCount": 96,
+          "path": "images/page-1-image-1.png",
+          "sha256": "33f060aed76bb7c18098d0e6313e3b388655aa1cab796fe8630b27c26dc81613"
+        }
+      ],
+      "reportFile": "$WORK/pdf-regression/outputs/dates/conversion-report.json",
+      "sourceIdentity": {
+        "byteCount": 1627,
+        "name": "dates.pdf",
+        "sha256": "be786e5b8e774151e6fa84c264e1c0900076fe437b74ca22dcbd8b9eedf8c17c"
+      },
+      "sourceMappings": [
+        {
+          "output": {
+            "file": "dates.md",
+            "utf8Length": 362,
+            "utf8Offset": 99
+          },
+          "source": {
+            "page": 1
+          }
+        },
+        {
+          "output": {
+            "file": "dates.md",
+            "utf8Length": 56,
+            "utf8Offset": 461
+          },
+          "source": {
+            "page": 2
+          }
+        }
+      ],
+      "version": "0.41.12",
+      "warnings": [
+        "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review.",
+        "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF.",
+        "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed.",
+        "Page 1: Readable annotation text, author, modification date and page rectangle were retained; advanced annotation fields and exact text references are not reconstructed.",
+        "Embedded PDF images were retained as local PNG assets; their original compression and page placement were not preserved."
+      ]
+    },
+    "stderr": "",
+    "markdown": "---\ntitle: \"Date metadata\"\ncreated: 1969-01-02T03:04:05Z\nmodified: 2020-01-02T03:04:05Z\n---\n# dates\n\n<a id=\"pmt-pdf-page-1\"></a>\n\n## Page 1\n\nALPHA left column\n\nBETA right\n\nGAMMA next line\n\n![PDF image](images/page-1-image-1.png)\n\n### Links\n\n- [ALPHA left column](https://example.invalid/pmt-never-fetch)\n\n### Annotations\n\n#### Annotation 2\n\nType: text\nAuthor: Fixture author\nModified (source): \nPage rectangle: 300.0, 600.0, 25.0, 25.0\n\nNOTE annotation sentinel\n\n<a id=\"pmt-pdf-page-2\"></a>\n\n## Page 2\n\nDELTA page two\n"
+  },
+  "structured-off": {
+    "exit": 0,
+    "result": {
+      "assets": [
+        "$WORK/pdf-regression/outputs/structured-off/images/page-1-image-1.png"
+      ],
+      "diagnosticGroups": [
+        {
+          "code": "pdf.layoutNotPreserved",
+          "count": 1,
+          "kind": "approximation",
+          "locations": [],
+          "messages": [
+            "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+          ],
+          "omittedCount": 0
+        },
+        {
+          "code": "pdf.vectorGraphicsNotExtracted",
+          "count": 1,
+          "kind": "contentLoss",
+          "locations": [],
+          "messages": [
+            "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF."
+          ],
+          "omittedCount": 0
+        },
+        {
+          "code": "pdf.linuxLayoutApproximation",
+          "count": 1,
+          "kind": "approximation",
+          "locations": [],
+          "messages": [
+            "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed."
+          ],
+          "omittedCount": 0
+        },
+        {
+          "code": "pdf.annotationMetadataApproximation",
+          "count": 1,
+          "kind": "approximation",
+          "locations": [
+            {
+              "page": 1
+            }
+          ],
+          "messages": [
+            "Readable annotation text, author, modification date and page rectangle were retained; advanced annotation fields and exact text references are not reconstructed."
+          ],
+          "omittedCount": 0
+        },
+        {
+          "code": "pdf.imagesRasterized",
+          "count": 1,
+          "kind": "approximation",
+          "locations": [],
+          "messages": [
+            "Embedded PDF images were retained as local PNG assets; their original compression and page placement were not preserved."
+          ],
+          "omittedCount": 0
+        }
+      ],
+      "diagnostics": [
+        {
+          "code": "pdf.layoutNotPreserved",
+          "kind": "approximation",
+          "message": "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+        },
+        {
+          "code": "pdf.vectorGraphicsNotExtracted",
+          "kind": "contentLoss",
+          "message": "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF."
+        },
+        {
+          "code": "pdf.linuxLayoutApproximation",
+          "kind": "approximation",
+          "message": "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed."
+        },
+        {
+          "code": "pdf.annotationMetadataApproximation",
+          "kind": "approximation",
+          "location": {
+            "page": 1
+          },
+          "message": "Readable annotation text, author, modification date and page rectangle were retained; advanced annotation fields and exact text references are not reconstructed."
+        },
+        {
+          "code": "pdf.imagesRasterized",
+          "kind": "approximation",
+          "message": "Embedded PDF images were retained as local PNG assets; their original compression and page placement were not preserved."
+        }
+      ],
+      "documents": [
+        {
+          "assets": [
+            "$WORK/pdf-regression/outputs/structured-off/images/page-1-image-1.png"
+          ],
+          "markdownFile": "$WORK/pdf-regression/outputs/structured-off/sample.md",
+          "metadata": {},
+          "sourceIndex": 1,
+          "title": "sample"
+        }
+      ],
+      "input": "$WORK/pdf-regression/fixtures/fixtures/sample.pdf",
+      "markdownFile": "$WORK/pdf-regression/outputs/structured-off/sample.md",
+      "metadata": {},
+      "ok": true,
+      "outputDirectory": "$WORK/pdf-regression/outputs/structured-off",
+      "outputFiles": [
+        {
+          "byteCount": 96,
+          "path": "images/page-1-image-1.png",
+          "sha256": "33f060aed76bb7c18098d0e6313e3b388655aa1cab796fe8630b27c26dc81613"
+        },
+        {
+          "byteCount": 427,
+          "path": "sample.md",
+          "sha256": "888d38764dd389243549ad0762806b37ff9677fe5a68c9748021beaf04cf0f78"
+        }
+      ],
+      "reportFile": "$WORK/pdf-regression/outputs/structured-off/conversion-report.json",
+      "sourceIdentity": {
+        "byteCount": 1486,
+        "name": "sample.pdf",
+        "sha256": "a182895247779a29e215de2236d6d547612746aab7705aae3e2b9e5ea6b08640"
+      },
+      "sourceMappings": [
+        {
+          "output": {
+            "file": "sample.md",
+            "utf8Length": 362,
+            "utf8Offset": 8
+          },
+          "source": {
+            "page": 1
+          }
+        },
+        {
+          "output": {
+            "file": "sample.md",
+            "utf8Length": 56,
+            "utf8Offset": 370
+          },
+          "source": {
+            "page": 2
+          }
+        }
+      ],
+      "version": "0.41.12",
+      "warnings": [
+        "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review.",
+        "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF.",
+        "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed.",
+        "Page 1: Readable annotation text, author, modification date and page rectangle were retained; advanced annotation fields and exact text references are not reconstructed.",
+        "Embedded PDF images were retained as local PNG assets; their original compression and page placement were not preserved."
+      ]
+    },
+    "stderr": "",
+    "markdown": "# sample\n\n<a id=\"pmt-pdf-page-1\"></a>\n\n## Page 1\n\nALPHA left column\n\nBETA right\n\nGAMMA next line\n\n![PDF image](images/page-1-image-1.png)\n\n### Links\n\n- [ALPHA left column](https://example.invalid/pmt-never-fetch)\n\n### Annotations\n\n#### Annotation 2\n\nType: text\nAuthor: Fixture author\nModified (source): \nPage rectangle: 300.0, 600.0, 25.0, 25.0\n\nNOTE annotation sentinel\n\n<a id=\"pmt-pdf-page-2\"></a>\n\n## Page 2\n\nDELTA page two\n"
+  },
+  "digital": {
+    "exit": 0,
+    "result": {
+      "assets": [
+        "$WORK/pdf-regression/outputs/digital/images/page-1-image-1.png"
+      ],
+      "diagnosticGroups": [
+        {
+          "code": "pdf.layoutNotPreserved",
+          "count": 1,
+          "kind": "approximation",
+          "locations": [],
+          "messages": [
+            "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+          ],
+          "omittedCount": 0
+        },
+        {
+          "code": "pdf.vectorGraphicsNotExtracted",
+          "count": 1,
+          "kind": "contentLoss",
+          "locations": [],
+          "messages": [
+            "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF."
+          ],
+          "omittedCount": 0
+        },
+        {
+          "code": "pdf.linuxLayoutApproximation",
+          "count": 1,
+          "kind": "approximation",
+          "locations": [],
+          "messages": [
+            "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed."
+          ],
+          "omittedCount": 0
+        },
+        {
+          "code": "pdf.annotationMetadataApproximation",
+          "count": 1,
+          "kind": "approximation",
+          "locations": [
+            {
+              "page": 1
+            }
+          ],
+          "messages": [
+            "Readable annotation text, author, modification date and page rectangle were retained; advanced annotation fields and exact text references are not reconstructed."
+          ],
+          "omittedCount": 0
+        },
+        {
+          "code": "pdf.imagesRasterized",
+          "count": 1,
+          "kind": "approximation",
+          "locations": [],
+          "messages": [
+            "Embedded PDF images were retained as local PNG assets; their original compression and page placement were not preserved."
+          ],
+          "omittedCount": 0
+        }
+      ],
+      "diagnostics": [
+        {
+          "code": "pdf.layoutNotPreserved",
+          "kind": "approximation",
+          "message": "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+        },
+        {
+          "code": "pdf.vectorGraphicsNotExtracted",
+          "kind": "contentLoss",
+          "message": "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF."
+        },
+        {
+          "code": "pdf.linuxLayoutApproximation",
+          "kind": "approximation",
+          "message": "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed."
+        },
+        {
+          "code": "pdf.annotationMetadataApproximation",
+          "kind": "approximation",
+          "location": {
+            "page": 1
+          },
+          "message": "Readable annotation text, author, modification date and page rectangle were retained; advanced annotation fields and exact text references are not reconstructed."
+        },
+        {
+          "code": "pdf.imagesRasterized",
+          "kind": "approximation",
+          "message": "Embedded PDF images were retained as local PNG assets; their original compression and page placement were not preserved."
+        }
+      ],
+      "documents": [
+        {
+          "assets": [
+            "$WORK/pdf-regression/outputs/digital/images/page-1-image-1.png"
+          ],
+          "markdownFile": "$WORK/pdf-regression/outputs/digital/sample.md",
+          "metadata": {},
+          "sourceIndex": 1,
+          "title": "sample"
+        }
+      ],
+      "input": "$WORK/pdf-regression/fixtures/fixtures/sample.pdf",
+      "markdownFile": "$WORK/pdf-regression/outputs/digital/sample.md",
+      "metadata": {},
+      "ok": true,
+      "outputDirectory": "$WORK/pdf-regression/outputs/digital",
+      "outputFiles": [
+        {
+          "byteCount": 96,
+          "path": "images/page-1-image-1.png",
+          "sha256": "33f060aed76bb7c18098d0e6313e3b388655aa1cab796fe8630b27c26dc81613"
+        },
+        {
+          "byteCount": 427,
+          "path": "sample.md",
+          "sha256": "888d38764dd389243549ad0762806b37ff9677fe5a68c9748021beaf04cf0f78"
+        }
+      ],
+      "reportFile": "$WORK/pdf-regression/outputs/digital/conversion-report.json",
+      "sourceIdentity": {
+        "byteCount": 1486,
+        "name": "sample.pdf",
+        "sha256": "a182895247779a29e215de2236d6d547612746aab7705aae3e2b9e5ea6b08640"
+      },
+      "sourceMappings": [
+        {
+          "output": {
+            "file": "sample.md",
+            "utf8Length": 362,
+            "utf8Offset": 8
+          },
+          "source": {
+            "page": 1
+          }
+        },
+        {
+          "output": {
+            "file": "sample.md",
+            "utf8Length": 56,
+            "utf8Offset": 370
+          },
+          "source": {
+            "page": 2
+          }
+        }
+      ],
+      "version": "0.41.12",
+      "warnings": [
+        "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review.",
+        "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF.",
+        "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed.",
+        "Page 1: Readable annotation text, author, modification date and page rectangle were retained; advanced annotation fields and exact text references are not reconstructed.",
+        "Embedded PDF images were retained as local PNG assets; their original compression and page placement were not preserved."
+      ]
+    },
+    "stderr": "",
+    "markdown": "# sample\n\n<a id=\"pmt-pdf-page-1\"></a>\n\n## Page 1\n\nALPHA left column\n\nBETA right\n\nGAMMA next line\n\n![PDF image](images/page-1-image-1.png)\n\n### Links\n\n- [ALPHA left column](https://example.invalid/pmt-never-fetch)\n\n### Annotations\n\n#### Annotation 2\n\nType: text\nAuthor: Fixture author\nModified (source): \nPage rectangle: 300.0, 600.0, 25.0, 25.0\n\nNOTE annotation sentinel\n\n<a id=\"pmt-pdf-page-2\"></a>\n\n## Page 2\n\nDELTA page two\n"
+  },
+  "mixed": {
+    "exit": 0,
+    "result": {
+      "assets": [
+        "$WORK/pdf-regression/outputs/mixed/images/page-1-image-1.png"
+      ],
+      "diagnosticGroups": [
+        {
+          "code": "pdf.layoutNotPreserved",
+          "count": 1,
+          "kind": "approximation",
+          "locations": [],
+          "messages": [
+            "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+          ],
+          "omittedCount": 0
+        },
+        {
+          "code": "pdf.vectorGraphicsNotExtracted",
+          "count": 1,
+          "kind": "contentLoss",
+          "locations": [],
+          "messages": [
+            "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF."
+          ],
+          "omittedCount": 0
+        },
+        {
+          "code": "pdf.linuxLayoutApproximation",
+          "count": 1,
+          "kind": "approximation",
+          "locations": [],
+          "messages": [
+            "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed."
+          ],
+          "omittedCount": 0
+        },
+        {
+          "code": "pdf.ocrApplied",
+          "count": 1,
+          "kind": "information",
+          "locations": [],
+          "messages": [
+            "Pages without enough embedded text were rendered and read with local OCR. Review OCR text before relying on it."
+          ],
+          "omittedCount": 0
+        },
+        {
+          "code": "pdf.imagesRasterized",
+          "count": 1,
+          "kind": "approximation",
+          "locations": [],
+          "messages": [
+            "Embedded PDF images were retained as local PNG assets; their original compression and page placement were not preserved."
+          ],
+          "omittedCount": 0
+        }
+      ],
+      "diagnostics": [
+        {
+          "code": "pdf.layoutNotPreserved",
+          "kind": "approximation",
+          "message": "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+        },
+        {
+          "code": "pdf.vectorGraphicsNotExtracted",
+          "kind": "contentLoss",
+          "message": "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF."
+        },
+        {
+          "code": "pdf.linuxLayoutApproximation",
+          "kind": "approximation",
+          "message": "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed."
+        },
+        {
+          "code": "pdf.ocrApplied",
+          "kind": "information",
+          "message": "Pages without enough embedded text were rendered and read with local OCR. Review OCR text before relying on it."
+        },
+        {
+          "code": "pdf.imagesRasterized",
+          "kind": "approximation",
+          "message": "Embedded PDF images were retained as local PNG assets; their original compression and page placement were not preserved."
+        }
+      ],
+      "documents": [
+        {
+          "assets": [
+            "$WORK/pdf-regression/outputs/mixed/images/page-1-image-1.png"
+          ],
+          "markdownFile": "$WORK/pdf-regression/outputs/mixed/mixed.md",
+          "metadata": {},
+          "sourceIndex": 1,
+          "title": "mixed"
+        }
+      ],
+      "input": "$WORK/pdf-regression/fixtures/mixed.pdf",
+      "markdownFile": "$WORK/pdf-regression/outputs/mixed/mixed.md",
+      "metadata": {},
+      "ok": true,
+      "outputDirectory": "$WORK/pdf-regression/outputs/mixed",
+      "outputFiles": [
+        {
+          "byteCount": 78964,
+          "path": "images/page-1-image-1.png",
+          "sha256": "5af36568352e1eea7a6373ce7fd90b722cdbe2d7b4370e9d4491f5734d011960"
+        },
+        {
+          "byteCount": 402,
+          "path": "mixed.md",
+          "sha256": "41bfd10a084e8ea5bba50eebf72e120bbab3568726db934c47680b0b9fc228d8"
+        }
+      ],
+      "reportFile": "$WORK/pdf-regression/outputs/mixed/conversion-report.json",
+      "sourceIdentity": {
+        "byteCount": 68792,
+        "name": "mixed.pdf",
+        "sha256": "7e922d32ab8e146b295f5359ddaee767be18d88252c0cb7b97307ed8225720fd"
+      },
+      "sourceMappings": [
+        {
+          "output": {
+            "file": "mixed.md",
+            "utf8Length": 394,
+            "utf8Offset": 7
+          },
+          "source": {
+            "page": 1
+          }
+        }
+      ],
+      "version": "0.41.12",
+      "warnings": [
+        "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review.",
+        "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF.",
+        "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed.",
+        "Pages without enough embedded text were rendered and read with local OCR. Review OCR text before relying on it.",
+        "Embedded PDF images were retained as local PNG assets; their original compression and page placement were not preserved."
+      ]
+    },
+    "stderr": "",
+    "markdown": "# mixed\n\n<a id=\"pmt-pdf-page-1\"></a>\n\n## Page 1\n\nDIGITAL HEADER 98765\n\nInvoice ALPHA 12345\nDie Rechnung kostet 42 Euro.\nGr\u00fc\u00dfe aus M\u00fcnchen und sch\u00f6ne Gr\u00fc\u00dfe.\nThe quick brown fox Jumps over the lazy dog.\nRotation sentinel ALPHA 12345\n\nRotation sentinel ALPHA 12345\n\nRotation sentinel ALPHA 12345\n\nRotation sentinel ALPHA 12345\n\nRotation sentinel ALPHA 12345\n\n![PDF image](images/page-1-image-1.png)\n"
+  },
+  "mixed-default": {
+    "exit": 0,
+    "result": {
+      "assets": [
+        "$WORK/pdf-regression/outputs/mixed-default/images/page-1-image-1.png"
+      ],
+      "diagnosticGroups": [
+        {
+          "code": "pdf.layoutNotPreserved",
+          "count": 1,
+          "kind": "approximation",
+          "locations": [],
+          "messages": [
+            "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+          ],
+          "omittedCount": 0
+        },
+        {
+          "code": "pdf.vectorGraphicsNotExtracted",
+          "count": 1,
+          "kind": "contentLoss",
+          "locations": [],
+          "messages": [
+            "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF."
+          ],
+          "omittedCount": 0
+        },
+        {
+          "code": "pdf.linuxLayoutApproximation",
+          "count": 1,
+          "kind": "approximation",
+          "locations": [],
+          "messages": [
+            "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed."
+          ],
+          "omittedCount": 0
+        },
+        {
+          "code": "pdf.ocrApplied",
+          "count": 1,
+          "kind": "information",
+          "locations": [],
+          "messages": [
+            "Pages without enough embedded text were rendered and read with local OCR. Review OCR text before relying on it."
+          ],
+          "omittedCount": 0
+        },
+        {
+          "code": "ocr.languageDefault",
+          "count": 1,
+          "kind": "information",
+          "locations": [],
+          "messages": [
+            "Local OCR used the installed default language: eng. Choose explicit languages for multilingual text."
+          ],
+          "omittedCount": 0
+        },
+        {
+          "code": "pdf.imagesRasterized",
+          "count": 1,
+          "kind": "approximation",
+          "locations": [],
+          "messages": [
+            "Embedded PDF images were retained as local PNG assets; their original compression and page placement were not preserved."
+          ],
+          "omittedCount": 0
+        }
+      ],
+      "diagnostics": [
+        {
+          "code": "pdf.layoutNotPreserved",
+          "kind": "approximation",
+          "message": "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+        },
+        {
+          "code": "pdf.vectorGraphicsNotExtracted",
+          "kind": "contentLoss",
+          "message": "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF."
+        },
+        {
+          "code": "pdf.linuxLayoutApproximation",
+          "kind": "approximation",
+          "message": "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed."
+        },
+        {
+          "code": "pdf.ocrApplied",
+          "kind": "information",
+          "message": "Pages without enough embedded text were rendered and read with local OCR. Review OCR text before relying on it."
+        },
+        {
+          "code": "ocr.languageDefault",
+          "kind": "information",
+          "message": "Local OCR used the installed default language: eng. Choose explicit languages for multilingual text."
+        },
+        {
+          "code": "pdf.imagesRasterized",
+          "kind": "approximation",
+          "message": "Embedded PDF images were retained as local PNG assets; their original compression and page placement were not preserved."
+        }
+      ],
+      "documents": [
+        {
+          "assets": [
+            "$WORK/pdf-regression/outputs/mixed-default/images/page-1-image-1.png"
+          ],
+          "markdownFile": "$WORK/pdf-regression/outputs/mixed-default/mixed.md",
+          "metadata": {},
+          "sourceIndex": 1,
+          "title": "mixed"
+        }
+      ],
+      "input": "$WORK/pdf-regression/fixtures/mixed.pdf",
+      "markdownFile": "$WORK/pdf-regression/outputs/mixed-default/mixed.md",
+      "metadata": {},
+      "ok": true,
+      "outputDirectory": "$WORK/pdf-regression/outputs/mixed-default",
+      "outputFiles": [
+        {
+          "byteCount": 78964,
+          "path": "images/page-1-image-1.png",
+          "sha256": "5af36568352e1eea7a6373ce7fd90b722cdbe2d7b4370e9d4491f5734d011960"
+        },
+        {
+          "byteCount": 398,
+          "path": "mixed.md",
+          "sha256": "59525e1b10070cf346d6a217912d55f61bab08f329ec86848e997e26296df12f"
+        }
+      ],
+      "reportFile": "$WORK/pdf-regression/outputs/mixed-default/conversion-report.json",
+      "sourceIdentity": {
+        "byteCount": 68792,
+        "name": "mixed.pdf",
+        "sha256": "7e922d32ab8e146b295f5359ddaee767be18d88252c0cb7b97307ed8225720fd"
+      },
+      "sourceMappings": [
+        {
+          "output": {
+            "file": "mixed.md",
+            "utf8Length": 390,
+            "utf8Offset": 7
+          },
+          "source": {
+            "page": 1
+          }
+        }
+      ],
+      "version": "0.41.12",
+      "warnings": [
+        "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review.",
+        "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF.",
+        "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed.",
+        "Pages without enough embedded text were rendered and read with local OCR. Review OCR text before relying on it.",
+        "Local OCR used the installed default language: eng. Choose explicit languages for multilingual text.",
+        "Embedded PDF images were retained as local PNG assets; their original compression and page placement were not preserved."
+      ]
+    },
+    "stderr": "",
+    "markdown": "# mixed\n\n<a id=\"pmt-pdf-page-1\"></a>\n\n## Page 1\n\nDIGITAL HEADER 98765\n\nInvoice ALPHA 12345\nDie Rechnung kostet 42 Euro.\nGrufRe aus Munchen und schone Grulie.\nThe quick brown fox jumps over the lazy dog.\nRotation sentinel ALPHA 12345\n\nRotation sentinel ALPHA 12345\n\nRotation sentinel ALPHA 12345\n\nRotation sentinel ALPHA 12345\n\nRotation sentinel ALPHA 12345\n\n![PDF image](images/page-1-image-1.png)\n"
+  },
+  "second": {
+    "exit": 0,
+    "result": {
+      "assets": [],
+      "diagnosticGroups": [
+        {
+          "code": "pdf.layoutNotPreserved",
+          "count": 1,
+          "kind": "approximation",
+          "locations": [],
+          "messages": [
+            "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+          ],
+          "omittedCount": 0
+        },
+        {
+          "code": "pdf.vectorGraphicsNotExtracted",
+          "count": 1,
+          "kind": "contentLoss",
+          "locations": [],
+          "messages": [
+            "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF."
+          ],
+          "omittedCount": 0
+        },
+        {
+          "code": "pdf.linuxLayoutApproximation",
+          "count": 1,
+          "kind": "approximation",
+          "locations": [],
+          "messages": [
+            "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed."
+          ],
+          "omittedCount": 0
+        }
+      ],
+      "diagnostics": [
+        {
+          "code": "pdf.layoutNotPreserved",
+          "kind": "approximation",
+          "message": "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+        },
+        {
+          "code": "pdf.vectorGraphicsNotExtracted",
+          "kind": "contentLoss",
+          "message": "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF."
+        },
+        {
+          "code": "pdf.linuxLayoutApproximation",
+          "kind": "approximation",
+          "message": "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed."
+        }
+      ],
+      "documents": [
+        {
+          "assets": [],
+          "markdownFile": "$WORK/pdf-regression/outputs/second/sample.md",
+          "metadata": {},
+          "sourceIndex": 1,
+          "title": "sample"
+        }
+      ],
+      "input": "$WORK/pdf-regression/fixtures/fixtures/sample.pdf",
+      "markdownFile": "$WORK/pdf-regression/outputs/second/sample.md",
+      "metadata": {},
+      "ok": true,
+      "outputDirectory": "$WORK/pdf-regression/outputs/second",
+      "outputFiles": [
+        {
+          "byteCount": 65,
+          "path": "sample.md",
+          "sha256": "2ab15ccb2bb627f0cd1669942c42b5b051aa05637fe8dfb49cc1455445e5152e"
+        }
+      ],
+      "reportFile": "$WORK/pdf-regression/outputs/second/conversion-report.json",
+      "sourceIdentity": {
+        "byteCount": 1486,
+        "name": "sample.pdf",
+        "sha256": "a182895247779a29e215de2236d6d547612746aab7705aae3e2b9e5ea6b08640"
+      },
+      "sourceMappings": [
+        {
+          "output": {
+            "file": "sample.md",
+            "utf8Length": 56,
+            "utf8Offset": 8
+          },
+          "source": {
+            "page": 2
+          }
+        }
+      ],
+      "version": "0.41.12",
+      "warnings": [
+        "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review.",
+        "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF.",
+        "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed."
+      ]
+    },
+    "stderr": "",
+    "markdown": "# sample\n\n<a id=\"pmt-pdf-page-2\"></a>\n\n## Page 2\n\nDELTA page two\n"
+  },
+  "broken": {
+    "exit": 65,
+    "result": {
+      "error": "Invalid PDF input at $WORK/pdf-regression/fixtures/broken.pdf: Local PDF backend: poppler-quark: PDF document is damaged (4)\n",
+      "ok": false,
+      "version": "0.41.12"
+    },
+    "stderr": "",
+    "markdown": ""
+  },
+  "structured": {
+    "exit": 69,
+    "result": {
+      "error": "The structured local document OCR on Linux backend is not available in this build.",
+      "ok": false,
+      "version": "0.41.12"
+    },
+    "stderr": "",
+    "markdown": ""
+  },
+  "headers": {
+    "exit": 0,
+    "result": {
+      "assets": [],
+      "diagnosticGroups": [
+        {
+          "code": "pdf.layoutNotPreserved",
+          "count": 1,
+          "kind": "approximation",
+          "locations": [],
+          "messages": [
+            "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+          ],
+          "omittedCount": 0
+        },
+        {
+          "code": "pdf.vectorGraphicsNotExtracted",
+          "count": 1,
+          "kind": "contentLoss",
+          "locations": [],
+          "messages": [
+            "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF."
+          ],
+          "omittedCount": 0
+        },
+        {
+          "code": "pdf.linuxLayoutApproximation",
+          "count": 1,
+          "kind": "approximation",
+          "locations": [],
+          "messages": [
+            "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed."
+          ],
+          "omittedCount": 0
+        },
+        {
+          "code": "pdf.repeatedMarginRemoved",
+          "count": 2,
+          "kind": "information",
+          "locations": [
+            {
+              "page": 1
+            },
+            {
+              "page": 2
+            }
+          ],
+          "messages": [
+            "Repeated text at the page margin was removed by request."
+          ],
+          "omittedCount": 0
+        }
+      ],
+      "diagnostics": [
+        {
+          "code": "pdf.layoutNotPreserved",
+          "kind": "approximation",
+          "message": "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+        },
+        {
+          "code": "pdf.vectorGraphicsNotExtracted",
+          "kind": "contentLoss",
+          "message": "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF."
+        },
+        {
+          "code": "pdf.linuxLayoutApproximation",
+          "kind": "approximation",
+          "message": "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed."
+        },
+        {
+          "code": "pdf.repeatedMarginRemoved",
+          "kind": "information",
+          "location": {
+            "page": 1
+          },
+          "message": "Repeated text at the page margin was removed by request."
+        },
+        {
+          "code": "pdf.repeatedMarginRemoved",
+          "kind": "information",
+          "location": {
+            "page": 2
+          },
+          "message": "Repeated text at the page margin was removed by request."
+        }
+      ],
+      "documents": [
+        {
+          "assets": [],
+          "markdownFile": "$WORK/pdf-regression/outputs/headers/margins.md",
+          "metadata": {},
+          "sourceIndex": 1,
+          "title": "margins"
+        }
+      ],
+      "input": "$WORK/pdf-regression/fixtures/margins.pdf",
+      "markdownFile": "$WORK/pdf-regression/outputs/headers/margins.md",
+      "metadata": {},
+      "ok": true,
+      "outputDirectory": "$WORK/pdf-regression/outputs/headers",
+      "outputFiles": [
+        {
+          "byteCount": 129,
+          "path": "margins.md",
+          "sha256": "cd07ab2b84c77cee625a681f7b2d6f20849ae671373321e4c3051967fc5e892d"
+        }
+      ],
+      "reportFile": "$WORK/pdf-regression/outputs/headers/conversion-report.json",
+      "sourceIdentity": {
+        "byteCount": 1003,
+        "name": "margins.pdf",
+        "sha256": "fc7def62272ab207bfa117747e6c1d2ad63b83c0d326ffd08396519a713e71ab"
+      },
+      "sourceMappings": [
+        {
+          "output": {
+            "file": "margins.md",
+            "utf8Length": 68,
+            "utf8Offset": 9
+          },
+          "source": {
+            "page": 1
+          }
+        },
+        {
+          "output": {
+            "file": "margins.md",
+            "utf8Length": 51,
+            "utf8Offset": 77
+          },
+          "source": {
+            "page": 2
+          }
+        }
+      ],
+      "version": "0.41.12",
+      "warnings": [
+        "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review.",
+        "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF.",
+        "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed.",
+        "Page 1: Repeated text at the page margin was removed by request.",
+        "Page 2: Repeated text at the page margin was removed by request."
+      ]
+    },
+    "stderr": "",
+    "markdown": "# margins\n\n<a id=\"pmt-pdf-page-1\"></a>\n\n## Page 1\n\nREPEATED HEADER\nBODY ALPHA\n\n<a id=\"pmt-pdf-page-2\"></a>\n\n## Page 2\n\nBODY BETA\n"
+  },
+  "hyphen": {
+    "exit": 0,
+    "result": {
+      "assets": [],
+      "diagnosticGroups": [
+        {
+          "code": "pdf.layoutNotPreserved",
+          "count": 1,
+          "kind": "approximation",
+          "locations": [],
+          "messages": [
+            "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+          ],
+          "omittedCount": 0
+        },
+        {
+          "code": "pdf.vectorGraphicsNotExtracted",
+          "count": 1,
+          "kind": "contentLoss",
+          "locations": [],
+          "messages": [
+            "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF."
+          ],
+          "omittedCount": 0
+        },
+        {
+          "code": "pdf.linuxLayoutApproximation",
+          "count": 1,
+          "kind": "approximation",
+          "locations": [],
+          "messages": [
+            "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed."
+          ],
+          "omittedCount": 0
+        }
+      ],
+      "diagnostics": [
+        {
+          "code": "pdf.layoutNotPreserved",
+          "kind": "approximation",
+          "message": "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+        },
+        {
+          "code": "pdf.vectorGraphicsNotExtracted",
+          "kind": "contentLoss",
+          "message": "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF."
+        },
+        {
+          "code": "pdf.linuxLayoutApproximation",
+          "kind": "approximation",
+          "message": "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed."
+        }
+      ],
+      "documents": [
+        {
+          "assets": [],
+          "markdownFile": "$WORK/pdf-regression/outputs/hyphen/hyphen.md",
+          "metadata": {},
+          "sourceIndex": 1,
+          "title": "hyphen"
+        }
+      ],
+      "input": "$WORK/pdf-regression/fixtures/hyphen.pdf",
+      "markdownFile": "$WORK/pdf-regression/outputs/hyphen/hyphen.md",
+      "metadata": {},
+      "ok": true,
+      "outputDirectory": "$WORK/pdf-regression/outputs/hyphen",
+      "outputFiles": [
+        {
+          "byteCount": 71,
+          "path": "hyphen.md",
+          "sha256": "72a1c742e20f5fd900c1803439ff6a81144adea22fe1d249aab5497334b7ee92"
+        }
+      ],
+      "reportFile": "$WORK/pdf-regression/outputs/hyphen/conversion-report.json",
+      "sourceIdentity": {
+        "byteCount": 611,
+        "name": "hyphen.pdf",
+        "sha256": "5bf4f6370a701c456f8364895198fd4a84c3d271c7290114e247b31796206274"
+      },
+      "sourceMappings": [
+        {
+          "output": {
+            "file": "hyphen.md",
+            "utf8Length": 62,
+            "utf8Offset": 8
+          },
+          "source": {
+            "page": 1
+          }
+        }
+      ],
+      "version": "0.41.12",
+      "warnings": [
+        "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review.",
+        "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF.",
+        "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed."
+      ]
+    },
+    "stderr": "",
+    "markdown": "# hyphen\n\n<a id=\"pmt-pdf-page-1\"></a>\n\n## Page 1\n\nfortsetzungsbeispiel\n"
+  },
+  "legacy": {
+    "exit": 0,
+    "result": {
+      "assets": [
+        "$WORK/pdf-regression/outputs/legacy/images/page-1-image-1.png"
+      ],
+      "diagnosticGroups": [
+        {
+          "code": "pdf.layoutNotPreserved",
+          "count": 1,
+          "kind": "approximation",
+          "locations": [],
+          "messages": [
+            "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+          ],
+          "omittedCount": 0
+        },
+        {
+          "code": "pdf.vectorGraphicsNotExtracted",
+          "count": 1,
+          "kind": "contentLoss",
+          "locations": [],
+          "messages": [
+            "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF."
+          ],
+          "omittedCount": 0
+        },
+        {
+          "code": "pdf.linuxLayoutApproximation",
+          "count": 1,
+          "kind": "approximation",
+          "locations": [],
+          "messages": [
+            "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed."
+          ],
+          "omittedCount": 0
+        },
+        {
+          "code": "pdf.annotationMetadataApproximation",
+          "count": 1,
+          "kind": "approximation",
+          "locations": [
+            {
+              "page": 1
+            }
+          ],
+          "messages": [
+            "Readable annotation text, author, modification date and page rectangle were retained; advanced annotation fields and exact text references are not reconstructed."
+          ],
+          "omittedCount": 0
+        },
+        {
+          "code": "pdf.imagesRasterized",
+          "count": 1,
+          "kind": "approximation",
+          "locations": [],
+          "messages": [
+            "Embedded PDF images were retained as local PNG assets; their original compression and page placement were not preserved."
+          ],
+          "omittedCount": 0
+        }
+      ],
+      "diagnostics": [
+        {
+          "code": "pdf.layoutNotPreserved",
+          "kind": "approximation",
+          "message": "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+        },
+        {
+          "code": "pdf.vectorGraphicsNotExtracted",
+          "kind": "contentLoss",
+          "message": "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF."
+        },
+        {
+          "code": "pdf.linuxLayoutApproximation",
+          "kind": "approximation",
+          "message": "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed."
+        },
+        {
+          "code": "pdf.annotationMetadataApproximation",
+          "kind": "approximation",
+          "location": {
+            "page": 1
+          },
+          "message": "Readable annotation text, author, modification date and page rectangle were retained; advanced annotation fields and exact text references are not reconstructed."
+        },
+        {
+          "code": "pdf.imagesRasterized",
+          "kind": "approximation",
+          "message": "Embedded PDF images were retained as local PNG assets; their original compression and page placement were not preserved."
+        }
+      ],
+      "documents": [
+        {
+          "assets": [
+            "$WORK/pdf-regression/outputs/legacy/images/page-1-image-1.png"
+          ],
+          "markdownFile": "$WORK/pdf-regression/outputs/legacy/sample.md",
+          "metadata": {},
+          "sourceIndex": 1,
+          "title": "sample"
+        }
+      ],
+      "input": "$WORK/pdf-regression/fixtures/fixtures/sample.pdf",
+      "markdownFile": "$WORK/pdf-regression/outputs/legacy/sample.md",
+      "metadata": {},
+      "ok": true,
+      "outputDirectory": "$WORK/pdf-regression/outputs/legacy",
+      "outputFiles": [
+        {
+          "byteCount": 96,
+          "path": "images/page-1-image-1.png",
+          "sha256": "33f060aed76bb7c18098d0e6313e3b388655aa1cab796fe8630b27c26dc81613"
+        },
+        {
+          "byteCount": 425,
+          "path": "sample.md",
+          "sha256": "08d29efb70939135ddc108651e0aa3bc27dd7617c8fe65fe01ee88e042e5e5e4"
+        }
+      ],
+      "reportFile": "$WORK/pdf-regression/outputs/legacy/conversion-report.json",
+      "sourceIdentity": {
+        "byteCount": 1486,
+        "name": "sample.pdf",
+        "sha256": "a182895247779a29e215de2236d6d547612746aab7705aae3e2b9e5ea6b08640"
+      },
+      "sourceMappings": [
+        {
+          "output": {
+            "file": "sample.md",
+            "utf8Length": 360,
+            "utf8Offset": 8
+          },
+          "source": {
+            "page": 1
+          }
+        },
+        {
+          "output": {
+            "file": "sample.md",
+            "utf8Length": 56,
+            "utf8Offset": 368
+          },
+          "source": {
+            "page": 2
+          }
+        }
+      ],
+      "version": "0.41.12",
+      "warnings": [
+        "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review.",
+        "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF.",
+        "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed.",
+        "Page 1: Readable annotation text, author, modification date and page rectangle were retained; advanced annotation fields and exact text references are not reconstructed.",
+        "Embedded PDF images were retained as local PNG assets; their original compression and page placement were not preserved."
+      ]
+    },
+    "stderr": "",
+    "markdown": "# sample\n\n<a id=\"pmt-pdf-page-1\"></a>\n\n## Page 1\n\nALPHA left column\nGAMMA next line\nBETA right\n\n![PDF image](images/page-1-image-1.png)\n\n### Links\n\n- [ALPHA left column](https://example.invalid/pmt-never-fetch)\n\n### Annotations\n\n#### Annotation 2\n\nType: text\nAuthor: Fixture author\nModified (source): \nPage rectangle: 300.0, 600.0, 25.0, 25.0\n\nNOTE annotation sentinel\n\n<a id=\"pmt-pdf-page-2\"></a>\n\n## Page 2\n\nDELTA page two\n"
+  },
+  "out-of-range": {
+    "exit": 65,
+    "result": {
+      "error": "Invalid PDF input at $WORK/pdf-regression/fixtures/fixtures/sample.pdf: selection position 3 exceeds the document count 2",
+      "ok": false,
+      "version": "0.41.12"
+    },
+    "stderr": "",
+    "markdown": ""
+  }
+}

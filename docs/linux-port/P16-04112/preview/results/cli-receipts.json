@@ -1,0 +1,446 @@
+[
+  {
+    "case": "page2",
+    "exit": 0,
+    "seconds": 0.25211460900027305,
+    "sourceUnchanged": true,
+    "stderr": "",
+    "preview": {
+      "byteCount": 8110,
+      "count": 2,
+      "diagnostics": [
+        {
+          "code": "preview.passiveRaster",
+          "kind": "information",
+          "message": "This bounded source raster is passive. Source metadata is removed, transparent pixels appear on white, and interactive source actions are unavailable."
+        },
+        {
+          "code": "preview.annotationsOmitted",
+          "kind": "approximation",
+          "message": "The source preview omits annotation appearances and may differ from a full PDF viewer."
+        }
+      ],
+      "height": 600,
+      "index": 2,
+      "kind": "page",
+      "sha256": "132604a3831fb80afa7260bb2a4c795c7a67b7e2c6fcf4ba52d96227d0acbb8e",
+      "sourceIdentity": {
+        "byteCount": 3240,
+        "name": "pages.pdf",
+        "sha256": "ff6058a7b3ebee3bb63e26a5680c1224009858b648b2d88c5b2054bf338a71d6"
+      },
+      "width": 800
+    },
+    "pngChunks": [
+      "IHDR",
+      "bKGD",
+      "IDAT",
+      "IEND"
+    ]
+  },
+  {
+    "case": "rotated-page2",
+    "exit": 0,
+    "seconds": 0.19534936599666253,
+    "sourceUnchanged": true,
+    "stderr": "",
+    "preview": {
+      "byteCount": 8342,
+      "count": 2,
+      "diagnostics": [
+        {
+          "code": "preview.passiveRaster",
+          "kind": "information",
+          "message": "This bounded source raster is passive. Source metadata is removed, transparent pixels appear on white, and interactive source actions are unavailable."
+        },
+        {
+          "code": "preview.annotationsOmitted",
+          "kind": "approximation",
+          "message": "The source preview omits annotation appearances and may differ from a full PDF viewer."
+        }
+      ],
+      "height": 800,
+      "index": 2,
+      "kind": "page",
+      "sha256": "8a65bd9a5575eb1e9aab1934b63a47eb0d372ab45666d34bca0cce7c7b4cc8a3",
+      "sourceIdentity": {
+        "byteCount": 3219,
+        "name": "rotated.pdf",
+        "sha256": "63cb7705939bf4f2861684e78ad897a47557b47d0798ba4d99a95b1042e7ce15"
+      },
+      "width": 600
+    },
+    "pngChunks": [
+      "IHDR",
+      "bKGD",
+      "IDAT",
+      "IDAT",
+      "IEND"
+    ]
+  },
+  {
+    "case": "alpha-metadata",
+    "exit": 0,
+    "seconds": 0.15805058300611563,
+    "sourceUnchanged": true,
+    "stderr": "",
+    "preview": {
+      "byteCount": 136,
+      "count": 1,
+      "diagnostics": [
+        {
+          "code": "preview.passiveRaster",
+          "kind": "information",
+          "message": "This bounded source raster is passive. Source metadata is removed, transparent pixels appear on white, and interactive source actions are unavailable."
+        }
+      ],
+      "height": 40,
+      "index": 1,
+      "kind": "frame",
+      "sha256": "b85c13c12ca25228234769d606f28169220fae3edd7bd67b4817024e2ff288c0",
+      "sourceIdentity": {
+        "byteCount": 606,
+        "name": "alpha.png",
+        "sha256": "c4d5d3056cd106582467af98d080ccb322d9c0e5385a8d0b0fd5fde2912365f6"
+      },
+      "width": 80
+    },
+    "pngChunks": [
+      "IHDR",
+      "IDAT",
+      "IEND"
+    ]
+  },
+  {
+    "case": "oriented",
+    "exit": 0,
+    "seconds": 0.16705504099081736,
+    "sourceUnchanged": true,
+    "stderr": "",
+    "preview": {
+      "byteCount": 130,
+      "count": 1,
+      "diagnostics": [
+        {
+          "code": "preview.passiveRaster",
+          "kind": "information",
+          "message": "This bounded source raster is passive. Source metadata is removed, transparent pixels appear on white, and interactive source actions are unavailable."
+        }
+      ],
+      "height": 40,
+      "index": 1,
+      "kind": "frame",
+      "sha256": "b9b9cc12bf34bd1ab619c6b64d5470a960aa228c0cf9db34de53b3d35c6dd70b",
+      "sourceIdentity": {
+        "byteCount": 725,
+        "name": "oriented.jpg",
+        "sha256": "55229a103d995051dca638a18c0e7b7788711d81a9da0d8badb551aef5b3be92"
+      },
+      "width": 80
+    },
+    "pngChunks": [
+      "IHDR",
+      "IDAT",
+      "IEND"
+    ]
+  },
+  {
+    "case": "frames.tiff",
+    "exit": 0,
+    "seconds": 0.18828463899262715,
+    "sourceUnchanged": true,
+    "stderr": "",
+    "preview": {
+      "byteCount": 142,
+      "count": 2,
+      "diagnostics": [
+        {
+          "code": "preview.passiveRaster",
+          "kind": "information",
+          "message": "This bounded source raster is passive. Source metadata is removed, transparent pixels appear on white, and interactive source actions are unavailable."
+        }
+      ],
+      "height": 30,
+      "index": 2,
+      "kind": "frame",
+      "sha256": "61c965e3329e49f9b896ddcb3b475e860f27afc3a89e8f9d70f822ee0d703119",
+      "sourceIdentity": {
+        "byteCount": 16784,
+        "name": "frames.tiff",
+        "sha256": "db11ee17be045471eae6dfcb9f3b11f7065e8a8fb7e00f08d98dbfbee4d9313d"
+      },
+      "width": 90
+    },
+    "pngChunks": [
+      "IHDR",
+      "IDAT",
+      "IEND"
+    ]
+  },
+  {
+    "case": "frames.gif",
+    "exit": 0,
+    "seconds": 0.15635505600948818,
+    "sourceUnchanged": true,
+    "stderr": "",
+    "preview": {
+      "byteCount": 132,
+      "count": 2,
+      "diagnostics": [
+        {
+          "code": "preview.passiveRaster",
+          "kind": "information",
+          "message": "This bounded source raster is passive. Source metadata is removed, transparent pixels appear on white, and interactive source actions are unavailable."
+        }
+      ],
+      "height": 40,
+      "index": 2,
+      "kind": "frame",
+      "sha256": "c28c12abc90046ef18a16f7b89a0295eff183a1c48181fbb2845428bccebffec",
+      "sourceIdentity": {
+        "byteCount": 273,
+        "name": "frames.gif",
+        "sha256": "0c1d7b8911026a958d93f2dc60bb327f243abbb98413870cea52ce4d5ea98ecc"
+      },
+      "width": 70
+    },
+    "pngChunks": [
+      "IHDR",
+      "IDAT",
+      "IEND"
+    ]
+  },
+  {
+    "case": "downscaled",
+    "exit": 0,
+    "seconds": 0.28820844400615897,
+    "sourceUnchanged": true,
+    "stderr": "",
+    "preview": {
+      "byteCount": 3232,
+      "count": 1,
+      "diagnostics": [
+        {
+          "code": "preview.passiveRaster",
+          "kind": "information",
+          "message": "This bounded source raster is passive. Source metadata is removed, transparent pixels appear on white, and interactive source actions are unavailable."
+        },
+        {
+          "code": "preview.downscaled",
+          "kind": "approximation",
+          "message": "The source preview was downscaled to at most 1024 pixels per edge."
+        }
+      ],
+      "height": 614,
+      "index": 1,
+      "kind": "frame",
+      "sha256": "022ef0d401a2790090244183e23299a5ac37024a03d837afb732d3049f1f6a31",
+      "sourceIdentity": {
+        "byteCount": 14168,
+        "name": "large.png",
+        "sha256": "e39959bdf5370645ff491c11c7425fa259b0772c33df74335fbcb13704fcd4b8"
+      },
+      "width": 1024
+    },
+    "pngChunks": [
+      "IHDR",
+      "IDAT",
+      "IEND"
+    ]
+  },
+  {
+    "case": "single.heic",
+    "exit": 0,
+    "seconds": 0.17799640499288216,
+    "sourceUnchanged": true,
+    "stderr": "",
+    "preview": {
+      "byteCount": 524,
+      "count": 1,
+      "diagnostics": [
+        {
+          "code": "preview.passiveRaster",
+          "kind": "information",
+          "message": "This bounded source raster is passive. Source metadata is removed, transparent pixels appear on white, and interactive source actions are unavailable."
+        }
+      ],
+      "height": 24,
+      "index": 1,
+      "kind": "frame",
+      "sha256": "c7f350bf60a8ed02bc6480831473b4f87624ad10d9e617dffee89c6881707e7f",
+      "sourceIdentity": {
+        "byteCount": 3333,
+        "name": "single.heic",
+        "sha256": "d3ba28ae03b0459390e6db6df595c67136f66c6bc1aa12457efefa003a24192b"
+      },
+      "width": 32
+    },
+    "pngChunks": [
+      "IHDR",
+      "IDAT",
+      "IEND"
+    ]
+  },
+  {
+    "case": "rotated.heic",
+    "exit": 0,
+    "seconds": 0.17013252100150567,
+    "sourceUnchanged": true,
+    "stderr": "",
+    "preview": {
+      "byteCount": 521,
+      "count": 1,
+      "diagnostics": [
+        {
+          "code": "preview.passiveRaster",
+          "kind": "information",
+          "message": "This bounded source raster is passive. Source metadata is removed, transparent pixels appear on white, and interactive source actions are unavailable."
+        }
+      ],
+      "height": 32,
+      "index": 1,
+      "kind": "frame",
+      "sha256": "80cf9bc8a7597743c1b634f89daf9d104bbe99419db339792650059c5b9db9a6",
+      "sourceIdentity": {
+        "byteCount": 3353,
+        "name": "rotated.heic",
+        "sha256": "28fb572d69fcae89a8ae92c3ffd8dd78724ccf8a1f102ddd7bf2f0e431ca1e7a"
+      },
+      "width": 24
+    },
+    "pngChunks": [
+      "IHDR",
+      "IDAT",
+      "IEND"
+    ]
+  },
+  {
+    "case": "multi.heic",
+    "exit": 0,
+    "seconds": 0.16962612100178376,
+    "sourceUnchanged": true,
+    "stderr": "",
+    "preview": {
+      "byteCount": 690,
+      "count": 2,
+      "diagnostics": [
+        {
+          "code": "preview.passiveRaster",
+          "kind": "information",
+          "message": "This bounded source raster is passive. Source metadata is removed, transparent pixels appear on white, and interactive source actions are unavailable."
+        }
+      ],
+      "height": 24,
+      "index": 2,
+      "kind": "frame",
+      "sha256": "561217d1b00065a9d0bff04195c490eaae2f95c8e35101c6ba33214d7e2d173f",
+      "sourceIdentity": {
+        "byteCount": 7089,
+        "name": "multi.heic",
+        "sha256": "e531ca1e681768f23545661935e50569b952c7dda5bf4b23476f828a8113e6de"
+      },
+      "width": 40
+    },
+    "pngChunks": [
+      "IHDR",
+      "IDAT",
+      "IEND"
+    ]
+  },
+  {
+    "case": "reject-pages.pdf-3",
+    "exit": 65,
+    "seconds": 0.15730389600503258,
+    "sourceUnchanged": true,
+    "stderr": "",
+    "response": {
+      "error": "Invalid PDF input at /probe/fixtures/pages.pdf: Local PDF backend: preview page is outside the source page range\n",
+      "ok": false,
+      "version": "0.41.12"
+    }
+  },
+  {
+    "case": "reject-frames.tiff-3",
+    "exit": 65,
+    "seconds": 0.1770522230071947,
+    "sourceUnchanged": true,
+    "stderr": "",
+    "response": {
+      "error": "Invalid IMAGE input at /probe/fixtures/frames.tiff: preview frame is outside the source frame range\n",
+      "ok": false,
+      "version": "0.41.12"
+    }
+  },
+  {
+    "case": "reject-broken.png-1",
+    "exit": 65,
+    "seconds": 0.17934899200918153,
+    "sourceUnchanged": true,
+    "stderr": "",
+    "response": {
+      "error": "Invalid IMAGE input at /probe/fixtures/broken.png: cannot identify image file '/pmt/input/2'\n",
+      "ok": false,
+      "version": "0.41.12"
+    }
+  },
+  {
+    "case": "reject-over-source.png-1",
+    "exit": 65,
+    "seconds": 0.1286467040044954,
+    "sourceUnchanged": true,
+    "stderr": "",
+    "response": {
+      "error": "Invalid IMAGE input at /probe/fixtures/over-source.png: the source preview input exceeds the supported size limit",
+      "ok": false,
+      "version": "0.41.12"
+    }
+  },
+  {
+    "case": "reject-over-pixels.png-1",
+    "exit": 65,
+    "seconds": 0.14746245999413077,
+    "sourceUnchanged": true,
+    "stderr": "",
+    "response": {
+      "error": "Invalid IMAGE input at /probe/fixtures/over-pixels.png: Image size (10000000000 pixels) exceeds limit of 128000000 pixels, could be decompression bomb DOS attack.\n",
+      "ok": false,
+      "version": "0.41.12"
+    }
+  },
+  {
+    "case": "reject-oversize.heic-1",
+    "exit": 65,
+    "seconds": 0.1480234949995065,
+    "sourceUnchanged": true,
+    "stderr": "",
+    "response": {
+      "error": "Invalid IMAGE input at /probe/fixtures/oversize.heic: libheif: Memory allocation error: Security limit exceeded: Image size 1000000x64 exceeds the maximum image size 32768x32768\n\n",
+      "ok": false,
+      "version": "0.41.12"
+    }
+  },
+  {
+    "case": "reject-broken.heic-1",
+    "exit": 65,
+    "seconds": 0.1474537739995867,
+    "sourceUnchanged": true,
+    "stderr": "",
+    "response": {
+      "error": "Invalid IMAGE input at /probe/fixtures/broken.heic: libheif: Invalid input: No 'meta' box\n",
+      "ok": false,
+      "version": "0.41.12"
+    }
+  },
+  {
+    "case": "reject-output",
+    "exit": 64,
+    "seconds": 0.010803030992974527,
+    "sourceUnchanged": true,
+    "stderr": "",
+    "response": {
+      "error": "a source preview requires --json and one source, without output, profile or conversion options",
+      "ok": false,
+      "version": "0.41.12"
+    }
+  }
+]

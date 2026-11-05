@@ -23,6 +23,7 @@ const POSITION_LIMIT: usize = 2048;
 #[derive(Clone)]
 struct Descriptor {
     source: PathBuf,
+    bound_input: crate::model::InputSlot,
     file: OutputFile,
     source_count: u64,
     source_hash: String,
@@ -54,14 +55,20 @@ struct Position {
     end: i32,
     label: String,
     snippet: String,
+    page: Option<u32>,
+    frame: Option<u32>,
+}
+#[derive(Clone)]
+enum SourceVerification {
+    File { stamp: Stamp, parent: Stamp },
+    Bound { stamp: crate::read_output::Stamp },
 }
 #[derive(Clone)]
 struct Verified {
     text: String,
     positions: Vec<Position>,
-    source_stamp: Stamp,
+    source: SourceVerification,
     output_snapshot: Arc<crate::read_output::Snapshot>,
-    source_parent: Stamp,
     limited: bool,
 }
 impl Descriptor {
@@ -100,6 +107,14 @@ impl Descriptor {
         if !source.is_absolute() {
             return Err("Source path must be absolute".into());
         }
+        if let Some(input) = &file.bound_input {
+            if source != input.path() {
+                return Err("Bound input path does not match the recorded source".into());
+            }
+        } else if file.source_origin == crate::model::SourceOrigin::Clipboard {
+            return Err("The retained clipboard source is unavailable".into());
+        }
+
         let (_, relative, output_count, _) = crate::read_output::reference(file)?;
         let relative = relative
             .to_str()
@@ -112,9 +127,12 @@ impl Descriptor {
             )
             .into());
         }
+        let mut owned_file = file.clone();
+        let bound_input = crate::model::InputSlot::new(owned_file.bound_input.take());
         Ok(Self {
+            bound_input,
             source,
-            file: file.clone(),
+            file: owned_file,
             source_count,
             source_hash,
             mappings: context
@@ -197,15 +215,27 @@ fn location(value: &Value) -> String {
     }
 }
 fn verify(d: &Descriptor, cancel: &AtomicBool) -> Result<Verified, String> {
-    let (_, source_stamp, source_parent) =
-        read_verified(&d.source, d.source_count, &d.source_hash, false, cancel)?;
+    let source = if d.bound_input.is_bound() {
+        let input = d.bound_input.get().ok_or("Clipboard source was released")?;
+        let (_, stamp) = crate::read_output::stream(
+            input.reader().map_err(|e| e.to_string())?,
+            d.source_count,
+            &d.source_hash,
+            false,
+            cancel,
+        )?;
+        SourceVerification::Bound { stamp }
+    } else {
+        let (_, stamp, parent) =
+            read_verified(&d.source, d.source_count, &d.source_hash, false, cancel)?;
+        SourceVerification::File { stamp, parent }
+    };
     let snapshot = crate::read_output::read(&d.file, OUTPUT_LIMIT, true, cancel)?;
-    from_snapshot(d, source_stamp, source_parent, snapshot, cancel)
+    from_snapshot(d, source, snapshot, cancel)
 }
 fn from_snapshot(
     d: &Descriptor,
-    source_stamp: Stamp,
-    source_parent: Stamp,
+    source: SourceVerification,
     mut snapshot: crate::read_output::Snapshot,
     cancel: &AtomicBool,
 ) -> Result<Verified, String> {
@@ -215,9 +245,8 @@ fn from_snapshot(
     Ok(Verified {
         text,
         positions,
-        source_stamp,
+        source,
         output_snapshot: Arc::new(snapshot),
-        source_parent,
         limited,
     })
 }
@@ -261,6 +290,16 @@ fn mapped_positions(
             end,
             location(mapping.get("source").unwrap_or(&Value::Null)),
             snippet,
+            mapping
+                .pointer("/source/page")
+                .and_then(Value::as_u64)
+                .and_then(|v| u32::try_from(v).ok())
+                .filter(|v| (1..=1000).contains(v)),
+            mapping
+                .pointer("/source/frame")
+                .and_then(Value::as_u64)
+                .and_then(|v| u32::try_from(v).ok())
+                .filter(|v| (1..=1000).contains(v)),
         ));
         endpoints.extend([start, end]);
     }
@@ -289,7 +328,7 @@ fn mapped_positions(
         }
     }
     let mut positions = Vec::with_capacity(ranges.len());
-    for (start, end, label, snippet) in ranges {
+    for (start, end, label, snippet, page, frame) in ranges {
         if cancel.load(Ordering::Acquire) {
             return Err("Comparison cancelled".into());
         }
@@ -298,17 +337,29 @@ fn mapped_positions(
             end: *characters.get(&end).ok_or("Invalid character endpoint")?,
             label,
             snippet,
+            page,
+            frame,
         });
     }
     Ok((positions, limited))
 }
 fn unchanged(d: &Descriptor, v: &Verified) -> bool {
-    fs::symlink_metadata(&d.source)
-        .ok()
-        .filter(|m| m.is_file())
-        .is_some_and(|m| Stamp::of(&m) == v.source_stamp)
-        && crate::read_output::revalidate(&v.output_snapshot).is_ok()
-        && parent_stamp(&d.source).ok().as_ref() == Some(&v.source_parent)
+    let source_unchanged = match &v.source {
+        SourceVerification::File { stamp, parent } => {
+            fs::symlink_metadata(&d.source)
+                .ok()
+                .filter(|m| m.is_file())
+                .is_some_and(|m| Stamp::of(&m) == *stamp)
+                && parent_stamp(&d.source).ok().as_ref() == Some(parent)
+        }
+        SourceVerification::Bound { stamp } => d
+            .bound_input
+            .get()
+            .and_then(|input| input.reader().ok())
+            .and_then(|file| file.metadata().ok())
+            .is_some_and(|metadata| crate::read_output::Stamp::of(&metadata) == *stamp),
+    };
+    source_unchanged && crate::read_output::revalidate(&v.output_snapshot).is_ok()
 }
 
 #[derive(Clone)]
@@ -318,6 +369,7 @@ struct Pane {
     selector: gtk::DropDown,
     text: gtk::TextView,
     check: gtk::Button,
+    raster: Option<crate::source_raster::Pane>,
 }
 struct State {
     verified: Option<Verified>,
@@ -329,7 +381,7 @@ struct State {
     #[cfg(feature = "ui-self-test")]
     original: Option<Vec<u8>>,
 }
-pub(crate) fn open(parent: &gtk::ApplicationWindow, file: OutputFile) {
+pub(crate) fn open(parent: &gtk::ApplicationWindow, file: OutputFile, root: &crate::Shared) {
     let window = gtk::Window::builder()
         .title(tr(
             "Verifizierter Quellvergleich",
@@ -341,6 +393,21 @@ pub(crate) fn open(parent: &gtk::ApplicationWindow, file: OutputFile) {
         .default_height(600)
         .build();
     window.set_application(parent.application().as_ref());
+    let descriptor = match Descriptor::parse(&file) {
+        Ok(d) => Rc::new(d),
+        Err(error) => {
+            let message = label(&error);
+            message.set_margin_start(16);
+            message.set_margin_end(16);
+            message.set_margin_top(16);
+            message.set_margin_bottom(16);
+            window.set_child(Some(&message));
+            window.present();
+            return;
+        }
+    };
+    let handlers = crate::model::SignalHandlers::default();
+
     let body = gtk::Box::new(gtk::Orientation::Vertical, 10);
     body.set_margin_top(16);
     body.set_margin_bottom(16);
@@ -351,7 +418,11 @@ pub(crate) fn open(parent: &gtk::ApplicationWindow, file: OutputFile) {
         "Verifying source and output…",
     ));
     body.append(&status);
-    body.append(&label(tr("Diese passive Textansicht nutzt protokollierte Ergebnisstellen. Eine Rasteransicht des Originals für PDF/Bilder ist hier noch nicht verfügbar.","This passive text view uses recorded result references. Original PDF/image raster previews are not available here yet.")));
+    if file.source_origin == crate::model::SourceOrigin::Clipboard {
+        body.append(&label(tr("Zwischenablage · unveränderliche Originalbytes dieser Umwandlung; keine laufende Dateiquelle.","Clipboard · immutable original bytes of this conversion; not a live source file.")));
+    }
+
+    body.append(&label(tr("Diese passive Ansicht nutzt verifizierte Quellbytes und protokollierte Ergebnisstellen. Links in der Originalvorschau sind inaktiv; Textmarkierungen beziehen sich auf das Ergebnis.","This passive view uses verified source bytes and recorded result positions. Links in the original preview are inactive; text highlights refer to the result.")));
     let selector = gtk::DropDown::from_strings(&[tr(
         "Keine verifizierten Positionen",
         "No verified positions",
@@ -373,7 +444,18 @@ pub(crate) fn open(parent: &gtk::ApplicationWindow, file: OutputFile) {
         .vexpand(true)
         .hexpand(true)
         .build();
-    body.append(&scroll);
+    let raster = crate::source_raster::Pane::for_file(&file, root, parent, &window);
+    if let Some(raster) = &raster {
+        let split = gtk::Paned::new(gtk::Orientation::Horizontal);
+        split.set_start_child(Some(&raster.widget));
+        split.set_end_child(Some(&scroll));
+        split.set_position(320);
+        split.set_vexpand(true);
+        split.set_hexpand(true);
+        body.append(&split);
+    } else {
+        body.append(&scroll);
+    }
     window.set_child(Some(&body));
     let pane = Pane {
         window: window.clone(),
@@ -381,6 +463,7 @@ pub(crate) fn open(parent: &gtk::ApplicationWindow, file: OutputFile) {
         selector,
         text,
         check,
+        raster,
     };
     let state = Rc::new(RefCell::new(State {
         verified: None,
@@ -396,49 +479,103 @@ pub(crate) fn open(parent: &gtk::ApplicationWindow, file: OutputFile) {
         #[cfg(feature = "ui-self-test")]
         original: None,
     }));
-    let descriptor = match Descriptor::parse(&file) {
-        Ok(d) => Rc::new(d),
-        Err(error) => {
-            pane.status.set_text(&error);
-            pane.check.set_sensitive(false);
-            window.present();
-            return;
-        }
-    };
-    {
+    if let Some(raster) = &pane.raster {
+        let is_page = raster.is_page();
         let state = state.clone();
-        let pane = pane.clone();
-        let d = descriptor.clone();
-        pane.check
-            .clone()
-            .connect_clicked(move |_| start_check(&state, &pane, &d, None));
-    }
-    {
-        let state = state.clone();
-        let pane = pane.clone();
-        let d = descriptor.clone();
-        pane.selector
-            .clone()
-            .connect_selected_notify(move |selector| {
-                if state.borrow().updating {
-                    return;
+        let selector = pane.selector.clone();
+        let text = pane.text.clone();
+        raster.set_navigation(move |number| {
+            let found = {
+                let s = state.borrow();
+                s.verified.as_ref().and_then(|v| {
+                    v.positions
+                        .iter()
+                        .position(|p| (if is_page { p.page } else { p.frame }) == Some(number))
+                })
+            };
+            if let Some(index) = found {
+                selector.set_selected(index as u32 + 1);
+                true
+            } else {
+                selector.set_selected(0);
+                let begin = text.buffer().start_iter();
+                text.buffer().select_range(&begin, &begin);
+                #[cfg(feature = "ui-self-test")]
+                if std::env::var_os("PMT_UI_TEST_RASTER").is_some() {
+                    eprintln!("PMT_UI_TEST_RASTER_UNMAPPED no-invented-result-selection");
                 }
-                let index = selector.selected().checked_sub(1).map(|v| v as usize);
-                if let Some(index) = index {
-                    start_check(&state, &pane, &d, Some(index));
-                }
-            });
+                false
+            }
+        });
     }
-    {
+    if let Some(raster) = &pane.raster {
         let state = state.clone();
-        window.connect_close_request(move |_| {
-            state.borrow().cancel.store(true, Ordering::Release);
-            glib::Propagation::Proceed
+        let d = descriptor.clone();
+        raster.set_validation(move || {
+            state
+                .borrow()
+                .verified
+                .as_ref()
+                .is_some_and(|verified| unchanged(&d, verified))
         });
     }
     {
         let state = state.clone();
-        window.connect_destroy(move |_| state.borrow().cancel.store(true, Ordering::Release));
+        let pane = pane.clone();
+        let d = descriptor.clone();
+        let button = pane.check.clone();
+        let id = button.connect_clicked(move |_| start_check(&state, &pane, &d, None));
+        handlers.borrow_mut().push((button.upcast(), id));
+    }
+    {
+        let state = state.clone();
+        let pane = pane.clone();
+        let d = descriptor.clone();
+        let selector = pane.selector.clone();
+        let id = selector.connect_selected_notify(move |selector| {
+            if state.borrow().updating {
+                return;
+            }
+            let index = selector.selected().checked_sub(1).map(|v| v as usize);
+            if let Some(index) = index {
+                start_check(&state, &pane, &d, Some(index));
+            }
+        });
+        handlers.borrow_mut().push((selector.upcast(), id));
+    }
+    {
+        let state = state.clone();
+        let raster = pane.raster.clone();
+        let d = descriptor.clone();
+        let pane = pane.clone();
+        let connections = handlers.clone();
+        let id = window.connect_close_request(move |_| {
+            state.borrow().cancel.store(true, Ordering::Release);
+            d.bound_input.clear();
+            state.borrow_mut().verified = None;
+            state.borrow_mut().updating = true;
+            #[cfg(feature = "ui-self-test")]
+            {
+                state.borrow_mut().original = None;
+            }
+            pane.text.buffer().set_text("");
+            pane.selector.set_model(Some(&gtk::StringList::new(&[])));
+            if raster.as_ref().is_some_and(|r| !r.close_when_idle()) {
+                glib::Propagation::Stop
+            } else {
+                crate::model::disconnect_handlers(&connections);
+                glib::Propagation::Proceed
+            }
+        });
+        handlers.borrow_mut().push((window.clone().upcast(), id));
+    }
+    {
+        let state = state.clone();
+        let d = descriptor.clone();
+        window.connect_destroy(move |_| {
+            state.borrow().cancel.store(true, Ordering::Release);
+            d.bound_input.clear();
+        });
     }
     {
         let state = state.clone();
@@ -455,6 +592,9 @@ pub(crate) fn open(parent: &gtk::ApplicationWindow, file: OutputFile) {
                 .is_some_and(|v| !unchanged(&d, v));
             if changed {
                 state.borrow_mut().verified = None;
+                if let Some(raster) = &pane.raster {
+                    raster.invalidate();
+                }
                 pane.selector.set_sensitive(false);
                 let begin = pane.text.buffer().start_iter();
                 pane.text.buffer().select_range(&begin, &begin);
@@ -488,6 +628,9 @@ fn start_check(
         s.verified = None;
         (s.generation, s.cancel.clone())
     };
+    if let Some(raster) = &pane.raster {
+        raster.invalidate();
+    }
     pane.selector.set_sensitive(false);
     pane.check.set_sensitive(false);
     pane.status.set_text(tr(
@@ -520,6 +663,28 @@ fn start_check(
                     return glib::ControlFlow::Break;
                 }
                 pane.text.buffer().set_text(&verified.text);
+                #[cfg(feature = "ui-self-test")]
+                if current.bound_input.is_bound()
+                    && std::env::var_os("PMT_UI_TEST_BOUND_SOURCE").is_some()
+                {
+                    eprintln!(
+                        "PMT_UI_TEST_BOUND_SOURCE_VERIFIED positions={}",
+                        verified.positions.len()
+                    );
+                    if pane.raster.is_none() {
+                        eprintln!("PMT_UI_TEST_BOUND_TEXT_COMPLETE passive-verified-markdown");
+                        let parent = pane.window.transient_for().unwrap();
+                        glib::idle_add_local_once(move || parent.close());
+                    }
+                }
+
+                if let Some(raster) = &pane.raster {
+                    let position = selected.and_then(|index| verified.positions.get(index));
+                    raster.verified_for(
+                        position.and_then(|p| p.page),
+                        position.and_then(|p| p.frame),
+                    );
+                }
                 let names = gtk::StringList::new(&[tr(
                     "Belegte Stelle wählen",
                     "Choose a recorded location",
@@ -552,6 +717,22 @@ fn start_check(
                     let mut start = pane.text.buffer().iter_at_offset(position.start);
                     let end = pane.text.buffer().iter_at_offset(position.end);
                     pane.text.buffer().select_range(&start, &end);
+                    #[cfg(feature = "ui-self-test")]
+                    if std::env::var_os("PMT_UI_TEST_RASTER").is_some()
+                        && (position.page == Some(2) || position.frame == Some(2))
+                    {
+                        let (a, b) = pane.text.buffer().selection_bounds().unwrap();
+                        let selected = pane.text.buffer().text(&a, &b, false);
+                        assert!(selected.contains(if position.page == Some(2) {
+                            "PAGE TWO"
+                        } else {
+                            "Frame 2"
+                        }));
+                        assert_eq!((a.offset(), b.offset()), (position.start, position.end));
+                        eprintln!(
+                            "PMT_UI_TEST_RASTER_MAPPING exact-utf8-reference-for-second-source-unit"
+                        );
+                    }
                     pane.text.scroll_to_iter(&mut start, 0.1, false, 0.0, 0.0);
                 }
                 state.borrow_mut().verified = Some(verified);
@@ -703,6 +884,56 @@ mod tests {
             snippet,
         }
     }
+    fn bound_fixture() -> Fixture {
+        let mut f = fixture();
+        let bytes = fs::read(&f.source).unwrap();
+        let input = pmt_bridge::BoundInput::new(
+            &bytes,
+            pmt_bridge::InputName::new("clipboard.html").unwrap(),
+        )
+        .unwrap();
+        let mut response = (**f.descriptor.file.context.as_ref().unwrap()).clone();
+        response["input"] = serde_json::json!(input.path());
+        let mut file = crate::model::outputs(&response).remove(0);
+        file.bound_input = Some(input);
+        file.source_origin = crate::model::SourceOrigin::Clipboard;
+        f.descriptor = Descriptor::parse(&file).unwrap();
+        fs::remove_file(&f.source).unwrap();
+        f
+    }
+    #[test]
+    fn bound_source_survives_original_path_loss_and_uses_verified_unicode_ranges() {
+        let f = bound_fixture();
+        let v = verify(&f.descriptor, &AtomicBool::new(false)).unwrap();
+        assert!(unchanged(&f.descriptor, &v));
+        let p = &v.positions[0];
+        assert_eq!(
+            v.text
+                .chars()
+                .skip(p.start as usize)
+                .take((p.end - p.start) as usize)
+                .collect::<String>(),
+            f.snippet
+        );
+        assert!(!f.descriptor.source.exists());
+    }
+    #[test]
+    fn bound_source_hash_mismatch_and_output_replacement_are_rejected() {
+        let mut f = bound_fixture();
+        let cancel = AtomicBool::new(false);
+        let v = verify(&f.descriptor, &cancel).unwrap();
+        f.descriptor.source_hash = "0".repeat(64);
+        assert!(verify(&f.descriptor, &cancel).is_err());
+        fs::write(&f.output, "CHANGED").unwrap();
+        assert!(!unchanged(&f.descriptor, &v));
+    }
+    #[test]
+    fn clipboard_marker_without_retained_input_fails_closed() {
+        let f = bound_fixture();
+        let mut file = f.descriptor.file.clone();
+        file.bound_input = None;
+        assert!(Descriptor::parse(&file).is_err());
+    }
     #[test]
     fn sha256_uses_standard_vector() {
         assert_eq!(
@@ -769,7 +1000,16 @@ mod tests {
         let original = fs::read(&fixture.output).unwrap();
         fs::rename(&fixture.output, fixture.root.join("verified-original.md")).unwrap();
         fs::write(&fixture.output, &original).unwrap();
-        let checked = from_snapshot(d, source_stamp, source_parent, snapshot, &cancel).unwrap();
+        let checked = from_snapshot(
+            d,
+            SourceVerification::File {
+                stamp: source_stamp,
+                parent: source_parent,
+            },
+            snapshot,
+            &cancel,
+        )
+        .unwrap();
         assert!(
             !unchanged(d, &checked),
             "GUI must reject even a same-byte replacement after the verified read"

@@ -1,0 +1,1 @@
+{"dateUTC": "2026-11-05T04:41:37.066918+00:00", "rootIdentityVerified": true, "device": 16777230, "inode": 457780443, "ownProcessesBeforeCleanup": [], "removedFiles": 10024, "removedDirectories": 2487, "remoteOwnRootRemoved": true, "method": "held parent/root descriptors; no-follow traversal; only own root; no broad process signals"}

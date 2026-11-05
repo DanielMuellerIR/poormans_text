@@ -1,0 +1,21 @@
+{
+  "source": "01030000000135.pdf",
+  "sourceSHA256": "ed941b5cde32cfc778c225dcfa90c334d9995d70c46e7f508635073a3227784b",
+  "sourceUnchanged": true,
+  "seconds": 3.895486086010351,
+  "status": "ConversionStatus.SUCCESS",
+  "expectedTables": 0,
+  "predictedTables": 0,
+  "tables": [],
+  "quality": null,
+  "markdownSHA256": "7c0bdecb0d30d407c8eb88c93619a5a2c348c98b829a254cf808a06a1094bf12",
+  "jsonSHA256": "f8acaee10fd2d557572eb0e8a6a5611e162eceae68f43358f8a28aa391374956",
+  "maxRSSKiB": 1046060,
+  "memoryPeakBytes": 886308864,
+  "OCR": "off; digital PDF words",
+  "remoteServices": false,
+  "manualROIOrThresholdChanges": false,
+  "layoutPreset": "layout_heron_default",
+  "tableMode": "accurate",
+  "markdownContainsExplicitSpans": false
+}

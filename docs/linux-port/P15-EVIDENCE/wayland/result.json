@@ -1,0 +1,31 @@
+{
+  "uid": 1000,
+  "productionGUI": true,
+  "privateHeadlessWeston": true,
+  "compositorRenderer": "pixman",
+  "clientRenderer": "software GL",
+  "DISPLAYAbsent": true,
+  "GDKBackendForcedWayland": true,
+  "realWaylandProtocol": true,
+  "realAccessibleConvertAction": true,
+  "GUIFinishedReceivingResult": true,
+  "CSVMarkerAndUnicode": true,
+  "sourceSHA256": "1da55ac06c652d43cc89dba8444b83ce1b1ba10936cb3c4283c5b9889b19cd12",
+  "sourceUnchanged": true,
+  "markdownSHA256": "1ef023c0b873933c4c2868f49f2b3c568cb0a9c5c42b5555aa46e4795f3058f0",
+  "outputFiles": {
+    "Quelle ü.md": "1ef023c0b873933c4c2868f49f2b3c568cb0a9c5c42b5555aa46e4795f3058f0"
+  },
+  "nativeCaptureExit": 0,
+  "nativeScreenshot": true,
+  "captureStderr": "",
+  "screenshotSHA256": "47e0da58f97c1fcb4e895bd40b29efcb3e4bd05fa6c4bb38e2c979c468aaa198",
+  "GUIAndWestonWaitedAfterTermination": true,
+  "productVersion": "0.41.11",
+  "packageSHA256": "be532ac71569eaf1d1e538813c9abf15376982efdcdaf491d0585262afb16260",
+  "cliSHA256": "66ec0c0ded5e2d3ef06d84b476b68f2a39b1493cf5c4d8c61fedeecc89a40244",
+  "guiSHA256": "94ad620d59559bc7f956c61b68880635f4bfc40c6f14655574ae8f6d10ece6ba",
+  "screenshotVisuallyInspected": true,
+  "completedStateAndExpectedTextVisible": true,
+  "rootVisualCheck": true
+}

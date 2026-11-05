@@ -136,6 +136,20 @@ def links_and_annotations(page):
     return links, annotations
 
 
+def render_page(page, destination, w, h):
+    width, height = page_size(page)
+    surface = cairo.ImageSurface(cairo.FORMAT_RGB24, w, h)
+    context = cairo.Context(surface)
+    context.set_source_rgb(1, 1, 1)
+    context.paint()
+    context.scale(w / width, h / height)
+    if hasattr(page, 'render_full'):
+        page.render_full(context, True, Poppler.RenderAnnotsFlags(0))
+    else:
+        page.render_for_printing_with_options(context, Poppler.PrintFlags.DOCUMENT)
+    surface.write_to_png(str(destination))
+    surface.finish()
+
 def extract(document, directory, selected, ocr):
     if not selected or len(selected) > MAX_PAGES or len(set(selected)) != len(selected) or any(type(i) is not int or not 0 <= i < document.get_n_pages() for i in selected):
         raise ValueError('PDF page selection is invalid')
@@ -190,17 +204,7 @@ def extract(document, directory, selected, ocr):
             if ocr_pixels > MAX_TOTAL_PIXELS:
                 raise ValueError('PDF OCR pages exceed their pixel budget')
             name = f'page-{index + 1}-ocr.png'
-            surface = cairo.ImageSurface(cairo.FORMAT_RGB24, w, h)
-            context = cairo.Context(surface)
-            context.set_source_rgb(1, 1, 1)
-            context.paint()
-            context.scale(w / width, h / height)
-            if hasattr(page, 'render_full'):
-                page.render_full(context, True, Poppler.RenderAnnotsFlags(0))
-            else:
-                page.render_for_printing_with_options(context, Poppler.PrintFlags.DOCUMENT)
-            surface.write_to_png(str(directory / name))
-            surface.finish()
+            render_page(page, directory / name, w, h)
             raster = name
         value = dict(number=index + 1, width=width, height=height, label=bounded(page.get_label(), 1024), text=text,
                      characterRects=characters, lines=lines, geometryUnavailable=fallback, links=links,
@@ -226,6 +230,19 @@ def main():
         if not 1 <= maximum <= 1000:
             raise ValueError('PDF overview page limit is invalid')
         return summary(open_document(sys.argv[2]), maximum)
+    if len(sys.argv) == 4 and sys.argv[1] == 'preview':
+        if Path(sys.argv[2]).stat().st_size > 128 * 1024**2:
+            raise ValueError('preview source exceeds 128 MiB')
+        document = open_document(sys.argv[2])
+        index = int(sys.argv[3])
+        if not 1 <= index <= document.get_n_pages():
+            raise ValueError('preview page is outside the source page range')
+        page = document.get_page(index - 1)
+        width, height = page_size(page)
+        scale = min(2.0, 1024 / max(width, height))
+        w, h = max(1, int(width * scale)), max(1, int(height * scale))
+        render_page(page, Path.cwd() / 'preview.png', w, h)
+        return dict(kind='page', index=index, count=document.get_n_pages(), width=w, height=h, downscaled=scale < 1)
     if len(sys.argv) == 6 and sys.argv[1] == 'extract':
         mode = sys.argv[5]
         if mode not in ['off', 'auto', 'always']:

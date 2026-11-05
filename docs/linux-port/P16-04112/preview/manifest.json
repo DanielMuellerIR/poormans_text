@@ -1,0 +1,45 @@
+{
+  "frozenUTC": "2026-11-05T05:22:43.060734+00:00",
+  "version": "0.41.12",
+  "cliSHA256": "2f49d54ecd6d9bae4962fcdb7f968ea4eef9c3844701d278a9a507e3e84db07c",
+  "guardSHA256": "cf677f9be88095a27423ceedb9db2b85667f7775d167857cfb52002ff5dda520",
+  "hashesStableBeforeAfter": true,
+  "cliLauncherSHA256": "272099c1551b0a6952eb53c19ffc751ee4e0cf339c6ac3a927b5d67644b4c42b",
+  "bridgeSourceSHA256": "51b8d69fcfdc893e30ec0258f6b5b41ae395c59c2b58cb888f51a071df4e94a4",
+  "bridgeBoundInputSourceSHA256": "df2b4e19e81202fda8a0dbd11cbe135eb53b481e6ccf8f8b7902a887a3f7e21a",
+  "fixtureFiles": {
+    "pages.pdf": "ff6058a7b3ebee3bb63e26a5680c1224009858b648b2d88c5b2054bf338a71d6",
+    "rotated.pdf": "63cb7705939bf4f2861684e78ad897a47557b47d0798ba4d99a95b1042e7ce15",
+    "alpha.png": "c4d5d3056cd106582467af98d080ccb322d9c0e5385a8d0b0fd5fde2912365f6",
+    "oriented.jpg": "55229a103d995051dca638a18c0e7b7788711d81a9da0d8badb551aef5b3be92",
+    "frames.tiff": "db11ee17be045471eae6dfcb9f3b11f7065e8a8fb7e00f08d98dbfbee4d9313d",
+    "frames.gif": "0c1d7b8911026a958d93f2dc60bb327f243abbb98413870cea52ce4d5ea98ecc",
+    "large.png": "e39959bdf5370645ff491c11c7425fa259b0772c33df74335fbcb13704fcd4b8",
+    "single.heic": "d3ba28ae03b0459390e6db6df595c67136f66c6bc1aa12457efefa003a24192b",
+    "rotated.heic": "28fb572d69fcae89a8ae92c3ffd8dd78724ccf8a1f102ddd7bf2f0e431ca1e7a",
+    "multi.heic": "e531ca1e681768f23545661935e50569b952c7dda5bf4b23476f828a8113e6de",
+    "broken.png": "d0dcf8dde4a7d50c3dd8905c2cc8bb95984eda650f987c37ad93dbb20ee55497",
+    "over-source.png": "7ea6ce492b9f2e83db0190808df466a16da53a11f25ba786f46c26821243c687",
+    "over-pixels.png": "c0c9273e7eb56ec7db3669e2f894a31811a98bea731842465a5967d0ee5e3f62",
+    "oversize.heic": "76b5f7f4dd67e32f84ad31a87b44e1553821cbfa2802a12fcf58ee6ee284838f",
+    "broken.heic": "2c3f3fffa926349f6955aaa72ec0656f39f7564e5f12c7878ccaf8e6415789c6"
+  },
+  "files": {
+    "README.md": "dd1dfb50fc554df3faa94987840973c800c8fc622f1a94558bfa89b3d13b001f",
+    "reproduce-preview.sh": "61a6ef86b3c97b095133d7a538ea3d8f05f8e82836218384dd39d3be0ccfeb9d",
+    "reproduce-bridge.sh": "a482f3896a6b631f4f4a1dd6b1c2d392056ce1f971d657e18d7cbd10059a9c69",
+    "reproduction/verify_cli.py": "6fc53d6ae1f4f956973ecfbf3754f55707538922c01dfceab67f8eca58d94809",
+    "reproduction/verify_failures.py": "67030b4509b35b73a9847f6acbe3bd8a5677d5b4777ba0f045e30797856bc897",
+    "results/cli-receipts.json": "58c74937e6a3a492675aa84e93d31c00a3c84c075ca27f16d102b39438bdeebe",
+    "results/failure-receipts.json": "12489a9ee76ec8e0027cacc0eec4ce52ea94f1e6305097819ee8948366ff62d8",
+    "bridge-host-tests.log": "b9b0964e2219c7206b008548ec3bcdb54b9fb6fe9e55f4bdb8091cebb701d945"
+  },
+  "checks": {
+    "sourcePreviewPassed": 18,
+    "failureCancelPassed": 5,
+    "integratedHostBridgePassed": 16,
+    "allSourcesUnchanged": true,
+    "finalRootReleaseOnly": true
+  },
+  "scope": "Read-only root source/runtime, own /tmp results, explicitly allowed generated root-native Cargo target, SDK-free Noble image"
+}

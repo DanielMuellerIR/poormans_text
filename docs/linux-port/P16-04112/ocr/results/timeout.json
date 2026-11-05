@@ -1,0 +1,34 @@
+[
+  {
+    "case": "png",
+    "source": "ocr.png",
+    "sourceSHA256": "f0ad2acc24a663fcbc6d16bc1f4d59956e627e8fd355833b228c7511c53880e0",
+    "sourceUnchanged": true,
+    "exit": 124,
+    "seconds": 1.1153736209962517,
+    "published": false,
+    "controlledRecognitionSleepObserved": true,
+    "response": {
+      "error": "The conversion tool exceeded its time limit.",
+      "ok": false,
+      "version": "0.41.12"
+    },
+    "stderr": ""
+  },
+  {
+    "case": "pdf",
+    "source": "sample.pdf",
+    "sourceSHA256": "a182895247779a29e215de2236d6d547612746aab7705aae3e2b9e5ea6b08640",
+    "sourceUnchanged": true,
+    "exit": 124,
+    "seconds": 1.4078246330027469,
+    "published": false,
+    "controlledRecognitionSleepObserved": true,
+    "response": {
+      "error": "The conversion tool exceeded its time limit.",
+      "ok": false,
+      "version": "0.41.12"
+    },
+    "stderr": ""
+  }
+]

@@ -1,0 +1,205 @@
+{
+  "frozenUTC": "2026-11-05T05:16:26.805045+00:00",
+  "cliSHA256": "2f49d54ecd6d9bae4962fcdb7f968ea4eef9c3844701d278a9a507e3e84db07c",
+  "version": "0.41.12",
+  "image": "sha256:503d26e7ff355675abf87b8a914f26f4698a40e813c08195c835d57b537f66c0",
+  "files": {
+    "README.md": {
+      "sha256": "02c00a40e832b84ed09234e79545368524ff345ccf40b41ec5fb81b0a2e50c9c",
+      "mode": "0o644"
+    },
+    "run.py": {
+      "sha256": "02a550174089d278f37b335fcf1f549b5460af49dc3cb5fc5830d3ef752ab67f",
+      "mode": "0o644"
+    },
+    "run_missing_unit.py": {
+      "sha256": "90a73aabdc973ecf352f70f0dd830b3a571e543236278d8c03abac392e7b1f82",
+      "mode": "0o644"
+    },
+    "reproduce.sh": {
+      "sha256": "dd46a137c826aa93555fac68dc1163921466b1446512c8a8b57f10aee5315043",
+      "mode": "0o755"
+    },
+    "reproduce_unit.sh": {
+      "sha256": "844518339d7718cceaacba1e76fbfa93d7342fd0bf7e174f7d99292bd0ab64e4",
+      "mode": "0o755"
+    },
+    "runtime/cli": {
+      "sha256": "4900db44e8ce8827a0754095a1d04586f57c4b50c993b831612f18de27be95b6",
+      "mode": "0o755"
+    },
+    "freeze.py": {
+      "sha256": "8d587788d9075babef5b08c40d98ebb0b40eff12b1af016a095f2f65297d44f9",
+      "mode": "0o644"
+    },
+    "fakes/timeout": {
+      "sha256": "c4c90bd654514080d24393573539266b04ead06bebfad5525746f2dfa1021dbb",
+      "mode": "0o755"
+    },
+    "fakes/iofault": {
+      "sha256": "3e1494c7b55f2d177b6c5c7bce42fac74253bf5199e5e3142fc554bb2937bbd7",
+      "mode": "0o755"
+    },
+    "fakes/nolangs": {
+      "sha256": "bad0549037d7b2206d71d7f00d8547b84d1662454a544f9405d3129a3c9f9fa8",
+      "mode": "0o755"
+    },
+    "fakes/nonexec": {
+      "sha256": "f340a0f4e8f87c4250b5d44bb3df23a66ccdd09c295924807aea16d50b2e7dbc",
+      "mode": "0o644"
+    },
+    "fixtures/blank.png": {
+      "sha256": "e6c1b77f53191625cb96289940e11361f943997ad26799f95900659278d34a45",
+      "mode": "0o644"
+    },
+    "fixtures/sample.pdf": {
+      "sha256": "a182895247779a29e215de2236d6d547612746aab7705aae3e2b9e5ea6b08640",
+      "mode": "0o644"
+    },
+    "fixtures/ocr.png": {
+      "sha256": "f0ad2acc24a663fcbc6d16bc1f4d59956e627e8fd355833b228c7511c53880e0",
+      "mode": "0o644"
+    },
+    "results/missing-unit.json": {
+      "sha256": "af64d26a2bda056ba57bad201d5d7f10173a7fb47f8c8bf23181de2b9a2123f7",
+      "mode": "0o644"
+    },
+    "results/missing-unit.log": {
+      "sha256": "81e306fbab79cdf1ff4fb093ffb5f3c79b8838f31eae104f2afb435ccaffcafb",
+      "mode": "0o644"
+    },
+    "results/summary.json": {
+      "sha256": "16e4481c643d7af2c8ae7179fcd2cd3f0c3cdf75e2b039ab01d651cffd0a06f2",
+      "mode": "0o644"
+    },
+    "results/real.json": {
+      "sha256": "b2873a39d0828239b32882a84e68831593167b5bb56d9d4f72a38289705d0034",
+      "mode": "0o644"
+    },
+    "results/timeout.json": {
+      "sha256": "78b2a64842af4dd79349e7ffab71146a74ab96158b3d9b4bf37c8e4e2073af1e",
+      "mode": "0o644"
+    },
+    "results/iofault.json": {
+      "sha256": "40e4bfed48bd73625c482129ce82284b991b896cb5db56feadb535924ef462b3",
+      "mode": "0o644"
+    },
+    "results/nolangs.json": {
+      "sha256": "53223ee670d66cfcde79b33e7b94bd58d156675bc64f7359b8490130cca3e4e1",
+      "mode": "0o644"
+    },
+    "results/nonexec.json": {
+      "sha256": "dbbc6debb7e7a3373d8fcea4ac803b4f15fcb0aab31e884e67ae73aba2a9b979",
+      "mode": "0o644"
+    }
+  },
+  "runtimeLibs": {
+    "lib/libBlocksRuntime.so": "854f7f01ddf854117eb674c5c81fa126ca8c4ad12fea440bf6e329c313550797",
+    "lib/libFoundation.so": "729f40c8bae7bb6bef71e1ebaae5b1b10f576ed4f105efc430e8869e79db3486",
+    "lib/libFoundationEssentials.so": "f3b5974e1a63bdce3e31c7167b6e9fe800d675fa352978f487268ecbf2cc15ab",
+    "lib/libFoundationInternationalization.so": "a77c2a13d56cd4fe1d30c9ce69f5bc0babb18b615a557c344915c40ba6e78e4e",
+    "lib/libFoundationXML.so": "41d657f136f2153c6e46389a93c55269f4e01fcde878be84de286c4154f9b179",
+    "lib/lib_FoundationICU.so": "6463c566300feea43c37a430201bffd67354a22374b5a9c6c6bba2f7b6b7f0e7",
+    "lib/libdispatch.so": "82506303a5dfa7d2b57d91f71539fdedcce5ef4e3d152aeb684b8963f078c5b9",
+    "lib/libicudata.so.74": "ddbb3718b8bd9cbd780e5ab08b4503c30a6c4fa0706ebe5d074ed6b596c1714e",
+    "lib/libicuuc.so.74": "7560aadde38e5f4237a47a1ddd5891f9b36768a77a60faae30beee003ac01901",
+    "lib/liblzma.so.5": "a9793942a8a5f6f4d0f523ef9e0a5be4f0033f2c6c28520cd2b4e706d53c6e17",
+    "lib/libpng16.so.16": "89c0c6569a8c00480d451401ad4c0a74942e62dc57f229a970592fdc5adb29e8",
+    "lib/libswiftCore.so": "a2b87638e07a166a481df28c22bc11b3b205278391b066305f9f76defe974134",
+    "lib/libswiftDispatch.so": "479a7523cfcc596578aabb338b539d985f02fd08045496918c9d89a9fc7207c2",
+    "lib/libswiftGlibc.so": "8f2dab49d158a6674758cbbf661fa08472c64890c5624fe9eba3f7835525b19b",
+    "lib/libswiftSynchronization.so": "abe5ee45ed19a0438a37cf1bccd670002d0acd8cc0a19a5e22f900be1d63a094",
+    "lib/libswift_Concurrency.so": "1c44700fdb77495ab8d59015d7837d36d714322446fdeb73bc2077d720886037",
+    "lib/libswift_RegexParser.so": "d86e4ca8a52f32d086e6eabdf452ee20f6ece62be9e9f000835fcf4b50550f9c",
+    "lib/libswift_StringProcessing.so": "0dcde92e47df929767a012bdf042e1bcf84e23d7edcd6f3bf8c137a75dcebe43",
+    "lib/libxml2.so.2": "0ec89f65e1868cb79caa8a4cd5f47194ce95ac09f7a1d49e76049f391254a3a3",
+    "lib/libz.so.1": "f61677c7bdb7c2aa2a243ea781bfd16afcb361cede7b4ef76127a9d8eb9a5242"
+  },
+  "candidateFiles": {
+    "cli": "4900db44e8ce8827a0754095a1d04586f57c4b50c993b831612f18de27be95b6",
+    "poormans-text-process-guard": "cf677f9be88095a27423ceedb9db2b85667f7775d167857cfb52002ff5dda520",
+    "poormans-text": "2f49d54ecd6d9bae4962fcdb7f968ea4eef9c3844701d278a9a507e3e84db07c",
+    "PoorMansText_PoorMansTextCore.resources/LinuxBackends/legacy_doc.py": "a520e7c9ad8dacf9eae857f30ce04e4fbbc2e0f00a132deed68f81b826374f76",
+    "PoorMansText_PoorMansTextCore.resources/LinuxBackends/heif.py": "be3eb12e3934a3a7c5045f26b376b30cd57523da804fa5c8f188cded3ecd478e",
+    "PoorMansText_PoorMansTextCore.resources/LinuxBackends/raster.py": "3a12816a31bef60aa93012c5628b2e0c268d13877eb0325754ca92a17b0a7513",
+    "PoorMansText_PoorMansTextCore.resources/LinuxBackends/poppler.py": "7236b6c3b9cc4779395c170f716db5eea9b8c2ef626254d2589265667aff1425"
+  },
+  "unit": {
+    "binarySHA256": "c14c9a0634345f49dd46011c0ff681e9f3b36d281b86af5e33aca296369b5be1",
+    "runtimeLibs": {
+      "lib_Testing_Foundation.so": "e8e6946c0ee12263c21c495470ccc55cc51f19ef167bc51919f7c750b1774b54",
+      "libswiftSwiftOnoneSupport.so": "514a7df19f22caf0777b2251afc1181c557beae1daf8c5532d6b6beb090ed786",
+      "libswiftCore.so": "a2b87638e07a166a481df28c22bc11b3b205278391b066305f9f76defe974134",
+      "libswift_Concurrency.so": "1c44700fdb77495ab8d59015d7837d36d714322446fdeb73bc2077d720886037",
+      "libswift_StringProcessing.so": "0dcde92e47df929767a012bdf042e1bcf84e23d7edcd6f3bf8c137a75dcebe43",
+      "libswift_RegexParser.so": "d86e4ca8a52f32d086e6eabdf452ee20f6ece62be9e9f000835fcf4b50550f9c",
+      "libswiftGlibc.so": "8f2dab49d158a6674758cbbf661fa08472c64890c5624fe9eba3f7835525b19b",
+      "libBlocksRuntime.so": "854f7f01ddf854117eb674c5c81fa126ca8c4ad12fea440bf6e329c313550797",
+      "libdispatch.so": "82506303a5dfa7d2b57d91f71539fdedcce5ef4e3d152aeb684b8963f078c5b9",
+      "libswiftDispatch.so": "479a7523cfcc596578aabb338b539d985f02fd08045496918c9d89a9fc7207c2",
+      "libFoundation.so": "729f40c8bae7bb6bef71e1ebaae5b1b10f576ed4f105efc430e8869e79db3486",
+      "libFoundationEssentials.so": "f3b5974e1a63bdce3e31c7167b6e9fe800d675fa352978f487268ecbf2cc15ab",
+      "libFoundationInternationalization.so": "a77c2a13d56cd4fe1d30c9ce69f5bc0babb18b615a557c344915c40ba6e78e4e",
+      "libFoundationXML.so": "41d657f136f2153c6e46389a93c55269f4e01fcde878be84de286c4154f9b179",
+      "libTesting.so": "5bbae34b33bd90cdbfa82eea1a15ee56e9e37aa92503836736478c91e9b73d92",
+      "libXCTest.so": "09bb92fbf48dbbcdf6841efa40e68946b5b6682de814a5c137136b6b1394ad51",
+      "libz.so.1": "f61677c7bdb7c2aa2a243ea781bfd16afcb361cede7b4ef76127a9d8eb9a5242",
+      "libpng16.so.16": "89c0c6569a8c00480d451401ad4c0a74942e62dc57f229a970592fdc5adb29e8",
+      "lib_FoundationICU.so": "6463c566300feea43c37a430201bffd67354a22374b5a9c6c6bba2f7b6b7f0e7",
+      "libswiftSynchronization.so": "abe5ee45ed19a0438a37cf1bccd670002d0acd8cc0a19a5e22f900be1d63a094",
+      "libxml2.so.2": "0ec89f65e1868cb79caa8a4cd5f47194ce95ac09f7a1d49e76049f391254a3a3",
+      "libicuuc.so.74": "7560aadde38e5f4237a47a1ddd5891f9b36768a77a60faae30beee003ac01901",
+      "liblzma.so.5": "a9793942a8a5f6f4d0f523ef9e0a5be4f0033f2c6c28520cd2b4e706d53c6e17",
+      "libicudata.so.74": "ddbb3718b8bd9cbd780e5ab08b4503c30a6c4fa0706ebe5d074ed6b596c1714e"
+    },
+    "resourceFiles": {
+      "PoorMansText_PoorMansTextFormatTests.resources/Fixtures/LinuxPDF/README.md": "c1651c698290171260c4d501a2af73fe23c4b28e60951ab979c6407737034710",
+      "PoorMansText_PoorMansTextFormatTests.resources/Fixtures/LinuxPDF/word-gaps.pdf": "eded7804127acce26e4b9e7138aa8c95d0d8886280a21148efb0ae9519941ede",
+      "PoorMansText_PoorMansTextFormatTests.resources/Fixtures/WordProcessing/unsafe-path.docx": "00019ad15e05f0d8e4f27de0d94604b07c139227f38ec8336959d85ad625c5d7",
+      "PoorMansText_PoorMansTextFormatTests.resources/Fixtures/WordProcessing/textutil.odt": "bcac386862b831e2db4b6f288599df328ef068fc96145481bd9f6ebff1a2bd14",
+      "PoorMansText_PoorMansTextFormatTests.resources/Fixtures/WordProcessing/textutil.docx": "23c133f8df54c1705719a753c4049cb24712bf6eac3fe81b5fea8b96a788667b",
+      "PoorMansText_PoorMansTextFormatTests.resources/Fixtures/WordProcessing/textutil.doc": "20f36da96103519e15e70f8dee6547506059f18962b1bf4205d50e9e6b102973",
+      "PoorMansText_PoorMansTextFormatTests.resources/Fixtures/WordProcessing/source.md": "6e0c316a6e6078e9a1e231687c48f0d968a5f7b8fd0d4b478e11903d5d3c18d0",
+      "PoorMansText_PoorMansTextFormatTests.resources/Fixtures/WordProcessing/source.html": "93c1c1031ac62a445c324adeb13929bdca67aebc3c5aaaa8a579ae2b8297b21e",
+      "PoorMansText_PoorMansTextFormatTests.resources/Fixtures/WordProcessing/pandoc.odt": "9fa5c2e21ffeb5f2e94c1908b5d17f45daccbef91a9d05fc2e835ff8cc4ef59d",
+      "PoorMansText_PoorMansTextFormatTests.resources/Fixtures/WordProcessing/pandoc.docx": "83638a13679f3d8851b50764b82ead9f91e665cfb42b5bde706fe7f8ac772b26",
+      "PoorMansText_PoorMansTextFormatTests.resources/Fixtures/WordProcessing/libreoffice.odt": "20cd3b86ed353d120053652b8cce699651e5c4f2a400cb40b6e9f199150bc7b5",
+      "PoorMansText_PoorMansTextFormatTests.resources/Fixtures/WordProcessing/libreoffice.docx": "0b4b90a48ce3f7a81a70a97c89cc3127be2b0cf98008c3177722009a678115f6",
+      "PoorMansText_PoorMansTextFormatTests.resources/Fixtures/WordProcessing/libreoffice.doc": "611cf70e2baa1465b27c1efae8069c8452a38ed30cfa011212c571ba72571057",
+      "PoorMansText_PoorMansTextFormatTests.resources/Fixtures/WordProcessing/fixture.png": "161e77431664be88483d7fef7bdd0123c9ed53318cfc9d1c4fa84af80ea2ab28",
+      "PoorMansText_PoorMansTextFormatTests.resources/Fixtures/WordProcessing/external-image.odt": "6dacf9c1f71828876cca01cb181f753b844e94503ef80822ec96d3199aa66e5f",
+      "PoorMansText_PoorMansTextFormatTests.resources/Fixtures/WordProcessing/external-image.docx": "0834403bc503288f27cda8098bac5ac6a7f1f277ef9f8cd30701e09f381220f0",
+      "PoorMansText_PoorMansTextFormatTests.resources/Fixtures/WordProcessing/annotated.odt": "7998e8ff92eb29ad476ddb9e4b4be66730b552e4225e984539c1b50bf95b2033",
+      "PoorMansText_PoorMansTextFormatTests.resources/Fixtures/WordProcessing/annotated.docx": "3591312a081e27ac6340e58ae3959851455cc37df3cb38e3f1f8ad8105d1ec06",
+      "PoorMansText_PoorMansTextFormatTests.resources/Fixtures/WordProcessing/README.md": "feb68e88577351f87c6ff137567ed448b098cc0f08a40e5d0df036a0971473bb",
+      "PoorMansText_PoorMansTextFormatTests.resources/Fixtures/Spreadsheets/not-word.xls": "5900f9075501f270e512237afcf62b0c1b1c9a85e308c220713267b2e42c9038",
+      "PoorMansText_PoorMansTextFormatTests.resources/Fixtures/Spreadsheets/multisheet.ods": "f7c617c53f687958d00ecd76e36de674f1f6811bd56d0a72a4ef668be8958419",
+      "PoorMansText_PoorMansTextFormatTests.resources/Fixtures/Spreadsheets/README.md": "73d2abf7afaeb8d39c4ee9660d2ae42bbb90580c9cbab91a965821c29765ca8a",
+      "PoorMansText_PoorMansTextCore.resources/LinuxBackends/heif.py": "be3eb12e3934a3a7c5045f26b376b30cd57523da804fa5c8f188cded3ecd478e",
+      "PoorMansText_PoorMansTextCore.resources/LinuxBackends/legacy_doc.py": "a520e7c9ad8dacf9eae857f30ce04e4fbbc2e0f00a132deed68f81b826374f76",
+      "PoorMansText_PoorMansTextCore.resources/LinuxBackends/poppler.py": "7236b6c3b9cc4779395c170f716db5eea9b8c2ef626254d2589265667aff1425",
+      "PoorMansText_PoorMansTextCore.resources/LinuxBackends/raster.py": "3a12816a31bef60aa93012c5628b2e0c268d13877eb0325754ca92a17b0a7513"
+    },
+    "executed": 1,
+    "failed": 0,
+    "skipped": 0
+  },
+  "checks": {
+    "cliCasesPassed": 11,
+    "expectedFailureNoPublication": 8,
+    "ocrOffSuccess": 2,
+    "realBlankSuccess": 1,
+    "allSourcesUnchanged": true,
+    "originalPNGAssetsByteEqual": true,
+    "blankFalseAppliedAbsent": true,
+    "controlledRecognitionSleepObserved": [
+      "PNG",
+      "PDF"
+    ],
+    "ioFaultMarkerPreserved": [
+      "PNG",
+      "PDF"
+    ]
+  },
+  "scope": "Controlled ephemeral container masks only; no product patch and no host tool changes"
+}

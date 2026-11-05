@@ -1,0 +1,81 @@
+   Compiling poormans-text-gtk v0.41.11 (/tmp/pmt-p14-clipboard-compare/linux/app)
+    Finished `test` profile [unoptimized] target(s) in 0.97s
+     Running unittests src/lib.rs (.build/linux-ui-target/debug/deps/pmt_bridge-b87bc571adf6bfaf)
+
+running 21 tests
+test tests::batch_entries_inherit_version_and_partial_results_are_kept ... ignored, requires explicit built guard, real CLI and host namespaces
+test tests::cancel_waits_for_detached_descendant_and_does_not_signal_unrelated_process ... ignored, requires explicit built guard, real CLI and host namespaces
+test tests::contradictory_error_response_cannot_become_success ... ignored, requires explicit built guard, real CLI and host namespaces
+test tests::immediate_exit_cannot_escape_namespace_barrier ... ignored, requires explicit built guard, real CLI and host namespaces
+test tests::json_must_be_complete_and_stdout_is_bounded ... ignored, requires explicit built guard, real CLI and host namespaces
+test tests::missing_binary_and_false_success_are_errors_with_raw_response ... ignored, requires explicit built guard, real CLI and host namespaces
+test tests::parent_loss_kills_real_cli_and_swift_namespace ... ignored, requires real Swift CLI and working mandatory namespaces
+test tests::pidfd_emfile_fails_before_workload_start ... ignored, requires explicit built guard, real CLI and host namespaces
+test tests::pidfd_failure_process ... ignored, internal pidfd fault-injection fixture subprocess
+test tests::real_cancel_waits_for_swift_namespace ... ignored, requires real Swift CLI and working mandatory namespaces
+test tests::real_catalog_csv_folder_and_hashes ... ignored, requires explicit PMT_TEST_CLI; exercised separately against the real producer
+test tests::real_readonly_source_and_fifo ... ignored, requires real CLI, guard and host namespaces
+test tests::sealed_input_reaches_two_jobs_with_independent_offsets ... ignored, requires explicit built guard and host namespaces
+test tests::stderr_and_event_queue_remain_bounded_without_a_consumer ... ignored, requires explicit built guard, real CLI and host namespaces
+test tests::timeout_and_dropped_handles_cancel_the_owned_child ... ignored, requires explicit built guard, real CLI and host namespaces
+test tests::ui_loss_before_ack_starts_no_workload ... ignored, requires explicit built guard, real CLI and host namespaces
+test tests::ui_owner_process ... ignored, internal owner-loss fixture subprocess
+test tests::unknown_fields_and_os_arguments_are_preserved ... ignored, requires explicit built guard, real CLI and host namespaces
+test bound_input::tests::basename_and_size_fail_closed ... ok
+test bound_input::tests::unsealed_input_is_rejected ... ok
+test bound_input::tests::sealed_bytes_and_independent_offsets ... ok
+
+test result: ok. 3 passed; 0 failed; 18 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (.build/linux-ui-target/debug/deps/poormans_text_gtk-db4933832a5fc87f)
+
+running 35 tests
+test clipboard::tests::only_real_supported_encodings_are_offered ... ok
+test clipboard::tests::private_source_preserves_original_bytes_without_a_host_path ... ok
+test comparison::tests::offsets_inside_utf8_and_overflow_are_rejected ... ok
+test comparison::tests::output_document_keeps_its_parent_identity_context ... ok
+test comparison::tests::sha256_uses_standard_vector ... ok
+test comparison::tests::clipboard_marker_without_retained_input_fails_closed ... ok
+test comparison::tests::bound_source_survives_original_path_loss_and_uses_verified_unicode_ranges ... ok
+test model::tests::arguments_preserve_paths_and_separator ... ok
+test comparison::tests::bound_source_hash_mismatch_and_output_replacement_are_rejected ... ok
+test model::tests::catalog_and_diagnostics_are_readable ... ok
+test model::tests::diagnostics_keep_each_provided_location ... ok
+test comparison::tests::symlink_replacement_is_not_followed ... ok
+test model::tests::language_overrides_c_locale ... ok
+test model::tests::empty_input_is_error ... ok
+test comparison::tests::replacement_between_verified_read_and_gui_commit_is_rejected ... ok
+test model::tests::partial_result_retains_only_declared_files ... ok
+test model::tests::physical_unicode_output_paths_remain_distinct ... ok
+test profiles::tests::local_targets_and_discard_require_explicit_flags ... ok
+test comparison::tests::unicode_byte_positions_select_complete_scalars ... ok
+test profiles::tests::profile_application_has_no_gui_default_overrides ... ok
+test profiles::tests::saved_options_exclude_process_controls ... ok
+test comparison::tests::source_and_output_modifications_disable_comparison ... ok
+test source_raster::tests::accepts_bounded_canonical_verified_png_payload ... ok
+test source_raster::tests::changed_source_is_rejected_before_any_png_decode ... ok
+test read_output::tests::outside_and_parent_components_and_missing_manifest_are_rejected ... ok
+test read_output::tests::canonical_equivalent_names_are_distinct ... ok
+
+running 1 test
+test source_raster::tests::incorrect_selection_hash_and_bytecount_are_rejected ... ok
+test read_output::tests::final_symlink_and_fifo_are_rejected_without_blocking ... ok
+test source_raster::tests::noncanonical_base64_and_ihdr_mismatch_are_rejected ... ok
+test source_raster::tests::oversized_dimensions_and_payload_are_rejected_before_texture_decode ... ok
+test read_output::tests::manifest_count_hash_and_bounded_read ... ok
+test read_output::tests::same_bytes_replaced_inode_invalidates_snapshot ... ok
+test read_output::tests::intermediate_symlink_and_bound_root_replacement_are_rejected ... ok
+test clipboard::tests::adversarial_tmpdir_parent_swap_never_touches_canary ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 34 filtered out; finished in 0.00s
+
+test clipboard::tests::adversarial_tmpdir_parent_swap_never_touches_canary ... ok
+test comparison::tests::overlapping_large_mappings_have_bounded_snippets_and_shared_linear_endpoints ... ok
+
+test result: ok. 35 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.38s
+
+   Doc-tests pmt_bridge
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

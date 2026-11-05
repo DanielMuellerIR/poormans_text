@@ -53,7 +53,8 @@ ihre eigenen [Korpuslizenzen](P11-NATURAL-EVIDENCE/ATTRIBUTION.md).
 [Kleine Messwerte und Hashes](P11-TATR-EVIDENCE/result.json), Modellrevisionen und
 vollständige Wheelpins bleiben erhalten; große Modelle bleiben außerhalb des
 Repositories. Das bewusst zu startende Reproduktionsrezept liegt unter
-`scripts/linux-probes/p11/tatr/`. Es ist kein Runtime-Downloadmechanismus.
+`scripts/linux-probes/p11/tatr/`. Es ist kein Runtime-Downloadmechanismus. Die beiden eigenen Modell-Testimages
+wurden nach Sicherung der kleinen Belege entfernt.
 
 Primärquellen: [Microsoft-Inferenzvertrag](https://github.com/microsoft/table-transformer/blob/16d124f616109746b7785f03085100f1f6247575/docs/INFERENCE.md),
 [FrozenBatchNorm-Ladepfad](https://github.com/huggingface/transformers/blob/v4.57.1/src/transformers/models/table_transformer/modeling_table_transformer.py),

@@ -1,0 +1,137 @@
+[
+  {
+    "source": "source.heic",
+    "sourceSHA256": "d3ba28ae03b0459390e6db6df595c67136f66c6bc1aa12457efefa003a24192b",
+    "preview": {
+      "byteCount": 524,
+      "count": 1,
+      "diagnostics": [
+        {
+          "code": "preview.passiveRaster",
+          "kind": "information",
+          "message": "This bounded source raster is passive. Source metadata is removed, transparent pixels appear on white, and interactive source actions are unavailable."
+        }
+      ],
+      "height": 24,
+      "index": 1,
+      "kind": "frame",
+      "sha256": "c7f350bf60a8ed02bc6480831473b4f87624ad10d9e617dffee89c6881707e7f",
+      "sourceIdentity": {
+        "byteCount": 3333,
+        "name": "clipboard.heic",
+        "sha256": "d3ba28ae03b0459390e6db6df595c67136f66c6bc1aa12457efefa003a24192b"
+      },
+      "width": 32
+    }
+  },
+  {
+    "source": "pages.pdf",
+    "sourceSHA256": "ff6058a7b3ebee3bb63e26a5680c1224009858b648b2d88c5b2054bf338a71d6",
+    "preview": {
+      "byteCount": 8110,
+      "count": 2,
+      "diagnostics": [
+        {
+          "code": "preview.passiveRaster",
+          "kind": "information",
+          "message": "This bounded source raster is passive. Source metadata is removed, transparent pixels appear on white, and interactive source actions are unavailable."
+        },
+        {
+          "code": "preview.annotationsOmitted",
+          "kind": "approximation",
+          "message": "The source preview omits annotation appearances and may differ from a full PDF viewer."
+        }
+      ],
+      "height": 600,
+      "index": 2,
+      "kind": "page",
+      "sha256": "132604a3831fb80afa7260bb2a4c795c7a67b7e2c6fcf4ba52d96227d0acbb8e",
+      "sourceIdentity": {
+        "byteCount": 3240,
+        "name": "pages.pdf",
+        "sha256": "ff6058a7b3ebee3bb63e26a5680c1224009858b648b2d88c5b2054bf338a71d6"
+      },
+      "width": 800
+    }
+  },
+  {
+    "normalPDF": {
+      "assets": [],
+      "diagnosticGroups": [
+        {
+          "code": "pdf.layoutNotPreserved",
+          "count": 1,
+          "kind": "approximation",
+          "locations": [],
+          "messages": [
+            "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+          ],
+          "omittedCount": 0
+        },
+        {
+          "code": "pdf.vectorGraphicsNotExtracted",
+          "count": 1,
+          "kind": "contentLoss",
+          "locations": [],
+          "messages": [
+            "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF."
+          ],
+          "omittedCount": 0
+        },
+        {
+          "code": "pdf.linuxLayoutApproximation",
+          "count": 1,
+          "kind": "approximation",
+          "locations": [],
+          "messages": [
+            "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed."
+          ],
+          "omittedCount": 0
+        }
+      ],
+      "diagnostics": [
+        {
+          "code": "pdf.layoutNotPreserved",
+          "kind": "approximation",
+          "message": "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+        },
+        {
+          "code": "pdf.vectorGraphicsNotExtracted",
+          "kind": "contentLoss",
+          "message": "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF."
+        },
+        {
+          "code": "pdf.linuxLayoutApproximation",
+          "kind": "approximation",
+          "message": "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed."
+        }
+      ],
+      "documents": [
+        {
+          "assets": [],
+          "markdownFile": "/probe/proof/pdf-normal-1793854133240381952/pages.md",
+          "metadata": {
+            "created": "2026-11-05T03:10:47Z",
+            "modified": "2026-11-05T03:10:47Z"
+          },
+          "sourceIndex": 1,
+          "title": "pages"
+        }
+      ],
+      "input": "/probe/fixtures/pages.pdf",
+      "markdownFile": "/probe/proof/pdf-normal-1793854133240381952/pages.md",
+      "metadata": {
+        "created": "2026-11-05T03:10:47Z",
+        "modified": "2026-11-05T03:10:47Z"
+      },
+      "ok": true,
+      "outputDirectory": "/probe/proof/pdf-normal-1793854133240381952",
+      "version": "0.41.11",
+      "warnings": [
+        "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review.",
+        "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF.",
+        "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed."
+      ]
+    }
+  }
+]

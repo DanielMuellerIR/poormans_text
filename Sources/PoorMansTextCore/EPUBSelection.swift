@@ -99,8 +99,13 @@ final class EPUBSelectionPackage {
     static func xml(_ data: Data) throws -> XMLDocument {
         _ = try ImportXML.parse(data)
         let document = try XMLDocument(data: data, options: [.nodeLoadExternalEntitiesNever, .nodePreserveAll])
+        #if os(Linux)
         // XMLDocument.dtd ist unter FoundationXML/Linux nicht implementiert.
-        if let dtd = (document.children ?? []).compactMap({ $0 as? XMLDTD }).first {
+        let dtd = (document.children ?? []).compactMap { $0 as? XMLDTD }.first
+        #else
+        let dtd = document.dtd
+        #endif
+        if let dtd {
             guard dtd.systemID == nil, dtd.publicID == nil, !(dtd.children ?? []).contains(where: { $0.kind == .entityDeclaration }) else {
                 throw ImportFailure("EPUB XML entity declarations and external DTDs are not supported")
             }

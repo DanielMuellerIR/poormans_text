@@ -1,0 +1,25 @@
+MESA-EGL: warning: DRI3 error: Could not get DRI3 device
+MESA-EGL: warning: Ensure your X server supports DRI3 to get accelerated rendering
+PMT_UI_TEST_JOB_STARTED conversion=false
+PMT_UI_TEST_OPERATION_FINISHED conversion=false cancelled=false
+PMT_UI_TEST_CLIPBOARD_ENCODING image/png exact-bytes-sealed-no-host-file
+PMT_UI_TEST_CLIPBOARD_ENCODING image/jpeg exact-bytes-sealed-no-host-file
+PMT_UI_TEST_CLIPBOARD_ENCODING image/gif exact-bytes-sealed-no-host-file
+PMT_UI_TEST_CLIPBOARD_ENCODING image/tiff exact-bytes-sealed-no-host-file
+PMT_UI_TEST_CLIPBOARD_ENCODING image/bmp exact-bytes-sealed-no-host-file
+PMT_UI_TEST_CLIPBOARD_ENCODING image/webp exact-bytes-sealed-no-host-file
+PMT_UI_TEST_CLIPBOARD_ENCODING image/heic exact-bytes-sealed-no-host-file
+PMT_UI_TEST_CLIPBOARD_ENCODING text/html exact-bytes-sealed-no-host-file
+PMT_UI_TEST_CLIPBOARD_ENCODING application/rtf exact-bytes-sealed-no-host-file
+PMT_UI_TEST_CLIPBOARD_LIMIT 64MiB-rejected
+PMT_UI_TEST_CLIPBOARD_CANCEL cancelled-and-cleaned
+PMT_UI_TEST_SOURCES [[47,100,101,118,47,112,109,116,45,105,110,112,117,116,47,99,108,105,112,98,111,97,114,100,46,112,110,103]]
+PMT_UI_TEST_JOB_STARTED conversion=true
+PMT_UI_TEST_CLIPBOARD_HELD during-real-cli-job
+PMT_UI_TEST_OPERATION_FINISHED conversion=true cancelled=false
+PMT_UI_TEST_RESULT {"assets":["/clip-fixtures/converted-1793855164880668434/images/image01.png"],"diagnosticGroups":[{"code":"sourceMap.unavailable","count":1,"kind":"information","locations":[],"messages":["No verified source-to-text positions are available for this conversion."],"omittedCount":0}],"diagnostics":[{"code":"sourceMap.unavailable","kind":"information","message":"No verified source-to-text positions are available for this conversion."}],"documents":[{"assets":["/clip-fixtures/converted-1793855164880668434/images/image01.png"],"markdownFile":"/clip-fixtures/converted-1793855164880668434/clipboard.md","metadata":{},"sourceIndex":1,"title":"clipboard"}],"input":"/dev/pmt-input/clipboard.png","markdownFile":"/clip-fixtures/converted-1793855164880668434/clipboard.md","metadata":{},"ok":true,"outputDirectory":"/clip-fixtures/converted-1793855164880668434","outputFiles":[{"byteCount":46,"path":"clipboard.md","sha256":"8a9f3ee2d03fbfea0683a3a6ac7aee0904c75c6e1a7ddb019f3c5aa6a5be3b9e"},{"byteCount":92,"path":"images/image01.png","sha256":"f73bf0b40f5f29de5fc19c1efebd20a3881489991c6f13c0e0652e15b1db5aff"}],"sourceIdentity":{"byteCount":92,"name":"clipboard.png","sha256":"f73bf0b40f5f29de5fc19c1efebd20a3881489991c6f13c0e0652e15b1db5aff"},"sourceMappings":[],"version":"0.41.11","warnings":["No verified source-to-text positions are available for this conversion."]}
+PMT_UI_TEST_CLIPBOARD_COPY complete-real-md-exact
+PMT_UI_TEST_SOURCES []
+PMT_UI_TEST_CLIPBOARD_UI clear-cleaned-after-real-job
+PMT_UI_TEST_SOURCES [[47,100,101,118,47,112,109,116,45,105,110,112,117,116,47,99,108,105,112,98,111,97,114,100,46,112,110,103]]
+PMT_UI_TEST_CLIPBOARD_CLOSE released-after-job-barrier

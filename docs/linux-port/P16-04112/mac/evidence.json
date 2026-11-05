@@ -1,0 +1,137 @@
+{
+  "date": "2026-11-05",
+  "version": "0.41.12",
+  "build": "97",
+  "environment": {
+    "architecture": "arm64",
+    "macOS": "26.7.2",
+    "macOSBuild": "25G332",
+    "swift": "6.4.2",
+    "pandoc": "3.12.1",
+    "guiStarted": false,
+    "installed": false
+  },
+  "snapshots": [
+    {
+      "sourceTreeSHA256": "ddf6c8c51cbcef1a8cb5a04e5e42f858b7309c9ed5c61bb488a42db4e0684371",
+      "archiveSHA256": "57e6edba7f4c599956eeefbc7add4b2ec18860699a18a78f47ad7f4082791413",
+      "files": 507,
+      "result": "Native App/CLI compiled. EPUB rejection tests failed; two documentation files absent from archive. Full suite stopped at independently documented OCR baseline hang.",
+      "cliSHA256": "f9e82424fdc9481930cabdc35c62ff5c6b613138951ae9b7d822716af0a9c877",
+      "appSHA256": "90bcb22efe5422662eb98921f4dab41927e7a215c2b20806719b9ed164d52951"
+    },
+    {
+      "sourceTreeSHA256": "bcfee5269d183f9cb766b30d20bc91bc951320575bd646ebe38bf0432785fbdd",
+      "deltaSHA256": "f49cf16f0dff57987f336687c4a32c0aa9e0d88a395595711f3f9f2582b7be26",
+      "files": 509,
+      "result": "Native DTD behavior restored; 3 Portable XML and20 Core XML/EPUB/DOCX tests passed. Core remaining target passed1052 tests/9skips/0failures. Portable test-only temporary delegate crashed.",
+      "cliSHA256": "9c8713cf6d8a3687f54a4fdceae7de59669da838d76a41f054a0a9e8b94ace0d",
+      "appSHA256": "0e427f623266fe6054447100c8fa999c3bf6a4e76af757b7334a472d0ea4ab01"
+    },
+    {
+      "sourceTreeSHA256": "7859118b1d27a37de1b4e7f6b9f9143545daec11f1ce8ce6e6f87c568e3f91b3",
+      "deltaSHA256": "d7f8658ed8fea8c24546b23e6f7ff10e66394f83ed2064764df65aa699e6fe1b",
+      "files": 509,
+      "result": "Test delegate retained. Portable15/0failures passed; production CLI hash unchanged before/after.",
+      "cliSHA256": "9c8713cf6d8a3687f54a4fdceae7de59669da838d76a41f054a0a9e8b94ace0d",
+      "sourceFilesUnchanged": true
+    }
+  ],
+  "coreTests": {
+    "tests": 1052,
+    "skipped": 9,
+    "failures": 0,
+    "exit": 0,
+    "seconds": 134.073,
+    "excludedExactKnownBaseline": "StructuredOCRTests.testSynchronousBridgeRunsFromCooperativeTasksAndPropagatesContext"
+  },
+  "portableTests": {
+    "tests": 15,
+    "skipped": 0,
+    "failures": 0,
+    "exit": 0
+  },
+  "targetedTests": {
+    "core": 20,
+    "portable": 3,
+    "failures": 0
+  },
+  "cli": {
+    "cliSHA256": "9c8713cf6d8a3687f54a4fdceae7de59669da838d76a41f054a0a9e8b94ace0d",
+    "version": "Poor Man's Text 0.41.12",
+    "cases": [
+      {
+        "format": "csv",
+        "exit": 0,
+        "sourceSHA256": "8e9bacde388722cd0393a8b17c8eb4b559a7879307789f44255146188364f06c",
+        "sourceUnchanged": true,
+        "filenameNFC": true,
+        "checks": {
+          "markdownUTF8": true,
+          "allCSVValues": true,
+          "nineMappings": true
+        },
+        "outputFiles": [
+          {
+            "path": "Grüße é & Zeichen.md",
+            "byteCount": 181,
+            "sha256": "29a4444b321f07fdcdc3a52c5a70e7f93b69c763ec8ca74bd31d1ebaa34ed276"
+          }
+        ]
+      },
+      {
+        "format": "docx",
+        "exit": 0,
+        "sourceSHA256": "b7900844c2d2f40995611becef8f778d30cd5c32a1f43ece6268d1b0862d05a1",
+        "sourceUnchanged": true,
+        "filenameNFC": true,
+        "checks": {
+          "markdownUTF8": true,
+          "PNGByteIdentity": true,
+          "allDOCXTextRuns": true
+        },
+        "outputFiles": [
+          {
+            "path": "Grüße é & 'Bild'.md",
+            "byteCount": 406,
+            "sha256": "6e5e57e3633c794a9023cb612c4ba16be76c48f32576d03168feea382ee4b0e8"
+          },
+          {
+            "path": "images/image01.png",
+            "byteCount": 1739,
+            "sha256": "161e77431664be88483d7fef7bdd0123c9ed53318cfc9d1c4fa84af80ea2ab28"
+          }
+        ]
+      }
+    ]
+  },
+  "unsupportedPreview": {
+    "cliSHA256": "9c8713cf6d8a3687f54a4fdceae7de59669da838d76a41f054a0a9e8b94ace0d",
+    "cases": [
+      {
+        "option": "--preview-page",
+        "exit": 69,
+        "ok": false
+      },
+      {
+        "option": "--preview-frame",
+        "exit": 69,
+        "ok": false
+      }
+    ]
+  },
+  "fullSuiteAccepted": false,
+  "fullSuiteBoundary": "The unchanged24-task OCRAsyncBridge baseline hang remains excluded. This is no GUI, notarization, installation, Intel, or full release acceptance.",
+  "harnessCorrection": "Use swift build --show-bin-path; Swift6.4 defaults to SwiftBuild out/Products/Debug.",
+  "cleanup": {
+    "dateUTC": "2026-11-05T04:41:37.066918+00:00",
+    "rootIdentityVerified": true,
+    "device": 16777230,
+    "inode": 457780443,
+    "ownProcessesBeforeCleanup": [],
+    "removedFiles": 10024,
+    "removedDirectories": 2487,
+    "remoteOwnRootRemoved": true,
+    "method": "held parent/root descriptors; no-follow traversal; only own root; no broad process signals"
+  }
+}

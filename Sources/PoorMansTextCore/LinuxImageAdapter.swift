@@ -67,7 +67,7 @@ struct LinuxImageAdapter: DocumentConversionAdapter {
                     "HEIC previews use 8-bit RGBA PNG. Original HEIC bytes are retained; HDR/color profiles, auxiliary images and metadata are not fully represented in previews.", kind: .approximation))
             }
             if recognize {
-                diagnostics.append(.imageOCRApplied)
+                var addedOCRText = false
                 if context.options.ocrLanguages.isEmpty,
                    let selected = try? LinuxOCR.resolveLanguages([], available: LinuxOCR.availableLanguages()) {
                     diagnostics.append(ConversionWarning(code: "ocr.languageDefault",
@@ -83,14 +83,19 @@ struct LinuxImageAdapter: DocumentConversionAdapter {
                     do {
                         let png = directory.appendingPathComponent("frame-\(index + 1).png")
                         text = try LinuxOCR.recognize(pngURL: png, languages: context.options.ocrLanguages).text
+                    } catch let error as PlatformBackendUnavailable {
+                        throw error
                     } catch {
                         try ConversionExecution.check()
+                        if case ConversionError.processTimedOut = error { throw error }
+                        if case ConversionError.fileSystemFailure = error { throw error }
                         diagnostics.append(ConversionWarning.imageOCRFailed.at(location))
                         diagnostics.append(ConversionWarning(code: "ocr.backendFailure", message: error.localizedDescription,
                             location: location, kind: .contentLoss))
                         text = ""
                     }
                     if text.isEmpty { diagnostics.append(ConversionWarning.imageTextUnavailable.at(location)) }
+                    else { addedOCRText = true }
                     let offset = markdown.utf8.count
                     if inspection.frameCount > 1 { markdown += "\n\n### Frame \(index + 1)" }
                     markdown += "\n\n" + (text.isEmpty ? "_No text could be extracted from this image frame._" : MarkdownEscaping.literalBlock(text))
@@ -100,6 +105,7 @@ struct LinuxImageAdapter: DocumentConversionAdapter {
                     }
                     ConversionExecution.current?.recording?.record(location, offset: offset, length: length)
                 }
+                if addedOCRText { diagnostics.append(.imageOCRApplied) }
                 try ConversionExecution.report(unit: .frame, completed: inspection.frameCount, total: inspection.frameCount)
             }
             markdown += "\n"

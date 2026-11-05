@@ -1,0 +1,18 @@
+{
+  "os": "Linux Mint 22.2 Zara",
+  "uid": 1000,
+  "architecture": "x86_64",
+  "Xvfb": "/usr/bin/Xvfb",
+  "XvfbDisplayfd": true,
+  "dbusRunSession": "/usr/bin/dbus-run-session",
+  "xdotool": "/usr/bin/xdotool",
+  "xset": "/usr/bin/xset",
+  "bwrap": "/usr/bin/bwrap",
+  "AtspiGI": true,
+  "Gtk4GITypelib": false,
+  "nativeGtk4Version": "4.14.5",
+  "PILImageGrab": true,
+  "privateBwrapPreflightExit": 0,
+  "installedPackages": false,
+  "evidenceCreatedUTC": "2026-11-05T05:10:19.187652+00:00"
+}

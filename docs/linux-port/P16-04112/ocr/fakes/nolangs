@@ -1,0 +1,3 @@
+#!/bin/sh
+printf 'List of available languages (0):\n'
+exit 0

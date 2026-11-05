@@ -102,3 +102,35 @@ Mint-Paketinstallation oder öffentliche Distributionsfreigabe. Die drei
 0.41.11-Paketformate bestehen auch erneut die [restriktiven Modus-, Verschiebe-
 und Kollisionsproben](P15-EVIDENCE/packages-04111.json). Jedes ausgelieferte ELF
 muss x86_64 und höchstens glibc 2.39 sein.
+
+## Native Wayland-Probe
+
+Dieselbe Produktions-GUI 0.41.11 besteht zusätzlich einen nativen Wayland-Lauf
+auf Arch: UID1000, privater Weston15.0.1 Headless/Pixman, eigener Sessionbus,
+kein DISPLAY und ausdrücklich GDK_BACKEND=wayland. Tatsächliche Wayland-
+Protokollaufrufe, eine echte AT-SPI-Convert-Aktion bis Completed, Unicode-CSV,
+Quell-/Ausgabehashes und eine native Weston-Aufnahme sind belegt. Der Screenshot
+wurde visuell geprüft. GTK erhält weiterhin nur die Distrobibliotheken.
+
+Das zusätzliche regulär signierte Distrosetup blieb mit rund 4,5 MiB Archiven
+unter 150 MiB. Die Produktphase war vom Netz getrennt. Compositor und GUI sind
+beendet; eigene Container/Paketkopien wurden entfernt. Eine Weston-Warnung bei
+der Layer-Finalisierung bleibt als Umgebungsbefund dokumentiert.
+[Kleine Belege](P15-EVIDENCE/wayland/result.json) und das Wiederholungsrezept unter
+`scripts/linux-probes/p15/wayland/` erhalten die genaue Artefaktbindung.
+
+Diese Probe belegt den nativen Wayland-Start und diesen Bedienweg. Echte
+KDE-/Cinnamon-Sitzungen, Portale/Dateidialoge, Clipboard, DnD, HiDPI, fremde Apps
+und andere Compositoren sind damit weiterhin nicht vollständig abgenommen.
+
+## Finale Wiederholung0.41.12
+
+[Pakete](P16-04112/packages.json): alle drei Formate unter umask077, echte
+relocierte Unicode-CSV, Dateimodi, Nichtüberschreiben und Symlink-Elternschutz
+bestanden. [Arch-Lebenszyklus](P16-04112/arch-fastra/REPORT.md): regulär .11→.12
+upgraden und entfernen, unveränderte Paketpolicy, UID1000 ohne SDK; CSV, sechs
+HEIC-,15Raster- und12PDF-Fälle sowie separat verschlüsseltesPDF erfolgreich.
+Native Produktions-GTK über privaten Weston/Wayland bis Completed.
+Die [Mint-Probe](P16-04112/mint/README.md) betrifft die relocierte finale Runtime
+und native GTK4.14.5 unter privatem Xvfb, ausdrücklich keine Paketinstallation
+oder vollständige Cinnamon-Systemintegration.

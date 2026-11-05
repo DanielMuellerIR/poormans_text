@@ -1,0 +1,13 @@
+MESA-EGL: warning: DRI3 error: Could not get DRI3 device
+MESA-EGL: warning: Ensure your X server supports DRI3 to get accelerated rendering
+PMT_UI_TEST_JOB_STARTED conversion=false
+PMT_UI_TEST_OPERATION_FINISHED conversion=false cancelled=false
+PMT_UI_TEST_SOURCES [[47,99,108,105,112,45,102,105,120,116,117,114,101,115,47,86,101,114,103,108,101,105,99,104,45,101,204,129,46,99,115,118]]
+PMT_UI_TEST_JOB_STARTED conversion=true
+PMT_UI_TEST_OPERATION_FINISHED conversion=true cancelled=false
+PMT_UI_TEST_RESULT {"assets":[],"documents":[{"assets":[],"markdownFile":"/clip-fixtures/comparison-1793855177459191416/Vergleich-é.md","metadata":{},"sourceIndex":1,"title":"Vergleich-é"}],"input":"/clip-fixtures/Vergleich-é.csv","markdownFile":"/clip-fixtures/comparison-1793855177459191416/Vergleich-é.md","metadata":{},"ok":true,"outputDirectory":"/clip-fixtures/comparison-1793855177459191416","outputFiles":[{"byteCount":108,"path":"Vergleich-é.md","sha256":"a798c0e020d08ca019cf44f68f3457a675a754fdcfdd9ba1ac8a31637e443501"}],"sourceIdentity":{"byteCount":40,"name":"Vergleich-é.csv","sha256":"59e08b460e8b890b44d51fa008b0caa0bde399855a33c9eb7d4bc9ada3dfc12d"},"sourceMappings":[{"output":{"file":"Vergleich-é.md","utf8Length":4,"utf8Offset":44},"source":{"cell":"A1","sheet":"Vergleich-é"}},{"output":{"file":"Vergleich-é.md","utf8Length":4,"utf8Offset":51},"source":{"cell":"B1","sheet":"Vergleich-é"}},{"output":{"file":"Vergleich-é.md","utf8Length":5,"utf8Offset":74},"source":{"cell":"A2","sheet":"Vergleich-é"}},{"output":{"file":"Vergleich-é.md","utf8Length":23,"utf8Offset":82},"source":{"cell":"B2","sheet":"Vergleich-é"}}],"version":"0.41.11","warnings":[]}
+PMT_UI_TEST_COMPARISON_UTF8 gtk-selection-exact 80 92
+PMT_UI_TEST_COMPARISON_WATCH positions-disabled-on-change
+PMT_UI_TEST_COMPARISON_HASH changed-source-rejected
+PMT_UI_TEST_COMPARISON_COMPLETE unicode-position-and-negative-source
+PMT_UI_TEST_CLIPBOARD_CLOSE released-after-job-barrier

@@ -91,6 +91,31 @@ final class DOCXReviewTests: XCTestCase {
         XCTAssertEqual(try Data(contentsOf: XCTUnwrap(result.assets.first)), try Data(contentsOf: DOCXReviewFixture.fixture("fixture.png")))
     }
 
+    func testReviewPartDTDDeclarationsFailWithoutPublishing() throws {
+        let original = try DOCXReviewFixture.make(in: root)
+        let archive = try ZIPArchiveInspector.inspectionSnapshot(at: original)
+        let originalBytes = try Data(contentsOf: original)
+        for (index, declaration) in [
+            "<!DOCTYPE w:comments SYSTEM 'file:///must-not-be-read'>",
+            "<!DOCTYPE w:comments PUBLIC '-//Fixture//DTD//EN' 'https://fixture.invalid/external.dtd'>",
+            "<!DOCTYPE w:comments [<!ENTITY injected SYSTEM 'file:///must-not-be-read'>]>",
+        ].enumerated() {
+            let source = root.appendingPathComponent("review-dtd-\(index).docx")
+            let entries = try archive.entryNames.sorted().map { name -> ZIPFixtureBuilder.Entry in
+                let bytes = try archive.data(named: name)
+                let content = name == "word/comments.xml" ? Data(declaration.utf8) + bytes : bytes
+                return .init(name: name, content: content)
+            }
+            let bytes = try ZIPFixtureBuilder.archive(entries: entries)
+            try bytes.write(to: source)
+            let output = root.appendingPathComponent("dtd-never-\(index)")
+            XCTAssertThrowsError(try DocumentConverter().convert(.init(inputURL: source, destination: .directory(output))))
+            XCTAssertFalse(FileManager.default.fileExists(atPath: output.path))
+            XCTAssertEqual(try Data(contentsOf: source), bytes)
+        }
+        XCTAssertEqual(try Data(contentsOf: original), originalBytes)
+    }
+
     func testDuplicateCommentIdentifiersAndExternalCommentPartsFailAtomically() throws {
         for external in [false, true] {
             let folder = root.appendingPathComponent(external ? "external" : "duplicate"); try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: false)

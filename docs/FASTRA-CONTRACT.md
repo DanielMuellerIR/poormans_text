@@ -58,6 +58,18 @@ Dokumentinhalts im bestehenden Vertrag; keine neue Protokollversion oder
 Consumer-Voraussetzung. Die separat gepinnte neue optionale Modellruntime wird
 weiterhin nicht für Fastras normalen Import benötigt.
 
+Die [tatsächliche .19-Consumer-Paarung](linux-port/P16-04119/fastra-consumer-pair.json)
+besteht mit Fastra **1.171.0/381 als ausdrücklich uncommittetem WIP-Debugsnapshot**,
+Binärhash `93f2e846e4044c4244affcb39b6b60e1a8b9efeaaaad7bfbcccc1f331e93f4b6`.
+Vier native GDK-RTF-Übernahmen prüfen Deutsch/Englisch bei angeforderten 700 bzw. 1180 Pixeln:
+sichtbare Verlustgrenze, vollständige Vorschau, ausdrückliche native Übernahme,
+Bold/Marked im Rich-DOM und exakt `Plain **Bold** ==Marked== Ä` als Zieltext.
+Originalpuffer, Originaldatei und Quell-RTF bleiben unverändert. Zwei native
+DE-/EN-MBOX-Flows bestehen ebenfalls. Die Producerbindungen einschließlich aller
+48 Runtimehashes wurden auf PMT-Seite unabhängig gegen den unveränderten
+Handoff geprüft. Das ist kein Releasepaketnachweis und keine allgemeine PDF-/
+OCR-Qualitätsfreigabe; die gemeinsame native Mac-JavaScript-Abnahme bleibt offen.
+
 Die .12-Operation `--json --preview-page N -- quelle.pdf` beziehungsweise
 `--json --preview-frame N -- bild` ist eine getrennte passive Leseoperation.
 Sie liefert PNG-Base64, Hash, Maße, Auswahl und Quellidentität; weder

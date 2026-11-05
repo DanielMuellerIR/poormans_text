@@ -1,0 +1,85 @@
+{
+  "producer": {
+    "version": "0.41.19",
+    "producer_commit": "e2f0b8866aa3acc9b9dd8bf474ffd11d031f4adb",
+    "launcher_sha256": "385d2389430500df83d54bee3a364d198f4ef057936e64ca48df67f0b0573029",
+    "cli_sha256": "f2be32db3964282bbce75e4a03ff320f88833081e0abfd808a3fcea95446fe9b",
+    "verified_runtime_files": 48,
+    "handoff_manifest_sha256": "3105dfd514d3c23e3524acebb33d1069ff5eaa02c3ae1c303dadcad393ba5910",
+    "source_manifest_sha256": "ca9abeb64bc33b6e7ad7ce8631352e050d286a58468633dc9ad5d87a3377fd91"
+  },
+  "consumer_state": "Fastra 1.171.0 build381 explicit uncommitted integration snapshot",
+  "consumer_debug_binary_sha256": "93f2e846e4044c4244affcb39b6b60e1a8b9efeaaaad7bfbcccc1f331e93f4b6",
+  "native_rtf": [
+    {
+      "language": "de",
+      "width_requested": 700,
+      "result": {
+        "actualRichBold": "Bold",
+        "actualRichMark": "Marked",
+        "completePreview": true,
+        "explicitNativeAdoption": true,
+        "markdown": "Plain **Bold** ==Marked== \u00c4",
+        "originalBufferUnchanged": true,
+        "originalDiskUnchanged": true,
+        "rtfClipboard": true,
+        "sourceRtfUnchanged": true,
+        "visibleLossBoundary": true
+      }
+    },
+    {
+      "language": "de",
+      "width_requested": 1180,
+      "result": {
+        "actualRichBold": "Bold",
+        "actualRichMark": "Marked",
+        "completePreview": true,
+        "explicitNativeAdoption": true,
+        "markdown": "Plain **Bold** ==Marked== \u00c4",
+        "originalBufferUnchanged": true,
+        "originalDiskUnchanged": true,
+        "rtfClipboard": true,
+        "sourceRtfUnchanged": true,
+        "visibleLossBoundary": true
+      }
+    },
+    {
+      "language": "en",
+      "width_requested": 700,
+      "result": {
+        "actualRichBold": "Bold",
+        "actualRichMark": "Marked",
+        "completePreview": true,
+        "explicitNativeAdoption": true,
+        "markdown": "Plain **Bold** ==Marked== \u00c4",
+        "originalBufferUnchanged": true,
+        "originalDiskUnchanged": true,
+        "rtfClipboard": true,
+        "sourceRtfUnchanged": true,
+        "visibleLossBoundary": true
+      }
+    },
+    {
+      "language": "en",
+      "width_requested": 1180,
+      "result": {
+        "actualRichBold": "Bold",
+        "actualRichMark": "Marked",
+        "completePreview": true,
+        "explicitNativeAdoption": true,
+        "markdown": "Plain **Bold** ==Marked== \u00c4",
+        "originalBufferUnchanged": true,
+        "originalDiskUnchanged": true,
+        "rtfClipboard": true,
+        "sourceRtfUnchanged": true,
+        "visibleLossBoundary": true
+      }
+    }
+  ],
+  "native_mbox": {
+    "de_760": true,
+    "en_1100": true
+  },
+  "production_release_pair": false,
+  "mac_shared_javascript_acceptance": "pending graphical session"
+}

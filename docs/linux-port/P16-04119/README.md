@@ -163,8 +163,15 @@ Für Fastra liegt eine neue unveränderliche lokale Basisübergabe vor:
 unverändert erhalten. [Übergabeprüfung](fastra-handoff.json): sämtliche 48
 Laufzeitdateien gebunden, keine optionalen Modelle, tatsächlicher RTF-Import
 ohne geerbten Bibliothekspfad, korrekte Quell-/Ausgabehashes. Das ist eine
-Producerprüfung; die Übernahme durch einen neuen Fastra-Consumerlauf bleibt
-ein gesonderter Nachweis.
+Producerprüfung. Die nachfolgende [echte Consumer-Paarung](fastra-consumer-pair.json)
+mit Fastra 1.171.0/381 besteht vier native DE-/EN-RTF-Übernahmen bei schmaler/breiter
+angeforderter Fensterbreite und zwei native MBOX-Flows. Der Beleg stammt vom
+Fastra-Lauf; PMT hat sämtliche Producerbindungen und die gemeldeten Ergebnisse
+erneut geprüft. Vorschau, sichtbare Verlustgrenze, ausdrückliche Übernahme,
+Rich-DOM-Bold/Marked und exakter Zieltext samt unveränderten Originalen sind
+belegt. Der Consumer ist ausdrücklich ein uncommitteter WIP-Debugsnapshot,
+kein Releasepaket. Sein Binärhash steht im Beleg; ein Consumercommit wird daraus
+nicht abgeleitet. Die .19-Übergabe bleibt unverändert.
 
 Die beiden eigenen Mac-Testverzeichnisse und das eigene Mint-Testverzeichnis
 wurden nach Sicherung der kleinen Belege vollständig entfernt:

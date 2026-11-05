@@ -1,0 +1,18 @@
+{
+  "producer": "886ef96d87c40af32f253ec2ec88820de69d3afb",
+  "launcher_sha256": "385d2389430500df83d54bee3a364d198f4ef057936e64ca48df67f0b0573029",
+  "cli_sha256": "c334b36c2778d704369b16862a54e3a5d8510dfbcb656309bc11bd8277c3b0df",
+  "consumer_debug_sha256": "6fe1d6d24cceba29874881a72003da8206bccc4ae1ac2e4222824d9b1ca203ec",
+  "cases": [
+    {
+      "lang": "de",
+      "width": 760,
+      "exit": 0
+    },
+    {
+      "lang": "en",
+      "width": 1100,
+      "exit": 0
+    }
+  ]
+}

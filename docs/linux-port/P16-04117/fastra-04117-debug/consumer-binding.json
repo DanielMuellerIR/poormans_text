@@ -1,0 +1,10 @@
+{
+  "consumer_base_commit": "163c164304a0c43d00fa5102b0251d6297b56504",
+  "consumer_state": "explicit uncommitted source snapshot; WYSIWYG phase A; Linux1.167.0 build377",
+  "source_file_count": 309,
+  "source_listing_sha256": "ac8a7b38f0c2a0e883caaaeda3338c5fb6f91b34982533e1575cf9f6a06de5f9",
+  "product_wip_patch_sha256": "6879223b9b46b154296286f4efef501d17316f2c61d2ae6f5c4fdb67fd1652ea",
+  "debug_binary_sha256": "6fe1d6d24cceba29874881a72003da8206bccc4ae1ac2e4222824d9b1ca203ec",
+  "debug_hooks": "Existing cfg(debug_assertions) import GUI selftest; same source tree as normal build. Not a production package acceptance.",
+  "capture_boundary": "Source manifest captured after successful smoke; root sole writer, no compiled product source changed since /tmp/fastra-1167-build.log. Documentation edits excluded."
+}

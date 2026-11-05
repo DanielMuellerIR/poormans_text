@@ -89,6 +89,11 @@ abgeschwächt, kein Referenzzeichen ersetzt und kein Defaultmodell gewechselt.
 
 ## Fastra und Abschlussentscheidung
 
+Der zusätzliche [finale .17-Launcher-Smoke](fastra-04117-debug/README.md)
+besteht zwei echte GTK-MBOX-Importe ohne vom Test gesetzte Bibliothekspfade.
+Er bindet einen ausdrücklich uncommittierten Debug-Consumersnapshot und ist
+keine neue Consumer-Produktionspaketabnahme.
+
 Der [echte .16-/Fastra-1.165.1-Lauf](fastra-04116/REPORT.md) bestätigt den additiven
 RTFD-Vertrag samt optionaler TXT.rtf-Identität und Adoption. Der bestehende
 Importweg ist verwendbar; strukturierte OCR ist keine Voraussetzung. .17 ändert
@@ -122,6 +127,7 @@ bestätigen die Entfernung ausschließlich eigener Testwurzeln, Belegarchive und
 Prozesse nach lokaler Hashsicherung. Keine Hostinstallation, kein Desktopzugriff.
 Screenshots und vollständige private Hostdiagnosen bleiben außerhalb des Repos;
 kleine Rohbelege, feste Fixtures und reproduzierbare Prüfskripte bleiben erhalten.
-Nächste Referenzprüfung: 2026-12-05. Entbehrliche eigene Arbeitskopien werden nach
-Belegsicherung entfernt; aktuelle Entwicklungslaufzeit, Pakete und die qualifizierte
+Der [lokale Cleanup](local-cleanup.json) entfernt die bekannten entbehrlichen
+Arbeitskopien nach Belegsicherung, darunter beide verworfenen2GB-Stages.
+Nächste Referenzprüfung: 2026-12-05; aktuelle Entwicklungslaufzeit, Pakete und die qualifizierte
 Offlinequelle bleiben bewusst als nutzbarer Entwicklungsstand erhalten.

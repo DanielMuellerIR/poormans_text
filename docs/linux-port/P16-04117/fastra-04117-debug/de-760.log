@@ -1,0 +1,8 @@
+libEGL warning: DRI3 error: Could not get DRI3 device
+libEGL warning: Ensure your X server supports DRI3 to get accelerated rendering
+
+(app:22): Gtk-WARNING **: 12:16:04.865: GtkText - did not receive a focus-out event.
+If you handle this event, you must return
+GDK_EVENT_PROPAGATE so the default handler
+gets the event as well
+FASTRA_TOOL_SELFTEST_OK import

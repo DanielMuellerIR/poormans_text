@@ -1,0 +1,37 @@
+{
+  "ownKnownWorkTreesRemoved": [
+    "/tmp/pmt-projection-04116-complete",
+    "/tmp/pmt-projection-04117",
+    "/tmp/pmt-mint-swift-projection-04117",
+    "/tmp/pmt-source-04117",
+    "/tmp/pmt-quality-product-04117",
+    "/tmp/pmt-cancel-04117",
+    "/tmp/pmt-pdf-product-04117",
+    "/tmp/pmt-mint-controller-04117",
+    "/tmp/pmt-gui-prefs-production-20261105",
+    "/tmp/pmt-gui-prefs-delta-20261105",
+    "/tmp/pmt-gui-structured-20261105",
+    "/tmp/pmt-p11-product-projection",
+    "/tmp/pmt-p11-product-preferences",
+    "/tmp/pmt-runtime-inventory-20261105",
+    "/tmp/pmt-structured-adapter-20261105",
+    "/tmp/pmt-best-models-20261105",
+    "/home/dm/git/poormans_text/.build/linux-evidence-04117-full",
+    "/home/dm/git/poormans_text/.build/linux-structured-runtime-04117",
+    "/home/dm/git/poormans_text/.build/linux-structured-runtime-04117-retry"
+  ],
+  "counts": {
+    "files": 82455,
+    "directories": 9990
+  },
+  "errors": [],
+  "developmentRuntimePackagesAndImmutableHandoffsPreserved": true,
+  "resolvedEmptyMountPlaceholders": [
+    "/tmp/pmt-linux-next-20261105/source-04116/docs",
+    "/tmp/pmt-p11-runtime-04114/candidate"
+  ],
+  "laterRemoved": [
+    "pmt-linux-next-20261105",
+    "pmt-p11-runtime-04114"
+  ]
+}

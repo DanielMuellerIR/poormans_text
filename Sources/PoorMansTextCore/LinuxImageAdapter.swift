@@ -26,7 +26,7 @@ struct LinuxImageAdapter: DocumentConversionAdapter {
 
     func convert(_ context: AdapterConversionContext) throws -> StagedConversionResult {
         if context.options.imageTextRecognition == .enabled && context.options.ocrMethod == .structured {
-            throw PlatformBackendUnavailable("structured OCR")
+            _ = try LinuxStructuredOCR.runtimeDirectory()
         }
         let snapshot = context.workDirectory.appendingPathComponent("verified-image-source")
         try VerifiedFileStaging.stage(from: context.resolvedInputURL, to: snapshot,
@@ -35,7 +35,8 @@ struct LinuxImageAdapter: DocumentConversionAdapter {
         let prefix = try VerifiedFileStaging.prefix(of: snapshot, maximumBytes: 1_073_741_824,
             prefixBytes: 4096, describedAs: "the image source")
         let heic = Self.isHEIC(prefix)
-        return try LinuxRasterBackend.withFrames(source: snapshot, render: recognize || heic) { inspection, directory in
+        return try LinuxRasterBackend.withFrames(source: snapshot, render: recognize || heic,
+            preserveResolution: recognize && context.options.ocrMethod == .structured) { inspection, directory in
             let asset = "images/image01.\(inspection.fileExtension)"
             let assetURL = context.stagedOutputDirectory.appendingPathComponent(asset)
             try FileManager.default.createDirectory(at: assetURL.deletingLastPathComponent(), withIntermediateDirectories: true)
@@ -71,7 +72,7 @@ struct LinuxImageAdapter: DocumentConversionAdapter {
                 if context.options.ocrLanguages.isEmpty,
                    let selected = try? LinuxOCR.resolveLanguages([], available: LinuxOCR.availableLanguages()) {
                     diagnostics.append(ConversionWarning(code: "ocr.languageDefault",
-                        message: "Linux standard OCR uses the installed language data: \(selected.joined(separator: ", ")). Select OCR languages explicitly for other text.",
+                        message: "Linux OCR uses the installed language data: \(selected.joined(separator: ", ")). Select OCR languages explicitly for other text.",
                         kind: .information))
                 }
                 markdown += "\n\n## OCR text"
@@ -80,9 +81,31 @@ struct LinuxImageAdapter: DocumentConversionAdapter {
                     let location = ConversionLocation(frame: index + 1)
                     if inspection.frames[index].downscaled == true { diagnostics.append(ConversionWarning.imageOCRDownscaled.at(location)) }
                     let text: String
+                    var structuredMarkdown: String?
                     do {
                         let png = directory.appendingPathComponent("frame-\(index + 1).png")
-                        text = try LinuxOCR.recognize(pngURL: png, languages: context.options.ocrLanguages).text
+                        if context.options.ocrMethod == .structured {
+                            do {
+                                let result = try LinuxStructuredOCR.recognize(
+                                    pngURL: png, languages: context.options.ocrLanguages)
+                                structuredMarkdown = result.page.markdown
+                                text = result.page.blocks.map(\.text).joined(separator: "\n")
+                                for warning in result.diagnostics { diagnostics.append(warning.at(location)) }
+                            } catch
+                                where error is DoclingDocumentProjection.Failure
+                                || error is StructuredOCRRendering.Failure
+                            {
+                                diagnostics.append(
+                                    ConversionWarning(
+                                        code: "ocr.structuredFallback",
+                                        message:
+                                            "The recognized structure could not be reconciled safely with its full text. Standard local OCR was used instead.",
+                                        location: location))
+                                text = try LinuxOCR.recognize(pngURL: png, languages: context.options.ocrLanguages).text
+                            }
+                        } else {
+                            text = try LinuxOCR.recognize(pngURL: png, languages: context.options.ocrLanguages).text
+                        }
                     } catch let error as PlatformBackendUnavailable {
                         throw error
                     } catch {
@@ -98,7 +121,7 @@ struct LinuxImageAdapter: DocumentConversionAdapter {
                     else { addedOCRText = true }
                     let offset = markdown.utf8.count
                     if inspection.frameCount > 1 { markdown += "\n\n### Frame \(index + 1)" }
-                    markdown += "\n\n" + (text.isEmpty ? "_No text could be extracted from this image frame._" : MarkdownEscaping.literalBlock(text))
+                    markdown += "\n\n" + (text.isEmpty ? "_No text could be extracted from this image frame._" : (structuredMarkdown ?? MarkdownEscaping.literalBlock(text)))
                     let length = markdown.utf8.count - offset
                     guard markdown.utf8.count <= 128 * 1024 * 1024 else {
                         throw ConversionError.fileSystemFailure("the image Markdown exceeds its size limit")

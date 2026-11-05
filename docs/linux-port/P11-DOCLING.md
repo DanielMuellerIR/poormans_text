@@ -1,7 +1,11 @@
 # P11: Docling-/TableFormer-Kandidat
 
+Fortschreibung für 0.41.17: [Produktintegration und tatsächliche Abnahmen](P16-04117/README.md)
+sind inzwischen vorhanden; die allgemeine Inhaltsqualitätsfreigabe bleibt FAIL.
+Der nachfolgende Bericht beschreibt ausdrücklich die frühere Entscheidungsprobe.
+
 Stand: 2026-11-05. Der begrenzte CPU-/Offlineversuch macht TableFormer zu einem
-begründeten Kandidaten für strukturierte Erkennungsdaten. **Es gibt noch keine
+begründeten Kandidaten für strukturierte Erkennungsdaten. **Diese Probe enthielt noch keine
 Produktintegration oder Gesamtfreigabe von P11.** Swift bleibt der gemeinsame
 Kern; der bestehende PDF-Import wird nicht durch Doclings Markdownexport ersetzt.
 

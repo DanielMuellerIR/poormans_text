@@ -9,3 +9,9 @@
 /docs/linux-port/P16-04115/quality/pdf/outputs/** whitespace=-blank-at-eof,-blank-at-eol
 /docs/linux-port/QUALITY-EVIDENCE-04114/final/pdf/outputs/** whitespace=-blank-at-eof,-blank-at-eol
 /docs/linux-port/QUALITY-EVIDENCE-04114/dpi-run/*.tsv whitespace=-blank-at-eol
+
+# Unveränderte Patchkontexte, Lizenzoriginale und rohe .17-Prüfausgaben.
+/docs/linux-port/OCR-BRIDGE-REGRESSION/*.patch whitespace=-blank-at-eol
+/docs/linux-port/P16-04117/**/*.patch whitespace=-blank-at-eol
+/docs/linux-port/P16-04117/quality/pdf/outputs/** whitespace=-blank-at-eof,-blank-at-eol
+/docs/linux-port/P16-04117/quality/raster-ocr.stderr whitespace=-blank-at-eof

@@ -1,0 +1,110 @@
+{
+  "assets" : [
+
+  ],
+  "documents" : [
+    {
+      "assets" : [
+
+      ],
+      "markdownFile" : "/tmp/pmt-linux-04117-j2z2PkHe/csv-output/source.md",
+      "metadata" : {
+
+      },
+      "sourceIndex" : 1,
+      "title" : "source"
+    }
+  ],
+  "input" : "/tmp/pmt-linux-04117-j2z2PkHe/source.csv",
+  "markdownFile" : "/tmp/pmt-linux-04117-j2z2PkHe/csv-output/source.md",
+  "metadata" : {
+
+  },
+  "ok" : true,
+  "outputDirectory" : "/tmp/pmt-linux-04117-j2z2PkHe/csv-output",
+  "outputFiles" : [
+    {
+      "byteCount" : 90,
+      "path" : "source.md",
+      "sha256" : "8edd36cccc210f3b09329af49c89053d33bcb973d3df86aa3379fc168046da9a"
+    }
+  ],
+  "reportFile" : "/tmp/pmt-linux-04117-j2z2PkHe/csv-output/conversion-report.json",
+  "sourceIdentity" : {
+    "byteCount" : 30,
+    "name" : "source.csv",
+    "sha256" : "77b179a9f3621d8ed5602dc5b06da81c0f3e7c00b26a677dda5928940491a9ab"
+  },
+  "sourceMappings" : [
+    {
+      "output" : {
+        "file" : "source.md",
+        "utf8Length" : 4,
+        "utf8Offset" : 30
+      },
+      "source" : {
+        "cell" : "A1",
+        "sheet" : "source"
+      }
+    },
+    {
+      "output" : {
+        "file" : "source.md",
+        "utf8Length" : 5,
+        "utf8Offset" : 37
+      },
+      "source" : {
+        "cell" : "B1",
+        "sheet" : "source"
+      }
+    },
+    {
+      "output" : {
+        "file" : "source.md",
+        "utf8Length" : 6,
+        "utf8Offset" : 61
+      },
+      "source" : {
+        "cell" : "A2",
+        "sheet" : "source"
+      }
+    },
+    {
+      "output" : {
+        "file" : "source.md",
+        "utf8Length" : 2,
+        "utf8Offset" : 70
+      },
+      "source" : {
+        "cell" : "B2",
+        "sheet" : "source"
+      }
+    },
+    {
+      "output" : {
+        "file" : "source.md",
+        "utf8Length" : 6,
+        "utf8Offset" : 77
+      },
+      "source" : {
+        "cell" : "A3",
+        "sheet" : "source"
+      }
+    },
+    {
+      "output" : {
+        "file" : "source.md",
+        "utf8Length" : 1,
+        "utf8Offset" : 86
+      },
+      "source" : {
+        "cell" : "B3",
+        "sheet" : "source"
+      }
+    }
+  ],
+  "version" : "0.41.17",
+  "warnings" : [
+
+  ]
+}

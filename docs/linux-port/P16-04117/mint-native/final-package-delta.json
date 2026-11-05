@@ -1,0 +1,10 @@
+{
+  "nativeTestedDEBSHA256": "652552c4345374d660619f596124337f2c9955a20698d5bbab787a27439b0094",
+  "finalDEBSHA256": "f0fcbba4e6567b891437a3f166309ba48ad2823215ce1194d344e4b9f9ebc2f8",
+  "changedEntries": [
+    "./usr/share/doc/poormans-text/CHANGELOG.md"
+  ],
+  "allExecutableAndRuntimeBytesModesOwnersEqual": true,
+  "packageControlIdentical": true,
+  "scope": "Native Mint tested first .17 archive; final package differs only in changelog documentation"
+}

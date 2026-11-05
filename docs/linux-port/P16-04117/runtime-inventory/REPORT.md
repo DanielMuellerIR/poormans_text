@@ -1,0 +1,17 @@
+# Runtimeinventar strikt und offsetunabhängig prüfen
+
+2026-11-05. Separate Korrektur nach dem stabilen DPIpatch; kein Rootwrite und keine neue Prozessarchitektur. inventory.patch ändert ausschließlich LinuxStructuredOCR.swift und ergänzt neun Linux-Tests. Erwarteter Runtime-Digest bleibtnil. Die alte DPI-Lieferung wurde nicht überschrieben.
+
+Die Prüfung öffnet die Runtimewurzel über den vorhandenen komponentenweisen NoFollow-Directorybinder. Das Manifest wird jetzt ausdrücklich mit VerifiedFile.openMember/O_NOFOLLOW relativ zu dieser gehaltenen Wurzel gelesen: regulär, nlink1, gleiches Device,8MiB-Budget und identischer fstat-Zustand nach dem Lesen.
+
+Das vollständige Inventar wird descriptorrelativ über fstatat(AT_SYMLINK_NOFOLLOW), openat(O_NOFOLLOW|O_DIRECTORY) und VerifiedFile.openMember(O_NOFOLLOW|O_NONBLOCK) gelesen. Keine symbolischen Verweise, FIFOs/Sockets/Geräte oder hardverlinkten regulären Dateien. Nur aus Manifestdateinamen abgeleitete Verzeichnisse sind erlaubt, einschließlich leerer Zusatzverzeichnisse wird nichts übersprungen. UTF8-Namen müssen verlustfrei decodieren; Pfade höchstens4096UTF8bytes und64Komponenten. Dateityp/Device/Identität/Linkzahl/Größe/Zeitstempel werden vor/nach Öffnen beziehungsweise Lesen geprüft. Sämtliche erwarteten Dateien und Verzeichnisse müssen exakt vorkommen.
+
+Jeder Directoryiterator benutzt openat(fd,".",O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC), ausdrücklich keine dup-geteilte OpenFileDescription. Der aufrufende Owner behält seinen Verzeichnisoffset; zweimalige Prüfung desselben Deskriptors ist getestet. readdir-Ende mit errno sowie alle Öffnungs-/Statfehler führen zum Abbruch, nicht zu still unvollständigem Inventar.
+
+**10Tests bestanden:** neun dauerhafte Fälle für korrekten verschachtelten Bestand, wiederverwendeten FD/Offset, interne Datei-/Directorysymlinks, Manifestsymlink, zusätzlichen leeren Ordner, Hardlinks/FIFO, unlesbares Unterverzeichnis, Traversierung/Tiefe/UTF8-Bytegrenzen sowie fehlende/geänderte Dateien. Ein zusätzlicher temporärer Test prüfte den unveränderten read-only SSDkandidaten vollständig:30192Dateien plus Manifest,2158493598Inhaltsbytes, Manifestcd4673de…;5.8s. Der temporäre Qualifikationstest ist als Referenz beigefügt, gehört nicht automatisch in die normale Suite.
+
+Das beweist Hash-/Inventarprüfung dieses vorhandenen Bestands, **keine Installerfreigabe**. Roots paralleler StageFD-/Installerbefund bleibt dessen separater Prüfweg. Ein echter readdir-EIO wurde nicht injiziert; Fehlerbehandlung ist explizit, die unlesbare Traversierung wurde real geprüft. Es entsteht keine Zusage gegen nachträglich durch einen gleichberechtigten Hostwriter ersetzte Programmdateien; Runtime bleibt ausdrücklich bereitgestellter vertrauenswürdiger Programmcode und wird im Modellprozess read-only gebunden.
+
+Reproduktion: neue eigene Kopie mit dem bestehenden Rootcore/CPMTLinux und vorhandenen Offlineabhängigkeiten; inventory.patch nach combined-adapter.patch aus der DPI-Lieferung anwenden, neun LinuxStructuredRuntimeInventoryTests ausführen. Für die zusätzliche volle Referenzprüfung temporären Test unter eigenem Testtarget einsetzen, PMT_INVENTORY_RUNTIME auf ausdrücklich read-only gemounteten Kandidaten setzen; keine Gatekonstante verändern.
+
+Root allein übernimmt Quellen/Version/Commit. Eigene Prozesse sind beendet. Kleine Referenzen: Reviewzweck, nächste Prüfung2026-12-05; entbehrliche Kopien spätestens30Tage nach Abnahme entfernen.

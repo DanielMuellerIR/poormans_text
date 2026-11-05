@@ -1,0 +1,198 @@
+{
+  "assets" : [
+    "/work/mixed-output/images/page-1-image-1.png"
+  ],
+  "diagnosticGroups" : [
+    {
+      "code" : "pdf.layoutNotPreserved",
+      "count" : 1,
+      "kind" : "approximation",
+      "locations" : [
+
+      ],
+      "messages" : [
+        "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+      ],
+      "omittedCount" : 0
+    },
+    {
+      "code" : "pdf.vectorGraphicsNotExtracted",
+      "count" : 1,
+      "kind" : "contentLoss",
+      "locations" : [
+
+      ],
+      "messages" : [
+        "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF."
+      ],
+      "omittedCount" : 0
+    },
+    {
+      "code" : "pdf.linuxLayoutApproximation",
+      "count" : 1,
+      "kind" : "approximation",
+      "locations" : [
+
+      ],
+      "messages" : [
+        "The Linux PDF backend infers word spacing and bounded text-line order; only pages actually processed with structured OCR can reconstruct tables."
+      ],
+      "omittedCount" : 0
+    },
+    {
+      "code" : "ocr.structuredFallback",
+      "count" : 1,
+      "kind" : "approximation",
+      "locations" : [
+        {
+          "page" : 1
+        }
+      ],
+      "messages" : [
+        "Structured OCR could not be merged safely with digital PDF text. Standard local OCR was used instead."
+      ],
+      "omittedCount" : 0
+    },
+    {
+      "code" : "pdf.layoutAmbiguous",
+      "count" : 1,
+      "kind" : "approximation",
+      "locations" : [
+        {
+          "page" : 1
+        }
+      ],
+      "messages" : [
+        "Aligned text may be a table or parallel columns; row order was retained."
+      ],
+      "omittedCount" : 0
+    },
+    {
+      "code" : "pdf.ocrApplied",
+      "count" : 1,
+      "kind" : "information",
+      "locations" : [
+
+      ],
+      "messages" : [
+        "Pages without enough embedded text were rendered and read with local OCR. Review OCR text before relying on it."
+      ],
+      "omittedCount" : 0
+    },
+    {
+      "code" : "pdf.imagesRasterized",
+      "count" : 1,
+      "kind" : "approximation",
+      "locations" : [
+
+      ],
+      "messages" : [
+        "Embedded PDF images were retained as local PNG assets; their original compression and page placement were not preserved."
+      ],
+      "omittedCount" : 0
+    }
+  ],
+  "diagnostics" : [
+    {
+      "code" : "pdf.layoutNotPreserved",
+      "kind" : "approximation",
+      "message" : "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+    },
+    {
+      "code" : "pdf.vectorGraphicsNotExtracted",
+      "kind" : "contentLoss",
+      "message" : "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF."
+    },
+    {
+      "code" : "pdf.linuxLayoutApproximation",
+      "kind" : "approximation",
+      "message" : "The Linux PDF backend infers word spacing and bounded text-line order; only pages actually processed with structured OCR can reconstruct tables."
+    },
+    {
+      "code" : "ocr.structuredFallback",
+      "kind" : "approximation",
+      "location" : {
+        "page" : 1
+      },
+      "message" : "Structured OCR could not be merged safely with digital PDF text. Standard local OCR was used instead."
+    },
+    {
+      "code" : "pdf.layoutAmbiguous",
+      "kind" : "approximation",
+      "location" : {
+        "page" : 1
+      },
+      "message" : "Aligned text may be a table or parallel columns; row order was retained."
+    },
+    {
+      "code" : "pdf.ocrApplied",
+      "kind" : "information",
+      "message" : "Pages without enough embedded text were rendered and read with local OCR. Review OCR text before relying on it."
+    },
+    {
+      "code" : "pdf.imagesRasterized",
+      "kind" : "approximation",
+      "message" : "Embedded PDF images were retained as local PNG assets; their original compression and page placement were not preserved."
+    }
+  ],
+  "documents" : [
+    {
+      "assets" : [
+        "/work/mixed-output/images/page-1-image-1.png"
+      ],
+      "markdownFile" : "/work/mixed-output/mixed.md",
+      "metadata" : {
+
+      },
+      "sourceIndex" : 1,
+      "title" : "mixed"
+    }
+  ],
+  "input" : "/work/mixed.pdf",
+  "markdownFile" : "/work/mixed-output/mixed.md",
+  "metadata" : {
+
+  },
+  "ok" : true,
+  "outputDirectory" : "/work/mixed-output",
+  "outputFiles" : [
+    {
+      "byteCount" : 50933,
+      "path" : "images/page-1-image-1.png",
+      "sha256" : "c1b1667d8a08c5cbe7cc8d8706b5d266f76976bcbcbc7e85c35378707d854ba2"
+    },
+    {
+      "byteCount" : 318,
+      "path" : "mixed.md",
+      "sha256" : "2e587056fcdb5f01433b0a638316f6301f995a209ecf9e7327ab4338e808e906"
+    }
+  ],
+  "reportFile" : "/work/mixed-output/conversion-report.json",
+  "sourceIdentity" : {
+    "byteCount" : 196795,
+    "name" : "mixed.pdf",
+    "sha256" : "199e33add958f5e34078d91e3b3823448262fe03de42419fb004594be0bd57cb"
+  },
+  "sourceMappings" : [
+    {
+      "output" : {
+        "file" : "mixed.md",
+        "utf8Length" : 310,
+        "utf8Offset" : 7
+      },
+      "source" : {
+        "page" : 1
+      }
+    }
+  ],
+  "version" : "0.41.17",
+  "warnings" : [
+    "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review.",
+    "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF.",
+    "The Linux PDF backend infers word spacing and bounded text-line order; only pages actually processed with structured OCR can reconstruct tables.",
+    "Page 1: Structured OCR could not be merged safely with digital PDF text. Standard local OCR was used instead.",
+    "Page 1: Aligned text may be a table or parallel columns; row order was retained.",
+    "Pages without enough embedded text were rendered and read with local OCR. Review OCR text before relying on it.",
+    "Embedded PDF images were retained as local PNG assets; their original compression and page placement were not preserved."
+  ]
+}

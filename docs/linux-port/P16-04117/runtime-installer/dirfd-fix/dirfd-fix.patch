@@ -1,0 +1,113 @@
+--- a/scripts/install_linux_ocr_runtime.py
++++ b/scripts/install_linux_ocr_runtime.py
+@@ -210,9 +210,22 @@
+         os.close(source)
+ 
+ 
++def directory_names(descriptor):
++    # Ein vor Dateianlage geöffnetes btrfs-Verzeichnis kann trotz Offset 0 beim
++    # ersten Listing leer erscheinen. openat statt dup erzeugt einen unabhängigen
++    # Enumerationszustand am bereits gebundenen Verzeichnis, ohne dessen Offset zu ändern.
++    current = os.open('.', DIRECTORY_FLAGS, dir_fd=descriptor)
++    try:
++        if identity(current) != identity(descriptor):
++            raise InstallError('Bound directory changed before enumeration.')
++        return os.listdir(current)
++    finally:
++        os.close(current)
++
++
+ def copy_tree(source, stage, prefix, files, directories, snapshots):
+     before = os.fstat(source)
+-    for name in sorted(os.listdir(source)):
++    for name in sorted(directory_names(source)):
+         relative = prefix + '/' + name if prefix else name
+         value = os.stat(name, dir_fd=source, follow_symlinks=False)
+         if not prefix and name == MANIFEST_NAME:
+@@ -244,7 +257,7 @@
+ 
+ def verify_source_tree(source, prefix, files, directories, snapshots, seen):
+     before = os.fstat(source)
+-    for name in os.listdir(source):
++    for name in directory_names(source):
+         relative = prefix + '/' + name if prefix else name
+         value = os.stat(name, dir_fd=source, follow_symlinks=False)
+         if stat.S_ISDIR(value.st_mode) and relative in directories:
+@@ -265,7 +278,7 @@
+ 
+ def verify_stage_tree(stage, prefix, files, directories, seen):
+     before = os.fstat(stage)
+-    for name in os.listdir(stage):
++    for name in directory_names(stage):
+         relative = prefix + '/' + name if prefix else name
+         value = os.stat(name, dir_fd=stage, follow_symlinks=False)
+         if stat.S_ISDIR(value.st_mode) and relative in directories:
+--- a/scripts/test_install_linux_ocr_runtime.py
++++ b/scripts/test_install_linux_ocr_runtime.py
+@@ -1,3 +1,4 @@
++import ctypes
+ import hashlib
+ import importlib.util
+ import json
+@@ -356,5 +357,61 @@
+         self.assertFalse(list(self.parent.glob('.pmt-structured-ocr-*')))
+ 
+ 
++    def exhaust_directory_cursor(self, descriptor):
++        library = ctypes.CDLL(None, use_errno=True)
++        library.fdopendir.argtypes = [ctypes.c_int]
++        library.fdopendir.restype = ctypes.c_void_p
++        library.readdir.argtypes = [ctypes.c_void_p]
++        library.readdir.restype = ctypes.c_void_p
++        library.closedir.argtypes = [ctypes.c_void_p]
++        library.closedir.restype = ctypes.c_int
++        os.lseek(descriptor, 0, os.SEEK_SET)
++        duplicate = os.dup(descriptor)
++        directory = library.fdopendir(duplicate)
++        if not directory:
++            os.close(duplicate)
++            self.fail('fdopendir failed')
++        count = 0
++        try:
++            ctypes.set_errno(0)
++            while library.readdir(directory):
++                count += 1
++            self.assertEqual(ctypes.get_errno(), 0)
++        finally:
++            self.assertEqual(library.closedir(directory), 0)
++        return count
++
++    def test_listing_ignores_and_preserves_existing_directory_cursor(self):
++        descriptor = installer.open_directory(str(self.source))
++        try:
++            self.assertEqual(self.exhaust_directory_cursor(descriptor), 5)
++            before = os.lseek(descriptor, 0, os.SEEK_CUR)
++            self.assertNotEqual(before, 0)
++            self.assertEqual(set(installer.directory_names(descriptor)),
++                             {'bin', 'models', installer.MANIFEST_NAME})
++            self.assertEqual(os.lseek(descriptor, 0, os.SEEK_CUR), before)
++        finally:
++            os.close(descriptor)
++
++    def test_install_verifies_every_file_with_stage_cursor_at_eof(self):
++        original = installer.verify_stage_tree
++        exhausted = []
++        def verify(stage, prefix, files, directories, seen):
++            if not prefix:
++                exhausted.append(self.exhaust_directory_cursor(stage))
++                before = os.lseek(stage, 0, os.SEEK_CUR)
++                self.assertNotEqual(before, 0)
++                original(stage, prefix, files, directories, seen)
++                self.assertEqual(os.lseek(stage, 0, os.SEEK_CUR), before)
++                self.assertEqual(seen, set(files))
++            else:
++                original(stage, prefix, files, directories, seen)
++        with mock.patch.object(installer, 'verify_stage_tree', verify):
++            result = installer.install(str(self.source), str(self.parent), self.digest)
++        self.assertEqual(exhausted, [5])
++        for name, payload in self.contents.items():
++            self.assertEqual((Path(result) / name).read_bytes(), payload)
++
++
+ if __name__ == '__main__':
+     unittest.main(verbosity=2)

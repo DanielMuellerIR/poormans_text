@@ -1,0 +1,119 @@
+{
+  "root": "/home/dm/git/poormans_text/.build/pmt-installer-dirfd-probe-p5l8z9q4",
+  "tests": [
+    {
+      "mode": "untouched",
+      "initialFdinfo": "pos:\t0\nflags:\t02700000\nmnt_id:\t1181\nino:\t4318365\n",
+      "afterCreateFdinfo": "pos:\t0\nflags:\t02700000\nmnt_id:\t1181\nino:\t4318365\n",
+      "firstList": [],
+      "secondList": [
+        "bin",
+        "lib",
+        "models",
+        "include",
+        "share",
+        "notices",
+        "runtime-manifest.json"
+      ],
+      "seekSetList": [
+        "bin",
+        "lib",
+        "models",
+        "include",
+        "share",
+        "notices",
+        "runtime-manifest.json"
+      ]
+    },
+    {
+      "mode": "initial-list",
+      "initialFdinfo": "pos:\t0\nflags:\t02700000\nmnt_id:\t1181\nino:\t4318373\n",
+      "initialList": [],
+      "afterCreateFdinfo": "pos:\t0\nflags:\t02700000\nmnt_id:\t1181\nino:\t4318373\n",
+      "firstList": [],
+      "secondList": [
+        "bin",
+        "lib",
+        "models",
+        "include",
+        "share",
+        "notices",
+        "runtime-manifest.json"
+      ],
+      "seekSetList": [
+        "bin",
+        "lib",
+        "models",
+        "include",
+        "share",
+        "notices",
+        "runtime-manifest.json"
+      ]
+    },
+    {
+      "mode": "seek-before-list",
+      "initialFdinfo": "pos:\t0\nflags:\t02700000\nmnt_id:\t1181\nino:\t4318381\n",
+      "afterCreateFdinfo": "pos:\t0\nflags:\t02700000\nmnt_id:\t1181\nino:\t4318381\n",
+      "firstList": [
+        "bin",
+        "lib",
+        "models",
+        "include",
+        "share",
+        "notices",
+        "runtime-manifest.json"
+      ],
+      "secondList": [
+        "bin",
+        "lib",
+        "models",
+        "include",
+        "share",
+        "notices",
+        "runtime-manifest.json"
+      ],
+      "seekSetList": [
+        "bin",
+        "lib",
+        "models",
+        "include",
+        "share",
+        "notices",
+        "runtime-manifest.json"
+      ]
+    },
+    {
+      "mode": "reopen",
+      "initialFdinfo": "pos:\t0\nflags:\t02700000\nmnt_id:\t1181\nino:\t4318389\n",
+      "afterCreateFdinfo": "pos:\t0\nflags:\t02700000\nmnt_id:\t1181\nino:\t4318389\n",
+      "freshList": [
+        "bin",
+        "lib",
+        "models",
+        "include",
+        "share",
+        "notices",
+        "runtime-manifest.json"
+      ],
+      "firstList": [],
+      "secondList": [
+        "bin",
+        "lib",
+        "models",
+        "include",
+        "share",
+        "notices",
+        "runtime-manifest.json"
+      ],
+      "seekSetList": [
+        "bin",
+        "lib",
+        "models",
+        "include",
+        "share",
+        "notices",
+        "runtime-manifest.json"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+MODE=immediate
+PASS count=24 sum=276
+EXIT=0
+MODE=callback
+PASS count=24 sum=276
+EXIT=0
+MODE=sleep
+EXIT=124

@@ -1,0 +1,34 @@
+{
+  "sourceSHA256": "e37ca92cf5b8ad22e228eed1c1065177bbbdc6b865b9e027965660353f934369",
+  "origin": "Synthetic drawing from scripts/linux-probes/backends/extra-probe.py; expectations fixed independently of OCR output",
+  "cells": [
+    [
+      "MERGED HEADER",
+      "",
+      "TOTAL"
+    ],
+    [
+      "A1",
+      "B1",
+      "C1"
+    ],
+    [
+      "A2",
+      "B2",
+      "C2"
+    ]
+  ],
+  "body": [
+    "STRUCTURED DOCUMENT",
+    "LEFT ALPHA paragraph",
+    "LEFT BETA paragraph",
+    "RIGHT GAMMA paragraph",
+    "RIGHT DELTA paragraph",
+    "First list item",
+    "Second list item"
+  ],
+  "coveredMergedCell": [
+    0,
+    1
+  ]
+}

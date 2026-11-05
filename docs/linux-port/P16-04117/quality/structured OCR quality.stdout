@@ -1,0 +1,8 @@
+{
+  "cliSHA256": "c334b36c2778d704369b16862a54e3a5d8510dfbcb656309bc11bd8277c3b0df",
+  "sourceSHA256": "e37ca92cf5b8ad22e228eed1c1065177bbbdc6b865b9e027965660353f934369",
+  "status": "FAIL",
+  "exit": 0,
+  "error": "Expected one rendered table",
+  "stderr": ""
+}

@@ -1,0 +1,75 @@
+{
+  "purpose": "new open file description for held-directory enumeration; no product edits",
+  "files": [
+    {
+      "path": "REPORT.de.md",
+      "bytes": 3376,
+      "sha256": "aee8b0eab48dc7ebc64b410422c376307b01bdff8837fd85f69bfab9ac4a4f7b"
+    },
+    {
+      "path": "dirfd-fix.patch",
+      "bytes": 4833,
+      "sha256": "36233a7fa42fcf417083993da8fa49bcf3140d16297ff4f19f7b3a81d94de1da"
+    },
+    {
+      "path": "evidence/cleanup.json",
+      "bytes": 86,
+      "sha256": "bc9cc82ce09a71aee0574fd40f93356f676b3ba72db02c03fa71f71819119449"
+    },
+    {
+      "path": "evidence/fixed-probe.py",
+      "bytes": 1039,
+      "sha256": "ff6ba975d8932a59831ee674dc8b8ec47335d5c1a126038f4b7d3d5ae5b99267"
+    },
+    {
+      "path": "evidence/fixed-result.json",
+      "bytes": 284,
+      "sha256": "886c0704ead94eaf831173b733da14f9f449dbaebbc0bd241142679dd6ddac6c"
+    },
+    {
+      "path": "evidence/instrumented-config.json",
+      "bytes": 433,
+      "sha256": "e8f615538d3ce17f348d41fe94ca872013ce1817d59fda7ad163a9c7d04c2d26"
+    },
+    {
+      "path": "evidence/instrumented.stderr",
+      "bytes": 2156,
+      "sha256": "9fbda47a05e0496fb1ea226bb821e49714bce535791b2523f0413be36aa49f28"
+    },
+    {
+      "path": "evidence/instrumented.stdout",
+      "bytes": 85,
+      "sha256": "31940818777018884a497203b6e491f99fa4c197d4fe950b42d4321cf42893dc"
+    },
+    {
+      "path": "evidence/noble-tests.log",
+      "bytes": 5355,
+      "sha256": "6fd7ce844e7034de91b4e2117d598376a135a69d7ce62d4772a5a48d6115e19f"
+    },
+    {
+      "path": "evidence/passive-probe.py",
+      "bytes": 1272,
+      "sha256": "b0b2af17cdbd831989b793e35b4a72f8e8a6df350b0945894385f62053733b90"
+    },
+    {
+      "path": "evidence/passive-result.json",
+      "bytes": 2709,
+      "sha256": "54109d54e25fa5fcdf802159227f12ca6360fe5f49a3a651f60acddd85fdabae"
+    },
+    {
+      "path": "evidence/tests.log",
+      "bytes": 5355,
+      "sha256": "52076c5d917900d39c2e8dc439d2fabac78339c153e5c7eb111b0fd49bc907e3"
+    },
+    {
+      "path": "scripts/install_linux_ocr_runtime.py",
+      "bytes": 20016,
+      "sha256": "78948fb0cb17aced1c142cea968b18b5ec0a5938573bdfec5996c141326a9e29"
+    },
+    {
+      "path": "scripts/test_install_linux_ocr_runtime.py",
+      "bytes": 20097,
+      "sha256": "717ba08a30d5578695cd4eb1e006307e7d69197ec05ecac939440aa862ce944a"
+    }
+  ]
+}

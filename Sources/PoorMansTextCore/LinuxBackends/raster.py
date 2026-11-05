@@ -46,14 +46,72 @@ def heic_decoder(path):
         raise HEICUnavailable(str(error)) from error
 
 
-def save_frame(image, metadata, index, count, portable):
+def validate_png_resolution(path):
+    size = path.stat().st_size
+    with path.open('rb') as source:
+        if source.read(8) != b'\x89PNG\r\n\x1a\n':
+            return
+        saw_resolution = False
+        saw_pixels = False
+        for _ in range(100_000):
+            header = source.read(8)
+            if len(header) != 8:
+                raise ValueError('the source PNG chunk header is invalid')
+            length, kind = int.from_bytes(header[:4], 'big'), header[4:]
+            if length > size - source.tell() - 4:
+                raise ValueError('the source PNG chunk length is invalid')
+            if kind == b'pHYs':
+                if saw_resolution or saw_pixels or length != 9:
+                    raise ValueError('the source PNG resolution is ambiguous')
+                saw_resolution = True
+                data = source.read(9)
+                x, y, unit = int.from_bytes(data[:4], 'big'), int.from_bytes(data[4:8], 'big'), data[8]
+                if unit not in (0, 1) or x <= 0 or y <= 0 or x != y or (unit == 1 and not 1 <= x * 0.0254 <= 10_000):
+                    raise ValueError('the source PNG resolution is invalid or anisotropic')
+                source.seek(4, 1)
+            else:
+                source.seek(length + 4, 1)
+            saw_pixels |= kind == b'IDAT'
+            if kind == b'IEND':
+                return
+        raise ValueError('the source PNG chunk count exceeds its limit')
+
+
+def source_resolution(image):
+    if 'dpi' not in image.info:
+        if image.info.get('aspect', 1) != 1:
+            raise ValueError('structured OCR requires square pixels; anisotropic source resolution is unsupported')
+        return None
+    values = image.info['dpi']
+    if not isinstance(values, (list, tuple)) or len(values) != 2 or any(isinstance(value, bool) for value in values):
+        raise ValueError('the source image resolution is invalid')
+    try:
+        x, y = (float(value) for value in values)
+    except (ValueError, TypeError, OverflowError) as error:
+        raise ValueError('the source image resolution is invalid') from error
+    # Extreme oder richtungsabhängige Quelldichten werden weder geraten noch
+    # kosmetisch vereinheitlicht. Fehlende Dichte bleibt ausdrücklich fehlend.
+    if not all(math.isfinite(value) and 1 <= value <= 10_000 for value in (x, y)) or x != y:
+        raise ValueError('the source image resolution is invalid or anisotropic')
+    orientation = image.getexif().get(274, 1)
+    if orientation not in range(1, 9):
+        raise ValueError('the source image orientation is invalid')
+    return (y, x) if orientation in (5, 6, 7, 8) else (x, y)
+
+
+def save_frame(image, metadata, index, count, portable, preserve_resolution=False):
     from PIL import Image, ImageOps
     width, height = image.size
     if portable:
         image.save(Path.cwd() / f'asset-frame-{index + 1}.png', format='PNG')
+    resolution = source_resolution(image) if preserve_resolution else None
+    oriented_size = (height, width) if preserve_resolution and image.getexif().get(274, 1) in (5, 6, 7, 8) else (width, height)
     raster, downscaled = render_frame(image, min(16_000_000, 64_000_000 // count))
     metadata.update({'ocrWidth': raster.width, 'ocrHeight': raster.height, 'downscaled': downscaled})
-    raster.save(Path.cwd() / f'frame-{index + 1}.png', format='PNG')
+    options = {}
+    if resolution is not None:
+        options['dpi'] = (resolution[0] * raster.width / oriented_size[0], resolution[1] * raster.height / oriented_size[1])
+    raster.save(Path.cwd() / f'frame-{index + 1}.png', format='PNG', **options)
 
 
 def render_frame(image, budget, maximum_edge=None):
@@ -93,6 +151,7 @@ def main():
     parser.add_argument('--index', type=int)
     parser.add_argument('--heif-helper')
     parser.add_argument('--probe-heic', action='store_true')
+    parser.add_argument('--preserve-resolution', action='store_true')
     args = parser.parse_args()
     if args.mode == 'capabilities':
         heic = False
@@ -112,6 +171,8 @@ def main():
         raise ValueError('preview frame or source byte limit is invalid')
     with open(args.source, 'rb') as source:
         is_heic = heic_header(source.read(4096))
+    if args.preserve_resolution:
+        validate_png_resolution(Path(args.source))
     frames = []
     if is_heic:
         with heic_decoder(args.heif_helper) as decoder:
@@ -126,7 +187,7 @@ def main():
                                     print(json.dumps(save_preview(image, args.index, metadata['frameCount'])))
                                     return
                             else:
-                                save_frame(image, metadata, index, metadata['frameCount'], True)
+                                save_frame(image, metadata, index, metadata['frameCount'], True, args.preserve_resolution)
                         finally:
                             image.close()
                     frames.append(metadata)
@@ -156,7 +217,7 @@ def main():
                     print(json.dumps(save_preview(image, args.index, count)))
                     return
                 if args.mode == 'frames':
-                    save_frame(image, metadata, index, count, False)
+                    save_frame(image, metadata, index, count, False, args.preserve_resolution)
                 frames.append(metadata)
     if args.mode == 'preview':
         raise ValueError('preview frame is unavailable')

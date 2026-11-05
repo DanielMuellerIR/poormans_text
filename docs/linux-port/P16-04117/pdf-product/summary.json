@@ -1,0 +1,42 @@
+{
+  "cliSHA256": "c334b36c2778d704369b16862a54e3a5d8510dfbcb656309bc11bd8277c3b0df",
+  "cases": [
+    {
+      "case": "scanned",
+      "exit": 0,
+      "sourceSHA256": "496bd8900d28d82d5627247a50845f602e773d3251f38ee60d8c4759978dfe4c",
+      "sourceUnchanged": true,
+      "outputManifestPassed": true,
+      "assetsRetained": true,
+      "digitalOriginalExactlyOnce": null,
+      "diagnostics": [
+        "pdf.layoutNotPreserved",
+        "pdf.vectorGraphicsNotExtracted",
+        "pdf.linuxLayoutApproximation",
+        "ocr.structuredApplied",
+        "ocr.structuredApproximation",
+        "pdf.ocrApplied",
+        "pdf.imagesRasterized"
+      ]
+    },
+    {
+      "case": "mixed",
+      "exit": 0,
+      "sourceSHA256": "199e33add958f5e34078d91e3b3823448262fe03de42419fb004594be0bd57cb",
+      "sourceUnchanged": true,
+      "outputManifestPassed": true,
+      "assetsRetained": true,
+      "digitalOriginalExactlyOnce": true,
+      "diagnostics": [
+        "pdf.layoutNotPreserved",
+        "pdf.vectorGraphicsNotExtracted",
+        "pdf.linuxLayoutApproximation",
+        "ocr.structuredFallback",
+        "pdf.layoutAmbiguous",
+        "pdf.ocrApplied",
+        "pdf.imagesRasterized"
+      ]
+    }
+  ],
+  "scope": "Actual final product PDF integration, not semantic completeness"
+}

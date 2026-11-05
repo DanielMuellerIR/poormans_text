@@ -36,6 +36,9 @@ for package in files:
             subprocess.run(['tar', '--zstd', '--same-permissions', '-xf', str(package), '-C', str(destination)], check=True)
         for directory in ['usr', 'usr/bin', 'usr/lib', 'usr/share', 'usr/share/doc']:
             assert stat.S_IMODE((destination / directory).stat().st_mode) == 0o755
+        packaged_runtime = destination / 'usr/lib/poormans-text'
+        assert not (packaged_runtime / 'structured-ocr').exists(), 'Optional models leaked into base package'
+        assert not list(packaged_runtime.glob('ui-old-*')), 'Retained GUI backups leaked into package'
         launcher = destination / 'usr/bin/poormans-text'
         assert stat.S_IMODE(launcher.stat().st_mode) == 0o755
         version = subprocess.check_output([str(launcher), '--version'], text=True).strip()
@@ -64,7 +67,7 @@ with tempfile.TemporaryDirectory(prefix='pmt-package-parent-') as temporary:
     alias.symlink_to(destination, target_is_directory=True)
     p = subprocess.run([str(packager), '--no-build', '--format', 'tar', '--output-directory', str(alias)], capture_output=True, text=True, timeout=15)
     assert p.returncode != 0 and list(destination.iterdir()) == []
-result = {'formats': records, 'buildUmask': args.build_umask, 'publicFileModesVerified': True,
+result = {'formats': records, 'buildUmask': args.build_umask, 'publicFileModesVerified': True, 'optionalModelRuntimeExcluded': True,
           'existingPackagesUnchangedOnCollision73': True,
           'symlinkParentRejectedWithoutOutput': True}
 if args.evidence:

@@ -1,0 +1,13 @@
+{
+  "EVIDENCE.md": "f78db83ab28d069e6547b96f8108a190d9adcbe0be9bb7d593072c29dab4bcc0",
+  "README.md": "6574ed4c7d32e42d845c3520936877188e4d4a4180f2d93fff48966261338396",
+  "archive.json": "c75a02433619dd1b3f554a72aa95b8e808d11236343e2c981d84cfb2b75e92ff",
+  "candidate-summary.json": "b744a465403db52d5b8606692bbf1f8d81708497314ed4dbfa145785334733e7",
+  "details.tar.gz": "d0eaabafbbf7635f6230662503ec9267e8288bc275f2bbbe883c35b3d089ae48",
+  "download-ledger.json": "feb777310b97f8362dd2a43cd2eb17f4d768bede81f044de347ea0deae3555ef",
+  "licenses-closure.json": "1502440a49b66fda3c5daf1aa367f328592c98886b51538eb76ad89e9fc49ead",
+  "post-run-integrity.json": "dd68428d3c4e96706579bc5bfc282bc0d3adc6f380ffaa4c8525606bf0f5ce77",
+  "python-pin.json": "1d4eece2e39f7c972b510997a53c88cc17647268d8da51fe82c842d4907dafa9",
+  "runtime-manifest.json.gz": "5b0735d7861f413e1440097faf00c2c57cdadd55ced25c3ef2e68ec61e8e2e3e",
+  "tests-summary.json": "e904488c31c1c29dd146ee0c0ca736461fcca4e83099a3ce8408f81e205ea96a"
+}

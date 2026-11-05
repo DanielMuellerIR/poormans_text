@@ -1,0 +1,9 @@
+{
+  "status": "FAIL",
+  "scope": "Two actual complete 30192-file SSD copies; no publication",
+  "firstFailure": "Stage is missing verified files.",
+  "secondFailure": "expected30193 verified0; reopened first stage verification30193/30193",
+  "cause": "under investigation",
+  "tinyTestsPassed": 34,
+  "independentFullInstallPassed": false
+}

@@ -10,6 +10,7 @@ const VALUES: &[(&str, &str)] = &[
     ("--timeout", "timeout"),
 ];
 const CHOICES: &[(&str, &str)] = &[
+    ("--ocr-method", "ocr-method"),
     ("--spreadsheet-format", "spreadsheet-format"),
     ("--image-ocr", "image-ocr"),
     ("--pdf-ocr", "pdf-ocr"),
@@ -464,6 +465,9 @@ mod tests {
         assert_eq!(settings.int("window-width"), 1060);
         assert!(settings.boolean("source-map"));
         assert_eq!(settings.string("jobs"), "");
+        assert_eq!(settings.string("ocr-method"), "standard");
+        assert!(settings.set_string("ocr-method", "structured").is_ok());
+        assert!(settings.set_string("ocr-method", "remote").is_err());
         assert!(settings.set_string("pdf-ocr", "off").is_ok());
         assert_eq!(settings.string("pdf-ocr"), "off");
         std::fs::remove_file(directory.join("gschemas.compiled")).unwrap();

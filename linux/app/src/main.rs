@@ -2,11 +2,11 @@ mod clipboard;
 mod clipboard_ui;
 mod comparison;
 mod model;
-mod profiles;
 mod preferences;
+mod profiles;
 mod read_output;
-mod source_raster;
 mod source_canvas;
+mod source_raster;
 use gtk::{gio, glib, prelude::*};
 use model::{Options, OutputFile, tr};
 use pmt_bridge::{Bridge, ErrorKind, Event, Job, JobHandle};
@@ -414,10 +414,19 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
         &ocr,
         tr("OCR-Methode", "OCR method"),
         "--ocr-method",
-        &[("standard", tr("Standard (lokal)", "Standard (local)"))],
+        &[
+            ("standard", tr("Standard (lokal)", "Standard (local)")),
+            (
+                "structured",
+                tr(
+                    "Strukturiert (optionale lokale Modelle)",
+                    "Structured (optional local models)",
+                ),
+            ),
+        ],
         &mut controls,
     );
-    ocr.append(&label(tr("Strukturierte OCR ist in diesem Linux-Backend nicht verfügbar. Sprachdaten werden nicht automatisch geladen.","Structured OCR is unavailable in this Linux backend. Language data is never downloaded automatically.")));
+    ocr.append(&label(tr("Strukturierte OCR benötigt eine separat geprüfte lokale Modellruntime. Text und Tabellen können Erkennungsfehler enthalten; Originale bleiben erhalten. Keine automatischen Downloads.","Structured OCR requires a separately verified local model runtime. Text and tables may contain recognition errors; originals are retained. No automatic downloads.")));
     entry(
         &ocr,
         tr("OCR-Sprachen", "OCR languages"),
@@ -1033,9 +1042,11 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
                         if error_probe {
                             let mut value = (**file.context.as_ref().unwrap()).clone();
                             if std::env::var_os("PMT_UI_TEST_BOUND_VERIFY_ERROR").is_some() {
-                                value["outputFiles"][0]["sha256"] = serde_json::json!("0".repeat(64));
+                                value["outputFiles"][0]["sha256"] =
+                                    serde_json::json!("0".repeat(64));
                             } else {
-                                value["outputFiles"][0]["byteCount"] = serde_json::json!(16 * 1024 * 1024 + 1);
+                                value["outputFiles"][0]["byteCount"] =
+                                    serde_json::json!(16 * 1024 * 1024 + 1);
                             }
                             file.context = Some(Arc::new(read_output::Context::new(value)));
                         }

@@ -1,0 +1,36 @@
+{
+  "runtimeManifestSHA256": "cd4673de443d7e2570d6c4c4666cecb4924e2ceaf22703cba2a273a544eface6",
+  "runtimeManifestBytes": 5778325,
+  "runtimeFiles": 30192,
+  "runtimeFileBytes": 2158493598,
+  "deliveredExpectedRuntimeDigest": null,
+  "modelWorkerASLimitBytes": 4294967296,
+  "CPUSeconds": 120,
+  "fileSizeBytes": 8388608,
+  "inputPixelLimit": 16000000,
+  "JSONByteLimit": 8388608,
+  "maxObservedWorkerVmPeakKiB": 2864800,
+  "maxObservedWorkerVmHWMKiB": 1364540,
+  "aggregateJobRAMLimit": "None claimed; AS limit is per model process and inherited by its descendants, external smoke Docker additionally capped RAM4GiB",
+  "rootParserSHA256": "257951829ea972984b89d49dfc7c09af25ef40cea03c963ceb266c621469966a",
+  "baseHashes": {
+    "poppler.py": "b58197543d608095989185c35d8076b8d7cce9fafd48bc7335af1e1d59ba60ed",
+    "raster.py": "3a12816a31bef60aa93012c5628b2e0c268d13877eb0325754ca92a17b0a7513",
+    "LinuxRasterBackend.swift": "ebacbc382bd9fb3c841d7149829afdb7f9f46bee07d1d7a9f02f772af1bf03fe",
+    "LinuxPDFAdapter.swift": "ab7c7704f4d53197c38512b7f3d8e9591ff816c1d2bb8496ca66d2db6f19e762",
+    "LinuxImageAdapter.swift": "5aa111fd60fa1d363f71a1c42fd2d9caf9bf3aceb6273f7d6ede02ad51f645d8"
+  },
+  "files": {
+    "Sources/PoorMansTextCore/LinuxStructuredOCR.swift": "597abfe5af313145c43b9dc2a8655531c10120f6d3cf63c4ef25ab8eb48b8b57",
+    "Sources/PoorMansTextCore/LinuxImageAdapter.swift": "70ea859f1c7bf0c5a6265cf3053247b72623b8225085be5fc3c29f9b9bc8528c",
+    "Sources/PoorMansTextCore/LinuxPDFAdapter.swift": "3155b145bcf1f5dd835894513abe6a6a9b00d3e7f118db04228f232e27568b35",
+    "Sources/PoorMansTextCore/LinuxRasterBackend.swift": "c20be355e31c2c616a9f73e126ee208512f3a2f7c0d42c2516bd6dd5afbfc595",
+    "Sources/PoorMansTextCore/LinuxBackends/structured_ocr.py": "7d33a83188b1397ffab6738e626f217167e60f01358b386b7672164b6f0f45c4",
+    "Sources/PoorMansTextCore/LinuxBackends/raster.py": "3faa6b54f2cf1ea1776999e4d000b57b75d8e22d86ccaa6d520903f3f39bc968",
+    "Sources/PoorMansTextCore/LinuxBackends/poppler.py": "dcf23fc9ac40cd77d2755ed424cc98406932bf71b761796a381b28de9fc63477",
+    "Tests/PoorMansTextLinuxTests/LinuxStructuredOCRTests.swift": "efc8661211c0dc108113153511c9fda7c750fb33133ca6b272278cd00ff74038"
+  },
+  "sourceVersion": "isolated dirty candidate derived from0.41.15 plus current root parser; root owns final version/commit",
+  "repoWrites": false,
+  "qualityStatus": "FAIL"
+}

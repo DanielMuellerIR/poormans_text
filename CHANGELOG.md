@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.41.17 — 2026-11-05
+
+- Add opt-in Linux structured OCR through a pinned offline Docling/TableFormer runtime and the shared Swift renderer, preserving original assets and source resolution.
+- Provide a safe local runtime installer with bound directories, complete hash verification and atomic publication without overwriting; fix stale directory enumeration observed on Btrfs.
+- Keep optional models and retained GUI build copies out of base packages.
+- Extend automatic quality checks with a fixed synthetic table reference and exact final Markdown text checks; retain known OCR errors as failures.
+- Correct the asynchronous callback model in OCR bridge tests and verify the complete native Mac regression without a skip filter.
+
 ## 0.41.16 — 2026-11-05
 
 - Preserve Linux GUI options and window state through a bundled GSettings schema; retain paths, document-specific selections and profile permissions only for the current session.

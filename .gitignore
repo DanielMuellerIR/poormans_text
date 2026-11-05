@@ -9,3 +9,6 @@
 
 /poormans-text-app
 /target/
+
+# Python-Prüfwerkzeuge erzeugen lokalen Bytecode.
+__pycache__/

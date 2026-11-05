@@ -1,0 +1,202 @@
+{
+  "assets" : [
+    "/work/scanned-output/images/page-1-image-1.png"
+  ],
+  "diagnosticGroups" : [
+    {
+      "code" : "pdf.layoutNotPreserved",
+      "count" : 1,
+      "kind" : "approximation",
+      "locations" : [
+
+      ],
+      "messages" : [
+        "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+      ],
+      "omittedCount" : 0
+    },
+    {
+      "code" : "pdf.vectorGraphicsNotExtracted",
+      "count" : 1,
+      "kind" : "contentLoss",
+      "locations" : [
+
+      ],
+      "messages" : [
+        "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF."
+      ],
+      "omittedCount" : 0
+    },
+    {
+      "code" : "pdf.linuxLayoutApproximation",
+      "count" : 1,
+      "kind" : "approximation",
+      "locations" : [
+
+      ],
+      "messages" : [
+        "The Linux PDF backend infers word spacing and bounded text-line order; only pages actually processed with structured OCR can reconstruct tables."
+      ],
+      "omittedCount" : 0
+    },
+    {
+      "code" : "ocr.structuredApplied",
+      "count" : 1,
+      "kind" : "information",
+      "locations" : [
+        {
+          "page" : 1
+        }
+      ],
+      "messages" : [
+        "Structured local OCR was projected from the verified raster without replacing original assets."
+      ],
+      "omittedCount" : 0
+    },
+    {
+      "code" : "ocr.structuredApproximation",
+      "count" : 1,
+      "kind" : "approximation",
+      "locations" : [
+        {
+          "page" : 1
+        }
+      ],
+      "messages" : [
+        "Structured OCR is an approximation. Recognized text and table structure can differ from the source; inspect the retained original."
+      ],
+      "omittedCount" : 0
+    },
+    {
+      "code" : "pdf.ocrApplied",
+      "count" : 1,
+      "kind" : "information",
+      "locations" : [
+
+      ],
+      "messages" : [
+        "Pages without enough embedded text were rendered and read with local OCR. Review OCR text before relying on it."
+      ],
+      "omittedCount" : 0
+    },
+    {
+      "code" : "pdf.imagesRasterized",
+      "count" : 1,
+      "kind" : "approximation",
+      "locations" : [
+
+      ],
+      "messages" : [
+        "Embedded PDF images were retained as local PNG assets; their original compression and page placement were not preserved."
+      ],
+      "omittedCount" : 0
+    }
+  ],
+  "diagnostics" : [
+    {
+      "code" : "pdf.layoutNotPreserved",
+      "kind" : "approximation",
+      "message" : "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+    },
+    {
+      "code" : "pdf.vectorGraphicsNotExtracted",
+      "kind" : "contentLoss",
+      "message" : "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF."
+    },
+    {
+      "code" : "pdf.linuxLayoutApproximation",
+      "kind" : "approximation",
+      "message" : "The Linux PDF backend infers word spacing and bounded text-line order; only pages actually processed with structured OCR can reconstruct tables."
+    },
+    {
+      "code" : "ocr.structuredApplied",
+      "kind" : "information",
+      "location" : {
+        "page" : 1
+      },
+      "message" : "Structured local OCR was projected from the verified raster without replacing original assets."
+    },
+    {
+      "code" : "ocr.structuredApproximation",
+      "kind" : "approximation",
+      "location" : {
+        "page" : 1
+      },
+      "message" : "Structured OCR is an approximation. Recognized text and table structure can differ from the source; inspect the retained original."
+    },
+    {
+      "code" : "pdf.ocrApplied",
+      "kind" : "information",
+      "message" : "Pages without enough embedded text were rendered and read with local OCR. Review OCR text before relying on it."
+    },
+    {
+      "code" : "pdf.imagesRasterized",
+      "kind" : "approximation",
+      "message" : "Embedded PDF images were retained as local PNG assets; their original compression and page placement were not preserved."
+    }
+  ],
+  "documents" : [
+    {
+      "assets" : [
+        "/work/scanned-output/images/page-1-image-1.png"
+      ],
+      "markdownFile" : "/work/scanned-output/scanned.md",
+      "metadata" : {
+        "created" : "2026-11-05T11:44:57Z",
+        "modified" : "2026-11-05T11:44:57Z",
+        "title" : "scanned"
+      },
+      "sourceIndex" : 1,
+      "title" : "scanned"
+    }
+  ],
+  "input" : "/work/scanned.pdf",
+  "markdownFile" : "/work/scanned-output/scanned.md",
+  "metadata" : {
+    "created" : "2026-11-05T11:44:57Z",
+    "modified" : "2026-11-05T11:44:57Z",
+    "title" : "scanned"
+  },
+  "ok" : true,
+  "outputDirectory" : "/work/scanned-output",
+  "outputFiles" : [
+    {
+      "byteCount" : 207709,
+      "path" : "images/page-1-image-1.png",
+      "sha256" : "eb0e81c6a88ca85638a90a71239ccb86440254c66e4c2fa970548903445d60f2"
+    },
+    {
+      "byteCount" : 322,
+      "path" : "scanned.md",
+      "sha256" : "6fcb6db50a84ab15d12c9206f7b28ac2020efde9078b876e7c6503484bfc5b56"
+    }
+  ],
+  "reportFile" : "/work/scanned-output/conversion-report.json",
+  "sourceIdentity" : {
+    "byteCount" : 114810,
+    "name" : "scanned.pdf",
+    "sha256" : "496bd8900d28d82d5627247a50845f602e773d3251f38ee60d8c4759978dfe4c"
+  },
+  "sourceMappings" : [
+    {
+      "output" : {
+        "file" : "scanned.md",
+        "utf8Length" : 312,
+        "utf8Offset" : 9
+      },
+      "source" : {
+        "page" : 1
+      }
+    }
+  ],
+  "version" : "0.41.17",
+  "warnings" : [
+    "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review.",
+    "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF.",
+    "The Linux PDF backend infers word spacing and bounded text-line order; only pages actually processed with structured OCR can reconstruct tables.",
+    "Page 1: Structured local OCR was projected from the verified raster without replacing original assets.",
+    "Page 1: Structured OCR is an approximation. Recognized text and table structure can differ from the source; inspect the retained original.",
+    "Pages without enough embedded text were rendered and read with local OCR. Review OCR text before relying on it.",
+    "Embedded PDF images were retained as local PNG assets; their original compression and page placement were not preserved."
+  ]
+}

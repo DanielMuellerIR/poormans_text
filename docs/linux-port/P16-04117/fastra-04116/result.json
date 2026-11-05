@@ -1,0 +1,31 @@
+{
+  "consumer_production_commit": "9e5f6c2685e835697feccb2d4e5691f5c415b481",
+  "consumer_product_version": "1.165.1",
+  "consumer_production_files": {
+    "crates/fastra-import/src/catalog.rs": "841a08ab1f62a6ccaac652d6aedd9585aa4875fc35bac27110608d74c8ddc8a8",
+    "crates/fastra-import/src/lib.rs": "91830eaedb6023dc77f0c245a7445d2baf54b2db4f380b59a6b18891d8b31125",
+    "crates/fastra-import/src/progress.rs": "368bca827c7e72c863374838b0bf4f5770b2db084dd4f15ea802da1a8671c7f2",
+    "crates/fastra-import/src/protocol.rs": "bdc67c430d3a702256ed11ed2548b7cecbd4d856230a4dc3d2f932a2ce7bfa5d",
+    "crates/fastra-import/src/tree.rs": "5a7a97584d9dc9ad4c33fa02fb230601268dcdbbb05da260746bcb56b87f38b6",
+    "crates/fastra-process/src/lib.rs": "c758aaf5beef19909368396dac6928dce5ffb6610c9af36ac100229c84a0d88f"
+  },
+  "verification_runner_sha256": "d6b8abf70068a7bd0fed6ee28ca2a24f9f715b5462efd543c8c5e87a62204248",
+  "verification_source_sha256": "a73cf4dea35f2d2f18c8fde9f15db0edc73b9dd60e098fd06f8f2f774df2e5e1",
+  "producer_commit": "9f8fadd4e1a0c749ac1469c6bfe1c879d5ccd523",
+  "producer_cli_sha256": "7df0dff563ac2027d49e116816e61bab586b666695d004e2b49b1ff67daf635f",
+  "producer_guard_sha256": "cf677f9be88095a27423ceedb9db2b85667f7775d167857cfb52002ff5dda520",
+  "producer_handoff_sha256": "7903cfe3639831ec5bac1093fe143646216cfc04e78c00564fd0902f3c260c86",
+  "source_map_explicit_for_probe": true,
+  "host_image": "pmt-linux-backend-test:latest",
+  "network": "none",
+  "uid": 1000,
+  "result": {
+    "adoptionEntryVerified": true,
+    "assetDoesNotChangeTextFingerprint": true,
+    "inputRemainsPackage": true,
+    "memberPath": "TXT.rtf",
+    "originalTextSha256": "cd717664e61c35746cca8bfe0af6c46f8052f0ff9f1d42aef62bfdea91856de3",
+    "passed": true,
+    "producerVersion": "0.41.16"
+  }
+}

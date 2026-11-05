@@ -15,15 +15,16 @@ WebP sind implementiert. Ihre Importwege stehen in
 
 ## Linux-Portierung
 
-Die Linux-Portierung behält Swift als gemeinsamen Konvertierungskern. Offene
-Backend-, Desktop-, Paket- und Mac-Regressionsabnahmen stehen im
-[Linux-Umsetzungsplan](docs/LINUX-PORT.md); die App-Grenze steht im
-[Fastra-CLI-Vertrag](docs/FASTRA-CONTRACT.md). Strukturierte OCR, breitere HEIC-Qualitätsabnahme und
-die vollständige Zielsystemmatrix bleiben offen.
-Der passive PDF-/Bildframevergleich ist integriert. Docling/TableFormer ist ein
-teilgeprüfter Kandidat; sicherer Produktadapter, breiter Korpus und Modell-/
-Lizenzpaketierung fehlen. Die bekannte native Mac-OCR-Testblockade verhindert
-weiterhin eine uneingeschränkte Gesamtregressionsaussage.
+Die Linux-Portierung behält Swift als gemeinsamen Konvertierungskern. Offen
+bleiben echte Desktop-/Portalabnahmen, breitere natürliche Qualitätskorpora,
+HEIC-/RTFD-Parität und die vollständige Zielsystemmatrix. Einzelne externe
+Mac-Korpora sind noch nicht als Referenzdaten verfügbar. Die opt-in strukturierte
+OCR erreicht noch keine allgemeine Inhaltsvollständigkeit; bekannte Zeichen-
+und Diagrammverluste bleiben Fehler der automatischen Qualitätsfreigabe.
+Öffentliche Modellverteilung benötigt zusätzlich die vollständige Prüfung der
+Lizenz-/Quellangebotsauflagen. Der [Linux-Plan](docs/LINUX-PORT.md) und der
+[Fastra-Vertrag](docs/FASTRA-CONTRACT.md) unterscheiden diese Grenzen von den
+bereits integrierten und geprüften Produktpfaden.
 Eine öffentliche Linux-Veröffentlichung ist gesondert freizugeben.
 
 ## Offene Qualitätsprüfung

@@ -1,0 +1,32 @@
+{
+  "uidMap": "         0       1000          1\n",
+  "writeProbes": [
+    {
+      "path": "/host/usr/bin/true",
+      "writeDenied": true,
+      "errno": 13
+    },
+    {
+      "path": "/usr/bin/true",
+      "writeDenied": true,
+      "errno": 13
+    },
+    {
+      "path": "/outside-marker",
+      "writeDenied": true,
+      "errno": 30
+    },
+    {
+      "path": "/inputs/old.deb",
+      "writeDenied": true,
+      "errno": 30
+    },
+    {
+      "path": "/host/usr/PMT-forbidden-marker",
+      "writeDenied": true,
+      "errno": 30
+    }
+  ],
+  "noHostHomeOrBus": true,
+  "networkInterfaces": "Inter-|   Receive                                                |  Transmit\n face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed\n    lo:       0       0    0    0    0     0          0         0        0       0    0    0    0     0       0          0\n"
+}

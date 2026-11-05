@@ -41,6 +41,12 @@ with tempfile.TemporaryDirectory(prefix='pmt-quality-fixtures-') as tmp:
         r=command([cli,'--json','--report','--source-map','--pandoc','/usr/bin/pandoc',*flags,'-o',dest,'--',source]);rec['exit']=r.returncode
         try:
             j=json.loads(r.stdout);rec['diagnostics']=[d['code'] for d in j.get('diagnostics',[])];assert r.returncode==0,(r.stdout,r.stderr)
+            if name == 'rtfd':
+                identity=j.get('sourceIdentity') or {}
+                original=(source/'TXT.rtf').read_bytes()
+                assert identity.get('memberPath')=='TXT.rtf','RTFD text member identity missing'
+                assert identity.get('sha256')==sha(original),'RTFD original text hash differs'
+                assert identity.get('byteCount')==len(original),'RTFD original text length differs'
             docs=j.get('documents') or [];paths=[Path(d['markdownFile']) for d in docs] if docs else [Path(j['markdownFile'])]
             md='\n'.join(x.read_text() for x in paths);inventory(md,required)
             expected_cells={'csv':[['Name','Value'],['Größe','42'],['quoted, field','17']],'xlsx':[['XLSXTOKEN','Value'],['Größe','42']]}
@@ -57,7 +63,7 @@ with tempfile.TemporaryDirectory(prefix='pmt-quality-fixtures-') as tmp:
             try:inventory(md.replace(required[0],''),required)
             except AssertionError:pass
             else:raise AssertionError('loss control not detected')
-            rec.update(status='PASS',checks=['inventory','order','source bytes','output hashes','loss control','diagnostics']+(['exact cells/rows'] if name in expected_cells else [])+(['original asset bytes'] if asset else []),markdown=md)
+            rec.update(status='PASS',checks=['inventory','order','source bytes','output hashes','loss control','diagnostics']+(['exact cells/rows'] if name in expected_cells else [])+(['original asset bytes'] if asset else [])+(['original TXT.rtf identity only'] if name=='rtfd' else []),markdown=md)
         except Exception as err:rec.update(error=str(err),stdout=r.stdout,stderr=r.stderr)
     version=command([cli,'--version']);summary={'cliSHA256':sha(cli.read_bytes()),'version':version.stdout.strip(),'cases':records}
     (a.results/'families.json').write_text(json.dumps(summary,ensure_ascii=False,indent=2)+'\n')

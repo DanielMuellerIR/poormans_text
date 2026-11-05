@@ -1,0 +1,30 @@
+{
+  "scope": "Native Mint private DPKG lifecycle, packaged Swift CLI, and offline optional model component with temporary Noble Tesseract dependencies; no host installation or desktop",
+  "host": {
+    "architecture": "x86_64",
+    "python": "3.12.3",
+    "glibc": [
+      "glibc",
+      "2.39"
+    ],
+    "filesystem": "btrfs"
+  },
+  "rootIdentity": {
+    "device": 33,
+    "inode": 28993932
+  },
+  "status": "PASS",
+  "sourceUnchanged": true,
+  "modelCellTexts": [
+    "MERGED HEADER",
+    "TOTAL",
+    "Al",
+    "Bl",
+    "Cl",
+    "A2",
+    "B2",
+    "C2"
+  ],
+  "qualityStatus": "Separate strict quality gate remains FAIL; successful component inference is not semantic completeness",
+  "hostInputsUnchanged": true
+}

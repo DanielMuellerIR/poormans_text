@@ -28,9 +28,22 @@ aktuelle Fastra-Dialoglauf besteht DOCX/PNG unverändert und sperrt die Adoption
 bei fehlendem PDF-Backend. Positive ENEX-PDF-Konvertierungen sind separat an der
 Produkt-CLI belegt; die entsprechende positive GUI-Umgebung fehlt noch.
 Die übrige echte .14-Matrix bleibt ihrem ursprünglichen Artefakt zugeordnet.
-Strukturierte OCR ist eine optionale, weiterhin nicht verfügbare Fähigkeit und
+Die spätere optionale strukturierte OCR ist
 keine Voraussetzung für Fastras bestehenden Importweg. Vollständige Desktop-
 und Prozessverlustabnahmen des Consumers bleiben getrennte Freigaben.
+
+[0.41.16 mit Fastra 1.165.1](linux-port/P16-04117/fastra-04116/REPORT.md)
+besteht den echten RTFD-Import samt optionaler Textidentität, unreferenzierter
+Anhangänderung und korrekter Adoption. Der Beleg bindet beide Produktcommits;
+er verlangt `--source-map` nur im privaten Prüflauf. Normale Consumeraufrufe
+bleiben unverändert und müssen fehlende `sourceIdentity` weiterhin erlauben.
+
+Ab [0.41.17](linux-port/P16-04117/README.md) ist strukturierte Linux-OCR mit
+separat geprüfter lokaler Modellruntime ausdrücklich optional integriert.
+Standard bleibt `standard`; fehlende oder veränderte Runtime ergibt 69 ohne
+Ausgabe. Es gibt keine neue Protokollversion, keinen automatischen Download
+und keine neue Voraussetzung für Fastras normalen Import. Die allgemeine
+Inhaltsqualitätsfreigabe bleibt wegen belegter Erkennungsfehler FAIL.
 
 Die .12-Operation `--json --preview-page N -- quelle.pdf` beziehungsweise
 `--json --preview-frame N -- bild` ist eine getrennte passive Leseoperation.

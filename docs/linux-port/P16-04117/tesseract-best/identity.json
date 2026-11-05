@@ -1,0 +1,25 @@
+{
+  "date": "2026-11-05",
+  "runtimeManifestSHA256": "cd4673de443d7e2570d6c4c4666cecb4924e2ceaf22703cba2a273a544eface6",
+  "modelRevision": "e12c65a915945e4c28e237a9b52bc4a8f39a0cec",
+  "TesseractVersion": "5.3.4",
+  "baselineModels": {
+    "eng": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2",
+    "deu": "19d219bbb6672c869d20a9636c6816a81eb9a71796cb93ebe0cb1530e2cdb22d",
+    "osd": "9cf5d576fcc47564f11265841e5ca839001e7e6f38ff7f7aacf46d15a96b00ff"
+  },
+  "workerSHA256": "7d33a83188b1397ffab6738e626f217167e60f01358b386b7672164b6f0f45c4",
+  "referenceCode": {
+    "main.swift": "6587f07f796d00b2b8f70587f08db7e50968d27374c2bfc843a4ae9d4f6a956a",
+    "LinuxStructuredOCR.swift": "597abfe5af313145c43b9dc2a8655531c10120f6d3cf63c4ef25ab8eb48b8b57",
+    "LinuxOCR.swift": "f66b508937979046904ed6e9c9c9b85648ec2fe45b4827f7bdb253fcbe4aeebc",
+    "StructuredOCRRendering.swift": "d4d34e78f6f2c7dcae8d9436e270f65ae253c5b3cc30b7cea4dc4e60cf1b1753",
+    "DoclingDocumentProjection.swift": "257951829ea972984b89d49dfc7c09af25ef40cea03c963ceb266c621469966a"
+  },
+  "modelCalls": 24,
+  "standardCalls": 4,
+  "typedPassed": 28,
+  "sourceCommitBinding": "Temporary read-only snapshot, no final source commit claimed",
+  "defaultOrCandidateWrites": false,
+  "decision": "Do not integrate best models; no consistent quality benefit"
+}

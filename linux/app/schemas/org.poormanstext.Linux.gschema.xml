@@ -5,6 +5,7 @@
     <key name="window-height" type="i"><range min="600" max="2400"/><default>850</default></key>
     <key name="window-maximized" type="b"><default>false</default></key>
     <key name="options-tab" type="i"><range min="0" max="3"/><default>0</default></key>
+    <key name="ocr-method" type="s"><choices><choice value="standard"/><choice value="structured"/></choices><default>'standard'</default></key>
     <key name="ocr-language" type="s"><default>''</default></key>
     <key name="jobs" type="s"><default>''</default></key>
     <key name="timeout" type="s"><default>''</default></key>

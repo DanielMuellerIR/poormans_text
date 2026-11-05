@@ -1,0 +1,16 @@
+{
+  "app_sha256": "754d7e0fb44d4066754fc778726c800acbf52de64d7a928d8ef0f326ad2971a4",
+  "schema_sha256": "53fda62bf34c1c15051ed0b1841c75711bad3433d2fe35bd206b0d41a1293b7c",
+  "cli_sha256": "c334b36c2778d704369b16862a54e3a5d8510dfbcb656309bc11bd8277c3b0df",
+  "source_sha256": "e37ca92cf5b8ad22e228eed1c1065177bbbdc6b865b9e027965660353f934369",
+  "retained_asset_sha256": "e37ca92cf5b8ad22e228eed1c1065177bbbdc6b865b9e027965660353f934369",
+  "persisted_method": "structured",
+  "language": "en",
+  "gui_diagnostics": "Structured local OCR was projected from the verified raster without replacing original assets. Structured OCR is an approximation.",
+  "diagnostic_code": "not independently captured; human-readable diagnostic visible",
+  "exit_codes": [
+    0,
+    0
+  ],
+  "quality": "No quality pass claimed; known independent result 5/8."
+}

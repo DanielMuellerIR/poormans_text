@@ -45,9 +45,22 @@ if args.with_gui:
     schema = runtime / 'ui/schemas/gschemas.compiled'
     if not schema.is_file() or schema.is_symlink() or hashlib.sha256(schema.read_bytes()).hexdigest() != info.get('preferencesSchemaSHA256'):
         raise SystemExit('The bundled GUI preferences schema is missing or modified; rebuild before packaging.')
-for entry in runtime.rglob('*'):
-    if not args.with_gui and entry.relative_to(runtime).parts[0] == 'ui':
-        continue
+# Die separat geprüfte Modellruntime wird ausschließlich lokal über ihren
+# eigenen Installer ergänzt; Basispakete übernehmen sie nie beiläufig.
+excluded_runtime_roots = {'structured-ocr'} | (set() if args.with_gui else {'ui'})
+excluded_runtime_roots.update(entry.name for entry in runtime.iterdir()
+                              if re.fullmatch(r'ui-old-[0-9a-f]{32}', entry.name))
+def runtime_entries():
+    def failed(error):
+        raise error
+    for directory, directories, files in os.walk(runtime, followlinks=False, onerror=failed):
+        if Path(directory) == runtime:
+            directories[:] = [name for name in directories if name not in excluded_runtime_roots]
+            files = [name for name in files if name not in excluded_runtime_roots]
+        for name in directories + files:
+            yield Path(directory) / name
+
+for entry in runtime_entries():
     if entry.is_symlink():
         raise SystemExit('Unexpected runtime symlink: ' + str(entry.relative_to(runtime)))
     if not entry.is_file():
@@ -127,10 +140,10 @@ try:
         for kind in formats:
             stage = work / kind
             destination = stage / 'usr/lib/poormans-text'
-            for path in runtime.rglob('*'):
+            for path in runtime_entries():
                 if path.is_symlink() or not (path.is_dir() or path.is_file()):
                     raise SystemExit('Unexpected runtime file type: ' + str(path.relative_to(runtime)))
-            shutil.copytree(runtime, destination, ignore=lambda path, names: ['ui'] if Path(path) == runtime and not args.with_gui and 'ui' in names else [])
+            shutil.copytree(runtime, destination, ignore=lambda path, names: sorted(set(names) & excluded_runtime_roots) if Path(path) == runtime else [])
             for path in [destination, *destination.rglob('*')]:
                 path.chmod(0o755 if path.is_dir() or path.parent in [destination / 'bin', destination / 'ui'] and path.name in ['poormans-text', 'poormans-text-app', 'poormans-text-process-guard'] else 0o644)
             launch = stage / 'usr/bin/poormans-text'

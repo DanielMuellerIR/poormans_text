@@ -107,8 +107,8 @@
     },
     {
       "path": "Sources/PoorMansTextCore/DocumentOCR.swift",
-      "bytes": 6547,
-      "sha256": "8d508ea2e81f3f7c082cc49176a3cf4a7a8d52a177c21c280f60337a6e3e5996"
+      "bytes": 6632,
+      "sha256": "cd3f04de4694705ded5835d8ad63ebf267a478074b6fd02690c09df2c32769fb"
     },
     {
       "path": "Sources/PoorMansTextCore/ENEXAdapter.swift",
@@ -237,18 +237,23 @@
     },
     {
       "path": "Sources/PoorMansTextCore/LinuxBackends/poppler.py",
-      "bytes": 12937,
-      "sha256": "b58197543d608095989185c35d8076b8d7cce9fafd48bc7335af1e1d59ba60ed"
+      "bytes": 14833,
+      "sha256": "dcf23fc9ac40cd77d2755ed424cc98406932bf71b761796a381b28de9fc63477"
     },
     {
       "path": "Sources/PoorMansTextCore/LinuxBackends/raster.py",
-      "bytes": 8214,
-      "sha256": "3a12816a31bef60aa93012c5628b2e0c268d13877eb0325754ca92a17b0a7513"
+      "bytes": 11476,
+      "sha256": "3faa6b54f2cf1ea1776999e4d000b57b75d8e22d86ccaa6d520903f3f39bc968"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/LinuxBackends/structured_ocr.py",
+      "bytes": 5210,
+      "sha256": "7d33a83188b1397ffab6738e626f217167e60f01358b386b7672164b6f0f45c4"
     },
     {
       "path": "Sources/PoorMansTextCore/LinuxImageAdapter.swift",
-      "bytes": 9241,
-      "sha256": "5aa111fd60fa1d363f71a1c42fd2d9caf9bf3aceb6273f7d6ede02ad51f645d8"
+      "bytes": 10826,
+      "sha256": "2062b2bc613715814ab30ddc378b20486c47dcf82c1180208c38e90b165158f2"
     },
     {
       "path": "Sources/PoorMansTextCore/LinuxLegacyWordAdapter.swift",
@@ -267,8 +272,8 @@
     },
     {
       "path": "Sources/PoorMansTextCore/LinuxPDFAdapter.swift",
-      "bytes": 24802,
-      "sha256": "ab7c7704f4d53197c38512b7f3d8e9591ff816c1d2bb8496ca66d2db6f19e762"
+      "bytes": 29371,
+      "sha256": "3155b145bcf1f5dd835894513abe6a6a9b00d3e7f118db04228f232e27568b35"
     },
     {
       "path": "Sources/PoorMansTextCore/LinuxPDFAttachment.swift",
@@ -297,8 +302,13 @@
     },
     {
       "path": "Sources/PoorMansTextCore/LinuxRasterBackend.swift",
-      "bytes": 4901,
-      "sha256": "ebacbc382bd9fb3c841d7149829afdb7f9f46bee07d1d7a9f02f772af1bf03fe"
+      "bytes": 5075,
+      "sha256": "c20be355e31c2c616a9f73e126ee208512f3a2f7c0d42c2516bd6dd5afbfc595"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/LinuxStructuredOCR.swift",
+      "bytes": 19465,
+      "sha256": "65da1b44eebaaf3632e32a27f834bfcf5f87d016b1d0dd7199f5507b48b696ee"
     },
     {
       "path": "Sources/PoorMansTextCore/MBOXAdapter.swift",
@@ -528,7 +538,7 @@
     {
       "path": "Sources/PoorMansTextCore/ProductInfo.swift",
       "bytes": 190,
-      "sha256": "b322326714f0ba6dce06f2abbfa796d92d1038046167402963e91e4892eae815"
+      "sha256": "5d3a6d4ede54927f8e611b818d46b80d27df5eda5c723755c17ef49d90df02ae"
     },
     {
       "path": "Sources/PoorMansTextCore/ProfileJSONPreflight.swift",

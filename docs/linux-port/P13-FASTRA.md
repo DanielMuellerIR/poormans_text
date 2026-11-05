@@ -4,6 +4,13 @@ Stand: 2026-11-05. Der Replay änderte kein Fastra-Repository. Vorhandene echte 
 
 ## Maßgeblicher aktueller Stand
 
+Der [gezielte 0.41.16-/1.165.1-Verbraucherlauf](P16-04117/fastra-04116/REPORT.md)
+bindet PMT `9f8fadd4` und Fastra `9e5f6c26`: RTFD-Identität und Adoption bestehen.
+Die Textidentität bleibt optional und deckt keine Anhänge ab. Die normalen
+Consumeraufrufe bleiben unverändert. Frühere .14-/ .15-Matrizen und harte
+Prozessverlustnachweise bleiben ihren eigenen Artefakten zugeordnet. Der spätere
+optionale .17-OCR-Adapter verändert diesen Basisvertrag nicht.
+
 Die [gebundene .14→1.164-Matrix](P13-CURRENT-EVIDENCE/REPORT.md) schließt das
 bisherige Artefakttor und die unten historisch offenen CSV-/MBOX-/DOCX-/ENEX-/
 RTF-/Kollisions-/Missingtool-/normalen Abbruchfälle. Der tatsächlich benutzte

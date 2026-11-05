@@ -1,0 +1,14 @@
+{
+  "fixedListing": [
+    "bin",
+    "lib",
+    "models",
+    "include",
+    "share",
+    "notices",
+    "runtime-manifest.json"
+  ],
+  "originalListingAfterFix": [],
+  "originalFdinfoUnchanged": true,
+  "originalFdinfo": "pos:\t0\nflags:\t02700000\nmnt_id:\t1257\nino:\t4318767\n"
+}

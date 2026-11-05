@@ -179,7 +179,11 @@ final class StructuredOCRTests: XCTestCase, @unchecked Sendable {
                     return try ConversionExecution.$current.withValue(.init(cancellation: token, progress: nil, processTimeout: nil)) {
                         try OCRAsyncBridge.run {
                             XCTAssertTrue(ConversionExecution.current?.cancellation === token)
-                            try await Task.sleep(for: .milliseconds(2))
+                            // Vision liefert seine Fortsetzung extern. Task.sleep erzeugt
+                            // dagegen einen zusätzlichen Wake-Task auf dem globalen Pool;
+                            // dieser kann bei 24 synchron wartenden Callern verhungern.
+                            await Self.externalRecognitionCallback()
+                            XCTAssertTrue(ConversionExecution.current?.cancellation === token)
                             return index
                         }
                     }
@@ -191,4 +195,53 @@ final class StructuredOCRTests: XCTestCase, @unchecked Sendable {
         }
         XCTAssertEqual(total, 276)
     }
+
+    func testCooperativeBridgeSerializesExternalRecognitionCallbacks() async throws {
+        guard #available(macOS 26, *) else { throw XCTSkip("Requires structured OCR executor") }
+        let gate = OCRConcurrencyGate()
+        let activity = RecognitionActivity()
+        let total = try await withThrowingTaskGroup(of: Int.self) { group in
+            for index in 0..<24 {
+                group.addTask {
+                    try OCRAsyncBridge.run {
+                        try await gate.withAsyncPermit {
+                            activity.enter()
+                            defer { activity.leave() }
+                            await Self.externalRecognitionCallback()
+                            return index
+                        }
+                    }
+                }
+            }
+            var sum = 0
+            for try await value in group { sum += value }
+            return sum
+        }
+        XCTAssertEqual(total, 276)
+        XCTAssertEqual(activity.maximum, 1)
+        XCTAssertEqual(activity.completed, 24)
+    }
+
+    private static func externalRecognitionCallback() async {
+        await withCheckedContinuation { continuation in
+            let thread = Thread {
+                Thread.sleep(forTimeInterval: 0.002)
+                continuation.resume()
+            }
+            thread.name = "Poor Man's Text synthetic OCR callback"
+            thread.start()
+        }
+    }
+
+    private final class RecognitionActivity: @unchecked Sendable {
+        private let lock = NSLock()
+        private var active = 0
+        private var maximumActive = 0
+        private var completions = 0
+        var maximum: Int { lock.withLock { maximumActive } }
+        var completed: Int { lock.withLock { completions } }
+        func enter() { lock.withLock { active += 1; maximumActive = max(maximumActive, active) } }
+        func leave() { lock.withLock { active -= 1; completions += 1 } }
+    }
+
 }

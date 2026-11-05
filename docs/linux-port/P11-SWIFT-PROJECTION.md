@@ -1,5 +1,9 @@
 # P11: belegter Anschluss an den Swift-Kern
 
+Fortschreibung für 0.41.17: [Produktintegration und tatsächliche Abnahmen](P16-04117/README.md)
+sind inzwischen vorhanden; die allgemeine Inhaltsqualitätsfreigabe bleibt FAIL.
+Der nachfolgende Bericht beschreibt ausdrücklich die frühere Entscheidungsprobe.
+
 Stand: 2026-11-05. Der vorhandene Swift-Kern bleibt geeignet: Seine Foundation-
 Modelle und `StructuredOCRRendering` lassen sich auf Linux unverändert für
 Docling-Erkennungsdaten verwenden. Die folgende Probe ist eine wiederverwendbare
@@ -66,5 +70,5 @@ Vor Freischaltung fehlen weiterhin Source-Snapshotbindung, Mehrseiten-/Asset-
 Integration, sichere Offline-Modell-/Prozess-/Speicherpaketierung, vollständige
 Lizenz-/Updateprüfung und ein breiterer Korpus natürlicher Scans/Fotos mit
 begründeten Verlust-/Fallbackregeln. Der Text-/Spanadapter und der Mac-Paarvergleich
-schließen wichtige Entscheidungsnachweise, nicht diese Produktaufgaben. Die
-Produkt-CLI meldet strukturierte Linux-OCR weiterhin kontrolliert als unavailable.
+schließen wichtige Entscheidungsnachweise, nicht diese Produktaufgaben. Zum damaligen
+Probenstand meldete die Produkt-CLI strukturierte Linux-OCR kontrolliert als unavailable.

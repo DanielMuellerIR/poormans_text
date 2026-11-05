@@ -1,0 +1,22 @@
+{
+  "docx-changes": "accept",
+  "frontmatter": false,
+  "image-ocr": "on",
+  "jobs": "",
+  "notes": "on",
+  "ocr-language": "en",
+  "ocr-method": "structured",
+  "options-tab": 1,
+  "pdf-dehyphenate": false,
+  "pdf-layout": "auto",
+  "pdf-ocr": "auto",
+  "pdf-remove-headers-footers": false,
+  "report": false,
+  "source-map": true,
+  "spreadsheet-format": "table",
+  "textbundle": false,
+  "timeout": "",
+  "window-height": 600,
+  "window-maximized": false,
+  "window-width": 700
+}

@@ -1,0 +1,2 @@
+Stage inventory differs: expected 30193, verified 0, missing ['bin/2to3', 'bin/2to3-3.12', 'bin/accelerate'], unexpected []
+Private stage retained in original held parent: .pmt-structured-ocr-c9a420cb91f849ec804a69ffaccf2a04

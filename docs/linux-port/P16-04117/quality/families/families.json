@@ -1,0 +1,180 @@
+{
+  "cliSHA256": "c334b36c2778d704369b16862a54e3a5d8510dfbcb656309bc11bd8277c3b0df",
+  "version": "Poor Man's Text 0.41.17",
+  "cases": [
+    {
+      "capability": "docx",
+      "status": "PASS",
+      "exit": 0,
+      "diagnostics": [
+        "sourceMap.unavailable"
+      ],
+      "checks": [
+        "inventory",
+        "order",
+        "source bytes",
+        "output hashes",
+        "loss control",
+        "diagnostics",
+        "original asset bytes"
+      ],
+      "markdown": "# QUALITYTITLE\n\nFIRSTTOKEN Grüße aus Köln.\n\n- LISTONETOKEN\n- LISTTWOTOKEN\n\n| Name         | Value |\n|--------------|-------|\n| CELLONETOKEN | 42    |\n| CELLTWOTOKEN | 17    |\n\n![IMAGEALTTOKEN](images/image01.png)\n\nIMAGEALTTOKEN\n\nLASTTOKEN\n"
+    },
+    {
+      "capability": "odt",
+      "status": "PASS",
+      "exit": 0,
+      "diagnostics": [
+        "sourceMap.unavailable"
+      ],
+      "checks": [
+        "inventory",
+        "order",
+        "source bytes",
+        "output hashes",
+        "loss control",
+        "diagnostics",
+        "original asset bytes"
+      ],
+      "markdown": "# QUALITYTITLE\n\nFIRSTTOKEN Grüße aus Köln.\n\n- LISTONETOKEN\n- LISTTWOTOKEN\n\n|              |     |\n|--------------|-----|\n| CELLONETOKEN | 42  |\n| CELLTWOTOKEN | 17  |\n\n![](images/image01.png)\n\nIMAGEALTTOKEN\n\nLASTTOKEN\n"
+    },
+    {
+      "capability": "epub",
+      "status": "PASS",
+      "exit": 0,
+      "diagnostics": [
+        "epub.flattened",
+        "sourceMap.unavailable"
+      ],
+      "checks": [
+        "inventory",
+        "order",
+        "source bytes",
+        "output hashes",
+        "loss control",
+        "diagnostics",
+        "original asset bytes"
+      ],
+      "markdown": "# QUALITYTITLE\n\nFIRSTTOKEN Grüße aus Köln.\n\n- LISTONETOKEN\n- LISTTWOTOKEN\n\n| Name         | Value |\n|--------------|-------|\n| CELLONETOKEN | 42    |\n| CELLTWOTOKEN | 17    |\n\n![IMAGEALTTOKEN](images/image01.png)\n\nIMAGEALTTOKEN\n\nLASTTOKEN\n"
+    },
+    {
+      "capability": "csv",
+      "status": "PASS",
+      "exit": 0,
+      "diagnostics": [],
+      "checks": [
+        "inventory",
+        "order",
+        "source bytes",
+        "output hashes",
+        "loss control",
+        "diagnostics",
+        "exact cells/rows"
+      ],
+      "markdown": "# table\n\n## Sheet: table\n\n| Name | Value |\n| --- | --- |\n| Größe | 42 |\n| quoted, field | 17 |\n"
+    },
+    {
+      "capability": "xlsx",
+      "status": "PASS",
+      "exit": 0,
+      "diagnostics": [],
+      "checks": [
+        "inventory",
+        "order",
+        "source bytes",
+        "output hashes",
+        "loss control",
+        "diagnostics",
+        "exact cells/rows"
+      ],
+      "markdown": "# table\n\n## Sheet: SheetToken\n\n| XLSXTOKEN | Value |\n| --- | --- |\n| Größe | 42 |\n"
+    },
+    {
+      "capability": "rtf",
+      "status": "PASS",
+      "exit": 0,
+      "diagnostics": [
+        "sourceMap.unavailable"
+      ],
+      "checks": [
+        "inventory",
+        "order",
+        "source bytes",
+        "output hashes",
+        "loss control",
+        "diagnostics"
+      ],
+      "markdown": "RTFMARKER Größe α\n"
+    },
+    {
+      "capability": "rtfd",
+      "status": "PASS",
+      "exit": 0,
+      "diagnostics": [
+        "rtfd.layoutNotPreserved",
+        "sourceMap.unavailable"
+      ],
+      "checks": [
+        "inventory",
+        "order",
+        "source bytes",
+        "output hashes",
+        "loss control",
+        "diagnostics",
+        "original asset bytes",
+        "original TXT.rtf identity only"
+      ],
+      "markdown": "BEFORETOKEN ![image](images/image01.png) AFTERTOKEN\n"
+    },
+    {
+      "capability": "mbox",
+      "status": "PASS",
+      "exit": 0,
+      "diagnostics": [],
+      "checks": [
+        "inventory",
+        "order",
+        "source bytes",
+        "output hashes",
+        "loss control",
+        "diagnostics"
+      ],
+      "markdown": "| Header | Value |\n| --- | --- |\n| mbox-envelope | From a@example.invalid Sat Jan  1 00:00:00 2022 |\n| from | a@example.invalid |\n| to | b@example.invalid |\n| subject | One |\n| content-type | text/plain; charset=UTF-8 |\n\n```text\nMAILONETOKEN café.\n\n```\n\n| Header | Value |\n| --- | --- |\n| mbox-envelope | From b@example.invalid Sun Jan  2 00:00:00 2022 |\n| from | b@example.invalid |\n| to | a@example.invalid |\n| subject | Two |\n| content-type | text/plain; charset=UTF-8 |\n\n```text\nMAILTWOTOKEN.\n\n```\n"
+    },
+    {
+      "capability": "enex",
+      "status": "PASS",
+      "exit": 0,
+      "diagnostics": [
+        "html.structureSimplified",
+        "html.structureSimplified"
+      ],
+      "checks": [
+        "inventory",
+        "order",
+        "source bytes",
+        "output hashes",
+        "loss control",
+        "diagnostics"
+      ],
+      "markdown": "# Note 1\n\n| Source field | Value |\n| --- | --- |\n| created | 20261018T051000Z |\n\nNOTEONETOKEN Grüße\n\n# Note 2\n\n| Source field | Value |\n| --- | --- |\n| created | 20261018T051000Z |\n\nNOTETWOTOKEN\n"
+    },
+    {
+      "capability": "pptx",
+      "status": "PASS",
+      "exit": 0,
+      "diagnostics": [
+        "presentation.layoutNotPreserved"
+      ],
+      "checks": [
+        "inventory",
+        "order",
+        "source bytes",
+        "output hashes",
+        "loss control",
+        "diagnostics"
+      ],
+      "markdown": "# source\n\n<a id=\"pmt-slide-1\"></a>\n\n## Slide 1\n\nSLIDEONETOKEN\n\n<a id=\"pmt-slide-2\"></a>\n\n## Slide 2\n\nSLIDETWOTOKEN\n\n"
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "runtimeManifestSHA256": "cd4673de443d7e2570d6c4c4666cecb4924e2ceaf22703cba2a273a544eface6",
+  "fileCount": 30192,
+  "archive": {
+    "file": "runtime-candidate.tar.zst",
+    "bytes": 813143585,
+    "sha256": "45985c32d175440a3f6ade6e3a3e62daab2b173482c80dbb076fdb30984f2d70"
+  },
+  "download": {
+    "limitBytes": 1073741824,
+    "artifactAndSavedMetadataBytes": 938146975,
+    "reserveForUnsavedMetadataAndHTTPErrorBodiesBytes": 10485760,
+    "upperBoundBytes": 948632735
+  },
+  "runtimeTests": {
+    "nobleRelocationRO": true,
+    "archRelocationRO": true,
+    "productWorkerArch": true,
+    "productWorkerFinalNoble": true,
+    "natural132PNGProductWorker": true,
+    "stdlibAndTorchArch": true,
+    "postRunManifestUnchanged": true
+  },
+  "quality": {
+    "syntheticNobleExactCells": 5,
+    "syntheticArchExactCells": 4,
+    "syntheticCells": 8,
+    "natural132ExactCells": 9,
+    "natural132Cells": 9,
+    "scope": "no GT correction; cross-distro OCR differences retained"
+  },
+  "limits": {
+    "cpu": 2,
+    "memoryBytes": 4294967296,
+    "pids": 256,
+    "network": "none",
+    "runtimeReadOnly": true
+  },
+  "openLimits": [
+    "no distribution approval",
+    "required external /usr/bin/tesseract and traineddata",
+    "broad stdout/model/timeout/cancellation/invocation sandbox negatives remain parent scope",
+    "only bin/python3.12 interpreter contract is relocatable; pip-generated console script shebangs are not supported entrypoints"
+  ]
+}

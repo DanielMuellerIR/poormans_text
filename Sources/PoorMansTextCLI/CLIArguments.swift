@@ -54,7 +54,7 @@ struct ParsedArguments {
 }
 
 #if os(Linux)
-private let ocrMethodHelp = "Local OCR method (Linux: standard; structured backend unavailable)."
+private let ocrMethodHelp = "Local OCR method (Linux structured: separately verified local model runtime required)."
 #else
 private let ocrMethodHelp = "Local OCR method (structured: macOS 26+, with fallback)."
 #endif

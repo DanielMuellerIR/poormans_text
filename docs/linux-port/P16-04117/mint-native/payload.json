@@ -1,0 +1,38 @@
+{
+  "poormans-text_0.41.14~linuxpreview1_amd64.deb": {
+    "sha256": "c93e87876b3882fe078f93cd27741937d4368c32bfe6cb3924fcb4e212e19cb0",
+    "byteCount": 50496630
+  },
+  "poormans-text_0.41.17~linuxpreview1_amd64.deb": {
+    "sha256": "652552c4345374d660619f596124337f2c9955a20698d5bbab787a27439b0094",
+    "byteCount": 50763392
+  },
+  "runtime-candidate.tar.zst": {
+    "sha256": "45985c32d175440a3f6ade6e3a3e62daab2b173482c80dbb076fdb30984f2d70",
+    "byteCount": 813143585
+  },
+  "pmt-mint-tools-04117.tar.gz": {
+    "sha256": "a6256c6a6dcac35951e4a4be71954edc6ad4bce0df01db9ed468661179e047ef",
+    "byteCount": 33652074
+  },
+  "scaffold.py": {
+    "sha256": "7672c23216cd6869292d9e82aeb8b48d47279143cb36b9c4c41252e5fddcbc79",
+    "byteCount": 4233
+  },
+  "inside.py": {
+    "sha256": "1216d6b92954c4ff814d95c9e23198147b5a75c8459abd0c3c7cac0819ed115f",
+    "byteCount": 2859
+  },
+  "install_linux_ocr_runtime.py": {
+    "sha256": "78948fb0cb17aced1c142cea968b18b5ec0a5938573bdfec5996c141326a9e29",
+    "byteCount": 20016
+  },
+  "structured_ocr.py": {
+    "sha256": "7d33a83188b1397ffab6738e626f217167e60f01358b386b7672164b6f0f45c4",
+    "byteCount": 5210
+  },
+  "structured.png": {
+    "sha256": "e37ca92cf5b8ad22e228eed1c1065177bbbdc6b865b9e027965660353f934369",
+    "byteCount": 50565
+  }
+}

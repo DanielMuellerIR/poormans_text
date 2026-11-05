@@ -1,0 +1,51 @@
+{
+  "purpose": "bounded local OCR runtime installer hardening; root adoption and full SSD runtime test remain",
+  "baseInstallerSHA256": "bc81fd776b503a2737dfad0e88290562848c6812495401edf09902a2988311f9",
+  "tests": {
+    "host": {
+      "python": "3.14.9",
+      "passed": 34
+    },
+    "container": {
+      "image": "pmt-linux-package-test:latest",
+      "python": "3.12.3",
+      "uid": 1000,
+      "passed": 34,
+      "network": false,
+      "readOnlyRoot": true,
+      "tmpfsMiB": 64
+    }
+  },
+  "files": [
+    {
+      "path": "REPORT.de.md",
+      "bytes": 2371,
+      "sha256": "dc7dca58ac1e1374bb4e3208cf84c752334c09266a02a1ea4e1df89c3051591c"
+    },
+    {
+      "path": "hardening.patch",
+      "bytes": 9749,
+      "sha256": "a92f93a554061913b46d23d275997d9f65953f1ab7f9d9dcfc85a8f077cd9059"
+    },
+    {
+      "path": "noble-tests.log",
+      "bytes": 4997,
+      "sha256": "52b7f8b2e507f992f412bc69ded30406b96173c6a6f0935fe988d4136c1ba7b5"
+    },
+    {
+      "path": "scripts/install_linux_ocr_runtime.py",
+      "bytes": 19141,
+      "sha256": "0315f377ad1c235f8752317edb92436519305e371278301f5158936d2d026a80"
+    },
+    {
+      "path": "scripts/test_install_linux_ocr_runtime.py",
+      "bytes": 17538,
+      "sha256": "c8f66b86d9fbb354c5fd65ef32b768947935c1633f785b6fe10340a0e9af6fb7"
+    },
+    {
+      "path": "tests.log",
+      "bytes": 4997,
+      "sha256": "445f9231beb55d0aa1794e987668c55b5c535c0eac3e886956e32c917766bea7"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "sourceVersion": "0.41.17",
+  "sourceFiles": 602,
+  "candidate": false,
+  "sourceArchiveSHA256": "0e60c0fee0bcb06bd7cf7c79e24b44954d4852744754a788351b1d10f360a197",
+  "nativeProofSHA256": "2de6f72ec199c604afaa8bb70402cce8822eb3f92307ac47cc2e101972f5f74e",
+  "retrievedNativeLogsByteEqualLiveStream": true,
+  "nativeArm64LipoVerified": true,
+  "portableCases": 31,
+  "coreCases": 1054,
+  "existingExternalCorpusSkips": 9,
+  "actualNonSkippedPasses": 1076,
+  "failures": 0,
+  "bootIdentityStable": true,
+  "sourceFilesUnchanged": true
+}

@@ -1,0 +1,361 @@
+{
+  "scope": "Private Noble Tesseract test dependencies; native Mint host glibc/loader retained; no host installation",
+  "files": {
+    "bin/tesseract": {
+      "sha256": "9f831cab7525c3dab04af41bda35182af7ea1df9dceeaaa2f3bf207ac45c06a5",
+      "byteCount": 39320
+    },
+    "data/configs/alto": {
+      "sha256": "23a038ff290c7471a1a8aa4b5d23e310b0bf49f718480dad6b619a7d06eca330",
+      "byteCount": 23
+    },
+    "data/configs/ambigs.train": {
+      "sha256": "717e534fd4330ed3f9bdb006f0465aa2633cca866786a8f8d469dbd4b01c10c2",
+      "byteCount": 146
+    },
+    "data/configs/api_config": {
+      "sha256": "2929bc0f1d2ba77f28cfc230f7b835b2b54038c0f9d2e8e4c5ada43803c999fd",
+      "byteCount": 26
+    },
+    "data/configs/bigram": {
+      "sha256": "65e6583abc617a34d4091285181f2493d312c296a85629ac3c092d3b93b6e554",
+      "byteCount": 129
+    },
+    "data/configs/box.train": {
+      "sha256": "a421355e3488bf3fdfc14a1bdcca08c6f6414ec92c53f0eea22317c868c1a623",
+      "byteCount": 311
+    },
+    "data/configs/box.train.stderr": {
+      "sha256": "3e62cd37d2383abf0c6dfa5ba39fd1187fcff6856c4f4f27ea1554cb4c1874d2",
+      "byteCount": 311
+    },
+    "data/configs/digits": {
+      "sha256": "e757d95bb1e51444860ea10d7f2c8bb8a0c9c4ccc58a0e8c67e8dc2933a56e2e",
+      "byteCount": 37
+    },
+    "data/configs/get.images": {
+      "sha256": "28c774c157a2f48d835a1d58f5a35dd70106c136e176572ee43bbf46f3d65c92",
+      "byteCount": 24
+    },
+    "data/configs/hocr": {
+      "sha256": "d6a7ec7c5143317a59fce2393054f6b7a8261824b934e7426fdd24febc929ad6",
+      "byteCount": 40
+    },
+    "data/configs/inter": {
+      "sha256": "46303bf83668e446f4966d1ebf7418ad9f0c5e08836bc59d98cae3bbfc3aee9d",
+      "byteCount": 59
+    },
+    "data/configs/kannada": {
+      "sha256": "7d34fec99283142a3a22d157dc5cc8824b93ee923e576e6bfd1b026039c2e8f0",
+      "byteCount": 101
+    },
+    "data/configs/linebox": {
+      "sha256": "eb0279527b009a53432a9e1dde85bf42814901393546bc365bb61837f83355c9",
+      "byteCount": 70
+    },
+    "data/configs/logfile": {
+      "sha256": "5eed5e41e5fbbf0862836c0e4cda7821f8e08441645858ec6821ab41d926e195",
+      "byteCount": 25
+    },
+    "data/configs/lstm.train": {
+      "sha256": "3d1f8e5ab4e41467fdd938dc4d266eea081b477f8d74ab6b198dd1d854b5301c",
+      "byteCount": 282
+    },
+    "data/configs/lstmbox": {
+      "sha256": "61255d1b7c9df76b673ff43d2d91cda7f4c3c2e7d7f0643a71b212739833017e",
+      "byteCount": 26
+    },
+    "data/configs/lstmdebug": {
+      "sha256": "62d40d7a7d80315e10cdca2561d2ddf2981f53dfdbd567513b04d36f3add7f4e",
+      "byteCount": 98
+    },
+    "data/configs/makebox": {
+      "sha256": "a8fe20a2bc9ff1e9e8ed06d56845336c978627b8e965600abd63f1f412c18ffe",
+      "byteCount": 26
+    },
+    "data/configs/pdf": {
+      "sha256": "54d56e81dfefe289b0d2e4c7bc9bbe662711f5b8255c128b73bcd66efb6bba1a",
+      "byteCount": 22
+    },
+    "data/configs/quiet": {
+      "sha256": "8a93fad8251f61b5f17b8628203a0e068c71e0907cd63012ab22afb7b560fce3",
+      "byteCount": 21
+    },
+    "data/configs/rebox": {
+      "sha256": "73ca35d7d71084fb88e2eb9a5c53ad91682754b3aecb918dece7591ec22a0b26",
+      "byteCount": 65
+    },
+    "data/configs/strokewidth": {
+      "sha256": "ffb140aadd3e26d0d9b3b355d592b50cff8b2c3ce0394b4a6de4fabc1c0942c9",
+      "byteCount": 377
+    },
+    "data/configs/tsv": {
+      "sha256": "59d079bb75d8b3d7c839a3564580cb559e362c93a9d70f234e421c0c3e767e04",
+      "byteCount": 22
+    },
+    "data/configs/txt": {
+      "sha256": "9bcbdbe285fd3a024be563cb237751ceb3435d86610e231f08894023321af5d7",
+      "byteCount": 166
+    },
+    "data/configs/unlv": {
+      "sha256": "1b02e7801de71f0757a26ba6d749e9182a0d9971929966bebb67f99db8733f40",
+      "byteCount": 45
+    },
+    "data/configs/wordstrbox": {
+      "sha256": "9d1787cdce085ad36dc9d6ba6b2702ac262beaf06a0bb4a0b84355f6458261e5",
+      "byteCount": 29
+    },
+    "data/deu.traineddata": {
+      "sha256": "19d219bbb6672c869d20a9636c6816a81eb9a71796cb93ebe0cb1530e2cdb22d",
+      "byteCount": 1525436
+    },
+    "data/eng.traineddata": {
+      "sha256": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2",
+      "byteCount": 4113088
+    },
+    "data/osd.traineddata": {
+      "sha256": "9cf5d576fcc47564f11265841e5ca839001e7e6f38ff7f7aacf46d15a96b00ff",
+      "byteCount": 10562727
+    },
+    "data/pdf.ttf": {
+      "sha256": "c7845420925a23d88ed830a63957b8af85a66a8daf8d9fc90e843673b2ef1a59",
+      "byteCount": 572
+    },
+    "data/tessconfigs/batch": {
+      "sha256": "d91107c3a8c1c311b00c64aee56cbce4d48894c6e5762165f1ec7871c7b7bf4e",
+      "byteCount": 49
+    },
+    "data/tessconfigs/batch.nochop": {
+      "sha256": "5acabb534cfd4fd8fe111c854955e1ffa9390619ef43775b1a5fbaf5283f68bb",
+      "byteCount": 37
+    },
+    "data/tessconfigs/matdemo": {
+      "sha256": "d098cdf6ffe691ccc9dfa4490603f6ae33cdd313010cedfa50007ebde3ddd2d0",
+      "byteCount": 243
+    },
+    "data/tessconfigs/msdemo": {
+      "sha256": "0ed753a05ea60766f4269d81873b6390e937ea2df1758de91c57db7e92429555",
+      "byteCount": 368
+    },
+    "data/tessconfigs/nobatch": {
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "byteCount": 1
+    },
+    "data/tessconfigs/segdemo": {
+      "sha256": "7ec19f77f8c76b4dfb33ec8b13e11d7685ae5c9cf6eca4e7333cce0513ddac56",
+      "byteCount": 295
+    },
+    "lib/libLerc.so.4": {
+      "sha256": "a0ee52df526738293bdd232ddaefbb0d1d9c2da775a82fc6730e7cd394da560c",
+      "byteCount": 546992
+    },
+    "lib/libacl.so.1": {
+      "sha256": "1f5247285409ec89990e9fe384d78dfb2ae6ec8e210a2657073babc8d6b7e54f",
+      "byteCount": 38984
+    },
+    "lib/libarchive.so.13": {
+      "sha256": "2d8605282b26359a0994017373bff09fc7c9a6ed9ab7e1a4fd980b8ffcf1cd40",
+      "byteCount": 854168
+    },
+    "lib/libbrotlicommon.so.1": {
+      "sha256": "f8cd338ec62f719333abd5cba29a6e0bdb4597dfdffed000ffb868b47e02f2e9",
+      "byteCount": 141640
+    },
+    "lib/libbrotlidec.so.1": {
+      "sha256": "d5060475e7259904af3600d01e809710305b296441815bcaa540119a66530a70",
+      "byteCount": 51512
+    },
+    "lib/libbz2.so.1.0": {
+      "sha256": "cc08c9f50a8009ffd6391e0116a100369b11ca9238fa52392c019e6645b122a1",
+      "byteCount": 78944
+    },
+    "lib/libcom_err.so.2": {
+      "sha256": "022943b3b11c860b049bce41342f1c2594941b7b401d95dfdf235521099fee08",
+      "byteCount": 18504
+    },
+    "lib/libcrypto.so.3": {
+      "sha256": "6866ed711dab8927e1bf82bf1cd30e828bdfc34f3cc1e83b1c9eb01ce6c37d9a",
+      "byteCount": 5309400
+    },
+    "lib/libcurl.so.4": {
+      "sha256": "3e51df20a6b52879ee83a207115a9bc6891092741ce2f5ec791606e6caf859fa",
+      "byteCount": 786336
+    },
+    "lib/libdeflate.so.0": {
+      "sha256": "608c8d7e4345a9ff4b57aa853ce0c355cf2e1d5ec11b8bee86fb4760bba8a15f",
+      "byteCount": 75808
+    },
+    "lib/libffi.so.8": {
+      "sha256": "00f593fe192f2851b8ce23b25cec2488d769beb5a8f63e8c9e563071e1075153",
+      "byteCount": 47672
+    },
+    "lib/libgcc_s.so.1": {
+      "sha256": "d93224d2b0dab4247598be683adca02f5cf00586f99c187579cd7e92058fb7cb",
+      "byteCount": 183024
+    },
+    "lib/libgif.so.7": {
+      "sha256": "70ac81372d0ddbdf03dbdd7a9f994df625928cedf794b7c0a06c9eac27a4edc3",
+      "byteCount": 38904
+    },
+    "lib/libgmp.so.10": {
+      "sha256": "0ccdfb6d6f5c039465f6d002cf7e4c072d48ac6a2cffc8dd6c748dec31592804",
+      "byteCount": 534896
+    },
+    "lib/libgnutls.so.30": {
+      "sha256": "ddbae2995750875c07bc218d12a062d73f8250678f54dedda7e9be5068781c98",
+      "byteCount": 2065824
+    },
+    "lib/libgomp.so.1": {
+      "sha256": "135f3c8f006d2fe5e68e51281c7974cb991a03de3bfb3593d68d174dfcf854d1",
+      "byteCount": 352304
+    },
+    "lib/libgssapi_krb5.so.2": {
+      "sha256": "c7aa00cf51646f7c32f196d329a562bc873ff32906c9caf6554ca489dd657507",
+      "byteCount": 338696
+    },
+    "lib/libhogweed.so.6": {
+      "sha256": "c3c606139d4f7776efa4dbd4a6b62e30c916b07a0cafd8c3ef173d6f093607e3",
+      "byteCount": 288920
+    },
+    "lib/libicudata.so.74": {
+      "sha256": "ddbb3718b8bd9cbd780e5ab08b4503c30a6c4fa0706ebe5d074ed6b596c1714e",
+      "byteCount": 30795392
+    },
+    "lib/libicuuc.so.74": {
+      "sha256": "7560aadde38e5f4237a47a1ddd5891f9b36768a77a60faae30beee003ac01901",
+      "byteCount": 2140336
+    },
+    "lib/libidn2.so.0": {
+      "sha256": "6e632fd9a3125db60bbc623719bbc17b0470330321c5b1c57f1ff7190e5551ad",
+      "byteCount": 133192
+    },
+    "lib/libjbig.so.0": {
+      "sha256": "6fea8a26ef5e0d2a36d296d7d0ec0c1f0894bf796b5824317bea88c090833a62",
+      "byteCount": 66400
+    },
+    "lib/libjpeg.so.8": {
+      "sha256": "ac09f2cd6f8a3b8e3cb123999ce275f9bcbe31c6cf9e20212c8f297772591d15",
+      "byteCount": 534592
+    },
+    "lib/libk5crypto.so.3": {
+      "sha256": "b37407fb2930939bf78b47267019cd201a8af1f4b6a3852249c849cf3a985798",
+      "byteCount": 178648
+    },
+    "lib/libkeyutils.so.1": {
+      "sha256": "f48214417757f18793ed6e180cc14ee1d6f04252a518fc7270e8ca1d0b4260fe",
+      "byteCount": 22600
+    },
+    "lib/libkrb5.so.3": {
+      "sha256": "fad617a72b5839d30143e7db03281279089def6f18788cbb0b7f86385301bf04",
+      "byteCount": 823488
+    },
+    "lib/libkrb5support.so.0": {
+      "sha256": "936bae947a838bd47676a419dfcfb036d0163249215b58ec706ec7d46b7497aa",
+      "byteCount": 47904
+    },
+    "lib/liblber.so.2": {
+      "sha256": "ddf14275b1fb70ba06510094071adcc1462e675f15ae6cdcadbf40c1dabe5a03",
+      "byteCount": 59888
+    },
+    "lib/libldap.so.2": {
+      "sha256": "a9829b999c95452eb0a34cc7b5349427b76dbf3e5d5c8672a5ca69e454c1b151",
+      "byteCount": 372400
+    },
+    "lib/liblept.so.5": {
+      "sha256": "b31a50179665871ddb6bdbcfeefc8673febaa29a006e78136024d4083b6ee5e5",
+      "byteCount": 2710232
+    },
+    "lib/liblz4.so.1": {
+      "sha256": "40bffd0a098387368b16b992abd5f7cf43c0fa2f05cabe5a6d483719554adfda",
+      "byteCount": 137440
+    },
+    "lib/liblzma.so.5": {
+      "sha256": "26b37d25f7ca2a2d348de8ecabacda12e921cd933b21fa069a179760db77219d",
+      "byteCount": 202904
+    },
+    "lib/libnettle.so.8": {
+      "sha256": "a245ed916229583d6fe0b07657b3ed945bc148c28cc08b5266295f620d2b91cc",
+      "byteCount": 342280
+    },
+    "lib/libnghttp2.so.14": {
+      "sha256": "46764ab5b6ca7e353a322054f0bee45d9158a27f3e6a82a2fa4447f2ba9ba268",
+      "byteCount": 170352
+    },
+    "lib/libopenjp2.so.7": {
+      "sha256": "19906c0334e8db2137912f83cceed5a03d954a9c12d9781901a9a27f92ce1c4d",
+      "byteCount": 391648
+    },
+    "lib/libp11-kit.so.0": {
+      "sha256": "a59efd4792d3343dedea1d26a28f5597abfe3369082deb504c4802a31b014897",
+      "byteCount": 1714008
+    },
+    "lib/libpng16.so.16": {
+      "sha256": "89c0c6569a8c00480d451401ad4c0a74942e62dc57f229a970592fdc5adb29e8",
+      "byteCount": 223304
+    },
+    "lib/libpsl.so.5": {
+      "sha256": "ae6c5a9aecc249fc66e03c16ec6c4385d09d7e12e0ea7694bb831ab4fee8133c",
+      "byteCount": 75768
+    },
+    "lib/librtmp.so.1": {
+      "sha256": "15a2a75e8c437b9c99971b5ee10278ab110beef1a56d1d9e5d6759ea140e98ac",
+      "byteCount": 121848
+    },
+    "lib/libsasl2.so.2": {
+      "sha256": "a0f410ad093236856eee59c4ff2838dc04d932ea0993400f23ed77d67d85af34",
+      "byteCount": 101200
+    },
+    "lib/libsharpyuv.so.0": {
+      "sha256": "b2e62799e5dbd783a0671d53be99f7c6489567a5332a1e8f471e6bb250f294dc",
+      "byteCount": 22672
+    },
+    "lib/libssh.so.4": {
+      "sha256": "b82bd54edb908605b8142be1a6d242df65501af0e9bb7581cc36ebf4d8a5ecfd",
+      "byteCount": 462360
+    },
+    "lib/libssl.so.3": {
+      "sha256": "a40e7b67489bbd257e432c700ff8f6a1ad796425b5eccecdc2930127fdd86624",
+      "byteCount": 696512
+    },
+    "lib/libstdc++.so.6": {
+      "sha256": "1fd75fe70354a416d75aef22bcae68c47bd25d20e2d0568c30b1a9838cf62f11",
+      "byteCount": 2592224
+    },
+    "lib/libtasn1.so.6": {
+      "sha256": "59994414d0cdec4f678ef91eaaafc44b26b00bca507e4cc7978caaf79f584173",
+      "byteCount": 88216
+    },
+    "lib/libtesseract.so.5": {
+      "sha256": "0d3b71cd757860c6639918c1b2d9407c8652ee22babc8d5c5f18cc35dde6334b",
+      "byteCount": 3164808
+    },
+    "lib/libtiff.so.6": {
+      "sha256": "aad9b47982a23560b6f6657adcd70a1141d0971bd4f2eb5b3753745f3e8feee4",
+      "byteCount": 575656
+    },
+    "lib/libunistring.so.5": {
+      "sha256": "7bcf825cd449892db5105ad2aed91dcf94a27b796426600c765720c584c54dd1",
+      "byteCount": 1755312
+    },
+    "lib/libwebp.so.7": {
+      "sha256": "9664db51ec65209078abbb8bc7b699888a43ecc2f3c74ce8dd4e497175aa5bf0",
+      "byteCount": 494136
+    },
+    "lib/libwebpmux.so.3": {
+      "sha256": "97e04dbba80ea27d0258584452efda0fa41bfa598bbca52eb4e120fcb6300962",
+      "byteCount": 51520
+    },
+    "lib/libxml2.so.2": {
+      "sha256": "209e941be9eb2eb9ab36caaa0b81d1c6b36c8f5d7268c24f19e81039137e6485",
+      "byteCount": 1967424
+    },
+    "lib/libz.so.1": {
+      "sha256": "f61677c7bdb7c2aa2a243ea781bfd16afcb361cede7b4ef76127a9d8eb9a5242",
+      "byteCount": 113000
+    },
+    "lib/libzstd.so.1": {
+      "sha256": "0a2128bc10841fb29e76d08d945864dfb0b6a66da5df6df5d8299197439e54bb",
+      "byteCount": 755864
+    }
+  }
+}

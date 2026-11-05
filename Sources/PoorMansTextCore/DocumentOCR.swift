@@ -70,10 +70,11 @@ enum DocumentOCR {
     }
 }
 
-/// Die synchrone öffentliche Konvertierung darf auch auf Swifts begrenztem
-/// Threadpool laufen. Ihre asynchrone Vision-Arbeit erhält deshalb einen eigenen
-/// Thread-Executor; auch eine GCD-Queue könnte hinter blockierten Pool-Workern
-/// warten. Der eine eigene Thread schläft, solange keine Fortsetzung ansteht.
+/// Asynchrone Vision-Fortsetzungen erhalten einen eigenen Thread-Executor,
+/// während die synchrone Konvertierung wartet. Der Executor schläft ohne Arbeit.
+/// Das ist keine allgemeine Sync-Async-Brücke: Task.sleep und unstrukturierte
+/// Tasks können weiterhin Swifts globalen Pool benötigen. Dessen vollständige
+/// Blockierung ist deshalb unsicher, sobald die Operation solche Arbeit benötigt.
 @available(macOS 26, *)
 enum OCRAsyncBridge {
     private final class Executor: TaskExecutor, @unchecked Sendable {

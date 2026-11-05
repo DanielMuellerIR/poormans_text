@@ -23,7 +23,7 @@ here = Path(__file__).resolve().parent
 rows = []
 
 
-def run(name, command):
+def run(name, command, *, optional=False):
     try:
         result = subprocess.run(list(map(str, command)), capture_output=True, text=True, timeout=180)
         status = result.returncode
@@ -37,7 +37,7 @@ def run(name, command):
         stderr += '\nQuality probe exceeded its 180-second limit.\n'
     (args.root / (name + '.stdout')).write_text(stdout)
     (args.root / (name + '.stderr')).write_text(stderr)
-    rows.append(dict(capability=name, status='PASS' if status == 0 else 'FAIL', exit=status))
+    rows.append(dict(capability=name, status='PASS' if status == 0 else ('SKIP' if optional and status == 2 else 'FAIL'), exit=status))
 
 
 run('families', [sys.executable, here / 'quality.py', '--repo', args.repo, '--cli', args.cli,
@@ -75,8 +75,8 @@ if all((corpus / name).is_file() for name in ['01030000000132.pdf', '01030000000
                                  status='PASS' if structured else 'FAIL'))
 else:
     rows.append(dict(capability='natural corpus', status='SKIP', reason='Fixed licensed local corpus missing; no download'))
-rows.append(dict(capability='structured OCR quality', status='SKIP',
-                 reason='Product backend unavailable; controlled rejection is tested separately'))
+run('structured OCR quality', [sys.executable, here / 'structured_quality.py',
+                                '--cli', args.cli, '--results', args.root / 'structured'], optional=True)
 overall = 'FAIL' if any(row['status'] == 'FAIL' for row in rows) else (
     'INCOMPLETE' if any(row['status'] == 'SKIP' for row in rows) else 'PASS')
 summary = dict(cliSHA256=actual_hash, python=sys.version.split()[0], cases=rows, overall=overall,

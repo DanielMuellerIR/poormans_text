@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "nativeMacExecuted": false,
+  "sshExecuted": false,
+  "repositoryWritten": false,
+  "dockerImageID": "sha256:675d824f661891504d6957578068a7a28e588fb75fe7fd73e041f2f1ab72a359",
+  "visibleCPUs": 1,
+  "tasks": 24,
+  "matrix": {
+    "immediate": {
+      "exit": 0,
+      "sum": 276
+    },
+    "externalCallback": {
+      "exit": 0,
+      "sum": 276
+    },
+    "originalTaskSleep": {
+      "exit": 124,
+      "outerSeconds": 5
+    },
+    "originalGateExternalCallbacks": {
+      "exit": 0,
+      "sum": 276
+    }
+  },
+  "minimalXCTest": {
+    "executed": 3,
+    "failed": 0,
+    "skipped": 0,
+    "elapsedSeconds": 1.159
+  },
+  "candidateBoundary": "Test model/documentation correction; no general sync-async liveness fix claimed",
+  "candidatePatchSHA256": "78baf60dae67240978591cafda23399d1b8ce58f3277b504e3581b2b8eea0c27",
+  "nativeSourceArchiveSHA256": "293bbaea8fcf378ff63f49e21e24f98a21085985b24d3b108842c25b79ab2b99"
+}

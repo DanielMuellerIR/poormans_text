@@ -1,0 +1,54 @@
+{
+  "cap": 131072000,
+  "actualDownloadedBytes": 24045771,
+  "priorRootBudgetBytes": 948632735,
+  "combinedAccountedBytes": 972678506,
+  "files": [
+    {
+      "url": "https://api.github.com/repos/tesseract-ocr/tessdata_best/commits/main",
+      "path": "metadata/commit.json",
+      "byteCount": 3957,
+      "sha256": "150051edb94bb761c372e5191e9646b6d6b71c2dae6050dcc8a50e763da92772"
+    },
+    {
+      "url": "https://api.github.com/repos/tesseract-ocr/tessdata_best/contents/eng.traineddata?ref=e12c65a915945e4c28e237a9b52bc4a8f39a0cec",
+      "path": "metadata/eng.traineddata.json",
+      "byteCount": 1055,
+      "sha256": "9e4601ed37f15827aaa3eea67254fb4888eeb3f96e88d7df3829bf6fe853633f"
+    },
+    {
+      "url": "https://api.github.com/repos/tesseract-ocr/tessdata_best/contents/deu.traineddata?ref=e12c65a915945e4c28e237a9b52bc4a8f39a0cec",
+      "path": "metadata/deu.traineddata.json",
+      "byteCount": 1054,
+      "sha256": "768e15c4228d2cdb794ddee1052115c88ad99584b8859e8d0cfaeddcbb05c835"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/tesseract-ocr/tessdata_best/e12c65a915945e4c28e237a9b52bc4a8f39a0cec/eng.traineddata",
+      "revision": "e12c65a915945e4c28e237a9b52bc4a8f39a0cec",
+      "path": "models/eng.traineddata",
+      "byteCount": 15400601,
+      "sha256": "8280aed0782fe27257a68ea10fe7ef324ca0f8d85bd2fd145d1c2b560bcb66ba",
+      "gitBlobSHA1": "176dc3220de7db34d3b3aecbfa42043a6038348b"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/tesseract-ocr/tessdata_best/e12c65a915945e4c28e237a9b52bc4a8f39a0cec/deu.traineddata",
+      "revision": "e12c65a915945e4c28e237a9b52bc4a8f39a0cec",
+      "path": "models/deu.traineddata",
+      "byteCount": 8628461,
+      "sha256": "8407331d6aa0229dc927685c01a7938fc5a641d1a9524f74838cdac599f0d06e",
+      "gitBlobSHA1": "6dd654880db617f3edfa00bc2ed9c9e3107b8fd0"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/tesseract-ocr/tessdata_best/e12c65a915945e4c28e237a9b52bc4a8f39a0cec/LICENSE",
+      "path": "metadata/LICENSE",
+      "byteCount": 10173,
+      "sha256": "a6cba85bc92e0cff7a450b1d873c0eaa2e9fc96bf472df0247a26bec77bf3ff9"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/tesseract-ocr/tessdata_best/e12c65a915945e4c28e237a9b52bc4a8f39a0cec/README.md",
+      "path": "metadata/README.md",
+      "byteCount": 470,
+      "sha256": "08c87523fb799c5bae6380f6ffa1a823494ab78f63906d7255dddd7671f94a5f"
+    }
+  ]
+}

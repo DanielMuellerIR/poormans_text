@@ -18,7 +18,7 @@ python3 scripts/linux-probes/quality/run_quality.py \
 `REVIEWED_CLI_SHA256` aus dem zum Produkt gehörenden Artefaktbericht übernehmen.
 Der Ergebnisordner muss neu sein. Keine Modelle, Werkzeuge oder Dateien werden
 heruntergeladen. Für die vorhandene SDK-freie Testumgebung und konkrete
-Artefakthashes siehe [0.41.15](linux-port/P16-04115/README.md).
+Artefakthashes siehe [0.41.17](linux-port/P16-04117/README.md).
 
 Der Lauf verwendet temporär erzeugte DOCX-, ODT-, EPUB-, CSV-, XLSX-, RTF-,
 RTFD-, MBOX-, ENEX- und PPTX-Dokumente. Solltexte, Reihenfolgen und Tabellenzellen
@@ -49,4 +49,16 @@ erhalten. Zelltexte der Referenztabelle sind vorhanden, ihre Tabellen-/Spanstruk
 fehlt im Standard-PDF-Weg. Die [Analyse samt DPI-Gegenversuch](linux-port/QUALITY-EVIDENCE-04114/README.md)
 zeigt auch, weshalb pauschal höhere OCR-Auflösung keine belastbare Reparatur ist:
 Sie verbessert einen Fall und erzeugt in einem anderen zusätzliche Erkennungsfehler.
-Strukturierte OCR bleibt bis zur gesonderten Produkt-/Qualitätsfreigabe deaktiviert.
+Strukturierte OCR ist ab 0.41.17 ausdrücklich optional mit separat geprüfter
+lokaler Runtime integriert. Der automatische Lauf prüft das versionierte
+synthetische [Raster](../scripts/linux-probes/quality/fixtures/structured.png)
+gegen seine unabhängig aus den Zeichenbefehlen gespeicherte
+[Referenz](../scripts/linux-probes/quality/fixtures/structured-reference.json).
+Er vergleicht das tatsächliche finale Markdown: exakte Zelltexte, Reihenfolge,
+3×3-Raster, leeren abgedeckten Spanslot, Textkörper, Quellidentität und Originalasset.
+Er rekonstruiert keine Spangeometrie aus dem absichtlich abgeflachten Markdown.
+Fehlende Runtime meldet SKIP/gesamthaft INCOMPLETE, eine unerwartete Fehlfunktion
+oder die bekannten Al/Bl/Cl-Fehler melden FAIL. Der echte .17-Lauf bestätigt
+fünf von acht exakte Zelltexte und korrektes Raster/Bodyinventar; die Inhaltsfreigabe bleibt
+FAIL. Die ebenfalls geprüften größeren Tesseract-Bestmodelle verbessern den
+Gesamtkorpus nicht verlässlich und wurden nicht übernommen.

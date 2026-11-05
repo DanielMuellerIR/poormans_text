@@ -1,0 +1,43 @@
+Building for debugging...
+[0/13] Write sources
+[2/13] Write swift-version-24593BA9C3E375BF.txt
+[4/15] Emitting module CoreProbe
+[5/16] Compiling CoreProbe Bridge.swift
+[6/16] Compiling CoreProbe OCRConcurrencyGate.swift
+[7/17] Wrapping AST for CoreProbe for debugging
+[9/19] Emitting module CoreProbeTests
+[10/19] Compiling CoreProbeTests StructuredOCRTests.swift
+[11/20] /work/minimal/.build/x86_64-unknown-linux-gnu/debug/OCRBridgeProbePackageDiscoveredTests.derived/all-discovered-tests.swift
+[12/20] Write sources
+[13/20] Wrapping AST for CoreProbeTests for debugging
+[15/22] Compiling OCRBridgeProbePackageDiscoveredTests CoreProbeTests.swift
+[16/23] Emitting module OCRBridgeProbePackageDiscoveredTests
+[17/23] Compiling OCRBridgeProbePackageDiscoveredTests all-discovered-tests.swift
+[18/24] /work/minimal/.build/x86_64-unknown-linux-gnu/debug/OCRBridgeProbePackageTests.derived/runner.swift
+[19/24] Write sources
+[20/24] Wrapping AST for OCRBridgeProbePackageDiscoveredTests for debugging
+[22/26] Emitting module OCRBridgeProbePackageTests
+[23/26] Compiling OCRBridgeProbePackageTests runner.swift
+[24/27] Wrapping AST for OCRBridgeProbePackageTests for debugging
+[25/27] Write Objects.LinkFileList
+[26/27] Linking OCRBridgeProbePackageTests.xctest
+Build complete! (11.46s)
+Test Suite 'All tests' started at 2026-11-05 09:48:15.608
+Test Suite 'debug.xctest' started at 2026-11-05 09:48:15.619
+Test Suite 'StructuredOCRTests' started at 2026-11-05 09:48:15.619
+Test Case 'StructuredOCRTests.testBridgeCancellationReleasesWaiterAndPreservesNextPermit' started at 2026-11-05 09:48:15.619
+Test Case 'StructuredOCRTests.testBridgeCancellationReleasesWaiterAndPreservesNextPermit' passed (1.053 seconds)
+Test Case 'StructuredOCRTests.testCooperativeBridgeSerializesExternalRecognitionCallbacks' started at 2026-11-05 09:48:16.672
+Test Case 'StructuredOCRTests.testCooperativeBridgeSerializesExternalRecognitionCallbacks' passed (0.053 seconds)
+Test Case 'StructuredOCRTests.testSynchronousBridgeRunsFromCooperativeTasksAndPropagatesContext' started at 2026-11-05 09:48:16.726
+Test Case 'StructuredOCRTests.testSynchronousBridgeRunsFromCooperativeTasksAndPropagatesContext' passed (0.053 seconds)
+Test Suite 'StructuredOCRTests' passed at 2026-11-05 09:48:16.778
+	 Executed 3 tests, with 0 failures (0 unexpected) in 1.159 (1.159) seconds
+Test Suite 'debug.xctest' passed at 2026-11-05 09:48:16.778
+	 Executed 3 tests, with 0 failures (0 unexpected) in 1.159 (1.159) seconds
+Test Suite 'All tests' passed at 2026-11-05 09:48:16.778
+	 Executed 3 tests, with 0 failures (0 unexpected) in 1.159 (1.159) seconds
+◇ Test run started.
+↳ Testing Library Version: 6.2.1 (c9d57c83568b06d)
+↳ Target Platform: x86_64-unknown-linux-gnu
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

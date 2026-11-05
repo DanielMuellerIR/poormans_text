@@ -56,7 +56,7 @@ struct LinuxPDFAdapter: DocumentConversionAdapter {
 
     func convert(_ context: AdapterConversionContext) throws -> StagedConversionResult {
         if context.options.pdfTextRecognition != .disabled && context.options.ocrMethod == .structured {
-            throw PlatformBackendUnavailable("structured local document OCR on Linux")
+            _ = try LinuxStructuredOCR.runtimeDirectory()
         }
         let source = context.workDirectory.appendingPathComponent("verified-source.pdf")
         try VerifiedFileStaging.stage(from: context.resolvedInputURL, to: source, maximumBytes: 1_073_741_824, describedAs: "the PDF source")
@@ -69,7 +69,7 @@ struct LinuxPDFAdapter: DocumentConversionAdapter {
             catch { throw failure(context.inputURL, error.localizedDescription) }
             let selection = String(decoding: try JSONEncoder().encode(indices), as: UTF8.self)
             let manifest: LinuxPDFManifest = try request(["extract", source.path, directory.path, selection,
-                context.options.pdfTextRecognition.rawValue], directory: directory, source: context.inputURL, readOnlyPaths: [source])
+                context.options.pdfTextRecognition.rawValue] + (context.options.ocrMethod == .structured ? ["--preserve-resolution"] : []), directory: directory, source: context.inputURL, readOnlyPaths: [source])
             guard manifest.pageCount == summary.pageCount,
                   manifest.pageFiles == indices.map({ "page-\($0 + 1).json" }) else {
                 throw failure(context.inputURL, "the local PDF page manifest is inconsistent")
@@ -79,9 +79,9 @@ struct LinuxPDFAdapter: DocumentConversionAdapter {
             var assets = [String]()
             var warnings = [ConversionWarning.pdfLayoutNotPreserved,
                 ConversionWarning(code: "pdf.vectorGraphicsNotExtracted", message: "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF.", kind: .contentLoss),
-                ConversionWarning(code: "pdf.linuxLayoutApproximation", message: "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed.", kind: .approximation)]
+                ConversionWarning(code: "pdf.linuxLayoutApproximation", message: "The Linux PDF backend infers word spacing and bounded text-line order; only pages actually processed with structured OCR can reconstruct tables.", kind: .approximation)]
             var usedOCR = false
-            var preparedPages: [(page: LinuxPDFPage, text: String, lines: [PDFTextLine])] = []
+            var preparedPages: [(page: LinuxPDFPage, text: String, lines: [PDFTextLine], structured: String?)] = []
             var pageTextBytes = 0
             if manifest.hasAttachments {
                 warnings.append(ConversionWarning(code: "pdf.attachmentsNotExtracted", message: "Embedded PDF file attachments were not extracted.", kind: .contentLoss))
@@ -106,27 +106,88 @@ struct LinuxPDFAdapter: DocumentConversionAdapter {
                 if page.geometryUnavailable {
                     warnings.append(ConversionWarning(code: "pdf.geometryUnavailable", message: "PDF text was retained without trustworthy character geometry.", location: location, kind: .approximation))
                 }
+                var structuredText: String?
                 if let raster = page.ocrRaster {
                     guard raster == "page-\(page.number)-ocr.png" else { throw failure(context.inputURL, "the PDF raster name is invalid") }
                     do {
-                        let recognition = try LinuxOCR.recognize(pngURL: directory.appendingPathComponent(raster), languages: context.options.ocrLanguages)
-                        usedOCR = true
-                        var additions = [String]()
-                        var conflict = false
-                        for line in recognition.lines {
-                            let bounds = CGRect(x: line.bounds.minX * page.width, y: line.bounds.minY * page.height,
-                                                width: line.bounds.width * page.width, height: line.bounds.height * page.height)
-                            let original = page.lines.filter { $0.rectangle.intersects(bounds) }
-                            let key = line.recognized.trimmingCharacters(in: .whitespacesAndNewlines)
-                            if original.contains(where: { $0.text.trimmingCharacters(in: .whitespacesAndNewlines) == key }) { continue }
-                            if !original.isEmpty { conflict = true; continue }
-                            if page.geometryUnavailable && text.contains(key) { continue }
-                            additions.append(line.text)
-                            layoutLines.append(PDFTextLine(text: line.text, bounds: bounds))
+                        let png = directory.appendingPathComponent(raster)
+                        if context.options.ocrMethod == .structured {
+                            do {
+                                let result = try LinuxStructuredOCR.recognize(
+                                    pngURL: png, languages: context.options.ocrLanguages)
+                                let bounds = CGRect(x: 0, y: 0, width: page.width, height: page.height)
+                                let digital =
+                                    page.geometryUnavailable && !text.isEmpty
+                                    ? [PDFTextLine(text: text, bounds: bounds)] : layoutLines
+                                structuredText = try PDFStructuredOCRMerge.merge(
+                                    result.page, original: digital, bounds: bounds)
+                                if structuredText != nil {
+                                    usedOCR = true
+                                    for warning in result.diagnostics { warnings.append(warning.at(location)) }
+                                }
+                                if structuredText != nil
+                                    && (context.options.pdfRemoveHeadersFooters || context.options.pdfDehyphenate)
+                                {
+                                    warnings.append(
+                                        ConversionWarning(
+                                            code: "pdf.structuredLayoutRetained",
+                                            message:
+                                                "Structured OCR keeps its recognized paragraphs and tables; margin removal and dehyphenation do not modify these pages.",
+                                            location: location))
+                                }
+                            } catch
+                                where error is DoclingDocumentProjection.Failure
+                                || error is StructuredOCRRendering.Failure
+                            {
+                                structuredText = nil
+                            }
+                            if structuredText == nil {
+                                warnings.append(
+                                    ConversionWarning(
+                                        code: "ocr.structuredFallback",
+                                        message:
+                                            "Structured OCR could not be merged safely with digital PDF text. Standard local OCR was used instead.",
+                                        location: location))
+                            }
                         }
-                        if !additions.isEmpty { text += (text.isEmpty ? "" : "\n") + additions.joined(separator: "\n") }
-                        if conflict {
-                            warnings.append(ConversionWarning(code: "pdf.ocrConflict", message: "OCR text overlapping different embedded text was omitted to protect digital source text.", location: location, kind: .contentLoss))
+                        if structuredText == nil {
+                            let recognition = try LinuxOCR.recognize(pngURL: png, languages: context.options.ocrLanguages)
+                            usedOCR = true
+                            if context.options.ocrMethod == .structured {
+                                let bounds = CGRect(x: 0, y: 0, width: page.width, height: page.height)
+                                let digital =
+                                    page.geometryUnavailable && !text.isEmpty
+                                    ? [PDFTextLine(text: text, bounds: bounds)] : layoutLines
+                                let supplement = try PDFStructuredOCRMerge.supplementaryLines(
+                                    recognition, original: digital, bounds: bounds)
+                                if supplement.conflict {
+                                    warnings.append(PDFStructuredOCRMerge.conflictWarning.at(location))
+                                }
+                                layoutLines += supplement.lines
+                                if !supplement.lines.isEmpty {
+                                    text +=
+                                        (text.isEmpty ? "" : "\n")
+                                        + supplement.lines.map(\.text).joined(separator: "\n")
+                                }
+                            } else {
+                                var additions = [String]()
+                                var conflict = false
+                                for line in recognition.lines {
+                                    let bounds = CGRect(x: line.bounds.minX * page.width, y: line.bounds.minY * page.height,
+                                                        width: line.bounds.width * page.width, height: line.bounds.height * page.height)
+                                    let original = page.lines.filter { $0.rectangle.intersects(bounds) }
+                                    let key = line.recognized.trimmingCharacters(in: .whitespacesAndNewlines)
+                                    if original.contains(where: { $0.text.trimmingCharacters(in: .whitespacesAndNewlines) == key }) { continue }
+                                    if !original.isEmpty { conflict = true; continue }
+                                    if page.geometryUnavailable && text.contains(key) { continue }
+                                    additions.append(line.text)
+                                    layoutLines.append(PDFTextLine(text: line.text, bounds: bounds))
+                                }
+                                if !additions.isEmpty { text += (text.isEmpty ? "" : "\n") + additions.joined(separator: "\n") }
+                                if conflict {
+                                    warnings.append(ConversionWarning(code: "pdf.ocrConflict", message: "OCR text overlapping different embedded text was omitted to protect digital source text.", location: location, kind: .contentLoss))
+                                }
+                            }
                         }
                     } catch let error as PlatformBackendUnavailable {
                         throw error
@@ -134,14 +195,16 @@ struct LinuxPDFAdapter: DocumentConversionAdapter {
                         try ConversionExecution.check()
                         if case ConversionError.processTimedOut = error { throw error }
                         if case ConversionError.fileSystemFailure = error { throw error }
+                        if error is PDFStructuredOCRMerge.Failure { throw error }
                         warnings.append(.pdfOCRFailed.at(location))
                         warnings.append(ConversionWarning(code: "pdf.ocrFailureDetail", message: error.localizedDescription, location: location, kind: .contentLoss))
                     }
                 }
-                pageTextBytes += text.utf8.count - page.text.utf8.count
+                pageTextBytes +=
+                    max(text.utf8.count, structuredText?.utf8.count ?? 0) - page.text.utf8.count
                 guard pageTextBytes <= 64 * 1024 * 1024 else { throw failure(context.inputURL, "PDF text exceeds its size limit") }
-                if text.isEmpty { warnings.append(.pdfPageTextUnavailable.at(location)) }
-                preparedPages.append((page, text, layoutLines))
+                if text.isEmpty && structuredText == nil { warnings.append(.pdfPageTextUnavailable.at(location)) }
+                preparedPages.append((page, text, layoutLines, structuredText))
             }
             let originalLines = preparedPages.map(\.lines)
             let pageBounds = preparedPages.map { CGRect(x: 0, y: 0, width: $0.page.width, height: $0.page.height) }
@@ -151,26 +214,30 @@ struct LinuxPDFAdapter: DocumentConversionAdapter {
                 let page = prepared.page
                 let location = ConversionLocation(page: page.number)
                 var text = prepared.text
-                if page.geometryUnavailable {
-                    if context.options.pdfRemoveHeadersFooters || context.options.pdfDehyphenate {
-                        warnings.append(ConversionWarning(code: "pdf.cleanupGeometryUnavailable", message: "Requested margin cleanup and dehyphenation were not applied to this page because its digital text geometry is unavailable.", location: location, kind: .approximation))
-                    }
-                } else if context.options.pdfLayout == .automatic || context.options.pdfRemoveHeadersFooters || context.options.pdfDehyphenate {
-                    let lines = filtered[index]
-                    let ambiguous = PDFTextLayout.hasAmbiguousColumns(lines, pageBounds: pageBounds[index])
-                    let ordered = context.options.pdfLayout == .legacy ? lines
-                        : (ambiguous ? PDFTextLayout.rowOrdered(lines) : PDFTextLayout.ordered(lines, pageBounds: pageBounds[index]))
-                    text = PDFTextLayout.text(ordered, hardHyphens: context.options.pdfDehyphenate)
-                    if ambiguous {
-                        warnings.append(ConversionWarning(code: "pdf.layoutAmbiguous", message: "Aligned text may be a table or parallel columns; row order was retained.", location: location, kind: .approximation))
-                    }
-                    if lines.count != originalLines[index].count {
-                        warnings.append(ConversionWarning(code: "pdf.repeatedMarginRemoved", message: "Repeated text at the page margin was removed by request.", location: location, kind: .information))
+                if prepared.structured == nil {
+                    if page.geometryUnavailable {
+                        if context.options.pdfRemoveHeadersFooters || context.options.pdfDehyphenate {
+                            warnings.append(ConversionWarning(code: "pdf.cleanupGeometryUnavailable", message: "Requested margin cleanup and dehyphenation were not applied to this page because its digital text geometry is unavailable.", location: location, kind: .approximation))
+                        }
+                    } else if context.options.pdfLayout == .automatic || context.options.pdfRemoveHeadersFooters || context.options.pdfDehyphenate {
+                        let lines = filtered[index]
+                        let ambiguous = PDFTextLayout.hasAmbiguousColumns(lines, pageBounds: pageBounds[index])
+                        let ordered = context.options.pdfLayout == .legacy ? lines
+                            : (ambiguous ? PDFTextLayout.rowOrdered(lines) : PDFTextLayout.ordered(lines, pageBounds: pageBounds[index]))
+                        text = PDFTextLayout.text(ordered, hardHyphens: context.options.pdfDehyphenate)
+                        if ambiguous {
+                            warnings.append(ConversionWarning(code: "pdf.layoutAmbiguous", message: "Aligned text may be a table or parallel columns; row order was retained.", location: location, kind: .approximation))
+                        }
+                        if lines.count != originalLines[index].count {
+                            warnings.append(ConversionWarning(code: "pdf.repeatedMarginRemoved", message: "Repeated text at the page margin was removed by request.", location: location, kind: .information))
+                        }
                     }
                 }
                 let pageOffset = markdownBytes
                 try append("\n\n<a id=\"pmt-pdf-page-\(page.number)\"></a>\n\n## Page \(page.number)\n\n")
-                try append(text.isEmpty ? "_No text could be extracted from this page._" : MarkdownEscaping.literalBlock(text))
+                try append(
+                    prepared.structured
+                        ?? (text.isEmpty ? "_No text could be extracted from this page._" : MarkdownEscaping.literalBlock(text)))
                 for image in page.images {
                     let prefix = "page-\(page.number)-image-"
                     guard image.name.hasPrefix(prefix), image.name.hasSuffix(".png"),

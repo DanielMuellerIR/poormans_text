@@ -75,21 +75,21 @@ enum LinuxRasterBackend {
         try withFrames(source: source, render: false) { inspection, _ in inspection }
     }
 
-    static func withFrames<T>(source: URL, render: Bool,
+    static func withFrames<T>(source: URL, render: Bool, preserveResolution: Bool = false,
                               _ body: (LinuxRasterInspection, URL) throws -> T) throws -> T {
         try LinuxBackendWorkDirectory.withTemporaryDirectory { directory in
             let snapshot = directory.appendingPathComponent("source")
             try VerifiedFileStaging.stage(from: source, to: snapshot, maximumBytes: 1_073_741_824,
                                            describedAs: "the image source")
             return try LinuxBackendWorkDirectory.withTemporaryDirectory { output in
-                let inspection = try run(source: snapshot, directory: output, mode: render ? "frames" : "inspect")
+                let inspection = try run(source: snapshot, directory: output, mode: render ? "frames" : "inspect", preserveResolution: preserveResolution && render)
                 return try body(inspection, output)
             }
         }
     }
 
-    private static func run(source: URL, directory: URL, mode: String) throws -> LinuxRasterInspection {
-        let result = try runRaster(arguments: [mode, source.path], in: directory, input: source)
+    private static func run(source: URL, directory: URL, mode: String, preserveResolution: Bool = false) throws -> LinuxRasterInspection {
+        let result = try runRaster(arguments: [mode, source.path] + (preserveResolution ? ["--preserve-resolution"] : []), in: directory, input: source)
         if result.status == 69 { throw PlatformBackendUnavailable("local raster decoder (Python Pillow / HEIC libheif)") }
         if result.status == 74 { throw ConversionError.fileSystemFailure(result.standardError) }
         guard result.status == 0 else {

@@ -1,0 +1,86 @@
+{
+  "cliSHA256": "c334b36c2778d704369b16862a54e3a5d8510dfbcb656309bc11bd8277c3b0df",
+  "sourceSHA256": "e37ca92cf5b8ad22e228eed1c1065177bbbdc6b865b9e027965660353f934369",
+  "status": "FAIL",
+  "exit": 0,
+  "integrityPassed": true,
+  "exactCellTexts": 5,
+  "expectedCellTexts": 8,
+  "tableShapePassed": true,
+  "coveredMergedSlotEmpty": true,
+  "bodyInventory": {
+    "STRUCTURED DOCUMENT": true,
+    "LEFT ALPHA paragraph": true,
+    "LEFT BETA paragraph": true,
+    "RIGHT GAMMA paragraph": true,
+    "RIGHT DELTA paragraph": true,
+    "First list item": true,
+    "Second list item": true
+  },
+  "exactBodyOrderAndInventory": true,
+  "cells": [
+    {
+      "row": 0,
+      "column": 0,
+      "expected": "MERGED HEADER",
+      "actual": "MERGED HEADER",
+      "exact": true
+    },
+    {
+      "row": 0,
+      "column": 2,
+      "expected": "TOTAL",
+      "actual": "TOTAL",
+      "exact": true
+    },
+    {
+      "row": 1,
+      "column": 0,
+      "expected": "A1",
+      "actual": "Al",
+      "exact": false
+    },
+    {
+      "row": 1,
+      "column": 1,
+      "expected": "B1",
+      "actual": "Bl",
+      "exact": false
+    },
+    {
+      "row": 1,
+      "column": 2,
+      "expected": "C1",
+      "actual": "Cl",
+      "exact": false
+    },
+    {
+      "row": 2,
+      "column": 0,
+      "expected": "A2",
+      "actual": "A2",
+      "exact": true
+    },
+    {
+      "row": 2,
+      "column": 1,
+      "expected": "B2",
+      "actual": "B2",
+      "exact": true
+    },
+    {
+      "row": 2,
+      "column": 2,
+      "expected": "C2",
+      "actual": "C2",
+      "exact": true
+    }
+  ],
+  "diagnostics": [
+    "ocr.structuredApplied",
+    "ocr.structuredApproximation",
+    "ocr.tableSpansFlattened",
+    "image.ocrApplied"
+  ],
+  "scope": "Final Markdown grid; original model span geometry is not inferred from flattened Markdown"
+}

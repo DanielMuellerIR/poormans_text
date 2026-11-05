@@ -1,0 +1,7 @@
+{
+  "script": "/tmp/pmt-runtime-installer-dirfd-probe/instrumented-installer.py",
+  "parent": "/home/dm/git/poormans_text/.build/pmt-installer-instrumented-21ifmts7",
+  "source": "/home/dm/git/poormans_text/.build/optional-runtimes/docling-cd4673de/runtime",
+  "digest": "cd4673de443d7e2570d6c4c4666cecb4924e2ceaf22703cba2a273a544eface6",
+  "baseInstallerSHA256": "dc05baf7feb38b8b4de1156638bc939f498d131b5b4a6bb173cc90c46e17a749"
+}

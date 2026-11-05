@@ -129,8 +129,9 @@ und APNG verwenden Pillow im begrenzten isolierten Hilfsprozess. Alle Frames
 werden validiert; Originalbildbytes bleiben erhalten. Für OCR werden EXIF-Lage,
 Alpha auf weißem Hintergrund und ein gemeinsames Pixelbudget berücksichtigt.
 Der Decoder begrenzt Quelldaten, Framezahl, Pixel, Speicher und Prozesslaufzeit.
-HEIC übernimmt die Originalbytes und erzeugt für jedes Top-Level-Bild zusätzlich eine 8-Bit-RGBA-PNG-Darstellung. HDR, Farbprofile, Hilfsbilder und Metadaten besitzen ausdrücklich benannte Grenzen; siehe [HEIC-Nachweis](linux-port/P09-HEIC.md). RTFD lehnt andere Anhänge als lokale statische PNGs,
-inline Bild-/Objektziele und komplexe Attachmentnamen ausdrücklich ab.
+HEIC übernimmt die Originalbytes und erzeugt für jedes Top-Level-Bild zusätzlich eine 8-Bit-RGBA-PNG-Darstellung. HDR, Farbprofile, Hilfsbilder und Metadaten besitzen ausdrücklich benannte Grenzen; siehe [HEIC-Nachweis](linux-port/P09-HEIC.md). RTFD unterstützt geprüfte lokale statische PNG-, JPEG-, TIFF-, GIF-, BMP-, WebP-
+und optionale HEIC-Anhänge; mehrere Frames, Inline-Bild-/Objektziele und komplexe
+Attachmentnamen werden ausdrücklich abgewiesen. Originalbytes bleiben erhalten.
 
 PDF übernimmt Poppler-Text, Positionen, Bilder, sichere Links und Annotationen.
 Die gemeinsame Zeilenlogik erhält Lesereihenfolge, optionale Randbereinigung
@@ -166,3 +167,45 @@ Es wird nichts installiert, hochgeladen oder nach macOS `/Applications` kopiert.
 Die nativen Paketmanager verwalten Installation und Entfernung; Benutzerdaten
 liegen außerhalb des Paketbaums. Der Stand ist eine Entwicklungsvorschau,
 keine öffentliche Veröffentlichung.
+
+## Optionale lokale strukturierte OCR
+
+Standard-OCR bleibt die Voreinstellung. Die optionale strukturierte Methode
+verwendet eine separat geprüfte lokale Docling-/TableFormer-CPU-Runtime mit
+mitgeliefertem CPython3.12; sie setzt keine passende Host-Python-ABI voraus.
+Sie lädt während der Konvertierung weder Modelle noch Sprachdaten herunter.
+Tesseract und die gewählten Sprachdaten bleiben lokale Distributionspakete.
+
+Der lokale Installer erwartet eine bereits entpackte, extern geprüfte Quelle
+und einen bestehenden privaten Produktlaufzeitordner. Er lädt nichts herunter,
+entpackt keine Archive, installiert keine Hostpakete und ersetzt kein Ziel:
+
+```sh
+python3 scripts/install_linux_ocr_runtime.py \
+  --source /absoluter/pfad/zur/geprueften-runtime \
+  --runtime-directory /absoluter/pfad/zur/produktlaufzeit \
+  --expected-manifest-sha256 cd4673de443d7e2570d6c4c4666cecb4924e2ceaf22703cba2a273a544eface6
+```
+
+Der Produktordner enthält `bin/poormans-text` und `lib`; der Installer ergänzt
+`structured-ocr` direkt daneben. Sein Aufruferhash allein aktiviert keine neue
+Runtime: der Swift-Kern akzeptiert ausschließlich seinen separat geprüften
+festen Manifestpin. Er prüft vor Ausführung die vollständigen30192 Dateiinhalte.
+Ein vorhandenes Ziel bleibt erhalten. Fehler behalten ausschließlich den eigenen
+privaten Stage zur Inspektion; die Diagnose nennt dessen Basename.
+
+Die Runtime benötigt etwa2.16GB zusätzlich. Basispakete schließen
+`structured-ocr` ausdrücklich aus, auch wenn sie lokal bereits ergänzt wurde.
+Es gibt hiermit keine öffentliche Modelldistribution oder Lizenzfreigabe.
+
+```sh
+./poormans-text --json --ocr-method structured --ocr-language en \
+  --output /neues/ziel -- /pfad/scan.png
+```
+
+Fehlende oder veränderte Runtime führt zu69 ohne veröffentlichtes Ergebnis.
+Die Methode ist eine Annäherung: erkannte Zeichen und Tabellen können vom
+Original abweichen. Originalassets bleiben erhalten, Diagnosen benennen den
+Einsatz und nötigenfalls den Standard-OCR-Fallback. Ein positives technisches
+Ergebnis ist keine Inhaltsvollständigkeitsgarantie; die strenge automatische
+Qualitätsauswertung bleibt getrennt.

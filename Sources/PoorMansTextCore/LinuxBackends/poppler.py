@@ -2,6 +2,9 @@
 import json
 import errno
 import math
+import struct
+import zlib
+import shutil
 from pathlib import Path
 import resource
 import sys
@@ -136,7 +139,32 @@ def links_and_annotations(page):
     return links, annotations
 
 
-def render_page(page, destination, w, h):
+def retain_render_resolution(destination, width, height, page_width, page_height):
+    dpi = (width / page_width * 72, height / page_height * 72)
+    if not all(math.isfinite(value) and 0 < value <= 10_000 for value in dpi):
+        raise ValueError('the PDF OCR render resolution exceeds its supported range')
+    pixels_per_meter = tuple(round(value / 0.0254) for value in dpi)
+    if not all(0 < value <= 0xffffffff for value in pixels_per_meter):
+        raise ValueError('the PDF OCR render resolution cannot be represented as PNG pHYs')
+    payload = struct.pack('>IIB', *pixels_per_meter, 1)
+    kind = b'pHYs'
+    chunk = struct.pack('>I', len(payload)) + kind + payload + struct.pack('>I', zlib.crc32(kind + payload) & 0xffffffff)
+    if destination.stat().st_size > 256 * 1024**2:
+        raise ValueError('the PDF OCR PNG exceeds its byte limit')
+    temporary = destination.with_name(destination.name + '.resolution')
+    # Nur das gerade selbst erzeugte Cairo-PNG ergänzen; keine neue Bildbibliothek
+    # und keine Vollkopie des Rasterinhalts im Pythonadressraum.
+    with destination.open('rb') as source, temporary.open('xb') as output:
+        prefix = source.read(33)
+        if len(prefix) != 33 or prefix[:8] != b'\x89PNG\r\n\x1a\n' or prefix[8:16] != b'\x00\x00\x00\rIHDR':
+            raise ValueError('the PDF backend produced an invalid PNG header')
+        output.write(prefix)
+        output.write(chunk)
+        shutil.copyfileobj(source, output, 65536)
+    temporary.replace(destination)
+
+
+def render_page(page, destination, w, h, preserve_resolution=False):
     width, height = page_size(page)
     surface = cairo.ImageSurface(cairo.FORMAT_RGB24, w, h)
     context = cairo.Context(surface)
@@ -149,8 +177,10 @@ def render_page(page, destination, w, h):
         page.render_for_printing_with_options(context, Poppler.PrintFlags.DOCUMENT)
     surface.write_to_png(str(destination))
     surface.finish()
+    if preserve_resolution:
+        retain_render_resolution(destination, w, h, width, height)
 
-def extract(document, directory, selected, ocr):
+def extract(document, directory, selected, ocr, preserve_resolution=False):
     if not selected or len(selected) > MAX_PAGES or len(set(selected)) != len(selected) or any(type(i) is not int or not 0 <= i < document.get_n_pages() for i in selected):
         raise ValueError('PDF page selection is invalid')
     text_bytes = 0
@@ -204,7 +234,7 @@ def extract(document, directory, selected, ocr):
             if ocr_pixels > MAX_TOTAL_PIXELS:
                 raise ValueError('PDF OCR pages exceed their pixel budget')
             name = f'page-{index + 1}-ocr.png'
-            render_page(page, directory / name, w, h)
+            render_page(page, directory / name, w, h, preserve_resolution)
             raster = name
         value = dict(number=index + 1, width=width, height=height, label=bounded(page.get_label(), 1024), text=text,
                      characterRects=characters, lines=lines, geometryUnavailable=fallback, links=links,
@@ -261,11 +291,13 @@ def main():
         w, h = max(1, int(width * scale)), max(1, int(height * scale))
         render_page(page, Path.cwd() / 'preview.png', w, h)
         return dict(kind='page', index=index, count=document.get_n_pages(), width=w, height=h, downscaled=scale < 1)
-    if len(sys.argv) == 6 and sys.argv[1] == 'extract':
+    if len(sys.argv) in (6, 7) and sys.argv[1] == 'extract':
+        if len(sys.argv) == 7 and sys.argv[6] != '--preserve-resolution':
+            raise ValueError('invalid local PDF extraction option')
         mode = sys.argv[5]
         if mode not in ['off', 'auto', 'always']:
             raise ValueError('PDF OCR mode is invalid')
-        return extract(open_document(sys.argv[2]), Path(sys.argv[3]), json.loads(sys.argv[4]), mode)
+        return extract(open_document(sys.argv[2]), Path(sys.argv[3]), json.loads(sys.argv[4]), mode, len(sys.argv) == 7)
     raise ValueError('invalid local PDF helper command')
 
 

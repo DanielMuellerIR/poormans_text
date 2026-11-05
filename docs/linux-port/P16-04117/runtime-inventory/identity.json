@@ -1,0 +1,14 @@
+{
+  "baseDPISourceSHA256": "597abfe5af313145c43b9dc2a8655531c10120f6d3cf63c4ef25ab8eb48b8b57",
+  "newSourceSHA256": "8fbefbb740662453d6fb6e42d3ba4b31ea8e7f3d70e0e600b7a41585cea68779",
+  "qualifiedManifestSHA256": "cd4673de443d7e2570d6c4c4666cecb4924e2ceaf22703cba2a273a544eface6",
+  "qualifiedFiles": 30192,
+  "qualifiedBytes": 2158493598,
+  "tests": {
+    "permanent": 9,
+    "temporaryRealInventory": 1,
+    "passed": 10
+  },
+  "digestGate": null,
+  "repoWrites": false
+}

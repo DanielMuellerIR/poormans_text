@@ -1,0 +1,38 @@
+[
+  {
+    "test": "PoorMansTextCoreTests.MSGAdapterTests testExternalMSGsUseTheSharedEngine",
+    "reason": "External MSG corpus not configured"
+  },
+  {
+    "test": "PoorMansTextCoreTests.MSGCompressedRTFTests testExternalCompressedBodiesMatchIndependentDecoder",
+    "reason": "External compressed RTF corpus not configured"
+  },
+  {
+    "test": "PoorMansTextCoreTests.MSGEmbeddedWriterTests testExternalEmbeddedMessageRetainsAllValueStreams",
+    "reason": "External MSG corpus not configured"
+  },
+  {
+    "test": "PoorMansTextCoreTests.MSGMessageTests testExternalMessagesDecodeBodiesAndByteExactAttachments",
+    "reason": "External MSG message reference not configured"
+  },
+  {
+    "test": "PoorMansTextCoreTests.MSGPropertiesTests testExternalPropertyStoresMatchIndependentReference",
+    "reason": "External MSG property corpus not configured"
+  },
+  {
+    "test": "PoorMansTextCoreTests.MSGRTFHTMLTests testExternalHTMLMatchesIndependentDecoder",
+    "reason": "External RTF HTML corpus not configured"
+  },
+  {
+    "test": "PoorMansTextCoreTests.MailAdapterTests testPrivateCorpusAgainstIndependentDecoder",
+    "reason": "No private mail corpus supplied"
+  },
+  {
+    "test": "PoorMansTextCoreTests.OLEStorageTreeTests testExternalMSGStreamsMatchIndependentReference",
+    "reason": "External MSG corpus not configured"
+  },
+  {
+    "test": "PoorMansTextCoreTests.PDFStructureTests testApprovedRealMatrixWhenProvided",
+    "reason": "No approved real PDF matrix configured"
+  }
+]

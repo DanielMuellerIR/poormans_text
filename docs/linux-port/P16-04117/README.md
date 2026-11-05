@@ -128,6 +128,6 @@ Prozesse nach lokaler Hashsicherung. Keine Hostinstallation, kein Desktopzugriff
 Screenshots und vollständige private Hostdiagnosen bleiben außerhalb des Repos;
 kleine Rohbelege, feste Fixtures und reproduzierbare Prüfskripte bleiben erhalten.
 Der [lokale Cleanup](local-cleanup.json) entfernt die bekannten entbehrlichen
-Arbeitskopien nach Belegsicherung, darunter beide verworfenen2GB-Stages.
+Arbeitskopien nach Belegsicherung, darunter beide verworfenen 2-GB-Stages.
 Nächste Referenzprüfung: 2026-12-05; aktuelle Entwicklungslaufzeit, Pakete und die qualifizierte
 Offlinequelle bleiben bewusst als nutzbarer Entwicklungsstand erhalten.

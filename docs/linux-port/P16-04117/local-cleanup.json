@@ -33,5 +33,6 @@
   "laterRemoved": [
     "pmt-linux-next-20261105",
     "pmt-p11-runtime-04114"
-  ]
+  ],
+  "countScope": "File/directory counters describe the first pass; later empty-placeholder removals are listed separately"
 }

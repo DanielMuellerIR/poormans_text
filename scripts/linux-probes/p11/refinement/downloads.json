@@ -1,0 +1,166 @@
+{
+  "cap": 62914560,
+  "metadataAndDownloadBytes": 49488289,
+  "files": [
+    {
+      "name": "rapidocr",
+      "version": "3.9.1",
+      "file": "rapidocr-3.9.1-py3-none-any.whl",
+      "bytes": 27274755,
+      "sha256": "600885e4e94e0b427abad394fccb0ec1d3c9118a215ca435bf7680aeae0e292b",
+      "url": "https://files.pythonhosted.org/packages/a0/23/e8d7251c53137b5b66d89e85cb0bc3e6bcfaec9527f29b477ec04389c8b2/rapidocr-3.9.1-py3-none-any.whl",
+      "requires": [
+        "pyclipper>=1.2.0",
+        "opencv_python>=4.5.1.48",
+        "numpy<3.0.0,>=1.19.5",
+        "six>=1.15.0",
+        "Shapely!=2.0.4,>=1.7.1",
+        "PyYAML",
+        "Pillow",
+        "tqdm",
+        "omegaconf!=2.2.1",
+        "requests",
+        "colorlog"
+      ]
+    },
+    {
+      "name": "onnxruntime",
+      "version": "1.23.2",
+      "file": "onnxruntime-1.23.2-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "bytes": 17382649,
+      "sha256": "0f9b4ae77f8e3c9bee50c27bc1beede83f786fe1d52e99ac85aa8d65a01e9b77",
+      "url": "https://files.pythonhosted.org/packages/ef/88/9cc25d2bafe6bc0d4d3c1db3ade98196d5b355c0b273e6a5dc09c5d5d0d5/onnxruntime-1.23.2-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "requires": [
+        "coloredlogs",
+        "flatbuffers",
+        "numpy>=1.21.6",
+        "packaging",
+        "protobuf",
+        "sympy"
+      ]
+    },
+    {
+      "name": "pyclipper",
+      "version": "1.3.0.post6",
+      "file": "pyclipper-1.3.0.post6-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+      "bytes": 963797,
+      "sha256": "58eae2ff92a8cae1331568df076c4c5775bf946afab0068b217f0cf8e188eb3c",
+      "url": "https://files.pythonhosted.org/packages/76/65/cb014acc41cd5bf6bbfa4671c7faffffb9cee01706642c2dec70c5209ac8/pyclipper-1.3.0.post6-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+      "requires": null
+    },
+    {
+      "name": "shapely",
+      "version": "2.1.2",
+      "file": "shapely-2.1.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+      "bytes": 3099844,
+      "sha256": "1e7d4d7ad262a48bb44277ca12c7c78cb1b0f56b32c10734ec9a1d30c0b0c54b",
+      "url": "https://files.pythonhosted.org/packages/b9/37/e781683abac55dde9771e086b790e554811a71ed0b2b8a1e789b7430dd44/shapely-2.1.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+      "requires": [
+        "numpy>=1.21",
+        "pytest; extra == \"test\"",
+        "pytest-cov; extra == \"test\"",
+        "scipy-doctest; extra == \"test\"",
+        "numpydoc==1.1.*; extra == \"docs\"",
+        "matplotlib; extra == \"docs\"",
+        "sphinx; extra == \"docs\"",
+        "sphinx-book-theme; extra == \"docs\"",
+        "sphinx-remove-toctrees; extra == \"docs\""
+      ]
+    },
+    {
+      "name": "omegaconf",
+      "version": "2.3.0",
+      "file": "omegaconf-2.3.0-py3-none-any.whl",
+      "bytes": 79500,
+      "sha256": "7b4df175cdb08ba400f45cae3bdcae7ba8365db4d165fc65fd04b050ab63b46b",
+      "url": "https://files.pythonhosted.org/packages/e3/94/1843518e420fa3ed6919835845df698c7e27e183cb997394e4a670973a65/omegaconf-2.3.0-py3-none-any.whl",
+      "requires": [
+        "antlr4-python3-runtime (==4.9.*)",
+        "PyYAML (>=5.1.0)",
+        "dataclasses ; python_version == \"3.6\""
+      ]
+    },
+    {
+      "name": "antlr4-python3-runtime",
+      "version": "4.9.3",
+      "file": "antlr4-python3-runtime-4.9.3.tar.gz",
+      "bytes": 117034,
+      "sha256": "f224469b4168294902bb1efa80a8bf7855f24c99aef99cbefc1bcd3cce77881b",
+      "url": "https://files.pythonhosted.org/packages/3e/38/7859ff46355f76f8d19459005ca000b6e7012f2f1ca597746cbcd1fbfe5e/antlr4-python3-runtime-4.9.3.tar.gz",
+      "requires": null
+    },
+    {
+      "name": "six",
+      "version": "1.17.0",
+      "file": "six-1.17.0-py2.py3-none-any.whl",
+      "bytes": 11050,
+      "sha256": "4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274",
+      "url": "https://files.pythonhosted.org/packages/b7/ce/149a00dd41f10bc29e5921b496af8b574d8413afcd5e30dfa0ed46c2cc5e/six-1.17.0-py2.py3-none-any.whl",
+      "requires": null
+    },
+    {
+      "name": "colorlog",
+      "version": "6.10.1",
+      "file": "colorlog-6.10.1-py3-none-any.whl",
+      "bytes": 11743,
+      "sha256": "2d7e8348291948af66122cff006c9f8da6255d224e7cf8e37d8de2df3bad8c9c",
+      "url": "https://files.pythonhosted.org/packages/6d/c1/e419ef3723a074172b68aaa89c9f3de486ed4c2399e2dbd8113a4fdcaf9e/colorlog-6.10.1-py3-none-any.whl",
+      "requires": [
+        "colorama; sys_platform == \"win32\"",
+        "black; extra == \"development\"",
+        "flake8; extra == \"development\"",
+        "mypy; extra == \"development\"",
+        "pytest; extra == \"development\"",
+        "types-colorama; extra == \"development\""
+      ]
+    },
+    {
+      "name": "coloredlogs",
+      "version": "15.0.1",
+      "file": "coloredlogs-15.0.1-py2.py3-none-any.whl",
+      "bytes": 46018,
+      "sha256": "612ee75c546f53e92e70049c9dbfcc18c935a2b9a53b66085ce9ef6a6e5c0934",
+      "url": "https://files.pythonhosted.org/packages/a7/06/3d6badcf13db419e25b07041d9c7b4a2c331d3f4e7134445ec5df57714cd/coloredlogs-15.0.1-py2.py3-none-any.whl",
+      "requires": [
+        "humanfriendly (>=9.1)",
+        "capturer (>=2.4) ; extra == 'cron'"
+      ]
+    },
+    {
+      "name": "humanfriendly",
+      "version": "10.0",
+      "file": "humanfriendly-10.0-py2.py3-none-any.whl",
+      "bytes": 86794,
+      "sha256": "1697e1a8a8f550fd43c2865cd84542fc175a61dcb779b6fee18cf6b6ccba1477",
+      "url": "https://files.pythonhosted.org/packages/f0/0f/310fb31e39e2d734ccaa2c0fb981ee41f7bd5056ce9bc29b2248bd569169/humanfriendly-10.0-py2.py3-none-any.whl",
+      "requires": [
+        "monotonic ; python_version == \"2.7\"",
+        "pyreadline ; sys_platform == \"win32\" and python_version<\"3.8\"",
+        "pyreadline3 ; sys_platform == \"win32\" and python_version>=\"3.8\""
+      ]
+    },
+    {
+      "name": "flatbuffers",
+      "version": "25.9.23",
+      "file": "flatbuffers-25.9.23-py2.py3-none-any.whl",
+      "bytes": 30869,
+      "sha256": "255538574d6cb6d0a79a17ec8bc0d30985913b87513a01cce8bcdb6b4c44d0e2",
+      "url": "https://files.pythonhosted.org/packages/ee/1b/00a78aa2e8fbd63f9af08c9c19e6deb3d5d66b4dda677a0f61654680ee89/flatbuffers-25.9.23-py2.py3-none-any.whl",
+      "requires": null
+    },
+    {
+      "name": "protobuf",
+      "version": "6.33.0",
+      "file": "protobuf-6.33.0-py3-none-any.whl",
+      "bytes": 170477,
+      "sha256": "25c9e1963c6734448ea2d308cfa610e692b801304ba0908d7bfa564ac5132995",
+      "url": "https://files.pythonhosted.org/packages/07/d1/0a28c21707807c6aacd5dc9c3704b2aa1effbf37adebd8caeaf68b17a636/protobuf-6.33.0-py3-none-any.whl",
+      "requires": null
+    }
+  ],
+  "additionalLicense": {
+    "url": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+    "bytes": 11358,
+    "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+  }
+}

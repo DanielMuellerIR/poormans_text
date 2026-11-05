@@ -324,12 +324,27 @@ struct RichTextAdapter: DocumentConversionAdapter {
             fileManager: fileManager
         )
 
+        if let unicode, unicode.highlightedRunCount > 0 {
+            let markdownURL = stagedResult.appendingPathComponent(converted.markdownRelativePath)
+            do {
+                let markdown = try String(contentsOf: markdownURL, encoding: .utf8)
+                let restored = try unicode.restoringHighlights(in: markdown)
+                try Data(restored.utf8).write(to: markdownURL, options: .atomic)
+            } catch let error as RTFUnicodeProtector.Failure {
+                throw ConversionError.invalidRichText(inputURL, reason: error.reason)
+            }
+        }
+
         var warnings = warnings(
             inputURL: sourceURL,
             kind: inputKind,
             referencedResourceNames: converted.referencedResourceNames.union(representedRTFDNames),
             fileManager: fileManager
         )
+
+        if let unicode, unicode.highlightedRunCount > 0 {
+            warnings.append(ConversionWarning(code: "richText.highlightColorApproximation", message: "RTF text backgrounds were retained as highlights; their original colors were flattened.", kind: .approximation))
+        }
 
         #if os(Linux)
         if inputKind == .rtfd {

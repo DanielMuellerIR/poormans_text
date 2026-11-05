@@ -1,0 +1,32 @@
+{
+  "status": "PASS",
+  "scope": "Native isolated model component, not CLI backend discovery or desktop acceptance",
+  "architecture": "x86_64",
+  "glibc": [
+    "glibc",
+    "2.39"
+  ],
+  "stages": [
+    {
+      "name": "native-model",
+      "exit": 0,
+      "seconds": 14.78
+    }
+  ],
+  "modelCellTexts": [
+    "MERGED HEADER",
+    "TOTAL",
+    "A1",
+    "B1",
+    "C1",
+    "A2",
+    "B2",
+    "C2"
+  ],
+  "wordRefinements": 3,
+  "manifestSHA256": "aab3d38bb01bfdb8e0e29df133b6bbf7848609842ab38d97a632631cdccbbdce",
+  "verifiedRuntimeFiles": 30994,
+  "sourceUnchanged": true,
+  "hostPackageStatusUnchanged": true,
+  "seconds": 16.996
+}

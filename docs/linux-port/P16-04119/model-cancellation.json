@@ -1,0 +1,23 @@
+{
+  "cliSHA256": "f2be32db3964282bbce75e4a03ff320f88833081e0abfd808a3fcea95446fe9b",
+  "sourceSHA256": "5214cd313528af72f74ba3aab0760ffab3ebd97bf2aa72b2794232fa079941e6",
+  "exit": 130,
+  "postSignalSeconds": 0.13636441899870988,
+  "modelWorkerObserved": true,
+  "realTesseractDescendantObserved": true,
+  "observedOwnedProcesses": 20,
+  "afterTesseractRequested": true,
+  "refinementWorkerObserved": true,
+  "tsvProcessesExitedBeforeSignal": true,
+  "allObservedOwnedPidfdsExited": true,
+  "unrelatedSentinelSurvived": true,
+  "outputAbsent": true,
+  "stagingAbsent": true,
+  "sourceUnchanged": true,
+  "response": {
+    "error": "Conversion cancelled.",
+    "ok": false,
+    "version": "0.41.19"
+  },
+  "stderr": ""
+}

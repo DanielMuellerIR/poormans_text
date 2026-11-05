@@ -1,0 +1,9 @@
+{
+  "exit": 69,
+  "outputAbsent": true,
+  "response": {
+    "error": "The qualified structured OCR runtime backend is not available in this build.",
+    "ok": false,
+    "version": "0.41.19"
+  }
+}

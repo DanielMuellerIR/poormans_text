@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Sechs echte CLI-Läufe gegen fixierte natürliche PDFs; keine Downloads/Modelle."""
+"""Sechs echte CLI-Läufe gegen fixierte natürliche PDFs; keine Downloads."""
 import argparse
 import collections
 import hashlib
@@ -176,6 +176,7 @@ def main():
     parser.add_argument('--cli', required=True, type=Path)
     parser.add_argument('--corpus', required=True, type=Path)
     parser.add_argument('--root', required=True, type=Path, help='New result directory; must not exist')
+    parser.add_argument('--ocr-method', choices=['standard', 'structured'], default='standard')
     args = parser.parse_args()
     cli, corpus = args.cli.expanduser().resolve(strict=True), args.corpus.expanduser().resolve(strict=True)
     root = args.root.expanduser().absolute()
@@ -192,6 +193,7 @@ def main():
     root.mkdir(mode=0o700)
     root = root.resolve()
     summary = {'cliName': cli.name, 'cliFileSHA256': sha(cli), 'datasetRevision': manifest['revision'],
+               'ocrMethod': args.ocr_method,
                'tokenization': 'Unicode w+ and casefold; no accent removal, dehyphenation or word-boundary repair. Generated Markdown/attachment syntax and OCR uncertainty label excluded; uncertain payload retained.',
                'cases': []}
     failed = False
@@ -201,7 +203,7 @@ def main():
             name = source.stem + '-' + mode
             destination = root / name
             stdout, stderr = root / (name + '.stdout.json'), root / (name + '.stderr.txt')
-            command = [str(cli), '--json', '--report', '--pdf-ocr', mode, '--ocr-method', 'standard',
+            command = [str(cli), '--json', '--report', '--pdf-ocr', mode, '--ocr-method', args.ocr_method,
                        '--ocr-language', 'en', '-o', str(destination), '--', str(source)]
             status, elapsed, reason, runtime = execute(command, stdout, stderr, cli.name)
             case = {'source': source.name, 'mode': mode, 'exit': status, 'seconds': elapsed,

@@ -401,14 +401,11 @@ final class RichTextConverterTests: XCTestCase {
         let result = try RichTextConverter().convert(inputURL: inputURL)
         let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
 
-        XCTAssertTrue(markdown.contains("Highlighted"))
-        XCTAssertEqual(
-            result.warnings,
-            ["Chromatic text colors in RTF cannot be represented and were not preserved."]
-        )
+        XCTAssertTrue(markdown.contains("==Highlighted=="))
+        XCTAssertEqual(Set(result.diagnostics.map(\.code)), ["richText.colorNotPreserved", "richText.highlightColorApproximation"])
     }
 
-    func testDoesNotWarnForAchromaticRTFHighlight() throws {
+    func testAchromaticRTFHighlightKeepsMarkerWithoutChromaticLossWarning() throws {
         try requirePandoc()
         let inputURL = temporaryDirectory.appendingPathComponent("Gray highlight.rtf")
         let rtf = #"{\rtf1\ansi{\colortbl;\red128\green128\blue128;}\highlight1 Gray\highlight0}"#
@@ -416,7 +413,8 @@ final class RichTextConverterTests: XCTestCase {
 
         let result = try RichTextConverter().convert(inputURL: inputURL)
 
-        XCTAssertTrue(result.warnings.isEmpty)
+        XCTAssertEqual(try String(contentsOf: result.markdownFile, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines), "==Gray==")
+        XCTAssertEqual(result.diagnostics.map(\.code), ["richText.highlightColorApproximation"])
     }
 
     func testReportsUnreadableRTFAsFileSystemFailure() throws {

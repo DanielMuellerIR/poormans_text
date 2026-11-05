@@ -144,7 +144,7 @@ def read_manifest(source, expected):
         raise InstallError('Runtime manifest JSON exceeds the parser nesting limit.') from error
     if not isinstance(document, dict) or type(document.get('schemaVersion')) is not int or document['schemaVersion'] != 1:
         raise InstallError('Unsupported runtime manifest schema.')
-    if document.get('backend') != 'docling' or type(document.get('qualifiedAdapterVersion')) is not int or document['qualifiedAdapterVersion'] != 1:
+    if document.get('backend') != 'docling' or type(document.get('qualifiedAdapterVersion')) is not int or document['qualifiedAdapterVersion'] not in (1, 2):
         raise InstallError('Unsupported runtime backend or adapter version.')
     files = document.get('files')
     if not isinstance(files, dict) or not 1 <= len(files) <= MAX_FILES:

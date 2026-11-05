@@ -75,6 +75,21 @@ class RuntimeInstallTests(unittest.TestCase):
         self.assertEqual(hashlib.sha256((target / installer.MANIFEST_NAME).read_bytes()).hexdigest(), self.digest)
         self.assertFalse(list(self.parent.glob('.pmt-structured-ocr-*')))
 
+    def test_adapter_two_preserves_verified_manifest(self):
+        self.document['qualifiedAdapterVersion'] = 2
+        self.save_manifest()
+        result = self.run_cli()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual((self.parent / installer.TARGET_NAME / installer.MANIFEST_NAME).read_bytes(),
+                         (self.source / installer.MANIFEST_NAME).read_bytes())
+
+    def test_unknown_or_untyped_adapter_is_rejected(self):
+        for version in [0, 3, True, '2']:
+            with self.subTest(version=version):
+                self.document['qualifiedAdapterVersion'] = version
+                self.save_manifest()
+                self.rejected()
+
     def test_collision_directory_preserved(self):
         target = self.parent / installer.TARGET_NAME
         target.mkdir()

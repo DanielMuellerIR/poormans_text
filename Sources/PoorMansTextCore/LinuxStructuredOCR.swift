@@ -11,7 +11,10 @@ enum LinuxStructuredOCR {
         let diagnostics: [ConversionWarning]
     }
     // Erst nach unabhängiger Runtime-/Sandboxqualifikation vom Release-Writer setzen.
-    private static let qualifiedRuntimeManifestSHA256: String? = "cd4673de443d7e2570d6c4c4666cecb4924e2ceaf22703cba2a273a544eface6"
+    private static let qualifiedRuntimeManifests = [
+        "cd4673de443d7e2570d6c4c4666cecb4924e2ceaf22703cba2a273a544eface6": 1,
+        "aab3d38bb01bfdb8e0e29df133b6bbf7848609842ab38d97a632631cdccbbdce": 2,
+    ]
     struct RuntimeFile: Decodable {
         let sha256: String
         let byteCount: Int
@@ -29,20 +32,24 @@ enum LinuxStructuredOCR {
         let documentSHA256: String
         let dpiX: Double?
         let dpiY: Double?
+        let refinedWordCount: Int?
+        let refinementSkippedReason: String?
     }
-    static func runtimeDirectory() throws -> URL {
+    private static func runtimeRoot() throws -> URL {
         guard let executable = Bundle.main.executableURL else {
             throw PlatformBackendUnavailable("approved structured OCR runtime")
         }
         let root = executable.resolvingSymlinksInPath().deletingLastPathComponent()
             .deletingLastPathComponent().appendingPathComponent("structured-ocr", isDirectory: true)
+        return root
+    }
+    static func runtimeDirectory() throws -> URL {
+        let root = try runtimeRoot()
         try validateRuntime(root)
         return root
     }
-    static func validateRuntime(_ root: URL) throws {
-        guard let expected = qualifiedRuntimeManifestSHA256 else {
-            throw PlatformBackendUnavailable("qualified structured OCR runtime")
-        }
+    @discardableResult
+    static func validateRuntime(_ root: URL) throws -> Int {
         do {
             let rootFD = pmt_process_open_directory(root.path)
             guard rootFD >= 0 else { throw invalidBinding() }
@@ -60,13 +67,14 @@ enum LinuxStructuredOCR {
                 guard fstat(file.descriptor, &after) == 0, sameInventoryObject(file.info, after) else { throw invalidBinding() }
                 return bytes
             }
-            guard ConversionFileFingerprint.digest(manifest) == expected else { throw invalidBinding() }
+            let expected = ConversionFileFingerprint.digest(manifest)
+            guard let adapterVersion = qualifiedRuntimeManifests[expected] else { throw invalidBinding() }
             try JSONStructurePreflight.validate(
                 manifest, limits: .init(depth: 8, nodes: 500_000, keyBytes: 4096),
                 documentName: "OCR runtime manifest")
             let value = try JSONDecoder().decode(RuntimeManifest.self, from: manifest)
             guard value.schemaVersion == 1, value.backend == "docling",
-                value.qualifiedAdapterVersion == 1,
+                value.qualifiedAdapterVersion == adapterVersion,
                 !value.files.isEmpty, value.files.count <= 32_768
             else { throw invalidBinding() }
             try validateInventory(descriptor: rootFD, root: root, files: value.files,
@@ -75,6 +83,7 @@ enum LinuxStructuredOCR {
                 FileManager.default.isExecutableFile(
                     atPath: root.appendingPathComponent("bin/python3.12").path)
             else { throw invalidBinding() }
+            return adapterVersion
         } catch {
             try ConversionExecution.check()
             throw PlatformBackendUnavailable("qualified structured OCR runtime")
@@ -180,7 +189,8 @@ enum LinuxStructuredOCR {
     }
     static func recognize(pngURL: URL, languages: [String]) throws -> Result {
         try ConversionExecution.check()
-        let runtime = try runtimeDirectory()
+        let runtime = try runtimeRoot()
+        let adapterVersion = try validateRuntime(runtime)
         let selected = try LinuxOCR.resolveLanguages(
             languages, available: LinuxOCR.availableLanguages())
         let helper = try LinuxBackendResources.script(named: "structured_ocr")
@@ -202,10 +212,10 @@ enum LinuxStructuredOCR {
                 let result = try ProcessRunner.run(
                     executable: URL(fileURLWithPath: "/bin/sh"),
                     arguments: [
-                        "-c", "exec \"$1/bin/python3.12\" -I \"$2\" \"$1\" \"$3\" \"$4\" \"$5\"",
+                        "-c", #"runtime="$1"; helper="$2"; shift 2; exec "$runtime/bin/python3.12" -I "$helper" "$runtime" "$@""#,
                         "pmt-structured-ocr",
                         runtime.path, helper.path, source.path, languageJSON, output.path,
-                    ],
+                    ] + (adapterVersion == 2 ? ["--refine-words"] : []),
                     currentDirectory: directory, captureStandardOutput: true,
                     timeout: ConversionExecution.current?.processTimeout ?? 120,
                     maximumCapturedBytes: 8 * 1024 * 1024,
@@ -232,12 +242,21 @@ enum LinuxStructuredOCR {
                     describedAs: "the structured OCR document")
                 guard binding.sourceSHA256 == hash, binding.width == dimensions.width,
                     binding.height == dimensions.height,
+                    (0...100_000).contains(binding.refinedWordCount ?? 0),
                     binding.dpiX == dimensions.dpiX, binding.dpiY == dimensions.dpiY,
                     binding.documentSHA256 == ConversionFileFingerprint.digest(document),
                     try ConversionFileFingerprint.read(source).sha256 == hash
                 else { throw invalidBinding() }
-                return try project(document, width: dimensions.width, height: dimensions.height,
+                let projected = try project(document, width: dimensions.width, height: dimensions.height,
                     dpiX: dimensions.dpiX, dpiY: dimensions.dpiY)
+                var diagnostics = projected.diagnostics
+                if let count = binding.refinedWordCount, count > 0 {
+                    diagnostics.append(ConversionWarning(code: "ocr.wordRefinementApplied", message: "An additional local recognizer refined \(count) word(s) while retaining text geometry and punctuation. Inspect ambiguous characters in the original.", kind: .information))
+                }
+                if let reason = binding.refinementSkippedReason {
+                    diagnostics.append(ConversionWarning(code: "ocr.wordRefinementUnavailable", message: reason, kind: .information))
+                }
+                return Result(page: projected.page, diagnostics: diagnostics)
             }
         }
     }

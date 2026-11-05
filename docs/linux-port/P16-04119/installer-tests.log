@@ -1,0 +1,43 @@
+test_absolute_utf8_byte_boundary_before_filesystem_access (__main__.RuntimeInstallTests.test_absolute_utf8_byte_boundary_before_filesystem_access) ... ok
+test_adapter_two_preserves_verified_manifest (__main__.RuntimeInstallTests.test_adapter_two_preserves_verified_manifest) ... ok
+test_ambiguous_manifest_paths_rejected (__main__.RuntimeInstallTests.test_ambiguous_manifest_paths_rejected) ... ok
+test_collision_directory_preserved (__main__.RuntimeInstallTests.test_collision_directory_preserved) ... ok
+test_collision_empty_directory_preserved (__main__.RuntimeInstallTests.test_collision_empty_directory_preserved) ... ok
+test_collision_link_preserved (__main__.RuntimeInstallTests.test_collision_link_preserved) ... ok
+test_deep_source_alias_rejected (__main__.RuntimeInstallTests.test_deep_source_alias_rejected) ... ok
+test_derived_directory_budget_exact_boundary_and_rejection (__main__.RuntimeInstallTests.test_derived_directory_budget_exact_boundary_and_rejection) ... ok
+test_duplicate_nested_key_rejected (__main__.RuntimeInstallTests.test_duplicate_nested_key_rejected) ... ok
+test_duplicate_root_key_rejected (__main__.RuntimeInstallTests.test_duplicate_root_key_rejected) ... ok
+test_excessively_nested_json_has_controlled_cli_error (__main__.RuntimeInstallTests.test_excessively_nested_json_has_controlled_cli_error) ... ok
+test_file_count_limit_rejected (__main__.RuntimeInstallTests.test_file_count_limit_rejected) ... ok
+test_install_verifies_every_file_with_stage_cursor_at_eof (__main__.RuntimeInstallTests.test_install_verifies_every_file_with_stage_cursor_at_eof) ... ok
+test_invalid_utf8_absolute_arguments_rejected_without_traceback (__main__.RuntimeInstallTests.test_invalid_utf8_absolute_arguments_rejected_without_traceback) ... ok
+test_json_recursion_error_becomes_install_error_on_all_python_versions (__main__.RuntimeInstallTests.test_json_recursion_error_becomes_install_error_on_all_python_versions) ... ok
+test_listing_ignores_and_preserves_existing_directory_cursor (__main__.RuntimeInstallTests.test_listing_ignores_and_preserves_existing_directory_cursor) ... ok
+test_manifest_digest_rejected_before_parse (__main__.RuntimeInstallTests.test_manifest_digest_rejected_before_parse) ... ok
+test_manifest_fifo_does_not_block (__main__.RuntimeInstallTests.test_manifest_fifo_does_not_block) ... ok
+test_manifest_limits_and_boolean_byte_count_rejected (__main__.RuntimeInstallTests.test_manifest_limits_and_boolean_byte_count_rejected) ... ok
+test_missing_declared_file_rejected (__main__.RuntimeInstallTests.test_missing_declared_file_rejected) ... ok
+test_overbudget_or_non_utf8_manifest_paths_reject_before_stage (__main__.RuntimeInstallTests.test_overbudget_or_non_utf8_manifest_paths_reject_before_stage) ... ok
+test_oversized_manifest_rejected_without_parse (__main__.RuntimeInstallTests.test_oversized_manifest_rejected_without_parse) ... ok
+test_parent_rename_at_publication_uses_held_parent (__main__.RuntimeInstallTests.test_parent_rename_at_publication_uses_held_parent) ... ok
+test_parent_rename_before_publication_rejected (__main__.RuntimeInstallTests.test_parent_rename_before_publication_rejected) ... ok
+test_python_must_be_executable (__main__.RuntimeInstallTests.test_python_must_be_executable) ... ok
+test_relative_utf8_byte_and_depth_boundaries (__main__.RuntimeInstallTests.test_relative_utf8_byte_and_depth_boundaries) ... ok
+test_source_corruption_rejected (__main__.RuntimeInstallTests.test_source_corruption_rejected) ... ok
+test_source_fifo_does_not_block (__main__.RuntimeInstallTests.test_source_fifo_does_not_block) ... ok
+test_source_hardlink_rejected (__main__.RuntimeInstallTests.test_source_hardlink_rejected) ... ok
+test_source_root_alias_rejected (__main__.RuntimeInstallTests.test_source_root_alias_rejected) ... ok
+test_staged_content_change_is_not_published (__main__.RuntimeInstallTests.test_staged_content_change_is_not_published) ... ok
+test_target_ancestor_alias_rejected (__main__.RuntimeInstallTests.test_target_ancestor_alias_rejected) ... ok
+test_target_appearing_at_rename_is_preserved (__main__.RuntimeInstallTests.test_target_appearing_at_rename_is_preserved) ... ok
+test_total_size_limit_rejected (__main__.RuntimeInstallTests.test_total_size_limit_rejected) ... ok
+test_unknown_empty_directory_rejected (__main__.RuntimeInstallTests.test_unknown_empty_directory_rejected) ... ok
+test_unknown_file_rejected (__main__.RuntimeInstallTests.test_unknown_file_rejected) ... ok
+test_unknown_or_untyped_adapter_is_rejected (__main__.RuntimeInstallTests.test_unknown_or_untyped_adapter_is_rejected) ... ok
+test_valid_hash_permissions_and_no_source_changes (__main__.RuntimeInstallTests.test_valid_hash_permissions_and_no_source_changes) ... ok
+
+----------------------------------------------------------------------
+Ran 38 tests in 3.173s
+
+OK

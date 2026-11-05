@@ -3,7 +3,7 @@ members = ["linux/app", "linux/bridge"]
 resolver = "2"
 
 [workspace.package]
-version = "0.41.18"
+version = "0.41.19"
 license = "WTFPL"
 rust-version = "1.92"
 

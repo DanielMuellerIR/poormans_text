@@ -11,6 +11,8 @@ struct RTFUnicodeProtector {
 
     let data: Data
     private let prefix: String
+    private let highlightPrefix: String
+    let highlightedRunCount: Int
 
     private struct State {
         var fallbackCount = 1
@@ -18,6 +20,10 @@ struct RTFUnicodeProtector {
         var opaque = false
         var fontTable = false
         var font: Int?
+        var highlight = 0
+        var characterBackground = 0
+        var background = 0
+        var hasBackground: Bool { highlight > 0 || characterBackground > 0 || background > 0 }
         var codepage: UInt32 = 1252
     }
 
@@ -29,8 +35,12 @@ struct RTFUnicodeProtector {
     static func protect(_ source: Data) throws -> Self {
         let bytes = Array(source)
         var prefix: String
-        repeat { prefix = "POORMANSTEXTUNICODE" + UUID().uuidString.replacingOccurrences(of: "-", with: "") }
-        while source.range(of: Data(prefix.utf8)) != nil
+        var highlightPrefix: String
+        repeat {
+            let nonce = UUID().uuidString.replacingOccurrences(of: "-", with: "")
+            prefix = "POORMANSTEXTUNICODE" + nonce
+            highlightPrefix = "POORMANSTEXTHIGHLIGHT" + nonce
+        } while source.range(of: Data(prefix.utf8)) != nil || source.range(of: Data(highlightPrefix.utf8)) != nil
         var result = Data()
         result.reserveCapacity(bytes.count)
         var state = State()
@@ -44,6 +54,8 @@ struct RTFUnicodeProtector {
         var unicodeCount = 0
         var index = 0
         var nextCancellationCheck = 0
+        var highlightOpen = false
+        var highlightedRunCount = 0
 
         func fail(_ detail: String) -> Failure { Failure(reason: "RTF Unicode: " + detail) }
         func requireCompletePair() throws {
@@ -57,12 +69,24 @@ struct RTFUnicodeProtector {
             if byte == 39 { output.append(contentsOf: #"\'27"#.utf8) }
             else { output.append(byte) }
         }
+        func setHighlight(_ active: Bool) throws {
+            guard active != highlightOpen else { return }
+            if active {
+                highlightedRunCount += 1
+                guard highlightedRunCount <= 100_000 else { throw fail("there are too many background runs") }
+            }
+            // Neutrale eigene Gruppen verhindern, dass Pandoc die Grenzmarker
+            // selbst in Fett-/Linkformatierung einschließt.
+            result.append(Data("{\\plain \(highlightPrefix)\(active ? "OPEN" : "CLOSE")}".utf8))
+            highlightOpen = active
+        }
         func flush() throws {
             guard !raw.isEmpty else {
                 result.append(rawSource)
                 rawSource.removeAll(keepingCapacity: true)
                 return
             }
+            try setHighlight(state.hasBackground)
             if raw.contains(where: { $0 >= 128 }) {
                 let font = fonts[state.font ?? defaultFont]
                 let codepage = font?.codepage ?? font?.charset.flatMap(RTFCodepage.fromCharset) ?? state.codepage
@@ -114,6 +138,7 @@ struct RTFUnicodeProtector {
                     groupStates.append(state)
                 } else {
                     guard let parent = groupStates.popLast() else { throw fail("an RTF group end is unmatched") }
+                    if highlightOpen && (!parent.hasBackground || groupStates.isEmpty) { try setHighlight(false) }
                     state = parent
                 }
                 result.append(byte)
@@ -183,12 +208,20 @@ struct RTFUnicodeProtector {
                 }
                 if ["pict", "object"].contains(word) { try requireCompletePair() }
             }
+            if ["fonttbl", "colortbl", "stylesheet", "pict", "object", "objdata", "listtable", "listoverridetable"].contains(word) {
+                try setHighlight(false)
+            }
             switch word {
             case "fonttbl": state.fontTable = true; state.opaque = true
             case "colortbl", "stylesheet", "pict", "object", "objdata", "listtable", "listoverridetable": state.opaque = true
             case "deff": if let parameter { defaultFont = parameter }
             case "f": state.font = parameter
-            case "plain": state.font = nil
+            case "plain":
+                state.font = nil
+                state.highlight = 0; state.characterBackground = 0; state.background = 0
+            case "highlight": state.highlight = max(0, parameter ?? 0)
+            case "chcbpat": state.characterBackground = max(0, parameter ?? 0)
+            case "cb": state.background = max(0, parameter ?? 0)
             case "fcharset":
                 if state.fontTable, let font = state.font { fonts[font, default: FontEncoding()].charset = parameter }
             case "cpg", "ansicpg":
@@ -210,6 +243,7 @@ struct RTFUnicodeProtector {
                 unicodeCount += 1
                 guard unicodeCount <= 1_000_000 else { throw fail("there are too many Unicode escapes") }
                 let unit = UInt16(truncatingIfNeeded: value)
+                try setHighlight(state.hasBackground)
                 if UTF16.isLeadSurrogate(unit) {
                     try requireCompletePair()
                     let placeholder = marker(UInt32(unit))
@@ -229,13 +263,46 @@ struct RTFUnicodeProtector {
             } else if ["par", "line", "tab", "emdash", "endash", "bullet", "lquote", "rquote", "ldblquote", "rdblquote", "bin", "pict", "object", "field"].contains(word) {
                 try requireCompletePair()
             }
+            if ["par", "line"].contains(word) { try setHighlight(false) }
+            else if ["tab", "emdash", "endash", "bullet", "lquote", "rquote", "ldblquote", "rdblquote"].contains(word) {
+                try setHighlight(state.hasBackground)
+            }
             result.append(contentsOf: bytes[start..<index])
         }
         try flush()
         try requireCompletePair()
         guard groupStates.isEmpty else { throw fail("an RTF group is not closed") }
         guard result.count <= RichTextLimits.maximumSourceSize else { throw fail("the normalized input exceeds the size limit") }
-        return Self(data: result, prefix: prefix)
+        guard !highlightOpen else { throw fail("a background run is not closed") }
+        return Self(data: result, prefix: prefix, highlightPrefix: highlightPrefix, highlightedRunCount: highlightedRunCount)
+    }
+
+    func restoringHighlights(in markdown: String) throws -> String {
+        guard highlightedRunCount > 0 else { return markdown }
+        let open = highlightPrefix + "OPEN", close = highlightPrefix + "CLOSE"
+        let expression = try NSRegularExpression(pattern: open + "([\\s\\S]*?)" + close)
+        let text = markdown as NSString
+        let matches = expression.matches(in: markdown, range: NSRange(location: 0, length: text.length))
+        guard matches.count == highlightedRunCount,
+              markdown.components(separatedBy: open).count - 1 == highlightedRunCount,
+              markdown.components(separatedBy: close).count - 1 == highlightedRunCount else {
+            throw Failure(reason: "RTF highlight markers did not survive conversion intact")
+        }
+        var result = "", cursor = 0
+        for match in matches {
+            try ConversionExecution.check()
+            result += text.substring(with: NSRange(location: cursor, length: match.range.location - cursor))
+            let body = text.substring(with: match.range(at: 1))
+            let leading = String(body.prefix(while: \.isWhitespace))
+            let trailing = String(body.reversed().prefix(while: \.isWhitespace).reversed())
+            let trimmed = body.trimmingCharacters(in: .whitespacesAndNewlines)
+            if trimmed.isEmpty { result += body }
+            else if trimmed.contains("==") { result += leading + "<mark>" + trimmed + "</mark>" + trailing }
+            else { result += leading + "==" + trimmed + "==" + trailing }
+            cursor = NSMaxRange(match.range)
+        }
+        result += text.substring(from: cursor)
+        return result
     }
 
     func restoringUnicode(in html: String) throws -> String {

@@ -1,0 +1,224 @@
+[
+  {
+    "case": "sans",
+    "sourceSHA256": "313b2267ed9c931ef327f073b1cf069d1ad62f5bb7227bd14bac0d0e05846382",
+    "font": "DejaVuSans.ttf",
+    "fontSHA256": "ae7b7855e115a5966d8b1b3f80f254ccc117ec86f9965e202ee2940453837280",
+    "angle": 0,
+    "blur": 0,
+    "body": [
+      "CONTROL RASTER 7029",
+      "Al Gore visits Berlin on 2026-11-05.",
+      "Codes A1 B1 C1 A2 B2 C2 and L1 O0 I1.",
+      "Grüße aus München und schöne Grüße.",
+      "The quick brown fox jumps over the lazy dog."
+    ],
+    "cells": [
+      [
+        "Name",
+        "Code",
+        "Count"
+      ],
+      [
+        "Al",
+        "A1",
+        "10"
+      ],
+      [
+        "Ella",
+        "L1",
+        "20"
+      ],
+      [
+        "Milo",
+        "O0",
+        "30"
+      ]
+    ]
+  },
+  {
+    "case": "serif",
+    "sourceSHA256": "ba6373b36e34eba046c6a25fcdeb0cf4d2c99cf7609bee124102df132c79fbb0",
+    "font": "DejaVuSerif.ttf",
+    "fontSHA256": "8f2c103bfa3fd5de71f1b92b18f21906b5a26871fb7e19a9a4c9af539c3cc7ab",
+    "angle": 0,
+    "blur": 0,
+    "body": [
+      "CONTROL RASTER 7029",
+      "Al Gore visits Berlin on 2026-11-05.",
+      "Codes A1 B1 C1 A2 B2 C2 and L1 O0 I1.",
+      "Grüße aus München und schöne Grüße.",
+      "The quick brown fox jumps over the lazy dog."
+    ],
+    "cells": [
+      [
+        "Name",
+        "Code",
+        "Count"
+      ],
+      [
+        "Al",
+        "A1",
+        "10"
+      ],
+      [
+        "Ella",
+        "L1",
+        "20"
+      ],
+      [
+        "Milo",
+        "O0",
+        "30"
+      ]
+    ]
+  },
+  {
+    "case": "mono",
+    "sourceSHA256": "8f938416623c2194490f7550346921744524fac40839c4a5854837df2eb6cadb",
+    "font": "DejaVuSansMono.ttf",
+    "fontSHA256": "c805f9436dbc268644c1d9584f01a601a653e028e08fd74b9b949f6cf8304d88",
+    "angle": 0,
+    "blur": 0,
+    "body": [
+      "CONTROL RASTER 7029",
+      "Al Gore visits Berlin on 2026-11-05.",
+      "Codes A1 B1 C1 A2 B2 C2 and L1 O0 I1.",
+      "Grüße aus München und schöne Grüße.",
+      "The quick brown fox jumps over the lazy dog."
+    ],
+    "cells": [
+      [
+        "Name",
+        "Code",
+        "Count"
+      ],
+      [
+        "Al",
+        "A1",
+        "10"
+      ],
+      [
+        "Ella",
+        "L1",
+        "20"
+      ],
+      [
+        "Milo",
+        "O0",
+        "30"
+      ]
+    ]
+  },
+  {
+    "case": "bold",
+    "sourceSHA256": "1f50ce61a3786c45aa4a013ae0537b2c4cf5d2bfd7bd04ce2f21571de2eabc21",
+    "font": "DejaVuSans-Bold.ttf",
+    "fontSHA256": "5c1247acef7f2b8522a31742c76d6adcb5569bacc0be7ceaa4dc39dd252ce895",
+    "angle": 0,
+    "blur": 0,
+    "body": [
+      "CONTROL RASTER 7029",
+      "Al Gore visits Berlin on 2026-11-05.",
+      "Codes A1 B1 C1 A2 B2 C2 and L1 O0 I1.",
+      "Grüße aus München und schöne Grüße.",
+      "The quick brown fox jumps over the lazy dog."
+    ],
+    "cells": [
+      [
+        "Name",
+        "Code",
+        "Count"
+      ],
+      [
+        "Al",
+        "A1",
+        "10"
+      ],
+      [
+        "Ella",
+        "L1",
+        "20"
+      ],
+      [
+        "Milo",
+        "O0",
+        "30"
+      ]
+    ]
+  },
+  {
+    "case": "rotated",
+    "sourceSHA256": "3ad4b88daa0c4ae8c46f82a1390cd5389740c595c5c4065018045a46282a1b10",
+    "font": "DejaVuSans.ttf",
+    "fontSHA256": "ae7b7855e115a5966d8b1b3f80f254ccc117ec86f9965e202ee2940453837280",
+    "angle": 1.2,
+    "blur": 0,
+    "body": [
+      "CONTROL RASTER 7029",
+      "Al Gore visits Berlin on 2026-11-05.",
+      "Codes A1 B1 C1 A2 B2 C2 and L1 O0 I1.",
+      "Grüße aus München und schöne Grüße.",
+      "The quick brown fox jumps over the lazy dog."
+    ],
+    "cells": [
+      [
+        "Name",
+        "Code",
+        "Count"
+      ],
+      [
+        "Al",
+        "A1",
+        "10"
+      ],
+      [
+        "Ella",
+        "L1",
+        "20"
+      ],
+      [
+        "Milo",
+        "O0",
+        "30"
+      ]
+    ]
+  },
+  {
+    "case": "soft",
+    "sourceSHA256": "4669655e6535dfaa2b30a9673ba68927edfcd928564e69119499dfeab789e0db",
+    "font": "DejaVuSerif.ttf",
+    "fontSHA256": "8f2c103bfa3fd5de71f1b92b18f21906b5a26871fb7e19a9a4c9af539c3cc7ab",
+    "angle": 0,
+    "blur": 0.5,
+    "body": [
+      "CONTROL RASTER 7029",
+      "Al Gore visits Berlin on 2026-11-05.",
+      "Codes A1 B1 C1 A2 B2 C2 and L1 O0 I1.",
+      "Grüße aus München und schöne Grüße.",
+      "The quick brown fox jumps over the lazy dog."
+    ],
+    "cells": [
+      [
+        "Name",
+        "Code",
+        "Count"
+      ],
+      [
+        "Al",
+        "A1",
+        "10"
+      ],
+      [
+        "Ella",
+        "L1",
+        "20"
+      ],
+      [
+        "Milo",
+        "O0",
+        "30"
+      ]
+    ]
+  }
+]

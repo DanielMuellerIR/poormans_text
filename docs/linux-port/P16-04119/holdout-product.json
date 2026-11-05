@@ -1,0 +1,161 @@
+{
+  "cliSHA256": "f2be32db3964282bbce75e4a03ff320f88833081e0abfd808a3fcea95446fe9b",
+  "regressionStatus": "PASS",
+  "qualityStatus": "FAIL",
+  "cases": [
+    {
+      "case": "sans",
+      "sourceSHA256": "313b2267ed9c931ef327f073b1cf069d1ad62f5bb7227bd14bac0d0e05846382",
+      "sourceUnchanged": true,
+      "outputManifestVerified": true,
+      "baselineMatched": 43,
+      "matched": 46,
+      "expected": 49,
+      "missing": {
+        "o0": 2,
+        "i1": 1
+      },
+      "extra": {
+        "0011": 1,
+        "00": 1
+      },
+      "newCorrectToWrongPositions": [],
+      "exactGrid": false,
+      "diagnostics": [
+        "ocr.structuredApplied",
+        "ocr.structuredApproximation",
+        "ocr.wordRefinementApplied",
+        "image.ocrApplied"
+      ]
+    },
+    {
+      "case": "serif",
+      "sourceSHA256": "ba6373b36e34eba046c6a25fcdeb0cf4d2c99cf7609bee124102df132c79fbb0",
+      "sourceUnchanged": true,
+      "outputManifestVerified": true,
+      "baselineMatched": 44,
+      "matched": 46,
+      "expected": 49,
+      "missing": {
+        "o0": 2,
+        "i1": 1
+      },
+      "extra": {
+        "0011": 1,
+        "00": 1
+      },
+      "newCorrectToWrongPositions": [],
+      "exactGrid": false,
+      "diagnostics": [
+        "ocr.structuredApplied",
+        "ocr.structuredApproximation",
+        "ocr.wordRefinementApplied",
+        "image.ocrApplied"
+      ]
+    },
+    {
+      "case": "mono",
+      "sourceSHA256": "8f938416623c2194490f7550346921744524fac40839c4a5854837df2eb6cadb",
+      "sourceUnchanged": true,
+      "outputManifestVerified": true,
+      "baselineMatched": 42,
+      "matched": 47,
+      "expected": 49,
+      "missing": {
+        "o0": 2
+      },
+      "extra": {
+        "00": 2
+      },
+      "newCorrectToWrongPositions": [],
+      "exactGrid": false,
+      "diagnostics": [
+        "ocr.structuredApplied",
+        "ocr.structuredApproximation",
+        "ocr.wordRefinementApplied",
+        "image.ocrApplied"
+      ]
+    },
+    {
+      "case": "bold",
+      "sourceSHA256": "1f50ce61a3786c45aa4a013ae0537b2c4cf5d2bfd7bd04ce2f21571de2eabc21",
+      "sourceUnchanged": true,
+      "outputManifestVerified": true,
+      "baselineMatched": 43,
+      "matched": 44,
+      "expected": 49,
+      "missing": {
+        "a1": 2,
+        "o0": 2,
+        "i1": 1
+      },
+      "extra": {
+        "al": 2,
+        "11": 1,
+        "00": 2
+      },
+      "newCorrectToWrongPositions": [],
+      "exactGrid": false,
+      "diagnostics": [
+        "ocr.structuredApplied",
+        "ocr.structuredApproximation",
+        "ocr.wordRefinementApplied",
+        "image.ocrApplied"
+      ]
+    },
+    {
+      "case": "rotated",
+      "sourceSHA256": "3ad4b88daa0c4ae8c46f82a1390cd5389740c595c5c4065018045a46282a1b10",
+      "sourceUnchanged": true,
+      "outputManifestVerified": true,
+      "baselineMatched": 42,
+      "matched": 44,
+      "expected": 49,
+      "missing": {
+        "c1": 1,
+        "l1": 1,
+        "o0": 2,
+        "i1": 1
+      },
+      "extra": {
+        "11": 1,
+        "cl": 1,
+        "l100": 1,
+        "00": 1
+      },
+      "newCorrectToWrongPositions": [],
+      "exactGrid": false,
+      "diagnostics": [
+        "ocr.structuredApplied",
+        "ocr.structuredApproximation",
+        "ocr.wordRefinementApplied",
+        "image.ocrApplied"
+      ]
+    },
+    {
+      "case": "soft",
+      "sourceSHA256": "4669655e6535dfaa2b30a9673ba68927edfcd928564e69119499dfeab789e0db",
+      "sourceUnchanged": true,
+      "outputManifestVerified": true,
+      "baselineMatched": 44,
+      "matched": 46,
+      "expected": 49,
+      "missing": {
+        "o0": 2,
+        "i1": 1
+      },
+      "extra": {
+        "0011": 1,
+        "00": 1
+      },
+      "newCorrectToWrongPositions": [],
+      "exactGrid": false,
+      "diagnostics": [
+        "ocr.structuredApplied",
+        "ocr.structuredApproximation",
+        "ocr.wordRefinementApplied",
+        "image.ocrApplied"
+      ]
+    }
+  ]
+}

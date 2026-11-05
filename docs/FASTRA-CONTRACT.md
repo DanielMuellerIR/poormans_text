@@ -49,6 +49,15 @@ Inhaltsqualitätsfreigabe bleibt wegen belegter Erkennungsfehler FAIL.
 Diagnose bei fehlgeschlagenem Sandboxstart. Konvertierungsvertrag, Protokollversion
 und normale Fastra-Aufrufe bleiben unverändert.
 
+[0.41.19](linux-port/P16-04119/README.md) erhält RTF-Texthintergründe im gemeinsamen
+Importpfad als `==Text==`, bei wörtlichem `==` im Inhalt als konstantes
+`<mark>Text</mark>`. Die ursprünglichen Hintergrundfarben werden abgeflacht;
+`richText.highlightColorApproximation` benennt dies zusätzlich. Der echte
+Produktfall ergibt `Plain **Bold** ==Marked== Ä`. Das ist eine Verbesserung des
+Dokumentinhalts im bestehenden Vertrag; keine neue Protokollversion oder
+Consumer-Voraussetzung. Die separat gepinnte neue optionale Modellruntime wird
+weiterhin nicht für Fastras normalen Import benötigt.
+
 Die .12-Operation `--json --preview-page N -- quelle.pdf` beziehungsweise
 `--json --preview-frame N -- bild` ist eine getrennte passive Leseoperation.
 Sie liefert PNG-Base64, Hash, Maße, Auswahl und Quellidentität; weder

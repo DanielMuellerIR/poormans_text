@@ -15,10 +15,13 @@ parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--cli',required=True,type=Path)
 parser.add_argument('--source',required=True,type=Path)
 parser.add_argument('--evidence',required=True,type=Path)
+parser.add_argument('--after-tesseract',action='store_true',
+                    help='Erst nach dem echten TSV-Lauf während der Wortverfeinerung abbrechen')
 args=parser.parse_args()
 sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
 before=sha(args.source)
 observed={};sent=None;worker_seen=False;tesseract_seen=False
+tsv_pids=set();refinement_workers=set()
 sentinel=subprocess.Popen(['/bin/sleep','120'],start_new_session=True)
 child=None
 try:
@@ -46,9 +49,14 @@ try:
                     except ProcessLookupError:continue
                 argv=rows.get(pid,(0,[]))[1]
                 if argv and argv[0].endswith(b'/bin/python3.12'):worker_seen=True
+                if argv and argv[0].endswith(b'/bin/python3.12') and b'--refine-words' in argv:
+                    refinement_workers.add(pid)
                 if argv and argv[0].endswith(b'tesseract') and any(a.endswith(b'.png') for a in argv):
                     tesseract_seen=True
-            if worker_seen and tesseract_seen:
+                    if b'tsv' in argv:tsv_pids.add(pid)
+            refinement_active=(bool(tsv_pids) and all(select.select([observed[pid]],[],[],0)[0]
+                               for pid in tsv_pids) and any(pid in rows for pid in refinement_workers))
+            if worker_seen and tesseract_seen and (not args.after_tesseract or refinement_active):
                 sent=time.monotonic();child.send_signal(signal.SIGTERM)
             else:time.sleep(.02)
         assert sent is not None,'No real model/Tesseract descendant reached before the limit'
@@ -57,6 +65,8 @@ try:
         report={'cliSHA256':sha(args.cli),'sourceSHA256':before,'exit':child.returncode,
                 'postSignalSeconds':time.monotonic()-sent,'modelWorkerObserved':worker_seen,
                 'realTesseractDescendantObserved':tesseract_seen,'observedOwnedProcesses':len(observed),
+                'afterTesseractRequested':args.after_tesseract,
+                'refinementWorkerObserved':bool(refinement_workers),'tsvProcessesExitedBeforeSignal':refinement_active,
                 'allObservedOwnedPidfdsExited':stopped,'unrelatedSentinelSurvived':sentinel.poll() is None,
                 'outputAbsent':not destination.exists(),'stagingAbsent':not list(root.iterdir()),
                 'sourceUnchanged':sha(args.source)==before,'response':json.loads(stdout),'stderr':stderr.decode()}

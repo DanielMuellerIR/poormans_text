@@ -1,0 +1,206 @@
+{
+  "sans": {
+    "sourceSHA256": "313b2267ed9c931ef327f073b1cf069d1ad62f5bb7227bd14bac0d0e05846382",
+    "matched": 43,
+    "expected": 49,
+    "bodyLines": [
+      "CONTROL RASTER 7029",
+      "Al Gore visits Berlin on 2026-11-05.",
+      "Codes Al B1 Cl A2 B2 C2 and L1 0011.",
+      "Grüße aus München und schöne Grüße.",
+      "The quick brown fox jumps over the lazy dog."
+    ],
+    "cellTexts": [
+      [
+        "Name",
+        "Code",
+        "Count"
+      ],
+      [
+        "Al",
+        "Al",
+        "10"
+      ],
+      [
+        "Ella",
+        "L1",
+        "20"
+      ],
+      [
+        "Milo",
+        "00",
+        "30"
+      ]
+    ]
+  },
+  "serif": {
+    "sourceSHA256": "ba6373b36e34eba046c6a25fcdeb0cf4d2c99cf7609bee124102df132c79fbb0",
+    "matched": 44,
+    "expected": 49,
+    "bodyLines": [
+      "CONTROL RASTER 7029",
+      "Al Gore visits Berlin on 2026-11-05.",
+      "Codes Al B1 C1 A2 B2 C2 and L1 0011.",
+      "Grüße aus München und schöne Grüße.",
+      "The quick brown fox jumps over the lazy dog."
+    ],
+    "cellTexts": [
+      [
+        "Name",
+        "Code",
+        "Count"
+      ],
+      [
+        "Al",
+        "Al",
+        "10"
+      ],
+      [
+        "Ella",
+        "L1",
+        "20"
+      ],
+      [
+        "Milo",
+        "00",
+        "30"
+      ]
+    ]
+  },
+  "mono": {
+    "sourceSHA256": "8f938416623c2194490f7550346921744524fac40839c4a5854837df2eb6cadb",
+    "matched": 42,
+    "expected": 49,
+    "bodyLines": [
+      "CONTROL RASTER 7029",
+      "Al Gore visits Berlin on 2026-11-05.",
+      "Codes Al Bl Cl A2 B2 C2 and L1 00 Il",
+      "Grüße aus München und schöne Grüße.",
+      "The quick brown fox jumps over the lazy dog."
+    ],
+    "cellTexts": [
+      [
+        "Name",
+        "Code",
+        "Count"
+      ],
+      [
+        "Al",
+        "Al",
+        "10"
+      ],
+      [
+        "Ella",
+        "L1",
+        "20"
+      ],
+      [
+        "Milo",
+        "00",
+        "30"
+      ]
+    ]
+  },
+  "bold": {
+    "sourceSHA256": "1f50ce61a3786c45aa4a013ae0537b2c4cf5d2bfd7bd04ce2f21571de2eabc21",
+    "matched": 43,
+    "expected": 49,
+    "bodyLines": [
+      "CONTROL RASTER 7029",
+      "Al Gore visits Berlin on 2026-11-05.",
+      "Codes Al B1 Cl A2 B2 C2 and L1 OO 11.",
+      "Grüße aus München und schöne Grüße.",
+      "The quick brown fox jumps over the lazy dog."
+    ],
+    "cellTexts": [
+      [
+        "Name",
+        "Code",
+        "Count"
+      ],
+      [
+        "Al",
+        "Al",
+        "10"
+      ],
+      [
+        "Ella",
+        "L1",
+        "20"
+      ],
+      [
+        "Milo",
+        "00",
+        "30"
+      ]
+    ]
+  },
+  "rotated": {
+    "sourceSHA256": "3ad4b88daa0c4ae8c46f82a1390cd5389740c595c5c4065018045a46282a1b10",
+    "matched": 42,
+    "expected": 49,
+    "bodyLines": [
+      "CONTROL RASTER 7029",
+      "Al Gore visits Berlin on 2026-11-05.",
+      "Codes Al B1 Cl A2 B2 C2 and L100 11.",
+      "Grüße aus München und schöne Grüße.",
+      "The quick brown fox jumps over the lazy dog."
+    ],
+    "cellTexts": [
+      [
+        "Name",
+        "Code",
+        "Count"
+      ],
+      [
+        "Al",
+        "Al",
+        "10"
+      ],
+      [
+        "Ella",
+        "L1",
+        "20"
+      ],
+      [
+        "Milo",
+        "00",
+        "30"
+      ]
+    ]
+  },
+  "soft": {
+    "sourceSHA256": "4669655e6535dfaa2b30a9673ba68927edfcd928564e69119499dfeab789e0db",
+    "matched": 44,
+    "expected": 49,
+    "bodyLines": [
+      "CONTROL RASTER 7029",
+      "Al Gore visits Berlin on 2026-11-05.",
+      "Codes Al B1 C1 A2 B2 C2 and L1 0011.",
+      "Grüße aus München und schöne Grüße.",
+      "The quick brown fox jumps over the lazy dog."
+    ],
+    "cellTexts": [
+      [
+        "Name",
+        "Code",
+        "Count"
+      ],
+      [
+        "Al",
+        "Al",
+        "10"
+      ],
+      [
+        "Ella",
+        "L1",
+        "20"
+      ],
+      [
+        "Milo",
+        "00",
+        "30"
+      ]
+    ]
+  }
+}

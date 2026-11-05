@@ -265,17 +265,20 @@ entpackt keine Archive, installiert keine Hostpakete und ersetzt kein Ziel:
 python3 scripts/install_linux_ocr_runtime.py \
   --source /absoluter/pfad/zur/geprueften-runtime \
   --runtime-directory /absoluter/pfad/zur/produktlaufzeit \
-  --expected-manifest-sha256 cd4673de443d7e2570d6c4c4666cecb4924e2ceaf22703cba2a273a544eface6
+  --expected-manifest-sha256 aab3d38bb01bfdb8e0e29df133b6bbf7848609842ab38d97a632631cdccbbdce
 ```
 
 Der Produktordner enthält `bin/poormans-text` und `lib`; der Installer ergänzt
 `structured-ocr` direkt daneben. Sein Aufruferhash allein aktiviert keine neue
 Runtime: der Swift-Kern akzeptiert ausschließlich seinen separat geprüften
-festen Manifestpin. Er prüft vor Ausführung die vollständigen30192 Dateiinhalte.
+festen Manifestpins. Adapter2 bindet30.994 Dateien und ergänzt konservative
+lokale Wortverfeinerung für Englisch/Deutsch. Adapter1 mit Manifest
+`cd4673de443d7e2570d6c4c4666cecb4924e2ceaf22703cba2a273a544eface6`
+bleibt kompatibel. Vor Ausführung werden sämtliche gebundenen Inhalte geprüft.
 Ein vorhandenes Ziel bleibt erhalten. Fehler behalten ausschließlich den eigenen
 privaten Stage zur Inspektion; die Diagnose nennt dessen Basename.
 
-Die Runtime benötigt etwa2.16GB zusätzlich. Basispakete schließen
+Die neue Runtime benötigt etwa2,26GB zusätzlich. Basispakete schließen
 `structured-ocr` ausdrücklich aus, auch wenn sie lokal bereits ergänzt wurde.
 Es gibt hiermit keine öffentliche Modelldistribution oder Lizenzfreigabe.
 
@@ -290,3 +293,10 @@ Original abweichen. Originalassets bleiben erhalten, Diagnosen benennen den
 Einsatz und nötigenfalls den Standard-OCR-Fallback. Ein positives technisches
 Ergebnis ist keine Inhaltsvollständigkeitsgarantie; die strenge automatische
 Qualitätsauswertung bleibt getrennt.
+
+Der [aktuelle Produktnachweis](linux-port/P16-04119/README.md) trennt bestandene
+synthetische Qualitäts- und Sicherheitsproben von weiterhin fehlerhaften
+natürlichen Dokumenten. Der zusätzliche Leser verändert weder Satzzeichen noch
+Geometrie und garantiert keine vollständige Zeichenerkennung. Die bisherige
+PDF-Rasterauflösung bleibt erhalten; ein300-dpi-Versuch wurde wegen tatsächlicher
+Integrationsregression verworfen.

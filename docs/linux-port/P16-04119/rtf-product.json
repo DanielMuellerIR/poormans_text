@@ -1,0 +1,24 @@
+{
+  "exit": 0,
+  "markdown": "Plain **Bold** ==Marked== Ä\n",
+  "sourceUnchanged": true,
+  "outputManifestVerified": true,
+  "diagnostics": [
+    {
+      "code": "richText.colorNotPreserved",
+      "kind": "approximation",
+      "message": "Chromatic text colors in RTF cannot be represented and were not preserved."
+    },
+    {
+      "code": "richText.highlightColorApproximation",
+      "kind": "approximation",
+      "message": "RTF text backgrounds were retained as highlights; their original colors were flattened."
+    },
+    {
+      "code": "sourceMap.unavailable",
+      "kind": "information",
+      "message": "No verified source-to-text positions are available for this conversion."
+    }
+  ],
+  "cliSHA256": "f2be32db3964282bbce75e4a03ff320f88833081e0abfd808a3fcea95446fe9b"
+}

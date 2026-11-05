@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.41.19 — 2026-11-05
+
+- Preserve RTF text backgrounds as highlight markers through the shared import path, including Unicode and nested formatting; retain explicit color approximation diagnostics.
+- Add a separately pinned optional OCR runtime with conservative local word refinement while preserving text geometry and punctuation.
+
 ## 0.41.18 — 2026-11-05
 
 - Preserve the original sandbox setup error when namespace pidfd binding fails before the Linux GUI can start its CLI; keep the mandatory start gate closed.

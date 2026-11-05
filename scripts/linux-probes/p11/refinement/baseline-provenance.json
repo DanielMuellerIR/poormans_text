@@ -1,0 +1,11 @@
+{
+  "runtimeManifestSHA256": "cd4673de443d7e2570d6c4c4666cecb4924e2ceaf22703cba2a273a544eface6",
+  "languages": [
+    "eng",
+    "deu"
+  ],
+  "projectorSHA256": "96eb868a3c7f0e25568403da149cd26e5d4870e2dd7ec2a639f79c4a4b89af0d",
+  "independentGroundTruth": "fixtures/reference.json",
+  "baselineRecords": "baseline.json",
+  "scope": "Unchanged Tesseract/Docling component and actual Swift projection before refinement; final consumer-visible product checked separately."
+}

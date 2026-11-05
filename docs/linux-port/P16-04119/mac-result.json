@@ -1,0 +1,55 @@
+{
+  "startedUTC": "2026-11-05T14:27:23.284064+00:00",
+  "stages": [
+    {
+      "stage": "environment",
+      "exit": 0,
+      "seconds": 0.251,
+      "log": "environment.log"
+    },
+    {
+      "stage": "build-poormans-text",
+      "exit": 0,
+      "seconds": 13.077,
+      "log": "build-poormans-text.log"
+    },
+    {
+      "stage": "arch-check",
+      "exit": 0,
+      "seconds": 0.011,
+      "log": "arch-check.log"
+    },
+    {
+      "stage": "cli-version",
+      "exit": 0,
+      "seconds": 0.287,
+      "log": "cli-version.log"
+    },
+    {
+      "stage": "native-full-tests",
+      "exit": 0,
+      "seconds": 149.682,
+      "log": "native-full-tests.log"
+    }
+  ],
+  "isolation": {
+    "guiStarted": false,
+    "installation": false,
+    "arch": "arm64"
+  },
+  "source": {
+    "version": "0.41.19",
+    "archiveSHA256": "d5a9ef092c0934a77db0d97f3f87d6b70828d0c22ec9d9ad38ecdd32cc3354fd",
+    "budgetSeconds": 3600
+  },
+  "archiveSHA256": "d5a9ef092c0934a77db0d97f3f87d6b70828d0c22ec9d9ad38ecdd32cc3354fd",
+  "verifiedFiles": 603,
+  "cliSHA256": "e208008bbf126be222e95685711ef0eb415e1cf0c77195be81da876baf3106f6",
+  "nativeTestArchitecture": "arm64",
+  "version": "Poor Man's Text 0.41.19",
+  "cliUnchanged": true,
+  "sourceFilesUnchanged": true,
+  "finished": true,
+  "seconds": 164.051,
+  "endedUTC": "2026-11-05T14:30:07.335096+00:00"
+}

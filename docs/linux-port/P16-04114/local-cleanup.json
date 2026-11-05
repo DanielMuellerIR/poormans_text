@@ -103,5 +103,248 @@
     ".build/linux-preview-04114",
     "Regular development build caches; no disposable model weights",
     "Pinned licensed P11 reference inputs and small dated evidence"
-  ]
+  ],
+  "localTemporaryCleanup": {
+    "completedUTC": "2026-11-05T07:47:41.471112+00:00",
+    "sourceEvidenceSecuredInRepository": true,
+    "removed": [
+      {
+        "ownTemporaryDirectory": "pmt-ocr-failures",
+        "entriesBefore": 47,
+        "removed": true
+      },
+      {
+        "ownTemporaryDirectory": "pmt-p12-bridge",
+        "entriesBefore": 29,
+        "removed": true
+      },
+      {
+        "ownTemporaryDirectory": "pmt-p10-uno",
+        "entriesBefore": 29,
+        "removed": true
+      },
+      {
+        "ownTemporaryDirectory": "pmt-office-noble-probe",
+        "entriesBefore": 290,
+        "removed": true
+      },
+      {
+        "ownTemporaryDirectory": "pmt-p11-container",
+        "entriesBefore": 56,
+        "removed": true
+      },
+      {
+        "ownTemporaryDirectory": "pmt-p11-docling",
+        "entriesBefore": 62,
+        "removed": true
+      },
+      {
+        "ownTemporaryDirectory": "pmt-p11-reproduction",
+        "entriesBefore": 15,
+        "removed": true
+      },
+      {
+        "ownTemporaryDirectory": "pmt-p09-reproduction",
+        "entriesBefore": 41,
+        "removed": true
+      },
+      {
+        "ownTemporaryDirectory": "pmt-preview-delivery",
+        "entriesBefore": 28,
+        "removed": true
+      },
+      {
+        "ownTemporaryDirectory": "pmt-final-preview",
+        "entriesBefore": 24,
+        "removed": true
+      },
+      {
+        "ownTemporaryDirectory": "pmt-final-04112",
+        "entriesBefore": 43,
+        "removed": true
+      },
+      {
+        "ownTemporaryDirectory": "pmt-final-04113",
+        "entriesBefore": 15,
+        "removed": true
+      },
+      {
+        "ownTemporaryDirectory": "pmt-final-04114",
+        "entriesBefore": 21,
+        "removed": true
+      },
+      {
+        "ownTemporaryDirectory": "pmt-mac-current",
+        "entriesBefore": 18,
+        "removed": true
+      },
+      {
+        "ownTemporaryDirectory": "pmt-mac-final014",
+        "entriesBefore": 20,
+        "removed": true
+      },
+      {
+        "ownTemporaryDirectory": "pmt-mac-p11",
+        "entriesBefore": 55,
+        "removed": true
+      },
+      {
+        "ownTemporaryDirectory": "pmt-mint-current",
+        "entriesBefore": 21,
+        "removed": true
+      },
+      {
+        "ownTemporaryDirectory": "pmt-mint-current-final",
+        "entriesBefore": 34,
+        "removed": true
+      },
+      {
+        "ownTemporaryDirectory": "pmt-mint-04113",
+        "entriesBefore": 29,
+        "removed": true
+      },
+      {
+        "ownTemporaryDirectory": "pmt-mint-pdf13",
+        "entriesBefore": 32,
+        "removed": true
+      },
+      {
+        "ownTemporaryDirectory": "pmt-mint-doc14",
+        "entriesBefore": 19,
+        "removed": true
+      },
+      {
+        "ownTemporaryDirectory": "pmt-p15-capability",
+        "entriesBefore": 12,
+        "removed": true
+      },
+      {
+        "ownTemporaryDirectory": "pmt-mint-poppler-check",
+        "entriesBefore": 4,
+        "removed": true
+      },
+      {
+        "ownTemporaryDirectory": "pmt-p13-final014",
+        "entriesBefore": 6,
+        "removed": true
+      },
+      {
+        "ownTemporaryDirectory": "pmt-p13-open",
+        "entriesBefore": 77,
+        "removed": true
+      },
+      {
+        "ownTemporaryDirectory": "pmt-p15-arch",
+        "entriesBefore": 94,
+        "removed": true
+      },
+      {
+        "ownTemporaryDirectory": "pmt-p15-wayland",
+        "entriesBefore": 28,
+        "removed": true
+      },
+      {
+        "ownTemporaryDirectory": "pmt-pid1-review",
+        "entriesBefore": 5,
+        "removed": true
+      },
+      {
+        "ownTemporaryDirectory": "pmt-pid1-product",
+        "entriesBefore": 10,
+        "removed": true
+      },
+      {
+        "ownTemporaryDirectory": "pmt-raster-zoom-delivery",
+        "entriesBefore": 36,
+        "removed": true
+      },
+      {
+        "ownTemporaryDirectory": "pmt-zoom-production-delivery",
+        "entriesBefore": 16,
+        "removed": true
+      },
+      {
+        "ownTemporaryDirectory": "pmt-p11-projection-delivery",
+        "entriesBefore": 12,
+        "removed": true
+      },
+      {
+        "ownTemporaryDirectory": "pmt-04113-series",
+        "entriesBefore": 325,
+        "removed": true
+      },
+      {
+        "ownTemporaryDirectory": "pmt-final-tests-44l36bvr",
+        "entriesBefore": 358,
+        "removed": true
+      },
+      {
+        "ownTemporaryDirectory": "pmt-night-fixtures",
+        "entriesBefore": 4,
+        "removed": true
+      },
+      {
+        "ownTemporaryDirectory": "pmt-night-tools",
+        "entriesBefore": 1,
+        "removed": true
+      },
+      {
+        "ownTemporaryDirectory": "pmt-ui-tools",
+        "entriesBefore": 1,
+        "removed": true
+      }
+    ],
+    "alreadyAbsent": [],
+    "failed": [],
+    "foreignDirectoriesTouched": false
+  },
+  "smallOwnIntermediateFilesRemoved": [
+    "pmt-integrate-04112-evidence.py",
+    "pmt-update-04112-docs.py",
+    "pmt-final-doc-links.py",
+    "pmt-evidence-04113.py",
+    "pmt-04114-evidence.py",
+    "pmt-p11-final-evidence.py",
+    "pmt-local-cleanup-final.py",
+    "pmt-clean-local-temporaries.py",
+    "pmt-old-runtime-process-check.json",
+    "pmt-xvfb-cleanup.json",
+    "pmt-xvfb-argument-check.json",
+    "pmt-own-mixed-uid-cleanup.json",
+    "pmt-04112-final-tests-host.log",
+    "pmt-04112-final-tests-build.log",
+    "pmt-04112-final-rust-unit.log",
+    "pmt-04112-final-clippy.log",
+    "pmt-04112-core-build.log",
+    "pmt-04112-final-core-build.log",
+    "pmt-04112-final-gui-build.log",
+    "pmt-04112-gui-build.log",
+    "pmt-04112-ocr-core-build.log",
+    "pmt-04112-packages-evidence.json",
+    "pmt-04112-packages.log",
+    "pmt-04112-rust-unit.log",
+    "pmt-04112-tests-build.log",
+    "pmt-04112-tests-host.log",
+    "pmt-04113-core-build.log",
+    "pmt-04113-final-core-build.log",
+    "pmt-04113-gui-build.log",
+    "pmt-04113-tests-build.log",
+    "pmt-04113-tests-build-fixed.log",
+    "pmt-04113-tests-host.log",
+    "pmt-04113-selected-fixtures.log",
+    "pmt-04113-runner-loss.log",
+    "pmt-04113-runner-loss.json",
+    "pmt-04113-packages.log",
+    "pmt-04113-packages-evidence.json",
+    "pmt-04113-packages-verify.log",
+    "pmt-04113-series.log",
+    "pmt-04114-core-build.log",
+    "pmt-04114-gui-build.log",
+    "pmt-04114-rust-tests.log",
+    "pmt-04114-clippy.log",
+    "pmt-04114-packages.log",
+    "pmt-04114-packages-evidence.json",
+    "pmt-04114-packages-verify.log"
+  ],
+  "finalizedUTC": "2026-11-05T07:48:34.111945+00:00"
 }

@@ -72,22 +72,22 @@ final class EPUBSelectionPackage {
         guard items.count <= 10_000 else { throw ImportFailure("the EPUB manifest exceeds 10000 items") }
         var entries: [String: (path: String?, type: String, properties: [String])] = [:]
         for item in items {
-            guard let id = item.attribute(forName: "id")?.stringValue, !id.isEmpty, entries[id] == nil,
-                  let href = item.attribute(forName: "href")?.stringValue,
-                  let type = item.attribute(forName: "media-type")?.stringValue else { throw ImportFailure("the EPUB manifest has missing or duplicate item identifiers") }
+            guard let id = item.unqualifiedAttribute(forName: "id")?.stringValue, !id.isEmpty, entries[id] == nil,
+                  let href = item.unqualifiedAttribute(forName: "href")?.stringValue,
+                  let type = item.unqualifiedAttribute(forName: "media-type")?.stringValue else { throw ImportFailure("the EPUB manifest has missing or duplicate item identifiers") }
             entries[id] = (try? ImportPackagePath.resolve(href, relativeTo: opfPath), type,
-                (item.attribute(forName: "properties")?.stringValue ?? "").split(whereSeparator: \.isWhitespace).map(String.init))
+                (item.unqualifiedAttribute(forName: "properties")?.stringValue ?? "").split(whereSeparator: \.isWhitespace).map(String.init))
         }
         manifest = entries
         let refs = spineNode.elements(forLocalName: "itemref", uri: Self.opf)
         guard !refs.isEmpty, refs.count <= 1_000 else { throw ImportFailure("the EPUB requires between 1 and 1000 spine entries") }
         var units = [Chapter](), ids = Set<String>(), paths = Set<String>()
         for (index, ref) in refs.enumerated() {
-            guard let id = ref.attribute(forName: "idref")?.stringValue, ids.insert(id).inserted,
+            guard let id = ref.unqualifiedAttribute(forName: "idref")?.stringValue, ids.insert(id).inserted,
                   let item = entries[id], let path = item.path, paths.insert(path).inserted else {
                 throw ImportFailure("the EPUB spine has a missing, unsafe or repeated content document; repeated documents cannot be selected unambiguously")
             }
-            let linear = ref.attribute(forName: "linear")?.stringValue ?? "yes"
+            let linear = ref.unqualifiedAttribute(forName: "linear")?.stringValue ?? "yes"
             guard ["yes", "no"].contains(linear) else { throw ImportFailure("the EPUB spine has an invalid linear attribute") }
             units.append(.init(number: index + 1, id: id, path: path, linear: linear == "yes",
                 readable: item.type == "application/xhtml+xml" && reader.entryNames.contains(path)))
@@ -99,7 +99,8 @@ final class EPUBSelectionPackage {
     static func xml(_ data: Data) throws -> XMLDocument {
         _ = try ImportXML.parse(data)
         let document = try XMLDocument(data: data, options: [.nodeLoadExternalEntitiesNever, .nodePreserveAll])
-        if let dtd = document.dtd {
+        // XMLDocument.dtd ist unter FoundationXML/Linux nicht implementiert.
+        if let dtd = (document.children ?? []).compactMap({ $0 as? XMLDTD }).first {
             guard dtd.systemID == nil, dtd.publicID == nil, !(dtd.children ?? []).contains(where: { $0.kind == .entityDeclaration }) else {
                 throw ImportFailure("EPUB XML entity declarations and external DTDs are not supported")
             }
@@ -156,7 +157,7 @@ final class EPUBSelectionPackage {
                 let links: [(String, String)]
                 if item.type == "application/x-dtbncx+xml" {
                     links = nodes.filter { $0.localName == "navPoint" }.compactMap { point in
-                        guard let href = point.elements(forLocalName: "content", uri: point.uri ?? "").first?.attribute(forName: "src")?.stringValue else { return nil }
+                        guard let href = point.elements(forLocalName: "content", uri: point.uri ?? "").first?.unqualifiedAttribute(forName: "src")?.stringValue else { return nil }
                         return (href, point.elements(forLocalName: "navLabel", uri: point.uri ?? "").first?.stringValue ?? "")
                     }
                 } else {
@@ -164,7 +165,7 @@ final class EPUBSelectionPackage {
                     let toc = navigationNodes.filter { ($0.attribute(forLocalName: "type", uri: "http://www.idpf.org/2007/ops")?.stringValue ?? "").split(whereSeparator: \.isWhitespace).contains("toc") }
                     let anchors = (toc.isEmpty ? navigationNodes : toc).flatMap(Self.elements)
                     links = anchors.filter { $0.localName == "a" && $0.uri == Self.xhtml }.compactMap { node in
-                        node.attribute(forName: "href")?.stringValue.map { ($0, node.stringValue ?? "") }
+                        node.unqualifiedAttribute(forName: "href")?.stringValue.map { ($0, node.stringValue ?? "") }
                     }
                 }
                 for (href, title) in links {
@@ -218,7 +219,7 @@ final class EPUBSelectionPackage {
             body.insertChild(XMLElement(name: "p", stringValue: boundary), at: 0)
             var ids: [String: String] = [:]
             for node in [root] + Self.elements(root) {
-                guard let id = node.attribute(forName: "id")?.stringValue, !id.isEmpty else { continue }
+                guard let id = node.unqualifiedAttribute(forName: "id")?.stringValue, !id.isEmpty else { continue }
                 guard ids[id] == nil else { throw ImportFailure("an EPUB chapter has duplicate fragment identifiers") }
                 if node === root || node === body { ids[id] = chapterAnchor; continue }
                 guard Self.isInside(node, ancestor: body) else { continue }
@@ -238,10 +239,10 @@ final class EPUBSelectionPackage {
             try ConversionExecution.report(unit: .chapter, completed: completed, total: chosen.count)
             guard let xml = documents[chapter.number], let body = bodies[chapter.number] else { throw ImportFailure("the EPUB selection lost its staged chapter") }
             for node in Self.elements(body) where node.localName == "a" && node.uri == Self.xhtml {
-                guard let attribute = node.attribute(forName: "href"), let href = attribute.stringValue else { continue }
+                guard let attribute = node.unqualifiedAttribute(forName: "href"), let href = attribute.stringValue else { continue }
                 var parent = node.parent
                 var isCode = false
-                while let current = parent { if ["code", "pre"].contains(current.localName ?? "") { isCode = true; break }; parent = current.parent }
+                while let current = parent as? XMLElement { if ["code", "pre"].contains(current.localName ?? "") { isCode = true; break }; parent = current.parent }
                 if isCode { continue }
                 guard linkTokens.count < 100_000 else { throw ImportFailure("selected EPUB chapters exceed 100000 internal links") }
                 if let scheme = URLComponents(string: href)?.scheme, ["https", "http", "mailto"].contains(scheme.lowercased()) { continue }
@@ -251,7 +252,7 @@ final class EPUBSelectionPackage {
                 if let target, let fragment, let anchor = anchors[target]?[fragment] {
                     serial += 1; let link = token + "LINK\(serial)"; linkTokens[link] = anchor; attribute.stringValue = "#" + link
                 } else {
-                    node.removeAttribute(forName: "href")
+                    node.unqualifiedAttribute(forName: "href")?.detach()
                     let excluded = target.map { path in allPaths.contains(path) && anchors[path] == nil } ?? false
                     diagnosticStorage.append(.init(code: excluded ? "epub.linkTargetExcluded" : "epub.linkTargetUnavailable",
                         message: excluded ? "A link points to an excluded chapter; its visible text was retained without a dead link." : "An unsafe or missing EPUB link target was retained as visible text only.",
@@ -262,15 +263,15 @@ final class EPUBSelectionPackage {
         }
         let selectedIDs = Set(chosen.map(\.id))
         for node in spine.elements(forLocalName: "itemref", uri: Self.opf).reversed() {
-            if !selectedIDs.contains(node.attribute(forName: "idref")?.stringValue ?? "") { node.detach() }
+            if !selectedIDs.contains(node.unqualifiedAttribute(forName: "idref")?.stringValue ?? "") { node.detach() }
             else {
-                node.removeAttribute(forName: "linear")
+                node.unqualifiedAttribute(forName: "linear")?.detach()
                 let attribute = XMLNode(kind: .attribute); attribute.name = "linear"; attribute.stringValue = "yes"; node.addAttribute(attribute)
             }
         }
         for node in Self.elements(document) {
-            if node.localName == "meta", node.attribute(forName: "name")?.stringValue == "cover" { node.detach() }
-            if let properties = node.attribute(forName: "properties"), let value = properties.stringValue {
+            if node.localName == "meta", node.unqualifiedAttribute(forName: "name")?.stringValue == "cover" { node.detach() }
+            if let properties = node.unqualifiedAttribute(forName: "properties"), let value = properties.stringValue {
                 properties.stringValue = value.split(whereSeparator: \.isWhitespace).filter { $0 != "cover-image" }.joined(separator: " ")
             }
         }
@@ -338,5 +339,13 @@ final class EPUBSelectionPackage {
             ConversionExecution.current?.recording?.record(.init(chapter: position.0.number), offset: position.1, length: end - position.1)
         }
         return result
+    }
+}
+
+private extension XMLElement {
+    // FoundationXML/Linux ordnet unpräfigierte Attribute fälschlich dem
+    // Defaultnamensraum zu. Der vollständige Name bewahrt ihre XML-Semantik.
+    func unqualifiedAttribute(forName name: String) -> XMLNode? {
+        attributes?.first { $0.name == name }
     }
 }

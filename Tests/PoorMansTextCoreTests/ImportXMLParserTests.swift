@@ -1,4 +1,7 @@
 import Foundation
+#if os(Linux)
+import FoundationXML
+#endif
 import XCTest
 @testable import PoorMansTextCore
 

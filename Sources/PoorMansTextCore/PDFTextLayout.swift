@@ -1,12 +1,14 @@
-#if os(macOS)
 import Foundation
+#if os(macOS)
 import PDFKit
 import AppKit
+#endif
 
 
 /// Positionsbezogene Textverarbeitung. Sie entfernt keine Wörter: Ein unsicherer
 /// Positionslauf fällt auf PDFKit-Text zurück; Layoutverluste bleiben diagnostiziert.
 enum PDFTextLayout {
+    #if os(macOS)
     static func lines(on page: PDFPage) throws -> [PDFTextLine] {
         let text = page.string ?? ""
         func fallback() -> [PDFTextLine] {
@@ -111,6 +113,8 @@ enum PDFTextLayout {
         return lines
     }
 
+    #endif
+
     static func rowOrdered(_ lines: [PDFTextLine]) -> [PDFTextLine] {
         lines.sorted { $0.bounds.midY == $1.bounds.midY ? $0.bounds.minX < $1.bounds.minX : $0.bounds.midY > $1.bounds.midY }
     }
@@ -214,4 +218,3 @@ enum PDFTextLayout {
             with: "$1$2", options: .regularExpression)
     }
 }
-#endif

@@ -1,0 +1,22 @@
+{
+  "noSwiftSDK": true,
+  "network": "none",
+  "installs": [
+    {
+      "version": "0.41.8",
+      "conversionAsUnprivilegedUser": true,
+      "unicodePath": true,
+      "profilePreserved": true,
+      "sourceUnchanged": true
+    },
+    {
+      "version": "0.41.9",
+      "conversionAsUnprivilegedUser": true,
+      "unicodePath": true,
+      "profilePreserved": true,
+      "sourceUnchanged": true
+    }
+  ],
+  "removedPackageFiles": true,
+  "userDataPreservedAfterRemoval": true
+}

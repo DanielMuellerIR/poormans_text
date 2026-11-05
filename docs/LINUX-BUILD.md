@@ -2,8 +2,10 @@
 
 Die Linux-Portierung verwendet denselben Swift-Konvertierungskern wie macOS.
 P05 stellt Build und Plattformgrenzen her; dies ist noch keine vollständige
-Linux-App oder Distributionsfreigabe. PDF, OCR, Legacy-DOC und RTFD sind auf
-Linux weiterhin nicht verfügbar. Die vorhandene Mac-App bleibt nativ.
+Linux-App oder Distributionsfreigabe. PDF, Standard-OCR und Bilder verwenden
+explizite lokale Backends; RTFD unterstützt zunächst geprüfte lokale statische
+PNG-Anhänge. Legacy-DOC, HEIC und strukturierte OCR bleiben nicht verfügbar.
+Die vorhandene Mac-App bleibt nativ.
 
 ## Lokal bauen
 
@@ -50,16 +52,37 @@ Der Prüflauf erzeugt seine Dokumente temporär und räumt sie selbst auf.
 ./poormans-text --json --report --output /neues/ziel -- /pfad/quelle.docx
 ```
 
-Pandoc und `/usr/bin/bwrap` müssen für externe Konvertierungen lokal vorhanden
-sein. Der PMT-Prozessguard gehört zum lokalen Build. Der Formatkatalog meldet
+Pandoc und `/usr/bin/bwrap` ab 0.9 müssen für externe Konvertierungen lokal vorhanden
+sein. Der PMT-Prozessguard gehört zum lokalen Build. Optionale Backends verwenden
+ausdrücklich installierte Distributionspakete:
+
+| Fähigkeit | Mint/Ubuntu | Arch |
+| --- | --- | --- |
+| Rasterdecoder | `python3-pil` | `python-pillow` |
+| PDF | `python3-gi`, `python3-cairo`, `python3-gi-cairo`, `gir1.2-poppler-0.18` | `python-gobject`, `python-cairo`, `poppler-glib` |
+| Standard-OCR | `tesseract-ocr` und gewählte Sprachpakete | `tesseract` und gewählte `tesseract-data-*` |
+
+Es gibt keine automatischen Paket- oder Sprachdownloads. Ohne explizite
+Sprachauswahl verwendet Tesseract installiertes Englisch, andernfalls die erste
+installierte Erkennungssprache; eine Diagnose nennt diese Wahl. Dies ist keine
+automatische Mehrsprachenerkennung wie bei Vision. Der Formatkatalog meldet
 fehlende Werkzeuge und Plattformbackends; ein vorhandenes Werkzeug allein
 belegt nicht die vollständige Unterstützung jeder Dokumentvariante.
 
-Linux-Assets werden in diesem Meilenstein nur für statische PNGs tatsächlich
-dekodiert und geprüft. Andere Bildformate und APNG sind nicht freigegeben.
-Je nach bestehendem Importpfad führen nicht übernehmbare Ressourcen zu einem
-Fehler oder einer Verlustdiagnose; daraus folgt keine Formatgleichwertigkeit
-mit der Mac-Version.
+Statische PNG-Assets werden mit libpng vollständig geprüft; weitere Rasterformate
+und APNG verwenden Pillow im begrenzten isolierten Hilfsprozess. Alle Frames
+werden validiert; Originalbildbytes bleiben erhalten. Für OCR werden EXIF-Lage,
+Alpha auf weißem Hintergrund und ein gemeinsames Pixelbudget berücksichtigt.
+Der Decoder begrenzt Quelldaten, Framezahl, Pixel, Speicher und Prozesslaufzeit.
+HEIC ist nicht aktiviert. RTFD lehnt andere Anhänge als lokale statische PNGs,
+inline Bild-/Objektziele und komplexe Attachmentnamen ausdrücklich ab.
+
+PDF übernimmt Poppler-Text, Positionen, Bilder, sichere Links und Annotationen.
+Die gemeinsame Zeilenlogik erhält Lesereihenfolge, optionale Randbereinigung
+und konservative Dehyphenation. Standard-OCR ergänzt Digitaltext ohne ihn zu
+ersetzen. Tabellen-/Typografierekonstruktion, Vektorgrafiken und besondere
+Annotationsfelder besitzen ausdrücklich benannte Grenzen; dies ist keine
+vollständige Mac-Funktionsgleichheit.
 
 Die Linux-Prozessaufsicht verwendet einen eigenen PID-/Netz-Namespace, gehaltene
 Verzeichnis- und Prozessdeskriptoren und einen Lebensdauerkanal. Fehlende oder
@@ -70,7 +93,22 @@ Bei einem ausgetauschten Elternpfad bleibt ein vollständiges Ergebnis zur
 Wiederherstellung erhalten; ein Erfolg für den inzwischen anderen Pfad wird
 nicht gemeldet.
 
-Paketinstallation, Desktopintegration, Linux-GUI und vollständige Backendabnahme
-folgen in den weiteren Paketen des [Linux-Plans](LINUX-PORT.md). Die älteren
+Die drei lokalen CLI-Paketformate sind unten beschrieben. Desktopintegration,
+Linux-GUI und vollständige Backendabnahme folgen in den weiteren Paketen des [Linux-Plans](LINUX-PORT.md). Die älteren
 [Entscheidungsproben](linux-port/P03-FOLLOWUP.md) sind von der Produktintegration
 und deren Prüfstand zu unterscheiden.
+
+## Lokale CLI-Pakete
+
+```sh
+PMT_LINUX_BUILD_IMAGE=pmt-linux-builder ./release.sh --format all
+```
+
+Unter Linux erzeugt `release.sh` ausschließlich lokale Debian-, Arch- und
+portable Tar-Pakete samt SHA-256-Dateien unter `.build/linux-packages`.
+`--format deb|arch|tar` wählt ein Format; `--no-build` verwendet den vorhandenen
+versionsgleichen Laufzeitbuild. Vorhandene Paketdateien werden nicht ersetzt.
+Es wird nichts installiert, hochgeladen oder nach macOS `/Applications` kopiert.
+Die nativen Paketmanager verwalten Installation und Entfernung; Benutzerdaten
+liegen außerhalb des Paketbaums. Der Stand ist eine Entwicklungsvorschau,
+keine öffentliche Veröffentlichung.

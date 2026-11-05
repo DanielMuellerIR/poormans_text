@@ -3,8 +3,9 @@ import Foundation
 import Vision
 #endif
 
-/// Löst kurze Sprachkürzel gegen die lokal verfügbare Vision-Version auf.
-/// Leere Auswahl bedeutet automatische Spracherkennung; es wird nichts geladen.
+/// Löst Sprachkürzel gegen das lokale OCR-Backend auf. Eine leere Auswahl
+/// bleibt leer: Vision erkennt die Sprache automatisch, Tesseract verwendet
+/// seinen dokumentierten lokalen Standard. Es wird nichts heruntergeladen.
 public enum OCRLanguageSelection {
     public static func resolve(_ languages: [String]) throws -> [String] {
         guard !languages.isEmpty else { return [] }
@@ -26,6 +27,8 @@ public enum OCRLanguageSelection {
             if !resolved.contains(match) { resolved.append(match) }
         }
         return resolved
+        #elseif os(Linux)
+        return try LinuxOCR.resolveLanguages(languages, available: LinuxOCR.availableLanguages())
         #else
         throw PlatformBackendUnavailable("OCR language selection")
         #endif

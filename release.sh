@@ -22,4 +22,8 @@
 # Letzte Zeile bei Erfolg (maschinenlesbar):  RELEASE OK: <pfad-zum-dmg> (<version>)
 set -euo pipefail
 
+if [[ "$(uname -s)" == Linux ]]; then
+    exec "$(cd "$(dirname "$0")" && pwd)/scripts/package_linux.sh" "$@"
+fi
+
 exec "$(cd "$(dirname "$0")" && pwd)/scripts/install.sh" --no-install "$@"

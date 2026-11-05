@@ -259,7 +259,7 @@ final class MailBodyConverterTests: XCTestCase {
         // Die Lesersicht prüft stattdessen den vollständigen unveränderten Körper.
         let roundtrip = try ProcessRunner.run(executable: PandocTool.resolve(nil),
             arguments: ["--sandbox", "--preserve-tabs", "--from=gfm", "--to=json", "--output", jsonURL.path, markdown.path],
-            currentDirectory: work, timeout: 30)
+            currentDirectory: work, timeout: 30, readOnlyPaths: [markdown])
         XCTAssertEqual(roundtrip.status, 0)
         let document = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: jsonURL)) as? [String: Any])
         return try XCTUnwrap(document["blocks"] as? [[String: Any]])

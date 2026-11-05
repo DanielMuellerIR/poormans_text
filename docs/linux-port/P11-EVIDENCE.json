@@ -1,0 +1,365 @@
+{
+  "sourceSha256": "e37ca92cf5b8ad22e228eed1c1065177bbbdc6b865b9e027965660353f934369",
+  "sourceGenerator": "scripts/linux-probes/backends/extra-probe.py (unmodified structured-raster prefix)",
+  "expectedCells": [
+    {
+      "row": 0,
+      "firstColumn": 0,
+      "lastColumn": 1,
+      "text": "MERGED HEADER"
+    },
+    {
+      "row": 0,
+      "firstColumn": 2,
+      "lastColumn": 2,
+      "text": "TOTAL"
+    },
+    {
+      "row": 1,
+      "firstColumn": 0,
+      "lastColumn": 0,
+      "text": "A1"
+    },
+    {
+      "row": 1,
+      "firstColumn": 1,
+      "lastColumn": 1,
+      "text": "B1"
+    },
+    {
+      "row": 1,
+      "firstColumn": 2,
+      "lastColumn": 2,
+      "text": "C1"
+    },
+    {
+      "row": 2,
+      "firstColumn": 0,
+      "lastColumn": 0,
+      "text": "A2"
+    },
+    {
+      "row": 2,
+      "firstColumn": 1,
+      "lastColumn": 1,
+      "text": "B2"
+    },
+    {
+      "row": 2,
+      "firstColumn": 2,
+      "lastColumn": 2,
+      "text": "C2"
+    }
+  ],
+  "results": {
+    "original": {
+      "geometry": {
+        "rows": [
+          600,
+          740,
+          880,
+          1020
+        ],
+        "columns": [
+          70,
+          570,
+          1070,
+          1570
+        ],
+        "cells": [
+          {
+            "row": 0,
+            "firstColumn": 0,
+            "lastColumn": 1,
+            "box": [
+              70,
+              600,
+              1070,
+              740
+            ],
+            "text": "MERGED HEADER"
+          },
+          {
+            "row": 0,
+            "firstColumn": 2,
+            "lastColumn": 2,
+            "box": [
+              1070,
+              600,
+              1570,
+              740
+            ],
+            "text": "TOTAL"
+          },
+          {
+            "row": 1,
+            "firstColumn": 0,
+            "lastColumn": 0,
+            "box": [
+              70,
+              740,
+              570,
+              880
+            ],
+            "text": "Al"
+          },
+          {
+            "row": 1,
+            "firstColumn": 1,
+            "lastColumn": 1,
+            "box": [
+              570,
+              740,
+              1070,
+              880
+            ],
+            "text": "Bl"
+          },
+          {
+            "row": 1,
+            "firstColumn": 2,
+            "lastColumn": 2,
+            "box": [
+              1070,
+              740,
+              1570,
+              880
+            ],
+            "text": "C1"
+          },
+          {
+            "row": 2,
+            "firstColumn": 0,
+            "lastColumn": 0,
+            "box": [
+              70,
+              880,
+              570,
+              1020
+            ],
+            "text": "A2"
+          },
+          {
+            "row": 2,
+            "firstColumn": 1,
+            "lastColumn": 1,
+            "box": [
+              570,
+              880,
+              1070,
+              1020
+            ],
+            "text": "B2"
+          },
+          {
+            "row": 2,
+            "firstColumn": 2,
+            "lastColumn": 2,
+            "box": [
+              1070,
+              880,
+              1570,
+              1020
+            ],
+            "text": "C2"
+          }
+        ]
+      },
+      "geometryMatch": true,
+      "exactCellMatches": 6,
+      "expectedCellCount": 8,
+      "cellStrings": [
+        "MERGED HEADER",
+        "TOTAL",
+        "Al",
+        "Bl",
+        "C1",
+        "A2",
+        "B2",
+        "C2"
+      ],
+      "originalColumnWords": [
+        "LEFT",
+        "ALPHA",
+        "paragraph",
+        "RIGHT",
+        "GAMMA",
+        "paragraph",
+        "LEFT",
+        "BETA",
+        "paragraph",
+        "RIGHT",
+        "DELTA",
+        "paragraph"
+      ],
+      "manuallySeparatedColumns": [
+        "LEFT ALPHA paragraph LEFT BETA paragraph",
+        "RIGHT GAMMA paragraph RIGHT DELTA paragraph"
+      ],
+      "manualColumnMarkerOrder": [
+        "ALPHA",
+        "BETA",
+        "GAMMA",
+        "DELTA"
+      ]
+    },
+    "rotated": {
+      "geometry": {
+        "rows": [],
+        "columns": [],
+        "cells": []
+      },
+      "geometryMatch": false
+    },
+    "borderless": {
+      "geometry": {
+        "rows": [],
+        "columns": [],
+        "cells": []
+      },
+      "geometryMatch": false
+    },
+    "deskewed": {
+      "geometry": {
+        "rows": [
+          632,
+          772,
+          912,
+          1052
+        ],
+        "columns": [
+          98,
+          598,
+          1098,
+          1598
+        ],
+        "cells": [
+          {
+            "row": 0,
+            "firstColumn": 0,
+            "lastColumn": 1,
+            "box": [
+              98,
+              632,
+              1098,
+              772
+            ]
+          },
+          {
+            "row": 0,
+            "firstColumn": 2,
+            "lastColumn": 2,
+            "box": [
+              1098,
+              632,
+              1598,
+              772
+            ]
+          },
+          {
+            "row": 1,
+            "firstColumn": 0,
+            "lastColumn": 0,
+            "box": [
+              98,
+              772,
+              598,
+              912
+            ]
+          },
+          {
+            "row": 1,
+            "firstColumn": 1,
+            "lastColumn": 1,
+            "box": [
+              598,
+              772,
+              1098,
+              912
+            ]
+          },
+          {
+            "row": 1,
+            "firstColumn": 2,
+            "lastColumn": 2,
+            "box": [
+              1098,
+              772,
+              1598,
+              912
+            ]
+          },
+          {
+            "row": 2,
+            "firstColumn": 0,
+            "lastColumn": 0,
+            "box": [
+              98,
+              912,
+              598,
+              1052
+            ]
+          },
+          {
+            "row": 2,
+            "firstColumn": 1,
+            "lastColumn": 1,
+            "box": [
+              598,
+              912,
+              1098,
+              1052
+            ]
+          },
+          {
+            "row": 2,
+            "firstColumn": 2,
+            "lastColumn": 2,
+            "box": [
+              1098,
+              912,
+              1598,
+              1052
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "wallSeconds": 4.292220560004353,
+  "pairedRawMacOutputAvailable": false,
+  "naturalGroundTruthTested": false,
+  "P11Passed": false,
+  "wholePageTextCheck": {
+    "expectedWordCount": 31,
+    "recognizedWordCount": 31,
+    "missingWordCounts": {
+      "A1": 1,
+      "B1": 1
+    },
+    "unexpectedWordCounts": {
+      "Al": 1,
+      "Bl": 1
+    },
+    "expectedColumnMarkerOrder": [
+      "ALPHA",
+      "BETA",
+      "GAMMA",
+      "DELTA"
+    ],
+    "rawColumnMarkerOrder": [
+      "ALPHA",
+      "GAMMA",
+      "BETA",
+      "DELTA"
+    ],
+    "lineFinderAutomaticallyDetectsBorderlessTables": false,
+    "outputLossDiagnosticsImplemented": false
+  },
+  "decision": "P11 not passed; no product integration; short classical route insufficiently evidenced",
+  "naturalCandidateSources": [
+    "https://github.com/microsoft/table-transformer",
+    "https://huggingface.co/datasets/bsmock/pubtables-1m"
+  ],
+  "naturalDocumentsDownloaded": 0
+}

@@ -1,0 +1,114 @@
+[
+  {
+    "case": "xlsm",
+    "pass": true,
+    "assets": 0,
+    "diagnostics": [
+      "spreadsheet.macrosNotPreserved",
+      "spreadsheet.mergesFlattened",
+      "spreadsheet.mergesFlattened",
+      "spreadsheet.mergesFlattened",
+      "spreadsheet.mergesFlattened"
+    ]
+  },
+  {
+    "case": "xltx",
+    "pass": true,
+    "assets": 0,
+    "diagnostics": [
+      "spreadsheet.templateSemanticsNotPreserved",
+      "spreadsheet.mergesFlattened",
+      "spreadsheet.mergesFlattened",
+      "spreadsheet.mergesFlattened",
+      "spreadsheet.mergesFlattened"
+    ]
+  },
+  {
+    "case": "xltm",
+    "pass": true,
+    "assets": 0,
+    "diagnostics": [
+      "spreadsheet.macrosNotPreserved",
+      "spreadsheet.templateSemanticsNotPreserved",
+      "spreadsheet.mergesFlattened",
+      "spreadsheet.mergesFlattened",
+      "spreadsheet.mergesFlattened",
+      "spreadsheet.mergesFlattened"
+    ]
+  },
+  {
+    "case": "pptm",
+    "pass": true,
+    "assets": 1,
+    "diagnostics": [
+      "presentation.layoutNotPreserved"
+    ]
+  },
+  {
+    "case": "potx",
+    "pass": true,
+    "assets": 1,
+    "diagnostics": [
+      "presentation.layoutNotPreserved"
+    ]
+  },
+  {
+    "case": "selected-xlsx",
+    "pass": true,
+    "assets": 0,
+    "diagnostics": [
+      "spreadsheet.mergesFlattened",
+      "spreadsheet.mergesFlattened",
+      "spreadsheet.mergesFlattened",
+      "spreadsheet.mergesFlattened"
+    ]
+  },
+  {
+    "case": "selected-ods",
+    "pass": true,
+    "assets": 0,
+    "diagnostics": [
+      "spreadsheet.mergesFlattened",
+      "spreadsheet.mergesFlattened",
+      "spreadsheet.mergesFlattened",
+      "spreadsheet.mergesFlattened"
+    ]
+  },
+  {
+    "case": "selected-xls",
+    "pass": true,
+    "assets": 0,
+    "diagnostics": [
+      "spreadsheet.mergesFlattened",
+      "legacySpreadsheet.potentialLoss"
+    ]
+  },
+  {
+    "case": "selected-pptx",
+    "pass": true,
+    "assets": 1,
+    "diagnostics": [
+      "presentation.layoutNotPreserved"
+    ]
+  },
+  {
+    "case": "selected-odp",
+    "pass": true,
+    "assets": 1,
+    "diagnostics": [
+      "presentation.layoutNotPreserved"
+    ]
+  },
+  {
+    "case": "invalid-selection-xlsx",
+    "pass": true
+  },
+  {
+    "case": "invalid-selection-ods",
+    "pass": true
+  },
+  {
+    "case": "invalid-selection-xls",
+    "pass": true
+  }
+]

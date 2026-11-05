@@ -104,7 +104,7 @@ enum HTMLImageSourceResolver {
                 // den Schlüsselraum mit lokalen Dateien; Adressen und Pfade
                 // kollidieren nicht.
                 let localPath: String
-                if let known = localNames[key] {
+                if let known = localNames[FileSystemPath.key(key)] {
                     localPath = known
                 } else {
                     localCount += 1
@@ -118,7 +118,7 @@ enum HTMLImageSourceResolver {
                         continue
                     }
                     localPath = written
-                    localNames[key] = written
+                    localNames[FileSystemPath.key(key)] = written
                 }
                 output += replacingSource(in: tag, sourceRange: sourceMatch.range, with: localPath)
                 continue
@@ -143,7 +143,7 @@ enum HTMLImageSourceResolver {
             // allein macht eine HTML- oder SVG-Datei noch nicht zu einem Bild.
             if let inWork = fileInside(workDirectory, relativePath: trimmed, fileManager: fileManager) {
                 let localPath: String
-                if let known = localNames[inWork.path] {
+                if let known = localNames[FileSystemPath.key(inWork.path)] {
                     localPath = known
                 } else {
                     localCount += 1
@@ -153,7 +153,7 @@ enum HTMLImageSourceResolver {
                         continue
                     }
                     localPath = copied
-                    localNames[inWork.path] = copied
+                    localNames[FileSystemPath.key(inWork.path)] = copied
                 }
                 output += replacingSource(in: tag, sourceRange: sourceMatch.range, with: localPath)
                 continue
@@ -162,7 +162,7 @@ enum HTMLImageSourceResolver {
             if let baseDirectory,
                let local = fileInside(baseDirectory, relativePath: trimmed, fileManager: fileManager) {
                 let localPath: String
-                if let known = localNames[local.path] {
+                if let known = localNames[FileSystemPath.key(local.path)] {
                     localPath = known
                 } else {
                     localCount += 1
@@ -174,7 +174,7 @@ enum HTMLImageSourceResolver {
                         continue
                     }
                     localPath = copied
-                    localNames[local.path] = copied
+                    localNames[FileSystemPath.key(local.path)] = copied
                 }
                 output += replacingSource(in: tag, sourceRange: sourceMatch.range, with: localPath)
                 continue
@@ -302,11 +302,11 @@ enum HTMLImageSourceResolver {
         }
         let candidate = directory.appendingPathComponent(path).standardizedFileURL
         let directoryPath = directory.resolvingSymlinksInPath().standardizedFileURL.path + "/"
-        guard candidate.path.hasPrefix(directory.standardizedFileURL.path + "/") else {
+        guard FileSystemPath.hasPrefix(candidate.path, directory.standardizedFileURL.path + "/") else {
             return nil
         }
         let resolved = candidate.resolvingSymlinksInPath().standardizedFileURL
-        guard resolved.path.hasPrefix(directoryPath) else {
+        guard FileSystemPath.hasPrefix(resolved.path, directoryPath) else {
             return nil
         }
         var info = stat()

@@ -26,6 +26,7 @@ enum ConversionExecution {
         let progress: ConversionProgressHandler?
         let processTimeout: TimeInterval?
         var protectedInputs: [URL] = []
+        // Schlüssel stammen aus FileSystemPath.key; sie sind keine erneut lesbaren URL-Pfade.
         var plannedSources: [String: URL] = [:]
         var recording: ConversionRecording? = nil
         var processWriteScope: URL? = nil

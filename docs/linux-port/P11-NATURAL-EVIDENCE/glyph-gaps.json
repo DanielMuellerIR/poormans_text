@@ -1,0 +1,51 @@
+{
+  "valid": true,
+  "textCharacters": 2110,
+  "boxes": 2110,
+  "boundaries": [
+    {
+      "needle": "SplitfinAmeca",
+      "index": 125,
+      "left": "n",
+      "right": "A",
+      "leftBox": [
+        118.09899999999999,
+        109.2323,
+        123.0157,
+        119.6003
+      ],
+      "rightBox": [
+        131.77179999999998,
+        109.06830000000002,
+        136.8181,
+        119.65500000000003
+      ],
+      "gap": 8.75609999999999,
+      "glyphHeight": 10.586700000000008,
+      "macThreshold": 15.880050000000011,
+      "exceedsMacThreshold": false
+    },
+    {
+      "needle": "SkiffiaSkiffia",
+      "index": 155,
+      "left": "a",
+      "right": "S",
+      "leftBox": [
+        108.8083,
+        125.5416,
+        112.9879,
+        135.9096
+      ],
+      "rightBox": [
+        131.77179999999998,
+        125.37760000000003,
+        136.35639999999998,
+        135.96430000000004
+      ],
+      "gap": 18.78389999999999,
+      "glyphHeight": 10.586700000000008,
+      "macThreshold": 15.880050000000011,
+      "exceedsMacThreshold": true
+    }
+  ]
+}

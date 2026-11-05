@@ -52,6 +52,12 @@ struct ParsedArguments {
     var setsImageTextRecognition = false
 }
 
+#if os(Linux)
+private let ocrMethodHelp = "Local OCR method (Linux: standard; structured backend unavailable)."
+#else
+private let ocrMethodHelp = "Local OCR method (structured: macOS 26+, with fallback)."
+#endif
+
 let usage = """
 Usage: poormans-text [options] INPUT [INPUT ...]
        poormans-text --formats [--json] [--pandoc PATH]
@@ -90,7 +96,7 @@ Options:
       --image-ocr on|off  Add local OCR text for images (default) or preserve only the image asset.
       --pdf-ocr auto|always|off  Choose local PDF OCR (default: auto).
       --pdf-pages RANGES  Select source pages, e.g. 1,3-5 (PDF inputs only).
-      --ocr-method standard|structured  Local OCR method (structured: macOS 26+, with fallback).
+      --ocr-method standard|structured  \(ocrMethodHelp)
       --ocr-language CODES Comma-separated local OCR languages, e.g. de,en.
       --pdf-layout auto|legacy  Reconstruct PDF structure or keep the previous extraction.
       --pdf-remove-headers-footers  Remove repeated text at page margins.

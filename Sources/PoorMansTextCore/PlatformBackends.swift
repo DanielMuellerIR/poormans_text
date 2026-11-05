@@ -9,13 +9,29 @@ public struct PlatformBackendUnavailable: LocalizedError, Sendable {
 }
 
 enum PlatformFormatDescriptors {
+    #if os(Linux)
+    static let pdf = SupportedFormat(format: .pdf, fileExtensions: ["pdf"],
+        containerKind: .file, requiredTools: [.pythonPoppler, .bubblewrap, .processGuard])
+    #else
     static let pdf = SupportedFormat(format: .pdf, fileExtensions: ["pdf"],
         containerKind: .file, requiredTools: [])
+    #endif
+    #if os(Linux)
+    static let image = SupportedFormat(format: .image,
+        fileExtensions: ["png", "jpg", "jpeg", "tif", "tiff", "gif", "bmp", "webp"],
+        containerKind: .file, requiredTools: [.pythonPillow, .bubblewrap, .processGuard])
+    #else
     static let image = SupportedFormat(format: .image,
         fileExtensions: ["png", "jpg", "jpeg", "heic", "tif", "tiff", "gif", "bmp", "webp"],
         containerKind: .file, requiredTools: [])
+    #endif
+    #if os(Linux)
+    static let doc = SupportedFormat(format: .doc, fileExtensions: ["doc"],
+        containerKind: .file, requiredTools: [])
+    #else
     static let doc = SupportedFormat(format: .doc, fileExtensions: ["doc"],
         containerKind: .file, requiredTools: [.textutil, .pandoc])
+    #endif
 }
 
 #if os(Linux)
@@ -24,7 +40,10 @@ struct UnavailablePlatformAdapter: DocumentConversionAdapter {
     let descriptor: SupportedFormat
     var supportedFormatDescriptors: [SupportedFormat] { [descriptor] }
     func unavailableReason(for format: InputFormat) -> String? {
-        PlatformBackendUnavailable(format.rawValue.uppercased()).localizedDescription
+        if format == .doc {
+            return "The Linux DOC backend remains disabled pending macro-safety acceptance."
+        }
+        return PlatformBackendUnavailable(format.rawValue.uppercased()).localizedDescription
     }
     func inspectInput(at inputURL: URL) throws -> AdapterInputDetection { .noMatch }
     func convert(_ context: AdapterConversionContext) throws -> StagedConversionResult {

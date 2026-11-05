@@ -101,8 +101,8 @@ final class OpenDocumentMasterAdapterTests: XCTestCase {
         // Das Ergebnis gehört weiterhin dorthin, wohin der Aufrufer es bestellt
         // hat, und nicht neben das Original.
         XCTAssertEqual(
-            result.outputDirectory.standardizedFileURL,
-            temporaryDirectory.appendingPathComponent("link-result").standardizedFileURL
+            result.outputDirectory.standardizedFileURL.path,
+            temporaryDirectory.appendingPathComponent("link-result").standardizedFileURL.path
         )
     }
 
@@ -143,6 +143,24 @@ final class OpenDocumentMasterAdapterTests: XCTestCase {
         XCTAssertEqual(result.format, .odm)
         XCTAssertTrue(markdown.contains("## Section: Chapter One"), markdown)
     }
+
+    #if os(Linux)
+    func testRejectsCanonicallyEquivalentSiblingThroughSymlink() throws {
+        let inside = temporaryDirectory.appendingPathComponent("é", isDirectory: true)
+        let outside = temporaryDirectory.appendingPathComponent("e\u{301}", isDirectory: true)
+        try FileManager.default.createDirectory(at: inside, withIntermediateDirectories: false)
+        try FileManager.default.createDirectory(at: outside, withIntermediateDirectories: false)
+        let section = outside.appendingPathComponent("chapter.odt")
+        try Data("OUTSIDE".utf8).write(to: section)
+        try FileManager.default.createSymbolicLink(at: inside.appendingPathComponent("link.odt"), withDestinationURL: section)
+        let master = inside.appendingPathComponent("Book.odm")
+        try ZIPFixtureBuilder.odmPackage(contentXML: masterContent(sections: [("Section", "link.odt")])).write(to: master)
+        XCTAssertThrowsError(try DocumentConverter().inspect(master)) { error in
+            XCTAssertTrue(error.localizedDescription.contains("symbolic link"), error.localizedDescription)
+        }
+        XCTAssertEqual(try Data(contentsOf: section), Data("OUTSIDE".utf8))
+    }
+    #endif
 
     func testRejectsRemoteTraversalMissingAndEscapingSymlinkReferences() throws {
         let outsideODT = wordFixture("pandoc.odt")

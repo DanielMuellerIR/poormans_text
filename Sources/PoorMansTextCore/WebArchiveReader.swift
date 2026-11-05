@@ -63,7 +63,14 @@ enum WebArchiveReader {
                   resourceMIME.lowercased().hasPrefix("image/") else {
                 continue
             }
-            subresources[url] = HTMLImageSourceResolver.Subresource(data: resourceData, mimeType: resourceMIME)
+            #if os(Linux)
+            // URL-Serialisierung kodiert Unicode bytegetreu, bevor Swift-Dictionarys
+            // kanonisch äquivalente lokale Ressourcenadressen zusammenfassen können.
+            guard let key = URL(string: url)?.absoluteString else { continue }
+            #else
+            let key = url
+            #endif
+            subresources[key] = HTMLImageSourceResolver.Subresource(data: resourceData, mimeType: resourceMIME)
         }
 
         return Archive(

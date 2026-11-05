@@ -15,9 +15,12 @@ eigenständiger Verbraucher des [CLI-Vertrags](FASTRA-CONTRACT.md).
 P05 integriert diese Entscheidung seit Version 0.41.8 als Linux-Entwicklungsbuild.
 SwiftPM löst auf Linux weder Sparkle noch die Mac-Oberfläche auf. FoundationXML,
 zlib und Swift Crypto tragen den gemeinsamen Parser-/Berichtspfad; Apple-Adapter
-bleiben auf macOS. Rasterassets werden auf Linux zunächst nur als statische
-PNGs mit libpng tatsächlich dekodiert. PDF, OCR, Legacy-DOC und RTFD melden
-fehlende Plattformbackends ausdrücklich.
+bleiben auf macOS. Statische PNGs werden auf Linux direkt mit libpng geprüft;
+weitere freigegebene Rasterformate verwenden einen begrenzten lokalen Pillowprozess.
+Seit 0.41.9 liefern externe Python-/GI-Poppler-/Cairo- und Tesseract-Adapter PDF und
+Standard-OCR. RTFD nutzt verifizierte lokale statische PNGs und den vorhandenen
+RTF-/Pandoc-Pfad. Legacy-DOC und strukturierte OCR bleiben ausdrücklich unverfügbar.
+Details und Grenzen stehen im [Backendbericht](linux-port/P09-P10-INTEGRATION.md).
 
 Der Linux-Prozessadapter verwendet Bubblewrap mit privatem PID-/Netz-Namespace,
 einem C-Guard als PID 1 und einem ausschließlich vom Runner gehaltenen

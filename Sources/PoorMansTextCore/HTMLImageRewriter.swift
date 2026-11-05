@@ -65,7 +65,7 @@ enum HTMLImageRewriter {
                 )
             }
 
-            if outputNameBySource[sourceURL.path] == nil {
+            if outputNameBySource[FileSystemPath.key(sourceURL.path)] == nil {
                 let outputName = sequentialName(
                     number: copiedAssetNames.count + 1,
                     sourceName: sourceName
@@ -76,11 +76,11 @@ enum HTMLImageRewriter {
                 } catch {
                     throw ConversionError.fileSystemFailure(error.localizedDescription)
                 }
-                outputNameBySource[sourceURL.path] = outputName
+                outputNameBySource[FileSystemPath.key(sourceURL.path)] = outputName
                 copiedAssetNames.append(outputName)
             }
 
-            sourceNames.insert(sourceName)
+            sourceNames.insert(FileSystemPath.key(sourceName))
         }
 
         // Von hinten ersetzen, damit die NSRanges der vorherigen Treffer trotz
@@ -91,7 +91,7 @@ enum HTMLImageRewriter {
                 from: encodedReference,
                 resourceDirectory: resourceDirectory
             )
-            guard let outputName = outputNameBySource[sourceURL.path] else {
+            guard let outputName = outputNameBySource[FileSystemPath.key(sourceURL.path)] else {
                 throw ConversionError.fileSystemFailure(
                     "internal image-name mapping is missing"
                 )
@@ -156,7 +156,7 @@ enum HTMLImageRewriter {
 
     private static func isInside(_ url: URL, directory: URL) -> Bool {
         let directoryPath = directory.resolvingSymlinksInPath().standardizedFileURL.path + "/"
-        return url.resolvingSymlinksInPath().standardizedFileURL.path.hasPrefix(directoryPath)
+        return FileSystemPath.hasPrefix(url.resolvingSymlinksInPath().standardizedFileURL.path, directoryPath)
     }
 
     private static func sequentialName(number: Int, sourceName: String) -> String {

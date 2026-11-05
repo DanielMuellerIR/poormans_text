@@ -1,0 +1,7 @@
+.git
+.build
+.swiftpm
+*.app
+poormans-text
+*.dmg
+*.dmg.sha256

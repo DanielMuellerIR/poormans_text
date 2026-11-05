@@ -225,17 +225,24 @@ enum SpreadsheetSelectionFixture {
 
     static func odsXML() -> String {
         let namespaces = "xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:text=\"urn:oasis:names:tc:opendocument:xmlns:text:1.0\" xmlns:style=\"urn:oasis:names:tc:opendocument:xmlns:style:1.0\""
-        let sheets = names.enumerated().map { offset, name in
-            let rows = (1...4).map { row in
-                "<table:table-row>" + (1...5).map { column in
+        var sheets: [String] = []
+        for (offset, name) in names.enumerated() {
+            var rows: [String] = []
+            for row in 1...4 {
+                let cells = (1...5).map { column -> String in
                     if row == 1 && (2...3).contains(column) { return "<table:covered-table-cell/>" }
                     if row == 3 && column == 2 { return "<table:table-cell office:value-type=\"string\" table:formula=\"of:=VeryHidden.A1\"><text:p>CachedOutside</text:p></table:table-cell>" }
-                    return "<table:table-cell office:value-type=\"float\" office:value=\"\((offset + 1) * 1000 + row * 100 + column)\"\(row == 1 && column == 1 ? " table:number-columns-spanned=\"3\"" : "")/>"
-                }.joined() + "</table:table-row>"
-            }.joined()
-            return "<table:table table:name=\"\(name)\"\(offset > 0 ? " table:style-name=\"HiddenStyle\"" : "")>\(rows)</table:table>"
-        }.joined()
-        return "<office:document-content \(namespaces)><office:automatic-styles><style:style style:name=\"HiddenStyle\" style:family=\"table\"><style:table-properties table:display=\"false\"/></style:style></office:automatic-styles><office:body><office:spreadsheet>\(sheets)</office:spreadsheet></office:body></office:document-content>"
+                    let value = (offset + 1) * 1000 + row * 100 + column
+                    let span = row == 1 && column == 1 ? " table:number-columns-spanned=\"3\"" : ""
+                    return "<table:table-cell office:value-type=\"float\" office:value=\"\(value)\"\(span)/>"
+                }.joined()
+                rows.append("<table:table-row>" + cells + "</table:table-row>")
+            }
+            let hidden = offset > 0 ? " table:style-name=\"HiddenStyle\"" : ""
+            sheets.append("<table:table table:name=\"\(name)\"\(hidden)>" + rows.joined() + "</table:table>")
+        }
+        let sheetXML = sheets.joined()
+        return "<office:document-content \(namespaces)><office:automatic-styles><style:style style:name=\"HiddenStyle\" style:family=\"table\"><style:table-properties table:display=\"false\"/></style:style></office:automatic-styles><office:body><office:spreadsheet>\(sheetXML)</office:spreadsheet></office:body></office:document-content>"
     }
 
     static func xls() throws -> Data {

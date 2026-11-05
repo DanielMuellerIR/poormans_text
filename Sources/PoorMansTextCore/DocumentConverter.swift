@@ -18,8 +18,8 @@ public struct DocumentConverter: Sendable {
         registered += [ImageAdapter(), PDFAdapter()]
         #else
         registered += [
-            UnavailablePlatformAdapter(descriptor: PlatformFormatDescriptors.image),
-            UnavailablePlatformAdapter(descriptor: PlatformFormatDescriptors.pdf),
+            LinuxImageAdapter(),
+            LinuxPDFAdapter(),
         ]
         #endif
         registered += [
@@ -99,6 +99,9 @@ public struct DocumentConverter: Sendable {
         cancellation: ConversionCancellationToken? = nil,
         processTimeout: TimeInterval? = nil
     ) throws -> InputInspection {
+        #if os(Linux)
+        try LinuxPathValidation.validate(requestedInputURL)
+        #endif
         let inputURL = requestedInputURL.standardizedFileURL
         let detected = try withDetectionContext(cancellation, processTimeout) {
             try detectInput(at: inputURL)
@@ -115,7 +118,10 @@ public struct DocumentConverter: Sendable {
         cancellation: ConversionCancellationToken? = nil,
         processTimeout: TimeInterval? = nil
     ) throws -> InputFormat {
-        try withDetectionContext(cancellation, processTimeout) {
+        #if os(Linux)
+        try LinuxPathValidation.validate(requestedInputURL)
+        #endif
+        return try withDetectionContext(cancellation, processTimeout) {
             try detectInput(at: requestedInputURL.standardizedFileURL).inspection.format
         }
     }
@@ -126,8 +132,11 @@ public struct DocumentConverter: Sendable {
         cancellation: ConversionCancellationToken? = nil,
         processTimeout: TimeInterval? = nil
     ) throws -> PDFContentSummary {
+        #if os(Linux)
+        try LinuxPathValidation.validate(inputURL)
+        #endif
         #if os(macOS)
-        try withDetectionContext(cancellation, processTimeout) {
+        return try withDetectionContext(cancellation, processTimeout) {
             do { return try PDFAdapter().inspectContents(at: inputURL.standardizedFileURL, maximumPages: maximumPages) }
             catch {
                 try ConversionExecution.check()
@@ -135,7 +144,9 @@ public struct DocumentConverter: Sendable {
             }
         }
         #else
-        throw PlatformBackendUnavailable("PDF")
+        return try withDetectionContext(cancellation, processTimeout) {
+            try LinuxPDFAdapter().inspectContents(at: inputURL.standardizedFileURL, maximumPages: maximumPages)
+        }
         #endif
     }
 
@@ -146,7 +157,10 @@ public struct DocumentConverter: Sendable {
         cancellation: ConversionCancellationToken? = nil,
         processTimeout: TimeInterval? = nil
     ) throws -> SpreadsheetContentSummary {
-        try withDetectionContext(cancellation, processTimeout) {
+        #if os(Linux)
+        try LinuxPathValidation.validate(inputURL)
+        #endif
+        return try withDetectionContext(cancellation, processTimeout) {
             let detected = try detectInput(at: inputURL.standardizedFileURL)
             let format = detected.inspection.format
             guard [InputFormat.xlsx, .xls, .ods].contains(format) else { throw ConversionError.unsupportedInput(inputURL) }
@@ -164,7 +178,10 @@ public struct DocumentConverter: Sendable {
         cancellation: ConversionCancellationToken? = nil,
         processTimeout: TimeInterval? = nil
     ) throws -> PresentationContentSummary {
-        try withDetectionContext(cancellation, processTimeout) {
+        #if os(Linux)
+        try LinuxPathValidation.validate(inputURL)
+        #endif
+        return try withDetectionContext(cancellation, processTimeout) {
             let detected = try detectInput(at: inputURL.standardizedFileURL)
             let format = detected.inspection.format
             guard [InputFormat.pptx, .odp].contains(format) else { throw ConversionError.unsupportedInput(inputURL) }
@@ -182,7 +199,10 @@ public struct DocumentConverter: Sendable {
         cancellation: ConversionCancellationToken? = nil,
         processTimeout: TimeInterval? = nil
     ) throws -> EPUBContentSummary {
-        try withDetectionContext(cancellation, processTimeout) {
+        #if os(Linux)
+        try LinuxPathValidation.validate(inputURL)
+        #endif
+        return try withDetectionContext(cancellation, processTimeout) {
             guard (1...EPUBContentSummary.maximumSummaryChapters).contains(maximumChapters) else { throw ConversionError.invalidInput(inputURL, format: .epub, reason: "the EPUB overview limit must be between 1 and 500") }
             let detected = try detectInput(at: inputURL.standardizedFileURL)
             guard detected.inspection.format == .epub else { throw ConversionError.unsupportedInput(inputURL) }
@@ -245,6 +265,10 @@ public struct DocumentConverter: Sendable {
         cancellation: ConversionCancellationToken? = nil,
         processTimeout: TimeInterval? = nil
     ) throws -> ConversionResult {
+        #if os(Linux)
+        try LinuxPathValidation.validate(request.inputURL)
+        if case .directory(let output) = request.destination { try LinuxPathValidation.validate(output) }
+        #endif
         var options = request.options
         options.ocrLanguages = try OCRLanguageSelection.resolve(options.ocrLanguages)
         let request = ConversionRequest(inputURL: request.inputURL, destination: request.destination, options: options, expectedSourceIdentity: request.expectedSourceIdentity)
@@ -283,8 +307,11 @@ public struct DocumentConverter: Sendable {
         // Formatentscheidung und konvertierte Quelle dasselbe Objekt sind, wird
         // vor und nach der Erkennung aufgelöst; weichen beide Ergebnisse ab,
         // wurde der Link währenddessen umgehängt (Review-Fund 2026-09-03).
+        #if os(Linux)
+        try LinuxPathValidation.validate(inputURL)
+        #endif
         let resolvedBeforeDetection = inputURL.resolvingSymlinksInPath()
-        if let planned = ConversionExecution.current?.plannedSources[inputURL.path], planned != resolvedBeforeDetection {
+        if let planned = ConversionExecution.current?.plannedSources[FileSystemPath.key(inputURL.path)], !FileSystemPath.equal(planned, resolvedBeforeDetection) {
             throw ConversionError.fileSystemFailure("the batch source changed after output planning")
         }
         let detected = try detectInput(at: inputURL)
@@ -311,8 +338,11 @@ public struct DocumentConverter: Sendable {
             guard resolver.isAvailable(tool) else { throw PlatformBackendUnavailable(tool.rawValue) }
         }
         #endif
+        #if os(Linux)
+        try LinuxPathValidation.validate(inputURL)
+        #endif
         let resolvedInputURL = inputURL.resolvingSymlinksInPath()
-        guard resolvedInputURL == resolvedBeforeDetection else {
+        guard FileSystemPath.equal(resolvedInputURL, resolvedBeforeDetection) else {
             throw ConversionError.invalidInput(
                 inputURL,
                 format: format,
@@ -694,7 +724,7 @@ public struct DocumentConverter: Sendable {
             resolvedInputPath = resolvedInputPath.lowercased()
             resolvedOutputPath = resolvedOutputPath.lowercased()
         }
-        guard !resolvedOutputPath.hasPrefix(resolvedInputPath) else {
+        guard !FileSystemPath.hasPrefix(resolvedOutputPath, resolvedInputPath) else {
             throw ConversionError.outputInsideInput(outputURL)
         }
 

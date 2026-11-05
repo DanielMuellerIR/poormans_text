@@ -32,7 +32,7 @@ package enum LinuxProcessRunner {
         let scopeFD = pmt_process_open_directory(scope.path)
         guard scopeFD >= 0 else { throw failure("the process writable scope could not be bound safely") }
         defer { close(scopeFD) }
-        let relativeDirectory = currentDirectory.path == scope.path ? "" : String(currentDirectory.path.dropFirst(scope.path.count + 1))
+        let relativeDirectory = FileSystemPath.equal(currentDirectory.path, scope.path) ? "" : String(currentDirectory.path.dropFirst(scope.path.count + 1))
         let directoryFD = pmt_process_open_relative_directory(scopeFD, relativeDirectory)
         guard directoryFD >= 0 else { throw failure("the process working directory could not be bound safely") }
         defer { close(directoryFD) }
@@ -78,7 +78,7 @@ package enum LinuxProcessRunner {
         infoHandle = try capture(in: directoryFD, name: infoName)
 
         var mappings = [(source: scope.path, destination: "/pmt/work-scope")]
-        if currentDirectory.path != scope.path { mappings.append((currentDirectory.path, "/pmt/work-dir")) }
+        if !FileSystemPath.equal(currentDirectory.path, scope.path) { mappings.append((currentDirectory.path, "/pmt/work-dir")) }
         var boundPaths = [heldScopePath, heldDirectoryPath]
         func boundPath(_ path: String) -> String {
             boundPaths.append(path)
@@ -220,7 +220,7 @@ package enum LinuxProcessRunner {
     }
 
     private static func contains(_ root: String, _ path: String) -> Bool {
-        path == root || path.hasPrefix(root + "/")
+        FileSystemPath.equal(path, root) || FileSystemPath.hasPrefix(path, root + "/")
     }
 
     private static func failure(_ message: String) -> ConversionError { .fileSystemFailure(message) }

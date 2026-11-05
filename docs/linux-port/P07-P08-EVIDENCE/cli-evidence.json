@@ -1,0 +1,155 @@
+[
+  {
+    "source": "table.csv",
+    "pass": true,
+    "documents": 1,
+    "assets": 0,
+    "diagnostics": [],
+    "sourceSha256": "044d7b823fcbc22635f7d82bbd018c873e84a1295e5ff8b1314108ffba992775"
+  },
+  {
+    "source": "table.tsv",
+    "pass": true,
+    "documents": 1,
+    "assets": 0,
+    "diagnostics": [],
+    "sourceSha256": "8a92cd7c2fc9c03a50354c5fbe159d4645e9112db2311bfb4a34ca2c3dc53d53"
+  },
+  {
+    "source": "notebook.ipynb",
+    "pass": true,
+    "documents": 1,
+    "assets": 1,
+    "diagnostics": [
+      "sourceMap.unavailable"
+    ],
+    "sourceSha256": "dc9e23fc51ad7543109b13241f2fb43cc88318bf5fb8303b1fd7724d4da1edf0"
+  },
+  {
+    "source": "message.eml",
+    "pass": true,
+    "documents": 1,
+    "assets": 3,
+    "diagnostics": [
+      "html.structureSimplified",
+      "html.remoteImagesKeptAsLinks",
+      "sourceMap.unavailable"
+    ],
+    "sourceSha256": "9c9cf2385c40e9d2b7799872fe638b5beeebcf6b20acfe2f0d8ebbb601dc1ae7"
+  },
+  {
+    "source": "message.emlx",
+    "pass": true,
+    "documents": 1,
+    "assets": 3,
+    "diagnostics": [
+      "html.structureSimplified",
+      "html.remoteImagesKeptAsLinks",
+      "sourceMap.unavailable"
+    ],
+    "sourceSha256": "2c0e12772046f418ccea31434cc6e841f8981283bfad9ed6970a674901b0758a"
+  },
+  {
+    "source": "archive.mbox",
+    "pass": true,
+    "documents": 2,
+    "assets": 5,
+    "diagnostics": [
+      "html.structureSimplified",
+      "html.remoteImagesKeptAsLinks"
+    ],
+    "sourceSha256": "8dac6ae8e17ae7f15a59f6b47b4f4c89be18494c7a4bd60c5b5108789ecf1a19"
+  },
+  {
+    "source": "Export.mbox",
+    "pass": true,
+    "documents": 2,
+    "assets": 5,
+    "diagnostics": [
+      "html.structureSimplified",
+      "html.remoteImagesKeptAsLinks"
+    ],
+    "sourceSha256": "8dac6ae8e17ae7f15a59f6b47b4f4c89be18494c7a4bd60c5b5108789ecf1a19"
+  },
+  {
+    "source": "notes.enex",
+    "pass": true,
+    "documents": 2,
+    "assets": 4,
+    "diagnostics": [
+      "html.structureSimplified",
+      "html.structureSimplified"
+    ],
+    "sourceSha256": "a93cdb27c0d16c4cf38b90fd2494c7c9c39bbaee6717a9ed4de907f9ec162a5f"
+  },
+  {
+    "source": "selection.xlsx",
+    "pass": true,
+    "documents": 1,
+    "assets": 0,
+    "diagnostics": [
+      "spreadsheet.mergesFlattened",
+      "spreadsheet.mergesFlattened",
+      "spreadsheet.mergesFlattened",
+      "spreadsheet.mergesFlattened"
+    ],
+    "sourceSha256": "fcd7f30c14afae635e9fd2db840c02c6fbcf948d751b78af91c5251cd09d60ee"
+  },
+  {
+    "source": "selection.ods",
+    "pass": true,
+    "documents": 1,
+    "assets": 0,
+    "diagnostics": [
+      "spreadsheet.mergesFlattened",
+      "spreadsheet.mergesFlattened",
+      "spreadsheet.mergesFlattened",
+      "spreadsheet.mergesFlattened"
+    ],
+    "sourceSha256": "86b70d01d33e1d00faf369396db7db3c96c4ea2bb43713f30362e50cb946fee1"
+  },
+  {
+    "source": "selection.xls",
+    "pass": true,
+    "documents": 1,
+    "assets": 0,
+    "diagnostics": [
+      "spreadsheet.mergesFlattened",
+      "legacySpreadsheet.potentialLoss"
+    ],
+    "sourceSha256": "2587261dea29c2ce249d0705219b67f01fa79adfead93f4320dd244af5cfd490"
+  },
+  {
+    "source": "slides.pptx",
+    "pass": true,
+    "documents": 1,
+    "assets": 1,
+    "diagnostics": [
+      "presentation.layoutNotPreserved"
+    ],
+    "sourceSha256": "a2f0862f7265ad7a68ed1446dffc21d59457d44bd200a1861437e8276c473338"
+  },
+  {
+    "source": "slides.odp",
+    "pass": true,
+    "documents": 1,
+    "assets": 1,
+    "diagnostics": [
+      "presentation.layoutNotPreserved"
+    ],
+    "sourceSha256": "876c80b3e093fe140d44b114bbaef7800d5a679aa4133f6070ed721652b93582"
+  },
+  {
+    "source": "message.msg",
+    "pass": true,
+    "documents": 1,
+    "assets": 4,
+    "diagnostics": [
+      "html.structureSimplified",
+      "html.remoteImagesKeptAsLinks",
+      "html.missingImagesDropped",
+      "sourceMap.unavailable"
+    ],
+    "sourceSha256": "a94a66020fdc09a33835591941c69f38d868b12c392288c7ffd3d6ede8027739"
+  }
+]

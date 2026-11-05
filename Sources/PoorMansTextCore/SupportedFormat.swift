@@ -64,6 +64,8 @@ public struct ExternalTool: RawRepresentable, Codable, Hashable, Sendable {
     public static let textutil = ExternalTool(rawValue: "textutil")
     public static let bubblewrap = ExternalTool(rawValue: "bwrap")
     public static let processGuard = ExternalTool(rawValue: "poormans-text-process-guard")
+    public static let pythonPillow = ExternalTool(rawValue: "python3-pillow")
+    public static let pythonPoppler = ExternalTool(rawValue: "python3-gi-poppler")
 }
 
 /// Ein Format samt aktueller Verfügbarkeit auf DIESEM Rechner.
@@ -91,10 +93,9 @@ public struct FormatAvailability: Sendable, Equatable {
     }
 }
 
-/// Prüft, ob ein externes Werkzeug vorhanden ist — ohne es auszuführen.
-///
-/// Bewusst nur ein Dateisystem-Test: Ein `pandoc --version` je Formatabfrage
-/// würde einen Host, der beim Öffnen jeder Datei fragt, spürbar ausbremsen.
+/// Prüft lokal bereitgestellte Werkzeuge. Pandoc benötigt nur einen Dateisystemtest;
+/// Python-Backends prüfen ihre tatsächlichen Module mit begrenzten Hilfsprozessen.
+/// Ein `pandoc --version` je Formatabfrage würde die Erkennung unnötig ausbremsen.
 /// Nicht `Sendable`: `FileManager` ist es nicht, und der Resolver wird immer
 /// synchron dort benutzt, wo er erzeugt wurde.
 public struct ExternalToolResolver {
@@ -113,6 +114,10 @@ public struct ExternalToolResolver {
         case .textutil:
             return fileManager.isExecutableFile(atPath: LegacyWordAdapter.textutilPath)
         #if os(Linux)
+        case .pythonPillow:
+            return LinuxRasterBackend.isAvailable()
+        case .pythonPoppler:
+            return LinuxPDFAdapter().unavailableReason(for: .pdf) == nil
         case .bubblewrap:
             return fileManager.isExecutableFile(atPath: "/usr/bin/bwrap")
         case .processGuard:

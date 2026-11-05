@@ -40,6 +40,8 @@ try:
   (root/('guard-ldd.txt' if is_guard else 'cli-ldd.txt')).write_text(result.stdout+result.stderr)
  for soname,path in sorted(libraries.items()):shutil.copy2(path,root/'lib'/soname)
  shutil.copy2(cli,root/'bin/poormans-text');shutil.copy2(guard,root/'bin/poormans-text-process-guard')
+ resources=cli.parent/'PoorMansText_PoorMansTextCore.resources'
+ if resources.is_dir():shutil.copytree(resources,root/'bin'/resources.name)
  notices=root/'licenses';notices.mkdir()
  license_sources=[pathlib.Path('/usr/share/swift/LICENSE.txt')]
  for package in ['libxml2','libicu74','libpng16-16t64','zlib1g','liblzma5']:

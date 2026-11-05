@@ -1,6 +1,6 @@
 import Foundation
 
-/// Ergebnis einer lokalen Vision-Erkennung. Unsichere Zeilen bleiben sichtbar,
+/// Ergebnis einer lokalen Texterkennung. Unsichere Zeilen bleiben sichtbar,
 /// damit der Nutzer sie im Kontext des erhaltenen Originalbildes prüfen kann.
 struct TextRecognition: Sendable {
     let text: String
@@ -11,7 +11,7 @@ struct RecognizedTextLine: Sendable {
     /// Wie die Zeile im Markdown steht — bei geringer Konfidenz mit dem
     /// Hinweis in Klammern.
     let text: String
-    /// Was Vision tatsächlich gelesen hat, ohne Hinweis. Der
+    /// Was das OCR-Backend tatsächlich gelesen hat, ohne Hinweis. Der
     /// Dublettenvergleich braucht diesen Wert: Mit dem dekorierten Text
     /// traf er eine unsichere Zeile nie, und derselbe Satz stand danach
     /// zweimal im Markdown (Review-Fund 2026-09-10).

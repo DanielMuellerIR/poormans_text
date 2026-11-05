@@ -1,0 +1,21 @@
+{
+  "productVersion": "0.41.9",
+  "date": "2026-11-05",
+  "total": 334,
+  "passed": 326,
+  "skipped": 8,
+  "failures": 0,
+  "wallSeconds": 34.653,
+  "skipReasons": [
+    "External MSG corpus not configured",
+    "External compressed RTF corpus not configured",
+    "External MSG corpus not configured",
+    "External MSG message reference not configured",
+    "External MSG property corpus not configured",
+    "External RTF HTML corpus not configured",
+    "No private mail corpus supplied",
+    "Installed Pandoc has no XLSX input reader for the independent comparison."
+  ],
+  "nativeLinux": true,
+  "macNativeTested": false
+}

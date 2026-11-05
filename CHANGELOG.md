@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.41.9 — 2026-11-05
+
+- Fix Linux FoundationXML crashes in DOCX review and selected EPUB imports, reject malformed XML and unsafe entity declarations, and retain DocBook book titles.
+- Add isolated local Poppler/Python PDF extraction and Tesseract standard OCR, preserving page selection, digital text, images, links, annotations, margin cleanup and conservative dehyphenation with explicit layout diagnostics.
+- Decode PNG/APNG, JPEG, GIF, TIFF, BMP and WebP on Linux through a bounded local Pillow backend; preserve source image bytes, EXIF orientation, frames and transparent text during OCR.
+- Import Linux RTFD packages with verified local static PNG attachments, source encodings and lists; report unsupported attachment/layout features explicitly. Legacy DOC and structured OCR remain unavailable pending their safety and quality checks.
+- Preserve byte-distinct Linux paths and assets across Unicode normalization forms; reject ambiguous notebook JSON before Foundation can silently discard attachments.
+- Reuse the existing format and collection tests on Linux and verify the complete CLI against real ext4 exhaustion and hard process loss.
+- Add local Debian, Arch and portable CLI package generation without installing or publishing the artifacts.
+
 ## 0.41.8 — 2026-11-04
 
 - Build the shared Swift core and CLI on Linux without resolving the native Mac app or Sparkle dependencies.

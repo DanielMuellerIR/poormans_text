@@ -1,4 +1,7 @@
 import Foundation
+#if os(Linux)
+import Glibc
+#endif
 
 /// Eine einzelne Eingabe, die aus einer Pfadliste hervorgegangen ist.
 ///
@@ -97,6 +100,9 @@ public struct InputEnumerator: Sendable {
     /// und für Ordnerpakete, die als ein Dokument gelten. Ein fehlender Pfad
     /// gilt hier ebenfalls als `false`; der Fehler kommt später aus `enumerate`.
     public func isSearchableDirectory(_ url: URL) -> Bool {
+        #if os(Linux)
+        guard (try? LinuxPathValidation.validate(url)) != nil else { return false }
+        #endif
         let url = url.standardizedFileURL
         var isDirectory: ObjCBool = false
         guard FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory),
@@ -111,7 +117,7 @@ public struct InputEnumerator: Sendable {
         var result = [EnumeratedInput]()
 
         func append(_ input: EnumeratedInput) {
-            guard seen.insert(input.url.standardizedFileURL.path).inserted else {
+            guard seen.insert(FileSystemPath.key(input.url.standardizedFileURL.path)).inserted else {
                 return
             }
             result.append(input)
@@ -124,7 +130,11 @@ public struct InputEnumerator: Sendable {
         // Umwandlung der gefundenen Dokumente; CLI (Exit 66) und App zeigen
         // den Argumentfehler sofort (Tests in CLIBatchTests und
         // AppModelBatchTests, README-Absatz zum Mehrfachlauf).
-        for root in roots.map(\.standardizedFileURL) {
+        for requestedRoot in roots {
+            #if os(Linux)
+            try LinuxPathValidation.validate(requestedRoot)
+            #endif
+            let root = requestedRoot.standardizedFileURL
             try cancellation?.checkCancellation()
             var isDirectory: ObjCBool = false
             guard FileManager.default.fileExists(atPath: root.path, isDirectory: &isDirectory) else {
@@ -160,6 +170,9 @@ public struct InputEnumerator: Sendable {
     }
 
     private func search(_ root: URL, cancellation: ConversionCancellationToken?) throws -> [EnumeratedInput] {
+        #if os(Linux)
+        return try searchLinux(root, cancellation: cancellation)
+        #else
         let keys: [URLResourceKey] = [.isDirectoryKey, .isRegularFileKey, .isSymbolicLinkKey]
         var failure: (URL, Error)?
         guard let enumerator = FileManager.default.enumerator(
@@ -213,7 +226,66 @@ public struct InputEnumerator: Sendable {
         return found.sorted {
             $0.url.path.localizedStandardCompare($1.url.path) == .orderedAscending
         }
+        #endif
     }
+
+    #if os(Linux)
+    private func searchLinux(_ root: URL, cancellation: ConversionCancellationToken?) throws -> [EnumeratedInput] {
+        var found: [EnumeratedInput] = []
+        let rootComponents = root.pathComponents
+        func failure(_ url: URL, _ message: String) -> InputEnumerationError {
+            .fileSystemFailure(url, message)
+        }
+        func visit(_ descriptor: Int32, at url: URL, depth: Int = 0) throws {
+            guard depth <= 256 else { throw failure(url, "folder nesting exceeds the enumeration limit") }
+            let listing = dup(descriptor)
+            guard listing >= 0, let directory = fdopendir(listing) else {
+                if listing >= 0 { close(listing) }
+                throw failure(url, "enumeration could not start")
+            }
+            defer { closedir(directory) }
+            while true {
+                try cancellation?.checkCancellation()
+                errno = 0
+                guard let entry = readdir(directory) else {
+                    guard errno == 0 else { throw failure(url, "enumeration could not finish") }
+                    break
+                }
+                let name = withUnsafePointer(to: &entry.pointee.d_name) { pointer in
+                    pointer.withMemoryRebound(to: CChar.self, capacity: Int(NAME_MAX) + 1) {
+                        String(validatingCString: $0)
+                    }
+                }
+                guard let name else { throw failure(url, "an entry name is not valid UTF-8") }
+                guard name != ".", name != "..", !name.hasPrefix(".") else { continue }
+                var metadata = stat()
+                guard fstatat(descriptor, name, &metadata, AT_SYMLINK_NOFOLLOW) == 0 else {
+                    throw failure(url, "an entry could not be inspected")
+                }
+                let kind = metadata.st_mode & S_IFMT
+                if kind == S_IFLNK { continue }
+                let child = url.appendingPathComponent(name, isDirectory: kind == S_IFDIR)
+                if kind == S_IFDIR {
+                    if isPackage(child) { found.append(makeInput(child, rootComponents: rootComponents)); continue }
+                    if Self.isEarlierResult(child) { continue }
+                    let nested = openat(descriptor, name, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
+                    guard nested >= 0 else { throw failure(child, "the directory could not be opened safely") }
+                    defer { close(nested) }
+                    try visit(nested, at: child, depth: depth + 1)
+                } else if kind == S_IFREG, isSupportedByExtension(child) {
+                    found.append(makeInput(child, rootComponents: rootComponents))
+                }
+            }
+        }
+        let descriptor = root.withUnsafeFileSystemRepresentation { path in
+            path.map { Glibc.open($0, O_RDONLY | O_DIRECTORY | O_CLOEXEC) } ?? -1
+        }
+        guard descriptor >= 0 else { throw failure(root, "the directory could not be opened") }
+        defer { close(descriptor) }
+        try visit(descriptor, at: root)
+        return found.sorted { $0.url.path.localizedStandardCompare($1.url.path) == .orderedAscending }
+    }
+    #endif
 
     private func makeInput(_ url: URL, rootComponents: [String]) -> EnumeratedInput {
         let components = url.standardizedFileURL.pathComponents

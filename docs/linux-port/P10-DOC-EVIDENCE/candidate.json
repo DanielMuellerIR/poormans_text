@@ -1,0 +1,128 @@
+{
+  "unitTests": {
+    "executed": 3,
+    "failures": 0,
+    "log": "final-build.log"
+  },
+  "productionRegistrationApproved": false,
+  "macroSafetyAccepted": false,
+  "structuralGateActivated": false,
+  "files": {
+    "LinuxLegacyWordAdapterTests.swift": "b6f5448b6378d113905d9f84c4822b2213d38d00c36eead6a6a398b622871181",
+    "legacy_doc.py": "641fb62ae7c74d359765046016e0a8ea5689bbb3b5a2e0ab9c04678e1ba1c0c5",
+    "LinuxLegacyWordAdapter.swift": "e32f1a20e2a761d4c9ca662f189d40f5eca18e46d801bae78feb73dfbb701fe7"
+  },
+  "binarySHA256": "32fa596074590bf049d5cf5e906461993e87f89d09e98c6a8317a6a1e33b798f",
+  "functionalProbe": {
+    "cases": 6,
+    "checks": 63,
+    "failures": [],
+    "macroSafetyAccepted": false
+  },
+  "cases": [
+    {
+      "case": "libreoffice",
+      "exit": 0,
+      "seconds": 2.4476,
+      "checks": {
+        "expectedExit": true,
+        "sourceUnchanged": true,
+        "text:Fixture heading ä": true,
+        "text:First list item": true,
+        "text:Second list item": true,
+        "text:Äpfel": true,
+        "text:12": true,
+        "text:Birnen": true,
+        "text:7": true,
+        "text:Grüße aus Köln": true,
+        "text:Footnote content remains readable.": true,
+        "twoReadableListItems": true,
+        "legacyWarning": true,
+        "sourceHash": true,
+        "manifest:images/image01.png": true,
+        "manifest:libreoffice.md": true,
+        "oneImage": true,
+        "originalPNGBytes": true
+      }
+    },
+    {
+      "case": "textutil",
+      "exit": 0,
+      "seconds": 2.3719,
+      "checks": {
+        "expectedExit": true,
+        "sourceUnchanged": true,
+        "text:Fixture heading ä": true,
+        "text:First list item": true,
+        "text:Second list item": true,
+        "text:Äpfel": true,
+        "text:12": true,
+        "text:Birnen": true,
+        "text:7": true,
+        "text:Grüße aus Köln": true,
+        "twoReadableListItems": true,
+        "legacyWarning": true,
+        "sourceHash": true,
+        "manifest:textutil.md": true
+      }
+    },
+    {
+      "case": "textbundle",
+      "exit": 0,
+      "seconds": 2.3758,
+      "checks": {
+        "expectedExit": true,
+        "sourceUnchanged": true,
+        "text:Fixture heading ä": true,
+        "text:First list item": true,
+        "text:Second list item": true,
+        "text:Äpfel": true,
+        "text:12": true,
+        "text:Birnen": true,
+        "text:7": true,
+        "text:Grüße aus Köln": true,
+        "text:Footnote content remains readable.": true,
+        "twoReadableListItems": true,
+        "legacyWarning": true,
+        "sourceHash": true,
+        "manifest:assets/image01.png": true,
+        "manifest:info.json": true,
+        "manifest:text.md": true,
+        "oneImage": true,
+        "originalPNGBytes": true
+      }
+    },
+    {
+      "case": "timeout",
+      "exit": 124,
+      "seconds": 0.1045,
+      "checks": {
+        "expectedExit": true,
+        "sourceUnchanged": true,
+        "noOutput": true,
+        "noStaging": true
+      }
+    },
+    {
+      "case": "invalid",
+      "exit": 65,
+      "seconds": 0.0168,
+      "checks": {
+        "expectedExit": true,
+        "sourceUnchanged": true,
+        "noOutput": true,
+        "noStaging": true
+      }
+    },
+    {
+      "case": "cancel",
+      "exit": 130,
+      "checks": {
+        "cancelled130": true,
+        "sourceUnchanged": true,
+        "noOutput": true,
+        "noStaging": true
+      }
+    }
+  ]
+}

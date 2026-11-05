@@ -456,7 +456,8 @@ final class DOCXReviewPreserver {
     private static func xml(_ data: Data) throws -> XMLDocument {
         _ = try ImportXML.parse(data)
         let document = try XMLDocument(data: data, options: [.nodeLoadExternalEntitiesNever, .nodePreserveAll])
-        if let dtd = document.dtd, dtd.systemID != nil || dtd.publicID != nil || (dtd.children ?? []).contains(where: { $0.kind == .entityDeclaration }) {
+        // XMLDocument.dtd ist unter FoundationXML/Linux nicht implementiert.
+        if let dtd = (document.children ?? []).compactMap({ $0 as? XMLDTD }).first, dtd.systemID != nil || dtd.publicID != nil || (dtd.children ?? []).contains(where: { $0.kind == .entityDeclaration }) {
             throw ImportFailure("DOCX review XML entity declarations and external DTDs are not supported")
         }
         document.characterEncoding = "UTF-8"

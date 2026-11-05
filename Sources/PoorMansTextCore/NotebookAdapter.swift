@@ -18,6 +18,9 @@ struct NotebookAdapter: DocumentConversionAdapter {
         try VerifiedFileStaging.withTemporaryCopy(of: input, maximumBytes: 64 * 1_024 * 1_024, describedAs: "the notebook source", fileExtension: "ipynb") { copy in
             let data = try Data(contentsOf: copy)
             try ConversionExecution.check()
+            #if os(Linux)
+            try JSONStructurePreflight.validate(data, limits: .init(depth: 128, nodes: 1_000_000, keyBytes: 1_024 * 1_024), documentName: "notebook")
+            #endif
             guard let root = try JSONSerialization.jsonObject(with: data) as? [String: Any],
                   root["nbformat"] as? Int == 4, let cells = root["cells"] as? [[String: Any]], cells.count <= 10_000 else { throw ImportFailure("a notebook must be version 4 with at most 10,000 cells") }
             return root

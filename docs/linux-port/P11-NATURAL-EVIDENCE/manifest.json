@@ -1,0 +1,32 @@
+{
+  "dataset": "Upstage DP-Bench",
+  "revision": "24702c61a2fb13325534be664653bc6e60250d13",
+  "annotationSource": {
+    "url": "https://huggingface.co/datasets/upstage/dp-bench/resolve/24702c61a2fb13325534be664653bc6e60250d13/dataset/reference.json",
+    "bytes": 1528733,
+    "sha256": "116a42c284890772048c5d21486882f2632da4947c3dd90434efef4f49b7d9fd"
+  },
+  "annotationLicense": "MIT (official dataset card)",
+  "selectedAnnotations": "selected-reference.json",
+  "selectedAnnotationsSHA256": "146c4a9f6f6436d45bdb8a4cc2f97313c0957b4f0b23a5c65d05c43036f34cc0",
+  "documents": [
+    {
+      "name": "01030000000132.pdf",
+      "url": "https://huggingface.co/datasets/upstage/dp-bench/resolve/24702c61a2fb13325534be664653bc6e60250d13/dataset/pdfs/01030000000132.pdf",
+      "bytes": 373820,
+      "sha256": "eded7804127acce26e4b9e7138aa8c95d0d8886280a21148efb0ae9519941ede"
+    },
+    {
+      "name": "01030000000134.pdf",
+      "url": "https://huggingface.co/datasets/upstage/dp-bench/resolve/24702c61a2fb13325534be664653bc6e60250d13/dataset/pdfs/01030000000134.pdf",
+      "bytes": 631921,
+      "sha256": "4a6baa0f883743ec25b853bae06a49d230ec010c973501945d46a16f9bb75aa9"
+    },
+    {
+      "name": "01030000000135.pdf",
+      "url": "https://huggingface.co/datasets/upstage/dp-bench/resolve/24702c61a2fb13325534be664653bc6e60250d13/dataset/pdfs/01030000000135.pdf",
+      "bytes": 29037,
+      "sha256": "ed941b5cde32cfc778c225dcfa90c334d9995d70c46e7f508635073a3227784b"
+    }
+  ]
+}

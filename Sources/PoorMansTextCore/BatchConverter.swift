@@ -45,8 +45,13 @@ public struct BatchConverter: Sendable {
     ) throws -> [BatchConversionResult] {
         guard (1...4).contains(jobs) else { throw ConversionError.fileSystemFailure("batch parallelism must be between 1 and 4") }
         try cancellation.checkCancellation()
+        #if os(Linux)
+        var seenSources = Set<String>()
+        let sources = (requests.map(\.inputURL) + additionalInputs).filter { seenSources.insert(FileSystemPath.key($0.standardizedFileURL.path)).inserted }
+        #else
         var seenSources = Set<URL>()
         let sources = (requests.map(\.inputURL) + additionalInputs).filter { seenSources.insert($0.standardizedFileURL).inserted }
+        #endif
         let plan = try BatchOutputPlan(requests: requests, roots: outputRoots, sources: sources)
         try cancellation.checkCancellation()
         try plan.prepareRoots(cancellation)
@@ -128,16 +133,22 @@ enum BatchSourceProtection {
             let sourcePath = sensitive ? resolved.path : resolved.path.lowercased()
             for (output, resolvedOutput) in resolvedOutputs {
                 let outputPath = sensitive ? resolvedOutput : resolvedOutput.lowercased()
-                guard outputPath != sourcePath && !outputPath.hasPrefix(sourcePath + "/") else { throw ConversionError.outputInsideInput(output) }
+                guard !FileSystemPath.equal(outputPath, sourcePath) && !FileSystemPath.hasPrefix(outputPath, sourcePath + "/") else { throw ConversionError.outputInsideInput(output) }
             }
         }
     }
     static func reservationKey(_ url: URL) -> String {
         let resolved = url.standardizedFileURL.resolvingSymlinksInPath()
+        #if os(Linux)
+        // Foundation meldet die Volume-Eigenschaft hier nicht zuverlässig. Die
+        // tatsächliche atomare Publikation bleibt für Zielkollisionen maßgeblich.
+        return FileSystemPath.key(resolved.path)
+        #else
         var existing = resolved
         while !FileManager.default.fileExists(atPath: existing.path), existing.path != "/" { existing.deleteLastPathComponent() }
         let sensitive = (try? existing.resourceValues(forKeys: [.volumeSupportsCaseSensitiveNamesKey]))?.volumeSupportsCaseSensitiveNames == true
-        return sensitive ? resolved.path : resolved.path.lowercased()
+        return FileSystemPath.key(sensitive ? resolved.path : resolved.path.lowercased())
+        #endif
     }
 }
 
@@ -152,10 +163,15 @@ private struct BatchOutputPlan: Sendable {
     init(requests: [ConversionRequest], roots: [URL], sources: [URL]) throws {
         self.requests = requests; self.roots = roots
         var snapshots: [String: URL] = [:]
-        for source in sources { snapshots[source.standardizedFileURL.path] = source.standardizedFileURL.resolvingSymlinksInPath() }
+        for source in sources { snapshots[FileSystemPath.key(source.standardizedFileURL.path)] = source.standardizedFileURL.resolvingSymlinksInPath() }
         sourceSnapshots = snapshots
+        #if os(Linux)
+        var seen = Set<String>()
+        self.sources = (sources + Array(snapshots.values)).filter { seen.insert(FileSystemPath.key($0.standardizedFileURL.path)).inserted }
+        #else
         var seen = Set<URL>()
         self.sources = (sources + Array(snapshots.values)).filter { seen.insert($0.standardizedFileURL).inserted }
+        #endif
         outputs = requests.map { request in
             switch request.destination {
             case .adjacentToInput: return DocumentConverter.defaultOutputDirectory(for: request.inputURL.standardizedFileURL, layout: request.options.outputLayout)
@@ -192,11 +208,18 @@ private struct BatchOutputPlan: Sendable {
         }
     }
     func prepareParent(at index: Int) throws {
+        #if os(Linux)
+        for source in sources {
+            guard let snapshot = sourceSnapshots[FileSystemPath.key(source.standardizedFileURL.path)] else { continue }
+            guard FileSystemPath.equal(source.standardizedFileURL.resolvingSymlinksInPath(), snapshot) else { throw ConversionError.fileSystemFailure("a batch source changed after output planning") }
+        }
+        #else
         for (path, snapshot) in sourceSnapshots {
             guard URL(fileURLWithPath: path).resolvingSymlinksInPath() == snapshot else { throw ConversionError.fileSystemFailure("a batch source changed after output planning") }
         }
+        #endif
         guard let output = outputs[index] else { return }
-        guard output.resolvingSymlinksInPath() == resolvedOutputs[index] else { throw ConversionError.fileSystemFailure("the planned batch output location changed") }
+        guard let resolved = resolvedOutputs[index], FileSystemPath.equal(output.resolvingSymlinksInPath(), resolved) else { throw ConversionError.fileSystemFailure("the planned batch output location changed") }
         try BatchSourceProtection.validate([output, output.deletingLastPathComponent()], sources: sources)
         try FileManager.default.createDirectory(at: output.deletingLastPathComponent(), withIntermediateDirectories: true)
     }

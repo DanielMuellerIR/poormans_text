@@ -1,15 +1,27 @@
 # Umsetzungsplan für Poor Man's Text auf Linux
 
-Stand: 2026-11-04. Planungsbasis: Version 0.41.7, Commit `919c575`.
-Status: P00–P04 als isolierte Proben durchgeführt. P05 ist im Produkt als
-Linux-Entwicklungsbuild umgesetzt: gemeinsamer Swift-Kern, getrennte
-Plattformbackends, Prozessaufsicht, gebundene Ausgabe und Laufzeitpaketierung.
-Prüfungen und verbleibende Abnahmegrenzen stehen im
-[P05-Integrationsbericht](linux-port/P05-INTEGRATION.md). Der vollständige
-P06-Formatdurchstich und die Linux-Backendpakete bleiben offen. Swift bleibt
-der gemeinsame Kern. Die früheren Entscheidungsproben stehen im
-[Entscheidungsbericht](LINUX-DECISION.md).
-Dieser Plan beauftragt selbst keinen Entwicklungsstart.
+Stand: 2026-11-05. Planungsbasis: Version 0.41.7, Commit `919c575`.
+P00–P04 sind als Entscheidungsproben dokumentiert; Swift ist als gemeinsamer
+Konvertierungskern festgelegt. P05 ist integriert. Der Produktstand 0.41.9 erweitert
+P06–P10 um portierte Formate/Sammlungen, PDF, Standard-OCR, Rasterbilder und begrenztes
+RTFD sowie den CLI-Anteil von P15. Die ausgeführten Produktprüfungen und offenen
+Abnahmegrenzen stehen in den nachfolgend verlinkten Berichten. Legacy-DOC und
+strukturierte OCR sind weiterhin ausdrücklich nicht verfügbar. Die GTK-Oberfläche
+wird als lokaler Entwicklungsstand über die CLI angebunden; eine endgültige
+Toolkit-/Desktopabnahme ist damit nicht erteilt. Es gibt keinen Rust-Neubau des Kerns.
+
+| Paket | Implementierung / nachgewiesener Stand | Noch offene Abnahme |
+| --- | --- | --- |
+| P05/P06 | [Swift-Kern](linux-port/P05-INTEGRATION.md), [CLI/Datei-/Prozessschutz](linux-port/P06-INTEGRATION.md) | Neue Mac-Regression und vollständige Zielsystemmatrix |
+| P07/P08 | [Tabellen, Präsentationen, Notebooks, Mail und Sammlungen](linux-port/P07-P08-INTEGRATION.md) | Externe Referenzkorpora und finale Plattformabnahme |
+| P09/P10 | [PDF, Raster, Standard-OCR und einfaches RTFD](linux-port/P09-P10-INTEGRATION.md) | Natürlicher gepaarter Qualitätskorpus; [DOC-Makrosicherheit](linux-port/P10-DOC-CANDIDATE.md) |
+| P11 | [Klassischer Qualitätsversuch](linux-port/P11-QUALITY.md), keine Produktintegration | Bewusste Backend-/Korpusentscheidung |
+| P12–P14 | GTK-Entwicklungsweg wie Fastras begrenzte GTK-Anwendung; bestehender CLI-Vertrag | GUI, echte Desktops, App-zu-App und vollständige Systemintegration |
+| P15 | [Drei lokale CLI-Paketformate](linux-port/P15-CLI-PACKAGES.md) | GUI-Paket, frische Arch-/Mint-Paketinstallation, öffentliche Distribution |
+| P16 | Teilprüfungen werden bei den Paketen geführt | Vollständige gemeinsame Abnahme |
+
+Die früheren Entscheidungsproben bleiben im [Entscheidungsbericht](LINUX-DECISION.md)
+erhalten und werden nicht nachträglich als Produktabnahme ausgegeben.
 
 Ziel ist eine eigenständig verwendbare Linux-App samt CLI für CachyOS mit
 KDE/Wayland und Linux Mint 22.2 mit Cinnamon/X11 auf x86_64. Beide Anwendungen

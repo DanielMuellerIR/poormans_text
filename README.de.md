@@ -1,14 +1,14 @@
 <p align="center">
-
-## Linux-Entwicklungsstand
-
-Der gemeinsame Swift-Kern besitzt jetzt einen Linux-CLI-Entwicklungsbuild. Die vollständige Linux-App steht noch aus; PDF, OCR, Legacy-DOC und RTFD bleiben nicht verfügbar. Siehe [Linux-Build und Grenzen](docs/LINUX-BUILD.md).
   <img src="Assets/AppIcon.png" width="128" alt="App-Icon von Poor Man's Text">
 </p>
 
 <h1 align="center">Poor Man's Text</h1>
 
 **🌐 Sprache / Language:** [English](README.md) · [Deutsch](README.de.md)
+
+## Linux-Entwicklungsstand
+
+Die Linux-CLI enthält jetzt lokale PDF-Extraktion, Standard-OCR, Rasterbilder und einen begrenzten RTFD-Pfad neben den gemeinsamen Dokumentparsern. Linux-Oberfläche, Legacy-DOC, HEIC und strukturierte OCR bleiben nicht verfügbar; PDF-Layout- und RTFD-Anhangsgrenzen werden ausdrücklich gemeldet. Siehe [Linux-Build, Abhängigkeiten und Grenzen](docs/LINUX-BUILD.md).
 
 <p align="center">
   <strong>Dokumente, Tabellen, PDFs und Bilder in Markdown umwandeln.</strong>
@@ -130,7 +130,7 @@ DMG und zugehörige `.sha256`-Datei stehen im
 Ordner, lässt sich der Download vor dem Öffnen prüfen:
 
 ```sh
-shasum -a 256 -c Poor-Mans-Text-0.41.8.dmg.sha256
+shasum -a 256 -c Poor-Mans-Text-0.41.9.dmg.sha256
 ```
 
 Danach das DMG öffnen und Poor Man's Text in den Programme-Ordner ziehen. Die
@@ -706,7 +706,7 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.41.8.
+Die aktuelle Version ist 0.41.9.
 
 ## Lizenz
 

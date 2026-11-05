@@ -132,8 +132,11 @@ enum VerifiedDirectoryStaging {
             }
             let name = withUnsafePointer(to: &entry.pointee.d_name) { pointer in
                 pointer.withMemoryRebound(to: CChar.self, capacity: Int(NAME_MAX) + 1) {
-                    String(cString: $0)
+                    String(validatingCString: $0)
                 }
+            }
+            guard let name else {
+                throw StagingError(reason: "\(subject) contains an entry name that is not valid UTF-8")
             }
             guard name != ".", name != ".." else { continue }
             guard !name.isEmpty, !name.contains("/"), !name.contains("\0") else {

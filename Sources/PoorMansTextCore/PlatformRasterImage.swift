@@ -43,7 +43,7 @@ enum RasterImageBackend {
         case PMT_IMAGE_OK:
             return RasterImageInfo(fileExtension: "png", width: Int(info.width),
                                    height: Int(info.height), frameCount: Int(info.frame_count))
-        case PMT_IMAGE_UNSUPPORTED: throw RasterImageValidationError.unavailable
+        case PMT_IMAGE_UNSUPPORTED: return try LinuxRasterBackend.inspect(data)
         case PMT_IMAGE_TOO_LARGE: throw RasterImageValidationError.exceedsLimits
         case PMT_IMAGE_OUT_OF_MEMORY: throw RasterImageValidationError.insufficientMemory
         default: throw RasterImageValidationError.invalid

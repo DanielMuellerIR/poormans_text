@@ -9,6 +9,31 @@ final class ConversionProfileTests: XCTestCase {
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
     }
     override func tearDownWithError() throws { try? FileManager.default.removeItem(at: root) }
+    private func makePDFSource() throws -> URL {
+        #if os(Linux)
+        // Diese Profiltests benötigen zwei unterschiedliche Seiten, keine PDFKit-Annotationen.
+        var objects = ["<< /Type /Catalog /Pages 2 0 R >>", "<< /Type /Pages /Kids [4 0 R 6 0 R] /Count 2 >>", "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>"]
+        for (index, text) in ["BODY_ONE COMMENT", "BODY_TWO"].enumerated() {
+            let content = 5 + index * 2
+            objects.append("<< /Type /Page /Parent 2 0 R /MediaBox [0 0 300 300] /Resources << /Font << /F1 3 0 R >> >> /Contents \(content) 0 R >>")
+            let stream = "BT /F1 12 Tf 20 250 Td (\(text)) Tj ET"
+            objects.append("<< /Length \(stream.utf8.count) >>\nstream\n\(stream)\nendstream")
+        }
+        var data = Data("%PDF-1.4\n".utf8), offsets = [0]
+        for (index, object) in objects.enumerated() {
+            offsets.append(data.count)
+            data.append(Data("\(index + 1) 0 obj\n\(object)\nendobj\n".utf8))
+        }
+        let start = data.count
+        let xref = "xref\n0 \(objects.count + 1)\n0000000000 65535 f \n" + offsets.dropFirst().map { String(format: "%010d 00000 n \n", $0) }.joined()
+        data.append(Data("\(xref)trailer << /Size \(objects.count + 1) /Root 1 0 R >>\nstartxref\n\(start)\n%%EOF\n".utf8))
+        let source = root.appendingPathComponent("profile.pdf")
+        try data.write(to: source)
+        return source
+        #else
+        return try PDFAnnotationFixture.make(in: root)
+        #endif
+    }
     func testKnownSchemaDefaultsAndCompletePortableRoundtrip() throws {
         let defaults = try ConversionProfile.decode(Data(#"{"schemaVersion":1,"name":"Default","options":{}}"#.utf8))
         XCTAssertEqual(defaults.options.conversionOptions, .init()); XCTAssertEqual(defaults.scope,"portable")
@@ -77,7 +102,7 @@ final class ConversionProfileTests: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("forbidden.json").path))
     }
     func testBoundPDFSelectionRequiresExactBytesAndCanBeClearedExplicitly() throws {
-        let source = try PDFAnnotationFixture.make(in: root), original = try Data(contentsOf: source)
+        let source = try makePDFSource(), original = try Data(contentsOf: source)
         let options = ConversionOptions(pdfTextRecognition: .disabled,pdfPages: try IndexSelection("2"))
         XCTAssertThrowsError(try ConversionProfile(name: "Selection",options: options))
         XCTAssertThrowsError(try ConversionProfile(name: "Outside",options: .init(pdfPages: IndexSelection("999")),boundSource: source))
@@ -100,7 +125,7 @@ final class ConversionProfileTests: XCTestCase {
         XCTAssertThrowsError(try profile.resolve(for: source,cancellation: cancelled)) { error in guard case ConversionError.cancelled = error else { return XCTFail("\(error)") } }
     }
     func testBoundSourceChangedDuringConversionCannotPublish() throws {
-        let source = try PDFAnnotationFixture.make(in: root), original = try Data(contentsOf: source)
+        let source = try makePDFSource(), original = try Data(contentsOf: source)
         let profile = try ConversionProfile(name: "Bound",options: .init(pdfTextRecognition: .disabled,pdfPages: IndexSelection("2")),boundSource: source)
         let resolved = try profile.resolve(for: source), output = root.appendingPathComponent("never")
         XCTAssertThrowsError(try DocumentConverter().convert(.init(inputURL: source,destination: .directory(output),options: resolved.options,expectedSourceIdentity: resolved.expectedSourceIdentity),progress: { progress in

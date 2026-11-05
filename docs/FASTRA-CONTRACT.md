@@ -10,7 +10,11 @@ Die [Vertragsprüfung](linux-port/P01-CONTRACT.md) enthält reale Mac-Producer-
 Antworten und ausführbare Prüfungen des originalen Fastra-Verbrauchers. Dabei
 wurde ein falscher Öffnungspfad bei Sammlungen nachgewiesen; die vollständige
 App-zu-App-Abnahme bleibt offen. Der [Entscheidungsbericht](LINUX-DECISION.md)
-fasst P00–P04 zusammen. P05 wurde nicht begonnen.
+fasst die damaligen P00–P04-Proben zusammen. Seit 0.41.8 ist P05 integriert;
+0.41.9 erweitert die Linux-Backends bei unverändertem CLI-Vertrag. Der neue
+[Producer-Prüfstand](linux-port/P06-INTEGRATION.md) ersetzt weder eine aktuelle
+Fastra-Verbraucher- noch eine vollständige App-zu-App-Abnahme. Die Korrektur des
+Fastra-Verbrauchers bleibt dessen Repository zugeordnet.
 
 ## Zuständigkeit
 
@@ -82,8 +86,8 @@ Markdown-Unterdokumente, nicht ausschließlich Bilder oder Anhänge. Der vorhand
 Fastra-Verbraucher entscheidet anhand dieser Liste, ob er den ganzen Baum
 übernimmt. Producer dürfen diese Einträge nicht still entfernen. Bei der
 Übernahme muss der tatsächlich gemeldete relative Markdownpfad erhalten bleiben:
-Sammlungen verwenden `index.md`, nicht `<quellname>.md`. Der aktuelle Fastra-
-Service berechnet nach dem Verschieben den falschen Öffnungspfad; die Proben
+Sammlungen verwenden `index.md`, nicht `<quellname>.md`. Der in P01 geprüfte Fastra-
+Service berechnete nach dem Verschieben den falschen Öffnungspfad; die Proben
 weisen den Fehler für MBOX und ENEX nach, während der Baum erhalten bleibt.
 
 Bei `--json` gehört die finale JSON-Antwort auf stdout, Fortschritt auf stderr.

@@ -1,0 +1,72 @@
+{
+  "valid": {
+    "exit": 0,
+    "markdown": "Before ALPHA Grüße aus München Ω\n\n- First item\n- Second item\n\n![image](images/image01.png) After OMEGA\n",
+    "assets": [
+      "images/image01.png"
+    ],
+    "error": null
+  },
+  "literal": {
+    "exit": 0,
+    "markdown": "- First  \n  Continuation\n- Second\n\nEnd\n",
+    "assets": [],
+    "error": null
+  },
+  "encoded-name": {
+    "exit": 0,
+    "markdown": "Name ![image](images/image01.png)\n",
+    "assets": [
+      "images/image01.png"
+    ],
+    "error": null
+  },
+  "remote": {
+    "exit": 65,
+    "markdown": "",
+    "assets": [],
+    "error": "Invalid rich-text document at <probe>/fixtures/remote.rtfd: RTFD attachment must name one local package file"
+  },
+  "escape": {
+    "exit": 65,
+    "markdown": "",
+    "assets": [],
+    "error": "Invalid rich-text document at <probe>/fixtures/escape.rtfd: RTFD attachment must name one local package file"
+  },
+  "missing": {
+    "exit": 65,
+    "markdown": "",
+    "assets": [],
+    "error": "Invalid rich-text document at <probe>/fixtures/missing.rtfd: RTFD member could not be read: missing.png"
+  },
+  "absolute": {
+    "exit": 65,
+    "markdown": "",
+    "assets": [],
+    "error": "Invalid rich-text document at <probe>/fixtures/absolute.rtfd: RTFD attachment must name one local package file"
+  },
+  "corrupt": {
+    "exit": 65,
+    "markdown": "",
+    "assets": [],
+    "error": "Invalid rich-text document at <probe>/fixtures/corrupt.rtfd: RTFD attachment image.png is not a valid static PNG within the decoder limits"
+  },
+  "symlink": {
+    "exit": 65,
+    "markdown": "",
+    "assets": [],
+    "error": "Invalid RTFD input at <probe>/fixtures/symlink.rtfd: the RTFD package contains a symbolic link"
+  },
+  "fifo": {
+    "exit": 65,
+    "markdown": "",
+    "assets": [],
+    "error": "Invalid RTFD input at <probe>/fixtures/fifo.rtfd: the RTFD package contains a non-regular entry named \"image.png\""
+  },
+  "unused": {
+    "exit": 0,
+    "markdown": "Text without referenced attachment\n",
+    "assets": [],
+    "error": null
+  }
+}

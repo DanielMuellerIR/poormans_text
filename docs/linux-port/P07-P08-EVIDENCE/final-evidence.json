@@ -1,0 +1,21 @@
+{
+  "existingCases": 250,
+  "newXMLCases": 7,
+  "totalCases": 257,
+  "skippedCases": 8,
+  "passedCases": 249,
+  "failures": 0,
+  "wallSeconds": 25.145,
+  "skipReasons": [
+    "MSGAdapterTests.testExternalMSGsUseTheSharedEngine : Test skipped - External MSG corpus not configured",
+    "MSGCompressedRTFTests.testExternalCompressedBodiesMatchIndependentDecoder : Test skipped - External compressed RTF corpus not configured",
+    "MSGEmbeddedWriterTests.testExternalEmbeddedMessageRetainsAllValueStreams : Test skipped - External MSG corpus not configured",
+    "MSGMessageTests.testExternalMessagesDecodeBodiesAndByteExactAttachments : Test skipped - External MSG message reference not configured",
+    "MSGPropertiesTests.testExternalPropertyStoresMatchIndependentReference : Test skipped - External MSG property corpus not configured",
+    "MSGRTFHTMLTests.testExternalHTMLMatchesIndependentDecoder : Test skipped - External RTF HTML corpus not configured",
+    "MailAdapterTests.testPrivateCorpusAgainstIndependentDecoder : Test skipped - No private mail corpus supplied",
+    "SpreadsheetAdapterTests.testXLSXConversionMatchesIndependentPandocValuesAndSheetOrder : Test skipped - Installed Pandoc has no XLSX input reader for the independent comparison."
+  ],
+  "cliCases": 28,
+  "macNativeTested": false
+}

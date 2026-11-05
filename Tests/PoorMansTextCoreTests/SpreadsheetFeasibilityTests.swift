@@ -31,7 +31,8 @@ final class SpreadsheetFeasibilityTests: XCTestCase {
             executable: URL(fileURLWithPath: "/usr/bin/unzip"),
             arguments: ["-p", archiveURL.path, name],
             currentDirectory: FileManager.default.temporaryDirectory,
-            captureStandardOutput: true
+            captureStandardOutput: true,
+            readOnlyPaths: [archiveURL]
         )
         XCTAssertEqual(result.status, 0, result.standardError)
         return result.standardOutput

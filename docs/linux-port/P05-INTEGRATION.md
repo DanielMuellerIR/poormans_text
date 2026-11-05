@@ -81,6 +81,8 @@ Die ext4-/echten-ENOSPC-Nachweise aus [P03](P03-FOLLOWUP.md) bleiben
 Entscheidungsproben. Sie sind keine erneute ext4-/ENOSPC-Abnahme des jetzt
 integrierten vollständigen Konverters. Diese Wiederholung gehört zur weiteren
 P06-Sicherheitsabnahme, ebenso der breite Produktkorpus für Runnerverlust.
+Ergänzung 2026-11-05: Diese beiden Produktwiederholungen sind inzwischen im
+[P06-Bericht](P06-INTEGRATION.md) bestanden und dort getrennt belegt.
 Nach hartem Verlust des gesamten Runners muss ein äußerer Besitzer vor eigenem
 Stagingcleanup weiterhin eine separate Namespace-Endebarriere verwenden;
 Runnerexit allein genügt dafür nicht. Ununterbrechbare Kernel-/Hardware-I/O

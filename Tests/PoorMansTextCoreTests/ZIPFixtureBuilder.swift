@@ -1,4 +1,8 @@
+#if os(Linux)
+import zlib
+#else
 import Compression
+#endif
 import Foundation
 
 /// Baut ZIP-Pakete Byte für Byte, damit Tests auch Archive erzeugen können, die
@@ -373,6 +377,27 @@ enum ZIPFixtureBuilder {
         guard !content.isEmpty else {
             throw BuilderError.compressionFailed("empty entries are not supported")
         }
+        #if os(Linux)
+        guard content.count <= Int(UInt32.max) else { throw BuilderError.compressionFailed("fixture exceeds zlib input limit") }
+        var stream = z_stream()
+        guard deflateInit2_(&stream, Z_DEFAULT_COMPRESSION, Z_DEFLATED, -MAX_WBITS, 8,
+                            Z_DEFAULT_STRATEGY, ZLIB_VERSION, Int32(MemoryLayout<z_stream>.size)) == Z_OK else {
+            throw BuilderError.compressionFailed("zlib could not initialize raw deflate")
+        }
+        defer { deflateEnd(&stream) }
+        var output = [UInt8](repeating: 0, count: Int(compressBound(uLong(content.count))) + 64)
+        let status = content.withUnsafeBytes { source in
+            output.withUnsafeMutableBytes { destination in
+                stream.next_in = UnsafeMutablePointer(mutating: source.bindMemory(to: UInt8.self).baseAddress)
+                stream.avail_in = uInt(source.count)
+                stream.next_out = destination.bindMemory(to: UInt8.self).baseAddress
+                stream.avail_out = uInt(destination.count)
+                return zlib.deflate(&stream, Z_FINISH)
+            }
+        }
+        guard status == Z_STREAM_END else { throw BuilderError.compressionFailed("zlib did not finish raw deflate") }
+        return Data(output.prefix(Int(stream.total_out)))
+        #else
         let capacity = content.count + 65_536
         var output = Data(count: capacity)
         let written = output.withUnsafeMutableBytes { destination -> Int in
@@ -396,6 +421,7 @@ enum ZIPFixtureBuilder {
         }
         output.count = written
         return output
+        #endif
     }
 
     private static func crc32(_ content: Data) -> UInt32 {

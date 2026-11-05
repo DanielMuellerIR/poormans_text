@@ -254,7 +254,7 @@ struct OpenDocumentMasterAdapter: DocumentConversionAdapter {
         }
         let resolved = candidate.resolvingSymlinksInPath()
         let basePrefix = base.path.hasSuffix("/") ? base.path : base.path + "/"
-        guard resolved.path.hasPrefix(basePrefix) else {
+        guard FileSystemPath.hasPrefix(resolved.path, basePrefix) else {
             throw MasterError("linked ODM section escapes through a symbolic link: \(reference)")
         }
         return resolved

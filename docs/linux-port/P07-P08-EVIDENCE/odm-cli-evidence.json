@@ -1,0 +1,14 @@
+{
+  "pass": true,
+  "sectionCount": 2,
+  "assets": 2,
+  "sourceHashes": {
+    "master/Book.odm": "cd6954e41a3cc1d410387bd7077ceb18e2b3f80ea28b4342d2d4367fa9a26dca",
+    "master/chapter-one.odt": "9fa5c2e21ffeb5f2e94c1908b5d17f45daccbef91a9d05fc2e835ff8cc4ef59d",
+    "master/parts/chapter-two.odt": "9fa5c2e21ffeb5f2e94c1908b5d17f45daccbef91a9d05fc2e835ff8cc4ef59d"
+  },
+  "diagnostics": [
+    "openDocumentMaster.flattened",
+    "sourceMap.unavailable"
+  ]
+}

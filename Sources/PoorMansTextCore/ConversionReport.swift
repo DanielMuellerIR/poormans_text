@@ -172,11 +172,11 @@ final class ConversionRecording: @unchecked Sendable {
     private var omittedMappings = 0
     var omittedMappingCount: Int { lock.withLock { omittedMappings } }
 
-    func activate(at url: URL) { lock.withLock { primaryPath = url.standardizedFileURL.path } }
+    func activate(at url: URL) { lock.withLock { primaryPath = FileSystemPath.key(url.standardizedFileURL.path) } }
     func activateMember(at url: URL, path: String) {
-        lock.withLock { primaryPath = url.standardizedFileURL.path; memberPath = path }
+        lock.withLock { primaryPath = FileSystemPath.key(url.standardizedFileURL.path); memberPath = path }
     }
-    func captures(_ url: URL) -> Bool { lock.withLock { primaryPath == url.standardizedFileURL.path } }
+    func captures(_ url: URL) -> Bool { lock.withLock { primaryPath == FileSystemPath.key(url.standardizedFileURL.path) } }
     func capture(_ hash: String, count: Int) {
         lock.withLock {
             if let fingerprint, fingerprint.sha256 != hash || fingerprint.byteCount != count { conflictingReads = true }

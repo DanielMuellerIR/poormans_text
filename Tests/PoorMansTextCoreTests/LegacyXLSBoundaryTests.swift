@@ -42,11 +42,13 @@ final class LegacyXLSBoundaryTests: XCTestCase {
         for fileExtension in ["xls", "doc", "bin"] {
             let source = root.appendingPathComponent("Workbook.\(fileExtension)")
             try bytes.write(to: source)
+            #if !os(Linux)
             let wordAdapter = LegacyWordAdapter(inspectWord: { _ in
                 XCTFail("An Excel container must not be passed to the Word inspector")
                 throw CocoaError(.fileReadUnknown)
             })
             _ = try wordAdapter.inspectInput(at: source)
+            #endif
             let output = root.appendingPathComponent("output-\(fileExtension)")
             let result = try DocumentConverter().convert(
                 ConversionRequest(inputURL: source, destination: .directory(output)),

@@ -1,0 +1,369 @@
+{
+  "version": "Poor Man's Text 0.41.7",
+  "architecture": "arm64",
+  "cliSHA256": "a0bd72a510a38b02b6305c04d5dc6fdc4cd09492f1b3b40ae5892234abc23ab3",
+  "budgetSeconds": 90,
+  "cases": [
+    {
+      "source": "01030000000132.pdf",
+      "mode": "off",
+      "sourceSHA256": "eded7804127acce26e4b9e7138aa8c95d0d8886280a21148efb0ae9519941ede",
+      "exit": 0,
+      "timedOut": false,
+      "seconds": 0.057,
+      "sourceUnchanged": true,
+      "markdown": "# 01030000000132\n\n## Page 1\n\nFish species on IUCN Red List\nPotosi Pupfish Cyprinodon alvarezi\nLa Palma Pupfish Cyprinodon longidorsalis\nButterfly Splitfin Ameca splendens\nGolden Skiffia Skiffia francesae\nTable 6.1: Four fish species on IUCN Red List \"Extinct in the Wild\" held in public aquariums.\nPublic aquariums, because of their in-\nhouse expertise, can act quickly to collect\nand breed rare fish. Actions to prevent the\nextinction of the Barrens Topminnow\ninclude monitoring populations and\npropagating and stocking juveniles into\nexisting or newly created spring habitats.\nThe Tennessee Aquarium assisted with\npropagations and developed a program\ncalled “Keeper Kids,” where students on\nspring break help feed the Barrens\nTopminnows in a behind-the-scenes\nexperience.\nFigure 6.3: Photo of the critically endangered Butterfly Splitfin (Ameca\nspendens).\nThe breeding colonies of the Butterfly Splitfin (Figure 6.3) at the London Zoo and elsewhere serve as ark\npopulations essential to the survival of this species. Butterfly Splitfins are endemic to the Río Ameca in\nwestern Mexico and almost extinct in the wild. Actions such as nonnative fish removal, stream restoration, and\nsanctuary designation may take decades before eventual introduction and survival in the wild. The Tennessee\nAquarium is part of a large partnership to guide hatchery augmentation and recovery of the rarest darter in\nNorth America (U.S. Fish and Wildlife Service 2019). The Conasauga Logperch (Percina jenkinsi), a federally\nendangered darter (Percidae), is found only in a 30-mile (48 km) stretch of the Conasauga River in Georgia and\nTennessee (Moyer et al. 2015).\nFigure 6.4: Lake Sturgeon (Acipenser fulvescens).\nThe Banggai Cardinalfish (Pterapogon\nkauderni), a small, endangered tropical\ncardinalfish in the family Apogonidae, is\nnow bred and displayed in numerous public\naquariums after overharvest in the wild\ndrove wild populations to near extinction.\nConsequently, most Banggai Cardinalfish\nsold to hobbyists in the United States and\nEuropean Union today are captive bred.\n132 \\| Public Aquariums and Their Role in Education, Science, and Conservation\n",
+      "outputs": [
+        {
+          "path": "01030000000132.md",
+          "sha256": "c9adcc938c1e6309ee3b358dc3ffcb80b676c3f638ba038938f4d44655c8cc76",
+          "byteCount": 2148
+        }
+      ],
+      "diagnostics": [
+        {
+          "code": "pdf.layoutNotPreserved",
+          "kind": "approximation",
+          "message": "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+        },
+        {
+          "code": "pdf.layoutFallback",
+          "kind": "approximation",
+          "location": {
+            "page": 1
+          },
+          "message": "The original PDF text order was retained because page geometry could not be reconstructed safely."
+        }
+      ],
+      "error": null,
+      "stderr": "2026-11-05 01:41:51.966 poormans-text[27095:7458262] attributedStringScaled count: 1\n2026-11-05 01:41:51.966 poormans-text[27095:7458262] attributedStringScaled i: 0\n"
+    },
+    {
+      "source": "01030000000132.pdf",
+      "mode": "structured",
+      "sourceSHA256": "eded7804127acce26e4b9e7138aa8c95d0d8886280a21148efb0ae9519941ede",
+      "exit": 0,
+      "timedOut": false,
+      "seconds": 1.085,
+      "sourceUnchanged": true,
+      "markdown": "# 01030000000132\n\n## Page 1\n\nFish species on IUCN Red List\nPotosi Pupfish Cyprinodon alvarezi\nLa Palma Pupfish Cyprinodon longidorsalis\nButterfly Splitfin Ameca splendens\nGolden Skiffia Skiffia francesae\nTable 6.1: Four fish species on IUCN Red List \"Extinct in the Wild\" held in public aquariums.\nPublic aquariums, because of their in-\nhouse expertise, can act quickly to collect\nand breed rare fish. Actions to prevent the\nextinction of the Barrens Topminnow\ninclude monitoring populations and\npropagating and stocking juveniles into\nexisting or newly created spring habitats.\nThe Tennessee Aquarium assisted with\npropagations and developed a program\ncalled “Keeper Kids,” where students on\nspring break help feed the Barrens\nTopminnows in a behind-the-scenes\nexperience.\nFigure 6.3: Photo of the critically endangered Butterfly Splitfin (Ameca\nspendens).\nThe breeding colonies of the Butterfly Splitfin (Figure 6.3) at the London Zoo and elsewhere serve as ark\npopulations essential to the survival of this species. Butterfly Splitfins are endemic to the Río Ameca in\nwestern Mexico and almost extinct in the wild. Actions such as nonnative fish removal, stream restoration, and\nsanctuary designation may take decades before eventual introduction and survival in the wild. The Tennessee\nAquarium is part of a large partnership to guide hatchery augmentation and recovery of the rarest darter in\nNorth America (U.S. Fish and Wildlife Service 2019). The Conasauga Logperch (Percina jenkinsi), a federally\nendangered darter (Percidae), is found only in a 30-mile (48 km) stretch of the Conasauga River in Georgia and\nTennessee (Moyer et al. 2015).\nFigure 6.4: Lake Sturgeon (Acipenser fulvescens).\nThe Banggai Cardinalfish (Pterapogon\nkauderni), a small, endangered tropical\ncardinalfish in the family Apogonidae, is\nnow bred and displayed in numerous public\naquariums after overharvest in the wild\ndrove wild populations to near extinction.\nConsequently, most Banggai Cardinalfish\nsold to hobbyists in the United States and\nEuropean Union today are captive bred.\n132 \\| Public Aquariums and Their Role in Education, Science, and Conservation\n\nTHE LAKE STURGEON\n",
+      "outputs": [
+        {
+          "path": "01030000000132.md",
+          "sha256": "335eae5311c77340eeb5122c25446c6db6e6a5b623564bd006effd5801bd55c2",
+          "byteCount": 2167
+        }
+      ],
+      "diagnostics": [
+        {
+          "code": "pdf.layoutNotPreserved",
+          "kind": "approximation",
+          "message": "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+        },
+        {
+          "code": "pdf.ocrApplied",
+          "kind": "information",
+          "message": "Pages without enough embedded text were rendered and read with local OCR. Review OCR text before relying on it."
+        },
+        {
+          "code": "pdf.layoutFallback",
+          "kind": "approximation",
+          "location": {
+            "page": 1
+          },
+          "message": "The original PDF text order was retained because page geometry could not be reconstructed safely."
+        },
+        {
+          "code": "ocr.structuredFallback",
+          "kind": "approximation",
+          "location": {
+            "page": 1
+          },
+          "message": "Structured OCR could not be merged safely with digital PDF text. Standard local OCR was used instead."
+        },
+        {
+          "code": "pdf.ocrOriginalRetained",
+          "kind": "approximation",
+          "location": {
+            "page": 1
+          },
+          "message": "OCR conflicts with digital PDF text at the same position. The digital original was retained; conflicting OCR text was omitted."
+        }
+      ],
+      "error": null,
+      "stderr": "2026-11-05 01:41:52.010 poormans-text[27097:7458291] attributedStringScaled count: 1\n2026-11-05 01:41:52.010 poormans-text[27097:7458291] attributedStringScaled i: 0\n"
+    },
+    {
+      "source": "01030000000134.pdf",
+      "mode": "off",
+      "sourceSHA256": "4a6baa0f883743ec25b853bae06a49d230ec010c973501945d46a16f9bb75aa9",
+      "exit": 0,
+      "timedOut": false,
+      "seconds": 0.036,
+      "sourceUnchanged": true,
+      "markdown": "# 01030000000134\n\n<a id=\"pmt-pdf-page-1\"></a>\n\n## Page 1\n\nWhat’s unique about the growth of Alligator Gars is their fast growth in the first years of life followed by slower\ngrowth (Figure 8.6; Figure 8.7). Juvenile Alligator Gars quickly transition to fish-eating habits (Butler et al. 2018).\nA fish diet means the juveniles grow at 4-5 mm per day in the first three months of life, so that by the end of the\nfirst growing season they may reach 1.5 to 2 feet in length (\\~40–70 cm) and 8–10 pounds in weight (Sakaris et al.\n2019). Despite their fast growth, young Alligator Gars are preyed upon by many larger fish.\nFigure 8.6: Growth in length of Alligator Gar in Texas. Figure 8.7: Growth in weight of Alligator\nGar in Texas. Long description.\nFigure 8.7: Growth in weight of Alligator Gar in Texas.\nAngling and Conservation of Living Fishy Dinosaurs \\| 171\n\n### Annotations\n\n#### Annotation 1\n\nType\\: Link  \nSource excerpt\\: Long description  \nPage rectangle\\: 164.248, 350.0121, 60.808, 10.456\n\nLong description\n\n",
+      "outputs": [
+        {
+          "path": "01030000000134.md",
+          "sha256": "139dcfe07e6b2f4614c8f6bf25ea843a0e248a8cf76434a8b8970c343d2ff096",
+          "byteCount": 1024
+        }
+      ],
+      "diagnostics": [
+        {
+          "code": "pdf.layoutNotPreserved",
+          "kind": "approximation",
+          "message": "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+        },
+        {
+          "code": "pdf.layoutFallback",
+          "kind": "approximation",
+          "location": {
+            "page": 1
+          },
+          "message": "The original PDF text order was retained because page geometry could not be reconstructed safely."
+        },
+        {
+          "code": "pdf.linkUnavailable",
+          "kind": "contentLoss",
+          "location": {
+            "note": "Annotation 1",
+            "page": 1
+          },
+          "message": "An internal PDF link has no page target."
+        },
+        {
+          "code": "pdf.annotationPreserved",
+          "kind": "information",
+          "location": {
+            "note": "Annotation 1",
+            "page": 1
+          },
+          "message": "The annotation's available content, author, dates and page/text reference were retained."
+        }
+      ],
+      "error": null,
+      "stderr": "2026-11-05 01:41:53.089 poormans-text[27098:7458366] attributedStringScaled count: 1\n2026-11-05 01:41:53.089 poormans-text[27098:7458366] attributedStringScaled i: 0\n"
+    },
+    {
+      "source": "01030000000134.pdf",
+      "mode": "structured",
+      "sourceSHA256": "4a6baa0f883743ec25b853bae06a49d230ec010c973501945d46a16f9bb75aa9",
+      "exit": 0,
+      "timedOut": false,
+      "seconds": 0.86,
+      "sourceUnchanged": true,
+      "markdown": "# 01030000000134\n\n<a id=\"pmt-pdf-page-1\"></a>\n\n## Page 1\n\n_PDF layout uncertain: aligned text may be a table or parallel columns; row order was retained._\n\nin cm\n\nLength of Gar Fish by Age\n\n120 - 300\n\n250\n100\n\n80\n200\n\n60\n150\n\n(cm and in)\nLength\n\n40\n100\n20\n50\n\n\\[OCR uncertain: 0\\]\n\n10\n\n60\n\n40\n\n80\n\n30\n\n90\n\n50\n\n70\n\n20\n\nAge (years)\n\nWhat’s unique about the growth of Alligator Gars is their fast growth in the first years of life followed by slower\ngrowth (Figure 8.6; Figure 8.7). Juvenile Alligator Gars quickly transition to fish-eating habits (Butler et al. 2018).\nA fish diet means the juveniles grow at 4-5 mm per day in the first three months of life, so that by the end of the\nfirst growing season they may reach 1.5 to 2 feet in length (\\~40–70 cm) and 8–10 pounds in weight (Sakaris et al.\n2019). Despite their fast growth, young Alligator Gars are preyed upon by many larger fish.\nFigure 8.6: Growth in length of Alligator Gar in Texas. Figure 8.7: Growth in weight of Alligator\nGar in Texas. Long description.\nFigure 8.7: Growth in weight of Alligator Gar in Texas.\nAngling and Conservation of Living Fishy Dinosaurs \\| 171\n\nIbs kg\n\nWeight of Gar Fish by Age\n\n140\n300\n120\n250\n100\n\nTexas rod \\& reel\nrecord alligator gar\n\n200\n\n(279 Ibs)\n\n80\n\nWeight\n(kg and Ibs)\n150\n60\n\n100\n40\n\n50\n20\n\n10\n\n20\n\n\\[OCR uncertain: 0\\]\n\n50\n\n10\n\n80\n\n70\n\n90\n\n60\n\n30\n\nAge (years)\n\n### Annotations\n\n#### Annotation 1\n\nType\\: Link  \nSource excerpt\\: Long description  \nPage rectangle\\: 164.248, 350.0121, 60.808, 10.456\n\nLong description\n\n",
+      "outputs": [
+        {
+          "path": "01030000000134.md",
+          "sha256": "1456dd5003ede306c02792ed78ee4b42861edcb585eb8ee716de8fd644deae1c",
+          "byteCount": 1527
+        }
+      ],
+      "diagnostics": [
+        {
+          "code": "pdf.layoutNotPreserved",
+          "kind": "approximation",
+          "message": "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+        },
+        {
+          "code": "pdf.ocrApplied",
+          "kind": "information",
+          "message": "Pages without enough embedded text were rendered and read with local OCR. Review OCR text before relying on it."
+        },
+        {
+          "code": "pdf.layoutFallback",
+          "kind": "approximation",
+          "location": {
+            "page": 1
+          },
+          "message": "The original PDF text order was retained because page geometry could not be reconstructed safely."
+        },
+        {
+          "code": "ocr.structuredFallback",
+          "kind": "approximation",
+          "location": {
+            "page": 1
+          },
+          "message": "Structured OCR could not be merged safely with digital PDF text. Standard local OCR was used instead."
+        },
+        {
+          "code": "pdf.ocrOriginalRetained",
+          "kind": "approximation",
+          "location": {
+            "page": 1
+          },
+          "message": "OCR conflicts with digital PDF text at the same position. The digital original was retained; conflicting OCR text was omitted."
+        },
+        {
+          "code": "pdf.layoutAmbiguous",
+          "kind": "approximation",
+          "location": {
+            "page": 1
+          },
+          "message": "Aligned text may be a table or parallel columns; row order was retained."
+        },
+        {
+          "code": "pdf.linkUnavailable",
+          "kind": "contentLoss",
+          "location": {
+            "note": "Annotation 1",
+            "page": 1
+          },
+          "message": "An internal PDF link has no page target."
+        },
+        {
+          "code": "pdf.annotationPreserved",
+          "kind": "information",
+          "location": {
+            "note": "Annotation 1",
+            "page": 1
+          },
+          "message": "The annotation's available content, author, dates and page/text reference were retained."
+        }
+      ],
+      "error": null,
+      "stderr": "2026-11-05 01:41:53.127 poormans-text[27099:7458371] attributedStringScaled count: 1\n2026-11-05 01:41:53.127 poormans-text[27099:7458371] attributedStringScaled i: 0\n"
+    },
+    {
+      "source": "01030000000135.pdf",
+      "mode": "off",
+      "sourceSHA256": "ed941b5cde32cfc778c225dcfa90c334d9995d70c46e7f508635073a3227784b",
+      "exit": 0,
+      "timedOut": false,
+      "seconds": 0.04,
+      "sourceUnchanged": true,
+      "markdown": "# 01030000000135\n\n## Page 1\n\nFly fishers targeting trout had an important influence in developing and sustaining conservation programs,\nalthough they were sometimes criticized for exclusive or single-interest advocacy. Here I review the history\nof trout fishing and fly-fishing with special focus on the Rocky Mountain West, where fly fishers first exerted\ntheir influence on conservation ethics and sportfishing policy. Although many individuals and organizations\nplayed roles, I concentrate on only two: Fly Fishers International (FFI) and Trout Unlimited (TU). These two\norganizations had similar interests in conservation, but important differences prevented them from working\ntogether on a unified goal of conservation. The legacy of fly-fishing demonstrates the importance of passion,\npersistence, and partnerships in fish conservation.\nTrout and salmon are the only sport fish native to the Western states, and fly-fishing here became more than\na leisure activity. Norman Maclean’s novel, A River Runs through It (1976), begins, “In our family there was no\nclear line between religion and fly fishing.” Later Maclean writes that “Something within fishermen1 tries to\nmake fishing into a world perfect and apart.” The iconography of Western fly-fishing that Maclean and others\nwrote about was created by anglers, fisheries managers, tourists, guides, businesses, and region promoters. The\nhistory of Rocky Mountain fly-fishing parallels the history of the expansion of our Western frontier as well as\nfisheries management (Brown 2015). Although Henry David Thoreau (1862) maintained that “In wildness is the\npreservation of the world,” humans are part of the trout fishing system and helped create, destroy, maintain,\nand restore the trout fishing we have today.\nThe first trout fishers were Native Americans. Native Americans used a variety of fishing methods, including\nweirs, spears, nets, traps, baskets, hook-and-line methods, and baits. They also caught fish by hand via tickling.\nTickling for trout involves rubbing the underbelly of a trout with fingers to get the trout to go into a trance, after\nwhich they can then easily be thrown onto the bank (Martindale 1901). Native Americans were more patient\nthan others. This method is different from noodling for catfish, where the noodler uses fingers as bait and grabs\nthe catfish by its mouth. Native Americans also caught fish by fly-fishing with deer-hair flies, according to the\nwritings of early American naturalist William Bartram (1739–1823) (Monahan, no date).\nThe story of Rocky Mountain trout fishing begins with displacement of Native Americans from their historical\nfishing and hunting grounds. Uninhabited wilderness had to be created through the dispossession of Native\npeople before it could be preserved (Spence 1999). Explorers, trappers, pioneers, soldiers, and homesteaders\nbrought fishing gear to frontier outposts. The Lewis and Clark Expedition (1804–1806) included a designated\nangler named Silas Goodrich. The expedition first described several new species of fish, including the\nYellowstone Cutthroat Trout and Westslope Cutthroat Trout, caught by Goodrich. Later military expeditions\nspent time trout fishing in addition to fighting Native Americans. Custer’s Last Stand at Little Bighorn might\nhave been avoided if he’d joined a column of reinforcements under General George Crook. Crook’s soldiers\nwere comfortably camped close by on Goose Creek near the Tongue River—fishing, not fighting (Monnett 1993;\nOwens 2002a; Lessner 2010).\n1\\. Although Maclean and other writers use the term fishermen, women are active anglers and contribute\nsignificantly to the sport.\nFly-Fishing’s Legacy for Conservation \\| 191\n",
+      "outputs": [
+        {
+          "path": "01030000000135.md",
+          "sha256": "a747f9887322156be885db62fadab30e30001e52596ee18bdf35408b1e86e885",
+          "byteCount": 3727
+        }
+      ],
+      "diagnostics": [
+        {
+          "code": "pdf.layoutNotPreserved",
+          "kind": "approximation",
+          "message": "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+        },
+        {
+          "code": "pdf.layoutFallback",
+          "kind": "approximation",
+          "location": {
+            "page": 1
+          },
+          "message": "The original PDF text order was retained because page geometry could not be reconstructed safely."
+        }
+      ],
+      "error": null,
+      "stderr": "2026-11-05 01:41:53.984 poormans-text[27118:7458582] attributedStringScaled count: 1\n2026-11-05 01:41:53.984 poormans-text[27118:7458582] attributedStringScaled i: 0\n"
+    },
+    {
+      "source": "01030000000135.pdf",
+      "mode": "structured",
+      "sourceSHA256": "ed941b5cde32cfc778c225dcfa90c334d9995d70c46e7f508635073a3227784b",
+      "exit": 0,
+      "timedOut": false,
+      "seconds": 1.323,
+      "sourceUnchanged": true,
+      "markdown": "# 01030000000135\n\n## Page 1\n\nFly fishers targeting trout had an important influence in developing and sustaining conservation programs,\nalthough they were sometimes criticized for exclusive or single-interest advocacy. Here I review the history\nof trout fishing and fly-fishing with special focus on the Rocky Mountain West, where fly fishers first exerted\ntheir influence on conservation ethics and sportfishing policy. Although many individuals and organizations\nplayed roles, I concentrate on only two: Fly Fishers International (FFI) and Trout Unlimited (TU). These two\norganizations had similar interests in conservation, but important differences prevented them from working\ntogether on a unified goal of conservation. The legacy of fly-fishing demonstrates the importance of passion,\npersistence, and partnerships in fish conservation.\nTrout and salmon are the only sport fish native to the Western states, and fly-fishing here became more than\na leisure activity. Norman Maclean’s novel, A River Runs through It (1976), begins, “In our family there was no\nclear line between religion and fly fishing.” Later Maclean writes that “Something within fishermen1 tries to\nmake fishing into a world perfect and apart.” The iconography of Western fly-fishing that Maclean and others\nwrote about was created by anglers, fisheries managers, tourists, guides, businesses, and region promoters. The\nhistory of Rocky Mountain fly-fishing parallels the history of the expansion of our Western frontier as well as\nfisheries management (Brown 2015). Although Henry David Thoreau (1862) maintained that “In wildness is the\npreservation of the world,” humans are part of the trout fishing system and helped create, destroy, maintain,\nand restore the trout fishing we have today.\nThe first trout fishers were Native Americans. Native Americans used a variety of fishing methods, including\nweirs, spears, nets, traps, baskets, hook-and-line methods, and baits. They also caught fish by hand via tickling.\nTickling for trout involves rubbing the underbelly of a trout with fingers to get the trout to go into a trance, after\nwhich they can then easily be thrown onto the bank (Martindale 1901). Native Americans were more patient\nthan others. This method is different from noodling for catfish, where the noodler uses fingers as bait and grabs\nthe catfish by its mouth. Native Americans also caught fish by fly-fishing with deer-hair flies, according to the\nwritings of early American naturalist William Bartram (1739–1823) (Monahan, no date).\nThe story of Rocky Mountain trout fishing begins with displacement of Native Americans from their historical\nfishing and hunting grounds. Uninhabited wilderness had to be created through the dispossession of Native\npeople before it could be preserved (Spence 1999). Explorers, trappers, pioneers, soldiers, and homesteaders\nbrought fishing gear to frontier outposts. The Lewis and Clark Expedition (1804–1806) included a designated\nangler named Silas Goodrich. The expedition first described several new species of fish, including the\nYellowstone Cutthroat Trout and Westslope Cutthroat Trout, caught by Goodrich. Later military expeditions\nspent time trout fishing in addition to fighting Native Americans. Custer’s Last Stand at Little Bighorn might\nhave been avoided if he’d joined a column of reinforcements under General George Crook. Crook’s soldiers\nwere comfortably camped close by on Goose Creek near the Tongue River—fishing, not fighting (Monnett 1993;\nOwens 2002a; Lessner 2010).\n1\\. Although Maclean and other writers use the term fishermen, women are active anglers and contribute\nsignificantly to the sport.\nFly-Fishing’s Legacy for Conservation \\| 191\n",
+      "outputs": [
+        {
+          "path": "01030000000135.md",
+          "sha256": "a747f9887322156be885db62fadab30e30001e52596ee18bdf35408b1e86e885",
+          "byteCount": 3727
+        }
+      ],
+      "diagnostics": [
+        {
+          "code": "pdf.layoutNotPreserved",
+          "kind": "approximation",
+          "message": "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+        },
+        {
+          "code": "pdf.ocrApplied",
+          "kind": "information",
+          "message": "Pages without enough embedded text were rendered and read with local OCR. Review OCR text before relying on it."
+        },
+        {
+          "code": "pdf.layoutFallback",
+          "kind": "approximation",
+          "location": {
+            "page": 1
+          },
+          "message": "The original PDF text order was retained because page geometry could not be reconstructed safely."
+        },
+        {
+          "code": "ocr.structuredFallback",
+          "kind": "approximation",
+          "location": {
+            "page": 1
+          },
+          "message": "Structured OCR could not be merged safely with digital PDF text. Standard local OCR was used instead."
+        },
+        {
+          "code": "pdf.ocrOriginalRetained",
+          "kind": "approximation",
+          "location": {
+            "page": 1
+          },
+          "message": "OCR conflicts with digital PDF text at the same position. The digital original was retained; conflicting OCR text was omitted."
+        }
+      ],
+      "error": null,
+      "stderr": "2026-11-05 01:41:54.028 poormans-text[27119:7458586] attributedStringScaled count: 1\n2026-11-05 01:41:54.028 poormans-text[27119:7458586] attributedStringScaled i: 0\n"
+    },
+    {
+      "source": "structured.png",
+      "mode": "structured",
+      "sourceSHA256": "e37ca92cf5b8ad22e228eed1c1065177bbbdc6b865b9e027965660353f934369",
+      "exit": 0,
+      "timedOut": false,
+      "seconds": 0.442,
+      "sourceUnchanged": true,
+      "markdown": "# structured\n\n![structured](images/image01.png)\n\n## OCR text\n\nSTRUCTURED DOCUMENT\n\nLEFT ALPHA paragraph\n\nLEFT BETA paragraph\n\n1. First list item\n2. Second list item\n\n|  |  |  |\n| --- | --- | --- |\n| MERGED HEADER |  | TOTAL |\n| Al | B1 | C1 |\n| A2 | B2 | C2 |\n\nRIGHT GAMMA paragraph\n\nRIGHT DELTA paragraph\n",
+      "outputs": [
+        {
+          "path": "images/image01.png",
+          "sha256": "e37ca92cf5b8ad22e228eed1c1065177bbbdc6b865b9e027965660353f934369",
+          "byteCount": 50565
+        },
+        {
+          "path": "structured.md",
+          "sha256": "574c4dc6cd02aa41e674820fea973b0cadfd3c0aa3715a61366f7b3f5af8adea",
+          "byteCount": 306
+        }
+      ],
+      "diagnostics": [
+        {
+          "code": "image.ocrApplied",
+          "kind": "information",
+          "message": "Local OCR text was added next to the preserved original image."
+        },
+        {
+          "code": "ocr.structuredApplied",
+          "kind": "information",
+          "location": {
+            "frame": 1
+          },
+          "message": "Structured local OCR was used."
+        },
+        {
+          "code": "ocr.tableSpansFlattened",
+          "kind": "approximation",
+          "location": {
+            "frame": 1
+          },
+          "message": "Merged OCR cells are written once at their upper-left position; covered cells remain empty."
+        }
+      ],
+      "error": null,
+      "stderr": ""
+    }
+  ],
+  "freshSourceRegression": false,
+  "temporaryDirectoryRemoved": true,
+  "comparison": "Unchanged installed macOS 0.41.7 baseline; not a regression of current shared sources"
+}

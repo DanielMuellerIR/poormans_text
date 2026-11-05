@@ -1,0 +1,15 @@
+{
+  "base": "Ubuntu 24.04",
+  "noSwiftSDK": true,
+  "python": "3.12.3",
+  "pillow": "10.2.0",
+  "poppler": "24.02.0",
+  "cairo": "1.18.0",
+  "tesseract": "5.3.4",
+  "pdfCases": 13,
+  "rasterCases": 15,
+  "rtfdCases": 11,
+  "failures": 0,
+  "network": "none",
+  "productVersion": "0.41.9"
+}

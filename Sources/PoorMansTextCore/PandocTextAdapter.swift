@@ -283,6 +283,7 @@ struct PandocTextAdapter: DocumentConversionAdapter {
                 metadata = FB2MetadataParser.parse(data)
             }
             html = try Self.pandocHTML(from: staged, reader: kind.reader, context: context, pandocExecutable: pandocExecutable)
+            if context.format == .docbook { metadata = Self.htmlMetadata(in: html) }
         }
 
         let resolution = try HTMLImageSourceResolver.resolve(
@@ -371,7 +372,7 @@ struct PandocTextAdapter: DocumentConversionAdapter {
                     "--wrap=preserve",
                     "--output", htmlURL.path,
                     source.path,
-                ],
+                ] + (reader == "docbook" ? ["--standalone"] : []),
                 currentDirectory: context.workDirectory
             )
         } catch {

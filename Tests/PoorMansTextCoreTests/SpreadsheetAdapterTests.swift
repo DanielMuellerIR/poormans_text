@@ -212,6 +212,11 @@ final class SpreadsheetAdapterTests: XCTestCase {
         guard let pandoc = try? PandocTool.resolve(nil) else {
             throw XCTSkip("Pandoc is required for the independent XLSX comparison.")
         }
+        let readers = try ProcessRunner.run(executable: pandoc, arguments: ["--list-input-formats"],
+                                            currentDirectory: temporaryDirectory, captureStandardOutput: true)
+        guard readers.status == 0, readers.standardOutput.split(separator: "\n").contains("xlsx") else {
+            throw XCTSkip("Installed Pandoc has no XLSX input reader for the independent comparison.")
+        }
         let direct = try directPandocMarkdown(for: sourceURL, pandoc: pandoc)
         for value in expectedValues {
             XCTAssertTrue(direct.contains(value), "Pandoc comparison lacks \(value)")

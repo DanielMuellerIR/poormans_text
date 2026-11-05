@@ -1,0 +1,36 @@
+{
+  "version": "Poor Man's Text 0.41.9",
+  "noSwiftSDK": true,
+  "records": {
+    "csv": {
+      "exit": 0,
+      "passed": true,
+      "sourceUnchanged": true
+    },
+    "png-no-ocr": {
+      "exit": 0,
+      "passed": true,
+      "sourceUnchanged": true
+    },
+    "missing-poppler": {
+      "exit": 69,
+      "passed": true,
+      "sourceUnchanged": true
+    },
+    "missing-pandoc": {
+      "exit": 69,
+      "passed": true,
+      "sourceUnchanged": true
+    },
+    "unicode-batch": {
+      "passed": true,
+      "results": 2
+    },
+    "invalid-utf8-folder": {
+      "passed": true,
+      "exit": 74
+    }
+  },
+  "pdfBackendAvailable": false,
+  "pandocInstalled": false
+}

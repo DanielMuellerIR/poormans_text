@@ -139,7 +139,7 @@ enum CollectionOutputPaths {
         let root = root.resolvingSymlinksInPath().standardizedFileURL
         let url = root.appendingPathComponent(path).standardizedFileURL
         var info = stat()
-        guard url.path.hasPrefix(root.standardizedFileURL.path + "/"), url.resolvingSymlinksInPath().path == url.path,
+        guard FileSystemPath.hasPrefix(url.path, root.standardizedFileURL.path + "/"), FileSystemPath.equal(url.resolvingSymlinksInPath().path, url.path),
               lstat(url.path, &info) == 0, info.st_mode & S_IFMT == S_IFREG, info.st_nlink == 1 else {
             throw ImportFailure("the collection reports a missing or unsafe output file")
         }

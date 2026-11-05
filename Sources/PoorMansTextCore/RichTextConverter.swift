@@ -53,22 +53,25 @@ struct RichTextAdapter: DocumentConversionAdapter {
         ),
         // RTFD ist im Finder ein Ordner mit `TXT.rtf` und Bildern. Ein Host, der
         // Ordner sonst anders behandelt, erkennt das an `containerKind`.
-        // RTFD braucht beide Werkzeuge: `textutil` erzeugt das HTML, Pandoc
-        // wandelt es anschließend nach Markdown.
+        // macOS erzeugt HTML mit textutil. Linux liest die private RTF-Kopie
+        // samt geprüften PNG-Verweisen über den vorhandenen Pandoc-Pfad.
         SupportedFormat(
             format: .rtfd,
             fileExtensions: ["rtfd"],
             containerKind: .package,
-            requiredTools: [.pandoc, .textutil]
+            requiredTools: Self.rtfdTools
         ),
     ]
 
-    func unavailableReason(for format: InputFormat) -> String? {
+    private static var rtfdTools: [ExternalTool] {
         #if os(Linux)
-        if format == .rtfd { return PlatformBackendUnavailable("RTFD").localizedDescription }
+        [.pandoc]
+        #else
+        [.pandoc, .textutil]
         #endif
-        return nil
     }
+
+    func unavailableReason(for format: InputFormat) -> String? { nil }
 
     func inspectInput(at inputURL: URL) throws -> AdapterInputDetection {
         let fileManager = FileManager.default
@@ -245,13 +248,33 @@ struct RichTextAdapter: DocumentConversionAdapter {
             }
             sourceURL = stagedSource
         }
+        var conversionSourceURL = sourceURL
+        var conversionKind = inputKind
+        var representedRTFDNames = Set<String>()
+        #if os(Linux)
+        let rtfdPreparation: LinuxRTFDPreparation?
+        if inputKind == .rtfd {
+            let prepared: LinuxRTFDPreparation
+            do { prepared = try LinuxRTFDPreparation.prepare(package: sourceURL) }
+            catch let ConversionError.invalidRichText(_, reason) {
+                throw ConversionError.invalidRichText(inputURL, reason: reason)
+            }
+            conversionSourceURL = workDirectory.appendingPathComponent("rtfd-source.rtf")
+            try prepared.data.write(to: conversionSourceURL, options: .atomic)
+            conversionKind = .rtf
+            representedRTFDNames = prepared.representedNames
+            rtfdPreparation = prepared
+        } else {
+            rtfdPreparation = nil
+        }
+        #endif
         let htmlURL = workDirectory.appendingPathComponent("document.html")
-        let emptyParagraphMarker = inputKind == .rtf
+        let emptyParagraphMarker = conversionKind == .rtf
             ? "POORMANSTEXTEMPTY\(UUID().uuidString.replacingOccurrences(of: "-", with: ""))"
             : nil
         let unicode = try createHTML(
-            from: sourceURL,
-            kind: inputKind,
+            from: conversionSourceURL,
+            kind: conversionKind,
             at: htmlURL,
             workDirectory: workDirectory,
             pandocExecutable: pandocExecutable,
@@ -275,6 +298,12 @@ struct RichTextAdapter: DocumentConversionAdapter {
             html = html.replacingOccurrences(of: emptyParagraphMarker, with: "<br>")
         }
         html = unwrappingListParagraphs(in: html)
+        #if os(Linux)
+        if let rtfdPreparation {
+            html = try rtfdPreparation.restoringImages(in: html, packageName: sourceURL.lastPathComponent, inputURL: inputURL)
+            html = try LinuxRTFDPreparation.normalizingLiteralLists(in: html)
+        }
+        #endif
 
         let converted = try HTMLDocumentConverter.convert(
             html: html,
@@ -286,12 +315,22 @@ struct RichTextAdapter: DocumentConversionAdapter {
             fileManager: fileManager
         )
 
-        let warnings = warnings(
+        var warnings = warnings(
             inputURL: sourceURL,
             kind: inputKind,
-            referencedResourceNames: converted.referencedResourceNames,
+            referencedResourceNames: converted.referencedResourceNames.union(representedRTFDNames),
             fileManager: fileManager
         )
+
+        #if os(Linux)
+        if inputKind == .rtfd {
+            warnings.append(ConversionWarning(code: "rtfd.layoutNotPreserved",
+                message: "RTFD attachment positioning and literal list formatting are not fully preserved; review the imported layout.", kind: .approximation))
+            if ColoredTextMarker.containsChromaticText(inRTF: sourceURL.appendingPathComponent("TXT.rtf")) {
+                warnings.append(.richTextColorNotPreserved)
+            }
+        }
+        #endif
 
         // Die `\info`-Gruppe steht im Kopf der geprüften Kopie; bei RTFD in
         // deren `TXT.rtf`.
@@ -313,6 +352,9 @@ struct RichTextAdapter: DocumentConversionAdapter {
         emptyParagraphMarker: String?
     ) throws -> RTFUnicodeProtector? {
         if kind == .rtfd {
+            #if os(Linux)
+            throw ConversionError.fileSystemFailure("RTFD must be prepared before the RTF reader")
+            #else
             let preparedRTFD = workDirectory.appendingPathComponent("marked.rtfd", isDirectory: true)
             let textutilInput = try RTFDInputPreparation.prepare(
                 from: inputURL,
@@ -341,6 +383,7 @@ struct RichTextAdapter: DocumentConversionAdapter {
                 )
             }
 
+            #endif
         } else if kind == .rtf {
             guard let emptyParagraphMarker else {
                 throw ConversionError.fileSystemFailure("internal RTF marker is missing")
@@ -391,7 +434,9 @@ struct RichTextAdapter: DocumentConversionAdapter {
         } else {
             throw ConversionError.unsupportedInput(inputURL)
         }
+        #if !os(Linux)
         return nil
+        #endif
     }
 
     /// Was der Blick in die ersten Bytes einer möglichen RTF-Datei ergeben hat.
@@ -620,7 +665,7 @@ struct RichTextAdapter: DocumentConversionAdapter {
 
         return contents.compactMap { url in
             guard url.lastPathComponent != "TXT.rtf",
-                  !referencedResourceNames.contains(url.lastPathComponent) else {
+                  !referencedResourceNames.contains(FileSystemPath.key(url.lastPathComponent)) else {
                 return nil
             }
             return .richTextAttachmentNotRepresented(url.lastPathComponent)

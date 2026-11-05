@@ -72,7 +72,7 @@ enum CollectionPostprocessor {
             guard values.isSymbolicLink != true else { throw ImportFailure("the collection contains an output symlink") }
             if values.isRegularFile == true {
                 let canonical = url.resolvingSymlinksInPath().standardizedFileURL
-                guard canonical.path.hasPrefix(root.path + "/") else { throw ImportFailure("the collection enumerator left its output directory") }
+                guard FileSystemPath.hasPrefix(canonical.path, root.path + "/") else { throw ImportFailure("the collection enumerator left its output directory") }
                 let path = String(canonical.path.dropFirst(root.path.count + 1)).precomposedStringWithCanonicalMapping.lowercased()
                 guard paths.contains(path), found.insert(path).inserted else { throw ImportFailure("the collection contains an unreported output file: \(path)") }
             } else if values.isDirectory != true {

@@ -112,7 +112,7 @@ def compare(record, text):
             'colspanPresent': 'colspan' in text}
 
 
-def execute(command, stdout_path, stderr_path, expected_name):
+def execute(command, stdout_path, stderr_path, expected_name, timeout):
     runtime = None
     started = time.monotonic()
     reason = None
@@ -127,7 +127,7 @@ def execute(command, stdout_path, stderr_path, expected_name):
                             runtime = {'name': executable.name, 'sha256': sha(Path('/proc/' + str(child.pid) + '/exe'))}
                     except OSError:
                         pass  # Auf Systemen ohne /proc bleibt der konkrete ELF-Hash unbekannt.
-                if time.monotonic() - started >= 120:
+                if time.monotonic() - started >= timeout:
                     reason = 'timeout'
                 elif stdout_path.stat().st_size > 16 * 1024**2 or stderr_path.stat().st_size > 2 * 1024**2:
                     reason = 'captureLimit'
@@ -177,6 +177,9 @@ def main():
     parser.add_argument('--corpus', required=True, type=Path)
     parser.add_argument('--root', required=True, type=Path, help='New result directory; must not exist')
     parser.add_argument('--ocr-method', choices=['standard', 'structured'], default='standard')
+    parser.add_argument('--pdf-ocr', choices=['off', 'always'], action='append',
+                        help='Selected modes; default: off and always')
+    parser.add_argument('--timeout', type=int, default=120, choices=range(1, 121), metavar='1..120')
     args = parser.parse_args()
     cli, corpus = args.cli.expanduser().resolve(strict=True), args.corpus.expanduser().resolve(strict=True)
     root = args.root.expanduser().absolute()
@@ -199,13 +202,13 @@ def main():
     failed = False
     for item in manifest['documents']:
         source = corpus / item['name']
-        for mode in ('off', 'always'):
+        for mode in args.pdf_ocr or ('off', 'always'):
             name = source.stem + '-' + mode
             destination = root / name
             stdout, stderr = root / (name + '.stdout.json'), root / (name + '.stderr.txt')
             command = [str(cli), '--json', '--report', '--pdf-ocr', mode, '--ocr-method', args.ocr_method,
                        '--ocr-language', 'en', '-o', str(destination), '--', str(source)]
-            status, elapsed, reason, runtime = execute(command, stdout, stderr, cli.name)
+            status, elapsed, reason, runtime = execute(command, stdout, stderr, cli.name, args.timeout)
             case = {'source': source.name, 'mode': mode, 'exit': status, 'seconds': elapsed,
                     'stopReason': reason, 'executedBinary': runtime, 'sourceSHA256': sha(source),
                     'sourceUnchanged': sha(source) == item['sha256']}

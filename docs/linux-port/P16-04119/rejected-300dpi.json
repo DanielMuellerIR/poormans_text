@@ -1,0 +1,28 @@
+{
+  "decision": "REJECTED; final product retains144dpi",
+  "experimentalRenderDPI": 300,
+  "cliSHA256": "f2be32db3964282bbce75e4a03ff320f88833081e0abfd808a3fcea95446fe9b",
+  "cases": [
+    {
+      "source": "01030000000132.pdf",
+      "exit": 70,
+      "sourceUnchanged": true,
+      "outputAbsent": true,
+      "error": "Structured OCR cannot safely merge digital PDF text with additional OCR text within its geometry limits. No result was published. Choose standard OCR or turn PDF OCR off."
+    },
+    {
+      "source": "01030000000134.pdf",
+      "exit": 70,
+      "sourceUnchanged": true,
+      "outputAbsent": true,
+      "error": "Structured OCR cannot safely merge digital PDF text with additional OCR text within its geometry limits. No result was published. Choose standard OCR or turn PDF OCR off."
+    },
+    {
+      "source": "01030000000135.pdf",
+      "exit": 70,
+      "sourceUnchanged": true,
+      "outputAbsent": true,
+      "error": "Structured OCR cannot safely merge digital PDF text with additional OCR text within its geometry limits. No result was published. Choose standard OCR or turn PDF OCR off."
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "ownRoots": [
+    {
+      "rootBasename": "pmt-native-quality-04119",
+      "removed": true
+    },
+    {
+      "rootBasename": "pmt-pdf-quality-04119",
+      "removed": true
+    }
+  ],
+  "heldDirectoryFDsAndNoFollow": true,
+  "onlyExplicitOwnSupersededBuildsAndTemporaryTestsRemoved": true,
+  "verifiedFinalRuntimeAndPackagesRetained": true,
+  "files": 48,
+  "directories": 16,
+  "links": 0
+}

@@ -1,0 +1,90 @@
+{
+  "experimentalOnly": true,
+  "standardOCRDPI": 300,
+  "structuredOCRDPI": 144,
+  "resourceSHA256": "e11485df972ab24ce9421abfb71ea8f9bef866d1980d53ace539ba1fb19aed7e",
+  "decision": "REJECTED; more correct words do not justify newly lost correct zero labels and additional spurious tokens",
+  "pairs": [
+    {
+      "source": "01030000000132.pdf",
+      "oldMatched": 319,
+      "newMatched": 321,
+      "expected": 339,
+      "newMissing": {},
+      "newExtra": {
+        "at": 1,
+        "dus": 1,
+        "8": 1,
+        "g61": 1,
+        "sa": 1,
+        "ealeuted": 1,
+        "ee": 1
+      },
+      "candidateMissing": {
+        "the": 1,
+        "rio": 1,
+        "s": 1,
+        "lake": 1,
+        "sturgeon": 1,
+        "acipenser": 1,
+        "rubicundus": 1,
+        "drawing": 1,
+        "by": 2,
+        "h": 1,
+        "l": 1,
+        "from": 1,
+        "no": 1,
+        "national": 1,
+        "museum": 1,
+        "j": 1,
+        "w": 1
+      },
+      "oldCells": 9,
+      "newCells": 9,
+      "oldAnchors": 7,
+      "newAnchors": 7
+    },
+    {
+      "source": "01030000000134.pdf",
+      "oldMatched": 203,
+      "newMatched": 228,
+      "expected": 237,
+      "newMissing": {
+        "0": 3
+      },
+      "newExtra": {
+        "1205": 1,
+        "ibs": 1,
+        "30s": 1,
+        "oo": 1,
+        "ow": 1,
+        "ie": 1
+      },
+      "candidateMissing": {
+        "and": 1,
+        "weight": 1,
+        "120": 1,
+        "0": 3,
+        "kg": 1,
+        "lbs": 2
+      },
+      "oldCells": 0,
+      "newCells": 0,
+      "oldAnchors": 5,
+      "newAnchors": 6
+    },
+    {
+      "source": "01030000000135.pdf",
+      "oldMatched": 561,
+      "newMatched": 561,
+      "expected": 561,
+      "newMissing": {},
+      "newExtra": {},
+      "candidateMissing": {},
+      "oldCells": 0,
+      "newCells": 0,
+      "oldAnchors": 6,
+      "newAnchors": 6
+    }
+  ]
+}

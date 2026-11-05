@@ -1,0 +1,45 @@
+{
+  "startedUTC": "2026-11-05T15:28:48.608157+00:00",
+  "stages": [
+    {
+      "name": "environment",
+      "exit": 0,
+      "seconds": 0.599
+    },
+    {
+      "name": "build",
+      "exit": 0,
+      "seconds": 15.877
+    },
+    {
+      "name": "architecture",
+      "exit": 0,
+      "seconds": 0.012
+    },
+    {
+      "name": "version",
+      "exit": 0,
+      "seconds": 0.345
+    },
+    {
+      "name": "natural-standard",
+      "exit": 0,
+      "seconds": 2.19
+    },
+    {
+      "name": "natural-structured",
+      "exit": 0,
+      "seconds": 3.018
+    }
+  ],
+  "finished": true,
+  "scope": "Native ARM64 CLI and nine fixed PDF conversions; no GUI or installation",
+  "budgetSeconds": 1800,
+  "archiveSHA256": "153de2d611f9e736e2576a7f1dc9d7a4ad3c8ba167cae177465d443eecc3ef87",
+  "verifiedFiles": 348,
+  "cliSHA256": "810155f7c100d371a7b4e86a094580a355efc42bd090964875f97e5baf369845",
+  "sourceFilesUnchanged": true,
+  "cliUnchanged": true,
+  "seconds": 22.813,
+  "endedUTC": "2026-11-05T15:29:11.421551+00:00"
+}

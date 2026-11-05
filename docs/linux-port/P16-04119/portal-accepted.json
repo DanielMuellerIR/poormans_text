@@ -1,0 +1,33 @@
+{
+  "productionGUI": true,
+  "privateXvfbAndDBus": true,
+  "hostDisplayAbsent": true,
+  "portalSelectionsAccepted": [
+    {
+      "title": "Choose files…",
+      "selectedOwnPath": true
+    },
+    {
+      "title": "Choose target…",
+      "selectedOwnPath": true
+    },
+    {
+      "title": "Choose folder…",
+      "selectedOwnPath": true
+    },
+    {
+      "title": "Choose target…",
+      "selectedOwnPath": true
+    }
+  ],
+  "fileOutput": {
+    "Portal ü.md": "40421bbd365c84a8e302fecf9e0667dc33cae629b30f5c3a4208be32ea0556ba"
+  },
+  "folderOutput": {
+    "Teil ü-markdown/Teil ü.md": "60f3fdb4145147718bfafb812a41eceaf0d9f9e23bdd37dd3b53ab6836cc770f"
+  },
+  "sourceBytesUnchanged": true,
+  "portalOpenFileCalls": 2,
+  "portalSaveFileCalls": 2,
+  "allOwnProcessesWaited": true
+}

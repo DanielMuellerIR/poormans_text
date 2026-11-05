@@ -1,0 +1,26 @@
+{
+  "ownRoots": [
+    {
+      "rootBasename": "pmt-completeness-20261105",
+      "removed": true
+    },
+    {
+      "rootBasename": "linux-preview-04119",
+      "removed": true
+    },
+    {
+      "rootBasename": "linux-runtime-old-46c370321f6f48aa87c1d8c9bd615d7f",
+      "removed": true
+    },
+    {
+      "rootBasename": "ocr-v2-negative",
+      "removed": true
+    }
+  ],
+  "heldDirectoryFDsAndNoFollow": true,
+  "onlyExplicitOwnSupersededBuildsAndTemporaryTestsRemoved": true,
+  "verifiedFinalRuntimeAndPackagesRetained": true,
+  "files": 46772,
+  "directories": 6255,
+  "links": 33
+}

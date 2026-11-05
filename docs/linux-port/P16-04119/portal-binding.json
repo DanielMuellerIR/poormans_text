@@ -1,0 +1,9 @@
+{
+  "script": "scripts/linux-probes/p15/verify_portal_acceptance.py",
+  "scriptSHA256": "381d7d0d2b59bc129cca6b3095873c1acb92b6dc3d266fb4279279590410149e",
+  "productVersion": "0.41.19",
+  "gtkSHA256": "46098115ac5a47b8ae9b24828320e1f06a14218c1f653d6236ffb0e64ae92394",
+  "cliSHA256": "f2be32db3964282bbce75e4a03ff320f88833081e0abfd808a3fcea95446fe9b",
+  "actualInstalledPackage": "poormans-text-0.41.19-1-x86_64.pkg.tar.zst",
+  "scope": "Unmodified production GUI and native GTK portal in private disposable container"
+}

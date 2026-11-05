@@ -101,3 +101,23 @@ Weston dokumentiert Headless als Testbackend und Pixman als CPU-Renderer in
 seiner [offiziellen Laufzeitdokumentation](https://wayland.pages.freedesktop.org/weston/toc/running-weston.html).
 Die tatsächlich verwendeten Optionen wurden zusätzlich mit der installierten
 15.0.1-Hilfe geprüft.
+
+Die erfolgreiche Datei-, Ordner- und Zielauswahl prüft zusätzlich
+`../verify_portal_acceptance.py` mit der unveränderten installierten
+Produktions-GUI. Der Lauf benötigt die Xvfb-, AT-SPI-, Pillow- und XTest-Werkzeuge
+des privaten Testimages sowie den echten GTK-Portalbackend. Er startet seinen
+eigenen Xvfb und Sessionbus mit leerer Umgebung und eigenen HOME-/XDG-Ordnern.
+Die Xauthority muss innerhalb dieses privaten Testbaums liegen. Testfokus wird
+zusätzlich an den Titel und die PID des Portalprozesses gebunden. Es werden
+keine Eingaben an einen vorhandenen Benutzerdesktop gesendet.
+
+```sh
+python3 -I scripts/linux-probes/p15/verify_portal_acceptance.py \
+  --evidence /eigener/pruefordner/portal.json
+```
+
+Zwei OpenFile- und zwei SaveFile-Aufrufe müssen tatsächlich zurückkehren. Der
+Prüfer konvertiert sowohl die gewählte Unicode-Datei als auch den gewählten
+Ordner in die jeweils im echten Dialog gewählten neuen Ziele. Quelldaten und
+endgültige Markdown-Fingerprints werden geprüft. Die positive Probe gilt für
+X11 im privaten Testdesktop; sie ersetzt keine KDE-/Cinnamon-Desktopabnahme.

@@ -18,7 +18,7 @@ Die endgültige Desktopabnahme bleibt ein separates Tor und blockiert die Oberfl
 | P11 | [Optionale strukturierte Produkt-OCR und lokale Wortverfeinerung](linux-port/P16-04119/README.md); strenge synthetische Tabelle jetzt8/8 | Breiter unabhängiger Korpus und allgemeine Inhaltsvollständigkeit; natürliche PDF-Qualitätsfreigabe bleibt FAIL |
 | P12/P14 | [GTK über CLI, Zwischenablage und Profile](linux-port/P12-P14-GUI.md) | PDF-/Bildrastervergleich mit Zoom und gebundener Clipboardvergleich integriert; GUI-Präferenzen integriert; echte Desktops und Systemintegration offen |
 | P13 | [Echte Importmatrix und .16-RTFD-Delta](linux-port/P13-FASTRA.md), gebundener Fastra-1.165.1-Consumer | Positive ENEX-PDF-GUI-Umgebung, harte Consumerverluste und echte Desktopabnahme |
-| P15 | [Vier Paketformate und native Installer](linux-port/P16-04118/README.md), optionale GTK-Paketierung | Native isolierte apt-/pacman-Zyklen und X11-/Wayland-Proben bestanden; echte Host-/Desktopintegration und öffentliche Distribution offen |
+| P15 | [Vier Paketformate, native Installer und erfolgreiche Portalauswahl](linux-port/P16-04119/README.md), optionale GTK-Paketierung | Native isolierte apt-/pacman-Zyklen und X11-/Wayland-Proben bestanden; echte Host-/Desktopintegration und öffentliche Distribution offen |
 | P16 | [48 finale CLI-Neustarts](linux-port/P16-04113/series.json), [aktuelle Vollregression](linux-port/P16-04119/README.md) und paketbezogene Teilprüfungen | Mac: 1.092 Fälle mit neun Skips, Linux: 392 Fälle mit zwölf Skips, jeweils keine Fehler; Gesamtqualitäts- und Desktopabnahme offen |
 
 Die früheren Entscheidungsproben bleiben im [Entscheidungsbericht](LINUX-DECISION.md)

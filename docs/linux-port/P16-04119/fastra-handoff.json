@@ -1,0 +1,11 @@
+{
+  "sourceCommit": "e2f0b8866aa3acc9b9dd8bf474ffd11d031f4adb",
+  "version": "0.41.19",
+  "markdown": "Plain **Bold** ==Marked== Ä\n",
+  "sourceUnchanged": true,
+  "outputManifestVerified": true,
+  "handoffFileHashesVerified": 48,
+  "withoutInheritedLDLibraryPath": true,
+  "optionalModelsIncluded": false,
+  "exit": 0
+}

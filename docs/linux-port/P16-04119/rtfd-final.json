@@ -1,0 +1,147 @@
+{
+  "sourceCommit": "e2f0b8866aa3acc9b9dd8bf474ffd11d031f4adb",
+  "cliSHA256": "f2be32db3964282bbce75e4a03ff320f88833081e0abfd808a3fcea95446fe9b",
+  "cases": 25,
+  "allAssertionsPassed": true,
+  "sourceBytesUnchanged": true,
+  "heicSingleAndMultipleIncluded": true,
+  "caseResults": {
+    "valid": {
+      "exit": 0,
+      "assets": [
+        "images/image01.png"
+      ]
+    },
+    "literal": {
+      "exit": 0,
+      "assets": []
+    },
+    "encoded-name": {
+      "exit": 0,
+      "assets": [
+        "images/image01.png"
+      ]
+    },
+    "remote": {
+      "exit": 65,
+      "assets": []
+    },
+    "escape": {
+      "exit": 65,
+      "assets": []
+    },
+    "missing": {
+      "exit": 65,
+      "assets": []
+    },
+    "absolute": {
+      "exit": 65,
+      "assets": []
+    },
+    "corrupt": {
+      "exit": 65,
+      "assets": []
+    },
+    "symlink": {
+      "exit": 65,
+      "assets": []
+    },
+    "fifo": {
+      "exit": 65,
+      "assets": []
+    },
+    "unused": {
+      "exit": 0,
+      "assets": []
+    },
+    "static-jpg": {
+      "exit": 0,
+      "assets": [
+        "images/image01.jpg"
+      ],
+      "sourceAssetSHA256": "67fdc861d99bd516637d1fd322f2d2e903e9f0cd3158c95f067ea21f3b8f069b",
+      "outputAssetSHA256": "67fdc861d99bd516637d1fd322f2d2e903e9f0cd3158c95f067ea21f3b8f069b"
+    },
+    "static-JPEG": {
+      "exit": 0,
+      "assets": [
+        "images/image01.jpeg"
+      ],
+      "sourceAssetSHA256": "67fdc861d99bd516637d1fd322f2d2e903e9f0cd3158c95f067ea21f3b8f069b",
+      "outputAssetSHA256": "67fdc861d99bd516637d1fd322f2d2e903e9f0cd3158c95f067ea21f3b8f069b"
+    },
+    "static-tiff": {
+      "exit": 0,
+      "assets": [
+        "images/image01.tiff"
+      ],
+      "sourceAssetSHA256": "8105ded0fbf51c16066fd9ec9b3ead475a5d829db77f8d7f9a1160212b365a85",
+      "outputAssetSHA256": "8105ded0fbf51c16066fd9ec9b3ead475a5d829db77f8d7f9a1160212b365a85"
+    },
+    "static-tif": {
+      "exit": 0,
+      "assets": [
+        "images/image01.tif"
+      ],
+      "sourceAssetSHA256": "8105ded0fbf51c16066fd9ec9b3ead475a5d829db77f8d7f9a1160212b365a85",
+      "outputAssetSHA256": "8105ded0fbf51c16066fd9ec9b3ead475a5d829db77f8d7f9a1160212b365a85"
+    },
+    "static-gif": {
+      "exit": 0,
+      "assets": [
+        "images/image01.gif"
+      ],
+      "sourceAssetSHA256": "9dfbbdacceb760dc8f9ff8bf49292dd9ab8d6a4b1180b692c974c1dcc2c21552",
+      "outputAssetSHA256": "9dfbbdacceb760dc8f9ff8bf49292dd9ab8d6a4b1180b692c974c1dcc2c21552"
+    },
+    "static-bmp": {
+      "exit": 0,
+      "assets": [
+        "images/image01.bmp"
+      ],
+      "sourceAssetSHA256": "cfb3fa514861b924669bb08e35ee7fa61223a13bcc33a5017c447a191a990a87",
+      "outputAssetSHA256": "cfb3fa514861b924669bb08e35ee7fa61223a13bcc33a5017c447a191a990a87"
+    },
+    "static-webp": {
+      "exit": 0,
+      "assets": [
+        "images/image01.webp"
+      ],
+      "sourceAssetSHA256": "15ce96487e0fa9e7a7e079b7895a5e0839297b6dcbd0e65e1cff3710dd590a92",
+      "outputAssetSHA256": "15ce96487e0fa9e7a7e079b7895a5e0839297b6dcbd0e65e1cff3710dd590a92"
+    },
+    "multi-gif": {
+      "exit": 65,
+      "assets": []
+    },
+    "multi-tiff": {
+      "exit": 65,
+      "assets": []
+    },
+    "multi-png": {
+      "exit": 65,
+      "assets": []
+    },
+    "multi-webp": {
+      "exit": 65,
+      "assets": []
+    },
+    "mismatch": {
+      "exit": 65,
+      "assets": []
+    },
+    "static-heic": {
+      "exit": 0,
+      "assets": [
+        "images/image01.heic"
+      ],
+      "sourceAssetSHA256": "d3ba28ae03b0459390e6db6df595c67136f66c6bc1aa12457efefa003a24192b",
+      "outputAssetSHA256": "d3ba28ae03b0459390e6db6df595c67136f66c6bc1aa12457efefa003a24192b"
+    },
+    "multi-heic": {
+      "exit": 65,
+      "assets": []
+    }
+  },
+  "scope": "Final immutable Linux CLI, actual generated RTFD packages and original assets; no new macOS RTFD parity claim"
+}

@@ -2,11 +2,11 @@
 
 Stand: 2026-11-05. Planungsbasis: Version 0.41.7, Commit `919c575`.
 P00–P04 sind als Entscheidungsproben dokumentiert; Swift ist als gemeinsamer
-Konvertierungskern festgelegt. P05 ist integriert. Der Entwicklungsstand 0.41.12
+Konvertierungskern festgelegt. P05 ist integriert. Der Entwicklungsstand 0.41.13
 enthält die portierten P06–P10-Formate/Sammlungen, PDF, Standard-OCR, Rasterbilder,
-begrenztes RTFD und Legacy-DOC sowie die dünne GTK-Oberfläche und lokale Pakete.
+statische RTFD-Anhänge und Legacy-DOC sowie die dünne GTK-Oberfläche und lokale Pakete.
 Die ausgeführten Produktprüfungen und noch offenen Abnahmen stehen getrennt in
-den Berichten; die [aktuellen Produktnachweise](linux-port/P16-04112/README.md) binden die finalen Artefakte. HEIC ist als optionale lokale Decoderfähigkeit integriert; strukturierte OCR bleibt nicht verfügbar.
+den Berichten; die [aktuellen Produktnachweise](linux-port/P16-04113/README.md) binden die finalen Artefakte. HEIC ist als optionale lokale Decoderfähigkeit integriert; strukturierte OCR bleibt nicht verfügbar.
 GTK4 ist seit 2026-11-05 die gemeinsame reversible Entwicklungswahl mit Fastra.
 Die endgültige Desktopabnahme bleibt ein separates Tor und blockiert die Oberfläche nicht. Es gibt keinen Rust-Neubau des Konvertierungskerns.
 
@@ -14,12 +14,12 @@ Die endgültige Desktopabnahme bleibt ein separates Tor und blockiert die Oberfl
 | --- | --- | --- |
 | P05/P06 | [Swift-Kern](linux-port/P05-INTEGRATION.md), [CLI/Datei-/Prozessschutz](linux-port/P06-INTEGRATION.md) | Mac-Restregression bestanden; vollständige Zielsystemmatrix und bekannte OCR-Testblockade offen |
 | P07/P08 | [Tabellen, Präsentationen, Notebooks, Mail und Sammlungen](linux-port/P07-P08-INTEGRATION.md) | Externe Referenzkorpora und finale Plattformabnahme |
-| P09/P10 | [PDF, Raster, Standard-OCR und RTFD](linux-port/P09-P10-INTEGRATION.md), [DOC/UNO](linux-port/P10-DOC-UNO.md) | Breitere natürliche Qualitätsdaten einschließlich HEIC, PDF-/RTFD-Parität und Zielsystemmatrix |
+| P09/P10 | [PDF, Raster und Standard-OCR](linux-port/P09-P10-INTEGRATION.md), [statische RTFD-Anhänge](linux-port/P10-RTFD-STATIC.md), [DOC/UNO](linux-port/P10-DOC-UNO.md) | Breitere natürliche Qualitätsdaten einschließlich HEIC, PDF-/RTFD-Parität und Zielsystemmatrix |
 | P11 | [Klassischer Qualitätsversuch und natürlicher Startkorpus](linux-port/P11-QUALITY.md), keine strukturierte Produkt-OCR | [Docling-/TableFormer-Kandidat](linux-port/P11-DOCLING.md) positiv teilgeprüft; breiter Korpus und Produktintegration offen |
-| P12/P14 | [GTK über CLI, Zwischenablage und Profile](linux-port/P12-P14-GUI.md) | PDF-/Bildrastervergleich und gebundener Clipboardvergleich integriert; echte Desktops, Koordinatenoverlays, GUI-Präferenzen und Systemintegration offen |
+| P12/P14 | [GTK über CLI, Zwischenablage und Profile](linux-port/P12-P14-GUI.md) | PDF-/Bildrastervergleich und gebundener Clipboardvergleich integriert; echte Desktops, GUI-Präferenzen und Systemintegration offen |
 | P13 | [Consumer-Replays und echter .12-App-zu-App-/Reopen-Lauf](linux-port/P13-FASTRA.md) | Aktuelle Commitbindung und vollständige App-zu-App-Matrix |
 | P15 | [Drei lokale Paketformate](linux-port/P15-CLI-PACKAGES.md), optionale GTK-Paketierung | Mint-Paketinstallation, echte Desktopintegration und öffentliche Distribution |
-| P16 | [48 finale CLI-Neustarts](linux-port/P16-04112/series.json), Mac-Restregression und paketbezogene Teilprüfungen | Vollständige gemeinsame Abnahme; bekannte Mac-OCR-Testblockade |
+| P16 | [48 finale CLI-Neustarts](linux-port/P16-04113/series.json), Mac-Restregression und paketbezogene Teilprüfungen | Vollständige gemeinsame Abnahme; bekannte Mac-OCR-Testblockade |
 
 Die früheren Entscheidungsproben bleiben im [Entscheidungsbericht](LINUX-DECISION.md)
 erhalten und werden nicht nachträglich als Produktabnahme ausgegeben.
@@ -361,8 +361,8 @@ Fastra. Zusätzliche Parallelisierung innerhalb eines Repos nur mit ausdrücklic
 Pfad-/Worktree-Zuordnung. Keine gleichzeitigen Commit-/Build-Mutationen derselben
 Arbeitskopie auf mehreren Betriebssystemen.
 
-Fastra muss nicht auf alle Formate warten: F13 startet mit P06. P12 wartet auf
-Fastras Toolkitentscheidung, nicht auf dessen fertige App. P13 ist eine gemeinsame
+Fastra muss nicht auf alle Formate warten: F13 startet mit P06. P12 baut auf der gemeinsam bestätigten reversiblen GTK4-Wahl auf und wartet
+nicht auf Fastras fertige App. P13 ist eine gemeinsame
 Abnahme, keine Voraussetzung für die Implementierung von Fastra F13. Dadurch
 entsteht keine Kreisabhängigkeit. Bei P11-Problemen können andere Formate fertig
 werden; eine vollständige Portierung darf trotzdem nicht behauptet werden.

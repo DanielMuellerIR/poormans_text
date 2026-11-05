@@ -1,0 +1,412 @@
+{
+  "candidateCLI_SHA256": "d6d1ad14ef6ba17a661a060e1e92c8e4df63a58544665912df4f355e308ec2bd",
+  "candidateGuard_SHA256": "01cfe31e5aecf092d83c01b7253105a029c5d23b669ebbb51f156f72ac43e03a",
+  "patchSHA256": "3412da78decfaefbd2791e05908cbf1b70e5a9d619f6e4bf0903bb23f3ce9aa1",
+  "files": {
+    "Sources/PoorMansTextCore/LinuxRTFDPreparation.swift": {
+      "beforeSHA256": "f3d2e8c93b1f96f27c3bb2df2b169da13a55b20d7a3ec92640ed2d85380bea73",
+      "afterSHA256": "ff5b65a50912b380376722b53f6b83ba1d4e20f21a3a12e55fd61e8f831440b5"
+    },
+    "Sources/PoorMansTextCore/RichTextConverter.swift": {
+      "beforeSHA256": "c24fac82c7c36f334936d17916c5ef885ee4e63960b1a8155bd434895e7d1cd9",
+      "afterSHA256": "66a0394c7bcae236708fe610df33c48650bb54333540e1e8dd109461eac57758"
+    },
+    "Tests/PoorMansTextLinuxTests/RTFDTests.swift": {
+      "beforeSHA256": "09c970ecce65826441aa71a033101f1af8aae6f82dba4f1e300bd130f8393337",
+      "afterSHA256": "414e25e506c7dee1dd4aa507b8e4a90e0cd6f5fa14ce37e723c5cf49307d022d"
+    },
+    "scripts/linux-probes/p10-rtfd/verify_rtfd.py": {
+      "beforeSHA256": "d96d6da28927174877c21416945ab5b3a12bdfa5873ea01e0f97168c67ad2e8f",
+      "afterSHA256": "0729588241248fe95d6626de7f0bc8028bb5562097d42e8cbfeb276cd8e7e198"
+    }
+  },
+  "unitTests": {
+    "executed": 9,
+    "failures": 0,
+    "seconds": 1.607,
+    "newBMPFixtureIncluded": true
+  },
+  "CLI": {
+    "caseCount": 23,
+    "cases": [
+      {
+        "case": "valid",
+        "exit": 0,
+        "ok": true,
+        "error": null,
+        "markdown": "Before ALPHA Grüße aus München Ω\n\n- First item\n- Second item\n\n![image](images/image01.png) After OMEGA\n",
+        "outputFiles": [],
+        "diagnostics": [
+          {
+            "code": "rtfd.layoutNotPreserved",
+            "kind": "approximation",
+            "message": "RTFD attachment positioning and literal list formatting are not fully preserved; review the imported layout."
+          }
+        ],
+        "sourceAssetSHA256": null,
+        "outputAssetSHA256": null
+      },
+      {
+        "case": "literal",
+        "exit": 0,
+        "ok": true,
+        "error": null,
+        "markdown": "- First  \n  Continuation\n- Second\n\nEnd\n",
+        "outputFiles": [],
+        "diagnostics": [
+          {
+            "code": "rtfd.layoutNotPreserved",
+            "kind": "approximation",
+            "message": "RTFD attachment positioning and literal list formatting are not fully preserved; review the imported layout."
+          }
+        ],
+        "sourceAssetSHA256": null,
+        "outputAssetSHA256": null
+      },
+      {
+        "case": "encoded-name",
+        "exit": 0,
+        "ok": true,
+        "error": null,
+        "markdown": "Name ![image](images/image01.png)\n",
+        "outputFiles": [],
+        "diagnostics": [
+          {
+            "code": "rtfd.layoutNotPreserved",
+            "kind": "approximation",
+            "message": "RTFD attachment positioning and literal list formatting are not fully preserved; review the imported layout."
+          }
+        ],
+        "sourceAssetSHA256": null,
+        "outputAssetSHA256": null
+      },
+      {
+        "case": "remote",
+        "exit": 65,
+        "ok": false,
+        "error": "Invalid rich-text document at $WORK/cli-final/fixtures/remote.rtfd: RTFD attachment must name one local package file",
+        "markdown": "",
+        "outputFiles": [],
+        "diagnostics": [],
+        "sourceAssetSHA256": null,
+        "outputAssetSHA256": null
+      },
+      {
+        "case": "escape",
+        "exit": 65,
+        "ok": false,
+        "error": "Invalid rich-text document at $WORK/cli-final/fixtures/escape.rtfd: RTFD attachment must name one local package file",
+        "markdown": "",
+        "outputFiles": [],
+        "diagnostics": [],
+        "sourceAssetSHA256": null,
+        "outputAssetSHA256": null
+      },
+      {
+        "case": "missing",
+        "exit": 65,
+        "ok": false,
+        "error": "Invalid rich-text document at $WORK/cli-final/fixtures/missing.rtfd: RTFD member could not be read: missing.png",
+        "markdown": "",
+        "outputFiles": [],
+        "diagnostics": [],
+        "sourceAssetSHA256": null,
+        "outputAssetSHA256": null
+      },
+      {
+        "case": "absolute",
+        "exit": 65,
+        "ok": false,
+        "error": "Invalid rich-text document at $WORK/cli-final/fixtures/absolute.rtfd: RTFD attachment must name one local package file",
+        "markdown": "",
+        "outputFiles": [],
+        "diagnostics": [],
+        "sourceAssetSHA256": null,
+        "outputAssetSHA256": null
+      },
+      {
+        "case": "corrupt",
+        "exit": 65,
+        "ok": false,
+        "error": "Invalid rich-text document at $WORK/cli-final/fixtures/corrupt.rtfd: RTFD attachment image.png: image data could not be decoded",
+        "markdown": "",
+        "outputFiles": [],
+        "diagnostics": [],
+        "sourceAssetSHA256": null,
+        "outputAssetSHA256": null
+      },
+      {
+        "case": "symlink",
+        "exit": 65,
+        "ok": false,
+        "error": "Invalid RTFD input at $WORK/cli-final/fixtures/symlink.rtfd: the RTFD package contains a symbolic link",
+        "markdown": "",
+        "outputFiles": [],
+        "diagnostics": [],
+        "sourceAssetSHA256": null,
+        "outputAssetSHA256": null
+      },
+      {
+        "case": "fifo",
+        "exit": 65,
+        "ok": false,
+        "error": "Invalid RTFD input at $WORK/cli-final/fixtures/fifo.rtfd: the RTFD package contains a non-regular entry named \"image.png\"",
+        "markdown": "",
+        "outputFiles": [],
+        "diagnostics": [],
+        "sourceAssetSHA256": null,
+        "outputAssetSHA256": null
+      },
+      {
+        "case": "unused",
+        "exit": 0,
+        "ok": true,
+        "error": null,
+        "markdown": "Text without referenced attachment\n",
+        "outputFiles": [],
+        "diagnostics": [
+          {
+            "code": "richText.attachmentNotRepresented",
+            "kind": "contentLoss",
+            "message": "Attachment was not represented in the generated Markdown: extra.pdf"
+          },
+          {
+            "code": "rtfd.layoutNotPreserved",
+            "kind": "approximation",
+            "message": "RTFD attachment positioning and literal list formatting are not fully preserved; review the imported layout."
+          }
+        ],
+        "sourceAssetSHA256": null,
+        "outputAssetSHA256": null
+      },
+      {
+        "case": "static-jpg",
+        "exit": 0,
+        "ok": true,
+        "error": null,
+        "markdown": "BEFORE ![image](images/image01.jpg) AFTER\n",
+        "outputFiles": [],
+        "diagnostics": [
+          {
+            "code": "rtfd.layoutNotPreserved",
+            "kind": "approximation",
+            "message": "RTFD attachment positioning and literal list formatting are not fully preserved; review the imported layout."
+          }
+        ],
+        "sourceAssetSHA256": "67fdc861d99bd516637d1fd322f2d2e903e9f0cd3158c95f067ea21f3b8f069b",
+        "outputAssetSHA256": "67fdc861d99bd516637d1fd322f2d2e903e9f0cd3158c95f067ea21f3b8f069b"
+      },
+      {
+        "case": "static-JPEG",
+        "exit": 0,
+        "ok": true,
+        "error": null,
+        "markdown": "BEFORE ![image](images/image01.jpeg) AFTER\n",
+        "outputFiles": [],
+        "diagnostics": [
+          {
+            "code": "rtfd.layoutNotPreserved",
+            "kind": "approximation",
+            "message": "RTFD attachment positioning and literal list formatting are not fully preserved; review the imported layout."
+          }
+        ],
+        "sourceAssetSHA256": "67fdc861d99bd516637d1fd322f2d2e903e9f0cd3158c95f067ea21f3b8f069b",
+        "outputAssetSHA256": "67fdc861d99bd516637d1fd322f2d2e903e9f0cd3158c95f067ea21f3b8f069b"
+      },
+      {
+        "case": "static-tiff",
+        "exit": 0,
+        "ok": true,
+        "error": null,
+        "markdown": "BEFORE ![image](images/image01.tiff) AFTER\n",
+        "outputFiles": [],
+        "diagnostics": [
+          {
+            "code": "rtfd.viewerCompatibility",
+            "kind": "approximation",
+            "message": "RTFD TIFF attachments retain their original bytes. Some Markdown viewers cannot display these formats; no PNG substitute was generated."
+          },
+          {
+            "code": "rtfd.layoutNotPreserved",
+            "kind": "approximation",
+            "message": "RTFD attachment positioning and literal list formatting are not fully preserved; review the imported layout."
+          }
+        ],
+        "sourceAssetSHA256": "8105ded0fbf51c16066fd9ec9b3ead475a5d829db77f8d7f9a1160212b365a85",
+        "outputAssetSHA256": "8105ded0fbf51c16066fd9ec9b3ead475a5d829db77f8d7f9a1160212b365a85"
+      },
+      {
+        "case": "static-tif",
+        "exit": 0,
+        "ok": true,
+        "error": null,
+        "markdown": "BEFORE ![image](images/image01.tif) AFTER\n",
+        "outputFiles": [],
+        "diagnostics": [
+          {
+            "code": "rtfd.viewerCompatibility",
+            "kind": "approximation",
+            "message": "RTFD TIFF attachments retain their original bytes. Some Markdown viewers cannot display these formats; no PNG substitute was generated."
+          },
+          {
+            "code": "rtfd.layoutNotPreserved",
+            "kind": "approximation",
+            "message": "RTFD attachment positioning and literal list formatting are not fully preserved; review the imported layout."
+          }
+        ],
+        "sourceAssetSHA256": "8105ded0fbf51c16066fd9ec9b3ead475a5d829db77f8d7f9a1160212b365a85",
+        "outputAssetSHA256": "8105ded0fbf51c16066fd9ec9b3ead475a5d829db77f8d7f9a1160212b365a85"
+      },
+      {
+        "case": "static-gif",
+        "exit": 0,
+        "ok": true,
+        "error": null,
+        "markdown": "BEFORE ![image](images/image01.gif) AFTER\n",
+        "outputFiles": [],
+        "diagnostics": [
+          {
+            "code": "rtfd.layoutNotPreserved",
+            "kind": "approximation",
+            "message": "RTFD attachment positioning and literal list formatting are not fully preserved; review the imported layout."
+          }
+        ],
+        "sourceAssetSHA256": "9dfbbdacceb760dc8f9ff8bf49292dd9ab8d6a4b1180b692c974c1dcc2c21552",
+        "outputAssetSHA256": "9dfbbdacceb760dc8f9ff8bf49292dd9ab8d6a4b1180b692c974c1dcc2c21552"
+      },
+      {
+        "case": "static-bmp",
+        "exit": 0,
+        "ok": true,
+        "error": null,
+        "markdown": "BEFORE ![image](images/image01.bmp) AFTER\n",
+        "outputFiles": [],
+        "diagnostics": [
+          {
+            "code": "rtfd.layoutNotPreserved",
+            "kind": "approximation",
+            "message": "RTFD attachment positioning and literal list formatting are not fully preserved; review the imported layout."
+          }
+        ],
+        "sourceAssetSHA256": "cfb3fa514861b924669bb08e35ee7fa61223a13bcc33a5017c447a191a990a87",
+        "outputAssetSHA256": "cfb3fa514861b924669bb08e35ee7fa61223a13bcc33a5017c447a191a990a87"
+      },
+      {
+        "case": "static-webp",
+        "exit": 0,
+        "ok": true,
+        "error": null,
+        "markdown": "BEFORE ![image](images/image01.webp) AFTER\n",
+        "outputFiles": [],
+        "diagnostics": [
+          {
+            "code": "rtfd.layoutNotPreserved",
+            "kind": "approximation",
+            "message": "RTFD attachment positioning and literal list formatting are not fully preserved; review the imported layout."
+          }
+        ],
+        "sourceAssetSHA256": "15ce96487e0fa9e7a7e079b7895a5e0839297b6dcbd0e65e1cff3710dd590a92",
+        "outputAssetSHA256": "15ce96487e0fa9e7a7e079b7895a5e0839297b6dcbd0e65e1cff3710dd590a92"
+      },
+      {
+        "case": "multi-gif",
+        "exit": 65,
+        "ok": false,
+        "error": "Invalid rich-text document at $WORK/cli-final/fixtures/multi-gif.rtfd: RTFD attachment image.gif must be a single static image matching its file extension",
+        "markdown": "",
+        "outputFiles": [],
+        "diagnostics": [],
+        "sourceAssetSHA256": null,
+        "outputAssetSHA256": null
+      },
+      {
+        "case": "multi-tiff",
+        "exit": 65,
+        "ok": false,
+        "error": "Invalid rich-text document at $WORK/cli-final/fixtures/multi-tiff.rtfd: RTFD attachment image.tiff must be a single static image matching its file extension",
+        "markdown": "",
+        "outputFiles": [],
+        "diagnostics": [],
+        "sourceAssetSHA256": null,
+        "outputAssetSHA256": null
+      },
+      {
+        "case": "multi-png",
+        "exit": 65,
+        "ok": false,
+        "error": "Invalid rich-text document at $WORK/cli-final/fixtures/multi-png.rtfd: RTFD attachment image.png must be a single static image matching its file extension",
+        "markdown": "",
+        "outputFiles": [],
+        "diagnostics": [],
+        "sourceAssetSHA256": null,
+        "outputAssetSHA256": null
+      },
+      {
+        "case": "multi-webp",
+        "exit": 65,
+        "ok": false,
+        "error": "Invalid rich-text document at $WORK/cli-final/fixtures/multi-webp.rtfd: RTFD attachment image.webp must be a single static image matching its file extension",
+        "markdown": "",
+        "outputFiles": [],
+        "diagnostics": [],
+        "sourceAssetSHA256": null,
+        "outputAssetSHA256": null
+      },
+      {
+        "case": "mismatch",
+        "exit": 65,
+        "ok": false,
+        "error": "Invalid rich-text document at $WORK/cli-final/fixtures/Mismatch.rtfd: RTFD attachment image.jpg must be a single static image matching its file extension",
+        "markdown": "",
+        "outputFiles": [],
+        "diagnostics": [],
+        "sourceAssetSHA256": null,
+        "outputAssetSHA256": null
+      }
+    ],
+    "sourcesUnchangedDuringProbe": true,
+    "sourceHashesAfter": {
+      "Mismatch.rtfd/TXT.rtf": "b3ef424297c327453c21d29dc1a1bc21c36538df9cc9e4a07fafcdd6ba6186ef",
+      "Mismatch.rtfd/image.jpg": "211f24cb4d19fee58970bdd6052ba796ee252e1a7621c839b4dfc27d42b02a7c",
+      "multi-webp.rtfd/TXT.rtf": "d09397045843146e34dfefaf500786e093fd6ff23d670f755c201508e98ad624",
+      "multi-webp.rtfd/image.webp": "b8a9464148a70f8bb838f4a603f39ec32780acb73c979fe9aad556c2f1dabd6e",
+      "multi-png.rtfd/TXT.rtf": "edc32a2b1ba8665faf69130e4142df596ad6167da386c38859f1e576fd7336de",
+      "multi-png.rtfd/image.png": "08a94ab2c8b6391ef1db2f287ee183d2f0994d15d6afa7d29d5db0b7a8c886a4",
+      "multi-tiff.rtfd/TXT.rtf": "5170f984cd55608b542f9778bee988d442f8d952a28fdd51e2033ff09d3ca7ef",
+      "multi-tiff.rtfd/image.tiff": "a1c5f293565241fe4fcf0866e0713ee6e3ff1f6b4242d0f3991f8edf06879891",
+      "multi-gif.rtfd/TXT.rtf": "9bb96c92e59056d1fcfa2fd2a0e95657035d47e91ce710e0be369c7b6a4a51b4",
+      "multi-gif.rtfd/image.gif": "8bbc04113976f8188b8ce9603ba816bbd1af249cf304a6d14ab7ad1ad1d569e9",
+      "static-webp.rtfd/TXT.rtf": "2fd1c360d609fb154bb49a5c80a24c39bfbbff9ed84abc82ff43e13fa15acaed",
+      "static-webp.rtfd/local picture.webp": "15ce96487e0fa9e7a7e079b7895a5e0839297b6dcbd0e65e1cff3710dd590a92",
+      "static-bmp.rtfd/TXT.rtf": "4771d5621509fada48075ed97b22843f68e1e4f3da660f8b4cd4e88c13661d34",
+      "static-bmp.rtfd/local picture.bmp": "cfb3fa514861b924669bb08e35ee7fa61223a13bcc33a5017c447a191a990a87",
+      "static-gif.rtfd/TXT.rtf": "b209118d23d4f270b96a5943f35f3891b01f9c50fa87bae1b1c5cd64b359a16e",
+      "static-gif.rtfd/local picture.gif": "9dfbbdacceb760dc8f9ff8bf49292dd9ab8d6a4b1180b692c974c1dcc2c21552",
+      "static-tif.rtfd/TXT.rtf": "5efd634fbfe7423361813ca7c2f244627d316c3c36c25fecbf3be32a78e33511",
+      "static-tif.rtfd/local picture.tif": "8105ded0fbf51c16066fd9ec9b3ead475a5d829db77f8d7f9a1160212b365a85",
+      "static-tiff.rtfd/TXT.rtf": "7bae990edc9ced7d0734ee9734064c48b058caa89ec731cad5438a4f78a437fd",
+      "static-tiff.rtfd/local picture.tiff": "8105ded0fbf51c16066fd9ec9b3ead475a5d829db77f8d7f9a1160212b365a85",
+      "static-JPEG.rtfd/TXT.rtf": "dc6b384c69641bbac661cc1461c047c88b8618617af9e1040334c5e7c1b41453",
+      "static-JPEG.rtfd/local picture.JPEG": "67fdc861d99bd516637d1fd322f2d2e903e9f0cd3158c95f067ea21f3b8f069b",
+      "static-jpg.rtfd/TXT.rtf": "453d63df41d966aa214b2860f7270811f5d4dfabc9e6f8f0de23735d31f26859",
+      "static-jpg.rtfd/local picture.jpg": "67fdc861d99bd516637d1fd322f2d2e903e9f0cd3158c95f067ea21f3b8f069b",
+      "unused.rtfd/extra.pdf": "a9dc7fd49213c4653fa8eabcf5487fe4b073a4ec760e62116040297abd720081",
+      "unused.rtfd/TXT.rtf": "df0f96f34f55a5ec87ef1a8b1d24654fc01f8358e12eb98c39219d36d3c6f969",
+      "fifo.rtfd/TXT.rtf": "eaefa008d93d171001b8da2b15f69cc72211cbd4ef3ad47f10a3cb570c861307",
+      "symlink.rtfd/TXT.rtf": "eaefa008d93d171001b8da2b15f69cc72211cbd4ef3ad47f10a3cb570c861307",
+      "corrupt.rtfd/image.png": "499958522ef1dae608fca45bbe8eb4aa6d792a21f429368ee103a3574b07b694",
+      "corrupt.rtfd/TXT.rtf": "eaefa008d93d171001b8da2b15f69cc72211cbd4ef3ad47f10a3cb570c861307",
+      "absolute.rtfd/TXT.rtf": "17c223f366989aa7ab6c37c13cf52524a3116e9c9b434b2f84fb2df76f78132b",
+      "missing.rtfd/TXT.rtf": "1b3d06290a3857b04df5d76fe23e2549ddec0563017a3cab65081b6c4c210396",
+      "escape.rtfd/TXT.rtf": "642ed1fa89610231ad11de9417660982420c4c1d7ac70395624d3eb606243e06",
+      "remote.rtfd/TXT.rtf": "8434a949bf3da7329500e4abdff4377c51b9372d5a198540a2d501d2a4310b09",
+      "EncodedName.rtfd/grüne.png": "211f24cb4d19fee58970bdd6052ba796ee252e1a7621c839b4dfc27d42b02a7c",
+      "EncodedName.rtfd/TXT.rtf": "db9db660167c7ad0957779b791107895cbbe2d882b7d692c8954deb6590cb8d5",
+      "Literal.rtfd/TXT.rtf": "93aca594256fd891d928f84c1915ab360b23190a0136fb37276bfa9f51263d60",
+      "Valid.rtfd/TXT.rtf": "44214625bd67061cca9aedb8805a86ecac1c96e67a9bc8a35dfff77081aa4cc8",
+      "Valid.rtfd/local picture.png": "211f24cb4d19fee58970bdd6052ba796ee252e1a7621c839b4dfc27d42b02a7c"
+    }
+  },
+  "previousEvidence": "evidence-before-bmp.json binds the prior candidate; no claim of rerunning its Noble/HEIC/controls for this BMP-only followup",
+  "createdUTC": "2026-11-05T05:45:05.625430+00:00"
+}

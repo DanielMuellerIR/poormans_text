@@ -2,13 +2,13 @@
 import Foundation
 import CoreFoundation
 import Glibc
-import CPMTLinux
 
 /// Ersetzt nur RTFD-Bilddestinationen in der privaten Kopie. Der übrige RTF-
 /// Bytestrom bleibt für den bestehenden Unicode-/Listenpfad unverändert.
 struct LinuxRTFDPreparation {
     let data: Data
     let representedNames: Set<String>
+    let viewerLimitedFormats: Set<String>
     private let prefix: String
     private let images: [(marker: String, name: String)]
 
@@ -50,6 +50,7 @@ struct LinuxRTFDPreparation {
         var groups = [Group]()
         var replacements = [(range: Range<Int>, marker: String, name: String)]()
         var verifiedNames = Set<String>()
+        var viewerLimitedFormats = Set<String>()
         var index = 0
         var nextCancellationCheck = 0
         let opaqueDestinations: Set<String> = ["pict", "object", "objdata", "fonttbl", "colortbl", "stylesheet", "info", "listtable", "listoverridetable"]
@@ -68,17 +69,25 @@ struct LinuxRTFDPreparation {
                 guard let group = groups.popLast() else { throw failure("RTFD has an unmatched closing group") }
                 if let nameStart = group.attachmentStart {
                     let name = try attachmentName(Array(bytes[nameStart..<index]), codepage: group.codepage, failure: failure)
-                    guard URL(fileURLWithPath: name).pathExtension.lowercased() == "png" else {
-                        throw failure("RTFD currently supports only local PNG attachments")
+                    let formats = ["png": "png", "jpg": "jpg", "jpeg": "jpg", "tif": "tiff",
+                                   "tiff": "tiff", "gif": "gif", "bmp": "bmp", "webp": "webp", "heic": "heic"]
+                    guard let expectedFormat = formats[URL(fileURLWithPath: name).pathExtension.lowercased()] else {
+                        throw failure("RTFD supports only local static PNG, JPEG, TIFF, GIF, BMP, WebP and HEIC attachments")
                     }
                     if verifiedNames.insert(FileSystemPath.key(name)).inserted {
                         let image = try member(name)
-                        var info = pmt_image_info()
-                        let status = image.withUnsafeBytes {
-                            pmt_validate_png($0.bindMemory(to: UInt8.self).baseAddress, $0.count, &info)
+                        let info: RasterImageInfo
+                        do { info = try RasterImageBackend.validate(image) }
+                        catch let error as RasterImageValidationError {
+                            throw failure("RTFD attachment \(name): \(error.localizedDescription)")
+                        } catch let ConversionError.invalidInput(_, _, reason) {
+                            throw failure("RTFD attachment \(name): \(reason)")
                         }
-                        guard status == PMT_IMAGE_OK else {
-                            throw failure("RTFD attachment \(name) is not a valid static PNG within the decoder limits")
+                        guard info.fileExtension == expectedFormat, info.frameCount == 1 else {
+                            throw failure("RTFD attachment \(name) must be a single static image matching its file extension")
+                        }
+                        if ["tiff", "heic"].contains(info.fileExtension) {
+                            viewerLimitedFormats.insert(info.fileExtension)
                         }
                     }
                     guard replacements.count < RichTextLimits.maximumPackageEntries else { throw failure("RTFD attachment count exceeds its limit") }
@@ -117,7 +126,7 @@ struct LinuxRTFDPreparation {
             guard !groups.isEmpty else { throw failure("RTFD control word is outside its document group") }
             let current = groups.count - 1
             if ["pict", "object", "objdata", "shppict", "nonshppict"].contains(word), !groups[current].opaque {
-                throw failure("inline RTF pictures and objects in RTFD are not supported; local PNG package attachments are required")
+                throw failure("inline RTF pictures and objects in RTFD are not supported; local static raster package attachments are required")
             }
             if word == "NeXTGraphic", !groups[current].opaque {
                 guard groups[current].firstControl else { throw failure("RTFD attachment is not a separate destination") }
@@ -141,7 +150,7 @@ struct LinuxRTFDPreparation {
         }
         prepared.append(contentsOf: bytes[cursor..<bytes.count])
         guard prepared.count <= RichTextLimits.maximumSourceSize else { throw failure("prepared RTFD exceeds its size limit") }
-        return Self(data: prepared, representedNames: verifiedNames, prefix: prefix,
+        return Self(data: prepared, representedNames: verifiedNames, viewerLimitedFormats: viewerLimitedFormats, prefix: prefix,
                     images: replacements.map { ($0.marker, $0.name) })
     }
 

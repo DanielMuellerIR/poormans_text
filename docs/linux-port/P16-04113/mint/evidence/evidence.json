@@ -1,0 +1,164 @@
+{
+  "host": "Popocatepetl",
+  "kernel": "7.0.0-42-generic",
+  "osRelease": "NAME=\"Linux Mint\"\nVERSION=\"22.2 (Zara)\"\nID=linuxmint\nID_LIKE=\"ubuntu debian\"\nPRETTY_NAME=\"Linux Mint 22.2\"\nVERSION_ID=\"22.2\"\nHOME_URL=\"https://www.linuxmint.com/\"\nSUPPORT_URL=\"https://forums.linuxmint.com/\"\nBUG_REPORT_URL=\"http://linuxmint-troubleshooting-guide.readthedocs.io/en/latest/\"\nPRIVACY_POLICY_URL=\"https://www.linuxmint.com/\"\nVERSION_CODENAME=zara\nUBUNTU_CODENAME=noble\n",
+  "native": true,
+  "packageExtractionOnly": true,
+  "packageSHA256": "640be59eeacddca4fdb0626a84de2ccba8012cf49eb0e98627af404d28cf80ff",
+  "pandocSHA256": "5a953bcbcdc7c36fcb0c263fbb09db8c7b84cfa9ca58e48e321d7edf857a7ee7",
+  "runtimeHashes": {
+    "bin/poormans-text": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+    "ui/poormans-text-app": "851d0a76e4214bbd5f599c995a1b78ff40792524a7b1383e6afbda165c43cfa6",
+    "bin/poormans-text-process-guard": "cf677f9be88095a27423ceedb9db2b85667f7775d167857cfb52002ff5dda520"
+  },
+  "rtfdCases": 25,
+  "rtfdStatuses": {
+    "valid": 0,
+    "literal": 0,
+    "encoded-name": 0,
+    "remote": 65,
+    "escape": 65,
+    "missing": 65,
+    "absolute": 65,
+    "corrupt": 65,
+    "symlink": 65,
+    "fifo": 65,
+    "unused": 0,
+    "static-jpg": 0,
+    "static-JPEG": 0,
+    "static-tiff": 0,
+    "static-tif": 0,
+    "static-gif": 0,
+    "static-bmp": 0,
+    "static-webp": 0,
+    "multi-gif": 65,
+    "multi-tiff": 65,
+    "multi-png": 65,
+    "multi-webp": 65,
+    "mismatch": 65,
+    "static-heic": 0,
+    "multi-heic": 65
+  },
+  "rtfdSourceStabilityAssertedByHarness": true,
+  "rtfdSourceHashes": {
+    "Valid.rtfd/local picture.png": "6d3bbdfab208225411628a64b5a05a7ba4caffddcec25c1581440fa2dc8a870b",
+    "Valid.rtfd/TXT.rtf": "44214625bd67061cca9aedb8805a86ecac1c96e67a9bc8a35dfff77081aa4cc8",
+    "Literal.rtfd/TXT.rtf": "93aca594256fd891d928f84c1915ab360b23190a0136fb37276bfa9f51263d60",
+    "EncodedName.rtfd/TXT.rtf": "db9db660167c7ad0957779b791107895cbbe2d882b7d692c8954deb6590cb8d5",
+    "EncodedName.rtfd/grüne.png": "6d3bbdfab208225411628a64b5a05a7ba4caffddcec25c1581440fa2dc8a870b",
+    "remote.rtfd/TXT.rtf": "8434a949bf3da7329500e4abdff4377c51b9372d5a198540a2d501d2a4310b09",
+    "escape.rtfd/TXT.rtf": "642ed1fa89610231ad11de9417660982420c4c1d7ac70395624d3eb606243e06",
+    "missing.rtfd/TXT.rtf": "1b3d06290a3857b04df5d76fe23e2549ddec0563017a3cab65081b6c4c210396",
+    "absolute.rtfd/TXT.rtf": "17c223f366989aa7ab6c37c13cf52524a3116e9c9b434b2f84fb2df76f78132b",
+    "corrupt.rtfd/TXT.rtf": "eaefa008d93d171001b8da2b15f69cc72211cbd4ef3ad47f10a3cb570c861307",
+    "corrupt.rtfd/image.png": "499958522ef1dae608fca45bbe8eb4aa6d792a21f429368ee103a3574b07b694",
+    "symlink.rtfd/TXT.rtf": "eaefa008d93d171001b8da2b15f69cc72211cbd4ef3ad47f10a3cb570c861307",
+    "fifo.rtfd/TXT.rtf": "eaefa008d93d171001b8da2b15f69cc72211cbd4ef3ad47f10a3cb570c861307",
+    "unused.rtfd/TXT.rtf": "df0f96f34f55a5ec87ef1a8b1d24654fc01f8358e12eb98c39219d36d3c6f969",
+    "unused.rtfd/extra.pdf": "a9dc7fd49213c4653fa8eabcf5487fe4b073a4ec760e62116040297abd720081",
+    "static-jpg.rtfd/local picture.jpg": "67fdc861d99bd516637d1fd322f2d2e903e9f0cd3158c95f067ea21f3b8f069b",
+    "static-jpg.rtfd/TXT.rtf": "453d63df41d966aa214b2860f7270811f5d4dfabc9e6f8f0de23735d31f26859",
+    "static-JPEG.rtfd/local picture.JPEG": "67fdc861d99bd516637d1fd322f2d2e903e9f0cd3158c95f067ea21f3b8f069b",
+    "static-JPEG.rtfd/TXT.rtf": "dc6b384c69641bbac661cc1461c047c88b8618617af9e1040334c5e7c1b41453",
+    "static-tiff.rtfd/local picture.tiff": "8105ded0fbf51c16066fd9ec9b3ead475a5d829db77f8d7f9a1160212b365a85",
+    "static-tiff.rtfd/TXT.rtf": "7bae990edc9ced7d0734ee9734064c48b058caa89ec731cad5438a4f78a437fd",
+    "static-tif.rtfd/local picture.tif": "8105ded0fbf51c16066fd9ec9b3ead475a5d829db77f8d7f9a1160212b365a85",
+    "static-tif.rtfd/TXT.rtf": "5efd634fbfe7423361813ca7c2f244627d316c3c36c25fecbf3be32a78e33511",
+    "static-gif.rtfd/local picture.gif": "9dfbbdacceb760dc8f9ff8bf49292dd9ab8d6a4b1180b692c974c1dcc2c21552",
+    "static-gif.rtfd/TXT.rtf": "b209118d23d4f270b96a5943f35f3891b01f9c50fa87bae1b1c5cd64b359a16e",
+    "static-bmp.rtfd/local picture.bmp": "cfb3fa514861b924669bb08e35ee7fa61223a13bcc33a5017c447a191a990a87",
+    "static-bmp.rtfd/TXT.rtf": "4771d5621509fada48075ed97b22843f68e1e4f3da660f8b4cd4e88c13661d34",
+    "static-webp.rtfd/local picture.webp": "15ce96487e0fa9e7a7e079b7895a5e0839297b6dcbd0e65e1cff3710dd590a92",
+    "static-webp.rtfd/TXT.rtf": "2fd1c360d609fb154bb49a5c80a24c39bfbbff9ed84abc82ff43e13fa15acaed",
+    "multi-gif.rtfd/image.gif": "8bbc04113976f8188b8ce9603ba816bbd1af249cf304a6d14ab7ad1ad1d569e9",
+    "multi-gif.rtfd/TXT.rtf": "9bb96c92e59056d1fcfa2fd2a0e95657035d47e91ce710e0be369c7b6a4a51b4",
+    "multi-tiff.rtfd/image.tiff": "a1c5f293565241fe4fcf0866e0713ee6e3ff1f6b4242d0f3991f8edf06879891",
+    "multi-tiff.rtfd/TXT.rtf": "5170f984cd55608b542f9778bee988d442f8d952a28fdd51e2033ff09d3ca7ef",
+    "multi-png.rtfd/image.png": "220338a3d5f82ec5dc0417e51916e95bd839b6b978db811d04d5722c0a6ade03",
+    "multi-png.rtfd/TXT.rtf": "edc32a2b1ba8665faf69130e4142df596ad6167da386c38859f1e576fd7336de",
+    "multi-webp.rtfd/image.webp": "b8a9464148a70f8bb838f4a603f39ec32780acb73c979fe9aad556c2f1dabd6e",
+    "multi-webp.rtfd/TXT.rtf": "d09397045843146e34dfefaf500786e093fd6ff23d670f755c201508e98ad624",
+    "Mismatch.rtfd/image.jpg": "6d3bbdfab208225411628a64b5a05a7ba4caffddcec25c1581440fa2dc8a870b",
+    "Mismatch.rtfd/TXT.rtf": "b3ef424297c327453c21d29dc1a1bc21c36538df9cc9e4a07fafcdd6ba6186ef",
+    "static-heic.rtfd/original.heic": "d3ba28ae03b0459390e6db6df595c67136f66c6bc1aa12457efefa003a24192b",
+    "static-heic.rtfd/TXT.rtf": "a0c8171dc5bb0fe242be04c0135edb48850830c5b95821621e8aa7f095fded41",
+    "multi-heic.rtfd/original.heic": "e531ca1e681768f23545661935e50569b952c7dda5bf4b23476f828a8113e6de",
+    "multi-heic.rtfd/TXT.rtf": "a0c8171dc5bb0fe242be04c0135edb48850830c5b95821621e8aa7f095fded41"
+  },
+  "docx": {
+    "sourceSHA256": "959c76a5d957f704319c918a17324b32eb5c0b8deb207175d71fa2ddbf53057d",
+    "sourceUnchanged": true,
+    "originalPNGAssetSHA256": "161e77431664be88483d7fef7bdd0123c9ed53318cfc9d1c4fa84af80ea2ab28",
+    "outputAssetSHA256": "161e77431664be88483d7fef7bdd0123c9ed53318cfc9d1c4fa84af80ea2ab28",
+    "response": {
+      "assets": [
+        "/tmp/pmt-mint-04113.3qZKQ4/docx-output/images/image01.png"
+      ],
+      "diagnosticGroups": [
+        {
+          "code": "sourceMap.unavailable",
+          "count": 1,
+          "kind": "information",
+          "locations": [],
+          "messages": [
+            "No verified source-to-text positions are available for this conversion."
+          ],
+          "omittedCount": 0
+        }
+      ],
+      "diagnostics": [
+        {
+          "code": "sourceMap.unavailable",
+          "kind": "information",
+          "message": "No verified source-to-text positions are available for this conversion."
+        }
+      ],
+      "documents": [
+        {
+          "assets": [
+            "/tmp/pmt-mint-04113.3qZKQ4/docx-output/images/image01.png"
+          ],
+          "markdownFile": "/tmp/pmt-mint-04113.3qZKQ4/docx-output/picture.md",
+          "metadata": {
+            "created": "2026-11-05T04:13:00Z",
+            "modified": "2026-11-05T04:13:00Z"
+          },
+          "sourceIndex": 1,
+          "title": "picture"
+        }
+      ],
+      "input": "/tmp/pmt-mint-04113.3qZKQ4/docs/linux-port/P16-04112/mint/fixtures/picture.docx",
+      "markdownFile": "/tmp/pmt-mint-04113.3qZKQ4/docx-output/picture.md",
+      "metadata": {
+        "created": "2026-11-05T04:13:00Z",
+        "modified": "2026-11-05T04:13:00Z"
+      },
+      "ok": true,
+      "outputDirectory": "/tmp/pmt-mint-04113.3qZKQ4/docx-output",
+      "outputFiles": [
+        {
+          "byteCount": 1739,
+          "path": "images/image01.png",
+          "sha256": "161e77431664be88483d7fef7bdd0123c9ed53318cfc9d1c4fa84af80ea2ab28"
+        },
+        {
+          "byteCount": 184,
+          "path": "picture.md",
+          "sha256": "06988280974b54d2aeb1af5416ca4f7ca9040179be36369cf18f71b78411a642"
+        }
+      ],
+      "sourceIdentity": {
+        "byteCount": 12313,
+        "name": "picture.docx",
+        "sha256": "959c76a5d957f704319c918a17324b32eb5c0b8deb207175d71fa2ddbf53057d"
+      },
+      "sourceMappings": [],
+      "version": "0.41.13",
+      "warnings": [
+        "No verified source-to-text positions are available for this conversion."
+      ]
+    }
+  },
+  "workingBytes": 362548438,
+  "seconds": 5.580423678999068
+}

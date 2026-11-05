@@ -17,8 +17,11 @@ int pmt_process_pidfd_open_owned(int pid, int ancestor) {
     int fd = (int)syscall(SYS_pidfd_open, pid, 0);
     if (fd < 0) return -1;
     int current = pid;
-    for (int depth = 0; depth < 128 && current > 1; ++depth) {
+    for (int depth = 0; depth < 128 && current > 0; ++depth) {
         if (current == ancestor) return fd;
+        /* Die CLI kann selbst Namespace-PID 1 sein; oberhalb von Init wird
+           auch dann keine weitere Abstammung angenommen. */
+        if (current == 1) break;
         char path[64], line[256];
         snprintf(path, sizeof(path), "/proc/%d/status", current);
         FILE *status = fopen(path, "re");

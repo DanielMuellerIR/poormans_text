@@ -4,7 +4,8 @@ Die Linux-Portierung verwendet denselben Swift-Konvertierungskern wie macOS.
 P05 stellt Build und Plattformgrenzen her; dies ist noch keine vollständige
 Linux-App oder Distributionsfreigabe. PDF, Standard-OCR und Bilder verwenden
 explizite lokale Backends; RTFD unterstützt zunächst geprüfte lokale statische
-PNG-Anhänge. Legacy-DOC verwendet optional LibreOffice mit expliziten sicheren UNO-Ladeparametern. HEIC verwendet optional den lokalen libheif-HEVC-Decoder; strukturierte OCR bleibt nicht verfügbar.
+PNG-, JPEG-, TIFF-, GIF-, BMP-, WebP- und optionale HEIC-Anhänge. Mehrframes
+werden abgewiesen; TIFF/HEIC bleiben Originaldateien mit Viewer-Kompatibilitätshinweis. Legacy-DOC verwendet optional LibreOffice mit expliziten sicheren UNO-Ladeparametern. HEIC verwendet optional den lokalen libheif-HEVC-Decoder; strukturierte OCR bleibt nicht verfügbar.
 Die vorhandene Mac-App bleibt nativ.
 
 ## Lokal bauen

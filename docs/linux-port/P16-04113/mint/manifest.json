@@ -1,0 +1,50 @@
+{
+  "createdUTC": "2026-11-05T06:02:11.429837+00:00",
+  "nativeMint": true,
+  "version": "0.41.13",
+  "packageExtractionOnly": true,
+  "checks": {
+    "rtfdCases": 25,
+    "rtfdSuccess": 12,
+    "rtfdExpectedRejections": 13,
+    "nativeHEICSingleSuccess": true,
+    "nativeHEICMultiRejected65": true,
+    "docxPNGByteExact": true,
+    "productionGUICSV": true,
+    "sourceStability": true,
+    "runtimeStable": true,
+    "ownRemoteRootRemoved": true,
+    "noOwnRemainingProcesses": true
+  },
+  "files": {
+    "README.md": "073fd8943fda77abe0c889ba8ce5b78104af0c28ad09f5460356532dabf712ca",
+    "native_run.py": "9311b6e7141e2c3f94694d34d697a5c70b65f7416939a2913aac43dd39470e50",
+    "finalize_remote.py": "2ba88ec1300662492b9228a048ee590cc06da41706de8eef94a448fa5492c30d",
+    "cleanup_remote.py": "83f62b59dc5c7a98a5b7fb0a45310b86d7bb815ad0ccdd6f3498c3a89734c7c5",
+    "cleanup.json": "03d8d6f2203a561a3e23c38e49e90b08a96511e61bcf0dca1f5fe4e65067345e",
+    "native-run.log": "07d04607b6d2c4b2ba3e35884929fc41b6073f6ccb338171834a176e55d73bc8",
+    "gui-run.log": "d646202103a6dc85a45cfc11e2fa51cb9fef8125f94edbe39b0337aecda599a8",
+    "finalize.log": "854272f846f68d0df402e39b077cf5e088fd4bb0253f479abce23eca3e938ddc",
+    "remote-root.txt": "e9a5cd819ffbc184df2dbf2c28a471ac8cf2d0fe86f1cbbeb87c77df0caf7ed3",
+    "package-control.txt": "2bc421c2c9712332746b9aa4bb7cfe65a1756dfebd90d9ed3b3a9ed0125b262b",
+    "verify_rtfd.py": "0729588241248fe95d6626de7f0bc8028bb5562097d42e8cbfeb276cd8e7e198",
+    "gui_probe.py": "8dfee555f60c9c3cc8dd5fb68a1f88fef352c788738fd97cb34bd9e586a6a0b9",
+    "private_session.py": "9b4ca2aa190235336061d667c6ae2404ffd16551070976bdceddf36610e6e726",
+    "run_private_gui.py": "38228d271c0a23beeb37ac851d6e17b013673717ee93267e16c2df08476ace61",
+    "evidence/xvfb.log": "0bac115c5580e35921d81254a7da3faf4a2bcbffe9063af638a27e97a1471a01",
+    "evidence/gui.png": "4788b2843df984b95533dae4c8c9fdbc7f0d87f784f057020e8622ebe57d838c",
+    "evidence/gui-session.log": "be28dc2c815fc278b96a6bef1b8070546e0d79447c8d39bb85178df58a82c239",
+    "evidence/final-stability.json": "b2fab1a2edd871f3bb9ae434d41e8bd31417c4d032af5d0c400b5a01a75259a9",
+    "evidence/docx.log": "ebbd27026ca3f566f6056fdbe6a7193b9835fee2e4e0a77c0755c3f52612a1e3",
+    "evidence/rtfd.log": "88ac1ed1721ab854a23297ed3f8c35409e3e62ce33f7aee4c5e528e025bf273d",
+    "evidence/runtime-manifest.json": "51be8b38e8786a768ae47bea38341de773796b28c5f1a45a1e4b0a683fa17871",
+    "evidence/evidence.json": "7234960c06f46ba98a960c6ed96978367025b1ea3cf2386841a63648c2aa50fc",
+    "evidence/gui-case/gui.log": "5328cbef62d254fb6319e4e459245aa9574219c84501096993521e05eb0ff872",
+    "evidence/rtfd-run/probe-results.json": "440f05e25d95e515a60eacb146d1f5015771aee8af92eddfbb654052f72bc814"
+  },
+  "limits": [
+    "Not an install/upgrade/remove proof",
+    "No full desktop/clipboard/filechooser acceptance claim",
+    "Private portal warnings retained in logs; no host services or module changes"
+  ]
+}

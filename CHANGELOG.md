@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.41.13 — 2026-11-05
+
+- Allow the Linux CLI to supervise its own children when running as namespace PID 1, while continuing to reject unrelated process ownership.
+
+- Import Linux RTFD packages with verified static JPEG, TIFF, GIF, BMP, WebP and HEIC attachments alongside PNG, preserving original bytes and text position; reject multiple frames and mismatched image types before publication.
+- Report limited Markdown-viewer support for original TIFF/HEIC attachments explicitly.
+
 ## 0.41.12 — 2026-11-05
 
 - Fail requested Linux OCR without publishing when its backend is missing, times out or reports an I/O failure; only report image OCR text when text was actually added.

@@ -1,0 +1,10 @@
+
+(poormans-text-app:9): Gdk-WARNING **: 06:57:36.947: The program 'poormans-text-app' received an X Window System error.
+This probably reflects a bug in the program.
+The error was 'BadDrawable (invalid Pixmap or Window parameter)'.
+  (Details: serial 1349 error_code 9 request_code 14 (core protocol) minor_code 0)
+  (Note to programmers: normally, X errors are reported asynchronously;
+   that is, you will receive the error a while after causing it.
+   To debug your program, run it with the GDK_SYNCHRONIZE environment
+   variable to change this behavior. You can then get a meaningful
+   backtrace from your debugger if you break on the gdk_x_error() function.)

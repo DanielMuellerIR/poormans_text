@@ -134,3 +134,10 @@ Native Produktions-GTK über privaten Weston/Wayland bis Completed.
 Die [Mint-Probe](P16-04112/mint/README.md) betrifft die relocierte finale Runtime
 und native GTK4.14.5 unter privatem Xvfb, ausdrücklich keine Paketinstallation
 oder vollständige Cinnamon-Systemintegration.
+
+Die [.13-Deltaabnahme](P16-04113/arch-wayland/README.md) wiederholt regulär
+.12→.13→Entfernen und prüft zusätzlich alle25 RTFD-Fälle am finalen Paket.
+Der [begrenzte native Mint-COW-Versuch](P16-04113/mint-package-capability/README.md)
+scheitert am Overlaymount vor jeder Paketinstallation. Keine Systemänderung;
+das bleibt ein offenes Installationstor und wird nicht durch Extrahieren eines
+Debianpakets als bestanden ausgegeben.

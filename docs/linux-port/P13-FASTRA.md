@@ -61,3 +61,19 @@ PMT-CLI2f49d54e… und GTK918a8d2b… stehen im Bericht vollständig; Fastra-ELF
 hashgleich, alle eigenen Container und großen Kopien sind entfernt. Das
 Fastra-source_sha256-Feld ersetzt keine unabhängig bewiesene Gitcommitbindung.
 Fastraquellen wurden nicht geändert; Consumerarbeit bleibt beim Fastra-Chat.
+
+## Aktuelles Artefakttor für weitere Importabnahmen
+
+Der lesend geprüfte neuere Fastra-Quellstand enthält einen formatneutralen
+Tools→Import-document-Weg mit Prepare/Adopt/Cancel. Das tatsächlich verfügbare
+1.158.0-Editorartefakt aus dem Öffnungslauf trägt jedoch keinen belegten
+Importdialog. An den dokumentierten Buildpfaden war kein vollständig gebundenes
+neueres Produktartefakt vorhanden; keine breite Suche in fremden temporären
+Arbeitsbereichen und kein Fastra-Neubau wurden ausgeführt. Sourcecode oder
+Editor-Dateiargv ersetzen keinen ausgeführten Consumerimport.
+
+Nächster Auslöser: Fastras zuständiger Build benennt einen abgeschlossenen
+Outputroot mit `fastra/manifest.json` und vollständiger bin/libexec/lib/share-
+Laufzeit. Danach lassen sich ENEX/RTF, Missingtool und Abbruch über den echten
+Importdialog gegen die benannte PMT-CLI prüfen. Dieser offene Artefaktnachweis
+ändert weder PMTs CLI-Vertrag noch die Zuständigkeit des Fastra-Chats.

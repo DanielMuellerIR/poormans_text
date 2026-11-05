@@ -1,0 +1,11 @@
+{
+  "cleaned": true,
+  "rootIdentity": {
+    "device": 57,
+    "inode": 801360
+  },
+  "remainingOwnProcesses": [],
+  "rootAbsent": true,
+  "containers": "own build/test containers used --rm and completed; shared images unchanged",
+  "timeUTC": "2026-11-05T05:45:35.064027+00:00"
+}

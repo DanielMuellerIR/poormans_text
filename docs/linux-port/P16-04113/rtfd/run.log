@@ -1,0 +1,173 @@
+ENV {"SwiftSDK": null, "Pillow": "10.2.0", "libheif": "libheif.so.1"}
+{
+  "valid": {
+    "exit": 0,
+    "markdown": "Before ALPHA Grüße aus München Ω\n\n- First item\n- Second item\n\n![image](images/image01.png) After OMEGA\n",
+    "assets": [
+      "images/image01.png"
+    ],
+    "error": null
+  },
+  "literal": {
+    "exit": 0,
+    "markdown": "- First  \n  Continuation\n- Second\n\nEnd\n",
+    "assets": [],
+    "error": null
+  },
+  "encoded-name": {
+    "exit": 0,
+    "markdown": "Name ![image](images/image01.png)\n",
+    "assets": [
+      "images/image01.png"
+    ],
+    "error": null
+  },
+  "remote": {
+    "exit": 65,
+    "markdown": "",
+    "assets": [],
+    "error": "Invalid rich-text document at $WORK/fixtures/remote.rtfd: RTFD attachment must name one local package file"
+  },
+  "escape": {
+    "exit": 65,
+    "markdown": "",
+    "assets": [],
+    "error": "Invalid rich-text document at $WORK/fixtures/escape.rtfd: RTFD attachment must name one local package file"
+  },
+  "missing": {
+    "exit": 65,
+    "markdown": "",
+    "assets": [],
+    "error": "Invalid rich-text document at $WORK/fixtures/missing.rtfd: RTFD member could not be read: missing.png"
+  },
+  "absolute": {
+    "exit": 65,
+    "markdown": "",
+    "assets": [],
+    "error": "Invalid rich-text document at $WORK/fixtures/absolute.rtfd: RTFD attachment must name one local package file"
+  },
+  "corrupt": {
+    "exit": 65,
+    "markdown": "",
+    "assets": [],
+    "error": "Invalid rich-text document at $WORK/fixtures/corrupt.rtfd: RTFD attachment image.png: image data could not be decoded"
+  },
+  "symlink": {
+    "exit": 65,
+    "markdown": "",
+    "assets": [],
+    "error": "Invalid RTFD input at $WORK/fixtures/symlink.rtfd: the RTFD package contains a symbolic link"
+  },
+  "fifo": {
+    "exit": 65,
+    "markdown": "",
+    "assets": [],
+    "error": "Invalid RTFD input at $WORK/fixtures/fifo.rtfd: the RTFD package contains a non-regular entry named \"image.png\""
+  },
+  "unused": {
+    "exit": 0,
+    "markdown": "Text without referenced attachment\n",
+    "assets": [],
+    "error": null
+  },
+  "static-jpg": {
+    "exit": 0,
+    "markdown": "BEFORE ![image](images/image01.jpg) AFTER\n",
+    "assets": [
+      "images/image01.jpg"
+    ],
+    "error": null
+  },
+  "static-JPEG": {
+    "exit": 0,
+    "markdown": "BEFORE ![image](images/image01.jpeg) AFTER\n",
+    "assets": [
+      "images/image01.jpeg"
+    ],
+    "error": null
+  },
+  "static-tiff": {
+    "exit": 0,
+    "markdown": "BEFORE ![image](images/image01.tiff) AFTER\n",
+    "assets": [
+      "images/image01.tiff"
+    ],
+    "error": null
+  },
+  "static-tif": {
+    "exit": 0,
+    "markdown": "BEFORE ![image](images/image01.tif) AFTER\n",
+    "assets": [
+      "images/image01.tif"
+    ],
+    "error": null
+  },
+  "static-gif": {
+    "exit": 0,
+    "markdown": "BEFORE ![image](images/image01.gif) AFTER\n",
+    "assets": [
+      "images/image01.gif"
+    ],
+    "error": null
+  },
+  "static-bmp": {
+    "exit": 0,
+    "markdown": "BEFORE ![image](images/image01.bmp) AFTER\n",
+    "assets": [
+      "images/image01.bmp"
+    ],
+    "error": null
+  },
+  "static-webp": {
+    "exit": 0,
+    "markdown": "BEFORE ![image](images/image01.webp) AFTER\n",
+    "assets": [
+      "images/image01.webp"
+    ],
+    "error": null
+  },
+  "multi-gif": {
+    "exit": 65,
+    "markdown": "",
+    "assets": [],
+    "error": "Invalid rich-text document at $WORK/fixtures/multi-gif.rtfd: RTFD attachment image.gif must be a single static image matching its file extension"
+  },
+  "multi-tiff": {
+    "exit": 65,
+    "markdown": "",
+    "assets": [],
+    "error": "Invalid rich-text document at $WORK/fixtures/multi-tiff.rtfd: RTFD attachment image.tiff must be a single static image matching its file extension"
+  },
+  "multi-png": {
+    "exit": 65,
+    "markdown": "",
+    "assets": [],
+    "error": "Invalid rich-text document at $WORK/fixtures/multi-png.rtfd: RTFD attachment image.png must be a single static image matching its file extension"
+  },
+  "multi-webp": {
+    "exit": 65,
+    "markdown": "",
+    "assets": [],
+    "error": "Invalid rich-text document at $WORK/fixtures/multi-webp.rtfd: RTFD attachment image.webp must be a single static image matching its file extension"
+  },
+  "mismatch": {
+    "exit": 65,
+    "markdown": "",
+    "assets": [],
+    "error": "Invalid rich-text document at $WORK/fixtures/Mismatch.rtfd: RTFD attachment image.jpg must be a single static image matching its file extension"
+  },
+  "static-heic": {
+    "exit": 0,
+    "markdown": "BEFORE ![image](images/image01.heic) AFTER\n",
+    "assets": [
+      "images/image01.heic"
+    ],
+    "error": null
+  },
+  "multi-heic": {
+    "exit": 65,
+    "markdown": "",
+    "assets": [],
+    "error": "Invalid rich-text document at $WORK/fixtures/multi-heic.rtfd: RTFD attachment original.heic must be a single static image matching its file extension"
+  }
+}

@@ -324,6 +324,10 @@ struct RichTextAdapter: DocumentConversionAdapter {
 
         #if os(Linux)
         if inputKind == .rtfd {
+            if let rtfdPreparation, !rtfdPreparation.viewerLimitedFormats.isEmpty {
+                warnings.append(ConversionWarning(code: "rtfd.viewerCompatibility", message:
+                    "RTFD \(rtfdPreparation.viewerLimitedFormats.sorted().map { $0.uppercased() }.joined(separator: ", ")) attachments retain their original bytes. Some Markdown viewers cannot display these formats; no PNG substitute was generated.", kind: .approximation))
+            }
             warnings.append(ConversionWarning(code: "rtfd.layoutNotPreserved",
                 message: "RTFD attachment positioning and literal list formatting are not fully preserved; review the imported layout.", kind: .approximation))
             if ColoredTextMarker.containsChromaticText(inRTF: sourceURL.appendingPathComponent("TXT.rtf")) {

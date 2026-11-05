@@ -1,0 +1,54 @@
+{
+  "assets": [],
+  "diagnosticGroups": [
+    {
+      "code": "sourceMap.unavailable",
+      "count": 1,
+      "kind": "information",
+      "locations": [],
+      "messages": [
+        "No verified source-to-text positions are available for this conversion."
+      ],
+      "omittedCount": 0
+    }
+  ],
+  "diagnostics": [
+    {
+      "code": "sourceMap.unavailable",
+      "kind": "information",
+      "message": "No verified source-to-text positions are available for this conversion."
+    }
+  ],
+  "documents": [
+    {
+      "assets": [],
+      "markdownFile": "/work/result/source.md",
+      "metadata": {},
+      "sourceIndex": 1,
+      "title": "source"
+    }
+  ],
+  "input": "/work/source.rtf",
+  "markdownFile": "/work/result/source.md",
+  "metadata": {},
+  "ok": true,
+  "outputDirectory": "/work/result",
+  "outputFiles": [
+    {
+      "byteCount": 323999,
+      "path": "source.md",
+      "sha256": "cbeaf1d9f87aa054e88708e7279c617fc77c2c60e94ab4bba9629661f66147a9"
+    }
+  ],
+  "reportFile": "/work/result/conversion-report.json",
+  "sourceIdentity": {
+    "byteCount": 444029,
+    "name": "source.rtf",
+    "sha256": "4bf614958d3ff0f9b579063615057cd54f344c7a700c34525361a8f681259a42"
+  },
+  "sourceMappings": [],
+  "version": "0.41.13",
+  "warnings": [
+    "No verified source-to-text positions are available for this conversion."
+  ]
+}

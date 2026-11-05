@@ -94,7 +94,7 @@ steht in `scripts/linux-probes/p15/verify_gui_build_safety.py`.
 Offen bleiben echte KDE/Wayland- und Cinnamon/X11-Bedienung, Dateimanager-Drops,
 externe Standardanwendungen, Skalierung, Fokus, Eingabemethoden und Barrierefreiheit.
 PDF-/Bildrastervergleich und Clipboardquellströme sind inzwischen integriert;
-paketinterne Quellströme, Koordinatenoverlays und allgemeine GUI-Präferenzen
+paketinterne Quellströme und allgemeine GUI-Präferenzen
 bleiben offen. Eine visuelle Xvfb-Probe ersetzt diese Systemabnahmen nicht.
 
 ## Verifizierter Textvergleich und gemeinsame Dateizugriffe
@@ -160,3 +160,9 @@ GTK-Referenzen, Raster und Quellen werden beim Close nach der Barriere freigegeb
 echte offene Source-FDs gehen nach Clear/Close von mindestens1 auf0 zurück.
 [Finale Previewbelege](P16-04112/preview/README.md),
 [Clipboard-/Kernel-/Freigabebelege](P16-04112/clipboard/README.md).
+
+Originalrechteck-Overlays gehören nicht zum bestehenden Producervertrag und
+werden auch vom nativen Mac-Quellvergleich nicht gezeichnet. Ihre Abwesenheit
+ist keine Portierungsabnahme-Lücke; page/frame und geprüfte Output-UTF8-Bereiche
+sind die bestehenden Referenzen. Eine spätere Erweiterung bräuchte einen
+begründeten gemeinsamen Produzent-/Vertrags-/UI-Auftrag.

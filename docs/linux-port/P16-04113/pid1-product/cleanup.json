@@ -1,0 +1,11 @@
+{
+  "containerRemoved": true,
+  "workRemoved": true,
+  "runtimeMountsReadOnly": true,
+  "containerStatusBeforeRemoval": "exited",
+  "containerPIDBeforeRemoval": 0,
+  "exitCode": 0,
+  "OOMKilled": false,
+  "startedAt": "2026-11-05T05:52:26.104787904Z",
+  "finishedAt": "2026-11-05T05:52:28.439249137Z"
+}

@@ -1,0 +1,11 @@
+{
+  "image": "pmt-linux-wayland-test:20261105",
+  "imageID": "sha256:c7c5cf572d4eceb44472b05fc51c4cdc74cec6f929f048c8a06af876654bf189",
+  "RTFDProbeSHA256": "0729588241248fe95d6626de7f0bc8028bb5562097d42e8cbfeb276cd8e7e198",
+  "packageGuardSHA256": "cf677f9be88095a27423ceedb9db2b85667f7775d167857cfb52002ff5dda520",
+  "HEICFixturesSHA256": {
+    "single.heic": "d3ba28ae03b0459390e6db6df595c67136f66c6bc1aa12457efefa003a24192b",
+    "multi.heic": "e531ca1e681768f23545661935e50569b952c7dda5bf4b23476f828a8113e6de"
+  },
+  "pandocSHA256": "5a953bcbcdc7c36fcb0c263fbb09db8c7b84cfa9ca58e48e321d7edf857a7ee7"
+}

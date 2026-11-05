@@ -1,0 +1,15 @@
+{
+  "actualPID": 1,
+  "uid": 1000,
+  "directDescendantAccepted": true,
+  "deepDescendantAccepted": true,
+  "intermediateAncestorAccepted": true,
+  "PID1SelfAccepted": true,
+  "siblingDeniedESRCH": true,
+  "negativeIterations": 100,
+  "targetsAliveAfterDenial": true,
+  "fdBefore": 4,
+  "fdAfter": 4,
+  "pidfdsReadyBeforeClose": true,
+  "childrenReaped": 3
+}

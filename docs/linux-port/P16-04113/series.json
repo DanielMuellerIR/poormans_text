@@ -1,0 +1,2124 @@
+{
+  "scope": "Real CLI restart series; no stubs, GUI, Fastra or hardware-equivalence claim.",
+  "fixtures": {
+    "batch/one.csv": {
+      "sha256": "e0986d27dab5d0cd69ea865da97b98c822169c823e534c0777f63f18429dbf90",
+      "bytes": 46,
+      "inode": 818055,
+      "mode": 292,
+      "mtimeNs": 1793857990837128937
+    },
+    "batch/two.csv": {
+      "sha256": "e0986d27dab5d0cd69ea865da97b98c822169c823e534c0777f63f18429dbf90",
+      "bytes": 46,
+      "inode": 818056,
+      "mode": 292,
+      "mtimeNs": 1793857990837187909
+    },
+    "broken.csv": {
+      "sha256": "a0c5886153ba7035d62e90a8e3f6503e230dda6d1f5ea5a8f96d64a6caea6f5a",
+      "bytes": 16,
+      "inode": 818060,
+      "mode": 292,
+      "mtimeNs": 1793857990857555940
+    },
+    "broken.doc": {
+      "sha256": "a0c5886153ba7035d62e90a8e3f6503e230dda6d1f5ea5a8f96d64a6caea6f5a",
+      "bytes": 16,
+      "inode": 818067,
+      "mode": 292,
+      "mtimeNs": 1793857990857725412
+    },
+    "broken.docx": {
+      "sha256": "a0c5886153ba7035d62e90a8e3f6503e230dda6d1f5ea5a8f96d64a6caea6f5a",
+      "bytes": 16,
+      "inode": 818061,
+      "mode": 292,
+      "mtimeNs": 1793857990857588913
+    },
+    "broken.mbox": {
+      "sha256": "a0c5886153ba7035d62e90a8e3f6503e230dda6d1f5ea5a8f96d64a6caea6f5a",
+      "bytes": 16,
+      "inode": 818063,
+      "mode": 292,
+      "mtimeNs": 1793857990857640901
+    },
+    "broken.pdf": {
+      "sha256": "a0c5886153ba7035d62e90a8e3f6503e230dda6d1f5ea5a8f96d64a6caea6f5a",
+      "bytes": 16,
+      "inode": 818065,
+      "mode": 292,
+      "mtimeNs": 1793857990857685797
+    },
+    "broken.png": {
+      "sha256": "a0c5886153ba7035d62e90a8e3f6503e230dda6d1f5ea5a8f96d64a6caea6f5a",
+      "bytes": 16,
+      "inode": 818064,
+      "mode": 292,
+      "mtimeNs": 1793857990857662272
+    },
+    "broken.rtf": {
+      "sha256": "a0c5886153ba7035d62e90a8e3f6503e230dda6d1f5ea5a8f96d64a6caea6f5a",
+      "bytes": 16,
+      "inode": 818066,
+      "mode": 292,
+      "mtimeNs": 1793857990857705925
+    },
+    "broken.xlsx": {
+      "sha256": "a0c5886153ba7035d62e90a8e3f6503e230dda6d1f5ea5a8f96d64a6caea6f5a",
+      "bytes": 16,
+      "inode": 818062,
+      "mode": 292,
+      "mtimeNs": 1793857990857613790
+    },
+    "image.png": {
+      "sha256": "bc004cfbeb71413f6bd620753ae141a3103946b196e2cb6fa6abddc275972d53",
+      "bytes": 12839,
+      "inode": 818059,
+      "mode": 292,
+      "mtimeNs": 1793857990856506067
+    },
+    "legacy.doc": {
+      "sha256": "611cf70e2baa1465b27c1efae8069c8452a38ed30cfa011212c571ba72571057",
+      "bytes": 17920,
+      "inode": 818050,
+      "mode": 292,
+      "mtimeNs": 1793857990836661229
+    },
+    "mail.mbox": {
+      "sha256": "a794c294c413d05971c0424599278b3ec3e1ab20e4d35954f8973a5c1da3bb96",
+      "bytes": 400,
+      "inode": 818052,
+      "mode": 292,
+      "mtimeNs": 1793857990837006114
+    },
+    "page.pdf": {
+      "sha256": "eded7804127acce26e4b9e7138aa8c95d0d8886280a21148efb0ae9519941ede",
+      "bytes": 373820,
+      "inode": 818051,
+      "mode": 292,
+      "mtimeNs": 1793857990836754707
+    },
+    "sheet.xlsx": {
+      "sha256": "856931da8d89c55150032acd9af36d65366b428542407da338e921d09a6ed91f",
+      "bytes": 1418,
+      "inode": 818058,
+      "mode": 292,
+      "mtimeNs": 1793857990837874301
+    },
+    "text.rtf": {
+      "sha256": "c6bc2261b722bec4064edce15080a117e514eb3b65bbde2c03765a68ae2fea97",
+      "bytes": 51,
+      "inode": 818057,
+      "mode": 292,
+      "mtimeNs": 1793857990837530068
+    },
+    "unicode.csv": {
+      "sha256": "e0986d27dab5d0cd69ea865da97b98c822169c823e534c0777f63f18429dbf90",
+      "bytes": 46,
+      "inode": 818053,
+      "mode": 292,
+      "mtimeNs": 1793857990837054385
+    },
+    "word.docx": {
+      "sha256": "0b4b90a48ce3f7a81a70a97c89cc3127be2b0cf98008c3177722009a678115f6",
+      "bytes": 11478,
+      "inode": 818049,
+      "mode": 292,
+      "mtimeNs": 1793857990836546912
+    }
+  },
+  "cases": [
+    {
+      "case": "0-csv",
+      "format": "csv",
+      "options": [],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 0.038,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true,
+        "text:ALPHA": true,
+        "text:Grüße": true,
+        "text:BETA": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 6,
+        "outputs": [
+          {
+            "path": "unicode.md",
+            "sha256": "510a3ddc6cd4f434338d9edf6ea926dc353e91e63cf50d982937ad7c809b2c07",
+            "bytes": 104
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "0-docx",
+      "format": "docx",
+      "options": [
+        "--docx-changes",
+        "accept"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 0.229,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true,
+        "text:Äpfel": true,
+        "text:Grüße": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 0,
+        "outputs": [
+          {
+            "path": "images/image01.png",
+            "sha256": "161e77431664be88483d7fef7bdd0123c9ed53318cfc9d1c4fa84af80ea2ab28",
+            "bytes": 1739
+          },
+          {
+            "path": "word.md",
+            "sha256": "873c832b022aca0904b4244667dc6ac023b93b87e82ac2acdf2521b5447c70c8",
+            "bytes": 480
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "0-xlsx",
+      "format": "xlsx",
+      "options": [],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 0.036,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true,
+        "text:HEADER": true,
+        "text:Grüße": true,
+        "text:42": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 4,
+        "outputs": [
+          {
+            "path": "sheet.md",
+            "sha256": "af9843d50bd1e2d4a6139f521042bb219feb75faebd6d821ab2175e8e0169f78",
+            "bytes": 78
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "0-mbox",
+      "format": "mbox",
+      "options": [],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 0.036,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true,
+        "text:First café": true,
+        "text:Second message": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 2,
+        "outputs": [
+          {
+            "path": "assets/documents/000001/mail.md",
+            "sha256": "636d0a96c2a93dbe426089bf93a34cfcda40fb2d00ea69934ae95056fe29badd",
+            "bytes": 289
+          },
+          {
+            "path": "assets/documents/000002/mail.md",
+            "sha256": "6db0e10be66755c1ada05d30bb1026f2c7424a8d71d70137e150f63f382bd55c",
+            "bytes": 292
+          },
+          {
+            "path": "index.md",
+            "sha256": "052d21787af9f5a3d1f9a51280c20d15e9917611f71b00a8216e17a4f6726b00",
+            "bytes": 92
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "0-png",
+      "format": "png",
+      "options": [
+        "--image-ocr",
+        "off",
+        "--ocr-language",
+        "en"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 0.517,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 0,
+        "outputs": [
+          {
+            "path": "image.md",
+            "sha256": "336e229b1a2fbd7681a4d353e6d3c710a3cbf4e35c76c20a87eee87c0f0c26e1",
+            "bytes": 38
+          },
+          {
+            "path": "images/image01.png",
+            "sha256": "bc004cfbeb71413f6bd620753ae141a3103946b196e2cb6fa6abddc275972d53",
+            "bytes": 12839
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "0-pdf",
+      "format": "pdf",
+      "options": [
+        "--pdf-ocr",
+        "off",
+        "--ocr-language",
+        "en"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 1.468,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 1,
+        "outputs": [
+          {
+            "path": "images/page-1-image-1.png",
+            "sha256": "bb77c3e8e0985ed2c3d1594164cc33214c783cc7620b02efb18c9222cd496ff8",
+            "bytes": 1200970
+          },
+          {
+            "path": "images/page-1-image-2.png",
+            "sha256": "af1e4027082a1c5a0dfb9cf18ca0514f744b1f59eb03280552a1243db8d6be06",
+            "bytes": 655147
+          },
+          {
+            "path": "page.md",
+            "sha256": "28e00b8406e271e9c5047279e1daf53232cccbe721c3a7b7b2e9b6c897d60dc8",
+            "bytes": 2268
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "0-rtf",
+      "format": "rtf",
+      "options": [],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 0.193,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true,
+        "text:RTFMARK": true,
+        "text:Grüße": true,
+        "text:α": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 0,
+        "outputs": [
+          {
+            "path": "text.md",
+            "sha256": "4ae2edee3e01877773a1a686b49b7aff14aa26fe1e60f0d309f93223d7da02ca",
+            "bytes": 19
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "0-doc",
+      "format": "doc",
+      "options": [],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 2.723,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true,
+        "text:Äpfel": true,
+        "text:Grüße": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 0,
+        "outputs": [
+          {
+            "path": "images/image01.png",
+            "sha256": "161e77431664be88483d7fef7bdd0123c9ed53318cfc9d1c4fa84af80ea2ab28",
+            "bytes": 1739
+          },
+          {
+            "path": "legacy.md",
+            "sha256": "6a9ab40cda6e4273d55e625cd90ac2972cef2f9ca8b37b913aa98a9b245bd74b",
+            "bytes": 430
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "negative-csv",
+      "format": "csv",
+      "options": [],
+      "exit": 65,
+      "expected": 65,
+      "seconds": 0.036,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "noPublishedOutput": true,
+        "noStaging": true
+      },
+      "analysis": null,
+      "version": "0.41.13"
+    },
+    {
+      "case": "negative-docx",
+      "format": "docx",
+      "options": [],
+      "exit": 65,
+      "expected": 65,
+      "seconds": 0.036,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "noPublishedOutput": true,
+        "noStaging": true
+      },
+      "analysis": null,
+      "version": "0.41.13"
+    },
+    {
+      "case": "1-csv",
+      "format": "csv",
+      "options": [
+        "--frontmatter"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 0.036,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true,
+        "text:ALPHA": true,
+        "text:Grüße": true,
+        "text:BETA": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 6,
+        "outputs": [
+          {
+            "path": "unicode.md",
+            "sha256": "510a3ddc6cd4f434338d9edf6ea926dc353e91e63cf50d982937ad7c809b2c07",
+            "bytes": 104
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "1-docx",
+      "format": "docx",
+      "options": [
+        "--frontmatter",
+        "--docx-changes",
+        "reject"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 0.228,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true,
+        "text:Äpfel": true,
+        "text:Grüße": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 0,
+        "outputs": [
+          {
+            "path": "images/image01.png",
+            "sha256": "161e77431664be88483d7fef7bdd0123c9ed53318cfc9d1c4fa84af80ea2ab28",
+            "bytes": 1739
+          },
+          {
+            "path": "word.md",
+            "sha256": "5b654d1feae2a8ea06bd1d1f7219318f366ec8378a47aa3c643a3356529176c4",
+            "bytes": 549
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "1-xlsx",
+      "format": "xlsx",
+      "options": [
+        "--frontmatter"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 0.036,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true,
+        "text:HEADER": true,
+        "text:Grüße": true,
+        "text:42": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 4,
+        "outputs": [
+          {
+            "path": "sheet.md",
+            "sha256": "af9843d50bd1e2d4a6139f521042bb219feb75faebd6d821ab2175e8e0169f78",
+            "bytes": 78
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "1-mbox",
+      "format": "mbox",
+      "options": [
+        "--frontmatter"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 0.035,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true,
+        "text:First café": true,
+        "text:Second message": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 2,
+        "outputs": [
+          {
+            "path": "assets/documents/000001/mail.md",
+            "sha256": "e708e66fbbe8037a99a83d12a69d7090808f7c64a375cf310b6609b4ac1835c8",
+            "bytes": 383
+          },
+          {
+            "path": "assets/documents/000002/mail.md",
+            "sha256": "649b7abcc34d417d80745467caf62bd52261854ade3a3a0bc580176ba328edb0",
+            "bytes": 386
+          },
+          {
+            "path": "index.md",
+            "sha256": "baa483a871b4e6472dad0a165db5eb2ca4867daaa499fd9ceee7a2d36c9d6e23",
+            "bytes": 114
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "1-png",
+      "format": "png",
+      "options": [
+        "--frontmatter",
+        "--image-ocr",
+        "on",
+        "--ocr-language",
+        "en"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 0.892,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true,
+        "OCRMarker": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 1,
+        "outputs": [
+          {
+            "path": "image.md",
+            "sha256": "3ffd24dc69fd7c758422dbab47790597e27d36c142f91ba7a8e1fb2f7fb416d5",
+            "bytes": 71
+          },
+          {
+            "path": "images/image01.png",
+            "sha256": "bc004cfbeb71413f6bd620753ae141a3103946b196e2cb6fa6abddc275972d53",
+            "bytes": 12839
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "1-pdf",
+      "format": "pdf",
+      "options": [
+        "--frontmatter",
+        "--pdf-ocr",
+        "off",
+        "--ocr-language",
+        "en"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 1.46,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 1,
+        "outputs": [
+          {
+            "path": "images/page-1-image-1.png",
+            "sha256": "bb77c3e8e0985ed2c3d1594164cc33214c783cc7620b02efb18c9222cd496ff8",
+            "bytes": 1200970
+          },
+          {
+            "path": "images/page-1-image-2.png",
+            "sha256": "af1e4027082a1c5a0dfb9cf18ca0514f744b1f59eb03280552a1243db8d6be06",
+            "bytes": 655147
+          },
+          {
+            "path": "page.md",
+            "sha256": "28e00b8406e271e9c5047279e1daf53232cccbe721c3a7b7b2e9b6c897d60dc8",
+            "bytes": 2268
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "1-rtf",
+      "format": "rtf",
+      "options": [
+        "--frontmatter"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 0.193,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true,
+        "text:RTFMARK": true,
+        "text:Grüße": true,
+        "text:α": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 0,
+        "outputs": [
+          {
+            "path": "text.md",
+            "sha256": "4ae2edee3e01877773a1a686b49b7aff14aa26fe1e60f0d309f93223d7da02ca",
+            "bytes": 19
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "1-doc",
+      "format": "doc",
+      "options": [
+        "--frontmatter"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 1.875,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true,
+        "text:Äpfel": true,
+        "text:Grüße": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 0,
+        "outputs": [
+          {
+            "path": "images/image01.png",
+            "sha256": "161e77431664be88483d7fef7bdd0123c9ed53318cfc9d1c4fa84af80ea2ab28",
+            "bytes": 1739
+          },
+          {
+            "path": "legacy.md",
+            "sha256": "6a9ab40cda6e4273d55e625cd90ac2972cef2f9ca8b37b913aa98a9b245bd74b",
+            "bytes": 430
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "negative-xlsx",
+      "format": "xlsx",
+      "options": [],
+      "exit": 65,
+      "expected": 65,
+      "seconds": 0.036,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "noPublishedOutput": true,
+        "noStaging": true
+      },
+      "analysis": null,
+      "version": "0.41.13"
+    },
+    {
+      "case": "negative-mbox",
+      "format": "mbox",
+      "options": [],
+      "exit": 65,
+      "expected": 65,
+      "seconds": 0.036,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "noPublishedOutput": true,
+        "noStaging": true
+      },
+      "analysis": null,
+      "version": "0.41.13"
+    },
+    {
+      "case": "2-csv",
+      "format": "csv",
+      "options": [
+        "--textbundle"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 0.035,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true,
+        "text:ALPHA": true,
+        "text:Grüße": true,
+        "text:BETA": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 6,
+        "outputs": [
+          {
+            "path": "info.json",
+            "sha256": "9ee6297e5991ed92e21c285cb6465bee8c58e6b62cb55b3e0dc8e61abbb99c77",
+            "bytes": 141
+          },
+          {
+            "path": "text.md",
+            "sha256": "510a3ddc6cd4f434338d9edf6ea926dc353e91e63cf50d982937ad7c809b2c07",
+            "bytes": 104
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "2-docx",
+      "format": "docx",
+      "options": [
+        "--textbundle",
+        "--docx-changes",
+        "mark"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 0.228,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true,
+        "text:Äpfel": true,
+        "text:Grüße": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 0,
+        "outputs": [
+          {
+            "path": "assets/image01.png",
+            "sha256": "161e77431664be88483d7fef7bdd0123c9ed53318cfc9d1c4fa84af80ea2ab28",
+            "bytes": 1739
+          },
+          {
+            "path": "info.json",
+            "sha256": "9ee6297e5991ed92e21c285cb6465bee8c58e6b62cb55b3e0dc8e61abbb99c77",
+            "bytes": 141
+          },
+          {
+            "path": "text.md",
+            "sha256": "8642c903fefd0cc4f9e26729dc6accb9f6f99e726bd60eac7c0c95be6349e6d5",
+            "bytes": 480
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "2-xlsx",
+      "format": "xlsx",
+      "options": [
+        "--textbundle"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 0.036,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true,
+        "text:HEADER": true,
+        "text:Grüße": true,
+        "text:42": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 4,
+        "outputs": [
+          {
+            "path": "info.json",
+            "sha256": "9ee6297e5991ed92e21c285cb6465bee8c58e6b62cb55b3e0dc8e61abbb99c77",
+            "bytes": 141
+          },
+          {
+            "path": "text.md",
+            "sha256": "af9843d50bd1e2d4a6139f521042bb219feb75faebd6d821ab2175e8e0169f78",
+            "bytes": 78
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "2-mbox",
+      "format": "mbox",
+      "options": [
+        "--textbundle"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 0.036,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true,
+        "text:First café": true,
+        "text:Second message": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 2,
+        "outputs": [
+          {
+            "path": "assets/documents/000001/mail.md",
+            "sha256": "636d0a96c2a93dbe426089bf93a34cfcda40fb2d00ea69934ae95056fe29badd",
+            "bytes": 289
+          },
+          {
+            "path": "assets/documents/000002/mail.md",
+            "sha256": "6db0e10be66755c1ada05d30bb1026f2c7424a8d71d70137e150f63f382bd55c",
+            "bytes": 292
+          },
+          {
+            "path": "info.json",
+            "sha256": "9ee6297e5991ed92e21c285cb6465bee8c58e6b62cb55b3e0dc8e61abbb99c77",
+            "bytes": 141
+          },
+          {
+            "path": "text.md",
+            "sha256": "052d21787af9f5a3d1f9a51280c20d15e9917611f71b00a8216e17a4f6726b00",
+            "bytes": 92
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "2-png",
+      "format": "png",
+      "options": [
+        "--textbundle",
+        "--image-ocr",
+        "off",
+        "--ocr-language",
+        "en"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 0.517,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 0,
+        "outputs": [
+          {
+            "path": "assets/image01.png",
+            "sha256": "bc004cfbeb71413f6bd620753ae141a3103946b196e2cb6fa6abddc275972d53",
+            "bytes": 12839
+          },
+          {
+            "path": "info.json",
+            "sha256": "9ee6297e5991ed92e21c285cb6465bee8c58e6b62cb55b3e0dc8e61abbb99c77",
+            "bytes": 141
+          },
+          {
+            "path": "text.md",
+            "sha256": "c4c339a18d05e5c86899bbe7f0a1b613c36dc095628cb8b8e61a8d0abd2a6ba5",
+            "bytes": 38
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "2-pdf",
+      "format": "pdf",
+      "options": [
+        "--textbundle",
+        "--pdf-ocr",
+        "off",
+        "--ocr-language",
+        "en"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 1.465,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 1,
+        "outputs": [
+          {
+            "path": "assets/page-1-image-1.png",
+            "sha256": "bb77c3e8e0985ed2c3d1594164cc33214c783cc7620b02efb18c9222cd496ff8",
+            "bytes": 1200970
+          },
+          {
+            "path": "assets/page-1-image-2.png",
+            "sha256": "af1e4027082a1c5a0dfb9cf18ca0514f744b1f59eb03280552a1243db8d6be06",
+            "bytes": 655147
+          },
+          {
+            "path": "info.json",
+            "sha256": "9ee6297e5991ed92e21c285cb6465bee8c58e6b62cb55b3e0dc8e61abbb99c77",
+            "bytes": 141
+          },
+          {
+            "path": "text.md",
+            "sha256": "9cd6ff839f052665b49de0fd22b91c342f396ee730c52a49a20b97680ffeb30e",
+            "bytes": 2268
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "2-rtf",
+      "format": "rtf",
+      "options": [
+        "--textbundle"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 0.193,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true,
+        "text:RTFMARK": true,
+        "text:Grüße": true,
+        "text:α": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 0,
+        "outputs": [
+          {
+            "path": "info.json",
+            "sha256": "9ee6297e5991ed92e21c285cb6465bee8c58e6b62cb55b3e0dc8e61abbb99c77",
+            "bytes": 141
+          },
+          {
+            "path": "text.md",
+            "sha256": "4ae2edee3e01877773a1a686b49b7aff14aa26fe1e60f0d309f93223d7da02ca",
+            "bytes": 19
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "2-doc",
+      "format": "doc",
+      "options": [
+        "--textbundle"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 1.839,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true,
+        "text:Äpfel": true,
+        "text:Grüße": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 0,
+        "outputs": [
+          {
+            "path": "assets/image01.png",
+            "sha256": "161e77431664be88483d7fef7bdd0123c9ed53318cfc9d1c4fa84af80ea2ab28",
+            "bytes": 1739
+          },
+          {
+            "path": "info.json",
+            "sha256": "9ee6297e5991ed92e21c285cb6465bee8c58e6b62cb55b3e0dc8e61abbb99c77",
+            "bytes": 141
+          },
+          {
+            "path": "text.md",
+            "sha256": "d2dfa9d4d45f55d61dc03467df794eaeef8546dcfb5b0268dfa3bdc713d8361e",
+            "bytes": 430
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "negative-png",
+      "format": "png",
+      "options": [],
+      "exit": 65,
+      "expected": 65,
+      "seconds": 0.036,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "noPublishedOutput": true,
+        "noStaging": true
+      },
+      "analysis": null,
+      "version": "0.41.13"
+    },
+    {
+      "case": "negative-pdf",
+      "format": "pdf",
+      "options": [],
+      "exit": 65,
+      "expected": 65,
+      "seconds": 0.213,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "noPublishedOutput": true,
+        "noStaging": true
+      },
+      "analysis": null,
+      "version": "0.41.13"
+    },
+    {
+      "case": "3-csv",
+      "format": "batch",
+      "options": [
+        "--progress",
+        "--jobs",
+        "4"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 0.035,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true,
+        "text:ALPHA": true,
+        "text:Grüße": true,
+        "text:BETA": true
+      },
+      "analysis": {
+        "manifestCount": 2,
+        "mappingCount": 12,
+        "outputs": [
+          {
+            "path": "one.md",
+            "sha256": "3740298f5d26b6371cab66fc7e41b888f907ca0d6653aa6c5cb7c27874f982c3",
+            "bytes": 96
+          },
+          {
+            "path": "two.md",
+            "sha256": "04dcfa55040ca5fc2eb2688e301ddbe6d1625ea57c34ade0caf93afba423dbe9",
+            "bytes": 96
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "3-docx",
+      "format": "docx",
+      "options": [
+        "--progress",
+        "--jobs",
+        "4",
+        "--docx-changes",
+        "accept"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 0.228,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true,
+        "text:Äpfel": true,
+        "text:Grüße": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 0,
+        "outputs": [
+          {
+            "path": "images/image01.png",
+            "sha256": "161e77431664be88483d7fef7bdd0123c9ed53318cfc9d1c4fa84af80ea2ab28",
+            "bytes": 1739
+          },
+          {
+            "path": "word.md",
+            "sha256": "873c832b022aca0904b4244667dc6ac023b93b87e82ac2acdf2521b5447c70c8",
+            "bytes": 480
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "3-xlsx",
+      "format": "xlsx",
+      "options": [
+        "--progress",
+        "--jobs",
+        "4"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 0.036,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true,
+        "text:HEADER": true,
+        "text:Grüße": true,
+        "text:42": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 4,
+        "outputs": [
+          {
+            "path": "sheet.md",
+            "sha256": "af9843d50bd1e2d4a6139f521042bb219feb75faebd6d821ab2175e8e0169f78",
+            "bytes": 78
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "3-mbox",
+      "format": "mbox",
+      "options": [
+        "--progress",
+        "--jobs",
+        "4"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 0.035,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true,
+        "text:First café": true,
+        "text:Second message": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 2,
+        "outputs": [
+          {
+            "path": "assets/documents/000001/mail.md",
+            "sha256": "636d0a96c2a93dbe426089bf93a34cfcda40fb2d00ea69934ae95056fe29badd",
+            "bytes": 289
+          },
+          {
+            "path": "assets/documents/000002/mail.md",
+            "sha256": "6db0e10be66755c1ada05d30bb1026f2c7424a8d71d70137e150f63f382bd55c",
+            "bytes": 292
+          },
+          {
+            "path": "index.md",
+            "sha256": "052d21787af9f5a3d1f9a51280c20d15e9917611f71b00a8216e17a4f6726b00",
+            "bytes": 92
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "3-png",
+      "format": "png",
+      "options": [
+        "--progress",
+        "--jobs",
+        "4",
+        "--image-ocr",
+        "on",
+        "--ocr-language",
+        "en"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 0.877,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true,
+        "OCRMarker": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 1,
+        "outputs": [
+          {
+            "path": "image.md",
+            "sha256": "3ffd24dc69fd7c758422dbab47790597e27d36c142f91ba7a8e1fb2f7fb416d5",
+            "bytes": 71
+          },
+          {
+            "path": "images/image01.png",
+            "sha256": "bc004cfbeb71413f6bd620753ae141a3103946b196e2cb6fa6abddc275972d53",
+            "bytes": 12839
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "3-pdf",
+      "format": "pdf",
+      "options": [
+        "--progress",
+        "--jobs",
+        "4",
+        "--pdf-ocr",
+        "auto",
+        "--ocr-language",
+        "en"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 1.45,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 1,
+        "outputs": [
+          {
+            "path": "images/page-1-image-1.png",
+            "sha256": "bb77c3e8e0985ed2c3d1594164cc33214c783cc7620b02efb18c9222cd496ff8",
+            "bytes": 1200970
+          },
+          {
+            "path": "images/page-1-image-2.png",
+            "sha256": "af1e4027082a1c5a0dfb9cf18ca0514f744b1f59eb03280552a1243db8d6be06",
+            "bytes": 655147
+          },
+          {
+            "path": "page.md",
+            "sha256": "28e00b8406e271e9c5047279e1daf53232cccbe721c3a7b7b2e9b6c897d60dc8",
+            "bytes": 2268
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "3-rtf",
+      "format": "rtf",
+      "options": [
+        "--progress",
+        "--jobs",
+        "4"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 0.193,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true,
+        "text:RTFMARK": true,
+        "text:Grüße": true,
+        "text:α": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 0,
+        "outputs": [
+          {
+            "path": "text.md",
+            "sha256": "4ae2edee3e01877773a1a686b49b7aff14aa26fe1e60f0d309f93223d7da02ca",
+            "bytes": 19
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "3-doc",
+      "format": "doc",
+      "options": [
+        "--progress",
+        "--jobs",
+        "4"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 1.881,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true,
+        "text:Äpfel": true,
+        "text:Grüße": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 0,
+        "outputs": [
+          {
+            "path": "images/image01.png",
+            "sha256": "161e77431664be88483d7fef7bdd0123c9ed53318cfc9d1c4fa84af80ea2ab28",
+            "bytes": 1739
+          },
+          {
+            "path": "legacy.md",
+            "sha256": "6a9ab40cda6e4273d55e625cd90ac2972cef2f9ca8b37b913aa98a9b245bd74b",
+            "bytes": 430
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "negative-rtf",
+      "format": "rtf",
+      "options": [],
+      "exit": 65,
+      "expected": 65,
+      "seconds": 0.036,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "noPublishedOutput": true,
+        "noStaging": true
+      },
+      "analysis": null,
+      "version": "0.41.13"
+    },
+    {
+      "case": "negative-doc",
+      "format": "doc",
+      "options": [],
+      "exit": 65,
+      "expected": 65,
+      "seconds": 0.182,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "noPublishedOutput": true,
+        "noStaging": true
+      },
+      "analysis": null,
+      "version": "0.41.13"
+    },
+    {
+      "case": "4-csv",
+      "format": "csv",
+      "options": [],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 0.036,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true,
+        "text:ALPHA": true,
+        "text:Grüße": true,
+        "text:BETA": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 6,
+        "outputs": [
+          {
+            "path": "unicode.md",
+            "sha256": "510a3ddc6cd4f434338d9edf6ea926dc353e91e63cf50d982937ad7c809b2c07",
+            "bytes": 104
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "4-docx",
+      "format": "docx",
+      "options": [
+        "--docx-changes",
+        "reject"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 0.228,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true,
+        "text:Äpfel": true,
+        "text:Grüße": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 0,
+        "outputs": [
+          {
+            "path": "images/image01.png",
+            "sha256": "161e77431664be88483d7fef7bdd0123c9ed53318cfc9d1c4fa84af80ea2ab28",
+            "bytes": 1739
+          },
+          {
+            "path": "word.md",
+            "sha256": "873c832b022aca0904b4244667dc6ac023b93b87e82ac2acdf2521b5447c70c8",
+            "bytes": 480
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "4-xlsx",
+      "format": "xlsx",
+      "options": [
+        "--spreadsheet-format",
+        "tsv"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 0.036,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true,
+        "text:HEADER": true,
+        "text:Grüße": true,
+        "text:42": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 4,
+        "outputs": [
+          {
+            "path": "sheet.md",
+            "sha256": "cd70b0acef4c556cb4a8dd96f9147f519fd05adea2bd303ef5f44167c5e36eb8",
+            "bytes": 63
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "4-mbox",
+      "format": "mbox",
+      "options": [],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 0.035,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true,
+        "text:First café": true,
+        "text:Second message": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 2,
+        "outputs": [
+          {
+            "path": "assets/documents/000001/mail.md",
+            "sha256": "636d0a96c2a93dbe426089bf93a34cfcda40fb2d00ea69934ae95056fe29badd",
+            "bytes": 289
+          },
+          {
+            "path": "assets/documents/000002/mail.md",
+            "sha256": "6db0e10be66755c1ada05d30bb1026f2c7424a8d71d70137e150f63f382bd55c",
+            "bytes": 292
+          },
+          {
+            "path": "index.md",
+            "sha256": "052d21787af9f5a3d1f9a51280c20d15e9917611f71b00a8216e17a4f6726b00",
+            "bytes": 92
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "4-png",
+      "format": "png",
+      "options": [
+        "--image-ocr",
+        "on",
+        "--ocr-language",
+        "en"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 0.866,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true,
+        "OCRMarker": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 1,
+        "outputs": [
+          {
+            "path": "image.md",
+            "sha256": "3ffd24dc69fd7c758422dbab47790597e27d36c142f91ba7a8e1fb2f7fb416d5",
+            "bytes": 71
+          },
+          {
+            "path": "images/image01.png",
+            "sha256": "bc004cfbeb71413f6bd620753ae141a3103946b196e2cb6fa6abddc275972d53",
+            "bytes": 12839
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "4-pdf",
+      "format": "pdf",
+      "options": [
+        "--pdf-ocr",
+        "always",
+        "--ocr-language",
+        "en"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 3.338,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 1,
+        "outputs": [
+          {
+            "path": "images/page-1-image-1.png",
+            "sha256": "bb77c3e8e0985ed2c3d1594164cc33214c783cc7620b02efb18c9222cd496ff8",
+            "bytes": 1200970
+          },
+          {
+            "path": "images/page-1-image-2.png",
+            "sha256": "af1e4027082a1c5a0dfb9cf18ca0514f744b1f59eb03280552a1243db8d6be06",
+            "bytes": 655147
+          },
+          {
+            "path": "page.md",
+            "sha256": "28e00b8406e271e9c5047279e1daf53232cccbe721c3a7b7b2e9b6c897d60dc8",
+            "bytes": 2268
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "4-rtf",
+      "format": "rtf",
+      "options": [],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 0.193,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true,
+        "text:RTFMARK": true,
+        "text:Grüße": true,
+        "text:α": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 0,
+        "outputs": [
+          {
+            "path": "text.md",
+            "sha256": "4ae2edee3e01877773a1a686b49b7aff14aa26fe1e60f0d309f93223d7da02ca",
+            "bytes": 19
+          }
+        ]
+      },
+      "version": "0.41.13"
+    },
+    {
+      "case": "4-doc",
+      "format": "doc",
+      "options": [],
+      "exit": 0,
+      "expected": 0,
+      "seconds": 1.889,
+      "runtimeSHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+      "cleanup": {
+        "liveAdoptedBeforeCleanup": 0,
+        "adoptedReaped": 0,
+        "childrenAfterCleanup": 0
+      },
+      "checks": {
+        "expectedExit": true,
+        "sourceIdentityUnchanged": true,
+        "noLiveOwnedDescendants": true,
+        "expectedVersion:0.41.13": true,
+        "expectedJSON": true,
+        "manifestAndUTF8Mappings": true,
+        "text:Äpfel": true,
+        "text:Grüße": true
+      },
+      "analysis": {
+        "manifestCount": 1,
+        "mappingCount": 0,
+        "outputs": [
+          {
+            "path": "images/image01.png",
+            "sha256": "161e77431664be88483d7fef7bdd0123c9ed53318cfc9d1c4fa84af80ea2ab28",
+            "bytes": 1739
+          },
+          {
+            "path": "legacy.md",
+            "sha256": "6a9ab40cda6e4273d55e625cd90ac2972cef2f9ca8b37b913aa98a9b245bd74b",
+            "bytes": 430
+          }
+        ]
+      },
+      "version": "0.41.13"
+    }
+  ],
+  "failures": [],
+  "aborted": false,
+  "finalCleanup": {
+    "liveAdoptedBeforeCleanup": 0,
+    "adoptedReaped": 0,
+    "childrenAfterCleanup": 0
+  },
+  "seconds": 26.423,
+  "uniformRuntimeSHA256": true,
+  "allPassed": true
+}

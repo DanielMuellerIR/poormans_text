@@ -97,3 +97,8 @@ Der Prüfer liest die erwartete Version jetzt aus dem ausdrücklich gewählten R
 statt historische .10 fest vorauszusetzen. Eine neue Runtime darf weiterhin
 nicht während der Serie ausgetauscht werden. Der erste neue Sandboxversuch war
 kein Produktbeleg; [Einordnung](../P16-04112/README.md).
+
+[0.41.13](../P16-04113/series.json) besteht nach RTFD-/PID1-Erweiterung erneut
+48 Neustarts am CLI26470eaf… in26,423s,374/374 Fallprüfungen, Quellen und
+Manifeste stabil, keine lebenden/adoptierten Restnachkommen. Diese Wiederholung
+ist dem neuen ELF zugeordnet; ältere erfolgreiche Serien behalten ihre Hashes.

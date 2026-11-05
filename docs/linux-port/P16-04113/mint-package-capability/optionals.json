@@ -1,0 +1,1 @@
+{"host": "Popocatepetl", "overlayListed": true, "tools": {"pandoc": null, "tesseract": null, "libreoffice": "/usr/bin/libreoffice", "soffice": "/usr/bin/soffice"}, "pythonModules": {"gi": true, "cairo": true, "PIL": true, "uno": true}, "typelibs": [], "libheif": ["/usr/lib/x86_64-linux-gnu/libheif.so.1.17.6", "/usr/lib/x86_64-linux-gnu/libheif.so.1"], "tesseractLanguages": null}

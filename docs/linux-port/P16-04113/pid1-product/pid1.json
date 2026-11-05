@@ -1,0 +1,24 @@
+{
+  "status": {
+    "Name": "poormans-text",
+    "State": "R (running)",
+    "Pid": "1",
+    "PPid": "0",
+    "Uid": "1000\t1000\t1000\t1000",
+    "NSpid": "1"
+  },
+  "exe": "/runtime/bin/poormans-text",
+  "argv": [
+    "/runtime/bin/poormans-text",
+    "--json",
+    "--report",
+    "--timeout",
+    "60",
+    "--output",
+    "/work/result",
+    "--",
+    "/work/source.rtf",
+    ""
+  ],
+  "noSwiftSDK": true
+}

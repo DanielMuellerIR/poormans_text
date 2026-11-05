@@ -1,0 +1,13 @@
+{
+  "exit": 0,
+  "ok": true,
+  "sourceSHA256": "4bf614958d3ff0f9b579063615057cd54f344c7a700c34525361a8f681259a42",
+  "sourceUnchanged": true,
+  "orderedParagraphsIndependentlyCompared": 12000,
+  "allUnicodeParagraphsEqual": true,
+  "markdownSHA256": "cbeaf1d9f87aa054e88708e7279c617fc77c2c60e94ab4bba9629661f66147a9",
+  "outputManifestChecked": true,
+  "noProcessCaptureResidue": true,
+  "firstLine": "PIDONE00000 Alpha Gr\u00fc\u00dfe",
+  "lastLine": "PIDONE11999 Alpha Gr\u00fc\u00dfe"
+}

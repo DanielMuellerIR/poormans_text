@@ -1,0 +1,8 @@
+{
+  "runtimeUnchanged": true,
+  "noOwnRemainingProcesses": true,
+  "remainingOwnPIDs": [],
+  "nativeHEICSingleSuccess": true,
+  "nativeHEICMultiRejected": true,
+  "rtfdCaseCount": 25
+}

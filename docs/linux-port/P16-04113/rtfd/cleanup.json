@@ -1,0 +1,12 @@
+{
+  "cleaned": true,
+  "ownContainerAbsent": true,
+  "rootIdentity": {
+    "device": 57,
+    "inode": 816783
+  },
+  "rootAbsent": true,
+  "noRuntimeCopyCreated": true,
+  "sharedImageRetained": true,
+  "timeUTC": "2026-11-05T05:53:24.889128+00:00"
+}

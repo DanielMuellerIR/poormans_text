@@ -1,0 +1,24 @@
+Test Suite 'Selected tests' started at 2026-11-05 06:44:11.314
+Test Suite 'RTFDTests' started at 2026-11-05 06:44:11.315
+Test Case 'RTFDTests.testLeavesNonAttachmentBytesAndBinaryCodeExamplesUnchanged' started at 2026-11-05 06:44:11.315
+Test Case 'RTFDTests.testLeavesNonAttachmentBytesAndBinaryCodeExamplesUnchanged' passed (0.003 seconds)
+Test Case 'RTFDTests.testLiteralListsKeepInlineMarkupAndManualBreaks' started at 2026-11-05 06:44:11.318
+Test Case 'RTFDTests.testLiteralListsKeepInlineMarkupAndManualBreaks' passed (0.002 seconds)
+Test Case 'RTFDTests.testPreservesRTFBytesAroundValidatedPNGAndRestoresOnePosition' started at 2026-11-05 06:44:11.320
+Test Case 'RTFDTests.testPreservesRTFBytesAroundValidatedPNGAndRestoresOnePosition' passed (0.001 seconds)
+Test Case 'RTFDTests.testRejectsDecoderBypassAndMalformedGroups' started at 2026-11-05 06:44:11.322
+Test Case 'RTFDTests.testRejectsDecoderBypassAndMalformedGroups' passed (0.001 seconds)
+Test Case 'RTFDTests.testRejectsMemberSymlinkAndFIFOWithoutBlocking' started at 2026-11-05 06:44:11.323
+Test Case 'RTFDTests.testRejectsMemberSymlinkAndFIFOWithoutBlocking' passed (0.001 seconds)
+Test Case 'RTFDTests.testRejectsMultipleFramesAndMismatchedRasterExtensions' started at 2026-11-05 06:44:11.323
+Test Case 'RTFDTests.testRejectsMultipleFramesAndMismatchedRasterExtensions' passed (0.718 seconds)
+Test Case 'RTFDTests.testRejectsReaderImagesOutsideValidatedPackageReferences' started at 2026-11-05 06:44:12.042
+Test Case 'RTFDTests.testRejectsReaderImagesOutsideValidatedPackageReferences' passed (0.001 seconds)
+Test Case 'RTFDTests.testRejectsUnsafeOrMissingAttachmentReferences' started at 2026-11-05 06:44:12.042
+Test Case 'RTFDTests.testRejectsUnsafeOrMissingAttachmentReferences' passed (0.001 seconds)
+Test Case 'RTFDTests.testSingleFrameRasterAttachmentsKeepOriginalBytesExtensionAndPosition' started at 2026-11-05 06:44:12.043
+Test Case 'RTFDTests.testSingleFrameRasterAttachmentsKeepOriginalBytesExtensionAndPosition' passed (0.879 seconds)
+Test Suite 'RTFDTests' passed at 2026-11-05 06:44:12.923
+	 Executed 9 tests, with 0 failures (0 unexpected) in 1.607 (1.607) seconds
+Test Suite 'Selected tests' passed at 2026-11-05 06:44:12.923
+	 Executed 9 tests, with 0 failures (0 unexpected) in 1.607 (1.607) seconds

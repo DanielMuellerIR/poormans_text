@@ -346,5 +346,11 @@
     "pmt-04114-packages-evidence.json",
     "pmt-04114-packages-verify.log"
   ],
-  "finalizedUTC": "2026-11-05T07:48:34.111945+00:00"
+  "finalizedUTC": "2026-11-05T07:48:34.111945+00:00",
+  "ownIdleInhibitor": {
+    "pid": 1505885,
+    "recordedEndUTC": "2026-11-05T08:00:00Z",
+    "released": true,
+    "completedUTC": "2026-11-05T07:50:35.385776+00:00"
+  }
 }

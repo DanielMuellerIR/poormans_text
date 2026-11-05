@@ -1,0 +1,131 @@
+{
+  "dates": {
+    "exit": 0,
+    "diagnostics": [
+      "pdf.layoutNotPreserved",
+      "pdf.vectorGraphicsNotExtracted",
+      "pdf.linuxLayoutApproximation",
+      "pdf.annotationMetadataApproximation",
+      "pdf.imagesRasterized"
+    ],
+    "markdownSHA256": "588eb808ade341a70c67284e0365f9860f2e2b20ef1ad4e7dd99134be4971833",
+    "assertionsPassed": true
+  },
+  "structured-off": {
+    "exit": 0,
+    "diagnostics": [
+      "pdf.layoutNotPreserved",
+      "pdf.vectorGraphicsNotExtracted",
+      "pdf.linuxLayoutApproximation",
+      "pdf.annotationMetadataApproximation",
+      "pdf.imagesRasterized"
+    ],
+    "markdownSHA256": "888d38764dd389243549ad0762806b37ff9677fe5a68c9748021beaf04cf0f78",
+    "assertionsPassed": true
+  },
+  "digital": {
+    "exit": 0,
+    "diagnostics": [
+      "pdf.layoutNotPreserved",
+      "pdf.vectorGraphicsNotExtracted",
+      "pdf.linuxLayoutApproximation",
+      "pdf.annotationMetadataApproximation",
+      "pdf.imagesRasterized"
+    ],
+    "markdownSHA256": "888d38764dd389243549ad0762806b37ff9677fe5a68c9748021beaf04cf0f78",
+    "assertionsPassed": true
+  },
+  "mixed": {
+    "exit": 0,
+    "diagnostics": [
+      "pdf.layoutNotPreserved",
+      "pdf.vectorGraphicsNotExtracted",
+      "pdf.linuxLayoutApproximation",
+      "pdf.ocrApplied",
+      "pdf.imagesRasterized"
+    ],
+    "markdownSHA256": "41bfd10a084e8ea5bba50eebf72e120bbab3568726db934c47680b0b9fc228d8",
+    "assertionsPassed": true
+  },
+  "mixed-default": {
+    "exit": 0,
+    "diagnostics": [
+      "pdf.layoutNotPreserved",
+      "pdf.vectorGraphicsNotExtracted",
+      "pdf.linuxLayoutApproximation",
+      "pdf.ocrApplied",
+      "ocr.languageDefault",
+      "pdf.imagesRasterized"
+    ],
+    "markdownSHA256": "59525e1b10070cf346d6a217912d55f61bab08f329ec86848e997e26296df12f",
+    "assertionsPassed": true
+  },
+  "second": {
+    "exit": 0,
+    "diagnostics": [
+      "pdf.layoutNotPreserved",
+      "pdf.vectorGraphicsNotExtracted",
+      "pdf.linuxLayoutApproximation"
+    ],
+    "markdownSHA256": "2ab15ccb2bb627f0cd1669942c42b5b051aa05637fe8dfb49cc1455445e5152e",
+    "assertionsPassed": true
+  },
+  "broken": {
+    "exit": 65,
+    "diagnostics": [],
+    "markdownSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "assertionsPassed": true
+  },
+  "encrypted": {
+    "exit": 65,
+    "diagnostics": [],
+    "markdownSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "assertionsPassed": true
+  },
+  "structured": {
+    "exit": 69,
+    "diagnostics": [],
+    "markdownSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "assertionsPassed": true
+  },
+  "headers": {
+    "exit": 0,
+    "diagnostics": [
+      "pdf.layoutNotPreserved",
+      "pdf.vectorGraphicsNotExtracted",
+      "pdf.linuxLayoutApproximation",
+      "pdf.repeatedMarginRemoved",
+      "pdf.repeatedMarginRemoved"
+    ],
+    "markdownSHA256": "cd07ab2b84c77cee625a681f7b2d6f20849ae671373321e4c3051967fc5e892d",
+    "assertionsPassed": true
+  },
+  "hyphen": {
+    "exit": 0,
+    "diagnostics": [
+      "pdf.layoutNotPreserved",
+      "pdf.vectorGraphicsNotExtracted",
+      "pdf.linuxLayoutApproximation"
+    ],
+    "markdownSHA256": "72a1c742e20f5fd900c1803439ff6a81144adea22fe1d249aab5497334b7ee92",
+    "assertionsPassed": true
+  },
+  "legacy": {
+    "exit": 0,
+    "diagnostics": [
+      "pdf.layoutNotPreserved",
+      "pdf.vectorGraphicsNotExtracted",
+      "pdf.linuxLayoutApproximation",
+      "pdf.annotationMetadataApproximation",
+      "pdf.imagesRasterized"
+    ],
+    "markdownSHA256": "08d29efb70939135ddc108651e0aa3bc27dd7617c8fe65fe01ee88e042e5e5e4",
+    "assertionsPassed": true
+  },
+  "out-of-range": {
+    "exit": 65,
+    "diagnostics": [],
+    "markdownSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "assertionsPassed": true
+  }
+}

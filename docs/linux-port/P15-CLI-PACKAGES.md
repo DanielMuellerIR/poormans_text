@@ -48,8 +48,7 @@ laufen; er verweigert den normalen Hostaufruf. `scripts/LinuxPackageTest.Dockerf
 erstellt dessen Umgebung. Alte/neue DEBs und Prüfer werden nur read-only eingebunden.
 Kleine Ergebnisse stehen unter [P15-EVIDENCE](P15-EVIDENCE/packages.json).
 
-Offen bleiben echte Desktopinstallation, vollständige Arch-Abhängigkeitsabnahme,
-Mint-Paketinstallation sowie die abschließende Distributions-/Lizenzprüfung vor
+Offen bleiben echte Desktopinstallation, Mint-Paketinstallation sowie die abschließende Distributions-/Lizenzprüfung vor
 öffentlicher Weitergabe. Die bereits bestandene Laufzeitprüfung auf Mint ist
 keine durchgeführte native Paketinstallation.
 
@@ -68,6 +67,38 @@ Benutzer ein Profil an, aktualisiert auf das GUI-Paket 0.41.10 und entfernt dies
 Quelle und Profil bleiben erhalten. Die echte Release-GUI wurde auf privatem Xvfb
 mit Dateiöffnung, Maus-/Tastaturkonvertierung und visuell geprüfter Textvorschau
 benutzt. Die tatsächliche Arch-ALPM-Dateitransaktion wurde auch für das GUI-Paket
-wiederholt; Abhängigkeitsauflösung/frische Arch-Chroot bleiben ausdrücklich offen.
+wiederholt; die damalige Probe übersprang Abhängigkeiten. Die neue reguläre Abnahme folgt unten.
 Kleine Belege liegen unter [P12-P14-EVIDENCE](P12-P14-EVIDENCE/packages.json).
 Die entsprechenden GUI-/Systemgrenzen nennt der [GTK-Bericht](P12-P14-GUI.md).
+
+## Frische reguläre Arch-Abnahme 0.41.11
+
+Das offizielle Arch-Basisimage wurde per Digest gebunden und mit normalem
+`pacman -Syu` sowie regulärer Abhängigkeitsauflösung vorbereitet. Alle 597
+Distro-Pakete sind in der nativen Datenbank signaturvalidiert; die Default-
+Policy blieb unverändert. Die lokalen PMT-Testpakete sind per SHA256 geprüft;
+eine kryptografische PMT-Releasesignatur wird dadurch nicht behauptet. Das
+Setup blieb mit rund 433 MiB Basis-/Paketarchiven unter seinem 1-GiB-Budget.
+
+Im frischen Container ohne Swift-SDK und ohne Netz bestehen Installation von
+0.41.10, echtes Upgrade auf 0.41.11 und Entfernung ohne `--nodeps`, deaktivierte
+Hooks oder Signaturoverride. Die tatsächliche installierte CLI wird durch
+SHA256 an den getesteten Releasebuild gebunden. UID1000 konvertiert Unicode-CSV
+und sechs HEIC-Varianten mit OCR aus/an; Originalassets, Frames, Berichts- und
+Quellhashes stimmen. Zusätzlich bestehen alle 13 PDF- und 15 Rasterfälle.
+
+Die normale installierte Produktions-GUI läuft mit Distro-GTK unter privatem
+Xvfb/D-Bus, ohne Swift-Library-Pfad im GTK-Prozess. Eine tatsächliche AT-SPI-
+Convert-Aktion liefert Completed und die erwarteten Unicodewerte in der passiven
+Markdownansicht. Der Screenshot ist visuell geprüft. Nach abschließender
+Entfernung bleiben 44 Fixture-/Ausgabedateien unverändert; es gibt keine
+übrigen UID1000-Testprozesse. Der eigene Container und seine Paketkopien sind
+entfernt. [Kleine Belege](P15-EVIDENCE/fresh-arch/product-04111.json) und
+Reproduktion unter `scripts/linux-probes/p15/fresh_arch/` bleiben erhalten.
+
+Diese bestandene Produktionsprobe schließt die frühere Lücke der regulären
+Arch-Abhängigkeiten. Sie ersetzt keine KDE-/Cinnamon-/Wayland-Desktopabnahme,
+Mint-Paketinstallation oder öffentliche Distributionsfreigabe. Die drei
+0.41.11-Paketformate bestehen auch erneut die [restriktiven Modus-, Verschiebe-
+und Kollisionsproben](P15-EVIDENCE/packages-04111.json). Jedes ausgelieferte ELF
+muss x86_64 und höchstens glibc 2.39 sein.

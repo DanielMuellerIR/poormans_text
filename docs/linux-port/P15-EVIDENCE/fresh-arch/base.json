@@ -1,0 +1,25 @@
+{
+  "reference": "docker.io/library/archlinux:base-20261101.0.620205@sha256:42217d5f09e11d3fe7ad3b309b7fde891d458464dab5d674e629073765610427",
+  "architecture": {
+    "architecture": "amd64",
+    "os": "linux"
+  },
+  "source": "https://gitlab.archlinux.org/archlinux/archlinux-docker.git#08ea53eee268690de85fe4de2ccf30a8711c909e:.",
+  "imageCreated": "2026-11-02T20:06:26Z",
+  "baseCompressedBytes": 134251498,
+  "layers": [
+    {
+      "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+      "digest": "sha256:3f244b8f0c1879e8b146b9f4da81fbad49a1de2731bd96155d3bf9c4fd00f0e5",
+      "size": 134242784
+    },
+    {
+      "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+      "digest": "sha256:78875d6118c2f9302fe11ab479d1f15b4246b1decd0aff9ffbe74faedd3a1d43",
+      "size": 8714
+    }
+  ],
+  "localPreparedImageID": "sha256:333a63abc2687d3c14a4e2e440f0f80e4e295a7db8b935623c8daaa8ba01f713",
+  "localPreparedImageTag": "pmt-linux-arch-test:20261105",
+  "syncDBBytesOnDisk": 9135931
+}

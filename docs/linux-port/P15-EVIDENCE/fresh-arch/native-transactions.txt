@@ -1,0 +1,7 @@
+[2026-11-05T03:44:40+0000] [ALPM] installed poormans-text (0.41.10-1)
+[2026-11-05T03:45:19+0000] [ALPM] removed poormans-text (0.41.10-1)
+[2026-11-05T03:45:26+0000] [ALPM] installed poormans-text (0.41.10-1)
+[2026-11-05T03:45:27+0000] [ALPM] upgraded poormans-text (0.41.10-1 -> 0.41.11-1)
+[2026-11-05T03:45:38+0000] [ALPM] removed poormans-text (0.41.11-1)
+[2026-11-05T03:46:47+0000] [ALPM] installed poormans-text (0.41.11-1)
+[2026-11-05T03:49:16+0000] [ALPM] removed poormans-text (0.41.11-1)

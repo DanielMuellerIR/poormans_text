@@ -1,0 +1,63 @@
+{
+  "package": {
+    "version": "0.41.11-1",
+    "sha256": "72029d6f85f5574a7a3c03bc3399a803201114af5baaf9ffa5120a023d3d03f1"
+  },
+  "previousPackage": {
+    "version": "0.41.10-1",
+    "sha256": "291719978336e293fb4bb16aae08ba62777d42f55491d117f0b0847a56635972"
+  },
+  "freshArchContainer": true,
+  "regularDependencyResolution": true,
+  "signaturePolicyUnchanged": true,
+  "localPackageSignaturePolicy": "Unmodified official-image LocalFileSigLevel Optional TrustedOnly; checksum-verified local PMT test artifact",
+  "noSwiftSDK": true,
+  "transactions": [
+    {
+      "operation": "install-previous",
+      "installed": "poormans-text 0.41.10-1"
+    },
+    {
+      "operation": "upgrade",
+      "installed": "poormans-text 0.41.11-1"
+    },
+    {
+      "operation": "remove",
+      "packageFilesAbsent": true,
+      "userDataUnchanged": true
+    }
+  ],
+  "installedCLISHA256": "66ec0c0ded5e2d3ef06d84b476b68f2a39b1493cf5c4d8c61fedeecc89a40244",
+  "unprivilegedRuntimeUID": 1000,
+  "unicodeCSVAndReportHashes": true,
+  "installedArchHEICOffAndOn": 6,
+  "HEICOriginalBytesAndPNGs": true,
+  "gui": {
+    "uid": 1000,
+    "productionGUI": true,
+    "privateXvfbAndDBus": true,
+    "GTKUsesDistroLibraries": true,
+    "realAccessibleConvertAction": true,
+    "GUIFinishedReceivingResult": true,
+    "CSVMarkerAndUnicode": true,
+    "sourceUnchanged": true,
+    "markdownSHA256": "133ab1361b4eaa94838e21845e531ea884f1b861496243984e4990211335c71b"
+  },
+  "guiCompletedProofPhase": "Separate reinstall of the same SHA256-verified current package after the complete install/upgrade/remove transaction",
+  "guiScreenshotSHA256": "e2bf6662e115a83f6a434487cc7d211d76d254cfc66a709e7ea76895c1dac49c",
+  "fixtureSHA256": {
+    "oversize.heic": "76b5f7f4dd67e32f84ad31a87b44e1553821cbfa2802a12fcf58ee6ee284838f",
+    "broken.heic": "2c3f3fffa926349f6955aaa72ec0656f39f7564e5f12c7878ccaf8e6415789c6",
+    "too-many.heic": "83e860b78192c3a37600e3c10cf62d7e164b9fc7027d79a1fa9747c12bbda738",
+    "multi.heic": "e531ca1e681768f23545661935e50569b952c7dda5bf4b23476f828a8113e6de",
+    "rotated.heic": "28fb572d69fcae89a8ae92c3ffd8dd78724ccf8a1f102ddd7bf2f0e431ca1e7a",
+    "single.heic": "d3ba28ae03b0459390e6db6df595c67136f66c6bc1aa12457efefa003a24192b"
+  },
+  "postRegressionRemoval": {
+    "packageFilesAbsent": true,
+    "fixtureAndOutputFilesUnchanged": 44
+  },
+  "installedGUISHA256": "94ad620d59559bc7f956c61b68880635f4bfc40c6f14655574ae8f6d10ece6ba",
+  "installedGuardSHA256": "cf677f9be88095a27423ceedb9db2b85667f7775d167857cfb52002ff5dda520",
+  "rootVisualCheck": "Completed, Unicode marker and passive Markdown visible; screenshot checked by Root."
+}

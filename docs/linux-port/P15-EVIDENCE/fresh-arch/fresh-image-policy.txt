@@ -1,0 +1,6 @@
+SigLevel = PackageRequired
+SigLevel = PackageTrustedOnly
+SigLevel = DatabaseOptional
+SigLevel = DatabaseTrustedOnly
+LocalFileSigLevel = PackageOptional
+LocalFileSigLevel = PackageTrustedOnly

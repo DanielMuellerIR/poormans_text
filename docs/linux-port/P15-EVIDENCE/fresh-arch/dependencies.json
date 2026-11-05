@@ -1,0 +1,2997 @@
+{
+  "packages": [
+    {
+      "Name": "acl",
+      "Version": "2.4.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "adwaita-cursors",
+      "Version": "51.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "adwaita-fonts",
+      "Version": "51.0-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "adwaita-icon-theme",
+      "Version": "51.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "adwaita-icon-theme-legacy",
+      "Version": "46.2-3",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "alsa-lib",
+      "Version": "1.2.16.1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "alsa-topology-conf",
+      "Version": "1.2.5.1-4",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "alsa-ucm-conf",
+      "Version": "1.2.16.1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "aom",
+      "Version": "3.15.3-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "archlinux-keyring",
+      "Version": "20260909-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "at-spi2-core",
+      "Version": "2.62.1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "attr",
+      "Version": "2.6.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "audit",
+      "Version": "4.2.1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "avahi",
+      "Version": "1:0.9rc5-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "base",
+      "Version": "3-3",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "bash",
+      "Version": "5.3.20-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "binutils",
+      "Version": "2.47-4",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "brotli",
+      "Version": "1.2.1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "bubblewrap",
+      "Version": "0.13.1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "bzip2",
+      "Version": "1.0.8-6",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "ca-certificates",
+      "Version": "20240618-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "ca-certificates-mozilla",
+      "Version": "3.132-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "ca-certificates-utils",
+      "Version": "20240618-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "cairo",
+      "Version": "1.18.6-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "coreutils",
+      "Version": "9.12-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "cryptsetup",
+      "Version": "2.8.8-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "curl",
+      "Version": "8.23.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "dav1d",
+      "Version": "1.5.4-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "db5.3",
+      "Version": "5.3.28-7",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "dbus",
+      "Version": "1.16.2-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "dbus-broker",
+      "Version": "37-3",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "dbus-broker-units",
+      "Version": "37-3",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "dbus-units",
+      "Version": "37-3",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "dconf",
+      "Version": "51.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "default-cursors",
+      "Version": "3-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "desktop-file-utils",
+      "Version": "0.28-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "device-mapper",
+      "Version": "2.03.44-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "duktape",
+      "Version": "2.7.0-7",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "e2fsprogs",
+      "Version": "1.47.4-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "expat",
+      "Version": "2.10.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "ffmpeg",
+      "Version": "2:9.0.2-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "fftw",
+      "Version": "3.3.11-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "file",
+      "Version": "5.48-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "filesystem",
+      "Version": "2025.10.12-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "findutils",
+      "Version": "4.11.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "flac",
+      "Version": "1.5.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "fontconfig",
+      "Version": "2:2.18.3-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "freetype2",
+      "Version": "2.15.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "fribidi",
+      "Version": "1.0.18-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "fuse-common",
+      "Version": "3.18.3-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "fuse3",
+      "Version": "3.18.3-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "gawk",
+      "Version": "5.4.1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "gcc-libs",
+      "Version": "16.2.1+r23+gd564253eb6c8-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "gdbm",
+      "Version": "1.26-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "gdk-pixbuf2",
+      "Version": "2.44.8-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "gettext",
+      "Version": "1.0-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "ghc-libs",
+      "Version": "9.6.7-3",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "giflib",
+      "Version": "6.1.3-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "glib-networking",
+      "Version": "1:2.90.1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "glib2",
+      "Version": "2.90.1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "glibc",
+      "Version": "2.44+r50+g1848099f063e-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "glslang",
+      "Version": "1:1.4.363.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "glycin",
+      "Version": "2.2.6-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "gmp",
+      "Version": "6.3.0-3",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "gnulib-l10n",
+      "Version": "20241231-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "gnupg",
+      "Version": "2.4.9-4",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "gnutls",
+      "Version": "3.8.13-3",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "gobject-introspection-runtime",
+      "Version": "1.86.0-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "gperftools",
+      "Version": "2.19.2-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "gpgme",
+      "Version": "2.2.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "gpgmepp",
+      "Version": "2.2.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "graphene",
+      "Version": "1.10.8-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "graphite",
+      "Version": "1:1.3.15-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "grep",
+      "Version": "3.12-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "gsettings-desktop-schemas",
+      "Version": "51.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "gsettings-system-schemas",
+      "Version": "51.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "gsm",
+      "Version": "1.0.24-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "gssdp",
+      "Version": "1.6.6-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "gst-plugins-bad-libs",
+      "Version": "1.28.8-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "gst-plugins-base-libs",
+      "Version": "1.28.8-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "gstreamer",
+      "Version": "1.28.8-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "gtest",
+      "Version": "1.18.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "gtk-update-icon-cache",
+      "Version": "1:4.24.1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "gtk3",
+      "Version": "1:3.24.52-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "gtk4",
+      "Version": "1:4.24.1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "gupnp",
+      "Version": "1:1.6.10-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "gupnp-igd",
+      "Version": "1.6.0-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "gzip",
+      "Version": "1.15-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "harfbuzz",
+      "Version": "15.1.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-aeson",
+      "Version": "2.2.4.0-11",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-aeson-pretty",
+      "Version": "0.8.11-48",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-ansi-terminal",
+      "Version": "1.1.2-24",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-ansi-terminal-types",
+      "Version": "1.1-140",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-appar",
+      "Version": "0.1.8-18",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-asciidoc",
+      "Version": "0.1.1.1-20",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-asn1-encoding",
+      "Version": "0.9.6-401",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-asn1-parse",
+      "Version": "0.9.5-401",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-asn1-types",
+      "Version": "0.3.4-379",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-assoc",
+      "Version": "1.1.1-44",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-async",
+      "Version": "2.2.6-155",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-attoparsec",
+      "Version": "0.14.4-244",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-attoparsec-aeson",
+      "Version": "2.2.2.0-38",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-auto-update",
+      "Version": "0.2.2-5",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-base-compat",
+      "Version": "0.14.1-4",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-base-orphans",
+      "Version": "0.9.4-80",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-base-unicode-symbols",
+      "Version": "0.2.4.2-17",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-base16-bytestring",
+      "Version": "1.0.2.0-250",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-base64-bytestring",
+      "Version": "1.2.1.0-410",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-basement",
+      "Version": "0.0.16-5",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-bifunctors",
+      "Version": "5.6.3-66",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-bitvec",
+      "Version": "1.1.6.0-44",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-blaze-builder",
+      "Version": "0.4.4.1-96",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-blaze-html",
+      "Version": "0.9.2.0-171",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-blaze-markup",
+      "Version": "0.8.3.0-181",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-boring",
+      "Version": "0.2.2.1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-bsb-http-chunked",
+      "Version": "0.0.0.4-566",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-byteorder",
+      "Version": "1.0.4-28",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-call-stack",
+      "Version": "0.4.0-521",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-case-insensitive",
+      "Version": "1.2.1.0-519",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-cassava",
+      "Version": "0.5.4.1-106",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-cborg",
+      "Version": "0.2.10.0-171",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-cereal",
+      "Version": "0.5.8.3-6",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-character-ps",
+      "Version": "0.1-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-citeproc",
+      "Version": "0.14.1-15",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-cmdargs",
+      "Version": "0.10.22-6",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-colour",
+      "Version": "2.3.7-105",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-commonmark",
+      "Version": "0.3.1-20",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-commonmark-extensions",
+      "Version": "0.2.7.3-20",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-commonmark-pandoc",
+      "Version": "0.3.0.2-20",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-comonad",
+      "Version": "5.0.10-55",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-conduit",
+      "Version": "1.3.6.1-220",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-conduit-extra",
+      "Version": "1.3.8-166",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-constraints",
+      "Version": "0.14.4-70",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-contravariant",
+      "Version": "1.5.6-3",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-cookie",
+      "Version": "0.5.1-18",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-cryptohash-md5",
+      "Version": "0.11.101.0-270",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-crypton",
+      "Version": "1.0.6-17",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-crypton-connection",
+      "Version": "0.4.5-115",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-crypton-socks",
+      "Version": "0.6.2-86",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-crypton-x509",
+      "Version": "1.7.7-140",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-crypton-x509-store",
+      "Version": "1.6.14-28",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-crypton-x509-system",
+      "Version": "1.6.8-46",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-crypton-x509-validation",
+      "Version": "1.6.14-127",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-data-default",
+      "Version": "0.7.1.3-137",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-data-default-class",
+      "Version": "0.1.2.2-4",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-data-default-instances-containers",
+      "Version": "0.1.0.3-7",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-data-default-instances-dlist",
+      "Version": "0.0.1.2-241",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-data-default-instances-old-locale",
+      "Version": "0.0.1.2-4",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-data-fix",
+      "Version": "0.3.4-289",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-dec",
+      "Version": "0.0.6-5",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-digest",
+      "Version": "0.0.2.1-3",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-distributive",
+      "Version": "0.6.3-89",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-djot",
+      "Version": "0.1.4.3-19",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-dlist",
+      "Version": "1.0-498",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-doclayout",
+      "Version": "0.5.0.3-25",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-doctemplates",
+      "Version": "0.11.1-25",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-easy-file",
+      "Version": "0.2.5-191",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-emojis",
+      "Version": "0.1.5-43",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-erf",
+      "Version": "2.0.0.0-29",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-fast-logger",
+      "Version": "3.2.5-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-file-embed",
+      "Version": "0.0.16.0-3",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-generically",
+      "Version": "0.1.1-158",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-generics-sop",
+      "Version": "0.5.1.4-4",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-glob",
+      "Version": "0.10.2-336",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-gridtables",
+      "Version": "0.1.1.1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-haddock-library",
+      "Version": "1.11.0-280",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-half",
+      "Version": "0.3.3-136",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-hashable",
+      "Version": "1.4.7.0-168",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-hourglass",
+      "Version": "0.2.12-416",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-hslua",
+      "Version": "2.5.0-33",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-hslua-aeson",
+      "Version": "2.3.2-41",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-hslua-classes",
+      "Version": "2.3.2-30",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-hslua-core",
+      "Version": "2.3.2.1-27",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-hslua-list",
+      "Version": "1.1.4-100",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-hslua-marshalling",
+      "Version": "2.3.2-36",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-hslua-module-doclayout",
+      "Version": "1.2.1.1-34",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-hslua-module-path",
+      "Version": "1.2.0-25",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-hslua-module-system",
+      "Version": "1.3.0-25",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-hslua-module-text",
+      "Version": "1.2.0-25",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-hslua-module-version",
+      "Version": "1.2.0.1-25",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-hslua-module-zip",
+      "Version": "1.2.1-26",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-hslua-objectorientation",
+      "Version": "2.5.0-26",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-hslua-packaging",
+      "Version": "2.4.1-26",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-hslua-repl",
+      "Version": "0.1.2-213",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-hslua-typing",
+      "Version": "0.2.0-26",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-http-api-data",
+      "Version": "0.6.3-7",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-http-client",
+      "Version": "0.7.19-131",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-http-client-tls",
+      "Version": "0.3.6.4-231",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-http-date",
+      "Version": "0.0.11-308",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-http-media",
+      "Version": "0.8.1.1-183",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-http-semantics",
+      "Version": "0.1.1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-http-types",
+      "Version": "0.12.4-204",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-http2",
+      "Version": "5.2.3-19",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-hunit",
+      "Version": "1.6.2.0-563",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-indexed-traversable",
+      "Version": "0.1.5-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-indexed-traversable-instances",
+      "Version": "0.1.2.1-59",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-integer-conversion",
+      "Version": "0.1.1-124",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-integer-logarithms",
+      "Version": "1.0.4-282",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-iproute",
+      "Version": "1.7.15-156",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-ipynb",
+      "Version": "0.2-368",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-isocline",
+      "Version": "1.0.9-5",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-jira-wiki-markup",
+      "Version": "1.5.1-191",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-juicypixels",
+      "Version": "3.3.9-161",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-lexer",
+      "Version": "1.2.1-3",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-libyaml",
+      "Version": "0.1.4-246",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-lpeg",
+      "Version": "1.1.0.1-34",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-lua",
+      "Version": "2.3.4-72",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-lua-arbitrary",
+      "Version": "1.0.1.2-65",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-memory",
+      "Version": "0.18.0-177",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-mime-types",
+      "Version": "0.1.2.2-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-mmorph",
+      "Version": "1.2.2-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-monad-control",
+      "Version": "1.0.3.1-405",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-mono-traversable",
+      "Version": "1.0.21.0-223",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-network",
+      "Version": "3.2.0.0-9",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-network-bsd",
+      "Version": "2.8.1.0-381",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-network-byte-order",
+      "Version": "0.1.8-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-network-control",
+      "Version": "0.1.7-10",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-network-uri",
+      "Version": "2.6.4.2-204",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-old-locale",
+      "Version": "1.0.0.7-35",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-old-time",
+      "Version": "1.1.1.0-60",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-onetuple",
+      "Version": "0.4.3-60",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-only",
+      "Version": "0.1-26",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-optparse-applicative",
+      "Version": "0.18.1.0-519",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-ordered-containers",
+      "Version": "0.2.5-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-os-string",
+      "Version": "2.0.11-87",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-pandoc",
+      "Version": "3.11-40",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-pandoc-lua-engine",
+      "Version": "0.5.4.1-37",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-pandoc-lua-marshal",
+      "Version": "0.3.2.1-33",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-pandoc-server",
+      "Version": "0.1.4.2-3",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-pandoc-types",
+      "Version": "1.23.1.2-35",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-pem",
+      "Version": "0.2.4-456",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-pretty-show",
+      "Version": "1.10-23",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-prettyprinter",
+      "Version": "1.7.2-62",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-prettyprinter-ansi-terminal",
+      "Version": "1.1.4-173",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-primitive",
+      "Version": "0.9.1.0-251",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-psqueues",
+      "Version": "0.2.8.3-68",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-quickcheck",
+      "Version": "2.15.0.1-282",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-random",
+      "Version": "1.2.1.3-369",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-recv",
+      "Version": "0.1.1-141",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-regex-base",
+      "Version": "0.94.0.3-5",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-regex-tdfa",
+      "Version": "1.3.2.7-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-resourcet",
+      "Version": "1.3.0-85",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-safe",
+      "Version": "0.3.21-175",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-safe-exceptions",
+      "Version": "0.1.7.4-328",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-scientific",
+      "Version": "0.3.10.0-7",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-semialign",
+      "Version": "1.3.1.1-54",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-semigroupoids",
+      "Version": "6.0.2-75",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-serialise",
+      "Version": "0.2.6.1-259",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-servant",
+      "Version": "0.20.3.0-141",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-servant-server",
+      "Version": "0.20.3.0-192",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-simple-sendfile",
+      "Version": "0.2.32-285",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-singleton-bool",
+      "Version": "0.1.8-114",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-skylighting",
+      "Version": "0.15-25",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-skylighting-core",
+      "Version": "0.15-25",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-skylighting-format-ansi",
+      "Version": "0.1-384",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-skylighting-format-blaze-html",
+      "Version": "0.1.2.2-25",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-skylighting-format-context",
+      "Version": "0.1.0.2-348",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-skylighting-format-latex",
+      "Version": "0.1-383",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-skylighting-format-typst",
+      "Version": "0.1-37",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-some",
+      "Version": "1.0.6-141",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-sop-core",
+      "Version": "0.5.0.2-5",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-split",
+      "Version": "0.2.5.1-43",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-splitmix",
+      "Version": "0.1.3.2-22",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-statevar",
+      "Version": "1.2.2-7",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-streaming-commons",
+      "Version": "0.2.3.1-76",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-strict",
+      "Version": "0.5.1-182",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-syb",
+      "Version": "0.7.4-47",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-tagged",
+      "Version": "0.8.10-3",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-tagsoup",
+      "Version": "0.14.8-394",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-tasty",
+      "Version": "1.5.5-11",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-tasty-hunit",
+      "Version": "0.10.2-399",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-tasty-lua",
+      "Version": "1.1.2-28",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-temporary",
+      "Version": "1.3-1107",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-terminal-size",
+      "Version": "0.3.4-5",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-texmath",
+      "Version": "0.13.3.2-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-text-conversions",
+      "Version": "0.3.1.1-232",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-text-icu",
+      "Version": "0.8.0.5-174",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-text-iso8601",
+      "Version": "0.1.1.2-25",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-text-short",
+      "Version": "0.1.6.1-133",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-th-abstraction",
+      "Version": "0.7.1.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-th-compat",
+      "Version": "0.1.7-67",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-th-lift",
+      "Version": "0.8.7-4",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-th-lift-instances",
+      "Version": "0.1.20-222",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-these",
+      "Version": "1.2.1-392",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-time-compat",
+      "Version": "1.9.9-167",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-time-manager",
+      "Version": "0.1.1-5",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-tls",
+      "Version": "2.0.6-159",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-toml-parser",
+      "Version": "2.0.2.0-55",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-transformers-base",
+      "Version": "0.4.6.1-136",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-transformers-compat",
+      "Version": "0.7.2-5",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-typed-process",
+      "Version": "0.2.13.0-335",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-typst",
+      "Version": "0.12-26",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-typst-symbols",
+      "Version": "0.3-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-unicode-collation",
+      "Version": "0.1.3.7-46",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-unicode-data",
+      "Version": "0.8.0-16",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-unicode-transforms",
+      "Version": "0.4.0.1-250",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-uniplate",
+      "Version": "1.6.13-404",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-unix-compat",
+      "Version": "0.7.4.1-117",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-unix-time",
+      "Version": "0.4.17-141",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-unliftio",
+      "Version": "0.2.25.1-161",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-unliftio-core",
+      "Version": "0.2.1.0-6",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-unordered-containers",
+      "Version": "0.2.21-80",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-utf8-string",
+      "Version": "1.0.2-386",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-uuid-types",
+      "Version": "1.0.6.1-147",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-vault",
+      "Version": "0.3.2.0-29",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-vector",
+      "Version": "0.13.2.0-630",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-vector-algorithms",
+      "Version": "0.9.1.0-211",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-vector-stream",
+      "Version": "0.1.0.1-6",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-wai",
+      "Version": "3.2.5-28",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-wai-app-static",
+      "Version": "3.2.1-13",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-wai-cors",
+      "Version": "0.2.7-555",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-wai-extra",
+      "Version": "3.1.18-160",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-wai-logger",
+      "Version": "2.5.0-215",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-warp",
+      "Version": "3.4.3-15",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-witherable",
+      "Version": "0.5-29",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-word8",
+      "Version": "0.1.3-26",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-xml",
+      "Version": "1.3.14-34",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-xml-conduit",
+      "Version": "1.9.1.4-238",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-xml-types",
+      "Version": "0.3.8-12",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-yaml",
+      "Version": "0.11.11.2-290",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-zip-archive",
+      "Version": "0.4.3.2-175",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "haskell-zlib",
+      "Version": "0.7.1.1-24",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "hicolor-icon-theme",
+      "Version": "0.18-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "hidapi",
+      "Version": "0.15.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "highway",
+      "Version": "1.4.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "hslua-cli",
+      "Version": "1.4.4-37",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "hwdata",
+      "Version": "0.412-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "iana-etc",
+      "Version": "20260617-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "icu",
+      "Version": "78.3-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "iproute2",
+      "Version": "7.3.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "iptables",
+      "Version": "1:1.8.13-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "iputils",
+      "Version": "20250605-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "iso-codes",
+      "Version": "4.20.1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "jack2",
+      "Version": "1.9.22-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "jansson",
+      "Version": "2.15.1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "jbigkit",
+      "Version": "2.2-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "json-c",
+      "Version": "0.19-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "json-glib",
+      "Version": "1.10.8-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "kbd",
+      "Version": "2.10.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "keyutils",
+      "Version": "1.6.3-4",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "kmod",
+      "Version": "34.3-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "krb5",
+      "Version": "1.22.2-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "l-smash",
+      "Version": "2.14.5-4",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "lame",
+      "Version": "4.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "lcms2",
+      "Version": "2.20-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "leancrypto",
+      "Version": "1.9.1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "leptonica",
+      "Version": "1.87.0-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libarchive",
+      "Version": "3.8.11-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libasan",
+      "Version": "16.2.1+r23+gd564253eb6c8-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libass",
+      "Version": "0.17.5-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libassuan",
+      "Version": "3.0.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libasyncns",
+      "Version": "1:0.8+r3+g68cd5af-3",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libatomic",
+      "Version": "16.2.1+r23+gd564253eb6c8-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libavc1394",
+      "Version": "0.5.4-7",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libavif",
+      "Version": "1.4.2-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libbluray",
+      "Version": "1.5.1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libbpf",
+      "Version": "1.7.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libbs2b",
+      "Version": "3.1.0-11",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libbsd",
+      "Version": "0.12.2-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libcap",
+      "Version": "2.78-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libcap-ng",
+      "Version": "0.9.6-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libcloudproviders",
+      "Version": "0.4.2-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libcolord",
+      "Version": "1.4.8-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libcups",
+      "Version": "2:2.4.20-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libdaemon",
+      "Version": "0.14-6",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libdatrie",
+      "Version": "0.2.14-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libde265",
+      "Version": "1.1.3-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libdeflate",
+      "Version": "1.26-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libdovi",
+      "Version": "3.4.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libdrm",
+      "Version": "2.4.134-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libdvdnav",
+      "Version": "7.0.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libdvdread",
+      "Version": "7.1.1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libedit",
+      "Version": "20260512_3.1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libelf",
+      "Version": "0.197-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libepoxy",
+      "Version": "1.5.10-3",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libevent",
+      "Version": "2.1.13-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libffi",
+      "Version": "3.8.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libfontenc",
+      "Version": "1.1.9-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libgcc",
+      "Version": "16.2.1+r23+gd564253eb6c8-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libgcrypt",
+      "Version": "1.12.4-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libgfortran",
+      "Version": "16.2.1+r23+gd564253eb6c8-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libgirepository",
+      "Version": "1.86.0-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libglvnd",
+      "Version": "1.7.0-3",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libgomp",
+      "Version": "16.2.1+r23+gd564253eb6c8-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libgpg-error",
+      "Version": "1.61-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libgudev",
+      "Version": "238-4",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libheif",
+      "Version": "1.23.7-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libhwasan",
+      "Version": "16.2.1+r23+gd564253eb6c8-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libice",
+      "Version": "1.1.2-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libidn2",
+      "Version": "2.3.8-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libiec61883",
+      "Version": "1.2.0-9",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libimagequant",
+      "Version": "4.4.1-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libjpeg-turbo",
+      "Version": "3.2.1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libjxl",
+      "Version": "0.12.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libksba",
+      "Version": "1.8.1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libldap",
+      "Version": "2.7.2-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "liblsan",
+      "Version": "16.2.1+r23+gd564253eb6c8-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libmakepkg-dropins",
+      "Version": "20-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libmd",
+      "Version": "1.3.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libmnl",
+      "Version": "1.0.5-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libmodplug",
+      "Version": "0.8.9.0-7",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libnetfilter_conntrack",
+      "Version": "1.1.1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libnfnetlink",
+      "Version": "1.0.2-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libnftnl",
+      "Version": "1.3.2-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libnghttp2",
+      "Version": "1.71.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libnghttp3",
+      "Version": "1.19.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libngtcp2",
+      "Version": "1.26.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libnice",
+      "Version": "0.1.24-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libnl",
+      "Version": "3.12.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libnsl",
+      "Version": "2.0.1-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libobjc",
+      "Version": "16.2.1+r23+gd564253eb6c8-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libogg",
+      "Version": "1.3.6-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libopenmpt",
+      "Version": "0.8.10-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libp11-kit",
+      "Version": "0.26.5-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libpcap",
+      "Version": "1.11.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libpciaccess",
+      "Version": "0.19-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libpgm",
+      "Version": "5.3.128-4",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libpipewire",
+      "Version": "1:1.6.10-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libplacebo",
+      "Version": "7.360.1-7",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libpng",
+      "Version": "1.6.59-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libproxy",
+      "Version": "0.5.12-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libpsl",
+      "Version": "0.21.5-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libpulse",
+      "Version": "17.0+r134+g77d25a1e6-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libquadmath",
+      "Version": "16.2.1+r23+gd564253eb6c8-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libraqm",
+      "Version": "0.11.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libraw1394",
+      "Version": "2.1.2-4",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "librsvg",
+      "Version": "2:2.63.4-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libsamplerate",
+      "Version": "0.2.2-3",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libsasl",
+      "Version": "2.1.28-5",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libseccomp",
+      "Version": "2.6.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libsecret",
+      "Version": "0.21.8.2-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libsm",
+      "Version": "1.2.6-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libsndfile",
+      "Version": "1.2.2-4",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libsodium",
+      "Version": "1.0.22-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libsoup3",
+      "Version": "3.8.1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libsoxr",
+      "Version": "0.1.3-5",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libssh",
+      "Version": "0.12.2-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libssh2",
+      "Version": "1.11.1-7",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libstdc++",
+      "Version": "16.2.1+r23+gd564253eb6c8-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libstemmer",
+      "Version": "3.1.1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libsysprof-capture",
+      "Version": "51.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libtasn1",
+      "Version": "4.21.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libthai",
+      "Version": "0.1.30-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libtheora",
+      "Version": "1.2.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libtiff",
+      "Version": "4.7.2-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libtirpc",
+      "Version": "1.3.8-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libtsan",
+      "Version": "16.2.1+r23+gd564253eb6c8-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libubsan",
+      "Version": "16.2.1+r23+gd564253eb6c8-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libunibreak",
+      "Version": "7.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libunistring",
+      "Version": "1.4.2-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libunwind",
+      "Version": "1.8.3-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "liburing",
+      "Version": "2.15-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libusb",
+      "Version": "1.0.30-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libva",
+      "Version": "2.24.1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libvdpau",
+      "Version": "1.5-4",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libverto",
+      "Version": "0.3.2-6",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libvorbis",
+      "Version": "1.3.7-4",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libvpl",
+      "Version": "2.17.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libvpx",
+      "Version": "1.17.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libwebp",
+      "Version": "1.6.0-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libx11",
+      "Version": "1.8.14-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libxau",
+      "Version": "1.0.12-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libxcb",
+      "Version": "1.17.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libxcomposite",
+      "Version": "0.4.7-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libxcrypt",
+      "Version": "4.5.2-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libxcursor",
+      "Version": "1.2.3-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libxdamage",
+      "Version": "1.1.7-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libxdmcp",
+      "Version": "1.1.5-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libxext",
+      "Version": "1.3.7-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libxfixes",
+      "Version": "6.0.2-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libxfont2",
+      "Version": "2.0.9-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libxft",
+      "Version": "2.3.9-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libxi",
+      "Version": "1.8.4-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libxinerama",
+      "Version": "1.1.6-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libxkbcommon",
+      "Version": "1.13.2-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libxkbcommon-x11",
+      "Version": "1.13.2-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libxkbfile",
+      "Version": "1.2.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libxml2",
+      "Version": "2.15.4-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libxmu",
+      "Version": "1.3.1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libxrandr",
+      "Version": "1.5.5-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libxrender",
+      "Version": "0.9.13-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libxshmfence",
+      "Version": "1.3.3-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libxt",
+      "Version": "1.3.1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libxtst",
+      "Version": "1.2.6-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libxv",
+      "Version": "1.0.13-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libxxf86vm",
+      "Version": "1.1.7-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libyaml",
+      "Version": "0.2.5-3",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "libyuv",
+      "Version": "r2921+644251f25-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "licenses",
+      "Version": "20240728-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "linux-api-headers",
+      "Version": "7.3-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "llvm-libs",
+      "Version": "23.1.4-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "lm_sensors",
+      "Version": "1:3.6.2-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "lmdb",
+      "Version": "0.9.35-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "lua54",
+      "Version": "5.4.9-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "lua54-lpeg",
+      "Version": "1.1.0-5",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "lz4",
+      "Version": "1:1.11.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "lzo",
+      "Version": "2.10-5",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "mesa",
+      "Version": "1:26.2.6-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "mpdecimal",
+      "Version": "4.0.1-3",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "mpfr",
+      "Version": "4.2.2-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "mpg123",
+      "Version": "1.33.7-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "ncurses",
+      "Version": "6.6-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "nettle",
+      "Version": "4.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "nftables",
+      "Version": "1:1.1.7-3",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "npth",
+      "Version": "1.8-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "nspr",
+      "Version": "4.40-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "nss",
+      "Version": "3.132-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "numactl",
+      "Version": "2.0.19-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "ocl-icd",
+      "Version": "2.3.5-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "opencore-amr",
+      "Version": "0.1.6-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "openh264",
+      "Version": "2.7.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "openjpeg2",
+      "Version": "2.5.4-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "openssl",
+      "Version": "3.6.5-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "opus",
+      "Version": "1.6.1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "orc",
+      "Version": "0.4.44-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "p11-kit",
+      "Version": "0.26.5-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "pacman",
+      "Version": "7.1.0.r9.g54d9411-3",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "pacman-mirrorlist",
+      "Version": "20260610-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "pam",
+      "Version": "1.7.3-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "pambase",
+      "Version": "20260616-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "pandoc-cli",
+      "Version": "3.11-57",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "pango",
+      "Version": "1:1.58.2-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "pciutils",
+      "Version": "3.15.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "pcre2",
+      "Version": "10.49-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "pinentry",
+      "Version": "1.3.3-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "pipewire",
+      "Version": "1:1.6.10-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "pixman",
+      "Version": "0.46.4-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "poppler",
+      "Version": "26.10.0-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "poppler-glib",
+      "Version": "26.10.0-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "popt",
+      "Version": "1.19-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "portaudio",
+      "Version": "1:19.7.0-4",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "procps-ng",
+      "Version": "4.0.7-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "psmisc",
+      "Version": "23.7-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "python",
+      "Version": "3.14.9-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "python-cairo",
+      "Version": "1.29.2-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "python-gobject",
+      "Version": "3.58.1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "python-packaging",
+      "Version": "26.3-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "python-pillow",
+      "Version": "13.0.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "rav1e",
+      "Version": "0.8.1-3",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "readline",
+      "Version": "8.3.6-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "rubberband",
+      "Version": "4.0.0-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "sdl2-compat",
+      "Version": "2.32.74-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "sdl3",
+      "Version": "3.4.18-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "sed",
+      "Version": "4.10-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "shaderc",
+      "Version": "2026.4-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "shadow",
+      "Version": "4.20.0.arch1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "shared-mime-info",
+      "Version": "2.5.1-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "snappy",
+      "Version": "1.3.1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "sndio",
+      "Version": "1.10.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "speex",
+      "Version": "1.2.1-3",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "speexdsp",
+      "Version": "1.2.1-3",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "spirv-tools",
+      "Version": "1:1.4.363.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "sqlite",
+      "Version": "3.54.1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "srt",
+      "Version": "1.5.7-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "svt-av1",
+      "Version": "4.2.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "systemd",
+      "Version": "262.1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "systemd-libs",
+      "Version": "262.1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "systemd-sysvcompat",
+      "Version": "262.1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "tar",
+      "Version": "1.35-5",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "tesseract",
+      "Version": "5.5.4-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "tesseract-data-deu",
+      "Version": "2:4.1.0-5",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "tesseract-data-eng",
+      "Version": "2:4.1.0-5",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "tesseract-data-osd",
+      "Version": "2:4.1.0-5",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "tinysparql",
+      "Version": "3.12.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "tpm2-tss",
+      "Version": "4.2.0-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "ttf-dejavu",
+      "Version": "2.37+18+g9b5d1b2f-8",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "tzdata",
+      "Version": "2026f-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "util-linux",
+      "Version": "2.42.4-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "util-linux-libs",
+      "Version": "2.42.4-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "v4l-utils",
+      "Version": "1.32.0-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "vapoursynth",
+      "Version": "81-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "vid.stab",
+      "Version": "1.1.2-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "vmaf",
+      "Version": "3.2.1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "vulkan-icd-loader",
+      "Version": "1.4.363.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "wayland",
+      "Version": "1.26.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "x264",
+      "Version": "3:0.165.r3222.b35605a-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "x265",
+      "Version": "4.3-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "xcb-proto",
+      "Version": "1.17.0-4",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "xdg-desktop-portal",
+      "Version": "1.22.1-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "xdg-desktop-portal-gtk",
+      "Version": "1.15.3-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "xdotool",
+      "Version": "4.20260303.1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "xkeyboard-config",
+      "Version": "2.49-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "xorg-fonts-encodings",
+      "Version": "1.1.0-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "xorg-server-common",
+      "Version": "21.1.25-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "xorg-server-xvfb",
+      "Version": "21.1.25-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "xorg-setxkbmap",
+      "Version": "1.3.5-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "xorg-xauth",
+      "Version": "1.1.5-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "xorg-xkbcomp",
+      "Version": "1.5.0-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "xorg-xprop",
+      "Version": "1.2.8-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "xorgproto",
+      "Version": "2026.1-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "xvidcore",
+      "Version": "1.3.7-4",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "xxhash",
+      "Version": "0.8.4-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "xz",
+      "Version": "5.8.4-1",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "zeromq",
+      "Version": "4.3.5-3",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "zimg",
+      "Version": "3.0.6-2",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "zlib",
+      "Version": "1:1.3.2-4",
+      "Validated By": "Signature"
+    },
+    {
+      "Name": "zstd",
+      "Version": "1.5.7-3",
+      "Validated By": "Signature"
+    }
+  ],
+  "validationCounts": {
+    "Signature": 597
+  },
+  "packageAndSignatureBytes": 319458793,
+  "basePlusPackagesAndSignaturesBytes": 453710291,
+  "signaturePolicy": "SigLevel = PackageRequired\nSigLevel = PackageTrustedOnly\nSigLevel = DatabaseOptional\nSigLevel = DatabaseTrustedOnly\nLocalFileSigLevel = PackageOptional\nLocalFileSigLevel = PackageTrustedOnly\n",
+  "allInstalledFilesChecked": true,
+  "optionalFFmpegRequiredForThisLibheifPluginSet": true
+}

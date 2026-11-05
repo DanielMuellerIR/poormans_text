@@ -18,7 +18,7 @@ Die endgültige Desktopabnahme bleibt ein separates Tor und blockiert die Oberfl
 | P11 | [Klassischer Qualitätsversuch und natürlicher Startkorpus](linux-port/P11-QUALITY.md), keine strukturierte Produkt-OCR | Qualifizierter Strukturbackend-/Korpusentscheid |
 | P12/P14 | [GTK über CLI, Zwischenablage und Profile](linux-port/P12-P14-GUI.md) | Echte Desktops, vollständiger Quellvergleich, allgemeine GUI-Präferenzen und Systemintegration |
 | P13 | [Echte Consumer-/GTK-Replays gegen 0.41.10](linux-port/P13-FASTRA.md) | Aktuelle Commitbindung und vollständige App-zu-App-Matrix |
-| P15 | [Drei lokale Paketformate](linux-port/P15-CLI-PACKAGES.md), optionale GTK-Paketierung | Frische Arch-/Mint-Paketinstallation, echte Desktopintegration und öffentliche Distribution |
+| P15 | [Drei lokale Paketformate](linux-port/P15-CLI-PACKAGES.md), optionale GTK-Paketierung | Mint-Paketinstallation, echte Desktopintegration und öffentliche Distribution |
 | P16 | [48 echte CLI-Neustarts](linux-port/P16-SERIES/README.md) und paketbezogene Teilprüfungen | Vollständige gemeinsame Abnahme und neue native Mac-Regression |
 
 Die früheren Entscheidungsproben bleiben im [Entscheidungsbericht](LINUX-DECISION.md)

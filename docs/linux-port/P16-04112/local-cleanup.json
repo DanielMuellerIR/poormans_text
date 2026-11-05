@@ -1,0 +1,71 @@
+{
+  "completedUTC": "2026-11-05T05:36:29.430335+00:00",
+  "scope": "Named own temporary intermediate copies after checked evidence commit586bef2; no foreign directories",
+  "removed": [
+    {
+      "ownTemporaryRoot": "pmt-p14-raster",
+      "entriesBefore": 1237,
+      "removed": true
+    },
+    {
+      "ownTemporaryRoot": "pmt-p14-clipboard-fd",
+      "entriesBefore": 982,
+      "removed": true
+    },
+    {
+      "ownTemporaryRoot": "pmt-p14-clipboard-compare",
+      "entriesBefore": 2995,
+      "removed": true
+    },
+    {
+      "ownTemporaryRoot": "pmt-gui-before-p14-_8kuu9w6",
+      "entriesBefore": 7,
+      "removed": true
+    },
+    {
+      "ownTemporaryRoot": "pmt-mac-source-04112",
+      "entriesBefore": 2,
+      "removed": true
+    },
+    {
+      "ownTemporaryRoot": "pmt-mac-source-04112-fix1",
+      "entriesBefore": 2,
+      "removed": true
+    },
+    {
+      "ownTemporaryRoot": "pmt-mac-source-04112-fix2",
+      "entriesBefore": 2,
+      "removed": true
+    },
+    {
+      "ownTemporaryRoot": "pmt-p12-app",
+      "entriesBefore": 1539,
+      "removed": true
+    },
+    {
+      "ownTemporaryRoot": "pmt-p14-frozen",
+      "entriesBefore": 145,
+      "removed": true
+    },
+    {
+      "ownTemporaryRoot": "pmt-p14-comparison",
+      "entriesBefore": 292,
+      "removed": true
+    },
+    {
+      "ownTemporaryRoot": "pmt-04110-series-b823",
+      "entriesBefore": 325,
+      "removed": true
+    },
+    {
+      "ownTemporaryRoot": "pmt-04112-series",
+      "entriesBefore": 29,
+      "removed": true
+    },
+    {
+      "ownTemporaryRoot": "pmt-04112-series-host",
+      "entriesBefore": 325,
+      "removed": true
+    }
+  ]
+}

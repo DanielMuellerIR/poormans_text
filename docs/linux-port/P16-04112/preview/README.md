@@ -11,3 +11,10 @@ Gegen exakt den finalen Rootrelease ausgeführt, kein früherer 0.41.11-Kandidat
 CLI-/Guardhashes waren vor und nach dem Lauf identisch. Rootquellen und Cargo.lock bleiben read-only (--locked/--offline). Ausschließlich das ausdrücklich freigegebene generierte Target `.build/linux-root-native` wurde wiederverwendet; alle Fixtures/Ergebnisse liegen außerhalb des Repos. Container --network none/--pull never/--rm, UID1000 und die bestehenden nötigen Namespaceflags. Runtime und Originalfixtures readonly eingeblendet. Ergebnisse waren von Anfang an im eigenen gebundenen Probenverzeichnis gespeichert und überleben das Containerende ohne zusätzliche Kopierlogik.
 
 `manifest.json` enthält die tatsächlichen Fixture-/Werkzeug-/Quellhashes. Die kleinen JSON-Receipts und das Bridge-Log sind der Abschlussbeleg. `reproduce-preview.sh` verlangt explizite Runtime-/Fixturepfade und prüft die finale CLI-SHA. Für eine Wiederholung einen leeren results-Ordner verwenden, weil erfolgreiche Ergebnisfixtures absichtlich nicht überschrieben werden. `reproduce-bridge.sh` verlangt explizites Quellrepo, eigenes generiertes Target, CLI-Launcher und Guard. Kein Download oder Hostwerkzeugwechsel erforderlich.
+
+Zur Neuerzeugung der kleinen synthetischen Eingaben `PMT_PREVIEW_TEST_ROOT` auf
+einen eigenen neuen Ordner setzen und `python3 reproduction/make_fixtures.py`
+aufrufen (vorhandenes Pillow, Ghostscript und qpdf). Die beigefügten kleinen
+HEIC-Bytes stammen aus dem vorhandenen P09-Generator; die 128-MiB-Grenzdatei
+wird nur im Testbereich neu erzeugt. Für den echten alten Lauf bindet manifest.json
+die ursprünglichen Fixturehashes; neue PDF-Generatorläufe können Metadaten ändern.

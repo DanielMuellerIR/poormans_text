@@ -1,0 +1,12 @@
+    PID    PPID    PGID COMMAND
+      1       0       1 timeout -k 3 1200 /work/start.sh
+      7       1       1 /bin/bash /work/start.sh
+     10       7       1 Xvfb :99 -screen 0 1450x1200x24 -nolisten tcp
+     12       1      12 dbus-daemon --session --fork --print-address
+     16       7       1 /app/libexec/fastra-linux
+    965       0     965 bash -c xdotool mousemove 1062 32 click 1; xdotool mousemove 1062 455 click 1; sleep .3; xdotool mousemove 300 110 click 1 key ctrl+a type --clearmodifiers /work/producer/poormans-text; xdotool mousemove 300 152 click 1 key ctrl+a type --clearmodifiers /work/inputs/cancel-child.docx; xdotool mousemove 300 196 click 1 key ctrl+a type --clearmodifiers /work/output; xdotool mousemove 300 236 click 1 key ctrl+a type --clearmodifiers cancelled-child; xdotool mousemove 210 280 click 1; for i in {1..100}; do if pgrep -x pandoc >/dev/null; then break; fi; sleep .1; done; ps -eo pid,ppid,pgid,args > /work/cancel-child-during.txt; xdotool mousemove 415 280 click 1; sleep 2; ps -eo pid,ppid,pgid,args > /work/cancel-child-after.txt; import -window root /work/cancel-child-after.png
+    980      16     980 /work/producer/.build/linux-runtime/bin/poormans-text --json --output /work/output/.fastra-import-lxRYfC/out -- /work/inputs/cancel-child.docx
+   1001     980    1001 /usr/bin/bwrap --unshare-pid --unshare-net --as-pid-1 --new-session --ro-bind /usr /usr --ro-bind /bin /bin --ro-bind /sbin /sbin --ro-bind /lib /lib --ro-bind /lib64 /lib64 --ro-bind /etc/ld.so.cache /etc/ld.so.cache --ro-bind /etc/fonts /etc/fonts --ro-bind /etc/localtime /etc/localtime --dir /pmt --dir /pmt/input --bind-fd 3 /pmt/work-scope --bind-fd 4 /pmt/work-dir --ro-bind-fd 5 /pmt/guard --tmpfs /tmp --proc /proc --dev /dev --chdir /pmt/work-dir --info-fd 1 -- /pmt/guard --pmt-process-guard-v1 /dev/null 250 -- /usr/local/bin/pandoc --sandbox --from=docx --to=html5 --extract-media=. --wrap=preserve --track-changes=accept --output /pmt/work-dir/document.html /pmt/work-dir/verified-source.docx
+   1002    1001    1002 /pmt/guard --pmt-process-guard-v1 /dev/null 250 -- /usr/local/bin/pandoc --sandbox --from=docx --to=html5 --extract-media=. --wrap=preserve --track-changes=accept --output /pmt/work-dir/document.html /pmt/work-dir/verified-source.docx
+   1003    1002    1002 /usr/local/bin/pandoc --sandbox --from=docx --to=html5 --extract-media=. --wrap=preserve --track-changes=accept --output /pmt/work-dir/document.html /pmt/work-dir/verified-source.docx
+   1009     965     965 ps -eo pid,ppid,pgid,args

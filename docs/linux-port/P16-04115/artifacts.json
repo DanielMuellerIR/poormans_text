@@ -1,0 +1,30 @@
+{
+  "version": "0.41.15",
+  "build": 100,
+  "artifacts": {
+    "bin/poormans-text": {
+      "sha256": "d354636d818849f8acbea9ad59a41aa91caf5083a07eda4331897288bb6c85e6",
+      "bytes": 27300864
+    },
+    "bin/poormans-text-process-guard": {
+      "sha256": "cf677f9be88095a27423ceedb9db2b85667f7775d167857cfb52002ff5dda520",
+      "bytes": 8576448
+    },
+    "ui/poormans-text-app": {
+      "sha256": "0c3922397797198e90572bff22de34f1b5c02dc43454b338640ad7f6370ed96f",
+      "bytes": 1140256
+    },
+    "poormans-text-0.41.15-1-x86_64.pkg.tar.zst": {
+      "sha256": "04f5889cafe3a9f13c66a65ef38d0de0e236152a4c7daf943856cb10439fbdb7",
+      "bytes": 52565557
+    },
+    "poormans-text-0.41.15-linux-x86_64.tar.zst": {
+      "sha256": "5d4a5cd81751fb17bc58c13cb94ce37727dfe1524e8af61a0445626d7b9db463",
+      "bytes": 52558891
+    },
+    "poormans-text_0.41.15~linuxpreview1_amd64.deb": {
+      "sha256": "f515ed7df0dcb69060d59f64df534d362580cba5cf8ec3304c604094d9cadfe3",
+      "bytes": 50460038
+    }
+  }
+}

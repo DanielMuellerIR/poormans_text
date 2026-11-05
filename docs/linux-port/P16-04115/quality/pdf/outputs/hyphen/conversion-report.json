@@ -1,0 +1,104 @@
+{
+  "converterVersion" : "0.41.15",
+  "diagnosticGroups" : [
+    {
+      "code" : "pdf.layoutNotPreserved",
+      "count" : 1,
+      "kind" : "approximation",
+      "locations" : [
+
+      ],
+      "messages" : [
+        "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+      ],
+      "omittedCount" : 0
+    },
+    {
+      "code" : "pdf.vectorGraphicsNotExtracted",
+      "count" : 1,
+      "kind" : "contentLoss",
+      "locations" : [
+
+      ],
+      "messages" : [
+        "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF."
+      ],
+      "omittedCount" : 0
+    },
+    {
+      "code" : "pdf.linuxLayoutApproximation",
+      "count" : 1,
+      "kind" : "approximation",
+      "locations" : [
+
+      ],
+      "messages" : [
+        "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed."
+      ],
+      "omittedCount" : 0
+    }
+  ],
+  "diagnostics" : [
+    {
+      "code" : "pdf.layoutNotPreserved",
+      "kind" : "approximation",
+      "message" : "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+    },
+    {
+      "code" : "pdf.vectorGraphicsNotExtracted",
+      "kind" : "contentLoss",
+      "message" : "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF."
+    },
+    {
+      "code" : "pdf.linuxLayoutApproximation",
+      "kind" : "approximation",
+      "message" : "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed."
+    }
+  ],
+  "format" : "pdf",
+  "omittedMappingCount" : 0,
+  "options" : {
+    "conversionReport" : true,
+    "customPandoc" : false,
+    "docxChangeMode" : "accept",
+    "frontmatter" : false,
+    "imageTextRecognition" : "enabled",
+    "ocrLanguages" : [
+
+    ],
+    "ocrMethod" : "standard",
+    "outputLayout" : "markdownFolder",
+    "pdfDehyphenate" : true,
+    "pdfLayout" : "auto",
+    "pdfRemoveHeadersFooters" : false,
+    "pdfTextRecognition" : "off",
+    "presentationIncludeNotes" : true,
+    "sourceMapping" : true,
+    "spreadsheetRendering" : "markdownTable"
+  },
+  "outputs" : [
+    {
+      "byteCount" : 71,
+      "path" : "hyphen.md",
+      "sha256" : "72a1c742e20f5fd900c1803439ff6a81144adea22fe1d249aab5497334b7ee92"
+    }
+  ],
+  "schemaVersion" : 1,
+  "source" : {
+    "byteCount" : 611,
+    "name" : "hyphen.pdf",
+    "sha256" : "5bf4f6370a701c456f8364895198fd4a84c3d271c7290114e247b31796206274"
+  },
+  "sourceMappings" : [
+    {
+      "output" : {
+        "file" : "hyphen.md",
+        "utf8Length" : 62,
+        "utf8Offset" : 8
+      },
+      "source" : {
+        "page" : 1
+      }
+    }
+  ]
+}

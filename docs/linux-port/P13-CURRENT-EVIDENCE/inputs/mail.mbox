@@ -1,0 +1,13 @@
+From alpha@example.invalid Sat Jan  1 00:00:00 2022
+From: Alpha <alpha@example.invalid>
+Subject: First PMT
+Content-Type: text/plain; charset=UTF-8
+
+Message Alpha 17.
+
+From beta@example.invalid Sun Jan  2 00:00:00 2022
+From: Beta <beta@example.invalid>
+Subject: Second PMT
+Content-Type: text/plain; charset=UTF-8
+
+Message Beta Café 23.

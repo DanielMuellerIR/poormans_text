@@ -1,0 +1,228 @@
+{
+  "assets" : [
+    "/work/quality-04115-final/natural/01030000000134-always/images/page-1-image-1.png",
+    "/work/quality-04115-final/natural/01030000000134-always/images/page-1-image-2.png"
+  ],
+  "diagnosticGroups" : [
+    {
+      "code" : "pdf.layoutNotPreserved",
+      "count" : 1,
+      "kind" : "approximation",
+      "locations" : [
+
+      ],
+      "messages" : [
+        "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+      ],
+      "omittedCount" : 0
+    },
+    {
+      "code" : "pdf.vectorGraphicsNotExtracted",
+      "count" : 1,
+      "kind" : "contentLoss",
+      "locations" : [
+
+      ],
+      "messages" : [
+        "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF."
+      ],
+      "omittedCount" : 0
+    },
+    {
+      "code" : "pdf.linuxLayoutApproximation",
+      "count" : 1,
+      "kind" : "approximation",
+      "locations" : [
+
+      ],
+      "messages" : [
+        "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed."
+      ],
+      "omittedCount" : 0
+    },
+    {
+      "code" : "pdf.ocrConflict",
+      "count" : 1,
+      "kind" : "contentLoss",
+      "locations" : [
+        {
+          "page" : 1
+        }
+      ],
+      "messages" : [
+        "OCR text overlapping different embedded text was omitted to protect digital source text."
+      ],
+      "omittedCount" : 0
+    },
+    {
+      "code" : "pdf.layoutAmbiguous",
+      "count" : 1,
+      "kind" : "approximation",
+      "locations" : [
+        {
+          "page" : 1
+        }
+      ],
+      "messages" : [
+        "Aligned text may be a table or parallel columns; row order was retained."
+      ],
+      "omittedCount" : 0
+    },
+    {
+      "code" : "pdf.linkTargetUnavailable",
+      "count" : 1,
+      "kind" : "contentLoss",
+      "locations" : [
+        {
+          "page" : 1
+        }
+      ],
+      "messages" : [
+        "A PDF link target was retained as literal text because it was unsafe, unsupported or outside selected pages."
+      ],
+      "omittedCount" : 0
+    },
+    {
+      "code" : "pdf.ocrApplied",
+      "count" : 1,
+      "kind" : "information",
+      "locations" : [
+
+      ],
+      "messages" : [
+        "Pages without enough embedded text were rendered and read with local OCR. Review OCR text before relying on it."
+      ],
+      "omittedCount" : 0
+    },
+    {
+      "code" : "pdf.imagesRasterized",
+      "count" : 1,
+      "kind" : "approximation",
+      "locations" : [
+
+      ],
+      "messages" : [
+        "Embedded PDF images were retained as local PNG assets; their original compression and page placement were not preserved."
+      ],
+      "omittedCount" : 0
+    }
+  ],
+  "diagnostics" : [
+    {
+      "code" : "pdf.layoutNotPreserved",
+      "kind" : "approximation",
+      "message" : "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+    },
+    {
+      "code" : "pdf.vectorGraphicsNotExtracted",
+      "kind" : "contentLoss",
+      "message" : "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF."
+    },
+    {
+      "code" : "pdf.linuxLayoutApproximation",
+      "kind" : "approximation",
+      "message" : "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed."
+    },
+    {
+      "code" : "pdf.ocrConflict",
+      "kind" : "contentLoss",
+      "location" : {
+        "page" : 1
+      },
+      "message" : "OCR text overlapping different embedded text was omitted to protect digital source text."
+    },
+    {
+      "code" : "pdf.layoutAmbiguous",
+      "kind" : "approximation",
+      "location" : {
+        "page" : 1
+      },
+      "message" : "Aligned text may be a table or parallel columns; row order was retained."
+    },
+    {
+      "code" : "pdf.linkTargetUnavailable",
+      "kind" : "contentLoss",
+      "location" : {
+        "page" : 1
+      },
+      "message" : "A PDF link target was retained as literal text because it was unsafe, unsupported or outside selected pages."
+    },
+    {
+      "code" : "pdf.ocrApplied",
+      "kind" : "information",
+      "message" : "Pages without enough embedded text were rendered and read with local OCR. Review OCR text before relying on it."
+    },
+    {
+      "code" : "pdf.imagesRasterized",
+      "kind" : "approximation",
+      "message" : "Embedded PDF images were retained as local PNG assets; their original compression and page placement were not preserved."
+    }
+  ],
+  "documents" : [
+    {
+      "assets" : [
+        "/work/quality-04115-final/natural/01030000000134-always/images/page-1-image-1.png",
+        "/work/quality-04115-final/natural/01030000000134-always/images/page-1-image-2.png"
+      ],
+      "markdownFile" : "/work/quality-04115-final/natural/01030000000134-always/01030000000134.md",
+      "metadata" : {
+
+      },
+      "sourceIndex" : 1,
+      "title" : "01030000000134"
+    }
+  ],
+  "input" : "/repo/docs/linux-port/P11-NATURAL-EVIDENCE/inputs/01030000000134.pdf",
+  "markdownFile" : "/work/quality-04115-final/natural/01030000000134-always/01030000000134.md",
+  "metadata" : {
+
+  },
+  "ok" : true,
+  "outputDirectory" : "/work/quality-04115-final/natural/01030000000134-always",
+  "outputFiles" : [
+    {
+      "byteCount" : 1650,
+      "path" : "01030000000134.md",
+      "sha256" : "72ac36c569960f8a5f7355f8d50519d26d215a64c4c5bcff0609eaaafed6d48c"
+    },
+    {
+      "byteCount" : 387321,
+      "path" : "images/page-1-image-1.png",
+      "sha256" : "43b53a137decae7b901fa444e085bdd970d90fd21e36c879a42da230a4fd9325"
+    },
+    {
+      "byteCount" : 868859,
+      "path" : "images/page-1-image-2.png",
+      "sha256" : "dcd82383838eea736c3d3345141885b387edacf97b6f03d42743480fcf91cd28"
+    }
+  ],
+  "reportFile" : "/work/quality-04115-final/natural/01030000000134-always/conversion-report.json",
+  "sourceIdentity" : {
+    "byteCount" : 631921,
+    "name" : "01030000000134.pdf",
+    "sha256" : "4a6baa0f883743ec25b853bae06a49d230ec010c973501945d46a16f9bb75aa9"
+  },
+  "sourceMappings" : [
+    {
+      "output" : {
+        "file" : "01030000000134.md",
+        "utf8Length" : 1633,
+        "utf8Offset" : 16
+      },
+      "source" : {
+        "page" : 1
+      }
+    }
+  ],
+  "version" : "0.41.15",
+  "warnings" : [
+    "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review.",
+    "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF.",
+    "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed.",
+    "Page 1: OCR text overlapping different embedded text was omitted to protect digital source text.",
+    "Page 1: Aligned text may be a table or parallel columns; row order was retained.",
+    "Page 1: A PDF link target was retained as literal text because it was unsafe, unsupported or outside selected pages.",
+    "Pages without enough embedded text were rendered and read with local OCR. Review OCR text before relying on it.",
+    "Embedded PDF images were retained as local PNG assets; their original compression and page placement were not preserved."
+  ]
+}

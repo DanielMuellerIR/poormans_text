@@ -1,0 +1,71 @@
+{
+  "producerCLI": "8abc9197eeced8df043d788e349acb553bd86dd81546a6fda1faf15a93bac0cb",
+  "consumer": "810ed0a78a1b89042781d5dfc050bcc42ae9b0c42dcb40b3b6f068db858f6aec",
+  "sourceHashesUnchanged": true,
+  "pngSHA256": "161e77431664be88483d7fef7bdd0123c9ed53318cfc9d1c4fa84af80ea2ab28",
+  "independentSemanticChecks": "CSV cell values, MBOX two subjects/bodies, DOCX title/body/table/image link and exact PNG, ENEX two bodies and all four exact PNGs, mixed-codepage RTF exact Grüße Привіт PMT17",
+  "noMissingToolOrCancelledPublication": true,
+  "noStagingRemaining": true,
+  "tree": {
+    "rtf/encoding.md": {
+      "bytes": 27,
+      "sha256": "8d4fafc7d0f6c319319bafcee0db8a10988002e2092f91c8a993d9dc7ec76239"
+    },
+    "enex/index.md": {
+      "bytes": 101,
+      "sha256": "b3dfdf363c092013d8a2de799a1b4df0ec8b84cc274cdb69df1283b09b262ad1"
+    },
+    "docx/picture.md": {
+      "bytes": 139,
+      "sha256": "1e0c81ec067d2da9b0648bf88655a56d649b7d605c1ebee2d9313b800cf21d7f"
+    },
+    "mbox/index.md": {
+      "bytes": 105,
+      "sha256": "7e87b7ff4833d51c283cbe1afcdd09eac7ae9d09b58a48d19d46c2f8367714a6"
+    },
+    "csv-2/table.md": {
+      "bytes": 87,
+      "sha256": "7ca8cdbde33774b9ece199a695b91c6be6d42fa6951b354a9459b07d1384b928"
+    },
+    "csv/marker": {
+      "bytes": 17,
+      "sha256": "1bc453fcbacd0e2942d47aac3aa6972d01380fbc6318f77903f5fb5a0e73b129"
+    },
+    "mbox/assets/documents/000002/mail.md": {
+      "bytes": 252,
+      "sha256": "dbfde184f1b57ff5d41eb3fa7c2bda37a92dfb95cc10d62f6db5e0bb1234816e"
+    },
+    "mbox/assets/documents/000001/mail.md": {
+      "bytes": 249,
+      "sha256": "e5ab4cc4e0d8caa367b581383c9b1d7722d34e38b775dd1c3fbf0a0889df2177"
+    },
+    "docx/images/image01.png": {
+      "bytes": 1739,
+      "sha256": "161e77431664be88483d7fef7bdd0123c9ed53318cfc9d1c4fa84af80ea2ab28"
+    },
+    "enex/assets/documents/000002/notes.md": {
+      "bytes": 373,
+      "sha256": "25c68946b19587b6865467cb2caf4e9266a8f4d3812daf5d7b3129ef14e12f5d"
+    },
+    "enex/assets/documents/000001/notes.md": {
+      "bytes": 373,
+      "sha256": "f2e3fe58cc1fac68efa5710e4cf4396f2afe70a86d02020cabd2926b49d280de"
+    },
+    "enex/assets/documents/000001/images/image01.png": {
+      "bytes": 1739,
+      "sha256": "161e77431664be88483d7fef7bdd0123c9ed53318cfc9d1c4fa84af80ea2ab28"
+    },
+    "enex/assets/documents/000001/attachments/resource-000001.png": {
+      "bytes": 1739,
+      "sha256": "161e77431664be88483d7fef7bdd0123c9ed53318cfc9d1c4fa84af80ea2ab28"
+    },
+    "enex/assets/documents/000002/images/image01.png": {
+      "bytes": 1739,
+      "sha256": "161e77431664be88483d7fef7bdd0123c9ed53318cfc9d1c4fa84af80ea2ab28"
+    },
+    "enex/assets/documents/000002/attachments/resource-000001.png": {
+      "bytes": 1739,
+      "sha256": "161e77431664be88483d7fef7bdd0123c9ed53318cfc9d1c4fa84af80ea2ab28"
+    }
+  }
+}

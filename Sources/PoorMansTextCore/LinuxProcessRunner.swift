@@ -8,7 +8,7 @@ package enum LinuxProcessRunner {
         executable: URL, arguments: [String], currentDirectory: URL,
         captureStandardOutput: Bool, timeout: TimeInterval?,
         cancellation: ConversionCancellationToken?, terminationGrace: TimeInterval,
-        maximumCapturedBytes: Int, processGuardExecutable: URL?,
+        maximumCapturedBytes: Int,
         readOnlyPaths: [URL], writeScope: URL?
     ) throws -> ProcessResult {
         let token = cancellation.map { ConversionCancellationToken(parent: $0) }
@@ -45,13 +45,11 @@ package enum LinuxProcessRunner {
         }
         var isDirectory: ObjCBool = false
         let guardURL: URL
-        if let processGuardExecutable {
-            guardURL = processGuardExecutable
-        } else if let host = Bundle.main.executableURL {
+        if let host = Bundle.main.executableURL {
             guardURL = host.resolvingSymlinksInPath().deletingLastPathComponent()
                 .appendingPathComponent("poormans-text-process-guard")
         } else {
-            throw failure("the local PMT process guard must be installed beside the host executable or supplied explicitly")
+            throw failure("the local PMT process guard must be installed beside the host executable")
         }
         for tool in [executable, guardURL, URL(fileURLWithPath: "/usr/bin/bwrap")] {
             guard tool.isFileURL, manager.isExecutableFile(atPath: tool.path),

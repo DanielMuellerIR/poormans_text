@@ -1,0 +1,182 @@
+{
+  "assets" : [
+    "/work/final/natural/01030000000132-always/images/page-1-image-1.png",
+    "/work/final/natural/01030000000132-always/images/page-1-image-2.png"
+  ],
+  "diagnosticGroups" : [
+    {
+      "code" : "pdf.layoutNotPreserved",
+      "count" : 1,
+      "kind" : "approximation",
+      "locations" : [
+
+      ],
+      "messages" : [
+        "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+      ],
+      "omittedCount" : 0
+    },
+    {
+      "code" : "pdf.vectorGraphicsNotExtracted",
+      "count" : 1,
+      "kind" : "contentLoss",
+      "locations" : [
+
+      ],
+      "messages" : [
+        "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF."
+      ],
+      "omittedCount" : 0
+    },
+    {
+      "code" : "pdf.linuxLayoutApproximation",
+      "count" : 1,
+      "kind" : "approximation",
+      "locations" : [
+
+      ],
+      "messages" : [
+        "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed."
+      ],
+      "omittedCount" : 0
+    },
+    {
+      "code" : "pdf.ocrConflict",
+      "count" : 1,
+      "kind" : "contentLoss",
+      "locations" : [
+        {
+          "page" : 1
+        }
+      ],
+      "messages" : [
+        "OCR text overlapping different embedded text was omitted to protect digital source text."
+      ],
+      "omittedCount" : 0
+    },
+    {
+      "code" : "pdf.ocrApplied",
+      "count" : 1,
+      "kind" : "information",
+      "locations" : [
+
+      ],
+      "messages" : [
+        "Pages without enough embedded text were rendered and read with local OCR. Review OCR text before relying on it."
+      ],
+      "omittedCount" : 0
+    },
+    {
+      "code" : "pdf.imagesRasterized",
+      "count" : 1,
+      "kind" : "approximation",
+      "locations" : [
+
+      ],
+      "messages" : [
+        "Embedded PDF images were retained as local PNG assets; their original compression and page placement were not preserved."
+      ],
+      "omittedCount" : 0
+    }
+  ],
+  "diagnostics" : [
+    {
+      "code" : "pdf.layoutNotPreserved",
+      "kind" : "approximation",
+      "message" : "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+    },
+    {
+      "code" : "pdf.vectorGraphicsNotExtracted",
+      "kind" : "contentLoss",
+      "message" : "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF."
+    },
+    {
+      "code" : "pdf.linuxLayoutApproximation",
+      "kind" : "approximation",
+      "message" : "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed."
+    },
+    {
+      "code" : "pdf.ocrConflict",
+      "kind" : "contentLoss",
+      "location" : {
+        "page" : 1
+      },
+      "message" : "OCR text overlapping different embedded text was omitted to protect digital source text."
+    },
+    {
+      "code" : "pdf.ocrApplied",
+      "kind" : "information",
+      "message" : "Pages without enough embedded text were rendered and read with local OCR. Review OCR text before relying on it."
+    },
+    {
+      "code" : "pdf.imagesRasterized",
+      "kind" : "approximation",
+      "message" : "Embedded PDF images were retained as local PNG assets; their original compression and page placement were not preserved."
+    }
+  ],
+  "documents" : [
+    {
+      "assets" : [
+        "/work/final/natural/01030000000132-always/images/page-1-image-1.png",
+        "/work/final/natural/01030000000132-always/images/page-1-image-2.png"
+      ],
+      "markdownFile" : "/work/final/natural/01030000000132-always/01030000000132.md",
+      "metadata" : {
+
+      },
+      "sourceIndex" : 1,
+      "title" : "01030000000132"
+    }
+  ],
+  "input" : "/repo/docs/linux-port/P11-NATURAL-EVIDENCE/inputs/01030000000132.pdf",
+  "markdownFile" : "/work/final/natural/01030000000132-always/01030000000132.md",
+  "metadata" : {
+
+  },
+  "ok" : true,
+  "outputDirectory" : "/work/final/natural/01030000000132-always",
+  "outputFiles" : [
+    {
+      "byteCount" : 2278,
+      "path" : "01030000000132.md",
+      "sha256" : "c6762ac3b73aa7be92f00b798ed1a5622b74ba32c17bedf912005fe4fc81a6a4"
+    },
+    {
+      "byteCount" : 1259449,
+      "path" : "images/page-1-image-1.png",
+      "sha256" : "95ca39d9f04e27706f3afc5bc18df8a6872c18631e720cfe60847c2c5d626479"
+    },
+    {
+      "byteCount" : 647742,
+      "path" : "images/page-1-image-2.png",
+      "sha256" : "09cfa63d5db7de7592590b86a10a8d03c76e3eeb99f2ad401bb575c1f64f9791"
+    }
+  ],
+  "reportFile" : "/work/final/natural/01030000000132-always/conversion-report.json",
+  "sourceIdentity" : {
+    "byteCount" : 373820,
+    "name" : "01030000000132.pdf",
+    "sha256" : "eded7804127acce26e4b9e7138aa8c95d0d8886280a21148efb0ae9519941ede"
+  },
+  "sourceMappings" : [
+    {
+      "output" : {
+        "file" : "01030000000132.md",
+        "utf8Length" : 2261,
+        "utf8Offset" : 16
+      },
+      "source" : {
+        "page" : 1
+      }
+    }
+  ],
+  "version" : "0.41.14",
+  "warnings" : [
+    "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review.",
+    "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF.",
+    "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed.",
+    "Page 1: OCR text overlapping different embedded text was omitted to protect digital source text.",
+    "Pages without enough embedded text were rendered and read with local OCR. Review OCR text before relying on it.",
+    "Embedded PDF images were retained as local PNG assets; their original compression and page placement were not preserved."
+  ]
+}

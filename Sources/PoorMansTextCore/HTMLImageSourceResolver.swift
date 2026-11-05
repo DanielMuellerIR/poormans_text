@@ -396,7 +396,7 @@ enum HTMLImageSourceResolver {
             name = stem + "-" + UUID().uuidString + "." + fileExtension
         }
         do {
-            try fileManager.moveItem(at: staged, to: staged.deletingLastPathComponent().appendingPathComponent(name))
+        try fileManager.moveItem(at: staged, to: directory.appendingPathComponent(name))
         } catch {
             throw ConversionError.fileSystemFailure(error.localizedDescription)
         }

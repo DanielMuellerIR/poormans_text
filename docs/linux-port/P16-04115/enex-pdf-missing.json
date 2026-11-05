@@ -1,0 +1,17 @@
+{
+  "cliSHA256": "d354636d818849f8acbea9ad59a41aa91caf5083a07eda4331897288bb6c85e6",
+  "cases": [
+    {
+      "case": "missing-backend",
+      "expectedExit": 69,
+      "actualExit": 69,
+      "sourceSHA256": "5b16cc99d004b02d493b7b026e0ab7a4aa9fa5ed424faa6e4ad0ab88dec31ddf",
+      "response": {
+        "error": "The Python GI Poppler/Cairo PDF attachment validation backend is not available in this build.",
+        "ok": false,
+        "version": "0.41.15"
+      },
+      "passed": true
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+/work/cf-release.swift:4:13: error: 'CFRelease' is unavailable: Core Foundation objects are automatically memory managed
+2 | func encoding(_ name: String) -> CFStringEncoding? {
+3 |     guard let identifier = CFStringCreateWithCString(nil, name, CFStringBuiltInEncodings.UTF8.rawValue) else { return nil }
+4 |     defer { CFRelease(identifier) }
+  |             `- error: 'CFRelease' is unavailable: Core Foundation objects are automatically memory managed
+5 |     return CFStringConvertIANACharSetNameToEncoding(identifier)
+6 | }
+
+/usr/lib/swift/CoreFoundation/CFBase.h:643:6: note: 'CFRelease' has been explicitly marked unavailable here
+641 | 
+642 | CF_EXPORT
+643 | void CFRelease(CFTypeRef cf);
+    |      `- note: 'CFRelease' has been explicitly marked unavailable here
+644 | 
+645 | #if DEPLOYMENT_RUNTIME_SWIFT

@@ -1,0 +1,152 @@
+{
+  "cliSHA256": "8abc9197eeced8df043d788e349acb553bd86dd81546a6fda1faf15a93bac0cb",
+  "python": "3.12.3",
+  "cases": [
+    {
+      "capability": "families",
+      "status": "PASS",
+      "exit": 0
+    },
+    {
+      "capability": "raster-ocr",
+      "status": "PASS",
+      "exit": 0
+    },
+    {
+      "capability": "pdf-synthetic",
+      "status": "PASS",
+      "exit": 0
+    },
+    {
+      "capability": "natural-integrity",
+      "status": "PASS",
+      "exit": 0
+    },
+    {
+      "capability": "01030000000132.pdf-off-text",
+      "status": "FAIL",
+      "matched": 319,
+      "expected": 339,
+      "missing": 20,
+      "extra": 1,
+      "diagnostics": [
+        "pdf.layoutNotPreserved",
+        "pdf.vectorGraphicsNotExtracted",
+        "pdf.linuxLayoutApproximation",
+        "pdf.imagesRasterized"
+      ],
+      "allFoundAnchorsInOrder": true,
+      "cellsFound": 9,
+      "expectedCells": 9
+    },
+    {
+      "capability": "01030000000132.pdf-off-table-structure",
+      "status": "FAIL"
+    },
+    {
+      "capability": "01030000000132.pdf-always-text",
+      "status": "FAIL",
+      "matched": 319,
+      "expected": 339,
+      "missing": 20,
+      "extra": 1,
+      "diagnostics": [
+        "pdf.layoutNotPreserved",
+        "pdf.vectorGraphicsNotExtracted",
+        "pdf.linuxLayoutApproximation",
+        "pdf.ocrConflict",
+        "pdf.ocrApplied",
+        "pdf.imagesRasterized"
+      ],
+      "allFoundAnchorsInOrder": true,
+      "cellsFound": 9,
+      "expectedCells": 9
+    },
+    {
+      "capability": "01030000000132.pdf-always-table-structure",
+      "status": "FAIL"
+    },
+    {
+      "capability": "01030000000134.pdf-off-text",
+      "status": "FAIL",
+      "matched": 152,
+      "expected": 237,
+      "missing": 85,
+      "extra": 0,
+      "diagnostics": [
+        "pdf.layoutNotPreserved",
+        "pdf.vectorGraphicsNotExtracted",
+        "pdf.linuxLayoutApproximation",
+        "pdf.linkTargetUnavailable",
+        "pdf.imagesRasterized"
+      ],
+      "allFoundAnchorsInOrder": true,
+      "cellsFound": 0,
+      "expectedCells": 0
+    },
+    {
+      "capability": "01030000000134.pdf-always-text",
+      "status": "FAIL",
+      "matched": 203,
+      "expected": 237,
+      "missing": 34,
+      "extra": 29,
+      "diagnostics": [
+        "pdf.layoutNotPreserved",
+        "pdf.vectorGraphicsNotExtracted",
+        "pdf.linuxLayoutApproximation",
+        "pdf.ocrConflict",
+        "pdf.layoutAmbiguous",
+        "pdf.linkTargetUnavailable",
+        "pdf.ocrApplied",
+        "pdf.imagesRasterized"
+      ],
+      "allFoundAnchorsInOrder": true,
+      "cellsFound": 0,
+      "expectedCells": 0
+    },
+    {
+      "capability": "01030000000135.pdf-off-text",
+      "status": "PASS",
+      "matched": 561,
+      "expected": 561,
+      "missing": 0,
+      "extra": 1,
+      "diagnostics": [
+        "pdf.layoutNotPreserved",
+        "pdf.vectorGraphicsNotExtracted",
+        "pdf.linuxLayoutApproximation",
+        "pdf.layoutAmbiguous"
+      ],
+      "allFoundAnchorsInOrder": true,
+      "cellsFound": 0,
+      "expectedCells": 0
+    },
+    {
+      "capability": "01030000000135.pdf-always-text",
+      "status": "PASS",
+      "matched": 561,
+      "expected": 561,
+      "missing": 0,
+      "extra": 1,
+      "diagnostics": [
+        "pdf.layoutNotPreserved",
+        "pdf.vectorGraphicsNotExtracted",
+        "pdf.linuxLayoutApproximation",
+        "pdf.ocrConflict",
+        "pdf.layoutAmbiguous",
+        "pdf.ocrApplied"
+      ],
+      "allFoundAnchorsInOrder": true,
+      "cellsFound": 0,
+      "expectedCells": 0
+    },
+    {
+      "capability": "structured OCR quality",
+      "status": "SKIP",
+      "reason": "product backend unavailable; rejection is tested by raster/PDF probes"
+    }
+  ],
+  "overall": "FAIL",
+  "scope": "bounded fixtures, no visual or full format-matrix approval"
+}

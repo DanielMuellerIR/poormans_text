@@ -1,0 +1,227 @@
+{
+  "cliSHA256": "d354636d818849f8acbea9ad59a41aa91caf5083a07eda4331897288bb6c85e6",
+  "cases": [
+    {
+      "case": "normal",
+      "expectedExit": 0,
+      "actualExit": 0,
+      "sourceSHA256": "5b16cc99d004b02d493b7b026e0ab7a4aa9fa5ed424faa6e4ad0ab88dec31ddf",
+      "response": {
+        "assets": [
+          "/work/enex-pdf-positive/normal-out/assets/documents/000001/attachments/resource-000001.pdf",
+          "/work/enex-pdf-positive/normal-out/assets/documents/000001/normal.md"
+        ],
+        "diagnosticGroups": [
+          {
+            "code": "html.structureSimplified",
+            "count": 1,
+            "kind": "approximation",
+            "locations": [
+              {
+                "note": "1"
+              }
+            ],
+            "messages": [
+              "Scripts, styles, forms, and the page layout are not represented in the Markdown."
+            ],
+            "omittedCount": 0
+          }
+        ],
+        "diagnostics": [
+          {
+            "code": "html.structureSimplified",
+            "kind": "approximation",
+            "location": {
+              "note": "1"
+            },
+            "message": "Scripts, styles, forms, and the page layout are not represented in the Markdown."
+          }
+        ],
+        "documents": [
+          {
+            "assets": [
+              "/work/enex-pdf-positive/normal-out/assets/documents/000001/attachments/resource-000001.pdf"
+            ],
+            "markdownFile": "/work/enex-pdf-positive/normal-out/assets/documents/000001/normal.md",
+            "metadata": {
+              "title": "PDF reference"
+            },
+            "sourceIndex": 1,
+            "title": "PDF reference"
+          }
+        ],
+        "input": "/work/enex-pdf-positive/normal.enex",
+        "markdownFile": "/work/enex-pdf-positive/normal-out/index.md",
+        "metadata": {
+          "title": "normal"
+        },
+        "ok": true,
+        "outputDirectory": "/work/enex-pdf-positive/normal-out",
+        "outputFiles": [
+          {
+            "byteCount": 373820,
+            "path": "assets/documents/000001/attachments/resource-000001.pdf",
+            "sha256": "eded7804127acce26e4b9e7138aa8c95d0d8886280a21148efb0ae9519941ede"
+          },
+          {
+            "byteCount": 332,
+            "path": "assets/documents/000001/normal.md",
+            "sha256": "874229178382894be7179b0882217ffa91631c7ce482b8d3d116f3b97ba1a314"
+          },
+          {
+            "byteCount": 64,
+            "path": "index.md",
+            "sha256": "f821a4d2f29251fe32f67716b4f477d829684cc3a92d1756db1fcf0b4484d371"
+          }
+        ],
+        "reportFile": "/work/enex-pdf-positive/normal-out/conversion-report.json",
+        "sourceIdentity": {
+          "byteCount": 498815,
+          "name": "normal.enex",
+          "sha256": "5b16cc99d004b02d493b7b026e0ab7a4aa9fa5ed424faa6e4ad0ab88dec31ddf"
+        },
+        "sourceMappings": [
+          {
+            "output": {
+              "file": "assets/documents/000001/normal.md",
+              "utf8Length": 332,
+              "utf8Offset": 0
+            },
+            "source": {
+              "note": "1"
+            }
+          }
+        ],
+        "version": "0.41.15",
+        "warnings": [
+          "Note 1: Scripts, styles, forms, and the page layout are not represented in the Markdown."
+        ]
+      },
+      "attachmentSHA256": "eded7804127acce26e4b9e7138aa8c95d0d8886280a21148efb0ae9519941ede",
+      "passed": true
+    },
+    {
+      "case": "encrypted",
+      "expectedExit": 0,
+      "actualExit": 0,
+      "sourceSHA256": "014d44061b555b4fb12da63e4dabf765a16199495fe934f0738e61831aea8626",
+      "response": {
+        "assets": [
+          "/work/enex-pdf-positive/encrypted-out/assets/documents/000001/attachments/resource-000001.pdf",
+          "/work/enex-pdf-positive/encrypted-out/assets/documents/000001/encrypted.md"
+        ],
+        "diagnosticGroups": [
+          {
+            "code": "html.structureSimplified",
+            "count": 1,
+            "kind": "approximation",
+            "locations": [
+              {
+                "note": "1"
+              }
+            ],
+            "messages": [
+              "Scripts, styles, forms, and the page layout are not represented in the Markdown."
+            ],
+            "omittedCount": 0
+          }
+        ],
+        "diagnostics": [
+          {
+            "code": "html.structureSimplified",
+            "kind": "approximation",
+            "location": {
+              "note": "1"
+            },
+            "message": "Scripts, styles, forms, and the page layout are not represented in the Markdown."
+          }
+        ],
+        "documents": [
+          {
+            "assets": [
+              "/work/enex-pdf-positive/encrypted-out/assets/documents/000001/attachments/resource-000001.pdf"
+            ],
+            "markdownFile": "/work/enex-pdf-positive/encrypted-out/assets/documents/000001/encrypted.md",
+            "metadata": {
+              "title": "PDF reference"
+            },
+            "sourceIndex": 1,
+            "title": "PDF reference"
+          }
+        ],
+        "input": "/work/enex-pdf-positive/encrypted.enex",
+        "markdownFile": "/work/enex-pdf-positive/encrypted-out/index.md",
+        "metadata": {
+          "title": "encrypted"
+        },
+        "ok": true,
+        "outputDirectory": "/work/enex-pdf-positive/encrypted-out",
+        "outputFiles": [
+          {
+            "byteCount": 374855,
+            "path": "assets/documents/000001/attachments/resource-000001.pdf",
+            "sha256": "4ae3d87bf6085c2fa437f7d74ef0b1a152bea772923ce8a68989d8e2b61cb7f6"
+          },
+          {
+            "byteCount": 332,
+            "path": "assets/documents/000001/encrypted.md",
+            "sha256": "3d846145cf21ac85790c86fcb709eacec5d9961a7a9772f32cfc3566dc5a9d24"
+          },
+          {
+            "byteCount": 70,
+            "path": "index.md",
+            "sha256": "008283916906e370059c2c2e1dfae45c5c7ec43c12035321e9641143798be26d"
+          }
+        ],
+        "reportFile": "/work/enex-pdf-positive/encrypted-out/conversion-report.json",
+        "sourceIdentity": {
+          "byteCount": 500195,
+          "name": "encrypted.enex",
+          "sha256": "014d44061b555b4fb12da63e4dabf765a16199495fe934f0738e61831aea8626"
+        },
+        "sourceMappings": [
+          {
+            "output": {
+              "file": "assets/documents/000001/encrypted.md",
+              "utf8Length": 332,
+              "utf8Offset": 0
+            },
+            "source": {
+              "note": "1"
+            }
+          }
+        ],
+        "version": "0.41.15",
+        "warnings": [
+          "Note 1: Scripts, styles, forms, and the page layout are not represented in the Markdown."
+        ]
+      },
+      "attachmentSHA256": "4ae3d87bf6085c2fa437f7d74ef0b1a152bea772923ce8a68989d8e2b61cb7f6",
+      "passed": true
+    },
+    {
+      "case": "damaged",
+      "expectedExit": 65,
+      "actualExit": 65,
+      "sourceSHA256": "4527e0ea38d0bb3cf7b1f7dd89c0bb1a4fe1e57d25773128bedc1912a277e04a",
+      "response": {
+        "error": "Invalid ENEX input at /work/enex-pdf-positive/damaged.enex: an ENEX PDF attachment could not be validated by the local PDF backend",
+        "ok": false,
+        "version": "0.41.15"
+      },
+      "passed": true
+    },
+    {
+      "case": "wrong-type",
+      "expectedExit": 65,
+      "actualExit": 65,
+      "sourceSHA256": "992d874efca6948149d7da32b7976e8cf706838fea560414a6bd7e37507a9dbf",
+      "response": {
+        "error": "Invalid ENEX input at /work/enex-pdf-positive/wrong-type.enex: an ENEX PDF attachment does not match its declared type",
+        "ok": false,
+        "version": "0.41.15"
+      },
+      "passed": true
+    }
+  ]
+}

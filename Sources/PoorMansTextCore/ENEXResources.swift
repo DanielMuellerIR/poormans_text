@@ -214,6 +214,9 @@ struct ENEXResources {
                 throw ImportFailure("an ENEX PDF attachment does not match its declared type")
             }
             return ("pdf", false)
+            #elseif os(Linux)
+            try LinuxPDFAttachment.validate(data)
+            return ("pdf", false)
             #else
             throw PlatformBackendUnavailable("PDF attachment validation")
             #endif

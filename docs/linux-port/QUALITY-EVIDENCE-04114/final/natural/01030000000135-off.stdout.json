@@ -1,0 +1,134 @@
+{
+  "assets" : [
+
+  ],
+  "diagnosticGroups" : [
+    {
+      "code" : "pdf.layoutNotPreserved",
+      "count" : 1,
+      "kind" : "approximation",
+      "locations" : [
+
+      ],
+      "messages" : [
+        "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+      ],
+      "omittedCount" : 0
+    },
+    {
+      "code" : "pdf.vectorGraphicsNotExtracted",
+      "count" : 1,
+      "kind" : "contentLoss",
+      "locations" : [
+
+      ],
+      "messages" : [
+        "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF."
+      ],
+      "omittedCount" : 0
+    },
+    {
+      "code" : "pdf.linuxLayoutApproximation",
+      "count" : 1,
+      "kind" : "approximation",
+      "locations" : [
+
+      ],
+      "messages" : [
+        "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed."
+      ],
+      "omittedCount" : 0
+    },
+    {
+      "code" : "pdf.layoutAmbiguous",
+      "count" : 1,
+      "kind" : "approximation",
+      "locations" : [
+        {
+          "page" : 1
+        }
+      ],
+      "messages" : [
+        "Aligned text may be a table or parallel columns; row order was retained."
+      ],
+      "omittedCount" : 0
+    }
+  ],
+  "diagnostics" : [
+    {
+      "code" : "pdf.layoutNotPreserved",
+      "kind" : "approximation",
+      "message" : "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+    },
+    {
+      "code" : "pdf.vectorGraphicsNotExtracted",
+      "kind" : "contentLoss",
+      "message" : "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF."
+    },
+    {
+      "code" : "pdf.linuxLayoutApproximation",
+      "kind" : "approximation",
+      "message" : "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed."
+    },
+    {
+      "code" : "pdf.layoutAmbiguous",
+      "kind" : "approximation",
+      "location" : {
+        "page" : 1
+      },
+      "message" : "Aligned text may be a table or parallel columns; row order was retained."
+    }
+  ],
+  "documents" : [
+    {
+      "assets" : [
+
+      ],
+      "markdownFile" : "/work/final/natural/01030000000135-off/01030000000135.md",
+      "metadata" : {
+
+      },
+      "sourceIndex" : 1,
+      "title" : "01030000000135"
+    }
+  ],
+  "input" : "/repo/docs/linux-port/P11-NATURAL-EVIDENCE/inputs/01030000000135.pdf",
+  "markdownFile" : "/work/final/natural/01030000000135-off/01030000000135.md",
+  "metadata" : {
+
+  },
+  "ok" : true,
+  "outputDirectory" : "/work/final/natural/01030000000135-off",
+  "outputFiles" : [
+    {
+      "byteCount" : 3761,
+      "path" : "01030000000135.md",
+      "sha256" : "e6b05b1951dbd78e9afd09b937ce30c2afcc00f0473a4872ce50e36121283f8c"
+    }
+  ],
+  "reportFile" : "/work/final/natural/01030000000135-off/conversion-report.json",
+  "sourceIdentity" : {
+    "byteCount" : 29037,
+    "name" : "01030000000135.pdf",
+    "sha256" : "ed941b5cde32cfc778c225dcfa90c334d9995d70c46e7f508635073a3227784b"
+  },
+  "sourceMappings" : [
+    {
+      "output" : {
+        "file" : "01030000000135.md",
+        "utf8Length" : 3744,
+        "utf8Offset" : 16
+      },
+      "source" : {
+        "page" : 1
+      }
+    }
+  ],
+  "version" : "0.41.14",
+  "warnings" : [
+    "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review.",
+    "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF.",
+    "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed.",
+    "Page 1: Aligned text may be a table or parallel columns; row order was retained."
+  ]
+}

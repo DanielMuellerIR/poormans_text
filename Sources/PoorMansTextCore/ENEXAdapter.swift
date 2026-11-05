@@ -72,6 +72,7 @@ struct ENEXAdapter: DocumentConversionAdapter {
             }
             return try writer.finish(metadata: .init(title: context.inputURL.deletingPathExtension().lastPathComponent))
         } catch let error as ConversionError { throw error }
+        catch let error as PlatformBackendUnavailable { throw error }
         catch { throw ConversionError.invalidInput(context.inputURL, format: .enex, reason: error.localizedDescription) }
     }
 

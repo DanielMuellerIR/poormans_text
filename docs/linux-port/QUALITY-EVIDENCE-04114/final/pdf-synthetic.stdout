@@ -1,0 +1,131 @@
+{
+  "dates": {
+    "exit": 0,
+    "markdown": "---\ntitle: \"Date metadata\"\ncreated: 1969-01-02T03:04:05Z\nmodified: 2020-01-02T03:04:05Z\n---\n# dates\n\n<a id=\"pmt-pdf-page-1\"></a>\n\n## Page 1\n\nALPHA left column\n\nBETA right\n\nGAMMA next line\n\n![PDF image](images/page-1-image-1.png)\n\n### Links\n\n- [ALPHA left column](https://example.invalid/pmt-never-fetch)\n\n### Annotations\n\n#### Annotation 2\n\nType: text\nAuthor: Fixture author\nModified (source): \nPage rectangle: 300.0, 600.0, 25.0, 25.0\n\nNOTE annotation sentinel\n\n<a id=\"pmt-pdf-page-2\"></a>\n\n## Page 2\n\nDELTA page two\n",
+    "diagnostics": [
+      "pdf.layoutNotPreserved",
+      "pdf.vectorGraphicsNotExtracted",
+      "pdf.linuxLayoutApproximation",
+      "pdf.annotationMetadataApproximation",
+      "pdf.imagesRasterized"
+    ],
+    "error": null
+  },
+  "structured-off": {
+    "exit": 0,
+    "markdown": "# sample\n\n<a id=\"pmt-pdf-page-1\"></a>\n\n## Page 1\n\nALPHA left column\n\nBETA right\n\nGAMMA next line\n\n![PDF image](images/page-1-image-1.png)\n\n### Links\n\n- [ALPHA left column](https://example.invalid/pmt-never-fetch)\n\n### Annotations\n\n#### Annotation 2\n\nType: text\nAuthor: Fixture author\nModified (source): \nPage rectangle: 300.0, 600.0, 25.0, 25.0\n\nNOTE annotation sentinel\n\n<a id=\"pmt-pdf-page-2\"></a>\n\n## Page 2\n\nDELTA page two\n",
+    "diagnostics": [
+      "pdf.layoutNotPreserved",
+      "pdf.vectorGraphicsNotExtracted",
+      "pdf.linuxLayoutApproximation",
+      "pdf.annotationMetadataApproximation",
+      "pdf.imagesRasterized"
+    ],
+    "error": null
+  },
+  "digital": {
+    "exit": 0,
+    "markdown": "# sample\n\n<a id=\"pmt-pdf-page-1\"></a>\n\n## Page 1\n\nALPHA left column\n\nBETA right\n\nGAMMA next line\n\n![PDF image](images/page-1-image-1.png)\n\n### Links\n\n- [ALPHA left column](https://example.invalid/pmt-never-fetch)\n\n### Annotations\n\n#### Annotation 2\n\nType: text\nAuthor: Fixture author\nModified (source): \nPage rectangle: 300.0, 600.0, 25.0, 25.0\n\nNOTE annotation sentinel\n\n<a id=\"pmt-pdf-page-2\"></a>\n\n## Page 2\n\nDELTA page two\n",
+    "diagnostics": [
+      "pdf.layoutNotPreserved",
+      "pdf.vectorGraphicsNotExtracted",
+      "pdf.linuxLayoutApproximation",
+      "pdf.annotationMetadataApproximation",
+      "pdf.imagesRasterized"
+    ],
+    "error": null
+  },
+  "mixed": {
+    "exit": 0,
+    "markdown": "# mixed\n\n<a id=\"pmt-pdf-page-1\"></a>\n\n## Page 1\n\nDIGITAL HEADER 98765\n\nInvoice ALPHA 12345\nDie Rechnung kostet 42 Euro.\nGrüße aus Munchen und schöne Grüße.\nThe quick brown fox jumps over the lazy dog.\nRotation sentinel ALPHA 12345\n\nRotation sentinel ALPHA 12345\n\nRotation sentinel ALPHA 12345\n\nRotation sentinel ALPHA 12345\n\nRotation sentinel ALPHA 12345\n\n![PDF image](images/page-1-image-1.png)\n",
+    "diagnostics": [
+      "pdf.layoutNotPreserved",
+      "pdf.vectorGraphicsNotExtracted",
+      "pdf.linuxLayoutApproximation",
+      "pdf.ocrApplied",
+      "pdf.imagesRasterized"
+    ],
+    "error": null
+  },
+  "mixed-default": {
+    "exit": 0,
+    "markdown": "# mixed\n\n<a id=\"pmt-pdf-page-1\"></a>\n\n## Page 1\n\nDIGITAL HEADER 98765\n\nInvoice ALPHA 12345\nDie Rechnung kostet 42 Euro.\nGrufgse aus Munchen und schone Grufe.\nThe quick brown fox jumps over the lazy dog.\nRotation sentinel ALPHA 12345\n\nRotation sentinel ALPHA 12345\n\nRotation sentinel ALPHA 12345\n\nRotation sentinel ALPHA 12345\n\nRotation sentinel ALPHA 12345\n\n![PDF image](images/page-1-image-1.png)\n",
+    "diagnostics": [
+      "pdf.layoutNotPreserved",
+      "pdf.vectorGraphicsNotExtracted",
+      "pdf.linuxLayoutApproximation",
+      "pdf.ocrApplied",
+      "ocr.languageDefault",
+      "pdf.imagesRasterized"
+    ],
+    "error": null
+  },
+  "second": {
+    "exit": 0,
+    "markdown": "# sample\n\n<a id=\"pmt-pdf-page-2\"></a>\n\n## Page 2\n\nDELTA page two\n",
+    "diagnostics": [
+      "pdf.layoutNotPreserved",
+      "pdf.vectorGraphicsNotExtracted",
+      "pdf.linuxLayoutApproximation"
+    ],
+    "error": null
+  },
+  "broken": {
+    "exit": 65,
+    "markdown": "",
+    "diagnostics": [],
+    "error": "Invalid PDF input at /work/final/pdf/fixtures/broken.pdf: Local PDF backend: poppler-quark: PDF document is damaged (4)\n"
+  },
+  "encrypted": {
+    "exit": 65,
+    "markdown": "",
+    "diagnostics": [],
+    "error": "Invalid PDF input at /work/final/pdf/fixtures/encrypted.pdf: Local PDF backend: poppler-quark: Document is encrypted (1)\n"
+  },
+  "structured": {
+    "exit": 69,
+    "markdown": "",
+    "diagnostics": [],
+    "error": "The structured local document OCR on Linux backend is not available in this build."
+  },
+  "headers": {
+    "exit": 0,
+    "markdown": "# margins\n\n<a id=\"pmt-pdf-page-1\"></a>\n\n## Page 1\n\nREPEATED HEADER\nBODY ALPHA\n\n<a id=\"pmt-pdf-page-2\"></a>\n\n## Page 2\n\nBODY BETA\n",
+    "diagnostics": [
+      "pdf.layoutNotPreserved",
+      "pdf.vectorGraphicsNotExtracted",
+      "pdf.linuxLayoutApproximation",
+      "pdf.repeatedMarginRemoved",
+      "pdf.repeatedMarginRemoved"
+    ],
+    "error": null
+  },
+  "hyphen": {
+    "exit": 0,
+    "markdown": "# hyphen\n\n<a id=\"pmt-pdf-page-1\"></a>\n\n## Page 1\n\nfortsetzungsbeispiel\n",
+    "diagnostics": [
+      "pdf.layoutNotPreserved",
+      "pdf.vectorGraphicsNotExtracted",
+      "pdf.linuxLayoutApproximation"
+    ],
+    "error": null
+  },
+  "legacy": {
+    "exit": 0,
+    "markdown": "# sample\n\n<a id=\"pmt-pdf-page-1\"></a>\n\n## Page 1\n\nALPHA left column\nGAMMA next line\nBETA right\n\n![PDF image](images/page-1-image-1.png)\n\n### Links\n\n- [ALPHA left column](https://example.invalid/pmt-never-fetch)\n\n### Annotations\n\n#### Annotation 2\n\nType: text\nAuthor: Fixture author\nModified (source): \nPage rectangle: 300.0, 600.0, 25.0, 25.0\n\nNOTE annotation sentinel\n\n<a id=\"pmt-pdf-page-2\"></a>\n\n## Page 2\n\nDELTA page two\n",
+    "diagnostics": [
+      "pdf.layoutNotPreserved",
+      "pdf.vectorGraphicsNotExtracted",
+      "pdf.linuxLayoutApproximation",
+      "pdf.annotationMetadataApproximation",
+      "pdf.imagesRasterized"
+    ],
+    "error": null
+  },
+  "out-of-range": {
+    "exit": 65,
+    "markdown": "",
+    "diagnostics": [],
+    "error": "Invalid PDF input at /work/final/pdf/fixtures/fixtures/sample.pdf: selection position 3 exceeds the document count 2"
+  }
+}

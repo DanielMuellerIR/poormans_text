@@ -2,6 +2,24 @@
 
 Stand: 2026-11-05. Der Replay änderte kein Fastra-Repository. Vorhandene echte Consumer-/GTK-Binärdateien wurden unverändert in einen eigenen temporären Bereich kopiert; kein Consumer wurde neu gebaut. Sämtliche Fixtures, HOME-/XDG-Verzeichnisse und der GUI-DBus/Xvfb waren privat. Kein Produktdesktop wurde benutzt.
 
+## Maßgeblicher aktueller Stand
+
+Die [gebundene .14→1.164-Matrix](P13-CURRENT-EVIDENCE/REPORT.md) schließt das
+bisherige Artefakttor und die unten historisch offenen CSV-/MBOX-/DOCX-/ENEX-/
+RTF-/Kollisions-/Missingtool-/normalen Abbruchfälle. Der tatsächlich benutzte
+Release-Consumer ist an f8e2bdc4933327ce2334ccb5450cb431273ef5bd gebunden;
+alle 375 Laufzeiteinträge blieben unverändert. Echter Dialog, Adoption und
+frischer Editor-/Bild-/Tabellen-Reopen sind ausgeführt. Die historischen
+Artefakte und früheren Lücken bleiben nachfolgend als damaliger Stand erhalten.
+
+[0.41.15-Delta](P16-04115/fastra/REPORT.md): DOCX/PNG erneut korrekt; normale
+und verschlüsselte ENEX-PDFs bei tatsächlich fehlendem Python-GI-Backend mit
+sichtbarem Fehler und gesperrter Adoption. Positive PDF-Anhänge sind am
+Producer belegt; positive GUI-Abnahme braucht eine Umgebung mit beiden
+unveränderten Laufzeiten und deren erklärten Abhängigkeiten. Keine neue
+Schnittstelle, keine Fastra-Quelländerung. Harte Fastra-GUI-Verluste und echte
+KDE-/Cinnamon-Systemintegration sind durch normalen Abbruch nicht bewiesen.
+
 ## Historische Consumer-Replays gegen0.41.10
 
 [replay.json](P13-EVIDENCE/replay.json): Der vorhandene `fastra-import`-Treiber `examples/check_cli` läuft erfolgreich gegen PMT 0.41.10. Katalog: 29 Formate. CSV: eine Datei/ein Dokument, Einstieg `table.md`. MBOX: drei Dateien/zwei Dokumente, Einstieg `index.md`. Der originale Treiber prüft Adoption und unveränderte Quelldaten; seine temporären Verzeichnisse waren anschließend leer. Das ist ein echter Consumer-/Producer-Lauf, keine GUI-Abnahme.
@@ -62,7 +80,7 @@ hashgleich, alle eigenen Container und großen Kopien sind entfernt. Das
 Fastra-source_sha256-Feld ersetzt keine unabhängig bewiesene Gitcommitbindung.
 Fastraquellen wurden nicht geändert; Consumerarbeit bleibt beim Fastra-Chat.
 
-## Aktuelles Artefakttor für weitere Importabnahmen
+## Historisches Artefakttor (inzwischen durch aktuelle Matrix geschlossen)
 
 Der lesend geprüfte neuere Fastra-Quellstand enthält einen formatneutralen
 Tools→Import-document-Weg mit Prepare/Adopt/Cancel. Das tatsächlich verfügbare

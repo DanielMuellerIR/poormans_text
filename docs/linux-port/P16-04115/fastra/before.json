@@ -1,0 +1,10 @@
+{
+  "inputs": {
+    "picture.docx": "5d724cd242bbc31a1f95e85e3b2eec18be5de175181f19acfd3107996eaabbfd",
+    "encrypted.enex": "014d44061b555b4fb12da63e4dabf765a16199495fe934f0738e61831aea8626",
+    "normal.enex": "5b16cc99d004b02d493b7b026e0ab7a4aa9fa5ed424faa6e4ad0ab88dec31ddf"
+  },
+  "consumer": "810ed0a78a1b89042781d5dfc050bcc42ae9b0c42dcb40b3b6f068db858f6aec",
+  "manifestFiles": 375,
+  "producer": "d354636d818849f8acbea9ad59a41aa91caf5083a07eda4331897288bb6c85e6"
+}

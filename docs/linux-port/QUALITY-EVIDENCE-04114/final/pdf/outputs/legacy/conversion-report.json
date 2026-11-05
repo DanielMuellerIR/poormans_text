@@ -1,0 +1,158 @@
+{
+  "converterVersion" : "0.41.14",
+  "diagnosticGroups" : [
+    {
+      "code" : "pdf.layoutNotPreserved",
+      "count" : 1,
+      "kind" : "approximation",
+      "locations" : [
+
+      ],
+      "messages" : [
+        "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+      ],
+      "omittedCount" : 0
+    },
+    {
+      "code" : "pdf.vectorGraphicsNotExtracted",
+      "count" : 1,
+      "kind" : "contentLoss",
+      "locations" : [
+
+      ],
+      "messages" : [
+        "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF."
+      ],
+      "omittedCount" : 0
+    },
+    {
+      "code" : "pdf.linuxLayoutApproximation",
+      "count" : 1,
+      "kind" : "approximation",
+      "locations" : [
+
+      ],
+      "messages" : [
+        "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed."
+      ],
+      "omittedCount" : 0
+    },
+    {
+      "code" : "pdf.annotationMetadataApproximation",
+      "count" : 1,
+      "kind" : "approximation",
+      "locations" : [
+        {
+          "page" : 1
+        }
+      ],
+      "messages" : [
+        "Readable annotation text, author, modification date and page rectangle were retained; advanced annotation fields and exact text references are not reconstructed."
+      ],
+      "omittedCount" : 0
+    },
+    {
+      "code" : "pdf.imagesRasterized",
+      "count" : 1,
+      "kind" : "approximation",
+      "locations" : [
+
+      ],
+      "messages" : [
+        "Embedded PDF images were retained as local PNG assets; their original compression and page placement were not preserved."
+      ],
+      "omittedCount" : 0
+    }
+  ],
+  "diagnostics" : [
+    {
+      "code" : "pdf.layoutNotPreserved",
+      "kind" : "approximation",
+      "message" : "Complex PDF layout and exact text placement are not fully preserved. Inferred headings, tables and column order may need review."
+    },
+    {
+      "code" : "pdf.vectorGraphicsNotExtracted",
+      "kind" : "contentLoss",
+      "message" : "Vector drawings and unsupported page graphics are not exported as separate assets; inspect visual content in the source PDF."
+    },
+    {
+      "code" : "pdf.linuxLayoutApproximation",
+      "kind" : "approximation",
+      "message" : "The Linux PDF backend infers word spacing and bounded text-line order; tables and typographic structure are not reconstructed."
+    },
+    {
+      "code" : "pdf.annotationMetadataApproximation",
+      "kind" : "approximation",
+      "location" : {
+        "page" : 1
+      },
+      "message" : "Readable annotation text, author, modification date and page rectangle were retained; advanced annotation fields and exact text references are not reconstructed."
+    },
+    {
+      "code" : "pdf.imagesRasterized",
+      "kind" : "approximation",
+      "message" : "Embedded PDF images were retained as local PNG assets; their original compression and page placement were not preserved."
+    }
+  ],
+  "format" : "pdf",
+  "omittedMappingCount" : 0,
+  "options" : {
+    "conversionReport" : true,
+    "customPandoc" : false,
+    "docxChangeMode" : "accept",
+    "frontmatter" : false,
+    "imageTextRecognition" : "enabled",
+    "ocrLanguages" : [
+
+    ],
+    "ocrMethod" : "standard",
+    "outputLayout" : "markdownFolder",
+    "pdfDehyphenate" : false,
+    "pdfLayout" : "legacy",
+    "pdfRemoveHeadersFooters" : false,
+    "pdfTextRecognition" : "off",
+    "presentationIncludeNotes" : true,
+    "sourceMapping" : true,
+    "spreadsheetRendering" : "markdownTable"
+  },
+  "outputs" : [
+    {
+      "byteCount" : 96,
+      "path" : "images/page-1-image-1.png",
+      "sha256" : "33f060aed76bb7c18098d0e6313e3b388655aa1cab796fe8630b27c26dc81613"
+    },
+    {
+      "byteCount" : 425,
+      "path" : "sample.md",
+      "sha256" : "08d29efb70939135ddc108651e0aa3bc27dd7617c8fe65fe01ee88e042e5e5e4"
+    }
+  ],
+  "schemaVersion" : 1,
+  "source" : {
+    "byteCount" : 1486,
+    "name" : "sample.pdf",
+    "sha256" : "a182895247779a29e215de2236d6d547612746aab7705aae3e2b9e5ea6b08640"
+  },
+  "sourceMappings" : [
+    {
+      "output" : {
+        "file" : "sample.md",
+        "utf8Length" : 360,
+        "utf8Offset" : 8
+      },
+      "source" : {
+        "page" : 1
+      }
+    },
+    {
+      "output" : {
+        "file" : "sample.md",
+        "utf8Length" : 56,
+        "utf8Offset" : 368
+      },
+      "source" : {
+        "page" : 2
+      }
+    }
+  ]
+}

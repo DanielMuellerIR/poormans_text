@@ -1,0 +1,16 @@
+{
+  "cliSHA256": "8abc9197eeced8df043d788e349acb553bd86dd81546a6fda1faf15a93bac0cb",
+  "cases": [
+    {
+      "case": "missing-backend",
+      "expectedExit": 69,
+      "actualExit": 65,
+      "sourceSHA256": "5b16cc99d004b02d493b7b026e0ab7a4aa9fa5ed424faa6e4ad0ab88dec31ddf",
+      "response": {
+        "error": "Invalid ENEX input at /work/enex-pdf-old-negative/missing-backend.enex: The PDF attachment validation backend is not available in this build.",
+        "ok": false,
+        "version": "0.41.14"
+      }
+    }
+  ]
+}

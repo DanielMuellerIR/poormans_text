@@ -24,7 +24,6 @@ package enum ProcessRunner {
         cancellation: ConversionCancellationToken? = nil,
         terminationGrace: TimeInterval = 0.25,
         maximumCapturedBytes: Int = 16 * 1024 * 1024,
-        processGuardExecutable: URL? = nil,
         readOnlyPaths: [URL] = [],
         writeScope: URL? = nil
     ) throws -> ProcessResult {
@@ -33,7 +32,7 @@ package enum ProcessRunner {
             executable: executable, arguments: arguments, currentDirectory: currentDirectory,
             captureStandardOutput: captureStandardOutput, timeout: timeout, cancellation: cancellation,
             terminationGrace: terminationGrace, maximumCapturedBytes: maximumCapturedBytes,
-            processGuardExecutable: processGuardExecutable, readOnlyPaths: readOnlyPaths, writeScope: writeScope
+            readOnlyPaths: readOnlyPaths, writeScope: writeScope
         )
         #else
         let token = cancellation.map { ConversionCancellationToken(parent: $0) }

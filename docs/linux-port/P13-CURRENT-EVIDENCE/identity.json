@@ -1,0 +1,23 @@
+{
+  "date": "2026-11-05",
+  "consumerVersion": "1.164.0",
+  "consumerBuild": "372",
+  "consumerCommitLinkedEvidence": "f8e2bdc4933327ce2334ccb5450cb431273ef5bd",
+  "consumerBinarySHA256": "810ed0a78a1b89042781d5dfc050bcc42ae9b0c42dcb40b3b6f068db858f6aec",
+  "manifestSHA256": "b3ed2272f88d62030c17b6d62392f6b56782b339ed9f8b22d80032c1639c00a5",
+  "manifestVerifiedFiles": 375,
+  "manifestMismatches": [],
+  "producerVersion": "0.41.14",
+  "producerBinarySHA256": "8abc9197eeced8df043d788e349acb553bd86dd81546a6fda1faf15a93bac0cb",
+  "producerGuardSHA256": "cf677f9be88095a27423ceedb9db2b85667f7775d167857cfb52002ff5dda520",
+  "rootLauncherSHA256": "272099c1551b0a6952eb53c19ffc751ee4e0cf339c6ac3a927b5d67644b4c42b",
+  "pandocSHA256": "3dd273647f0265cb439f22976d5366a54b071a3783f6fec50838b47fb53d701b",
+  "pandocVersion": "3.1.3",
+  "containerImage": "sha256:d4d28335309777e0c0e5572a82b7e5b6e26f276ca789dd3711af7659eb2b9946",
+  "network": "none",
+  "privateDisplay": ":99 Xvfb1450x1200x24",
+  "hostDesktopUsed": false,
+  "sourceMounts": false,
+  "runtimeMountsReadOnly": true,
+  "allOwnContainersRemoved": true
+}

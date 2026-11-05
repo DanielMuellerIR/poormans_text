@@ -12,7 +12,7 @@ try:
     import gi
     gi.require_version('Poppler', '0.18')
     gi.require_foreign('cairo')
-    from gi.repository import Poppler
+    from gi.repository import Poppler, GLib
     import cairo
 except (ImportError, ValueError) as error:
     print('Local Python GI Poppler/Cairo backend is unavailable: ' + str(error), file=sys.stderr)
@@ -225,6 +225,24 @@ def extract(document, directory, selected, ocr):
 def main():
     if len(sys.argv) == 2 and sys.argv[1] == 'capabilities':
         return dict(backend='Poppler GI', version=Poppler.get_version(), cairo=cairo.cairo_version_string())
+    if len(sys.argv) == 3 and sys.argv[1] == 'validate-attachment':
+        path = Path(sys.argv[2])
+        if not path.is_file() or path.stat().st_size > 12 * 1024**2:
+            raise ValueError('PDF attachment exceeds its size limit')
+        with path.open('rb') as source:
+            if source.read(5) != b'%PDF-':
+                raise ValueError('PDF attachment signature is invalid')
+        try:
+            document = Poppler.Document.new_from_file(path.resolve().as_uri(), None)
+        except GLib.Error as error:
+            # Verschlüsselte Anhänge bleiben wie auf dem Mac unverändert erhalten.
+            if error.matches(Poppler.error_quark(), Poppler.Error.ENCRYPTED):
+                return dict(encrypted=True, pageCount=None)
+            raise
+        count = document.get_n_pages()
+        if count < 1:
+            raise ValueError('PDF attachment has no pages')
+        return dict(encrypted=False, pageCount=count)
     if len(sys.argv) == 4 and sys.argv[1] == 'summary':
         maximum = int(sys.argv[3])
         if not 1 <= maximum <= 1000:

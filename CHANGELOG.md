@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.41.15 — 2026-11-05
+
+- Validate and retain original PDF attachments in Linux ENEX imports using the isolated local Poppler backend, including encrypted attachments.
+- Report unavailable ENEX resource backends as unavailable instead of misclassifying the source as invalid.
+- Remove the unused process-guard override while retaining the actively used read-only input bindings.
+
 ## 0.41.14 — 2026-11-05
 
 - Add fit, 100% and bounded 25–400% zoom to the Linux source raster comparison, with scrollable original preview pixels, accessible controls and explicit resolution limits.

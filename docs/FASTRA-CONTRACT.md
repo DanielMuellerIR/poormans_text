@@ -1,6 +1,6 @@
 # CLI-Vertrag zwischen Poor Man's Text und Fastra
 
-Stand: 2026-11-05. Dokumentationsstand 4; **keine neue Protokollversion**.
+Stand: 2026-11-05. Dokumentationsstand 5; **keine neue Protokollversion**.
 Bestandsbasis: Poor Man's Text `919c575` (0.41.7), Fastra `6f59816` (1.157.1).
 Diese Datei dokumentiert den vorhandenen Vertrag und trennt geplante
 Linux-Abnahmen davon. Sie implementiert keine neue Schnittstelle.
@@ -12,15 +12,25 @@ Fastra hat diesen Consumerfehler inzwischen korrigiert; die vorhandenen
 Mac-App-zu-App-Belege sind im [aktuellen P13-Bericht](linux-port/P13-FASTRA.md)
 zugeordnet. Der [Entscheidungsbericht](LINUX-DECISION.md) bleibt historische Basis.
 
-Seit 0.41.8 ist der Linux-Producer integriert; 0.41.10 ergänzt DOC und eine dünne
-GTK-Oberfläche bei unverändertem CLI-Vertrag. Ein vorhandener echter
-Fastra-Rust-Consumer und die tatsächliche GTK-Anwendung bestehen CSV-/MBOX-
-beziehungsweise MBOX-Replays gegen 0.41.10. Die Artefakte sind per SHA256 benannt;
-eine unabhängig gesicherte aktuelle Consumer-Commitbindung und die vollständige
-App-zu-App-Matrix fehlen weiterhin. Der finale .12-Produzent besteht zusätzlich
-einen echten GIO-Öffnungs-/Editor-/Reopen-Lauf mit Fastra1.158.0 und DOCX mit PNG;
-[Artefakte und Grenzen](linux-port/P16-04112/arch-fastra/REPORT.md). Bestandene
-Proben sind keine Gesamtfreigabe.
+Der Linux-Producer ist integriert und der bestehende Vertrag ist benutzbar.
+Die [aktuelle echte Linux-Matrix](linux-port/P13-CURRENT-EVIDENCE/REPORT.md)
+bindet PMT 0.41.14 und Fastra 1.164.0/372: CSV, MBOX, DOCX/PNG/Tabelle,
+ENEX/PNG/Diagnosen, RTF-Codepages, Kollision und Abbruch mit tatsächlichen
+Werkzeugkindern bestehen. Ein frischer Fastra-Prozess rendert das adoptierte
+DOCX-Ergebnis mit Bild und Tabelle. Das vollständige Consumer-Manifest wurde
+vor und nach dem Lauf unabhängig geprüft; dessen vorhandene Buildnachweise
+binden Commit f8e2bdc4933327ce2334ccb5450cb431273ef5bd. Es gab keine
+Fastra-Quelländerung oder einen Ersatzconsumer.
+
+[0.41.15](linux-port/P16-04115/README.md) ergänzt isolierte Linux-PDF-
+Anhangvalidierung für ENEX und erhält MissingBackend als Exit 69. Der gezielte
+aktuelle Fastra-Dialoglauf besteht DOCX/PNG unverändert und sperrt die Adoption
+bei fehlendem PDF-Backend. Positive ENEX-PDF-Konvertierungen sind separat an der
+Produkt-CLI belegt; die entsprechende positive GUI-Umgebung fehlt noch.
+Die übrige echte .14-Matrix bleibt ihrem ursprünglichen Artefakt zugeordnet.
+Strukturierte OCR ist eine optionale, weiterhin nicht verfügbare Fähigkeit und
+keine Voraussetzung für Fastras bestehenden Importweg. Vollständige Desktop-
+und Prozessverlustabnahmen des Consumers bleiben getrennte Freigaben.
 
 Die .12-Operation `--json --preview-page N -- quelle.pdf` beziehungsweise
 `--json --preview-frame N -- bild` ist eine getrennte passive Leseoperation.

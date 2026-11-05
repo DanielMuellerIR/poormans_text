@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.41.11 — 2026-11-05
+
+- Add optional Linux HEIC decoding through the local distro libheif/HEVC backend, preserving original bytes alongside portable RGBA PNG frames with explicit rendering limits.
+- Report missing HEIC libraries/plugins as unavailable while keeping other images usable; retain recognized HEIC files in folder imports so missing tools cannot silently drop them.
+
 ## 0.41.10 — 2026-11-05
 
 - Add a native GTK Linux interface over the shared CLI, with bounded process capture and mandatory namespace supervision before work starts.

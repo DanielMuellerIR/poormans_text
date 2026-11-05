@@ -1,0 +1,35 @@
+[
+  {
+    "case": "broken",
+    "rejected": true,
+    "decodeCalls": 0,
+    "reason": "libheif: Invalid input: No 'meta' box: Cannot read full meta box"
+  },
+  {
+    "case": "oversize",
+    "rejected": true,
+    "decodeCalls": 0,
+    "reason": "HEIC exceeds predecode dimension/pixel limit"
+  },
+  {
+    "case": "too-many",
+    "rejected": true,
+    "decodeCalls": 0,
+    "reason": "libheif: Memory allocation error: Security limit exceeded: iloc box contains 2002 items, which exceeds the security limit of 1000 items."
+  },
+  {
+    "case": "single",
+    "maxRGBError": 1,
+    "alphaAndOrientation": true
+  },
+  {
+    "case": "rotated",
+    "maxRGBError": 1,
+    "alphaAndOrientation": true
+  },
+  {
+    "case": "multi",
+    "maxRGBError": 1,
+    "alphaAndOrientation": true
+  }
+]

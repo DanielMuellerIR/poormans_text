@@ -9,7 +9,7 @@ struct LinuxRasterInspection: Decodable {
     let frames: [LinuxRasterFrame]
 
     func validated() throws -> Self {
-        guard ["png", "jpg", "gif", "tiff", "bmp", "webp"].contains(fileExtension),
+        guard ["png", "jpg", "gif", "tiff", "bmp", "webp", "heic"].contains(fileExtension),
               (1...1000).contains(frameCount), frames.count == frameCount,
               width > 0, height > 0,
               frames.allSatisfy({ $0.width > 0 && $0.height > 0 && $0.height <= 64_000_000 && $0.width <= 64_000_000 / $0.height }) else {
@@ -34,9 +34,26 @@ struct LinuxRasterFrame: Decodable {
 enum LinuxRasterBackend {
     static func isAvailable() -> Bool {
         (try? LinuxBackendWorkDirectory.withTemporaryDirectory { directory in
-            let result = try LinuxBackendResources.runPython(script: "raster", arguments: ["capabilities"], in: directory)
+            let result = try runRaster(arguments: ["capabilities"], in: directory)
             return result.status == 0
         }) ?? false
+    }
+
+    static func isHEICAvailable() -> Bool {
+        (try? LinuxBackendWorkDirectory.withTemporaryDirectory { directory in
+            let result = try runRaster(arguments: ["capabilities", "--probe-heic"], in: directory,
+                timeout: min(10, ConversionExecution.current?.processTimeout ?? 10))
+            guard result.status == 0,
+                  let value = try JSONSerialization.jsonObject(with: Data(result.standardOutput.utf8)) as? [String: Any] else { return false }
+            return value["heic"] as? Bool == true
+        }) ?? false
+    }
+
+    private static func runRaster(arguments: [String], in directory: URL, input: URL? = nil, timeout: TimeInterval? = nil) throws -> ProcessResult {
+        let heif = try? LinuxBackendResources.script(named: "heif")
+        return try LinuxBackendResources.runPython(script: "raster",
+            arguments: arguments + (heif.map { ["--heif-helper", $0.path] } ?? []), in: directory,
+            readOnlyPaths: (heif.map { [$0] } ?? []) + (input.map { [$0] } ?? []), timeout: timeout)
     }
 
     static func inspect(_ data: Data) throws -> RasterImageInfo {
@@ -44,7 +61,9 @@ enum LinuxRasterBackend {
         return try LinuxBackendWorkDirectory.withTemporaryDirectory { directory in
             let source = directory.appendingPathComponent("source")
             try data.write(to: source)
-            return try run(source: source, directory: directory, mode: "inspect").imageInfo
+            return try LinuxBackendWorkDirectory.withTemporaryDirectory { output in
+                try run(source: source, directory: output, mode: "inspect").imageInfo
+            }
         }
     }
 
@@ -58,14 +77,16 @@ enum LinuxRasterBackend {
             let snapshot = directory.appendingPathComponent("source")
             try VerifiedFileStaging.stage(from: source, to: snapshot, maximumBytes: 1_073_741_824,
                                            describedAs: "the image source")
-            let inspection = try run(source: snapshot, directory: directory, mode: render ? "frames" : "inspect")
-            return try body(inspection, directory)
+            return try LinuxBackendWorkDirectory.withTemporaryDirectory { output in
+                let inspection = try run(source: snapshot, directory: output, mode: render ? "frames" : "inspect")
+                return try body(inspection, output)
+            }
         }
     }
 
     private static func run(source: URL, directory: URL, mode: String) throws -> LinuxRasterInspection {
-        let result = try LinuxBackendResources.runPython(script: "raster", arguments: [mode, source.path], in: directory)
-        if result.status == 69 { throw PlatformBackendUnavailable("Python Pillow raster decoder") }
+        let result = try runRaster(arguments: [mode, source.path], in: directory, input: source)
+        if result.status == 69 { throw PlatformBackendUnavailable("local raster decoder (Python Pillow / HEIC libheif)") }
         if result.status == 74 { throw ConversionError.fileSystemFailure(result.standardError) }
         guard result.status == 0 else {
             throw ConversionError.invalidInput(source, format: .image,

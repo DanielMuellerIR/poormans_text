@@ -1,0 +1,538 @@
+{
+  "P11Passed": false,
+  "decision": "No product integration: automatic pipeline fails natural merged header, produces false table, and fails synthetic cell reconstruction.",
+  "startedUTC": "2026-11-05T02:11:16Z",
+  "inferenceCompletedBeforeUTC": "2026-11-05T02:19:12Z",
+  "imageID": "sha256:5c5301d7ef2297de21640bfe3dd29c2c1b21fbb36aeaf1af2d21e2f226f637d2",
+  "downloadBytesIncludingFailedPyMuPDFPin": 525027426,
+  "setupDownloadCap": 786432000,
+  "aptArchiveBytesApprox": 32100000,
+  "aptIndexBytesNotSeparatelyMeasured": true,
+  "resources": {
+    "cpus": 2,
+    "torchIntraThreads": 2,
+    "torchInterThreads": 1,
+    "memoryBytes": 3221225472,
+    "memorySwapBytes": 3221225472,
+    "pids": 128,
+    "tmpfsBytes": 268435456,
+    "pageAlarmSeconds": 120,
+    "network": "none",
+    "readonlyRoot": true,
+    "user": "1000:1000",
+    "capDrop": "ALL",
+    "newPrivileges": false
+  },
+  "strictLoad": [
+    {
+      "task": "detection",
+      "publishedPretrainedBackbone": true,
+      "effectivePretrainedBackbone": false,
+      "modelKeys": 367,
+      "checkpointKeys": 370,
+      "strictState": true,
+      "officialFrozenBatchNormTrainingCounters": [
+        {
+          "key": "model.backbone.conv_encoder.model.layer2.0.downsample.1.num_batches_tracked",
+          "value": 0
+        },
+        {
+          "key": "model.backbone.conv_encoder.model.layer3.0.downsample.1.num_batches_tracked",
+          "value": 0
+        },
+        {
+          "key": "model.backbone.conv_encoder.model.layer4.0.downsample.1.num_batches_tracked",
+          "value": 0
+        }
+      ],
+      "seconds": 0.4061331060001976,
+      "sha256": "8f1aa73170102c038d40155e2734b343bf07e0fe12594228a8590943b01dccf7"
+    },
+    {
+      "task": "structure-recognition",
+      "publishedPretrainedBackbone": true,
+      "effectivePretrainedBackbone": false,
+      "modelKeys": 367,
+      "checkpointKeys": 370,
+      "strictState": true,
+      "officialFrozenBatchNormTrainingCounters": [
+        {
+          "key": "model.backbone.conv_encoder.model.layer2.0.downsample.1.num_batches_tracked",
+          "value": 0
+        },
+        {
+          "key": "model.backbone.conv_encoder.model.layer3.0.downsample.1.num_batches_tracked",
+          "value": 0
+        },
+        {
+          "key": "model.backbone.conv_encoder.model.layer4.0.downsample.1.num_batches_tracked",
+          "value": 0
+        }
+      ],
+      "seconds": 0.4061355099984212,
+      "sha256": "f581da65a586591124cac9545b09b93e4e8bf28ce3a8357af6ac15ce94fce16b"
+    }
+  ],
+  "cases": [
+    {
+      "source": "01030000000132.pdf",
+      "sourceSHA256": "eded7804127acce26e4b9e7138aa8c95d0d8886280a21148efb0ae9519941ede",
+      "renderSHA256": "dfe0a1d9bc07db406080ab22b92632f512f94aef6b32aa2a199d2efe4b101db3",
+      "imageSize": [
+        1152,
+        1440
+      ],
+      "tokenSource": "Poppler bbox-layout; points*2 at144dpi",
+      "pageWordTokens": 313,
+      "seconds": 1.7734382670023479,
+      "expectedTables": 1,
+      "predictedTables": 1,
+      "predictedCells": 8,
+      "unassignedTableTokens": 6,
+      "multiplyAssignedTableTokenKeys": 0,
+      "sourceUnchanged": true,
+      "quality": {
+        "expectedCells": 9,
+        "textExactAtCell": 0,
+        "expectedMergedCells": 1,
+        "mergedExactAtCell": 0,
+        "orderedCellTextExact": false,
+        "expectedWordCount": 23,
+        "missingWords": [
+          "Fish",
+          "species",
+          "on",
+          "IUCN",
+          "Red",
+          "List"
+        ],
+        "extraWords": [],
+        "expectedCellTextsPresentIgnoringPosition": 8
+      }
+    },
+    {
+      "source": "01030000000134.pdf",
+      "sourceSHA256": "4a6baa0f883743ec25b853bae06a49d230ec010c973501945d46a16f9bb75aa9",
+      "renderSHA256": "ba8b2fbe3bbad3c9d745ad9739300b5229c4cfe76a6b01f061c8e306ee2c6eb2",
+      "imageSize": [
+        1152,
+        1440
+      ],
+      "tokenSource": "Poppler bbox-layout; points*2 at144dpi",
+      "pageWordTokens": 142,
+      "seconds": 1.0434320510030375,
+      "expectedTables": 0,
+      "predictedTables": 0,
+      "predictedCells": 0,
+      "unassignedTableTokens": 0,
+      "multiplyAssignedTableTokenKeys": 0,
+      "sourceUnchanged": true,
+      "maxRSSKiB": 742120,
+      "cgroupMemoryPeakBytes": 651276288
+    },
+    {
+      "source": "01030000000135.pdf",
+      "sourceSHA256": "ed941b5cde32cfc778c225dcfa90c334d9995d70c46e7f508635073a3227784b",
+      "renderSHA256": "e474774efc76ecb2e6431491f89a54a8569047959630419ec82cf31c6510fab6",
+      "imageSize": [
+        1152,
+        1440
+      ],
+      "tokenSource": "Poppler bbox-layout; points*2 at144dpi",
+      "pageWordTokens": 544,
+      "seconds": 1.2673036990017863,
+      "expectedTables": 0,
+      "predictedTables": 1,
+      "predictedCells": 3,
+      "unassignedTableTokens": 6,
+      "multiplyAssignedTableTokenKeys": 0,
+      "sourceUnchanged": true,
+      "maxRSSKiB": 783424,
+      "cgroupMemoryPeakBytes": 693112832
+    },
+    {
+      "source": "structured.png",
+      "sourceSHA256": "e37ca92cf5b8ad22e228eed1c1065177bbbdc6b865b9e027965660353f934369",
+      "renderSHA256": "e37ca92cf5b8ad22e228eed1c1065177bbbdc6b865b9e027965660353f934369",
+      "imageSize": [
+        1800,
+        1600
+      ],
+      "tokenSource": "Tesseract psm3 eng, unmodified image",
+      "pageWordTokens": 31,
+      "seconds": 1.3664135479994002,
+      "expectedTables": 1,
+      "predictedTables": 1,
+      "predictedCells": 0,
+      "unassignedTableTokens": 9,
+      "multiplyAssignedTableTokenKeys": 0,
+      "sourceUnchanged": true,
+      "quality": {
+        "expectedCells": 8,
+        "textExactAtCell": 0,
+        "expectedMergedCells": 1,
+        "mergedExactAtCell": 0,
+        "orderedCellTextExact": false,
+        "expectedWordCount": 9,
+        "missingWords": [
+          "MERGED",
+          "HEADER",
+          "TOTAL",
+          "A1",
+          "B1",
+          "C1",
+          "A2",
+          "B2",
+          "C2"
+        ],
+        "extraWords": [],
+        "expectedCellTextsPresentIgnoringPosition": 0
+      },
+      "maxRSSKiB": 790224,
+      "cgroupMemoryPeakBytes": 715317248
+    }
+  ],
+  "originalModelPins": {
+    "models": [
+      {
+        "id": "microsoft/table-transformer-detection",
+        "revision": "2357cbe2b5a5d1c03e54f32764f06058933b65ab",
+        "file": "model.safetensors",
+        "size": 115317516,
+        "sha256": "8f1aa73170102c038d40155e2734b343bf07e0fe12594228a8590943b01dccf7",
+        "configSha256": "ed5b93df2c3a59d473ddea853553a6d545d52bd4e9f8f72bf40b8a974aba4c1d",
+        "processorSha256": "86a8837ae440456b0a9aef788b064921df29c20f0b67040954ce5c2fbd352c4f"
+      },
+      {
+        "id": "microsoft/table-transformer-structure-recognition",
+        "revision": "f4d4bdc85c3fe4b1fa49658882a5d38bbdd0f343",
+        "file": "model.safetensors",
+        "size": 115434268,
+        "sha256": "f581da65a586591124cac9545b09b93e4e8bf28ce3a8357af6ac15ce94fce16b",
+        "configSha256": "9fa1108c9fbfac69086d23bdd26b9a2242a56a72766fed98c6dfaeaae59ebf76",
+        "processorSha256": "4bd6700976c66662678a521e529b06dca36df041c9d411884cb92e81bc5a6818"
+      }
+    ],
+    "weightsTotalBytes": 230751784,
+    "codeRevision": "16d124f616109746b7785f03085100f1f6247575",
+    "baseImageId": "sha256:675d824f661891504d6957578068a7a28e588fb75fe7fd73e041f2f1ab72a359",
+    "baseRepoDigest": "swift@sha256:0e4716bd34384d22963a63afbdbc93be3129dfd0753185aa1ded27755abdcae8"
+  },
+  "scriptHashes": {
+    "Dockerfile": "594b915e1dc7f47173e133325263de21aa7e9f35ddf3dbbb1ee99725d71125c7",
+    "setup.py": "46a6d61fde55a6ef3f02ddd916d3dc50ca7ad55d45694fac1a8944966027778b",
+    "fitz-fix/Dockerfile": "965d6edb2026b298eb09b7d4b6424473b65ed653340c606efd28a6c3d6d7569c",
+    "fitz-fix/update.py": "0410de4bb9b0eba631d98c8c171daea8e1f36768a121f579b0b3cd146d9a90c6",
+    "probe.py": "4da2257090149c58954e315226d2e2f49ca92083819774f1b409618de7ec7ff6",
+    "run.sh": "368e696e119dd2c3a863c4b3beeaedb92d16e4ea323298af3cf53532da3ada87"
+  },
+  "limits": [
+    "No page layout/reading-order output; table task only",
+    "Natural PDFs use Poppler digital words, no natural raster scan-quality proof",
+    "Natural GT has only one table/horizontal colspan; no rowspan/multipage coverage",
+    "Synthetic OCR uses Tesseract psm3 eng; result is not corrected from GT",
+    "Per-page timings exclude imports/model loading; not a CLI benchmark",
+    "PyMuPDF AGPL/commercial dependency confined to disposable probe, no code integrated",
+    "Original model loader consumes three zero FrozenBatchNorm training counters by official strict hook; no learned weights missing",
+    "Original Setup used PyMuPDF1.26.5 with known Rect.get_area bug;1.26.6 fixes dependency without pipeline/threshold tuning"
+  ],
+  "installedPackages": [
+    {
+      "package": "certifi",
+      "version": "2026.10.23",
+      "wheel": "certifi-2026.10.23-py3-none-any.whl",
+      "sha256": "e9b54de76e530bb6cf0ccd036787103acb58fd42ba930ea8bf948ddbaa2f61d1",
+      "size": 135082
+    },
+    {
+      "package": "charset-normalizer",
+      "version": "3.5.2",
+      "wheel": "charset_normalizer-3.5.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+      "sha256": "3d31298449090ab8d47b7b1b2a555ff73cac7ed438a08b7ac160980c7ebed649",
+      "size": 257601
+    },
+    {
+      "package": "filelock",
+      "version": "4.2.9",
+      "wheel": "filelock-4.2.9-py3-none-any.whl",
+      "sha256": "a379c50a729e5b68c8519a4d26489f755d9769960a236ecd838190e2a78db2e9",
+      "size": 164734
+    },
+    {
+      "package": "fsspec",
+      "version": "2026.9.0",
+      "wheel": "fsspec-2026.9.0-py3-none-any.whl",
+      "sha256": "8dd6e646e99ea382bd85f97a45e6b526a442d79423a7dc673f1e2756d05fcb5f",
+      "size": 221738
+    },
+    {
+      "package": "hf-xet",
+      "version": "1.8.0",
+      "wheel": "hf_xet-1.8.0-cp38-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+      "sha256": "29dab7c904cd1914a0439c6e1306c12c7497c8bd32290fbe563ebf51ca4b6d6d",
+      "size": 4292483
+    },
+    {
+      "package": "huggingface_hub",
+      "version": "0.36.2",
+      "wheel": "huggingface_hub-0.36.2-py3-none-any.whl",
+      "sha256": "48f0c8eac16145dfce371e9d2d7772854a4f591bcb56c9cf548accf531d54270",
+      "size": 566395
+    },
+    {
+      "package": "idna",
+      "version": "3.20",
+      "wheel": "idna-3.20-py3-none-any.whl",
+      "sha256": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c",
+      "size": 69583
+    },
+    {
+      "package": "Jinja2",
+      "version": "3.1.6",
+      "wheel": "jinja2-3.1.6-py3-none-any.whl",
+      "sha256": "85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67",
+      "size": 134899
+    },
+    {
+      "package": "MarkupSafe",
+      "version": "3.0.4",
+      "wheel": "markupsafe-3.0.4-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+      "sha256": "8e124f974786f831d6043728e38296969d3579db8896fe004682f5758e613581",
+      "size": 22985
+    },
+    {
+      "package": "mpmath",
+      "version": "1.3.0",
+      "wheel": "mpmath-1.3.0-py3-none-any.whl",
+      "sha256": "a0b2b9fe80bbcd81a6647ff13108738cfb482d481d826cc0e02f5b35e5c88d2c",
+      "size": 536198
+    },
+    {
+      "package": "networkx",
+      "version": "3.7",
+      "wheel": "networkx-3.7-py3-none-any.whl",
+      "sha256": "e3fd2c13a7814cee3746340d8d7f8598a67f16a58bf47fb7f8793fab6efca1b0",
+      "size": 2142205
+    },
+    {
+      "package": "numpy",
+      "version": "2.2.6",
+      "wheel": "numpy-2.2.6-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+      "sha256": "fd83c01228a688733f1ded5201c678f0c53ecc1006ffbc404db9f7a899ac6249",
+      "size": 16527618
+    },
+    {
+      "package": "packaging",
+      "version": "26.3",
+      "wheel": "packaging-26.3-py3-none-any.whl",
+      "sha256": "d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c",
+      "size": 129956
+    },
+    {
+      "package": "pillow",
+      "version": "11.3.0",
+      "wheel": "pillow-11.3.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+      "sha256": "67172f2944ebba3d4a7b54f2e95c786a3a50c21b88456329314caaa28cda70f6",
+      "size": 7644652
+    },
+    {
+      "package": "PyMuPDF",
+      "version": "1.26.6",
+      "wheel": "pymupdf-1.26.6-cp310-abi3-manylinux_2_28_x86_64.whl",
+      "sha256": "7777d0b7124c2ebc94849536b6a1fb85d158df3b9d873935e63036559391534c",
+      "size": 24115381
+    },
+    {
+      "package": "PyYAML",
+      "version": "6.0.3",
+      "wheel": "pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+      "sha256": "ba1cc08a7ccde2d2ec775841541641e4548226580ab850948cbfda66a1befcdc",
+      "size": 807870
+    },
+    {
+      "package": "regex",
+      "version": "2026.9.29",
+      "wheel": "regex-2026.9.29-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+      "sha256": "39ab5894d971f9ac68baa6eca5c50387db579cfcacf36ae8df3feceb1815e6d0",
+      "size": 807783
+    },
+    {
+      "package": "requests",
+      "version": "2.34.2",
+      "wheel": "requests-2.34.2-py3-none-any.whl",
+      "sha256": "2a0d60c172f83ac6ab31e4554906c0f3b3588d37b5cb939b1c061f4907e278e0",
+      "size": 73075
+    },
+    {
+      "package": "safetensors",
+      "version": "0.6.2",
+      "wheel": "safetensors-0.6.2-cp38-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+      "sha256": "8045db2c872db8f4cbe3faa0495932d89c38c899c603f21e9b6486951a5ecb8f",
+      "size": 485835
+    },
+    {
+      "package": "setuptools",
+      "version": "84.2.1",
+      "wheel": "setuptools-84.2.1-py3-none-any.whl",
+      "sha256": "ca140b45d5325a9478f880e351484f62fef15f336462e449ca0c03c873d589c2",
+      "size": 876263
+    },
+    {
+      "package": "sympy",
+      "version": "1.14.0",
+      "wheel": "sympy-1.14.0-py3-none-any.whl",
+      "sha256": "e091cc3e99d2141a0ba2847328f5479b05d94a6635cb96148ccb3f34671bd8f5",
+      "size": 6299353
+    },
+    {
+      "package": "timm",
+      "version": "1.0.20",
+      "wheel": "timm-1.0.20-py3-none-any.whl",
+      "sha256": "f6e62f780358476691996c47aa49de87b95cc507edf923c3042f74a07e45b7fe",
+      "size": 2504047
+    },
+    {
+      "package": "tokenizers",
+      "version": "0.22.2",
+      "wheel": "tokenizers-0.22.2-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+      "sha256": "369cc9fc8cc10cb24143873a0d95438bb8ee257bb80c71989e3ee290e8d72c67",
+      "size": 3274982
+    },
+    {
+      "package": "torch",
+      "version": "2.8.0+cpu",
+      "wheel": "torch-2.8.0+cpu-cp312-cp312-manylinux_2_28_x86_64.whl",
+      "sha256": "cb9a8ba8137ab24e36bf1742cb79a1294bd374db570f09fc15a5e1318160db4e",
+      "size": 183914597
+    },
+    {
+      "package": "torchvision",
+      "version": "0.23.0+cpu",
+      "wheel": "torchvision-0.23.0+cpu-cp312-cp312-manylinux_2_28_x86_64.whl",
+      "sha256": "ae459d4509d3b837b978dc6c66106601f916b6d2cda75c137e3f5f48324ce1da",
+      "size": 1911535
+    },
+    {
+      "package": "tqdm",
+      "version": "4.70.1",
+      "wheel": "tqdm-4.70.1-py3-none-any.whl",
+      "sha256": "c293e525e6fef9c20e8728fd4612df02a0aa31bb5fe91ecd93e123b1b7bffa73",
+      "size": 80199
+    },
+    {
+      "package": "transformers",
+      "version": "4.57.1",
+      "wheel": "transformers-4.57.1-py3-none-any.whl",
+      "sha256": "b10d05da8fa67dc41644dbbf9bc45a44cb86ae33da6f9295f5fbf5b7890bd267",
+      "size": 11990925
+    },
+    {
+      "package": "typing_extensions",
+      "version": "4.16.0",
+      "wheel": "typing_extensions-4.16.0-py3-none-any.whl",
+      "sha256": "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8",
+      "size": 45571
+    },
+    {
+      "package": "urllib3",
+      "version": "2.8.0",
+      "wheel": "urllib3-2.8.0-py3-none-any.whl",
+      "sha256": "0cf3cae568d36aa9576b28dfb35f11328f1cb974ca7647d9475ebb86c75ac6e3",
+      "size": 135717
+    }
+  ],
+  "groundTruthReferenceSha256": "146c4a9f6f6436d45bdb8a4cc2f97313c0957b4f0b23a5c65d05c43036f34cc0",
+  "historicalMacReference": {
+    "path": "docs/linux-port/P11-NATURAL-EVIDENCE/mac-baseline.json",
+    "sha256": "c101d04ee32cc4a7f05a3e03615de05a734e0fac6b2f2e797582b1e1e8aff754",
+    "version": "Poor Man's Text 0.41.7",
+    "architecture": "arm64",
+    "cliSHA256": "a0bd72a510a38b02b6305c04d5dc6fdc4cd09492f1b3b40ae5892234abc23ab3",
+    "freshSourceRegression": false,
+    "comparison": "Unchanged installed macOS 0.41.7 baseline; not a regression of current shared sources",
+    "cases": [
+      {
+        "source": "01030000000132.pdf",
+        "mode": "off",
+        "sourceSHA256": "eded7804127acce26e4b9e7138aa8c95d0d8886280a21148efb0ae9519941ede",
+        "diagnosticCodes": [
+          "pdf.layoutNotPreserved",
+          "pdf.layoutFallback"
+        ]
+      },
+      {
+        "source": "01030000000132.pdf",
+        "mode": "structured",
+        "sourceSHA256": "eded7804127acce26e4b9e7138aa8c95d0d8886280a21148efb0ae9519941ede",
+        "diagnosticCodes": [
+          "pdf.layoutNotPreserved",
+          "pdf.ocrApplied",
+          "pdf.layoutFallback",
+          "ocr.structuredFallback",
+          "pdf.ocrOriginalRetained"
+        ]
+      },
+      {
+        "source": "01030000000134.pdf",
+        "mode": "off",
+        "sourceSHA256": "4a6baa0f883743ec25b853bae06a49d230ec010c973501945d46a16f9bb75aa9",
+        "diagnosticCodes": [
+          "pdf.layoutNotPreserved",
+          "pdf.layoutFallback",
+          "pdf.linkUnavailable",
+          "pdf.annotationPreserved"
+        ]
+      },
+      {
+        "source": "01030000000134.pdf",
+        "mode": "structured",
+        "sourceSHA256": "4a6baa0f883743ec25b853bae06a49d230ec010c973501945d46a16f9bb75aa9",
+        "diagnosticCodes": [
+          "pdf.layoutNotPreserved",
+          "pdf.ocrApplied",
+          "pdf.layoutFallback",
+          "ocr.structuredFallback",
+          "pdf.ocrOriginalRetained",
+          "pdf.layoutAmbiguous",
+          "pdf.linkUnavailable",
+          "pdf.annotationPreserved"
+        ]
+      },
+      {
+        "source": "01030000000135.pdf",
+        "mode": "off",
+        "sourceSHA256": "ed941b5cde32cfc778c225dcfa90c334d9995d70c46e7f508635073a3227784b",
+        "diagnosticCodes": [
+          "pdf.layoutNotPreserved",
+          "pdf.layoutFallback"
+        ]
+      },
+      {
+        "source": "01030000000135.pdf",
+        "mode": "structured",
+        "sourceSHA256": "ed941b5cde32cfc778c225dcfa90c334d9995d70c46e7f508635073a3227784b",
+        "diagnosticCodes": [
+          "pdf.layoutNotPreserved",
+          "pdf.ocrApplied",
+          "pdf.layoutFallback",
+          "ocr.structuredFallback",
+          "pdf.ocrOriginalRetained"
+        ]
+      },
+      {
+        "source": "structured.png",
+        "mode": "structured",
+        "sourceSHA256": "e37ca92cf5b8ad22e228eed1c1065177bbbdc6b865b9e027965660353f934369",
+        "diagnosticCodes": [
+          "image.ocrApplied",
+          "ocr.structuredApplied",
+          "ocr.tableSpansFlattened"
+        ]
+      }
+    ]
+  },
+  "ownImagesRetainedUntilAcceptance": [
+    "pmt-p11-tatr-probe:20261105",
+    "pmt-p11-tatr-probe:20261105-fixed"
+  ]
+}

@@ -1,0 +1,439 @@
+{
+  "date": "2026-11-05",
+  "swift": "6.2.1",
+  "productVersion": "0.41.10",
+  "containerImage": "sha256:c6c14c83dd5f81703172f5cbb766af5a47c76a9cb638a88efba7bd31226f0481",
+  "cliSHA256": "6b93924247cc01dd5e56dfe9ed0fe39144527bcfa4ecc7d5b5c7719114125bb0",
+  "guardSHA256": "01cfe31e5aecf092d83c01b7253105a029c5d23b669ebbb51f156f72ac43e03a",
+  "fixtures": {
+    "oversize.heic": {
+      "bytes": 3333,
+      "sha256": "76b5f7f4dd67e32f84ad31a87b44e1553821cbfa2802a12fcf58ee6ee284838f"
+    },
+    "too-many.heic": {
+      "bytes": 3516050,
+      "sha256": "83e860b78192c3a37600e3c10cf62d7e164b9fc7027d79a1fa9747c12bbda738"
+    },
+    "broken.heic": {
+      "bytes": 96,
+      "sha256": "2c3f3fffa926349f6955aaa72ec0656f39f7564e5f12c7878ccaf8e6415789c6"
+    },
+    "multi.heic": {
+      "bytes": 7089,
+      "sha256": "e531ca1e681768f23545661935e50569b952c7dda5bf4b23476f828a8113e6de"
+    },
+    "rotated.heic": {
+      "bytes": 3353,
+      "sha256": "28fb572d69fcae89a8ae92c3ffd8dd78724ccf8a1f102ddd7bf2f0e431ca1e7a"
+    },
+    "single.heic": {
+      "bytes": 3333,
+      "sha256": "d3ba28ae03b0459390e6db6df595c67136f66c6bc1aa12457efefa003a24192b"
+    }
+  },
+  "runs": {
+    "decoder": {
+      "imageRows": 1,
+      "pngAvailable": true,
+      "extensions": [
+        "png",
+        "jpg",
+        "jpeg",
+        "tif",
+        "tiff",
+        "gif",
+        "bmp",
+        "webp",
+        "heic"
+      ],
+      "cases": [
+        {
+          "case": "single-off",
+          "exit": 0,
+          "diagnostics": [
+            "image.heicRender"
+          ],
+          "sourceAndOriginalAssetUnchanged": true,
+          "assets": [
+            {
+              "name": "image01.heic",
+              "sha256": "d3ba28ae03b0459390e6db6df595c67136f66c6bc1aa12457efefa003a24192b"
+            },
+            {
+              "name": "frame-1.png",
+              "sha256": "cb5172f7d18c450708a1cb954403c9da2fe8e4d2f7393a70a5c9abbfacec3185"
+            }
+          ],
+          "markdownSHA256": "a6c717fd72d8cd55e6a04bc0cd23317afb2661810d9606ad3358820fb67ed7e9"
+        },
+        {
+          "case": "single-on",
+          "exit": 0,
+          "diagnostics": [
+            "image.heicRender",
+            "image.ocrApplied",
+            "ocr.languageDefault",
+            "image.textUnavailable"
+          ],
+          "sourceAndOriginalAssetUnchanged": true,
+          "assets": [
+            {
+              "name": "image01.heic",
+              "sha256": "d3ba28ae03b0459390e6db6df595c67136f66c6bc1aa12457efefa003a24192b"
+            },
+            {
+              "name": "frame-1.png",
+              "sha256": "cb5172f7d18c450708a1cb954403c9da2fe8e4d2f7393a70a5c9abbfacec3185"
+            }
+          ],
+          "markdownSHA256": "3a214ab016d184bac7b9cb3ab2eeb9c363dd95fb2cad86e6eabbe47f30518b8a"
+        },
+        {
+          "case": "rotated-off",
+          "exit": 0,
+          "diagnostics": [
+            "image.heicRender"
+          ],
+          "sourceAndOriginalAssetUnchanged": true,
+          "assets": [
+            {
+              "name": "image01.heic",
+              "sha256": "28fb572d69fcae89a8ae92c3ffd8dd78724ccf8a1f102ddd7bf2f0e431ca1e7a"
+            },
+            {
+              "name": "frame-1.png",
+              "sha256": "7a676e096fd8b7618ea40fb9670f64410ee6e1671f12fa4b04006da80be6db36"
+            }
+          ],
+          "markdownSHA256": "b689d5329767b189aab78aeafeaedfc3e1db6c8a39107431ce993d5ba17c9e26"
+        },
+        {
+          "case": "rotated-on",
+          "exit": 0,
+          "diagnostics": [
+            "image.heicRender",
+            "image.ocrApplied",
+            "ocr.languageDefault",
+            "image.textUnavailable"
+          ],
+          "sourceAndOriginalAssetUnchanged": true,
+          "assets": [
+            {
+              "name": "image01.heic",
+              "sha256": "28fb572d69fcae89a8ae92c3ffd8dd78724ccf8a1f102ddd7bf2f0e431ca1e7a"
+            },
+            {
+              "name": "frame-1.png",
+              "sha256": "7a676e096fd8b7618ea40fb9670f64410ee6e1671f12fa4b04006da80be6db36"
+            }
+          ],
+          "markdownSHA256": "625b4abf37f7af061fe6db270bf6c4a8dbb4e09cd6f71f33ce1a03f9b171852c"
+        },
+        {
+          "case": "multi-off",
+          "exit": 0,
+          "diagnostics": [
+            "image.heicRender"
+          ],
+          "sourceAndOriginalAssetUnchanged": true,
+          "assets": [
+            {
+              "name": "image01.heic",
+              "sha256": "e531ca1e681768f23545661935e50569b952c7dda5bf4b23476f828a8113e6de"
+            },
+            {
+              "name": "frame-1.png",
+              "sha256": "cb5172f7d18c450708a1cb954403c9da2fe8e4d2f7393a70a5c9abbfacec3185"
+            },
+            {
+              "name": "frame-2.png",
+              "sha256": "ca1b885bb6098362c14749c377c94207bf517049e4eabe58667c626824279d36"
+            }
+          ],
+          "markdownSHA256": "ea35cf1f0dcda11fd0d282312d95f9e4e3458987b336c00216109eab1205e90e"
+        },
+        {
+          "case": "multi-on",
+          "exit": 0,
+          "diagnostics": [
+            "image.heicRender",
+            "image.ocrApplied",
+            "ocr.languageDefault",
+            "image.textUnavailable",
+            "image.textUnavailable"
+          ],
+          "sourceAndOriginalAssetUnchanged": true,
+          "assets": [
+            {
+              "name": "image01.heic",
+              "sha256": "e531ca1e681768f23545661935e50569b952c7dda5bf4b23476f828a8113e6de"
+            },
+            {
+              "name": "frame-1.png",
+              "sha256": "cb5172f7d18c450708a1cb954403c9da2fe8e4d2f7393a70a5c9abbfacec3185"
+            },
+            {
+              "name": "frame-2.png",
+              "sha256": "ca1b885bb6098362c14749c377c94207bf517049e4eabe58667c626824279d36"
+            }
+          ],
+          "markdownSHA256": "463fb05acf98fc292b7e35ae0493d49d650e89c23362ef037d3c62215ee84f25"
+        },
+        {
+          "case": "broken",
+          "exit": 65,
+          "diagnostics": [],
+          "noOutput": true
+        },
+        {
+          "case": "oversize",
+          "exit": 65,
+          "diagnostics": [],
+          "noOutput": true
+        },
+        {
+          "case": "too-many",
+          "exit": 65,
+          "diagnostics": [],
+          "noOutput": true
+        }
+      ],
+      "cliSHA256": "9212f05729d9f550958b46a3d86b2f76c8297ca7e6d085975638d42d0a2683d6"
+    },
+    "libraryMissing": {
+      "imageRows": 1,
+      "pngAvailable": true,
+      "extensions": [
+        "png",
+        "jpg",
+        "jpeg",
+        "tif",
+        "tiff",
+        "gif",
+        "bmp",
+        "webp"
+      ],
+      "cases": [
+        {
+          "case": "single-off",
+          "exit": 69,
+          "diagnostics": [],
+          "noOutput": true
+        },
+        {
+          "case": "single-on",
+          "exit": 69,
+          "diagnostics": [],
+          "noOutput": true
+        },
+        {
+          "case": "rotated-off",
+          "exit": 69,
+          "diagnostics": [],
+          "noOutput": true
+        },
+        {
+          "case": "rotated-on",
+          "exit": 69,
+          "diagnostics": [],
+          "noOutput": true
+        },
+        {
+          "case": "multi-off",
+          "exit": 69,
+          "diagnostics": [],
+          "noOutput": true
+        },
+        {
+          "case": "multi-on",
+          "exit": 69,
+          "diagnostics": [],
+          "noOutput": true
+        }
+      ],
+      "cliSHA256": "9212f05729d9f550958b46a3d86b2f76c8297ca7e6d085975638d42d0a2683d6"
+    },
+    "pluginMissing": {
+      "imageRows": 1,
+      "pngAvailable": true,
+      "extensions": [
+        "png",
+        "jpg",
+        "jpeg",
+        "tif",
+        "tiff",
+        "gif",
+        "bmp",
+        "webp"
+      ],
+      "cases": [
+        {
+          "case": "single-off",
+          "exit": 69,
+          "diagnostics": [],
+          "noOutput": true
+        },
+        {
+          "case": "single-on",
+          "exit": 69,
+          "diagnostics": [],
+          "noOutput": true
+        },
+        {
+          "case": "rotated-off",
+          "exit": 69,
+          "diagnostics": [],
+          "noOutput": true
+        },
+        {
+          "case": "rotated-on",
+          "exit": 69,
+          "diagnostics": [],
+          "noOutput": true
+        },
+        {
+          "case": "multi-off",
+          "exit": 69,
+          "diagnostics": [],
+          "noOutput": true
+        },
+        {
+          "case": "multi-on",
+          "exit": 69,
+          "diagnostics": [],
+          "noOutput": true
+        }
+      ],
+      "cliSHA256": "9212f05729d9f550958b46a3d86b2f76c8297ca7e6d085975638d42d0a2683d6"
+    }
+  },
+  "rasterRegression": {
+    "animated.png": {
+      "passed": true,
+      "frames": 2,
+      "sourceAndAssetBytesUnchanged": true,
+      "reportAndOutputHashes": true,
+      "OCRMarkers": true
+    },
+    "frames.gif": {
+      "passed": true,
+      "frames": 2,
+      "sourceAndAssetBytesUnchanged": true,
+      "reportAndOutputHashes": true,
+      "OCRMarkers": true
+    },
+    "frames.tiff": {
+      "passed": true,
+      "frames": 2,
+      "sourceAndAssetBytesUnchanged": true,
+      "reportAndOutputHashes": true,
+      "OCRMarkers": true
+    },
+    "rotated.jpg": {
+      "passed": true,
+      "frames": 1,
+      "sourceAndAssetBytesUnchanged": true,
+      "reportAndOutputHashes": true,
+      "OCRMarkers": true
+    },
+    "scan.bmp": {
+      "passed": true,
+      "frames": 1,
+      "sourceAndAssetBytesUnchanged": true,
+      "reportAndOutputHashes": true,
+      "OCRMarkers": true
+    },
+    "scan.jpg": {
+      "passed": true,
+      "frames": 1,
+      "sourceAndAssetBytesUnchanged": true,
+      "reportAndOutputHashes": true,
+      "OCRMarkers": true
+    },
+    "scan.png": {
+      "passed": true,
+      "frames": 1,
+      "sourceAndAssetBytesUnchanged": true,
+      "reportAndOutputHashes": true,
+      "OCRMarkers": true
+    },
+    "scan.webp": {
+      "passed": true,
+      "frames": 1,
+      "sourceAndAssetBytesUnchanged": true,
+      "reportAndOutputHashes": true,
+      "OCRMarkers": true
+    },
+    "transparent.png": {
+      "passed": true,
+      "frames": 1,
+      "sourceAndAssetBytesUnchanged": true,
+      "reportAndOutputHashes": true,
+      "OCRMarkers": true
+    },
+    "image-ocr-off": {
+      "passed": true
+    },
+    "structured-unavailable": {
+      "passed": true,
+      "exit": 69
+    },
+    "missing-language": {
+      "passed": true
+    },
+    "raster-process-timeout": {
+      "passed": true,
+      "exit": 124,
+      "noOutput": true
+    },
+    "oversized.png": {
+      "passed": true,
+      "exit": 65,
+      "noOutput": true
+    },
+    "truncated.png": {
+      "passed": true,
+      "exit": 65,
+      "noOutput": true
+    }
+  },
+  "swiftTests": {
+    "LinuxHEICTests": {
+      "tests": 3,
+      "failures": 0,
+      "unboundSiblingReadable": false
+    }
+  },
+  "folders": {
+    "decoder": {
+      "exit": 0,
+      "heicAdvertised": true,
+      "imageRows": 1,
+      "pngConverted": true,
+      "heicIncluded": true,
+      "heicConverted": true,
+      "sourceHashesUnchanged": true
+    },
+    "library-missing": {
+      "exit": 69,
+      "heicAdvertised": false,
+      "imageRows": 1,
+      "pngConverted": true,
+      "heicIncluded": true,
+      "heicConverted": false,
+      "sourceHashesUnchanged": true
+    },
+    "plugin-missing": {
+      "exit": 69,
+      "heicAdvertised": false,
+      "imageRows": 1,
+      "pngConverted": true,
+      "heicIncluded": true,
+      "heicConverted": false,
+      "sourceHashesUnchanged": true
+    }
+  },
+  "cliSHA256BeforeEnumeratorFix": "9212f05729d9f550958b46a3d86b2f76c8297ca7e6d085975638d42d0a2683d6",
+  "rasterRegressionCLI_SHA256": "9212f05729d9f550958b46a3d86b2f76c8297ca7e6d085975638d42d0a2683d6",
+  "folderCLI_SHA256": "6b93924247cc01dd5e56dfe9ed0fe39144527bcfa4ecc7d5b5c7719114125bb0"
+}

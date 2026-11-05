@@ -1,6 +1,6 @@
 # P09/P10: PDF, Bilder, Standard-OCR und begrenztes RTFD
 
-Stand: 2026-11-05, Produktstand 0.41.9; Legacy-DOC ergänzt in 0.41.10. Diese Backends sind im gemeinsamen
+Stand: 2026-11-05, Produktstand 0.41.9; Legacy-DOC ergänzt in 0.41.10 und optionales HEIC in 0.41.11. Diese Backends sind im gemeinsamen
 Swift-Kern integriert. Die früheren P04-Proben allein wären dafür kein Beleg.
 Eine vollständige Qualitätsgleichheit mit den Mac-Backends ist noch nicht abgenommen.
 
@@ -10,7 +10,7 @@ Eine vollständige Qualitätsgleichheit mit den Mac-Backends ist noch nicht abge
 | --- | --- | --- |
 | PDF | Externer Python-/GI-Poppler-/Cairo-Prozess, verifizierte Quelle, Seitenauswahl, Text und Positionen, sichere Links, Anmerkungen und PNG-Bilder | Keine Tabellen-/Typografierekonstruktion; Vektorgrafiken und besondere Annotationsfelder werden als Verlust benannt. Bilder stehen am Seitenende; ursprüngliche Kompression und Platzierung bleiben nicht erhalten. |
 | Standard-OCR | Lokales Tesseract mit tatsächlich installierten Sprachdaten, begrenztem TSV und normierten Rechtecken | Ohne Sprachauswahl installiertes Englisch, andernfalls erste verfügbare Sprache; Diagnose statt angeblicher automatischer Mehrsprachenerkennung. |
-| Rasterbilder | Lokales Pillow; PNG/APNG, JPEG, GIF, TIFF, BMP und WebP | Alle Frames werden geprüft; HEIC und andere Decoder bleiben gesperrt. Originalbildbytes bleiben als Asset erhalten. |
+| Rasterbilder | Lokales Pillow; PNG/APNG, JPEG, GIF, TIFF, BMP und WebP | Alle Frames werden geprüft; [HEIC](P09-HEIC.md) verwendet optional libheif. Originalbildbytes bleiben als Asset erhalten. |
 | RTFD | Verifizierter Paketsnapshot, bytebasierte NeXTGraphic-Vorbereitung und vorhandener RTF-/Pandoc-Pfad | Direkte lokale statische PNGs; andere Anhänge, Inline-Bild-/Objektziele und komplexe Attachmentnamen werden ausdrücklich abgewiesen. |
 | Legacy-DOC | [Isoliertes LibreOffice/UNO](P10-DOC-UNO.md), explizit NEVER_EXECUTE/NO_UPDATE, unabhängiger TXT-Abgleich | Legacy-Layout/OLE-/Word-Parität wird nicht behauptet; Sicherheitskontrollen für neue Officeversionen wiederholen. |
 | Strukturierte OCR | Nicht verfügbar | Der [P11-Qualitätsversuch](P11-QUALITY.md) rechtfertigt keine Integration. |

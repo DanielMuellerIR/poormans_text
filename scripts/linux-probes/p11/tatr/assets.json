@@ -1,0 +1,50 @@
+[
+  {
+    "url": "https://huggingface.co/microsoft/table-transformer-detection/resolve/2357cbe2b5a5d1c03e54f32764f06058933b65ab/model.safetensors",
+    "path": "models/table-transformer-detection/model.safetensors",
+    "size": 115317516,
+    "sha256": "8f1aa73170102c038d40155e2734b343bf07e0fe12594228a8590943b01dccf7"
+  },
+  {
+    "url": "https://huggingface.co/microsoft/table-transformer-detection/resolve/2357cbe2b5a5d1c03e54f32764f06058933b65ab/config.json",
+    "path": "models/table-transformer-detection/config.json",
+    "size": 1228,
+    "sha256": "ed5b93df2c3a59d473ddea853553a6d545d52bd4e9f8f72bf40b8a974aba4c1d"
+  },
+  {
+    "url": "https://huggingface.co/microsoft/table-transformer-detection/resolve/2357cbe2b5a5d1c03e54f32764f06058933b65ab/preprocessor_config.json",
+    "path": "models/table-transformer-detection/preprocessor_config.json",
+    "size": 273,
+    "sha256": "86a8837ae440456b0a9aef788b064921df29c20f0b67040954ce5c2fbd352c4f"
+  },
+  {
+    "url": "https://huggingface.co/microsoft/table-transformer-structure-recognition/resolve/f4d4bdc85c3fe4b1fa49658882a5d38bbdd0f343/model.safetensors",
+    "path": "models/table-transformer-structure-recognition/model.safetensors",
+    "size": 115434268,
+    "sha256": "f581da65a586591124cac9545b09b93e4e8bf28ce3a8357af6ac15ce94fce16b"
+  },
+  {
+    "url": "https://huggingface.co/microsoft/table-transformer-structure-recognition/resolve/f4d4bdc85c3fe4b1fa49658882a5d38bbdd0f343/config.json",
+    "path": "models/table-transformer-structure-recognition/config.json",
+    "size": 1469,
+    "sha256": "9fa1108c9fbfac69086d23bdd26b9a2242a56a72766fed98c6dfaeaae59ebf76"
+  },
+  {
+    "url": "https://huggingface.co/microsoft/table-transformer-structure-recognition/resolve/f4d4bdc85c3fe4b1fa49658882a5d38bbdd0f343/preprocessor_config.json",
+    "path": "models/table-transformer-structure-recognition/preprocessor_config.json",
+    "size": 274,
+    "sha256": "4bd6700976c66662678a521e529b06dca36df041c9d411884cb92e81bc5a6818"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/microsoft/table-transformer/16d124f616109746b7785f03085100f1f6247575/src/postprocess.py",
+    "path": "postprocess.py",
+    "size": 37054,
+    "sha256": "a7b3bdf0b0f9ea4b2ccd04bb0acca4bb05b1809d120edf556526a6d976d027db"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/microsoft/table-transformer/16d124f616109746b7785f03085100f1f6247575/LICENSE",
+    "path": "LICENSE",
+    "size": 1141,
+    "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+  }
+]

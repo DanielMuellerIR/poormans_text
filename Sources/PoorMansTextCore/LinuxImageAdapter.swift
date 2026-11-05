@@ -5,10 +5,10 @@ struct LinuxImageAdapter: DocumentConversionAdapter {
     let supportedFormatDescriptors = [PlatformFormatDescriptors.image]
 
     func inspectInput(at inputURL: URL) throws -> AdapterInputDetection {
-        let expected = PlatformFormatDescriptors.image.fileExtensions.contains(inputURL.pathExtension.lowercased())
+        let expected = ["png", "jpg", "jpeg", "heic", "tif", "tiff", "gif", "bmp", "webp"].contains(inputURL.pathExtension.lowercased())
         do {
             let prefix = try VerifiedFileStaging.prefix(of: inputURL.resolvingSymlinksInPath(),
-                maximumBytes: 1_073_741_824, prefixBytes: 16, describedAs: "the image source")
+                maximumBytes: 1_073_741_824, prefixBytes: 4096, describedAs: "the image source")
             guard Self.hasSignature(prefix) else {
                 return expected ? .invalid(format: .image, priority: 106, reason: "the image signature is missing") : .noMatch
             }
@@ -32,7 +32,10 @@ struct LinuxImageAdapter: DocumentConversionAdapter {
         try VerifiedFileStaging.stage(from: context.resolvedInputURL, to: snapshot,
             maximumBytes: 1_073_741_824, describedAs: "the image source")
         let recognize = context.options.imageTextRecognition == .enabled
-        return try LinuxRasterBackend.withFrames(source: snapshot, render: recognize) { inspection, directory in
+        let prefix = try VerifiedFileStaging.prefix(of: snapshot, maximumBytes: 1_073_741_824,
+            prefixBytes: 4096, describedAs: "the image source")
+        let heic = Self.isHEIC(prefix)
+        return try LinuxRasterBackend.withFrames(source: snapshot, render: recognize || heic) { inspection, directory in
             let asset = "images/image01.\(inspection.fileExtension)"
             let assetURL = context.stagedOutputDirectory.appendingPathComponent(asset)
             try FileManager.default.createDirectory(at: assetURL.deletingLastPathComponent(), withIntermediateDirectories: true)
@@ -42,6 +45,27 @@ struct LinuxImageAdapter: DocumentConversionAdapter {
             let heading = MarkdownEscaping.heading(name)
             var markdown = "# \(heading)\n\n![\(heading)](\(asset))"
             var diagnostics = BoundedConversionDiagnostics()
+            var assets = [asset]
+            if heic {
+                markdown = "# \(heading)\n\n[Original HEIC](\(asset))"
+                for index in 0..<inspection.frameCount {
+                    let relative = "images/frame-\(index + 1).png"
+                    let preview = context.stagedOutputDirectory.appendingPathComponent(relative)
+                    try VerifiedFileStaging.stage(from: directory.appendingPathComponent("asset-frame-\(index + 1).png"),
+                        to: preview, maximumBytes: 256 * 1024 * 1024, describedAs: "the HEIC PNG preview", followSourceSymlink: false)
+                    let bytes = try VerifiedFileStaging.contents(of: preview, maximumBytes: 256 * 1024 * 1024,
+                        describedAs: "the HEIC PNG preview")
+                    let valid = try RasterImageBackend.validate(bytes)
+                    guard valid.fileExtension == "png", valid.frameCount == 1,
+                          valid.width == inspection.frames[index].width, valid.height == inspection.frames[index].height else {
+                        throw ConversionError.fileSystemFailure("the HEIC decoder produced an invalid PNG preview")
+                    }
+                    assets.append(relative)
+                    markdown += "\n\n![\(heading), frame \(index + 1)](\(relative))"
+                }
+                diagnostics.append(ConversionWarning(code: "image.heicRender", message:
+                    "HEIC previews use 8-bit RGBA PNG. Original HEIC bytes are retained; HDR/color profiles, auxiliary images and metadata are not fully represented in previews.", kind: .approximation))
+            }
             if recognize {
                 diagnostics.append(.imageOCRApplied)
                 if context.options.ocrLanguages.isEmpty,
@@ -81,11 +105,21 @@ struct LinuxImageAdapter: DocumentConversionAdapter {
             markdown += "\n"
             let filename = name + ".md"
             try Data(markdown.utf8).write(to: context.stagedOutputDirectory.appendingPathComponent(filename), options: .atomic)
-            return StagedConversionResult(markdownRelativePath: filename, assetRelativePaths: [asset], warnings: diagnostics.result)
+            return StagedConversionResult(markdownRelativePath: filename, assetRelativePaths: assets, warnings: diagnostics.result)
         }
     }
 
+    static func isHEIC(_ data: Data) -> Bool {
+        let bytes = [UInt8](data)
+        guard bytes.count >= 16, Array(bytes[4..<8]) == Array("ftyp".utf8) else { return false }
+        let size = bytes[0..<4].reduce(0) { ($0 << 8) | Int($1) }
+        guard (16...4096).contains(size) else { return false }
+        let brands = [Array(bytes[8..<12])] + stride(from: 16, to: min(size, bytes.count) - 3, by: 4).map { Array(bytes[$0..<$0 + 4]) }
+        return brands.contains { ["heic", "heix", "hevc", "hevx", "heim", "heis", "hevm", "hevs"].contains(String(decoding: $0, as: UTF8.self)) }
+    }
+
     private static func hasSignature(_ data: Data) -> Bool {
+        if isHEIC(data) { return true }
         let bytes = [UInt8](data)
         if bytes.starts(with: [137, 80, 78, 71, 13, 10, 26, 10]) || bytes.starts(with: [255, 216, 255]) { return true }
         if bytes.starts(with: Array("GIF87a".utf8)) || bytes.starts(with: Array("GIF89a".utf8)) { return true }

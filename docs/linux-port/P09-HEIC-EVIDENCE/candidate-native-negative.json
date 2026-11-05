@@ -1,0 +1,35 @@
+[
+  {
+    "case": "broken",
+    "rejected": true,
+    "decodeCalls": 0,
+    "reason": "libheif: Invalid input: No 'meta' box"
+  },
+  {
+    "case": "oversize",
+    "rejected": true,
+    "decodeCalls": 0,
+    "reason": "libheif: Memory allocation error: Security limit exceeded: Image size 1000000x64 exceeds the maximum image size 32768x32768\n"
+  },
+  {
+    "case": "too-many",
+    "rejected": true,
+    "decodeCalls": 0,
+    "reason": "HEIC has no supported still images or exceeds the frame limit"
+  },
+  {
+    "case": "single",
+    "maxRGBError": 1,
+    "alphaAndOrientation": true
+  },
+  {
+    "case": "rotated",
+    "maxRGBError": 1,
+    "alphaAndOrientation": true
+  },
+  {
+    "case": "multi",
+    "maxRGBError": 1,
+    "alphaAndOrientation": true
+  }
+]

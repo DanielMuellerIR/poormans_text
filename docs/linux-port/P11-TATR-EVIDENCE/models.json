@@ -1,0 +1,26 @@
+{
+  "models": [
+    {
+      "id": "microsoft/table-transformer-detection",
+      "revision": "2357cbe2b5a5d1c03e54f32764f06058933b65ab",
+      "file": "model.safetensors",
+      "size": 115317516,
+      "sha256": "8f1aa73170102c038d40155e2734b343bf07e0fe12594228a8590943b01dccf7",
+      "configSha256": "ed5b93df2c3a59d473ddea853553a6d545d52bd4e9f8f72bf40b8a974aba4c1d",
+      "processorSha256": "86a8837ae440456b0a9aef788b064921df29c20f0b67040954ce5c2fbd352c4f"
+    },
+    {
+      "id": "microsoft/table-transformer-structure-recognition",
+      "revision": "f4d4bdc85c3fe4b1fa49658882a5d38bbdd0f343",
+      "file": "model.safetensors",
+      "size": 115434268,
+      "sha256": "f581da65a586591124cac9545b09b93e4e8bf28ce3a8357af6ac15ce94fce16b",
+      "configSha256": "9fa1108c9fbfac69086d23bdd26b9a2242a56a72766fed98c6dfaeaae59ebf76",
+      "processorSha256": "4bd6700976c66662678a521e529b06dca36df041c9d411884cb92e81bc5a6818"
+    }
+  ],
+  "weightsTotalBytes": 230751784,
+  "codeRevision": "16d124f616109746b7785f03085100f1f6247575",
+  "baseImageId": "sha256:675d824f661891504d6957578068a7a28e588fb75fe7fd73e041f2f1ab72a359",
+  "baseRepoDigest": "swift@sha256:0e4716bd34384d22963a63afbdbc93be3129dfd0753185aa1ded27755abdcae8"
+}

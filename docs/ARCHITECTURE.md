@@ -8,7 +8,9 @@ derselbe Kern von CLI, eigener App und später Fastra benutzt werden kann.
 Seit 2026-11-04 ist **Swift als gemeinsamer Konvertierungskern gewählt**.
 Die P02-Proben belegen den vorhandenen Kern samt dynamischer Laufzeitlieferung
 auf CachyOS und Mint 22.2. Apple-spezifische Fähigkeiten erhalten Plattformadapter;
-die GTK-Linux-Oberfläche ist als dünner Rust-Adapter über die lokale CLI angebunden.
+die GTK4-Linux-Oberfläche ist als dünner Rust-Adapter über die lokale CLI angebunden.
+GTK4 ist seit 2026-11-05 die gemeinsame reversible Entwicklungswahl mit Fastra;
+die endgültige Desktopabnahme ist ein separates Tor.
 Es ist kein vollständiger Rust-Neubau des Kerns vorgesehen. Fastra bleibt ein
 eigenständiger Verbraucher des [CLI-Vertrags](FASTRA-CONTRACT.md).
 

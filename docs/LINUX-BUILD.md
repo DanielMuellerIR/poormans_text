@@ -4,7 +4,7 @@ Die Linux-Portierung verwendet denselben Swift-Konvertierungskern wie macOS.
 P05 stellt Build und Plattformgrenzen her; dies ist noch keine vollständige
 Linux-App oder Distributionsfreigabe. PDF, Standard-OCR und Bilder verwenden
 explizite lokale Backends; RTFD unterstützt zunächst geprüfte lokale statische
-PNG-Anhänge. Legacy-DOC verwendet optional LibreOffice mit expliziten sicheren UNO-Ladeparametern. HEIC und strukturierte OCR bleiben nicht verfügbar.
+PNG-Anhänge. Legacy-DOC verwendet optional LibreOffice mit expliziten sicheren UNO-Ladeparametern. HEIC verwendet optional den lokalen libheif-HEVC-Decoder; strukturierte OCR bleibt nicht verfügbar.
 Die vorhandene Mac-App bleibt nativ.
 
 ## Lokal bauen
@@ -106,6 +106,7 @@ ausdrücklich installierte Distributionspakete:
 | Fähigkeit | Mint/Ubuntu | Arch |
 | --- | --- | --- |
 | Rasterdecoder | `python3-pil` | `python-pillow` |
+| HEIC (optional) | `libheif1`, `libheif-plugin-libde265` | `libheif`; beim geprüften Pluginstand zusätzlich `ffmpeg` |
 | PDF | `python3-gi`, `python3-cairo`, `python3-gi-cairo`, `gir1.2-poppler-0.18` | `python-gobject`, `python-cairo`, `poppler-glib` |
 | Legacy-DOC | `libreoffice-writer`, `python3-uno`, Pandoc | `libreoffice-fresh`, zum System-Python passende UNO-Bindings, Pandoc |
 | Standard-OCR | `tesseract-ocr` und gewählte Sprachpakete | `tesseract` und gewählte `tesseract-data-*` |
@@ -122,7 +123,7 @@ und APNG verwenden Pillow im begrenzten isolierten Hilfsprozess. Alle Frames
 werden validiert; Originalbildbytes bleiben erhalten. Für OCR werden EXIF-Lage,
 Alpha auf weißem Hintergrund und ein gemeinsames Pixelbudget berücksichtigt.
 Der Decoder begrenzt Quelldaten, Framezahl, Pixel, Speicher und Prozesslaufzeit.
-HEIC ist nicht aktiviert. RTFD lehnt andere Anhänge als lokale statische PNGs,
+HEIC übernimmt die Originalbytes und erzeugt für jedes Top-Level-Bild zusätzlich eine 8-Bit-RGBA-PNG-Darstellung. HDR, Farbprofile, Hilfsbilder und Metadaten besitzen ausdrücklich benannte Grenzen; siehe [HEIC-Nachweis](linux-port/P09-HEIC.md). RTFD lehnt andere Anhänge als lokale statische PNGs,
 inline Bild-/Objektziele und komplexe Attachmentnamen ausdrücklich ab.
 
 PDF übernimmt Poppler-Text, Positionen, Bilder, sichere Links und Annotationen.

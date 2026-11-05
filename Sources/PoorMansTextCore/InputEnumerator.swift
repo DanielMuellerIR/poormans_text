@@ -75,7 +75,13 @@ public struct InputEnumerator: Sendable {
     private let packageExtensions: Set<String>
 
     public init(descriptors: [SupportedFormat]) {
-        fileExtensions = Set(descriptors.flatMap { $0.fileExtensions.map { $0.lowercased() } })
+        var recognizedExtensions = Set(descriptors.flatMap { $0.fileExtensions.map { $0.lowercased() } })
+        #if os(Linux)
+        // Fehlende optionale Decoder gehören als Dokumentfehler in den Batch,
+        // statt bekannte HEIC-Quellen bei der Ordnersuche still zu übergehen.
+        if descriptors.contains(where: { $0.format == .image }) { recognizedExtensions.insert("heic") }
+        #endif
+        fileExtensions = recognizedExtensions
         packageExtensions = Set(
             descriptors
                 .filter { $0.containerKinds.contains(.package) }

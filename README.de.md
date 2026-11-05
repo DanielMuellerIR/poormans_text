@@ -8,7 +8,7 @@
 
 ## Linux-Entwicklungsstand
 
-Die Linux-CLI enthält jetzt lokale PDF-Extraktion, Standard-OCR, Rasterbilder und einen begrenzten RTFD-Pfad neben den gemeinsamen Dokumentparsern. Eine optionale native GTK-Vorschau verwendet dieselbe CLI; Legacy-DOC verwendet ausdrücklich isoliertes LibreOffice/UNO. HEIC und strukturierte OCR bleiben nicht verfügbar; PDF-Layout- und RTFD-Anhangsgrenzen werden ausdrücklich gemeldet. Siehe [Linux-Build, Abhängigkeiten und Grenzen](docs/LINUX-BUILD.md).
+Die Linux-CLI enthält jetzt lokale PDF-Extraktion, Standard-OCR, Rasterbilder und einen begrenzten RTFD-Pfad neben den gemeinsamen Dokumentparsern. Eine optionale native GTK-Vorschau verwendet dieselbe CLI; Legacy-DOC verwendet ausdrücklich isoliertes LibreOffice/UNO. HEIC ist über den installierten lokalen libheif-HEVC-Decoder optional verfügbar; strukturierte OCR bleibt nicht verfügbar; PDF-Layout- und RTFD-Anhangsgrenzen werden ausdrücklich gemeldet. Siehe [Linux-Build, Abhängigkeiten und Grenzen](docs/LINUX-BUILD.md).
 
 <p align="center">
   <strong>Dokumente, Tabellen, PDFs und Bilder in Markdown umwandeln.</strong>
@@ -130,7 +130,7 @@ DMG und zugehörige `.sha256`-Datei stehen im
 Ordner, lässt sich der Download vor dem Öffnen prüfen:
 
 ```sh
-shasum -a 256 -c Poor-Mans-Text-0.41.10.dmg.sha256
+shasum -a 256 -c Poor-Mans-Text-0.41.11.dmg.sha256
 ```
 
 Danach das DMG öffnen und Poor Man's Text in den Programme-Ordner ziehen. Die
@@ -706,7 +706,7 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.41.10.
+Die aktuelle Version ist 0.41.11.
 
 ## Lizenz
 

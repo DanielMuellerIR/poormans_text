@@ -111,3 +111,10 @@ Neun statt vorher fünf Tabellenzelltexte besitzen wieder abgegrenzte Tokenfolge
 Dies erhält weder Tabellenstruktur/colspan noch die weiterhin teilweise falsche
 Reihenfolge. Diagramm-OCR erzeugt weiterhin erkennbare Fehler. Kein neuer
 strukturierter Backendpfad und keine P11- oder Mac-Paritätsabnahme folgen daraus.
+
+## Weiterer fest gepinnter Modellversuch
+
+Die anschließende [CPU-/Offline-TATR-Probe](P11-TATR-DECISION.md) ist technisch
+ausführbar, scheitert jedoch an natürlicher Kopfzelle/Span, einem FalsePositive
+und synthetischer Zellrekonstruktion. Das ist ein belegter weiterer Ausschluss,
+keine Produktintegration oder pauschale Aussage über andere Modelle.

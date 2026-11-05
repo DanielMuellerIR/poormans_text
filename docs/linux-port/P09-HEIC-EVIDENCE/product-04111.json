@@ -1,0 +1,36 @@
+{
+  "version": "0.41.11",
+  "cliSHA256": "66ec0c0ded5e2d3ef06d84b476b68f2a39b1493cf5c4d8c61fedeecc89a40244",
+  "ubuntu24": {
+    "withoutSwiftSDK": true,
+    "cliCases": 10,
+    "positiveMixedFolder": {
+      "exit": 0,
+      "heicAdvertised": true,
+      "imageRows": 1,
+      "pngConverted": true,
+      "heicIncluded": true,
+      "heicConverted": true,
+      "sourceHashesUnchanged": true
+    }
+  },
+  "hostWithoutLibrary": {
+    "cliCases": 7,
+    "mixedFolder": {
+      "exit": 69,
+      "heicAdvertised": false,
+      "imageRows": 1,
+      "pngConverted": true,
+      "heicIncluded": true,
+      "heicConverted": false,
+      "sourceHashesUnchanged": true
+    }
+  },
+  "limits": "HDR/ICC/camera corpus and native Mac parity remain unaccepted; Arch product-package results separate.",
+  "swiftTests": {
+    "executed": 342,
+    "skipped": 8,
+    "failures": 0,
+    "seconds": 35.817
+  }
+}

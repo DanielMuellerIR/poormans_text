@@ -1,0 +1,51 @@
+[
+  {
+    "source": "single",
+    "frames": [
+      {
+        "width": 32,
+        "height": 24,
+        "ispeWidth": 64,
+        "ispeHeight": 64,
+        "frameCount": 1
+      }
+    ],
+    "sourceUnchanged": true
+  },
+  {
+    "source": "rotated",
+    "frames": [
+      {
+        "width": 24,
+        "height": 32,
+        "ispeWidth": 64,
+        "ispeHeight": 64,
+        "frameCount": 1
+      }
+    ],
+    "sourceUnchanged": true
+  },
+  {
+    "source": "multi",
+    "frames": [
+      {
+        "width": 32,
+        "height": 24,
+        "ispeWidth": 64,
+        "ispeHeight": 64,
+        "frameCount": 2
+      },
+      {
+        "width": 40,
+        "height": 24,
+        "ispeWidth": 64,
+        "ispeHeight": 64,
+        "frameCount": 2
+      }
+    ],
+    "sourceUnchanged": true
+  },
+  {
+    "brokenRejected": true
+  }
+]

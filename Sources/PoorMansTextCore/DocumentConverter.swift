@@ -56,9 +56,9 @@ public struct DocumentConverter: Sendable {
     /// Derselbe Katalog, zusätzlich mit der Verfügbarkeit auf DIESEM Rechner.
     ///
     /// Gedacht für Hosts, die vor dem Anbieten wissen müssen, ob eine
-    /// Umwandlung überhaupt gelingen kann. Die Prüfung fasst nur das Dateisystem
-    /// an und startet keinen Prozess — ein Host darf sie deshalb bei jedem
-    /// Öffnen aufrufen.
+    /// Umwandlung überhaupt gelingen kann. Optionale Linux-Bibliotheken werden
+    /// dafür in begrenzten isolierten Hilfsprozessen geprüft. Hosts sollten den
+    /// Katalog bei Bedarf aktualisieren, nicht für jede einzelne Quelldatei.
     public func formatCatalog(
         resolver: ExternalToolResolver = ExternalToolResolver()
     ) -> [FormatAvailability] {
@@ -74,8 +74,18 @@ public struct DocumentConverter: Sendable {
             }
             let backendReason = adapters.first { $0.supportedFormats.contains(descriptor.format) }?
                 .unavailableReason(for: descriptor.format)
+            var availableDescriptor = descriptor
+            #if os(Linux)
+            if descriptor.format == .image, descriptor.fileExtensions.contains("heic"),
+               !(missing.isEmpty && backendReason == nil && LinuxRasterBackend.isHEICAvailable()) {
+                availableDescriptor = SupportedFormat(format: descriptor.format,
+                    fileExtensions: descriptor.fileExtensions.filter { $0 != "heic" },
+                    containerKind: descriptor.containerKind, requiredTools: descriptor.requiredTools,
+                    additionalContainerKinds: descriptor.containerKinds.filter { $0 != descriptor.containerKind })
+            }
+            #endif
             return FormatAvailability(
-                format: descriptor,
+                format: availableDescriptor,
                 isAvailable: missing.isEmpty && backendReason == nil,
                 unavailableReason: backendReason ?? (missing.isEmpty
                     ? nil

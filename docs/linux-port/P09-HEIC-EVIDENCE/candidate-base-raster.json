@@ -1,0 +1,90 @@
+{
+  "animated.png": {
+    "passed": true,
+    "frames": 2,
+    "sourceAndAssetBytesUnchanged": true,
+    "reportAndOutputHashes": true,
+    "OCRMarkers": true
+  },
+  "frames.gif": {
+    "passed": true,
+    "frames": 2,
+    "sourceAndAssetBytesUnchanged": true,
+    "reportAndOutputHashes": true,
+    "OCRMarkers": true
+  },
+  "frames.tiff": {
+    "passed": true,
+    "frames": 2,
+    "sourceAndAssetBytesUnchanged": true,
+    "reportAndOutputHashes": true,
+    "OCRMarkers": true
+  },
+  "rotated.jpg": {
+    "passed": true,
+    "frames": 1,
+    "sourceAndAssetBytesUnchanged": true,
+    "reportAndOutputHashes": true,
+    "OCRMarkers": true
+  },
+  "scan.bmp": {
+    "passed": true,
+    "frames": 1,
+    "sourceAndAssetBytesUnchanged": true,
+    "reportAndOutputHashes": true,
+    "OCRMarkers": true
+  },
+  "scan.jpg": {
+    "passed": true,
+    "frames": 1,
+    "sourceAndAssetBytesUnchanged": true,
+    "reportAndOutputHashes": true,
+    "OCRMarkers": true
+  },
+  "scan.png": {
+    "passed": true,
+    "frames": 1,
+    "sourceAndAssetBytesUnchanged": true,
+    "reportAndOutputHashes": true,
+    "OCRMarkers": true
+  },
+  "scan.webp": {
+    "passed": true,
+    "frames": 1,
+    "sourceAndAssetBytesUnchanged": true,
+    "reportAndOutputHashes": true,
+    "OCRMarkers": true
+  },
+  "transparent.png": {
+    "passed": true,
+    "frames": 1,
+    "sourceAndAssetBytesUnchanged": true,
+    "reportAndOutputHashes": true,
+    "OCRMarkers": true
+  },
+  "image-ocr-off": {
+    "passed": true
+  },
+  "structured-unavailable": {
+    "passed": true,
+    "exit": 69
+  },
+  "missing-language": {
+    "passed": true
+  },
+  "raster-process-timeout": {
+    "passed": true,
+    "exit": 124,
+    "noOutput": true
+  },
+  "oversized.png": {
+    "passed": true,
+    "exit": 65,
+    "noOutput": true
+  },
+  "truncated.png": {
+    "passed": true,
+    "exit": 65,
+    "noOutput": true
+  }
+}

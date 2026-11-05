@@ -1,0 +1,1 @@
+{"classification": "Unavailable", "exit": 69, "nativeCalls": ["heif_init", "heif_deinit"], "nativeSourceReads": 0, "reason": "The local libheif/codec initialization failed (code 11, subcode 6000)."}

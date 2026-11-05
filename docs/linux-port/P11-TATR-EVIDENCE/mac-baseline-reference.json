@@ -1,0 +1,89 @@
+{
+  "path": "docs/linux-port/P11-NATURAL-EVIDENCE/mac-baseline.json",
+  "sha256": "c101d04ee32cc4a7f05a3e03615de05a734e0fac6b2f2e797582b1e1e8aff754",
+  "version": "Poor Man's Text 0.41.7",
+  "architecture": "arm64",
+  "cliSHA256": "a0bd72a510a38b02b6305c04d5dc6fdc4cd09492f1b3b40ae5892234abc23ab3",
+  "freshSourceRegression": false,
+  "comparison": "Unchanged installed macOS 0.41.7 baseline; not a regression of current shared sources",
+  "cases": [
+    {
+      "source": "01030000000132.pdf",
+      "mode": "off",
+      "sourceSHA256": "eded7804127acce26e4b9e7138aa8c95d0d8886280a21148efb0ae9519941ede",
+      "diagnosticCodes": [
+        "pdf.layoutNotPreserved",
+        "pdf.layoutFallback"
+      ]
+    },
+    {
+      "source": "01030000000132.pdf",
+      "mode": "structured",
+      "sourceSHA256": "eded7804127acce26e4b9e7138aa8c95d0d8886280a21148efb0ae9519941ede",
+      "diagnosticCodes": [
+        "pdf.layoutNotPreserved",
+        "pdf.ocrApplied",
+        "pdf.layoutFallback",
+        "ocr.structuredFallback",
+        "pdf.ocrOriginalRetained"
+      ]
+    },
+    {
+      "source": "01030000000134.pdf",
+      "mode": "off",
+      "sourceSHA256": "4a6baa0f883743ec25b853bae06a49d230ec010c973501945d46a16f9bb75aa9",
+      "diagnosticCodes": [
+        "pdf.layoutNotPreserved",
+        "pdf.layoutFallback",
+        "pdf.linkUnavailable",
+        "pdf.annotationPreserved"
+      ]
+    },
+    {
+      "source": "01030000000134.pdf",
+      "mode": "structured",
+      "sourceSHA256": "4a6baa0f883743ec25b853bae06a49d230ec010c973501945d46a16f9bb75aa9",
+      "diagnosticCodes": [
+        "pdf.layoutNotPreserved",
+        "pdf.ocrApplied",
+        "pdf.layoutFallback",
+        "ocr.structuredFallback",
+        "pdf.ocrOriginalRetained",
+        "pdf.layoutAmbiguous",
+        "pdf.linkUnavailable",
+        "pdf.annotationPreserved"
+      ]
+    },
+    {
+      "source": "01030000000135.pdf",
+      "mode": "off",
+      "sourceSHA256": "ed941b5cde32cfc778c225dcfa90c334d9995d70c46e7f508635073a3227784b",
+      "diagnosticCodes": [
+        "pdf.layoutNotPreserved",
+        "pdf.layoutFallback"
+      ]
+    },
+    {
+      "source": "01030000000135.pdf",
+      "mode": "structured",
+      "sourceSHA256": "ed941b5cde32cfc778c225dcfa90c334d9995d70c46e7f508635073a3227784b",
+      "diagnosticCodes": [
+        "pdf.layoutNotPreserved",
+        "pdf.ocrApplied",
+        "pdf.layoutFallback",
+        "ocr.structuredFallback",
+        "pdf.ocrOriginalRetained"
+      ]
+    },
+    {
+      "source": "structured.png",
+      "mode": "structured",
+      "sourceSHA256": "e37ca92cf5b8ad22e228eed1c1065177bbbdc6b865b9e027965660353f934369",
+      "diagnosticCodes": [
+        "image.ocrApplied",
+        "ocr.structuredApplied",
+        "ocr.tableSpansFlattened"
+      ]
+    }
+  ]
+}

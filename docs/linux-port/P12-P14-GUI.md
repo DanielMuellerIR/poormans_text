@@ -1,8 +1,8 @@
 # P12/P14: GTK-Oberfläche über dem gemeinsamen Swift-Kern
 
 Stand: 2026-11-05, Entwicklungsvorschau 0.41.10. Die Oberfläche ist ein dünner
-Rust-/GTK-Adapter; sie enthält keinen zweiten Konverter. GTK bleibt eine
-vorläufige Entwicklungswahl auf Basis des vorhandenen Fastra-Durchstichs.
+Rust-/GTK-Adapter; sie enthält keinen zweiten Konverter. GTK4 ist seit 2026-11-05 die gemeinsame reversible Entwicklungswahl mit Fastra.
+Die gesonderte endgültige Desktopabnahme blockiert diese Oberfläche nicht.
 Die nachfolgenden bestandenen Proben sind keine vollständige Desktopabnahme.
 
 ## Integrierte Bedienung

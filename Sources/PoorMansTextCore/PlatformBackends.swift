@@ -18,7 +18,7 @@ enum PlatformFormatDescriptors {
     #endif
     #if os(Linux)
     static let image = SupportedFormat(format: .image,
-        fileExtensions: ["png", "jpg", "jpeg", "tif", "tiff", "gif", "bmp", "webp"],
+        fileExtensions: ["png", "jpg", "jpeg", "tif", "tiff", "gif", "bmp", "webp", "heic"],
         containerKind: .file, requiredTools: [.pythonPillow, .bubblewrap, .processGuard])
     #else
     static let image = SupportedFormat(format: .image,

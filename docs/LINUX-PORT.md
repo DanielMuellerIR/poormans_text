@@ -2,19 +2,19 @@
 
 Stand: 2026-11-05. Planungsbasis: Version 0.41.7, Commit `919c575`.
 P00–P04 sind als Entscheidungsproben dokumentiert; Swift ist als gemeinsamer
-Konvertierungskern festgelegt. P05 ist integriert. Der Entwicklungsstand 0.41.10
+Konvertierungskern festgelegt. P05 ist integriert. Der Entwicklungsstand 0.41.11
 enthält die portierten P06–P10-Formate/Sammlungen, PDF, Standard-OCR, Rasterbilder,
 begrenztes RTFD und Legacy-DOC sowie die dünne GTK-Oberfläche und lokale Pakete.
 Die ausgeführten Produktprüfungen und noch offenen Abnahmen stehen getrennt in
-den Berichten. HEIC und strukturierte OCR sind weiterhin nicht verfügbar.
-GTK ist eine reversible Entwicklungswahl; die endgültige Toolkit-/Desktopabnahme
-ist offen. Es gibt keinen Rust-Neubau des Konvertierungskerns.
+den Berichten. HEIC ist als optionale lokale Decoderfähigkeit integriert; strukturierte OCR bleibt nicht verfügbar.
+GTK4 ist seit 2026-11-05 die gemeinsame reversible Entwicklungswahl mit Fastra.
+Die endgültige Desktopabnahme bleibt ein separates Tor und blockiert die Oberfläche nicht. Es gibt keinen Rust-Neubau des Konvertierungskerns.
 
 | Paket | Implementierung / nachgewiesener Stand | Noch offene Abnahme |
 | --- | --- | --- |
 | P05/P06 | [Swift-Kern](linux-port/P05-INTEGRATION.md), [CLI/Datei-/Prozessschutz](linux-port/P06-INTEGRATION.md) | Neue Mac-Regression und vollständige Zielsystemmatrix |
 | P07/P08 | [Tabellen, Präsentationen, Notebooks, Mail und Sammlungen](linux-port/P07-P08-INTEGRATION.md) | Externe Referenzkorpora und finale Plattformabnahme |
-| P09/P10 | [PDF, Raster, Standard-OCR und RTFD](linux-port/P09-P10-INTEGRATION.md), [DOC/UNO](linux-port/P10-DOC-UNO.md) | HEIC, breitere natürliche Qualitätsdaten, PDF-/RTFD-Parität und Zielsystemmatrix |
+| P09/P10 | [PDF, Raster, Standard-OCR und RTFD](linux-port/P09-P10-INTEGRATION.md), [DOC/UNO](linux-port/P10-DOC-UNO.md) | Breitere natürliche Qualitätsdaten einschließlich HEIC, PDF-/RTFD-Parität und Zielsystemmatrix |
 | P11 | [Klassischer Qualitätsversuch und natürlicher Startkorpus](linux-port/P11-QUALITY.md), keine strukturierte Produkt-OCR | Qualifizierter Strukturbackend-/Korpusentscheid |
 | P12/P14 | [GTK über CLI, Zwischenablage und Profile](linux-port/P12-P14-GUI.md) | Echte Desktops, vollständiger Quellvergleich, allgemeine GUI-Präferenzen und Systemintegration |
 | P13 | [Echte Consumer-/GTK-Replays gegen 0.41.10](linux-port/P13-FASTRA.md) | Aktuelle Commitbindung und vollständige App-zu-App-Matrix |
@@ -75,9 +75,9 @@ Der dortige Plan steht unter `docs/LINUX-PORT.md`.
 Der [CLI-Vertrag](FASTRA-CONTRACT.md) gehört diesem Repository. PMT pflegt
 Produzent und Vertrags-Fixtures; Fastra pflegt Verbraucher und Importdarstellung.
 Die CLI-Grenze erlaubt unterschiedliche Kernsprachen ohne doppelte Formatlogik.
-Toolkitentscheidung und Gestaltung der Linux-Apps werden abgestimmt: Fastra F01
-prüft den anspruchsvolleren Editor; PMT P12 nutzt dessen Ergebnis, soweit es die
-eigenen Anforderungen erfüllt. Keine gemeinsame UI-Bibliothek auf Vorrat.
+GTK4 ist als gemeinsame reversible Entwicklungswahl festgehalten. Fastra prüft
+den anspruchsvolleren Editor; PMT P12 nutzt die belegten Ergebnisse, soweit sie
+die eigenen Anforderungen erfüllen. Die endgültige Desktopabnahme bleibt separat. Keine gemeinsame UI-Bibliothek auf Vorrat.
 
 Gemeinsame Ressourcen oder Pakete nur extrahieren, wenn beide Apps denselben
 konkreten Bedarf haben. Ein PDF-Backend kann gemeinsam gewählt werden, ohne dass

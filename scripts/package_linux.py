@@ -49,8 +49,11 @@ for entry in runtime.rglob('*'):
     if not entry.is_file():
         continue
     with entry.open('rb') as stream:
-        elf = stream.read(4) == b'\x7fELF'
+        header = stream.read(20)
+        elf = header[:4] == b'\x7fELF'
     if elf:
+        if len(header) < 20 or header[4:6] != b'\x02\x01' or header[18:20] != b'\x3e\x00':
+            raise SystemExit('Runtime ELF is not Linux x86_64: ' + str(entry.relative_to(runtime)))
         versions = re.findall(r'GLIBC_([0-9.]+)', subprocess.check_output(['readelf', '--version-info', str(entry)], text=True))
         if versions and max(tuple(map(int, item.split('.'))) for item in versions) > (2, 39):
             raise SystemExit('Runtime ELF exceeds glibc 2.39 baseline: ' + str(entry.relative_to(runtime)) + '; rebuild on Ubuntu 24.04.')
@@ -178,7 +181,7 @@ Section: text
 Priority: optional
 Depends: libc6 (>= 2.39), libstdc++6, libgcc-s1, bubblewrap (>= 0.9.0){', libgtk-4-1 (>= 4.12)' if args.with_gui else ''}
 Recommends: pandoc
-Suggests: python3-pil, python3-gi, python3-cairo, python3-gi-cairo, gir1.2-poppler-0.18, tesseract-ocr, libreoffice-writer, python3-uno
+Suggests: python3-pil, python3-gi, python3-cairo, python3-gi-cairo, gir1.2-poppler-0.18, tesseract-ocr, libreoffice-writer, python3-uno, libheif1, libheif-plugin-libde265
 Homepage: https://github.com/DanielMuellerIR/poormans_text
 Description: Local document conversion with a shared Swift core (Linux preview)
  No runtime downloads. Optional converters and OCR data are host packages.
@@ -210,6 +213,8 @@ optdepend = python-cairo: PDF rasterization
 optdepend = poppler-glib: PDF backend
 optdepend = tesseract: local OCR
 optdepend = libreoffice-fresh: legacy Word import
+optdepend = libheif: optional HEIC decoder
+optdepend = ffmpeg: optional runtime for distro libheif plugins
 ''')
                 if kind == 'arch':
                     (stage / '.PKGINFO').chmod(0o644)

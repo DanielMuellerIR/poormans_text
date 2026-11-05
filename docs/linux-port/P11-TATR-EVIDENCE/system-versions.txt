@@ -1,0 +1,6 @@
+libtesseract5:amd64	5.3.4-1build5
+poppler-utils	24.02.0-1ubuntu9.11
+python3.12	3.12.3-1ubuntu0.17
+tesseract-ocr	5.3.4-1build5
+tesseract-ocr-eng	1:4.1.0-2
+tesseract-ocr-osd	1:4.1.0-2

@@ -18,7 +18,7 @@ WebP sind implementiert. Ihre Importwege stehen in
 Die Linux-Portierung behält Swift als gemeinsamen Konvertierungskern. Offene
 Backend-, Desktop-, Paket- und Mac-Regressionsabnahmen stehen im
 [Linux-Umsetzungsplan](docs/LINUX-PORT.md); die App-Grenze steht im
-[Fastra-CLI-Vertrag](docs/FASTRA-CONTRACT.md). Strukturierte OCR, HEIC,
+[Fastra-CLI-Vertrag](docs/FASTRA-CONTRACT.md). Strukturierte OCR, breitere HEIC-Qualitätsabnahme,
 PDF-/Bildquellvergleich und die vollständige Zielsystemmatrix bleiben offen.
 Eine öffentliche Linux-Veröffentlichung ist gesondert freizugeben.
 

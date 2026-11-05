@@ -6,7 +6,7 @@ Konvertierungskern festgelegt. P05 ist integriert. Der Entwicklungsstand 0.41.17
 enthält die portierten P06–P10-Formate/Sammlungen, PDF, Standard-OCR, Rasterbilder,
 statische RTFD-Anhänge und Legacy-DOC sowie die dünne GTK-Oberfläche und lokale Pakete.
 Die ausgeführten Produktprüfungen und noch offenen Abnahmen stehen getrennt in
-den Berichten; die [aktuellen Produktnachweise](linux-port/P16-04117/README.md) binden die finalen Artefakte. HEIC ist als optionale lokale Decoderfähigkeit integriert; strukturierte OCR ist mit separat geprüfter lokaler Runtime optional integriert; ihre Inhaltsqualitätsfreigabe bleibt offen.
+den Berichten; die [aktuellen Produktnachweise](linux-port/P16-04118/README.md) binden die finalen Artefakte. HEIC ist als optionale lokale Decoderfähigkeit integriert; strukturierte OCR ist mit separat geprüfter lokaler Runtime optional integriert; ihre Inhaltsqualitätsfreigabe bleibt offen.
 GTK4 ist seit 2026-11-05 die gemeinsame reversible Entwicklungswahl mit Fastra.
 Die endgültige Desktopabnahme bleibt ein separates Tor und blockiert die Oberfläche nicht. Es gibt keinen Rust-Neubau des Konvertierungskerns.
 
@@ -18,7 +18,7 @@ Die endgültige Desktopabnahme bleibt ein separates Tor und blockiert die Oberfl
 | P11 | [Optionale strukturierte Produkt-OCR und lokale Runtime](linux-port/P16-04117/README.md) | Breiter unabhängiger Korpus und allgemeine Inhaltsvollständigkeit; bekannte 5/8-Zelltextqualität bleibt FAIL |
 | P12/P14 | [GTK über CLI, Zwischenablage und Profile](linux-port/P12-P14-GUI.md) | PDF-/Bildrastervergleich mit Zoom und gebundener Clipboardvergleich integriert; GUI-Präferenzen integriert; echte Desktops und Systemintegration offen |
 | P13 | [Echte Importmatrix und .16-RTFD-Delta](linux-port/P13-FASTRA.md), gebundener Fastra-1.165.1-Consumer | Positive ENEX-PDF-GUI-Umgebung, harte Consumerverluste und echte Desktopabnahme |
-| P15 | [Drei lokale Paketformate](linux-port/P15-CLI-PACKAGES.md), optionale GTK-Paketierung | Nativer privater Mint-DPKG-Zyklus bestanden; echte Host-/Desktopintegration und öffentliche Distribution offen |
+| P15 | [Vier Paketformate und native Installer](linux-port/P16-04118/README.md), optionale GTK-Paketierung | Native isolierte apt-/pacman-Zyklen und X11-/Wayland-Proben bestanden; echte Host-/Desktopintegration und öffentliche Distribution offen |
 | P16 | [48 finale CLI-Neustarts](linux-port/P16-04113/series.json), Mac-Restregression und paketbezogene Teilprüfungen | Mac: 1.085 Fälle mit neun Skips, Linux: 385 Fälle mit zwölf Skips, jeweils keine Fehler; Gesamtqualitäts- und Desktopabnahme offen |
 
 Die früheren Entscheidungsproben bleiben im [Entscheidungsbericht](LINUX-DECISION.md)

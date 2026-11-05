@@ -1,0 +1,2 @@
+Required namespace pidfd binding failed before CLI start: No such process (os error 3)
+bwrap: Can't mount proc on /proc: Operation not permitted

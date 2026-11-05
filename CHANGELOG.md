@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.41.18 — 2026-11-05
+
+- Preserve the original sandbox setup error when namespace pidfd binding fails before the Linux GUI can start its CLI; keep the mandatory start gate closed.
+- Test PDF and raster backends separately with and without the optional structured OCR runtime, retaining strict independent content checks.
+- Verify the native Linux installers and production GUI through isolated apt/Arch package transactions and X11/Wayland runs.
+
 ## 0.41.17 — 2026-11-05
 
 - Add explicit Linux build, release, signing, verification and native-install entry points, ZIP packages and opt-in OpenPGP signatures without changing macOS distribution.

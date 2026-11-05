@@ -3,7 +3,7 @@ import os,subprocess,json,hashlib
 from collections import Counter
 import argparse,zlib
 from PIL import Image, ImageDraw, ImageFont
-parser=argparse.ArgumentParser();parser.add_argument('--root',required=True);parser.add_argument('--cli',required=True);args=parser.parse_args()
+parser=argparse.ArgumentParser();parser.add_argument('--root',required=True);parser.add_argument('--cli',required=True);parser.add_argument('--structured-runtime',choices=['unavailable','available'],default='unavailable');args=parser.parse_args()
 r=Path(args.root);r.mkdir(exist_ok=False);f=r/'fixtures';f.mkdir();(f/'fixtures').mkdir();out=r/'outputs';out.mkdir();sample=f/'fixtures/sample.pdf';cli=Path(args.cli).resolve();env=dict(os.environ)
 if (cli.parent.parent/'lib').is_dir():env['LD_LIBRARY_PATH']=str(cli.parent.parent/'lib')
 def pdf(path, dated=False):
@@ -48,14 +48,21 @@ res={}
 cases=[('dates',f/'dates.pdf',['--pdf-ocr','off','--frontmatter']),('structured-off',sample,['--pdf-ocr','off','--ocr-method','structured']),('digital',sample,['--pdf-ocr','off']),('mixed',f/'mixed.pdf',['--ocr-language','de,en']),('mixed-default',f/'mixed.pdf',[]),('second',sample,['--pdf-ocr','off','--pdf-pages','2']),('broken',f/'broken.pdf',[]),('encrypted',f/'encrypted.pdf',[]),('structured',sample,['--ocr-method','structured']),('headers',f/'margins.pdf',['--pdf-ocr','off','--pdf-remove-headers-footers']),('hyphen',f/'hyphen.pdf',['--pdf-ocr','off','--pdf-dehyphenate']),('legacy',sample,['--pdf-ocr','off','--pdf-layout','legacy']),('out-of-range',sample,['--pdf-pages','3'])]
 hashes={str(p):hashlib.sha256(p.read_bytes()).hexdigest() for _,p,_ in cases}
 for name,source,flags in cases:
- p=subprocess.run([str(cli),'--json','--report','-o',str(out/name)]+flags+[str(source)],env=env,capture_output=True,text=True,timeout=40)
+ p=subprocess.run([str(cli),'--json','--report','-o',str(out/name)]+flags+[str(source)],env=env,capture_output=True,text=True,timeout=150 if name=='structured' else 40)
  try:j=json.loads(p.stdout)
  except:j={'raw':p.stdout}
  md=''
  if (out/name).exists():
   for path in (out/name).glob('*.md'):md=path.read_text()
  res[name]=dict(exit=p.returncode,result=j,stderr=p.stderr,markdown=md)
- if name in ['dates','structured-off','digital','mixed','mixed-default','second','headers','hyphen','legacy']:assert p.returncode==0,(name,p.stdout,p.stderr)
+ if name=='structured' and args.structured_runtime=='available':
+  assert p.returncode==0,(name,p.stdout,p.stderr)
+  assert md.count('DELTA page two')==1 and md.split('### Links',1)[0].count('ALPHA left column')==1,md
+  assert any(d['code']=='ocr.structuredApplied' for d in j['diagnostics']),j
+  assert j['sourceIdentity']['sha256']==hashes[str(source)]
+  for entry in j['outputFiles']:
+   assert hashlib.sha256((out/name/entry['path']).read_bytes()).hexdigest()==entry['sha256']
+ elif name in ['dates','structured-off','digital','mixed','mixed-default','second','headers','hyphen','legacy']:assert p.returncode==0,(name,p.stdout,p.stderr)
  else:assert p.returncode!=0 and not (out/name).exists(),(name,p.stdout,p.stderr)
  if name=='dates':
   assert j['metadata']['created']=='1969-01-02T03:04:05Z',j

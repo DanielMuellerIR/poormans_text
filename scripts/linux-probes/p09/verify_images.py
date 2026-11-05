@@ -15,6 +15,7 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--cli', required=True, type=Path)
 parser.add_argument('--font', required=True, type=Path)
 parser.add_argument('--evidence', type=Path)
+parser.add_argument('--structured-runtime', choices=['unavailable', 'available'], default='unavailable')
 args = parser.parse_args()
 cli = args.cli.resolve()
 font = ImageFont.truetype(str(args.font), 64)
@@ -30,7 +31,7 @@ def image(text):
 def run(source, output, extra=()):
     return subprocess.run([str(cli), '--json', '--report', '--source-map', '--ocr-language', 'en',
                            *extra, '--output', str(output), '--', str(source)],
-                          capture_output=True, text=True, timeout=45)
+                          capture_output=True, text=True, timeout=150 if "structured" in extra else 45)
 
 
 with tempfile.TemporaryDirectory(prefix='pmt-p09-images-') as temporary:
@@ -76,8 +77,21 @@ with tempfile.TemporaryDirectory(prefix='pmt-p09-images-') as temporary:
     assert '## OCR text' not in Path(json.loads(response.stdout)['markdownFile']).read_text()
     records['image-ocr-off'] = {'passed': True}
     response = run(source, root / 'structured', ['--ocr-method', 'structured'])
-    assert response.returncode == 69 and not (root / 'structured').exists(), response.stdout
-    records['structured-unavailable'] = {'passed': True, 'exit': 69}
+    if args.structured_runtime == 'unavailable':
+        assert response.returncode == 69 and not (root / 'structured').exists(), response.stdout
+        records['structured-unavailable'] = {'passed': True, 'exit': 69}
+    else:
+        assert response.returncode == 0, (response.stdout, response.stderr)
+        result = json.loads(response.stdout)
+        markdown = Path(result['markdownFile']).read_text()
+        assert 'FRAMEONETOKEN 1234' in markdown, markdown
+        assert any(d['code'] == 'ocr.structuredApplied' for d in result['diagnostics'])
+        assert result['sourceIdentity']['sha256'] == hashlib.sha256(source.read_bytes()).hexdigest()
+        assert any(Path(p).read_bytes() == source.read_bytes() for p in result['assets'])
+        for entry in result['outputFiles']:
+            assert hashlib.sha256((root / 'structured' / entry['path']).read_bytes()).hexdigest() == entry['sha256']
+        records['structured-available'] = {'passed': True, 'exit': 0, 'exactOCRText': True,
+                                           'sourceAndAssetBytesUnchanged': True, 'reportAndOutputHashes': True}
     response = run(source, root / 'missing-language', ['--ocr-language', 'zzz'])
     assert response.returncode != 0 and not (root / 'missing-language').exists()
     records['missing-language'] = {'passed': True}

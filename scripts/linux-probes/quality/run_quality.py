@@ -13,6 +13,7 @@ parser.add_argument('--repo', required=True, type=Path)
 parser.add_argument('--cli', required=True, type=Path)
 parser.add_argument('--root', required=True, type=Path)
 parser.add_argument('--expected-cli-sha256', required=True)
+parser.add_argument('--structured-runtime', choices=['unavailable', 'available'], default='unavailable')
 args = parser.parse_args()
 actual_hash = hashlib.sha256(args.cli.read_bytes()).hexdigest()
 if actual_hash != args.expected_cli_sha256:
@@ -44,9 +45,9 @@ run('families', [sys.executable, here / 'quality.py', '--repo', args.repo, '--cl
                  '--results', args.root / 'families'])
 run('raster-ocr', [sys.executable, scripts / 'p09/verify_images.py', '--cli', args.cli,
                    '--font', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
-                   '--evidence', args.root / 'images.json'])
+                   '--evidence', args.root / 'images.json', '--structured-runtime', args.structured_runtime])
 run('pdf-synthetic', [sys.executable, scripts / 'p09/verify_pdf.py', '--cli', args.cli,
-                      '--root', args.root / 'pdf'])
+                      '--root', args.root / 'pdf', '--structured-runtime', args.structured_runtime])
 corpus = args.repo / 'docs/linux-port/P11-NATURAL-EVIDENCE/inputs'
 if all((corpus / name).is_file() for name in ['01030000000132.pdf', '01030000000134.pdf', '01030000000135.pdf']):
     run('natural-integrity', [sys.executable, scripts / 'p11/natural_benchmark.py', '--cli', args.cli,
@@ -76,7 +77,8 @@ if all((corpus / name).is_file() for name in ['01030000000132.pdf', '01030000000
 else:
     rows.append(dict(capability='natural corpus', status='SKIP', reason='Fixed licensed local corpus missing; no download'))
 run('structured OCR quality', [sys.executable, here / 'structured_quality.py',
-                                '--cli', args.cli, '--results', args.root / 'structured'], optional=True)
+                                '--cli', args.cli, '--results', args.root / 'structured'],
+    optional=args.structured_runtime == 'unavailable')
 overall = 'FAIL' if any(row['status'] == 'FAIL' for row in rows) else (
     'INCOMPLETE' if any(row['status'] == 'SKIP' for row in rows) else 'PASS')
 summary = dict(cliSHA256=actual_hash, python=sys.version.split()[0], cases=rows, overall=overall,

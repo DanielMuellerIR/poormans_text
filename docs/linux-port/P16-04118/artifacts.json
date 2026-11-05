@@ -1,0 +1,8 @@
+{
+  "Sources/PoorMansTextCore/ProductInfo.swift": "d3946dc10e784b2b610adb20a92a2b11e03a39bb921a041b861844e9cc878bf9",
+  "linux/bridge/src/lib.rs": "a72e7b90efbbd5c4b4d195941051c433570cf7e409cb5942ba009ea65c73f67d",
+  ".build/linux-runtime/bin/poormans-text": "72800d2fa0264ff3e0a82ba8528123bd8720ea50422719cd438e0498de4a677a",
+  ".build/linux-runtime/bin/poormans-text-process-guard": "cf677f9be88095a27423ceedb9db2b85667f7775d167857cfb52002ff5dda520",
+  ".build/linux-runtime/ui/poormans-text-app": "fe6c9e85aa716cf5d0a59c15ea07ff76c94a7a6e452e8da74b6a5936257623a8",
+  ".build/linux-runtime/ui/schemas/gschemas.compiled": "53fda62bf34c1c15051ed0b1841c75711bad3433d2fe35bd206b0d41a1293b7c"
+}

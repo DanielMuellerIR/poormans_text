@@ -810,10 +810,15 @@ impl NamespaceOwner {
                         )
                     })? as i32;
                 let pin = Pin::bind(pid).map_err(|e| {
-                    BridgeError::new(
+                    // Scheitert bwrap nach dem Info-JSON, kann PID1 bereits weg
+                    // sein. Die ursprüngliche Setupdiagnose trotzdem erhalten.
+                    let _ = stderr.drain(sender);
+                    let mut error = BridgeError::new(
                         ErrorKind::Spawn,
                         format!("Required namespace pidfd binding failed before CLI start: {e}"),
-                    )
+                    );
+                    error.stderr = String::from_utf8_lossy(&stderr.bytes).into_owned();
+                    error
                 })?;
                 if !descendant_of(pid, self.child.id() as i32)
                     || pin.ended().map_err(|e| {
@@ -1071,6 +1076,40 @@ mod tests {
             assert!(Instant::now() < deadline, "fixture state not reached");
             thread::sleep(Duration::from_millis(5));
         }
+    }
+    #[test]
+    fn failed_namespace_binding_retains_setup_diagnostic_without_ack() {
+        let root = Root::new();
+        let log = root.0.join("setup.log");
+        fs::write(
+            &log,
+            "bwrap: Can't mount proc on /proc: Operation not permitted\n",
+        )
+        .unwrap();
+        let (info_read, mut info_write) = pipe().unwrap();
+        write!(info_write, "{{\"child-pid\":{}}}", i32::MAX).unwrap();
+        drop(info_write);
+        let (mut gate_read, gate_write) = pipe().unwrap();
+        let child = Command::new("/bin/true").spawn().unwrap();
+        let mut owner = NamespaceOwner::new(child, gate_write, info_read);
+        let mut stderr = Capture::new(File::open(log).unwrap(), true).unwrap();
+        let cancel = Arc::new(AtomicBool::new(false));
+        let (sender, _) = mpsc::sync_channel(8);
+        let error = owner
+            .start(&Arc::downgrade(&cancel), &mut stderr, &sender)
+            .unwrap_err();
+        assert_eq!(error.kind, ErrorKind::Spawn);
+        assert!(
+            error.stderr.contains("Can't mount proc on /proc"),
+            "{error:?}"
+        );
+        drop(owner);
+        let mut gate = Vec::new();
+        gate_read.read_to_end(&mut gate).unwrap();
+        assert!(
+            gate.is_empty(),
+            "A failed namespace must never receive a start ACK"
+        );
     }
     #[test]
     #[ignore = "requires explicit built guard and host namespaces"]

@@ -14,6 +14,7 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--app', type=Path, default=Path('/usr/bin/poormans-text-app'))
 parser.add_argument('--evidence', type=Path, required=True)
 parser.add_argument('--work', type=Path)
+parser.add_argument('--dialogs', action='store_true', help='Exercise real portal file/folder/target dialogs and cancel them.')
 args = parser.parse_args()
 assert os.getuid() == 1000
 assert 'LD_LIBRARY_PATH' not in os.environ
@@ -32,6 +33,8 @@ if args.work is None:
             environment[key] = str(directory)
         command = ['dbus-run-session', '--', '/usr/bin/python3', '-I', __file__,
                    '--app', str(args.app), '--evidence', str(args.evidence), '--work', str(root)]
+        if args.dialogs:
+            command.append('--dialogs')
         raise SystemExit(subprocess.run(command, env=environment, timeout=100).returncode)
 
 import gi
@@ -60,6 +63,8 @@ app_log = root / 'app.log'
 weston = None
 app = None
 result = None
+monitor = None
+dialogs = []
 try:
     with weston_log.open('wb') as log:
         weston = subprocess.Popen(['weston', '--backend=headless', '--renderer=pixman',
@@ -98,6 +103,16 @@ try:
         if markdown.is_file() and convert.get_state_set().contains(Atspi.StateType.SENSITIVE):
             break
         time.sleep(0.1)
+    if not markdown.is_file():
+        accessible = []
+        for node in descendants(Atspi.get_desktop(0)):
+            if node.get_process_id() == app.pid:
+                record = {'role': node.get_role_name(), 'name': node.get_name()}
+                text = node.get_text_iface()
+                if text is not None:
+                    record['text'] = Atspi.Text.get_text(text, 0, min(Atspi.Text.get_character_count(text), 16384))
+                accessible.append(record)
+        args.evidence.with_suffix('.failure.json').write_text(json.dumps(accessible, ensure_ascii=False, indent=2))
     assert markdown.is_file(), app_log.read_text(errors='replace')[-8000:]
     assert convert.get_state_set().contains(Atspi.StateType.SENSITIVE), 'GUI did not finish receiving the result'
     text = markdown.read_text()
@@ -105,6 +120,38 @@ try:
     assert source.read_bytes() == original
     protocol = app_log.read_text(errors='replace')
     assert 'wl_display' in protocol and 'get_registry' in protocol and 'xdg_wm_base' in protocol
+    if args.dialogs:
+        portal_log = root / 'portal.log'
+        with portal_log.open('wb') as log:
+            monitor = subprocess.Popen(['dbus-monitor', '--session',
+                "type='method_call',interface='org.freedesktop.portal.FileChooser'"], stdout=log, stderr=log)
+        time.sleep(0.2)
+        for title in ['Choose files…', 'Choose folder…', 'Choose target…']:
+            button = next(node for node in descendants(Atspi.get_desktop(0))
+                          if node.get_process_id() == app.pid and node.get_role() == Atspi.Role.PUSH_BUTTON
+                          and node.get_name() == title)
+            assert button.get_action_iface().do_action(0), title
+            deadline = time.monotonic() + 12
+            cancelled_dialog = False
+            while time.monotonic() < deadline:
+                for node in descendants(Atspi.get_desktop(0)):
+                    if node.get_role() != Atspi.Role.PUSH_BUTTON or node.get_name() != 'Cancel' or not node.get_state_set().contains(Atspi.StateType.SENSITIVE):
+                        continue
+                    action = node.get_action_iface()
+                    if action is not None and action.get_n_actions() and action.do_action(0):
+                        cancelled_dialog = True
+                        break
+                if cancelled_dialog:
+                    break
+                time.sleep(0.1)
+            assert cancelled_dialog, 'No accessible file dialog: ' + title
+            time.sleep(0.2)
+            assert markdown.read_text() == text and source.read_bytes() == original
+            dialogs.append(title)
+        monitor.terminate()
+        monitor.wait(timeout=5)
+        calls = portal_log.read_text(errors='replace')
+        assert calls.count('member=OpenFile') == 2 and calls.count('member=SaveFile') == 1, calls
     time.sleep(0.3)
     # Native Capture bleibt im privaten Debugsocket dieses einzelnen Tests.
     capture = subprocess.run(['weston-screenshooter'], cwd=root, capture_output=True, timeout=10)
@@ -122,7 +169,7 @@ try:
               'realWaylandProtocol': True, 'realAccessibleConvertAction': True,
               'GUIFinishedReceivingResult': True, 'CSVMarkerAndUnicode': True,
               'sourceSHA256': hashlib.sha256(original).hexdigest(),
-              'sourceUnchanged': True, 'markdownSHA256': hashlib.sha256(markdown.read_bytes()).hexdigest(),
+              'sourceUnchanged': True, 'portalDialogsCancelled': dialogs, 'markdownSHA256': hashlib.sha256(markdown.read_bytes()).hexdigest(),
               'outputFiles': {str(path.relative_to(markdown.parent)): hashlib.sha256(path.read_bytes()).hexdigest()
                               for path in markdown.parent.rglob('*') if path.is_file()},
               'nativeCaptureExit': capture.returncode, 'nativeScreenshot': screenshot is not None,
@@ -130,7 +177,7 @@ try:
     if screenshot:
         result['screenshotSHA256'] = hashlib.sha256(screenshot.read_bytes()).hexdigest()
 finally:
-    for process in [app, weston]:
+    for process in [monitor, app, weston]:
         if process is not None and process.poll() is None:
             process.terminate()
             try:
@@ -138,7 +185,7 @@ finally:
             except subprocess.TimeoutExpired:
                 process.kill()
                 process.wait(timeout=5)
-    for source_log, name in [(weston_log, 'weston.log'), (app_log, 'client.log')]:
+    for source_log, name in [(weston_log, 'weston.log'), (app_log, 'client.log'), (root / 'portal.log', 'portal.log')]:
         if source_log.exists():
             sanitized = source_log.read_text(errors='replace').replace(str(root), '$WORK')
             args.evidence.with_name(name).write_text(sanitized[:2_000_000])

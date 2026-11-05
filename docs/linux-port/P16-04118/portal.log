@@ -1,0 +1,110 @@
+signal time=1793885035.409801 sender=org.freedesktop.DBus -> destination=:1.10 serial=2 path=/org/freedesktop/DBus; interface=org.freedesktop.DBus; member=NameAcquired
+   string ":1.10"
+signal time=1793885035.409842 sender=org.freedesktop.DBus -> destination=:1.10 serial=4 path=/org/freedesktop/DBus; interface=org.freedesktop.DBus; member=NameLost
+   string ":1.10"
+method call time=1793885035.877653 sender=:1.4 -> destination=org.freedesktop.portal.Desktop serial=29 path=/org/freedesktop/portal/desktop; interface=org.freedesktop.portal.FileChooser; member=OpenFile
+   string ""
+   string "Choose source documents"
+   array [
+      dict entry(
+         string "handle_token"
+         variant             string "gtk1264396503"
+      )
+      dict entry(
+         string "multiple"
+         variant             boolean true
+      )
+      dict entry(
+         string "directory"
+         variant             boolean false
+      )
+      dict entry(
+         string "accept_label"
+         variant             string "_Open"
+      )
+      dict entry(
+         string "cancel_label"
+         variant             string "_Cancel"
+      )
+      dict entry(
+         string "modal"
+         variant             boolean true
+      )
+      dict entry(
+         string "filters"
+         variant             array [
+            ]
+      )
+   ]
+method call time=1793885036.501613 sender=:1.4 -> destination=org.freedesktop.portal.Desktop serial=31 path=/org/freedesktop/portal/desktop; interface=org.freedesktop.portal.FileChooser; member=OpenFile
+   string ""
+   string "Choose source folder"
+   array [
+      dict entry(
+         string "handle_token"
+         variant             string "gtk1876507558"
+      )
+      dict entry(
+         string "multiple"
+         variant             boolean false
+      )
+      dict entry(
+         string "directory"
+         variant             boolean true
+      )
+      dict entry(
+         string "accept_label"
+         variant             string "_Select"
+      )
+      dict entry(
+         string "cancel_label"
+         variant             string "_Cancel"
+      )
+      dict entry(
+         string "modal"
+         variant             boolean true
+      )
+      dict entry(
+         string "filters"
+         variant             array [
+            ]
+      )
+   ]
+method call time=1793885037.036949 sender=:1.4 -> destination=org.freedesktop.portal.Desktop serial=32 path=/org/freedesktop/portal/desktop; interface=org.freedesktop.portal.FileChooser; member=SaveFile
+   string ""
+   string "Name a new output folder"
+   array [
+      dict entry(
+         string "handle_token"
+         variant             string "gtk1312771005"
+      )
+      dict entry(
+         string "multiple"
+         variant             boolean false
+      )
+      dict entry(
+         string "directory"
+         variant             boolean false
+      )
+      dict entry(
+         string "accept_label"
+         variant             string "_Save"
+      )
+      dict entry(
+         string "cancel_label"
+         variant             string "_Cancel"
+      )
+      dict entry(
+         string "modal"
+         variant             boolean true
+      )
+      dict entry(
+         string "filters"
+         variant             array [
+            ]
+      )
+      dict entry(
+         string "current_name"
+         variant             string "Markdown-output"
+      )
+   ]

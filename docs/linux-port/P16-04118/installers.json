@@ -1,0 +1,10 @@
+{
+  "installed": {
+    "ubuntu": "poormans-text\t0.41.18~linuxpreview1",
+    "arch": "poormans-text 0.41.18-1"
+  },
+  "ubuntu": "Native apt install, non-root CSV, apt remove; disposable Ubuntu container, no host installation.",
+  "arch": "Native pacman install, non-root CSV, Wayland conversion and three real portal cancellations, X11 conversion, pacman remove; disposable Arch container, no host installation.",
+  "noHostDesktopSockets": true,
+  "noNetworkDuringProductRuns": true
+}

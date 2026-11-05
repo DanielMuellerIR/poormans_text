@@ -1,0 +1,29 @@
+{
+  "uid": 1000,
+  "productionGUI": true,
+  "privateHeadlessWeston": true,
+  "compositorRenderer": "pixman",
+  "clientRenderer": "software GL",
+  "DISPLAYAbsent": true,
+  "GDKBackendForcedWayland": true,
+  "realWaylandProtocol": true,
+  "realAccessibleConvertAction": true,
+  "GUIFinishedReceivingResult": true,
+  "CSVMarkerAndUnicode": true,
+  "sourceSHA256": "1da55ac06c652d43cc89dba8444b83ce1b1ba10936cb3c4283c5b9889b19cd12",
+  "sourceUnchanged": true,
+  "portalDialogsCancelled": [
+    "Choose files\u2026",
+    "Choose folder\u2026",
+    "Choose target\u2026"
+  ],
+  "markdownSHA256": "1ef023c0b873933c4c2868f49f2b3c568cb0a9c5c42b5555aa46e4795f3058f0",
+  "outputFiles": {
+    "Quelle \u00fc.md": "1ef023c0b873933c4c2868f49f2b3c568cb0a9c5c42b5555aa46e4795f3058f0"
+  },
+  "nativeCaptureExit": 0,
+  "nativeScreenshot": true,
+  "captureStderr": "",
+  "screenshotSHA256": "91507a05b7f3795b800bb740dcdb7a20f60ea65ef109300a16c3f712e6930bda",
+  "GUIAndWestonWaitedAfterTermination": true
+}

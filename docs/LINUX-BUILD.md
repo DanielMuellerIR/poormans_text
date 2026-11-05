@@ -30,8 +30,9 @@ Prozessguard nebeneinander. Swift-Laufzeitbibliotheken sowie benötigte XML-/ICU
 und Bildbibliotheken werden für den Start ohne Swift-SDK mitgeliefert.
 glibc und der ELF-Loader bleiben Systemabhängigkeiten.
 Vorhandene Lizenz-/Hinweisdateien der Systembibliotheken, Swift-Laufzeit und
-SwiftPM-Abhängigkeiten liegen unter `licenses`. Die abschließende Prüfung eines
-verteilbaren Pakets einschließlich aller Lizenzbeigaben gehört zu P15.
+SwiftPM-Abhängigkeiten liegen unter `licenses`. Der aktuelle [Paket- und Installerprüfstand](linux-port/P16-04118/README.md)
+belegt isolierte apt-/pacman-Transaktionen und vier portable Paketformate. Die
+öffentliche Modellverteilung benötigt weiterhin eine eigene Lizenzfreigabe.
 
 Linux verwendet `Package.linux.resolved` und eine temporäre Quellkopie außerhalb
 des Repositories. Der Mac-Lockfile `Package.resolved` wird dadurch nicht verändert.

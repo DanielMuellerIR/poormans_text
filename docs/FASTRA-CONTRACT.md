@@ -45,6 +45,10 @@ Ausgabe. Es gibt keine neue Protokollversion, keinen automatischen Download
 und keine neue Voraussetzung für Fastras normalen Import. Die allgemeine
 Inhaltsqualitätsfreigabe bleibt wegen belegter Erkennungsfehler FAIL.
 
+[0.41.18](linux-port/P16-04118/README.md) verbessert ausschließlich die Linux-GUI-
+Diagnose bei fehlgeschlagenem Sandboxstart. Konvertierungsvertrag, Protokollversion
+und normale Fastra-Aufrufe bleiben unverändert.
+
 Die .12-Operation `--json --preview-page N -- quelle.pdf` beziehungsweise
 `--json --preview-frame N -- bild` ist eine getrennte passive Leseoperation.
 Sie liefert PNG-Base64, Hash, Maße, Auswahl und Quellidentität; weder

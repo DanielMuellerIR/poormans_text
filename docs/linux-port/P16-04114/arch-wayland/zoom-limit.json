@@ -1,0 +1,32 @@
+{
+  "productionPNGZoomProven": false,
+  "sourceFixture": {
+    "sha256": "1f0264ed5b41673264a39c61a4d8c08250e128d6bb848dab060e81c7ef89e6fc",
+    "width": 1024,
+    "height": 768
+  },
+  "attempts": [
+    {
+      "stage": "Notebook page tab action",
+      "result": "No Action interface; next attempt used existing parent Selection"
+    },
+    {
+      "stage": "Notebook Selection successful; Image OCR combo action",
+      "result": "Combo box exposes no Action; next attempt used existing child Toggle Action"
+    },
+    {
+      "stage": "Existing Image OCR Toggle Action",
+      "result": "No visible Off option appeared in accessible tree; stopped without converting PNG"
+    }
+  ],
+  "fallback": "Existing production CSV Wayland probe passed; no flag wrapper or new Wayland input infrastructure",
+  "noProductDefectInferredFromHeadlessControlLimit": true,
+  "defaultOnFollowup": {
+    "PNGConversionAssertionsPassed": true,
+    "OCRSettingsUntouched": true,
+    "originalPNGAssetByteEqualAndSourceUnchanged": true,
+    "compareZoomProven": false,
+    "reason": "Compare source control selection hit an accessible layout/control ambiguity; stopped without more harness work",
+    "scope": "No OCR quality claim; no 100%/Fit rendering claim"
+  }
+}

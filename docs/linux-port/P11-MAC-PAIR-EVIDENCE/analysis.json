@@ -1,0 +1,84 @@
+{
+  "scope": "Two exact raster inputs, native PMT CLI0.41.14 arm64; no general quality approval",
+  "referenceSHA256": "146c4a9f6f6436d45bdb8a4cc2f97313c0957b4f0b23a5c65d05c43036f34cc0",
+  "naturalTableGroundTruthHTML": "<tr><td colspan=\"2\">Fish species on IUCN Red List</td></tr><tr><td>Potosi Pupfish</td><td>Cyprinodon alvarezi</td></tr><tr><td>La Palma Pupfish</td><td>Cyprinodon longidorsalis</td></tr><tr><td>Butterfly Splitfin</td><td>Ameca splendens</td></tr><tr><td>Golden Skiffia</td><td>Skiffia francesae</td></tr>",
+  "cases": [
+    {
+      "inputStem": "structured",
+      "markdownSHA256": "574c4dc6cd02aa41e674820fea973b0cadfd3c0aa3715a61366f7b3f5af8adea",
+      "markdownBytes": 306,
+      "markdownUnicodeScalars": 306,
+      "markdownNonemptyLines": 15,
+      "pipeTableLines": [
+        "|  |  |  |",
+        "| --- | --- | --- |",
+        "| MERGED HEADER |  | TOTAL |",
+        "| Al | B1 | C1 |",
+        "| A2 | B2 | C2 |"
+      ],
+      "pipeTableNonseparatorRows": 3,
+      "expectedCellTexts": [
+        "MERGED HEADER",
+        "TOTAL",
+        "A1",
+        "B1",
+        "C1",
+        "A2",
+        "B2",
+        "C2"
+      ],
+      "exactCellTextSubstringHits": [
+        "MERGED HEADER",
+        "TOTAL",
+        "B1",
+        "C1",
+        "A2",
+        "B2",
+        "C2"
+      ],
+      "exactCellTextSubstringMisses": [
+        "A1"
+      ],
+      "boundaries": "Text substring inventory does not prove cell pairing, row order or span reconstruction."
+    },
+    {
+      "inputStem": "01030000000132-render",
+      "markdownSHA256": "8ef8699ba0007e1a4e79476a69da6c4b780cda4b7d9a2024f29ba8ed16e607de",
+      "markdownBytes": 2235,
+      "markdownUnicodeScalars": 2234,
+      "markdownNonemptyLines": 23,
+      "pipeTableLines": [],
+      "pipeTableNonseparatorRows": 0,
+      "expectedCellTexts": [
+        "Fish species on IUCN Red List",
+        "Potosi Pupfish",
+        "Cyprinodon alvarezi",
+        "La Palma Pupfish",
+        "Cyprinodon longidorsalis",
+        "Butterfly Splitfin",
+        "Ameca splendens",
+        "Golden Skiffia",
+        "Skiffia francesae"
+      ],
+      "exactCellTextSubstringHits": [
+        "Fish species on IUCN Red List",
+        "Potosi Pupfish",
+        "Cyprinodon alvarezi",
+        "La Palma Pupfish",
+        "Cyprinodon longidorsalis",
+        "Butterfly Splitfin",
+        "Ameca splendens",
+        "Golden Skiffia",
+        "Skiffia francesae"
+      ],
+      "exactCellTextSubstringMisses": [],
+      "boundaries": "Text substring inventory does not prove cell pairing, row order or span reconstruction."
+    }
+  ],
+  "observations": [
+    "Synthetic table: 7/8 expected exact text strings; A1 is Al. Merged header flattened, explicitly diagnosed; 3x3 body grid contains eight nonempty texts.",
+    "Natural: 9/9 expected table text strings present as prose; zero Markdown table rows, so no exported cell/colspan structure.",
+    "Natural prose reading order interleaves figure6.3 caption into the behind-the-scenes experience sentence; no general reading-order equivalence claim.",
+    "Both real runs diagnose ocr.structuredApplied, no structured fallback diagnostic; applied flag alone is not table-quality evidence."
+  ]
+}

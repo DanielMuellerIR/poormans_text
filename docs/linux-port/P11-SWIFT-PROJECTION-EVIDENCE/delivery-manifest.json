@@ -1,0 +1,46 @@
+{
+  "DoclingProjection.swift": {
+    "bytes": 11455,
+    "sha256": "68f861db6194bd03396f12b982ebff51ee1748db36f131c248ac147b59a7a6f6"
+  },
+  "Package.swift": {
+    "bytes": 699,
+    "sha256": "7990fe9084ed2aa46e718979eae212f4b70db0b1c3f9095876b6451256894994"
+  },
+  "README.de.md": {
+    "bytes": 6177,
+    "sha256": "2d8197e6e95b6669e30c9e8e99c35c0643cd438903c52c06849cc4f56d8a4386"
+  },
+  "build-final.log": {
+    "bytes": 418,
+    "sha256": "69c218e58fe6d964b56af2d28e21b4c4a9e95391abc3ef9e929f092c4177138f"
+  },
+  "cleanup.json": {
+    "bytes": 597,
+    "sha256": "2baa2810a5bf849865e998c093e4355d211cadb2308039ccfd08f292ec47b0f1"
+  },
+  "inputs.json": {
+    "bytes": 26850,
+    "sha256": "11a39fd46e359ab527831f7ef3ba39186abe04965902eeb916d3eb051ac379dc"
+  },
+  "main.swift": {
+    "bytes": 9287,
+    "sha256": "9b8284500f6dff7b923c5521bff516352eea2ab59a1c8e1e7ea0906824abbe41"
+  },
+  "reproduce.py": {
+    "bytes": 3427,
+    "sha256": "3b9eeee338dc62d1c150ca1ddfb39273e898eaa8f11bacb00e788da02e22f442"
+  },
+  "results-before-fragments.json": {
+    "bytes": 65401,
+    "sha256": "735e7c815605394b2a4e9669d28d726b8a9256c97ce650186bb43fb0892c6f67"
+  },
+  "results-final.json": {
+    "bytes": 89943,
+    "sha256": "91840bc23e76c245cb1d3504349ac26d50190124b4676c1b728471e769dca19e"
+  },
+  "unicode-control.json": {
+    "bytes": 251,
+    "sha256": "9f282f6fb87c3db9599a78159c28ce7bf8101f36812212790d64f1ccfc8ef609"
+  }
+}

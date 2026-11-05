@@ -1,0 +1,19 @@
+{
+  "scope": "Transport-created AppleDouble metadata sidecars only; original conversion files and hashes preserved",
+  "removed": [
+    "evidence/._structured-stdout.json",
+    "evidence/._structured",
+    "evidence/._01030000000132-render-stdout.json",
+    "evidence/._01030000000132-render",
+    "evidence/._01030000000132-render-stderr.log.gz",
+    "evidence/._structured-stderr.log.gz",
+    "evidence/structured/._conversion-report.json",
+    "evidence/structured/._images",
+    "evidence/structured/._structured.md",
+    "evidence/01030000000132-render/._conversion-report.json",
+    "evidence/01030000000132-render/._images",
+    "evidence/01030000000132-render/._01030000000132-render.md",
+    "evidence/01030000000132-render/images/._image01.png",
+    "evidence/structured/images/._image01.png"
+  ]
+}

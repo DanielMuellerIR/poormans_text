@@ -1,0 +1,24 @@
+{
+  "text": "é🙂é",
+  "spans": [
+    [
+      0,
+      1
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      2,
+      4
+    ]
+  ],
+  "fragments": [
+    "é",
+    "🙂",
+    "é"
+  ],
+  "pythonCodepointCount": 4,
+  "utf8Hex": "c3a9f09f998265cc81"
+}

@@ -1,0 +1,46 @@
+Date: 2026-11-05 UTC
+[07:09:10.341] weston 15.0.1
+               https://wayland.freedesktop.org
+               Bug reports to: https://gitlab.freedesktop.org/wayland/weston/issues/
+               Build: 15.0.1
+[07:09:10.341] Command line: weston --backend=headless --renderer=pixman --socket=pmt-wayland --width=1280 --height=1000 --no-config --idle-time=0 --debug
+[07:09:10.341] OS: Linux, 7.3.1-1-cachyos, #1 SMP PREEMPT_DYNAMIC Sat, 31 Oct 2026 06:43:52 +0000, x86_64
+[07:09:10.341] Flight recorder: enabled, scopes subscribed: log
+[07:09:10.341] Starting with no config file.
+WARNING: debug protocol has been enabled. This is a potential denial-of-service attack vector and information leak.
+[07:09:10.341] Output repaint window is 7 ms maximum.
+[07:09:10.341] Loading module '/usr/lib/libweston-15/headless-backend.so'
+[07:09:10.347] Using Pixman renderer
+[07:09:10.347] Registered plugin API 'weston_windowed_output_api_headless_v2' of size 16
+[07:09:10.347] Color manager: no-op
+                 protocol support: no
+[07:09:10.347] Color representation not supported by renderer
+[07:09:10.347] Output 'headless' attempts EOTF mode SDR and colorimetry mode default.
+[07:09:10.347] Output 'headless' using color profile: stock sRGB color profile
+[07:09:10.347] Output 'headless' enabled with head(s) headless
+[07:09:10.347] Compositor capabilities:
+               arbitrary surface rotation: yes
+               screen capture uses y-flip: no
+               cursor planes: no
+               arbitrary resolutions: no
+               view mask clipping: yes
+               explicit sync: no
+               color operations: no
+               color representation: no
+               presentation clock: CLOCK_MONOTONIC_RAW, id 4
+               presentation clock resolution: 0.000000001 s
+[07:09:10.347] Loading module '/usr/lib/weston/desktop-shell.so'
+[07:09:10.348] Currently advertised debug scopes:
+               'log' - Weston and Wayland log
+               'scene-graph' - Scene graph details
+               'timeline' - Timeline event points
+               'libseat-debug' - libseat debug messages
+               'proto' - Wayland protocol dump for all clients.
+[07:09:10.348] launching '/usr/lib/weston/weston-keyboard'
+[07:09:10.348] launching '/usr/lib/weston/weston-desktop-shell'
+could not load cursor 'dnd-copy'
+could not load cursor 'dnd-none'
+could not load cursor 'dnd-copy'
+could not load cursor 'dnd-none'
+[07:09:14.604] caught signal 15
+[07:09:14.604] BUG: finalizing a layer with views still on it.

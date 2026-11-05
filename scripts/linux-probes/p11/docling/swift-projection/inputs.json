@@ -1,0 +1,736 @@
+{
+  "coreSources": [
+    {
+      "path": "Sources/PoorMansTextCore/BatchConverter.swift",
+      "bytes": 12568,
+      "sha256": "342d6bf9d4c6c9fd4cef149cb8e6ae9a70958a5f133ca16d42e861b7600cb415"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/BinaryDataReading.swift",
+      "bytes": 1483,
+      "sha256": "dcb0f04d533a5a4785a38424b4e279216be9517095e7ea62dfff58a6446e58d5"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/CollectionPostprocessor.swift",
+      "bytes": 8016,
+      "sha256": "4cc81bf5404b01596a2ed388720f80b8661a55abb5bb6a8475891d9b542cfab4"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/ColoredTextMarker.swift",
+      "bytes": 8307,
+      "sha256": "35ba51aaedfcef6b9b347bde8f5fae3f667aa20340dfb79b17b3c8632d42e6a9"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/ConversionControl.swift",
+      "bytes": 2094,
+      "sha256": "d562f5c8b0165f67d8fb88b67c1742f7ccba523364ae09525b4be6abda09e732"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/ConversionDiagnostics.swift",
+      "bytes": 3245,
+      "sha256": "3052bfe61c8ec6bc81df1ba0c9c3b0bc3580f69218fdacf5df573bfbff1f6920"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/ConversionDocument.swift",
+      "bytes": 8732,
+      "sha256": "27920fab07fd2e0049038c78189a077f1a75b03cfbcd5ed37b5e9f86b1433246"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/ConversionError.swift",
+      "bytes": 3207,
+      "sha256": "17e1e217ef7b1d9c7c047cf48c5d74d79ea93de2ba0928cb3a9940a29e66d58b"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/ConversionPostprocessor.swift",
+      "bytes": 6442,
+      "sha256": "e43cedd54c084ea5808fd806a5322c3ba79d75c0b0b718104281bb837ea9d136"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/ConversionProfile.swift",
+      "bytes": 25564,
+      "sha256": "278bcce8d3a5f9d1eca780e89c9e9e51fc3ac8991e6e0fd6ccc3dabfceac0399"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/ConversionProfileStore.swift",
+      "bytes": 10516,
+      "sha256": "76616a181cdc0e50a4adbea7cda481957cf28153c82c7ced46ca6630a0298f9a"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/ConversionReport.swift",
+      "bytes": 10805,
+      "sha256": "0ad9aed4340c118acd8cb16f87dbb9d2ba8776e1a6c9c763996429d9ec02ecab"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/ConversionRequest.swift",
+      "bytes": 6713,
+      "sha256": "85f0260b502279c637e41f724d1af377c0cfb3b9c11c85cdb2abda1133f1a71c"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/ConversionResult.swift",
+      "bytes": 2856,
+      "sha256": "816e62f2b112d9373578b6cc00c44e63721a8e391c40f691754908396d2a64e4"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/ConversionWarning.swift",
+      "bytes": 12630,
+      "sha256": "4ee6ed6c4414fbd04e7387aac984f4c5dca4ef1156785444b35db5688b6db01f"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/DOCXReviewPreserver.swift",
+      "bytes": 34685,
+      "sha256": "432cd3b53f5a20c61e3c440bde651d382f387ecf367cc84bca1628c2d077e125"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/DelimitedTextAdapter.swift",
+      "bytes": 16083,
+      "sha256": "0061c89bb5524fceee6293abe700e9e0a692b187fedb7fb7cde871fab6ec8d6d"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/DocumentConverter.swift",
+      "bytes": 44439,
+      "sha256": "f7a8c8cb264109220337193b9f76ca74373a3cbdbefc3f3a805cb25dd7eef320"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/DocumentLinkTarget.swift",
+      "bytes": 616,
+      "sha256": "071265583568e6a52b6b80eee1f22dbb195651aca65013f58a18a8e802d341bd"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/DocumentMetadata.swift",
+      "bytes": 34472,
+      "sha256": "875ce09a21c64864c78115ca59ed786231b46173ce400c7dbe1b507a974a7b23"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/DocumentOCR.swift",
+      "bytes": 6547,
+      "sha256": "8d508ea2e81f3f7c082cc49176a3cf4a7a8d52a177c21c280f60337a6e3e5996"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/ENEXAdapter.swift",
+      "bytes": 8361,
+      "sha256": "5a415b1210721a0acafc1364fd34f13114bebf8219ed5f92f83d4f3fb9886d0e"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/ENEXNoteLinks.swift",
+      "bytes": 5587,
+      "sha256": "496918778129385553f751f3fdbdacef9e1b6ff451a28af2bbf6f31999fe2c3f"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/ENEXReader.swift",
+      "bytes": 5075,
+      "sha256": "ed4866faf0a459f39507a987b5df25d4f0f10c4dac29ceab43e4f454b5c5efb4"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/ENEXResources.swift",
+      "bytes": 13203,
+      "sha256": "841faa798a13d79b1103318164d60f487d1c1a3ef641572aada887f44481d4bd"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/ENEXXML.swift",
+      "bytes": 8583,
+      "sha256": "225c6976dba4f92281858316a2c27dbcbff5cf8e4d45f1b32046cac9e41d47d5"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/ENMLConverter.swift",
+      "bytes": 7764,
+      "sha256": "1a152e9c47a0732ca890d2570bdce626cd44beb8fa6561c24c3d4c820a814d66"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/EPUBSelection.swift",
+      "bytes": 23688,
+      "sha256": "a3121c553e488468353a88c39f04bfde5dbc7acf7c45533fa8d096034891333d"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/ExtractedText.swift",
+      "bytes": 993,
+      "sha256": "28336765de57103d0880bd08f31d66023b9a6f01c901a84d9b8604ce661219fd"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/FileSystemPath.swift",
+      "bytes": 1336,
+      "sha256": "92373b554dc0540bc8150c15ede531e3011e8abdb79e0351dbdcd56e89f65bbd"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/HTMLDocumentConverter.swift",
+      "bytes": 4238,
+      "sha256": "d0069ddc857f32f2ca10fc306b6b7f17a3a2997e271ffd92eb0c174252755bd3"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/HTMLImageAttributes.swift",
+      "bytes": 5261,
+      "sha256": "bb3b79e605e01823e090f9ed3691de663cd3d2d7cf5116ef34b17c5cda9560e7"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/HTMLImageRewriter.swift",
+      "bytes": 7297,
+      "sha256": "18a5852cd0ed4ece29962fd44ca01d3b4934da4872da941dd123dc6b23d3f34c"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/HTMLImageSourceResolver.swift",
+      "bytes": 23068,
+      "sha256": "d0000e539d250ae311a79b67c864cb9565f9ce9f7a7422d5200def89e8a52c5a"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/ImageAdapter.swift",
+      "bytes": 18812,
+      "sha256": "d3848ae31d8219c6fa4312d916cff7466cc50b78262bc9f9c31969413962e977"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/ImportXML.swift",
+      "bytes": 6502,
+      "sha256": "26c7e4bca981dc18748a077fbae8473e71002e3fc3632c5f250ec97fb5baaf71"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/ImportXMLParser.swift",
+      "bytes": 5866,
+      "sha256": "43db00f0d40dc5ca0cbacbedbce3cbd32f4f4aceb7c79bf3fe09e368ae811c47"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/IndexSelection.swift",
+      "bytes": 4186,
+      "sha256": "566384f171f9cf4636ef92a29248e561ee4340e1639c98690875cb73bebcee8d"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/InputEnumerator.swift",
+      "bytes": 13882,
+      "sha256": "469782a8d67ea5c270cbc403cab3fb902cf1bcf33928e31701c3c628a8ae00df"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/InputFormat.swift",
+      "bytes": 3454,
+      "sha256": "ef7d61baae5944dae26f5f4b0e604b10f5801bb72d59b142f063c459c031bb89"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/JSONStructurePreflight.swift",
+      "bytes": 3670,
+      "sha256": "4d6d289a2ea8e2a572e2be595a4073be09f692249360b7d8a7c9f984da76c2d3"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/LegacyWordAdapter.swift",
+      "bytes": 14007,
+      "sha256": "8198a00fbb20d64e017f1515987f349c05bd014ddfc3bec96c3424ffb5b60a6e"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/LegacyXLSWorkbookParser.swift",
+      "bytes": 49480,
+      "sha256": "dafb33ab7dc190651396ba96529593339499fa48da2a57f011caa55622b495c3"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/LinuxBackendResources.swift",
+      "bytes": 2698,
+      "sha256": "1721671ef5e76ba28b4039bbb6082f519edca586e1837630f71dcace36a81360"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/LinuxBackends/heif.py",
+      "bytes": 7642,
+      "sha256": "be3eb12e3934a3a7c5045f26b376b30cd57523da804fa5c8f188cded3ecd478e"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/LinuxBackends/legacy_doc.py",
+      "bytes": 11592,
+      "sha256": "a520e7c9ad8dacf9eae857f30ce04e4fbbc2e0f00a132deed68f81b826374f76"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/LinuxBackends/poppler.py",
+      "bytes": 11985,
+      "sha256": "7236b6c3b9cc4779395c170f716db5eea9b8c2ef626254d2589265667aff1425"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/LinuxBackends/raster.py",
+      "bytes": 8214,
+      "sha256": "3a12816a31bef60aa93012c5628b2e0c268d13877eb0325754ca92a17b0a7513"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/LinuxImageAdapter.swift",
+      "bytes": 9241,
+      "sha256": "5aa111fd60fa1d363f71a1c42fd2d9caf9bf3aceb6273f7d6ede02ad51f645d8"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/LinuxLegacyWordAdapter.swift",
+      "bytes": 12253,
+      "sha256": "8f6823015f22031a915b0137b68c7defd1e6d8aef0e5cb747adef9c70e0f0982"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/LinuxOCR.swift",
+      "bytes": 9354,
+      "sha256": "f66b508937979046904ed6e9c9c9b85648ec2fe45b4827f7bdb253fcbe4aeebc"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/LinuxOutputPublication.swift",
+      "bytes": 4904,
+      "sha256": "b573024483724ab1185c33f104c1847b97c6bcbead1e3d83f709193972e94ba1"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/LinuxPDFAdapter.swift",
+      "bytes": 24802,
+      "sha256": "ab7c7704f4d53197c38512b7f3d8e9591ff816c1d2bb8496ca66d2db6f19e762"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/LinuxPDFTextGeometry.swift",
+      "bytes": 2119,
+      "sha256": "c645fecff97efbcb0480ffa701b3dec173fd5802e1e87c33bb452c19505e8adc"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/LinuxPathValidation.swift",
+      "bytes": 1841,
+      "sha256": "193c6c3d949cd3f91b283e98efd1f71238fca3ecca304ffcdf8605191c4248fe"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/LinuxProcessRunner.swift",
+      "bytes": 14406,
+      "sha256": "dbaaea01af4843ceaa97f6cd2f728ccd822b2705ea71dcb7eac2396dc9f59617"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/LinuxRTFDPreparation.swift",
+      "bytes": 15461,
+      "sha256": "ff5b65a50912b380376722b53f6b83ba1d4e20f21a3a12e55fd61e8f831440b5"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/LinuxRasterBackend.swift",
+      "bytes": 4901,
+      "sha256": "ebacbc382bd9fb3c841d7149829afdb7f9f46bee07d1d7a9f02f772af1bf03fe"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/MBOXAdapter.swift",
+      "bytes": 4157,
+      "sha256": "ab328f9d761f2bd8b647688e2806378728a34190a261ca2a1e3ca87f6b43cfb7"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/MBOXReader.swift",
+      "bytes": 7669,
+      "sha256": "bc2cc0b9824a450a7b013f2dfcf9d5d53d3aba354aeaf1ec2e0fdb5287b6967e"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/MBOXSource.swift",
+      "bytes": 1699,
+      "sha256": "6da7efaadbcb54e9bae65a2a204818e13eb6601afef8e398423c32cd9fa87321"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/MIMEMessage.swift",
+      "bytes": 17216,
+      "sha256": "d10136e0458674fa7647f51a404fe9cbeb2699c24c469e13b22191d631459abf"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/MSGAdapter.swift",
+      "bytes": 5027,
+      "sha256": "5c5d28a37928be7967784c44492b971c6a977c591961f03278af91c132379434"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/MSGCompressedRTF.swift",
+      "bytes": 4185,
+      "sha256": "bc8615846cbef883980320dbac41ae280ddec8852f7460f18cc70026a9f4fc55"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/MSGEmbeddedWriter.swift",
+      "bytes": 10715,
+      "sha256": "b30de4bcac1c6e2a966daf0583f88cd7f94da8b906d95ed2e65e77d1a7d942cb"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/MSGMessage.swift",
+      "bytes": 9608,
+      "sha256": "021065d16a24ee8cdb8df5410815737b1cac7aff15797e946f2edc546609ae0e"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/MSGProperties.swift",
+      "bytes": 4481,
+      "sha256": "e06970b37b7b7a7f4f34d61125b10519b8e3e60f071aa68091e40ca91ee6195c"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/MSGRTFHTML.swift",
+      "bytes": 10676,
+      "sha256": "0b49f9f59ddf54311a0c7fa1e918fcec9089a655aaf195485ccf880d7977ee6e"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/MailAdapter.swift",
+      "bytes": 7023,
+      "sha256": "d452a9d66a70d0a1204d308b7f51e5efff56aea90b8d666df9a3b7e731bdc564"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/MailBodyConverter.swift",
+      "bytes": 8830,
+      "sha256": "64ab8d0a72022dc0dac7fff91f23837a9f55b5367973a9f5d391cb6652464785"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/MailContent.swift",
+      "bytes": 8064,
+      "sha256": "5ad06ca0f2bed56fd31fb0f14cfff6eec4afe46b17495d6d99a4d0174dfa92b0"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/MarkdownCharacterReferences.swift",
+      "bytes": 54467,
+      "sha256": "6505b55e80791eee39355f23756df76684fb44febfbf98a66c92b8b26407448c"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/MarkdownEscaping.swift",
+      "bytes": 4404,
+      "sha256": "e02462414204dca7e670cf119c94c8d6c23297d2ce176cfb6835e507ea85dd31"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/MarkdownLinkTargetRewriter.swift",
+      "bytes": 69911,
+      "sha256": "047e7068281e4745ef91b1b44e5b5ee464ef9ead9fd62a09ab24d4cde0734a63"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/MarkdownNormalizer.swift",
+      "bytes": 8161,
+      "sha256": "bbcf677e5f92f778162438e8ab6fdc525baf6c1620e442f4d629e80561d648a7"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/NamespacePrefixTracker.swift",
+      "bytes": 2488,
+      "sha256": "2d05bd9a4b004899abf070f75543ec49f240bf053a4985de09f0c5b76144ada4"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/NotebookAdapter.swift",
+      "bytes": 12845,
+      "sha256": "a1bb60f9cef9f166e6ce8eb126b48ce3829e571186467cb80c352408f564c535"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/OCRConcurrencyGate.swift",
+      "bytes": 1683,
+      "sha256": "957b8e99cae816abd19964c957bb3d5ea52508a4940776281e3de04ec6084546"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/OCRLanguageSelection.swift",
+      "bytes": 2046,
+      "sha256": "51982ee6b3c51f475a2d80cd69f19d3f060ad6351bd5ecf467e48e313551de4a"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/ODMContentParser.swift",
+      "bytes": 17529,
+      "sha256": "14fefb5bd0f84f6c006a58bafdfb63155d98b09223b148c3103c12a82e4ace84"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/ODSNumberStyles.swift",
+      "bytes": 22892,
+      "sha256": "d1ee54e0a333fe4755299c3dcb24868747b4bcba3f9e794553ed6bd581bc2f65"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/ODSWorkbookParser.swift",
+      "bytes": 26590,
+      "sha256": "971d542ab81bab776784d08f53b3bd0a52e45e804681903d17b8f9dfe78755cd"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/OLECompoundDocument.swift",
+      "bytes": 15530,
+      "sha256": "2752f6392a31dfb37324f7581519c166ba8a5eca451b9caa6e1c262f4e023de7"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/OpenDocumentMasterAdapter.swift",
+      "bytes": 14346,
+      "sha256": "c00436892e23df58ad791c99025bb3ebeebb066b6ac8bfbbdcbb72dc0113d1a2"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/PDFAdapter.swift",
+      "bytes": 34219,
+      "sha256": "d3c2f1a5d745bf4f4ea6d5ff633b06b78313e1d7c8ecb62f71e3ec8c54971f64"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/PDFAnnotations.swift",
+      "bytes": 24524,
+      "sha256": "633d160d6eacccce8879c61ad07f1a49f39b0a1c86d1523b79a69f2fd99e285f"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/PDFContentSummary.swift",
+      "bytes": 549,
+      "sha256": "58d9de665722471e6c7424034232a11c1978261c36754188721addba3e254eaa"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/PDFImageResources.swift",
+      "bytes": 3596,
+      "sha256": "d52050365cc29ba1c24f088fc1106c570e088bee5e8fd0c81e95f5fc14ee997e"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/PDFStructuredLayout.swift",
+      "bytes": 6226,
+      "sha256": "29980d215c6d345178e42a0fd54edd3cdd8e89de505027d1ccd2d7826286b23b"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/PDFStructuredOCRMerge.swift",
+      "bytes": 4903,
+      "sha256": "f7c39334edde3521558c01aa99958e3a0023bec3efb65e69ffdd99c34ece36da"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/PDFTableGeometry.swift",
+      "bytes": 8595,
+      "sha256": "a5148cbb3a4d724e2063feaf34c023f57ed7a24f37f35d462fec9e20762de960"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/PDFTextLayout.swift",
+      "bytes": 11684,
+      "sha256": "d40768324f77a60d1992c2e0911629f16656b42392297c274d363316c17fa18c"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/PDFTextLine.swift",
+      "bytes": 176,
+      "sha256": "9fd2799bd8c7e2ba7c2dd5f6122213543046d53ac86d4f3d6e7a2070e444c6ca"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/PandocTextAdapter.swift",
+      "bytes": 24574,
+      "sha256": "b054ad830e6f954286a91886ba4d618f7f72ffeafc472963a06527983cc166d9"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/PandocTool.swift",
+      "bytes": 1836,
+      "sha256": "21aa14bf6b84e97ba122998c01c2edb5088a18c9cb250e0cd4b2097dc3cd7a1c"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/PlatformBackends.swift",
+      "bytes": 2597,
+      "sha256": "7b8dcce3f364ebe5d6566ed1033e0a33bc4ccfce52b2b928044ff31d18291fed"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/PlatformFoundation.swift",
+      "bytes": 189,
+      "sha256": "e4f0ca87c15fe6464218bcd040bbd6843a7c366aa4243746799a10a763936a0a"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/PlatformRasterImage.swift",
+      "bytes": 2822,
+      "sha256": "5c8173f2e163178cbabc2e09ca160a27f0699f131f8106ab1c3ab92e6b3cf8fb"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/PresentationAdapter.swift",
+      "bytes": 46170,
+      "sha256": "b9af895e3d04e412fcc70604cff981f2ceca31ca8e0ca542c0f82e7add93b8d6"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/PresentationDocument.swift",
+      "bytes": 6605,
+      "sha256": "606e6cec9a9a339719eac6a4f8f00cb74641c5fb43bbd98d661eb0a853b661dd"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/PresentationSelection.swift",
+      "bytes": 761,
+      "sha256": "6408f74f22f924d078f2ce093a00886eb053c0bf9f6c6b4b351fb708b6f0b7be"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/PresentationText.swift",
+      "bytes": 3549,
+      "sha256": "90a58dff26f76169a40060fdae55514ddf607f4e7b16ea532e629ae9b06a0e61"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/ProcessRunner.swift",
+      "bytes": 8414,
+      "sha256": "b1ee0bef7ed34120a763fbf66734bca542e735283fa9e5e27fa3b072b6ff1b1c"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/ProductInfo.swift",
+      "bytes": 190,
+      "sha256": "fd5503d85461585986c1c843091abbd71d4aa46fe971501f8d64ad364420dc82"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/ProfileJSONPreflight.swift",
+      "bytes": 377,
+      "sha256": "eafd1d79a70b157e14ee00610c5acd948e6beb4a523ebce21634bc3f4815d84f"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/RTFDInputPreparation.swift",
+      "bytes": 1561,
+      "sha256": "a51457a172fbad06332f0b72d62802d710838476dc60c281ef4f28e7752f502c"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/RTFDLiteralListNormalizer.swift",
+      "bytes": 2823,
+      "sha256": "8e4c6ec6c84faec3345fd655b4d9491f53c4530860c243a8fc9b9e57410f2991"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/RTFUnicodeProtector.swift",
+      "bytes": 13054,
+      "sha256": "71b143a7b6e32d098a1dd0fd8b7b20fe87a194f40749b9041846fd0f65426d7c"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/RichTextConverter.swift",
+      "bytes": 29384,
+      "sha256": "66a0394c7bcae236708fe610df33c48650bb54333540e1e8dd109461eac57758"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/SourcePreview.swift",
+      "bytes": 7087,
+      "sha256": "7a38da65667ffc16541ba4d19bf230bff5577f4d55b9d97d63db7edde19cb794"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/SpreadsheetAdapter.swift",
+      "bytes": 16553,
+      "sha256": "dcc476b8d452738011fc165d7a5a95b805f024b41b83c039900477b1fa5d8c60"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/SpreadsheetNumberFormat.swift",
+      "bytes": 30352,
+      "sha256": "1c437d14fcb0c69a6f5264bb67163544f9e9d3c4a4351f2ba1eafacd646364b5"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/SpreadsheetSelection.swift",
+      "bytes": 10995,
+      "sha256": "d7e71dd5666786905927f3cb20379321d57910acee4fab436d59b3c78ec0f916"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/SpreadsheetWorkbook.swift",
+      "bytes": 17602,
+      "sha256": "cebd1f905e17d780fe169d85c295ac82b39d71bc3304497bf2de889433ea6344"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/StructuredDocumentRecognition.swift",
+      "bytes": 1426,
+      "sha256": "e86b67b1bdf470be00947e7a1479b94fe4b16308ed8ee6f6edace3f534732ce2"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/StructuredOCRRendering.swift",
+      "bytes": 7783,
+      "sha256": "d4d34e78f6f2c7dcae8d9436e270f65ae253c5b3cc30b7cea4dc4e60cf1b1753"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/SupportedFormat.swift",
+      "bytes": 6196,
+      "sha256": "2e9c3550c0cfee2e08943a3d6cc64aceba531c57b3a6062b12a54bdfea39a8f4"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/TextRecognition.swift",
+      "bytes": 1070,
+      "sha256": "1b84093f49f37501198a7a08e15a166d614398129f07ba79b9e3afdfc0e9f596"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/VerifiedDirectoryStaging.swift",
+      "bytes": 11413,
+      "sha256": "2a007c4118b5407d0d394ea2744cc24acdc28ca3b5cfe37f49bf6d65832a6ee5"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/VerifiedFile.swift",
+      "bytes": 8529,
+      "sha256": "65bdc715f8dba17a7205715db534e3d17089083ab4afe554ae7009157b54197d"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/VerifiedFileStaging.swift",
+      "bytes": 11310,
+      "sha256": "681ea85d02c4c6c0fb065b1f71f38f023bf310ab02b6a21c79b3d9067ad27d3f"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/VerifiedImageSource.swift",
+      "bytes": 4027,
+      "sha256": "7a068f5df5a09d89f6439e6dda1e9f5a089cd672a3799c004dd8c745a30b9e47"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/VisionDocumentRecognizer.swift",
+      "bytes": 9112,
+      "sha256": "3829eac8241da83a694e433db277dcd44d14134f3a8ca2f4959fb826e0914714"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/VisionTextRecognizer.swift",
+      "bytes": 4185,
+      "sha256": "9fb92154982847fe4b05d9f0c40f2de81275791267907f731b5c9182e8b3a7ad"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/WebArchiveReader.swift",
+      "bytes": 4462,
+      "sha256": "7e6272b13d82f5b99fd952adefdb77749d122654f0a67c15378d43a73cd43ec2"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/WordProcessingPackageAdapter.swift",
+      "bytes": 8533,
+      "sha256": "33b41f40c15503be0e2d30946cc41312c198bf87e613d5e3e81e8d281cc0ad47"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/WordProcessingPackageInspector.swift",
+      "bytes": 21736,
+      "sha256": "91813edd19437b08cc3971d9ec1d941affd93c78f9c9d2d1e8ef0f7f34eaafa6"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/XLSXNumberStyles.swift",
+      "bytes": 6201,
+      "sha256": "394c6e4a723ae81c536eba1146d83ab95cd05ef2c55ffdc28c13e0acc62b9edc"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/XLSXWorkbookParser.swift",
+      "bytes": 60363,
+      "sha256": "07dd17c192c2a5627029356c9cc375a8a7fd398cfeb029a1dbd9ee35c0a01c86"
+    },
+    {
+      "path": "Sources/PoorMansTextCore/ZIPArchiveInspector.swift",
+      "bytes": 62352,
+      "sha256": "1beb7d0f9cffa007c948bec97a844d8208d53457573693d0fb9dacc108990110"
+    },
+    {
+      "path": "Sources/CPMTLinux/image.c",
+      "bytes": 2648,
+      "sha256": "a033e1f5c88460d780212d0ec10bd860d9bb1c14469d0e1aca29dcca1a5afef5"
+    },
+    {
+      "path": "Sources/CPMTLinux/include/PMTImage.h",
+      "bytes": 541,
+      "sha256": "62feea68aed3acdfd15bedd7d587fb70ba4db900c32439119c9eee00df627aa4"
+    },
+    {
+      "path": "Sources/CPMTLinux/include/PMTProcess.h",
+      "bytes": 434,
+      "sha256": "3222f2291995bde0151ac2c5739990311ded10aa7be81a8cf3f24370abf2d9a7"
+    },
+    {
+      "path": "Sources/CPMTLinux/include/PMTPublication.h",
+      "bytes": 243,
+      "sha256": "af6180017222daec39d76a0aa824be20b02e9a09646bd04c8a76b8bcf0e5853e"
+    },
+    {
+      "path": "Sources/CPMTLinux/process.c",
+      "bytes": 4881,
+      "sha256": "56066ab58b87fe3f614ccac00a20caa0005872081f29204a385ef57990dddc9d"
+    },
+    {
+      "path": "Sources/CPMTLinux/publication.c",
+      "bytes": 2378,
+      "sha256": "dac78eb264eaec84f6da47306bc70aa5a3a8b06c1fc49198c4e22e70ae7d1cdb"
+    },
+    {
+      "path": "Sources/CZlib/module.modulemap",
+      "bytes": 59,
+      "sha256": "c64a48b26e95d4dd62cc87b55fceaa305e08f6e286861e5973372b8be03977f5"
+    },
+    {
+      "path": "Sources/CZlib/shim.h",
+      "bytes": 18,
+      "sha256": "80324eed37fb3c06611102a5ed598bb3d60aa818eeb6f848068e359677a07ea7"
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "docs/linux-port/P11-DOCLING-EVIDENCE/documents/01030000000132-render-result.json",
+      "bytes": 5889,
+      "sha256": "35bd0af2f0ee5e439fd763b81b706c90c5ea37329f32e320317eeb55d3cf79a5"
+    },
+    {
+      "path": "docs/linux-port/P11-DOCLING-EVIDENCE/documents/01030000000132-render.json",
+      "bytes": 24839,
+      "sha256": "ec5c7aba7c650dcb48312dfa048c739e74762824b4071fdae4a3e8e26d7f55d3"
+    },
+    {
+      "path": "docs/linux-port/P11-DOCLING-EVIDENCE/documents/01030000000132-result.json",
+      "bytes": 5874,
+      "sha256": "8b3f7bac6f3ff66f962e8b8f4e37e967da32dc934dddb9a06acad503f4737263"
+    },
+    {
+      "path": "docs/linux-port/P11-DOCLING-EVIDENCE/documents/01030000000132.json",
+      "bytes": 23441,
+      "sha256": "4104dfe1d2a426276fb8d62857e03aa9665f969d5f57e7c1d13cef180cc495c1"
+    },
+    {
+      "path": "docs/linux-port/P11-DOCLING-EVIDENCE/documents/01030000000135-result.json",
+      "bytes": 745,
+      "sha256": "964f438cd7c459f258f2cf89d6edb965dac7f8cd02eee812c816f3649014afb2"
+    },
+    {
+      "path": "docs/linux-port/P11-DOCLING-EVIDENCE/documents/01030000000135.json",
+      "bytes": 10823,
+      "sha256": "f8acaee10fd2d557572eb0e8a6a5611e162eceae68f43358f8a28aa391374956"
+    },
+    {
+      "path": "docs/linux-port/P11-DOCLING-EVIDENCE/documents/structured-result.json",
+      "bytes": 5073,
+      "sha256": "d3451c1c731f7f668fb003efd522469bad10153e0f47abee6edc471a1e56bfd9"
+    },
+    {
+      "path": "docs/linux-port/P11-DOCLING-EVIDENCE/documents/structured.json",
+      "bytes": 17573,
+      "sha256": "6f94d7da760a3c28f6098313f509c598371898fd036c84fc589c3337c752bc54"
+    }
+  ]
+}

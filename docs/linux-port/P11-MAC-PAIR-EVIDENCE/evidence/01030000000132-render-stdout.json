@@ -1,0 +1,103 @@
+{
+  "assets" : [
+    "/tmp/pmt-mac-p11-a9Hvgd/evidence/01030000000132-render/images/image01.png"
+  ],
+  "diagnosticGroups" : [
+    {
+      "code" : "image.ocrApplied",
+      "count" : 1,
+      "kind" : "information",
+      "locations" : [
+
+      ],
+      "messages" : [
+        "Local OCR text was added next to the preserved original image."
+      ],
+      "omittedCount" : 0
+    },
+    {
+      "code" : "ocr.structuredApplied",
+      "count" : 1,
+      "kind" : "information",
+      "locations" : [
+        {
+          "frame" : 1
+        }
+      ],
+      "messages" : [
+        "Structured local OCR was used."
+      ],
+      "omittedCount" : 0
+    }
+  ],
+  "diagnostics" : [
+    {
+      "code" : "image.ocrApplied",
+      "kind" : "information",
+      "message" : "Local OCR text was added next to the preserved original image."
+    },
+    {
+      "code" : "ocr.structuredApplied",
+      "kind" : "information",
+      "location" : {
+        "frame" : 1
+      },
+      "message" : "Structured local OCR was used."
+    }
+  ],
+  "documents" : [
+    {
+      "assets" : [
+        "/tmp/pmt-mac-p11-a9Hvgd/evidence/01030000000132-render/images/image01.png"
+      ],
+      "markdownFile" : "/tmp/pmt-mac-p11-a9Hvgd/evidence/01030000000132-render/01030000000132-render.md",
+      "metadata" : {
+
+      },
+      "sourceIndex" : 1,
+      "title" : "01030000000132-render"
+    }
+  ],
+  "input" : "/tmp/pmt-mac-p11-a9Hvgd/input/01030000000132-render.png",
+  "markdownFile" : "/tmp/pmt-mac-p11-a9Hvgd/evidence/01030000000132-render/01030000000132-render.md",
+  "metadata" : {
+
+  },
+  "ok" : true,
+  "outputDirectory" : "/tmp/pmt-mac-p11-a9Hvgd/evidence/01030000000132-render",
+  "outputFiles" : [
+    {
+      "byteCount" : 2235,
+      "path" : "01030000000132-render.md",
+      "sha256" : "8ef8699ba0007e1a4e79476a69da6c4b780cda4b7d9a2024f29ba8ed16e607de"
+    },
+    {
+      "byteCount" : 615774,
+      "path" : "images/image01.png",
+      "sha256" : "dfe0a1d9bc07db406080ab22b92632f512f94aef6b32aa2a199d2efe4b101db3"
+    }
+  ],
+  "reportFile" : "/tmp/pmt-mac-p11-a9Hvgd/evidence/01030000000132-render/conversion-report.json",
+  "sourceIdentity" : {
+    "byteCount" : 615774,
+    "name" : "01030000000132-render.png",
+    "sha256" : "dfe0a1d9bc07db406080ab22b92632f512f94aef6b32aa2a199d2efe4b101db3"
+  },
+  "sourceMappings" : [
+    {
+      "output" : {
+        "file" : "01030000000132-render.md",
+        "utf8Length" : 2153,
+        "utf8Offset" : 82
+      },
+      "source" : {
+        "frame" : 1
+      }
+    }
+  ],
+  "version" : "0.41.14",
+  "warnings" : [
+    "Local OCR text was added next to the preserved original image.",
+    "Frame 1: Structured local OCR was used."
+  ]
+}

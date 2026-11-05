@@ -1,0 +1,107 @@
+{
+  "completedUTC": "2026-11-05T07:38:54.063171+00:00",
+  "securedCommit": "e2cbb8a",
+  "scope": "Explicit own superseded runtime/package intermediates after secured e2cbb8a and completed .13\u2192.14 upgrade; current .14 runtime/packages retained",
+  "liveOldRuntimeExecutablesBeforeCleanup": 0,
+  "removed": [
+    {
+      "ownBuildDirectory": ".build/linux-runtime-old-061d85fcf17440cdbf22daf0935e31eb",
+      "entriesBefore": 51,
+      "regularFileBytesBefore": 174920160,
+      "removed": true
+    },
+    {
+      "ownBuildDirectory": ".build/linux-runtime-old-1d958c0824c64a85b84eb956dfcd5291",
+      "entriesBefore": 51,
+      "regularFileBytesBefore": 174672348,
+      "removed": true
+    },
+    {
+      "ownBuildDirectory": ".build/linux-runtime-old-2a938a996e40477cb718badaa7b449fa",
+      "entriesBefore": 50,
+      "regularFileBytesBefore": 174552795,
+      "removed": true
+    },
+    {
+      "ownBuildDirectory": ".build/linux-runtime-old-69d2af908edb4caaa29a724a057906f5",
+      "entriesBefore": 50,
+      "regularFileBytesBefore": 174552795,
+      "removed": true
+    },
+    {
+      "ownBuildDirectory": ".build/linux-runtime-old-7f166ded70094587b484fb82deaa9de6",
+      "entriesBefore": 50,
+      "regularFileBytesBefore": 174552795,
+      "removed": true
+    },
+    {
+      "ownBuildDirectory": ".build/linux-runtime-old-8a5fd7ba57744acd9151537da164c702",
+      "entriesBefore": 45,
+      "regularFileBytesBefore": 148646207,
+      "removed": true
+    },
+    {
+      "ownBuildDirectory": ".build/linux-runtime-old-cdb99f1699f94d78bc38c1640a6f2a92",
+      "entriesBefore": 45,
+      "regularFileBytesBefore": 148666455,
+      "removed": true
+    },
+    {
+      "ownBuildDirectory": ".build/linux-runtime-old-ceab505a09df4abc98c9f909be442863",
+      "entriesBefore": 51,
+      "regularFileBytesBefore": 174931064,
+      "removed": true
+    },
+    {
+      "ownBuildDirectory": ".build/linux-runtime-old-dd56f3758147420990923a1b47c7ea4a",
+      "entriesBefore": 51,
+      "regularFileBytesBefore": 174897277,
+      "removed": true
+    },
+    {
+      "ownBuildDirectory": ".build/linux-runtime-old-df1ccacc9d2a4ca7855b97acbfb169fe",
+      "entriesBefore": 51,
+      "regularFileBytesBefore": 174664292,
+      "removed": true
+    },
+    {
+      "ownBuildDirectory": ".build/linux-preview-04110",
+      "entriesBefore": 6,
+      "regularFileBytesBefore": 155151375,
+      "removed": true
+    },
+    {
+      "ownBuildDirectory": ".build/linux-preview-04111",
+      "entriesBefore": 6,
+      "regularFileBytesBefore": 155161497,
+      "removed": true
+    },
+    {
+      "ownBuildDirectory": ".build/linux-preview-04111-umask077",
+      "entriesBefore": 6,
+      "regularFileBytesBefore": 155162026,
+      "removed": true
+    },
+    {
+      "ownBuildDirectory": ".build/linux-preview-04112",
+      "entriesBefore": 6,
+      "regularFileBytesBefore": 155467800,
+      "removed": true
+    },
+    {
+      "ownBuildDirectory": ".build/linux-preview-04113",
+      "entriesBefore": 6,
+      "regularFileBytesBefore": 155505294,
+      "removed": true
+    }
+  ],
+  "sourceOrUserFilesRemoved": false,
+  "foreignTemporaryDirectoriesTouched": false,
+  "privateXvfbMatchingOwnExecutableOrArgumentAfterTests": 0,
+  "retained": [
+    ".build/linux-runtime",
+    ".build/linux-preview-04114",
+    "Regular development build caches; no disposable model weights",
+    "Pinned licensed P11 reference inputs and small dated evidence"
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "image": "pmt-linux-wayland-test:20261105",
+  "imageID": "sha256:c7c5cf572d4eceb44472b05fc51c4cdc74cec6f929f048c8a06af876654bf189",
+  "packageGuardSHA256": "cf677f9be88095a27423ceedb9db2b85667f7775d167857cfb52002ff5dda520"
+}

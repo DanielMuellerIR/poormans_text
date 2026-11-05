@@ -1,0 +1,58 @@
+{
+  "package": {
+    "version": "0.41.14-1",
+    "sha256": "db51fee5caf090593d29c26512d607474aaf7633ac93642ae32ae0bb1921a0bf"
+  },
+  "previousPackage": {
+    "version": "0.41.13-1",
+    "sha256": "37431afee9f407ab81934da9b038f36b91d693b11c8b8ac1235a8b278eb7a951"
+  },
+  "freshArchContainer": true,
+  "regularDependencyResolution": true,
+  "signaturePolicyUnchanged": true,
+  "localPackageSignaturePolicy": "Unmodified official-image LocalFileSigLevel Optional TrustedOnly; checksum-verified local PMT test artifact",
+  "noSwiftSDK": true,
+  "transactions": [
+    {
+      "operation": "install-previous",
+      "installed": "poormans-text 0.41.13-1"
+    },
+    {
+      "operation": "upgrade",
+      "installed": "poormans-text 0.41.14-1"
+    },
+    {
+      "operation": "remove",
+      "packageFilesAbsent": true,
+      "userDataUnchanged": true
+    }
+  ],
+  "preUpgradeUserAndProfileFilesUnchanged": 4,
+  "profileMarkerSHA256": "ec5559458c19e251fafbbb8856b12cf9b1b0d18e5496e50229eabacfea607d8e",
+  "installedCLISHA256": "8abc9197eeced8df043d788e349acb553bd86dd81546a6fda1faf15a93bac0cb",
+  "gui": {
+    "uid": 1000,
+    "productionGUI": true,
+    "privateHeadlessWeston": true,
+    "compositorRenderer": "pixman",
+    "clientRenderer": "software GL",
+    "DISPLAYAbsent": true,
+    "GDKBackendForcedWayland": true,
+    "realWaylandProtocol": true,
+    "realAccessibleConvertAction": true,
+    "GUIFinishedReceivingResult": true,
+    "CSVMarkerAndUnicode": true,
+    "sourceSHA256": "1da55ac06c652d43cc89dba8444b83ce1b1ba10936cb3c4283c5b9889b19cd12",
+    "sourceUnchanged": true,
+    "markdownSHA256": "1ef023c0b873933c4c2868f49f2b3c568cb0a9c5c42b5555aa46e4795f3058f0",
+    "outputFiles": {
+      "Quelle \u00fc.md": "1ef023c0b873933c4c2868f49f2b3c568cb0a9c5c42b5555aa46e4795f3058f0"
+    },
+    "nativeCaptureExit": 0,
+    "nativeScreenshot": true,
+    "captureStderr": "",
+    "screenshotSHA256": "778f08334ea5bde2135692b9e9ab334037a8635dec6e043372d97827ab3d62b3",
+    "GUIAndWestonWaitedAfterTermination": true
+  },
+  "installedGUISHA256": "85e70bf0654f4b308a5db2d483eaf258dd376f83773703febe23fa91d05ddcf2"
+}

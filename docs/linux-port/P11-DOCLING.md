@@ -23,7 +23,7 @@ Der direkte Markdownexport dupliziert die sechs Wörter des verbundenen
 Tabellenkopfs und kodiert den `colspan` nicht. Er lässt außerdem Footer weg, die
 im Dokument-JSON vorhanden sind. JSON und Markdown wurden deshalb getrennt
 bewertet: auf Seite 135 enthält das JSON alle 561 Referenzwörter, Markdown nur
-554 passende Wörter. Auf Seite 132 stimmen im JSON 317 von 339 Worttokens; unter
+554 passende Wörter. Auf Seite 132 stimmen bei Auswertung der JSON-`text`-Felder 317 von 339 Worttokens; unter
 anderem fehlen eingebettete Bildbeschriftungen, und `in-house` wird `inhouse`.
 Der zusätzliche Rasterlauf verändert auch die Caption-Reihenfolge. Die gute
 Tabellenprobe ist keine bestandene Gesamtdokument- oder OCR-Textparität.
@@ -79,3 +79,14 @@ Belegsicherung entfernt; Gewichte/Wheels bleiben nicht als versteckte Laufzeit
 zurück. [Cleanup](P11-DOCLING-EVIDENCE/cleanup.json). Das konsolidierte Setuprezept
 wurde nach dem Versuch aus den ausgeführten Schritten gebildet, aber nicht
 nochmals vollständig gebaut; dies ist keine zusätzliche Reproduzierbarkeitsabnahme.
+
+## Anschlussnachweise nach dem Modellversuch
+
+Die [Swift-Parserprojektion und der frische Mac-Paarvergleich](P11-SWIFT-PROJECTION.md)
+sind zusätzlich belegt: vier gespeicherte JSONs passieren unveränderte Core-
+Modelle/Renderer,18 beschädigte Varianten werden abgewiesen. Sie bewahren das
+autoritative Originaltext-/Zellinventar einschließlich Footer. Die `orig`-Sicht
+ist von der früheren `text`-Wortmessung zu unterscheiden; keine beiden Felder
+addieren. Der Mac liefert synthetisch7/8 Zelltexte und auf der Naturseite9/9
+Zelltexte als Prosa, ohne Tabellenstruktur. Deshalb Qualitätsreferenzen unabhängig
+prüfen und keinen Applied-/Projektionsnachweis zur Produktfreigabe hochstufen.

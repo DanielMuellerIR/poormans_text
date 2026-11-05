@@ -23,6 +23,7 @@ Die Root-Quelldifferenz im Swift-Produktbereich gegenüber 0.41.13 ist ausschlie
 | [Clippy](clippy.log.gz) | Workspace, alle Targets/Features,`-D warnings` bestanden. |
 | [Alter Consumer → aktueller Producer](consumer-compatibility/README.md) | Exakt früherer echter Treiber ebb3feac… besteht CSV und MBOX gegen0.41.14:29 Formate, korrekter Einstieg/index.md, Vorbereitung/Adoption und unveränderte Quellen. Kein neuer Import-GUI-/Commit-/PNGasset-/Kollisionsnachweis. |
 | [Drei Pakete](packages.json) | Debian/Arch/portablesTar unter umask 077: korrekte öffentliche Dateimodi, relocierte Unicode-CSV und Hashes; Kollision 73 erhält alle Pakete, Symlinkeltern ohne Ausgabe. Keine neue native Paketinstallation behauptet. |
+| [Arch/Wayland und Upgrade](arch-wayland/README.md) | Regulär .13→.14→Entfernen mit unveränderter Policy; vier Profil-/Userdateien bleiben gleich. Produktions-CSV bis Completed/Unicode, native Westonaufnahme visuell geprüft. PNG mit normalem OCR-Default konvertiert; Compare/Zoom wegen AT-SPI-Bediengrenze ausdrücklich nicht belegt. |
 | [Nativer Mac](mac/README.md) | 337 ausgewählte Build-/Testdateien nativ arm64: CLI/AppExecutable gebaut, einzeln lipo-verify; CLI 0.41.14, genau 5 ProductInfoTests/0 Skips/0 Fehler einschließlich CFBundle 99. App nicht gestartet/installiert, keine Rosetta-/globaleCLI-Nutzung. Keine Wiederholung der bekannten OCR-Stallsuite. |
 | [Nativer Mint-DOC](mint-doc/README.md) | Finales .14-Paket privat extrahiert, echtes vorhandenes LO 24.2.7.2/UNO mit ausdrücklich privatem Pandoc. Normaler DOC und RichAutoOpen-DOC erfolgreich: unabhängige Texte/Listenmarker, Legacywarnung, SourceIdentity/Report/Outputmanifest und Original-PNG bytegleich. MacroNever/NoUpdate, keine neue unsichere Makro-Positivkontrolle. |
 | [Nativer Mint-PDF, 0.41.13](mint-pdf-013/README.md) | Zusätzlicher gezielter Nachweis am früheren 26470eaf…-CLI: 12/12 Fälle, sieben digitale OCR-off-Konvertierungen, drei 65-Fehler, echtes Missing-Tesseract 69 ohne Publikation und Seite-2-PNG-Vorschau. Inhalt/Bildpixel/Links/Annotationen/Seitenwahl/Metadaten/Hashes stimmen. Nur passende 26.266-Byte-Typelib privat ergänzt und RO eingebunden; keine Hostinstallation oder native OCR-Qualitätsbehauptung. |
@@ -44,7 +45,8 @@ Zoom verändert diese Schutzgrenzen nicht.
 
 **Keine vollständige Linux- oder öffentliche Distributionsfreigabe.**
 P11 besitzt mit [Docling/TableFormer](../P11-DOCLING.md) einen teilgeprüften
-Kandidaten, aber noch keinen sicheren Produktadapter oder ausreichend breiten
+Kandidaten und einen [belegten Swift-Parseranschluss](../P11-SWIFT-PROJECTION.md),
+aber noch keinen sicheren Produktadapter oder ausreichend breiten
 Qualitätskorpus. Strukturierte OCR bleibt unavailable. Echte KDE-/Cinnamon-
 Bedienung/Portale/Drop/Clipboard, vollständige Format-/Consumer-Matrix, native
 Mint-Paketinstallation und abschließende Distribution bleiben eigene Tore.
@@ -72,5 +74,5 @@ Alle eigenen Mac-/Mint-Remote-Testbäume und Prozesse sowie die einzelnen GUI-
 Testcontainer sind nach Sicherung der Belege entfernt. Hostprofil-/Systemdatei-
 Hashes blieben gleich, der Benutzerdesktop wurde nicht benutzt. Die eigenen
 lokalen Zwischenstände werden nach dem gesicherten Meilenstein bereinigt;
-abschließender Cleanupbeleg folgt im selben Verzeichnis. Kleine offene
+[Lokaler Cleanupbeleg](local-cleanup.json) im selben Verzeichnis. Kleine offene
 Fehlerbelege behalten ihren Zweck und das Prüfdatum.

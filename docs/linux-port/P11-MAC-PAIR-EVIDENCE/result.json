@@ -1,0 +1,135 @@
+{
+  "startedUTC": "2026-11-05T07:20:30.026646+00:00",
+  "stages": [
+    {
+      "stage": "environment",
+      "exit": 0,
+      "seconds": 0.233,
+      "log": "environment.log"
+    },
+    {
+      "stage": "build-poormans-text",
+      "exit": 0,
+      "seconds": 13.319,
+      "log": "build-poormans-text.log"
+    },
+    {
+      "stage": "arch-check",
+      "exit": 0,
+      "seconds": 0.01,
+      "log": "arch-check.log"
+    },
+    {
+      "stage": "cli-version",
+      "exit": 0,
+      "seconds": 0.295,
+      "log": "cli-version.log"
+    }
+  ],
+  "isolation": {
+    "guiStarted": false,
+    "installation": false,
+    "arch": "arm64"
+  },
+  "source": {
+    "version": "0.41.14",
+    "build": "99",
+    "archiveSHA256": "9b9544b7d98ea256a4675276193c904d28c3e6be497cb6dfe6162f600d015b99"
+  },
+  "archiveSHA256": "9b9544b7d98ea256a4675276193c904d28c3e6be497cb6dfe6162f600d015b99",
+  "verifiedFiles": 337,
+  "cliSHA256": "cbbd6dcb0a505f8ce9d968f481885865dd843a9f9773e79d37922f087d688a6a",
+  "onlyCLIBuilt": true,
+  "version": "Poor Man's Text 0.41.14",
+  "cases": [
+    {
+      "input": "structured.png",
+      "sourceSHA256": "e37ca92cf5b8ad22e228eed1c1065177bbbdc6b865b9e027965660353f934369",
+      "sourceUnchanged": true,
+      "exit": 0,
+      "outer45SecondCutoff": false,
+      "seconds": 0.539,
+      "outputFiles": {
+        "structured.md": {
+          "sha256": "574c4dc6cd02aa41e674820fea973b0cadfd3c0aa3715a61366f7b3f5af8adea",
+          "byteCount": 306
+        },
+        "conversion-report.json": {
+          "sha256": "61d85f1251734fc88658fc8620c308316a80c468fb047406af6bd88a82e453f6",
+          "byteCount": 2841
+        },
+        "images/image01.png": {
+          "sha256": "e37ca92cf5b8ad22e228eed1c1065177bbbdc6b865b9e027965660353f934369",
+          "byteCount": 50565
+        }
+      },
+      "diagnostics": [
+        {
+          "code": "image.ocrApplied",
+          "kind": "information",
+          "message": "Local OCR text was added next to the preserved original image."
+        },
+        {
+          "code": "ocr.structuredApplied",
+          "kind": "information",
+          "location": {
+            "frame": 1
+          },
+          "message": "Structured local OCR was used."
+        },
+        {
+          "code": "ocr.tableSpansFlattened",
+          "kind": "approximation",
+          "location": {
+            "frame": 1
+          },
+          "message": "Merged OCR cells are written once at their upper-left position; covered cells remain empty."
+        }
+      ],
+      "structuredApplied": true
+    },
+    {
+      "input": "01030000000132-render.png",
+      "sourceSHA256": "dfe0a1d9bc07db406080ab22b92632f512f94aef6b32aa2a199d2efe4b101db3",
+      "sourceUnchanged": true,
+      "exit": 0,
+      "outer45SecondCutoff": false,
+      "seconds": 0.548,
+      "outputFiles": {
+        "01030000000132-render.md": {
+          "sha256": "8ef8699ba0007e1a4e79476a69da6c4b780cda4b7d9a2024f29ba8ed16e607de",
+          "byteCount": 2235
+        },
+        "conversion-report.json": {
+          "sha256": "1a73fe6018878e2e292a0f53c407911f4bb4fbcba27c805285481e0c1eea9dcd",
+          "byteCount": 2293
+        },
+        "images/image01.png": {
+          "sha256": "dfe0a1d9bc07db406080ab22b92632f512f94aef6b32aa2a199d2efe4b101db3",
+          "byteCount": 615774
+        }
+      },
+      "diagnostics": [
+        {
+          "code": "image.ocrApplied",
+          "kind": "information",
+          "message": "Local OCR text was added next to the preserved original image."
+        },
+        {
+          "code": "ocr.structuredApplied",
+          "kind": "information",
+          "location": {
+            "frame": 1
+          },
+          "message": "Structured local OCR was used."
+        }
+      ],
+      "structuredApplied": true
+    }
+  ],
+  "cliUnchanged": true,
+  "sourceFilesUnchanged": true,
+  "finished": true,
+  "seconds": 15.672,
+  "endedUTC": "2026-11-05T07:20:45.698302+00:00"
+}

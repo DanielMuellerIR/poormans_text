@@ -1,0 +1,26 @@
+{
+  "UTC": "2026-11-05T07:25:47.755377+00:00",
+  "directories": [
+    {
+      "purpose": "own prototype working directory",
+      "device": 57,
+      "inode": 856625,
+      "removed": true
+    },
+    {
+      "purpose": "own prototype working directory",
+      "device": 57,
+      "inode": 859070,
+      "removed": true
+    },
+    {
+      "purpose": "isolated prototype build cache",
+      "device": 54,
+      "inode": 4132731,
+      "removed": true
+    }
+  ],
+  "allRemoved": true,
+  "productSourceWrites": false,
+  "containers": "all executed with docker --rm; no persistent container created"
+}

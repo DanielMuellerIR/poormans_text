@@ -1,0 +1,17 @@
+{
+  "cleaned": true,
+  "containerAbsent": true,
+  "normalApplicationExit": 0,
+  "method": "held parent/root directory descriptors; nofollow own-tree deletion",
+  "rootIdentity": {
+    "device": 57,
+    "inode": 848091
+  },
+  "rootAbsent": true,
+  "removed": {
+    "files": 126,
+    "directories": 96
+  },
+  "noBuildOrTargetCreated": true,
+  "timeUTC": "2026-11-05T06:46:20.685242+00:00"
+}

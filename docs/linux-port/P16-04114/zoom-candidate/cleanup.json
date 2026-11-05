@@ -1,0 +1,19 @@
+{
+  "cleaned": true,
+  "method": "held parent/root directory descriptors; nofollow own-tree deletion",
+  "rootIdentity": {
+    "device": 57,
+    "inode": 822946
+  },
+  "rootAbsent": true,
+  "removedRemainingTree": {
+    "files": 218,
+    "directories": 157
+  },
+  "largeCargoAndTargetCopiesRemovedEarlier": true,
+  "ownTestContainersAbsent": true,
+  "sharedImagesAndRootRepositoryUnchanged": true,
+  "productionBuildDelegatedToRepositoryWriter": true,
+  "freeTmpMB": 509,
+  "timeUTC": "2026-11-05T06:32:03.992984+00:00"
+}

@@ -1,0 +1,11 @@
+{
+  "cli-version.log": "62fdc06862bd8f639ae2ea586b230cb740002e0e86a70dd9b112af29e2facec7",
+  "tests.log": "1000576bb6798f86f17ec72bfc4ca2d7dcbb486f5f76eb4bcaf4691ce492d9ce",
+  "arch-check-PoorMansTextApp.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "arch-check-poormans-text.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "arch-check.log": "955cf2b4031fc817c78da6e5efcaa4789bcbd56618a835fafda2c07e969cf4ff",
+  "build-PoorMansTextApp.log": "d083f2c02a2bbcbe926d021884776f0f1c6f6bcec7df05a0548ac19663d4189b",
+  "build-poormans-text.log": "73d104f0e32c2ebe1963a975cac035ef8e97a47f89b9c9ce04cf7962af4ecf81",
+  "environment.log": "1369b46b35b73c0078bbc19d978f9fde211548c17d1bd37b7cb00ef8e54651f7",
+  "result.json": "1ccd015281c40547d6228a44ec5923ac569b2a9ca7ef8248b80a6cade9e67be2"
+}

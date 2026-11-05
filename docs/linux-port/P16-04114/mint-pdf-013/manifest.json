@@ -1,0 +1,52 @@
+{
+  "createdUTC": "2026-11-05T06:31:29.318808+00:00",
+  "nativeMintWithIsolatedTypelib": true,
+  "version": "0.41.13",
+  "checks": {
+    "productCases": 12,
+    "successfulOCRoffConversions": 7,
+    "negativeInput65": 3,
+    "missingOCR69NoPublication": 1,
+    "previewPage2": 1,
+    "allSourceManifestAssetHashesVerified": true,
+    "hostGirepoDSOTruePackageDBUnchanged": true,
+    "ownRemoteRootRemoved": true,
+    "noRemainingOwnProcesses": true,
+    "workingBytes": 232667808,
+    "additionalNetworkDownloadBytes": 26266
+  },
+  "files": {
+    "README.md": "918eb6b969b5050efbb47627c896b82a47adf1bb89238a44114a74862832e4aa",
+    "setup_remote.py": "29ee203b3550c9bf1e296f0bfe13bca29b9c1993213a1000033a6a63fc8db2ef",
+    "setup_remote.executed.py": "b0d0d745365f91d3f514c8db3d55f6d6abe04450f6a69fcb331c7020b5d5951d",
+    "run_remote.py": "152de9b6e227ae5650cd92700c3e63ff4ccb7809e0fc36fb524eff1b0b82733f",
+    "verify_inside.py": "2d70169f164082e805498fcdcc1469d0f192328cdc550d49dec7962558743486",
+    "finalize_remote.py": "e4eae1a697b90a4da36e3bb0ae529d404e6d8d7a5cac8af4a40cc691eda7cd16",
+    "cleanup_remote.py": "d4050dcc7e3b86ecc50378531b3ca63801a9a1240a93034cb92923f4569f3d69",
+    "cleanup.json": "17ab1968777631ef1f722236b0c518f5ba3691e6334e0a451f812ea2c9ee8c12",
+    "reproduce_remote.sh": "2526e4e5acf0fabec7c14257ea7691e43df6e9ac2a993ce8b68a5af970c2bdd7",
+    "setup.txt": "1cca8bd0b2205ed38eeb8a3078db5ebd71019cc57f9ef9fb74c07b38d8a92368",
+    "import.log": "46254a50b3d439cdf0bc7fdd4090f4c2e2318cc564f7519f7d63488b69becf0b",
+    "run.log": "49ec6c8134e75616040c45c0afbafba9fcb23d78cff5012499d7e2f27af47eae",
+    "finalize.log": "042abc480e5847ad0bb1894f31f1f039c3de7c46a0d89ddabdbaa963429d9d61",
+    "fixtures/encrypted.pdf": "a1c204cc047ea32d84b6779c3cc385f0b6371fb5ca6185d9f279dd661f7fb90a",
+    "fixtures/hyphen.pdf": "5bf4f6370a701c456f8364895198fd4a84c3d271c7290114e247b31796206274",
+    "fixtures/margins.pdf": "fc7def62272ab207bfa117747e6c1d2ad63b83c0d326ffd08396519a713e71ab",
+    "fixtures/broken.pdf": "182d89fb4c749cbf49543c4b5ccb167fabdf7e5ea384178213a3ac164c0efb37",
+    "fixtures/dates.pdf": "be786e5b8e774151e6fa84c264e1c0900076fe437b74ca22dcbd8b9eedf8c17c",
+    "fixtures/fixtures/sample.pdf": "a182895247779a29e215de2236d6d547612746aab7705aae3e2b9e5ea6b08640",
+    "evidence/preview-independent.json": "30739fcc454d52b06fba095fabf2ee5496516d2f8e19dcec61a9c1e19d0b7e35",
+    "evidence/download.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "evidence/preview-page2.png": "70aadb34f0d73d5577e73fc90a3ffe5932ab583ee9b5a6244705532f4777a227",
+    "evidence/final-stability.json": "337b1059a7182c09cf1868b05f2e781715ddc51c677aa420342b21a945d3ac3f",
+    "evidence/pdf-run.log": "301cd15530bfa9435fd1b09d4e68540aaa1d032bdb40dac424d9912b5256083f",
+    "evidence/pdf-results.json": "84205019eae1538062bc94e3a8117cb6575ad9dd774cb1d41441d34217db7d61",
+    "evidence/import-proof.json": "7f49dbfe16d83ebe7163ed108f6c889b37d0da95d0732f86908c6824305e3c5e",
+    "evidence/host-before.json": "0f2b5cb9171c037899bff6f792f288bfd7f3b528303b6c0262baf8bc225dc01c"
+  },
+  "limits": [
+    "Explicitly isolated Typelib supplement; not unchanged stock Mint",
+    "No OCR quality claim",
+    "No install/upgrade/remove or GUI claim"
+  ]
+}

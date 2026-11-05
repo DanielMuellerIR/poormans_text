@@ -1,0 +1,632 @@
+{
+  "hostGirepoDSOTruePackageDBUnchanged": true,
+  "hostAfter": {
+    "girepo": {
+      "Atk-1.0.typelib": {
+        "sha256": "ddc5cc47d281b52638cbe0ab39c65a207e11b24f2a43ef50094f2a62533cf3fa",
+        "mode": 420,
+        "link": null
+      },
+      "Atspi-2.0.typelib": {
+        "sha256": "e0577f7eb3ce969032661d201eed028de5944dbab35ed2f8a799342a2fa3aa36",
+        "mode": 420,
+        "link": null
+      },
+      "AyatanaAppIndicator3-0.1.typelib": {
+        "sha256": "d4e0ae719331eea9b7ad07c6c54779d2d89a77f425211e4e8a32a16dabf765ce",
+        "mode": 420,
+        "link": null
+      },
+      "CDesktopEnums-3.0.typelib": {
+        "sha256": "6a697f3f5911086ec2d41591edf499561a3efc3d71f796e2b343dffeeb85f4ed",
+        "mode": 420,
+        "link": null
+      },
+      "CMenu-3.0.typelib": {
+        "sha256": "d7a6421b029c41c2538b6cb8ef385260207f4bdd79578a8e40ec140453192213",
+        "mode": 420,
+        "link": null
+      },
+      "Cally-1.0.typelib": {
+        "sha256": "ec16b93ce907bf87c1370c6e5eb49b76cc22890a362dcd32268c05a985bfd99d",
+        "mode": 420,
+        "link": null
+      },
+      "CinnamonDesktop-3.0.typelib": {
+        "sha256": "075130177f209da12881c93178eb2dca035d832298c5a54ec319262f1cc63498",
+        "mode": 420,
+        "link": null
+      },
+      "Clutter-1.0.typelib": {
+        "sha256": "5edf8feff3ef32dbd84facdc7bc92ffecdf368808b46b5f318f44cb38f1f0c98",
+        "mode": 420,
+        "link": null
+      },
+      "ClutterGdk-1.0.typelib": {
+        "sha256": "0eca8820168e822b45ef7d1e5089a3eac1cc5efd790df36a117844148bc2456a",
+        "mode": 420,
+        "link": null
+      },
+      "ClutterGst-3.0.typelib": {
+        "sha256": "2e801f4b03be7d171afa1decbd68527ddfb068643ce62a100a1c7c851cf3a606",
+        "mode": 420,
+        "link": null
+      },
+      "ClutterX11-1.0.typelib": {
+        "sha256": "73b1d7211d9e2a79d6140214c118f8c007f3bff421c5b288da591e4e5d9e30b8",
+        "mode": 420,
+        "link": null
+      },
+      "Cogl-1.0.typelib": {
+        "sha256": "2e7fca775c561aba9a9c36aa74c34cb7b7e12e6ef9345114bc3ea4e5728c8b0f",
+        "mode": 420,
+        "link": null
+      },
+      "Cogl-2.0.typelib": {
+        "sha256": "64572c5ee4d11d6961a2430ac43a1796980a6aed06a8853f9d6cee85ddcb3663",
+        "mode": 420,
+        "link": null
+      },
+      "CoglPango-1.0.typelib": {
+        "sha256": "dbeaf8e693c950060e2675c635bc83625e74748f393146bcd8fed8f9626b1500",
+        "mode": 420,
+        "link": null
+      },
+      "CoglPango-2.0.typelib": {
+        "sha256": "db1cc0137fa5a29b8e941afe19429c57e745583463cb8324d233c89b95e51071",
+        "mode": 420,
+        "link": null
+      },
+      "Cvc-1.0.typelib": {
+        "sha256": "93802e0396cb1b665612eefdbf05ccfc38fc2b85f0e80a52e2c4c370419f171f",
+        "mode": 420,
+        "link": null
+      },
+      "DBus-1.0.typelib": {
+        "sha256": "0843f4d6a549703df7c07f8e96d3c47752123ecf910c7571d786f5347fa02234",
+        "mode": 420,
+        "link": null
+      },
+      "DBusGLib-1.0.typelib": {
+        "sha256": "2aa3277d88103f0c475700cd56fcadbcd7ddb2a588cff93696efd4922e151807",
+        "mode": 420,
+        "link": null
+      },
+      "Dbusmenu-0.4.typelib": {
+        "sha256": "25c0261ec42a4991ea1852314e933a1704501c5b245bfcb05b9ecefce24b1c16",
+        "mode": 420,
+        "link": null
+      },
+      "Dee-1.0.typelib": {
+        "sha256": "8bf170bacb4b1ece2c66d44b1b9bf492cebaed4a04497948588429693bfc6c9c",
+        "mode": 420,
+        "link": null
+      },
+      "Flatpak-1.0.typelib": {
+        "sha256": "100ff458eccfe7f1b231f48e2cd2fdebad33ba19d0ca6564ef0283e2de95791e",
+        "mode": 420,
+        "link": null
+      },
+      "GDesktopEnums-3.0.typelib": {
+        "sha256": "c0dd5d4ff1a8023071bad25d4b5951c7d8a4e9edfdc97cf18268a308139edca5",
+        "mode": 420,
+        "link": null
+      },
+      "GIRepository-2.0.typelib": {
+        "sha256": "c9ce34a9b1bb9be57113f2271022d0283feda81c2baaf8cfe6cc7d6f09f93a90",
+        "mode": 420,
+        "link": null
+      },
+      "GL-1.0.typelib": {
+        "sha256": "e6677facd41cc99b3e3e1a9007d9762b00a446b42206d78dd28ea2653478bc80",
+        "mode": 420,
+        "link": null
+      },
+      "GSound-1.0.typelib": {
+        "sha256": "d5a3bdbedfa4c539e7929a7239347497bc245bb08d805388e8682a7794020e4a",
+        "mode": 420,
+        "link": null
+      },
+      "GUdev-1.0.typelib": {
+        "sha256": "ae820f285842eecafcfa5204dd5e26e70f12cae6be0eb865b1938979b6b253d0",
+        "mode": 420,
+        "link": null
+      },
+      "Gck-1.typelib": {
+        "sha256": "02629fc8d81e7555f517984473fb23a80a6b9042b3168ba4de47133e50a8fe41",
+        "mode": 420,
+        "link": null
+      },
+      "Gcr-3.typelib": {
+        "sha256": "e375164bb9331adee4762905f593d8c20a2fb14ea7de765f7c29053e5de9a84e",
+        "mode": 420,
+        "link": null
+      },
+      "GcrUi-3.typelib": {
+        "sha256": "07a084e04995e7ab9dfcc2522eec97f2fe15e3f2dd16be8b551e6c2b68f6115f",
+        "mode": 420,
+        "link": null
+      },
+      "Gdk-3.0.typelib": {
+        "sha256": "fe968489cbf2d7cb8ed1390cd3e8487f8fee66397954a005475c8ddc7bce52d9",
+        "mode": 420,
+        "link": null
+      },
+      "GdkX11-3.0.typelib": {
+        "sha256": "d71604a18e98030ee9466b61e0d7f8dbc7a5c2e10d38d79b3851345733a9c5ca",
+        "mode": 420,
+        "link": null
+      },
+      "Gkbd-3.0.typelib": {
+        "sha256": "ea1a976f8abe90ee29a22fd0c9fd37f483a236e417246d69bca7a93dd37bdb75",
+        "mode": 420,
+        "link": null
+      },
+      "GnomeDesktop-3.0.typelib": {
+        "sha256": "3a154f7f2f1c4ac790deb57cd64d2a6180dae04e8e2cfcceeacfdd487ed6640c",
+        "mode": 420,
+        "link": null
+      },
+      "Graphene-1.0.typelib": {
+        "sha256": "e41ea620c9d28113dc76aaa4c22d1feb599e8eda573e7176cb63848ef939f7ec",
+        "mode": 420,
+        "link": null
+      },
+      "Gspell-1.typelib": {
+        "sha256": "efed285a580ca78938d15a9f938b914d599e92669f14594273c0e5ae1a6e1271",
+        "mode": 420,
+        "link": null
+      },
+      "Gst-1.0.typelib": {
+        "sha256": "c3ddf3b9cd77b9600eb4d7010960a99d8956d22e5d53dc1042bfd10806885513",
+        "mode": 420,
+        "link": null
+      },
+      "GstBase-1.0.typelib": {
+        "sha256": "2e835daca5f8552e7f7237f285e2499bc60f50edf9bbc2585ea002a885678bf4",
+        "mode": 420,
+        "link": null
+      },
+      "GstCheck-1.0.typelib": {
+        "sha256": "219c89569176d5da001631450092ab27783d34fb494fae2d68a4b17ed40fed60",
+        "mode": 420,
+        "link": null
+      },
+      "GstController-1.0.typelib": {
+        "sha256": "d0a45db740b728a2323d45b38948582c314eabec36d11e4e9cc74a57e66eda21",
+        "mode": 420,
+        "link": null
+      },
+      "GstNet-1.0.typelib": {
+        "sha256": "d98a5d8395408e05654f1dcad5b256dd9e2f5ceb6900e45d76694b117e4db63a",
+        "mode": 420,
+        "link": null
+      },
+      "Gtk-3.0.typelib": {
+        "sha256": "d80312293f6f2f03f93537923e2a8cd9d6d3754084075abcb0430b2ac78cb255",
+        "mode": 420,
+        "link": null
+      },
+      "GtkClutter-1.0.typelib": {
+        "sha256": "7892c6d7de90c9b974e9f3b048f3458729fce71fe72fd5b2c747cc69e2140da5",
+        "mode": 420,
+        "link": null
+      },
+      "GtkSource-3.0.typelib": {
+        "sha256": "1fd801f3fb3d90bee8355b9cbb549d18e408214af0c1e6bfaab2e76ee10731dc",
+        "mode": 420,
+        "link": null
+      },
+      "GtkSource-4.typelib": {
+        "sha256": "77e57af2420b102f420f518789024e0542751554bb91f43531b18e915a48c071",
+        "mode": 420,
+        "link": null
+      },
+      "Handy-1.typelib": {
+        "sha256": "d059e5113c8727ead45ab6bfc88c487dd139b72adcb3ed48e452630857915e08",
+        "mode": 420,
+        "link": null
+      },
+      "HarfBuzz-0.0.typelib": {
+        "sha256": "1c2b5d710b9548b4bdabb8fe07695021762999138b2bbf97af59a86f9965781e",
+        "mode": 420,
+        "link": null
+      },
+      "IBus-1.0.typelib": {
+        "sha256": "368207ab8596e32ebf40aa1b21eb2012c8ecf2ba8211a11faef14ecef7db66b4",
+        "mode": 420,
+        "link": null
+      },
+      "ICal-3.0.typelib": {
+        "sha256": "0752d3f8766891e17f1d95c8dd28447ca1ab95d0de579833dfc188d7e706aa04",
+        "mode": 420,
+        "link": null
+      },
+      "ICalGLib-3.0.typelib": {
+        "sha256": "525248bec834f4bde06b83d4f9d9993f68d5c0d87a0a595cf172a57d37deed28",
+        "mode": 420,
+        "link": null
+      },
+      "Json-1.0.typelib": {
+        "sha256": "da563df96631a97aa89d151c6ab5a1617261289a173aed9c21211248d1096cf4",
+        "mode": 420,
+        "link": null
+      },
+      "MPID-3.0.typelib": {
+        "sha256": "234cd82a782d4c89f1233bc3644deee06059d97578b28caa0565b783e20ec422",
+        "mode": 420,
+        "link": null
+      },
+      "MateDesktop-2.0.typelib": {
+        "sha256": "4440f57065f8a569e0dbd2b78b13a13801576ae01bc44e599ccf57242eeabfbe",
+        "mode": 420,
+        "link": null
+      },
+      "MateMenu-2.0.typelib": {
+        "sha256": "0dc7d0c0c04a1571367884b8300ac4cc9aa64dfc48af360b79d02c5bc178bf00",
+        "mode": 420,
+        "link": null
+      },
+      "MatePanelApplet-4.0.typelib": {
+        "sha256": "5cff6d8fcf56354e8a450132b3383ddd139c3f8041aba53d47ec44f1e7dca058",
+        "mode": 420,
+        "link": null
+      },
+      "NMA-1.0.typelib": {
+        "sha256": "9553de9351d9a520bc6d5c06fa6a75fb9c902eda90b38780ff4be94b7a1ddcb2",
+        "mode": 420,
+        "link": null
+      },
+      "Nemo-3.0.typelib": {
+        "sha256": "d40829038c5a5d4f8321b79b5dd52482159d742d3fbf81e3cb86cf726b1e124e",
+        "mode": 420,
+        "link": null
+      },
+      "Notify-0.7.typelib": {
+        "sha256": "e19e92dcfa2727dfb44a55835a9f91983724fb67f55bbeaf7e52be0c1a4dff30",
+        "mode": 420,
+        "link": null
+      },
+      "Pango-1.0.typelib": {
+        "sha256": "69a7120e594d37c0c07048120ff28c06ebb9e5ee26c5a01a7a2e38735e3bbca7",
+        "mode": 420,
+        "link": null
+      },
+      "PangoCairo-1.0.typelib": {
+        "sha256": "85d7c36d3a1899b47e3261f8cfe43da7a3386073a6815c41b2a27320ca3a0e6a",
+        "mode": 420,
+        "link": null
+      },
+      "PangoFT2-1.0.typelib": {
+        "sha256": "690ca4a99e4a78b8278aaa07ce0d823f09992051844151c5bf8b8ef61380fbc6",
+        "mode": 420,
+        "link": null
+      },
+      "PangoFc-1.0.typelib": {
+        "sha256": "3d8566cc8b5ac27da36c240f5f0a963d715b775ae63e031ada90c92c98121fad",
+        "mode": 420,
+        "link": null
+      },
+      "PangoOT-1.0.typelib": {
+        "sha256": "206b17d316c26b0616ac4c5f3a47f2d0753e99d63db9cc21bbc1d8f6f2d55121",
+        "mode": 420,
+        "link": null
+      },
+      "PangoXft-1.0.typelib": {
+        "sha256": "3a2754fedf8bb1178ae6b76262949afe9c249835c4d7074253400a04676b0de8",
+        "mode": 420,
+        "link": null
+      },
+      "Peas-1.0.typelib": {
+        "sha256": "35579dcd9d9492f5e48dac1204c6f895e82cf2d1a16790dcc3623f3c265daac0",
+        "mode": 420,
+        "link": null
+      },
+      "PeasGtk-1.0.typelib": {
+        "sha256": "5f288f8a68f1b7c4f289cbc84e741fe9dc49853c69cfbcd79b1ce71f33fa176b",
+        "mode": 420,
+        "link": null
+      },
+      "RB-3.0.typelib": {
+        "sha256": "dace7abc57e8e90bdf794ebdbf244c1abb277113f2b0292f15b59c0ff707e1ba",
+        "mode": 420,
+        "link": null
+      },
+      "Secret-1.typelib": {
+        "sha256": "69c0491fc5ae8b0b7b297d33288a80b7a6399db38288139764d1ae9ffae13f62",
+        "mode": 420,
+        "link": null
+      },
+      "TimezoneMap-1.0.typelib": {
+        "sha256": "1837b64ea472a3cded7c9c0d3e0b6bc2979d949d35a090322f1d033dad98a82c",
+        "mode": 420,
+        "link": null
+      },
+      "UPowerGlib-1.0.typelib": {
+        "sha256": "f017846ac6041e6831cb8112d59b2d0f7b32f791b79f7baf21b82a11dcd69a77",
+        "mode": 420,
+        "link": null
+      },
+      "Vte-2.91.typelib": {
+        "sha256": "363bced52259d0d355cd9c654253972f12ec3659bfa20f7396dd720dc9a0d4b6",
+        "mode": 420,
+        "link": null
+      },
+      "Vulkan-1.0.typelib": {
+        "sha256": "c90a6028c5b4903ca95569cce7068138396c68d86a7d029755efc97c8b7b4640",
+        "mode": 420,
+        "link": null
+      },
+      "Wnck-3.0.typelib": {
+        "sha256": "43549069574e6ca059b04245c701af25380227c53f5b1f22700769d8cd047a93",
+        "mode": 420,
+        "link": null
+      },
+      "Xkl-1.0.typelib": {
+        "sha256": "2ab9646a34f4e7d39371a1036f37514d478329e9f4383a4963d53455acbcb990",
+        "mode": 420,
+        "link": null
+      },
+      "cairo-1.0.typelib": {
+        "sha256": "6a0d6b4c8ae23d2690f83d3aa49a74abc298bcc6f7fd6c2b89fcc134c4f966dd",
+        "mode": 420,
+        "link": null
+      },
+      "fontconfig-2.0.typelib": {
+        "sha256": "841e0672dc9432d116c34058ca6b6fd439817800de34943d32e149bde71368d7",
+        "mode": 420,
+        "link": null
+      },
+      "freetype2-2.0.typelib": {
+        "sha256": "77695d83d33b8f84f252b7c0e05adced1e9feb3b3a43431f0be8b0fc53d2343a",
+        "mode": 420,
+        "link": null
+      },
+      "libxml2-2.0.typelib": {
+        "sha256": "428ea3f8b393c44b7682acdcad718d5f6dc87ca6adc6417af06e3f22d8f2aa1b",
+        "mode": 420,
+        "link": null
+      },
+      "xfixes-4.0.typelib": {
+        "sha256": "e55b4e0489c9aac5c7f055f4a1b40e0f92417e0db7c02d1611d342a3396c0890",
+        "mode": 420,
+        "link": null
+      },
+      "xft-2.0.typelib": {
+        "sha256": "aa4e253474c1084af97eeec58108590488d2b4e82cf9d37c57160c01e6480a6e",
+        "mode": 420,
+        "link": null
+      },
+      "xlib-2.0.typelib": {
+        "sha256": "4450fa0426b410db5a219f64b4e0d7f9b0be17ae81b9a6947045aeaacf417f91",
+        "mode": 420,
+        "link": null
+      },
+      "xrandr-1.3.typelib": {
+        "sha256": "860b43fd4ff40bae47b48111ff49d432acf96c0211a95b26df5ae8c32179591e",
+        "mode": 420,
+        "link": null
+      },
+      "XApp-1.0.typelib": {
+        "sha256": "6a47b387bc36ef2e7cd333dcf86cd2b61660fd569185c108da19354bbd4cc2be",
+        "mode": 420,
+        "link": null
+      },
+      "GTop-2.0.typelib": {
+        "sha256": "ed0ff239fbe949d1a89aebe28b245382d4273b859032ec6714a50cdb56d86a09",
+        "mode": 420,
+        "link": null
+      },
+      "ECal-2.0.typelib": {
+        "sha256": "519700a6b4bc2d3623e382dbf9a25be316232d544c75b5fad571b5c906cbd735",
+        "mode": 420,
+        "link": null
+      },
+      "EDataServer-1.2.typelib": {
+        "sha256": "22243011fce0cff775f18aa07db9e9e0855f452e115225d2d4efd6c18547770c",
+        "mode": 420,
+        "link": null
+      },
+      "Camel-1.2.typelib": {
+        "sha256": "2696056a3cf5ace1730a201ea84d7a9df4a281fd8cf1dfa3801a7d991fe34025",
+        "mode": 420,
+        "link": null
+      },
+      "GdkPixbuf-2.0.typelib": {
+        "sha256": "e0dd4e5ee413492c7af2d1953375d65a102d0b3a7dcb30bbc1311db82613ad24",
+        "mode": 420,
+        "link": null
+      },
+      "GdkPixdata-2.0.typelib": {
+        "sha256": "fd90a5ff14cc75b71ba1f29a0799b8194d571e28d8bb3f19edbf853596590373",
+        "mode": 420,
+        "link": null
+      },
+      "Xmlb-2.0.typelib": {
+        "sha256": "c2c7da4cf85cf2527297e468e35a85908037747299473979a11c2a9c829c2a99",
+        "mode": 420,
+        "link": null
+      },
+      "AyatanaIdo3-0.4.typelib": {
+        "sha256": "5cdc7908f3200dad62c964137a398b3fa3a91d20bd02de9e27913570327c5316",
+        "mode": 420,
+        "link": null
+      },
+      "AccountsService-1.0.typelib": {
+        "sha256": "0f9569debc8db85adf15afdcdb51f911014847bdf3a880b550a001f48b4401c2",
+        "mode": 420,
+        "link": null
+      },
+      "NM-1.0.typelib": {
+        "sha256": "107d9056cf9cdede8e25984acdb399947a150833d08204b76686247f37db4245",
+        "mode": 420,
+        "link": null
+      },
+      "WebKit2-4.1.typelib": {
+        "sha256": "ceff1c359dc9d3923debd2b1f6de9ae37bdffb28bfb0736c5070529455886245",
+        "mode": 420,
+        "link": null
+      },
+      "WebKit2WebExtension-4.1.typelib": {
+        "sha256": "6b649a7bc5b0de451e832acd2f2bd4be6d5c5c54fd2ba75ba0665e3e23c55848",
+        "mode": 420,
+        "link": null
+      },
+      "JavaScriptCore-4.1.typelib": {
+        "sha256": "40edbb1fe71a964067e9bf607bace29c9ced456ac6c7c5dfb5c1c2de824b5428",
+        "mode": 420,
+        "link": null
+      },
+      "UDisks-2.0.typelib": {
+        "sha256": "39fa482a3a99963f27d766fb2b4050681edf461ee022ffda07acb74aca922d18",
+        "mode": 420,
+        "link": null
+      },
+      "Polkit-1.0.typelib": {
+        "sha256": "5bad83f910b5d9e3fb0a1b3acecf667dddf6608d23d4e34e0152964ddccf9fec",
+        "mode": 420,
+        "link": null
+      },
+      "PolkitAgent-1.0.typelib": {
+        "sha256": "c2ab85a8f36ed94434b6a297c9ebf1acd3df6fdf4b15bb90b657494b0e8012de",
+        "mode": 420,
+        "link": null
+      },
+      "XreaderDocument-1.5.typelib": {
+        "sha256": "4088b4c5b6cbc1ab8ece19149327a8b544c72ffb6d3adc3a435df9e406718cb8",
+        "mode": 420,
+        "link": null
+      },
+      "XreaderView-1.5.typelib": {
+        "sha256": "a53b17f5e9608972f1e647dfe0cb3045878261deab060dbb8f347c3d9bada725",
+        "mode": 420,
+        "link": null
+      },
+      "GstAllocators-1.0.typelib": {
+        "sha256": "fef603fe397ecc623df711e88d9e7b8e6c762c35e17981fb29d621739bc3ea6c",
+        "mode": 420,
+        "link": null
+      },
+      "GstApp-1.0.typelib": {
+        "sha256": "07f2a7e9ab64d79c6a8d6b5566712953e10fdaf2d3227ea65caf6a3527ea0974",
+        "mode": 420,
+        "link": null
+      },
+      "GstAudio-1.0.typelib": {
+        "sha256": "6c869d1e883f254c1091bafe6872de84fcfc79657e73a5cf4bccf42a62fe2144",
+        "mode": 420,
+        "link": null
+      },
+      "GstGL-1.0.typelib": {
+        "sha256": "aa330b952c9dddeb7df2ff927e9300033be9c55a07e89105c3033a61cb42645a",
+        "mode": 420,
+        "link": null
+      },
+      "GstGLEGL-1.0.typelib": {
+        "sha256": "b11ee56448a658b03a341d070d6ddac4cb63d142eccc961549f4e34d2606f2b2",
+        "mode": 420,
+        "link": null
+      },
+      "GstGLWayland-1.0.typelib": {
+        "sha256": "3ca5a334e3aa031312def59ae6fe69ddadc21b8b556f72c650c9ddaf02fc1a38",
+        "mode": 420,
+        "link": null
+      },
+      "GstGLX11-1.0.typelib": {
+        "sha256": "fb1dc2b26acc59a739e6b617d0a7cc46eed0d573a20ef4706b67d85a2321ef9e",
+        "mode": 420,
+        "link": null
+      },
+      "GstPbutils-1.0.typelib": {
+        "sha256": "6e884adbfb3f4ddad01ce9ca5c1f3de4566d7943cf1a1e335bcc8b89a192d11c",
+        "mode": 420,
+        "link": null
+      },
+      "GstRtp-1.0.typelib": {
+        "sha256": "0987b393610cc6aa35511953ae4ba4a2dbd4ba621346f0fbdf0c463344f5276c",
+        "mode": 420,
+        "link": null
+      },
+      "GstRtsp-1.0.typelib": {
+        "sha256": "778b5a38607992176c75e59dc2aad510d360415405e4a1fde0f0c6a055cbd6ea",
+        "mode": 420,
+        "link": null
+      },
+      "GstSdp-1.0.typelib": {
+        "sha256": "9effc985eacef6c189a0053f9fd4e326fcd7b0312d3b018bcf568283c9324994",
+        "mode": 420,
+        "link": null
+      },
+      "GstTag-1.0.typelib": {
+        "sha256": "206aa07d7bc4f8b50831ad920e9fc1a49236929086a3795967256761c8260f3a",
+        "mode": 420,
+        "link": null
+      },
+      "GstVideo-1.0.typelib": {
+        "sha256": "976ffa4a5c07ea163648c249ae0a3ce1a8d5f61745afd6f037f393cd80dd00ac",
+        "mode": 420,
+        "link": null
+      },
+      "Rsvg-2.0.typelib": {
+        "sha256": "b0e60435175a2b246cf013a54f2361f897a5c4be3be1657a6d935f7117d8d8af",
+        "mode": 420,
+        "link": null
+      },
+      "GLib-2.0.typelib": {
+        "sha256": "7959062e30ce9b0e6dcad631d61272d6e5ade7abf73e6fb29065276ba4592809",
+        "mode": 420,
+        "link": null
+      },
+      "GLibUnix-2.0.typelib": {
+        "sha256": "565a61e3657b23ed7925bf4242137e047c3b562b52608bfc611a6d1a3f1ab1da",
+        "mode": 420,
+        "link": null
+      },
+      "GModule-2.0.typelib": {
+        "sha256": "07e643cc1fcb9210c1ffd5eb243e2e9cbab05fa3ef25a65e0f083f291cf1ede9",
+        "mode": 420,
+        "link": null
+      },
+      "GObject-2.0.typelib": {
+        "sha256": "25b6c3aa94daa1fe93a47ae7ba97e7e248b810384812a8dfa84772ee99cc82eb",
+        "mode": 420,
+        "link": null
+      },
+      "Gio-2.0.typelib": {
+        "sha256": "e49bc20f64bd49c6f4b138e8292a2ef4f61f0e41b4feb10fec73bb0567f146be",
+        "mode": 420,
+        "link": null
+      },
+      "GioUnix-2.0.typelib": {
+        "sha256": "df9a26e63c34efb0819a92e5eb534ceb64c436f71393f742ba10bdcc9460e90e",
+        "mode": 420,
+        "link": null
+      },
+      "Soup-2.4.typelib": {
+        "sha256": "a808bf57b64fdb156a5578a73b27c55c52449fc3849bc7b10e0a7e55a467cb6d",
+        "mode": 420,
+        "link": null
+      },
+      "SoupGNOME-2.4.typelib": {
+        "sha256": "c91ca9eb3eba4981e39b243b0576b25f63cd834269e6e5be193dddc1301d5aae",
+        "mode": 420,
+        "link": null
+      },
+      "Soup-3.0.typelib": {
+        "sha256": "b15149d668a4c683753a3f2a94ff030d294bb5b2e9af701e501f82c7f2605f1d",
+        "mode": 420,
+        "link": null
+      }
+    },
+    "dso": "e70a812a634058a0e955703c2ce2b07649fce006aacab2c6f203535abd4176c5",
+    "true": "8a63c98320173f79e263115e10cefc170155e47d1fd4b5a70e4429d2699cae28",
+    "dpkgStatus": "b5a597bf504882666ea78de448e4683686f4e34616c747ed37e9b0e3894d12c8"
+  },
+  "runtimeCLI_SHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+  "guardSHA256": "cf677f9be88095a27423ceedb9db2b85667f7775d167857cfb52002ff5dda520",
+  "noOwnRemainingProcesses": true,
+  "remainingOwnPIDs": [],
+  "workingBytes": 232667808,
+  "networkPackageDownloadBytes": 26266,
+  "productPackageExtractedOnly": true
+}

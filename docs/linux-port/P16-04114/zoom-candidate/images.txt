@@ -1,0 +1,2 @@
+[pmt-linux-gui-builder:latest] sha256:170d09bd43bdcb3b004493b90a45f9d9a07c2be28d0d9ac22137ebf757de000b
+[pmt-linux-gui-test:latest] sha256:e62668d624b35698964d0e0146fb4e563cbe68758973ea4a424f9a538cd37949

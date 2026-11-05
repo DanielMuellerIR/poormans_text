@@ -1,3 +1,4 @@
+use crate::source_canvas::{SourceCanvas, Zoom};
 use crate::{
     Shared, cli_path, label,
     model::{OutputFile, tr},
@@ -145,7 +146,10 @@ pub(crate) struct Pane {
     size: u64,
     navigate: Navigation,
     validate: Validation,
-    picture: gtk::Picture,
+    picture: SourceCanvas,
+    viewport: gtk::ScrolledWindow,
+    zoom_buttons: Vec<gtk::Button>,
+    zoom_status: gtk::Label,
     status: gtk::Label,
     counter: gtk::Label,
     previous: gtk::Button,
@@ -214,18 +218,62 @@ impl Pane {
             button.set_sensitive(false);
         }
         widget.append(&buttons);
-        let picture = gtk::Picture::builder()
-            .can_shrink(true)
-            .content_fit(gtk::ContentFit::Contain)
-            .vexpand(true)
+        let zoom_controls = gtk::FlowBox::builder()
+            .selection_mode(gtk::SelectionMode::None)
+            .row_spacing(6)
+            .column_spacing(6)
+            .min_children_per_line(1)
+            .max_children_per_line(2)
             .build();
-        widget.append(&picture);
+        let zoom_buttons = vec![
+            gtk::Button::with_label(tr("Anpassen", "Fit")),
+            gtk::Button::with_label("100%"),
+            gtk::Button::with_label("−"),
+            gtk::Button::with_label("+"),
+        ];
+        for (button, title) in zoom_buttons.iter().zip([
+            tr("Anpassen", "Fit"),
+            tr(
+                "Ein Vorschaupixel pro logischem Pixel",
+                "One preview pixel per logical pixel",
+            ),
+            tr("Verkleinern", "Zoom out"),
+            tr("Vergrößern", "Zoom in"),
+        ]) {
+            button.set_tooltip_text(Some(title));
+            button.update_property(&[gtk::accessible::Property::Label(title)]);
+            button.set_sensitive(false);
+        }
+        for pair in zoom_buttons.chunks(2) {
+            let group = gtk::Box::new(gtk::Orientation::Horizontal, 6);
+            group.set_homogeneous(true);
+            for button in pair {
+                group.append(button);
+            }
+            zoom_controls.insert(&group, -1);
+        }
+        widget.append(&zoom_controls);
+        let zoom_status = label("—");
+        widget.append(&zoom_status);
+        let picture = SourceCanvas::new();
+        picture.update_property(&[gtk::accessible::Property::Label(tr(
+            "Geprüfte Quellseite oder Quellbild",
+            "Verified source page or frame",
+        ))]);
+        let viewport = gtk::ScrolledWindow::builder()
+            .hscrollbar_policy(gtk::PolicyType::Automatic)
+            .vscrollbar_policy(gtk::PolicyType::Automatic)
+            .hexpand(true)
+            .vexpand(true)
+            .child(&picture)
+            .build();
+        widget.append(&viewport);
         let status = label(tr(
             "Quelle und Ergebnis müssen verifiziert sein.",
             "Source and result must be verified.",
         ));
         widget.append(&status);
-        widget.append(&label(tr("Maximal 1024 Pixel · ICC/XMP entfernt · Transparenz auf Weiß · PDF-Anmerkungen ausgelassen · keine aktiven Links oder Quellmarkierungen.","At most 1024 pixels · ICC/XMP removed · transparency on white · PDF annotations omitted · no active links or source-box highlights.")));
+        widget.append(&label(tr("PNG-Vorschau: maximal 1024 Pixel je Kante · Zoom vergrößert nur diese Vorschau · ICC/XMP entfernt · Transparenz auf Weiß · keine PDF-Anmerkungen, aktiven Links oder Quellmarkierungen.","Preview PNG: at most 1024 pixels per edge · zoom enlarges this preview only · ICC/XMP removed · transparency on white · no PDF annotations, active links or source-box highlights.")));
         let pane = Self {
             widget,
             state: Rc::new(RefCell::new(State {
@@ -258,6 +306,9 @@ impl Pane {
             navigate: Rc::new(RefCell::new(None)),
             validate: Rc::new(RefCell::new(None)),
             picture,
+            viewport,
+            zoom_buttons,
+            zoom_status,
             status,
             counter,
             previous,
@@ -301,6 +352,41 @@ impl Pane {
             let button = pane.cancel.clone();
             let id = button.connect_clicked(move |_| pane.invalidate());
             handlers.borrow_mut().push((button.upcast(), id));
+        }
+        for (index, button) in pane.zoom_buttons.iter().enumerate() {
+            let owned = pane.clone();
+            let id = button.connect_clicked(move |_| {
+                if owned.picture.texture().is_none() {
+                    return;
+                }
+                let scale = match owned.picture.zoom() {
+                    Zoom::Scale(value) => value,
+                    Zoom::Fit => {
+                        let texture = owned.picture.texture().unwrap();
+                        (owned.viewport.hadjustment().page_size() / f64::from(texture.width())).min(
+                            owned.viewport.vadjustment().page_size() / f64::from(texture.height()),
+                        )
+                    }
+                };
+                let zoom = match index {
+                    0 => Zoom::Fit,
+                    1 => Zoom::Scale(1.0),
+                    2 if scale <= 0.25 => return,
+                    3 if scale >= 4.0 => return,
+                    2 => Zoom::Scale(scale / 1.25),
+                    _ => Zoom::Scale(scale * 1.25),
+                };
+                owned.picture.set_zoom(zoom);
+                owned.viewport.hadjustment().set_value(0.0);
+                owned.viewport.vadjustment().set_value(0.0);
+                owned.zoom_status.set_text(&match owned.picture.zoom() {
+                    Zoom::Fit => tr("Zoom · Anpassen", "Zoom · Fit").into(),
+                    Zoom::Scale(v) => format!("Zoom · {:.0}%", v * 100.0),
+                });
+            });
+            pane.handlers
+                .borrow_mut()
+                .push((button.clone().upcast(), id));
         }
         {
             let pane = pane.clone();
@@ -371,7 +457,11 @@ impl Pane {
         if let Some(job) = &s.active {
             job.cancel();
         }
-        self.picture.set_paintable(None::<&gdk::Texture>);
+        self.picture.set_texture(None);
+        for button in &self.zoom_buttons {
+            button.set_sensitive(false);
+        }
+        self.zoom_status.set_text("—");
         self.previous.set_sensitive(false);
         self.next.set_sensitive(false);
         self.cancel.set_sensitive(s.active.is_some());
@@ -402,6 +492,19 @@ impl Pane {
         let idle = self.state.borrow().active.is_none();
         if idle {
             crate::model::disconnect_handlers(&self.handlers);
+        }
+        #[cfg(feature = "ui-self-test")]
+        if idle && std::env::var_os("PMT_UI_TEST_BOUND_ERROR").is_some() {
+            assert!(self.picture.texture().is_none());
+            let window = self.window.downgrade();
+            let canvas = self.picture.downgrade();
+            glib::timeout_add_local_once(Duration::from_millis(350), move || {
+                assert!(window.upgrade().is_none());
+                assert!(canvas.upgrade().is_none());
+                eprintln!(
+                    "PMT_UI_TEST_BOUND_ERROR_CANVAS_RELEASE window-canvas-dropped-no-texture"
+                );
+            });
         }
         idle
     }
@@ -478,7 +581,11 @@ impl Pane {
             .raster_jobs
             .push((id, job.handle.clone()));
         self.state.borrow_mut().active = Some(job.handle);
-        self.picture.set_paintable(None::<&gdk::Texture>);
+        self.picture.set_texture(None);
+        for button in &self.zoom_buttons {
+            button.set_sensitive(false);
+        }
+        self.zoom_status.set_text("—");
         self.previous.set_sensitive(false);
         self.next.set_sensitive(false);
         self.cancel.set_sensitive(true);
@@ -530,7 +637,14 @@ impl Pane {
                                             if texture.width() == checked.width as i32
                                                 && texture.height() == checked.height as i32 =>
                                         {
-                                            pane.picture.set_paintable(Some(&texture));
+                                            pane.picture.set_texture(Some(&texture));
+                                            for button in &pane.zoom_buttons {
+                                                button.set_sensitive(true);
+                                            }
+                                            pane.zoom_status
+                                                .set_text(tr("Zoom · Anpassen", "Zoom · Fit"));
+                                            pane.viewport.hadjustment().set_value(0.0);
+                                            pane.viewport.vadjustment().set_value(0.0);
                                             let mut s = pane.state.borrow_mut();
                                             s.index = index;
                                             s.count = checked.count;
@@ -559,7 +673,7 @@ impl Pane {
                             }
                         }
                         #[cfg(feature = "ui-self-test")]
-                        pane.test_finished(index, apply && pane.picture.paintable().is_some());
+                        pane.test_finished(index, apply && pane.picture.texture().is_some());
                         let closing = pane.state.borrow().closing;
                         if closing {
                             pane.window.close();
@@ -598,7 +712,155 @@ impl Pane {
 
 #[cfg(feature = "ui-self-test")]
 impl Pane {
+    fn test_zoom(&self) {
+        let pane = self.clone();
+        let texture = self.picture.texture().unwrap();
+        let generation = self.state.borrow().generation;
+        let mut step = 0;
+        self.window.set_default_size(1100, 850);
+        glib::timeout_add_local(Duration::from_millis(700), move || {
+            assert_eq!(
+                pane.state.borrow().generation,
+                generation,
+                "zoom started a preview request"
+            );
+            assert!(
+                pane.state.borrow().active.is_none() && pane.root.borrow().raster_jobs.is_empty()
+            );
+            assert_eq!(pane.picture.texture().as_ref(), Some(&texture));
+            match step {
+                0 => pane.zoom_buttons[0].emit_clicked(),
+                2 => pane.zoom_buttons[1].emit_clicked(),
+                4 => {
+                    for _ in 0..20 {
+                        pane.zoom_buttons[3].emit_clicked();
+                    }
+                }
+                6 => {
+                    let h = pane.viewport.hadjustment();
+                    let v = pane.viewport.vadjustment();
+                    h.set_value(h.upper() - h.page_size());
+                    v.set_value(v.upper() - v.page_size());
+                }
+                8 => {
+                    pane.window.set_default_size(700, 700);
+                }
+                10 => {
+                    for _ in 0..30 {
+                        pane.zoom_buttons[2].emit_clicked();
+                    }
+                }
+                12 => {
+                    pane.zoom_buttons[0].emit_clicked();
+                }
+                14 => {
+                    pane.window.set_default_size(1200, 900);
+                }
+                16 => {
+                    let weak_window = pane.window.downgrade();
+                    let weak_canvas = pane.picture.downgrade();
+                    let weak_texture = texture.downgrade();
+                    let parent = pane.parent.clone();
+                    pane.window.close();
+                    glib::timeout_add_local_once(Duration::from_millis(500), move || {
+                        assert!(parent.is_visible());
+                        assert!(weak_window.upgrade().is_none());
+                        assert!(weak_canvas.upgrade().is_none());
+                        assert!(weak_texture.upgrade().is_none());
+                        eprintln!("PMT_UI_TEST_ZOOM_RELEASE window-canvas-texture-dropped");
+                        parent.close();
+                    });
+                    return glib::ControlFlow::Break;
+                }
+                _ => {
+                    let (x, y, w, h) = pane.picture.rectangle();
+                    let cw = f64::from(pane.picture.width());
+                    let ch = f64::from(pane.picture.height());
+                    assert!(cw > 0.0 && ch > 0.0 && x >= -0.01 && y >= -0.01);
+                    let zoom = pane.picture.zoom();
+                    match zoom {
+                        Zoom::Fit => {
+                            assert!(x + w <= cw + 0.01 && y + h <= ch + 0.01);
+                            assert!(
+                                (w / h - f64::from(texture.width()) / f64::from(texture.height()))
+                                    .abs()
+                                    < 0.0001
+                            );
+                        }
+                        Zoom::Scale(scale) => {
+                            assert!((w - f64::from(texture.width()) * scale).abs() < 0.01);
+                            assert!((h - f64::from(texture.height()) * scale).abs() < 0.01);
+                        }
+                    }
+                    if step == 3 {
+                        assert_eq!(zoom, Zoom::Scale(1.0));
+                    }
+                    if step == 5 {
+                        assert_eq!(zoom, Zoom::Scale(4.0));
+                        assert!(
+                            pane.viewport.hadjustment().upper()
+                                > pane.viewport.hadjustment().page_size()
+                        );
+                    }
+                    if step == 7 {
+                        assert!(
+                            pane.viewport.hadjustment().value() > 0.0
+                                && pane.viewport.vadjustment().value() > 0.0
+                        );
+                    }
+                    if step == 9 {
+                        assert_eq!(zoom, Zoom::Scale(4.0));
+                        assert!(pane.window.width() <= 710);
+                        assert!(
+                            pane.viewport.hadjustment().value()
+                                <= pane.viewport.hadjustment().upper()
+                                    - pane.viewport.hadjustment().page_size()
+                        );
+                    }
+                    if step == 11 {
+                        assert_eq!(zoom, Zoom::Scale(0.25));
+                    }
+                    if step == 13 {
+                        if w / f64::from(texture.width()) < 0.25 {
+                            pane.zoom_buttons[2].emit_clicked();
+                            assert_eq!(
+                                pane.picture.zoom(),
+                                Zoom::Fit,
+                                "zoom out must not enlarge a small fitted preview"
+                            );
+                        }
+                        assert!(
+                            pane.window.width() <= 710,
+                            "narrow comparison did not shrink: {}",
+                            pane.window.width()
+                        );
+                        assert_eq!(pane.viewport.hadjustment().value(), 0.0);
+                        assert_eq!(pane.viewport.vadjustment().value(), 0.0);
+                    }
+                    eprintln!(
+                        "PMT_UI_TEST_ZOOM_STAGE {step} window={}x{} canvas={}x{} rect={x},{y},{w},{h} scroll={},{} zoom={zoom:?} device={}",
+                        pane.window.width(),
+                        pane.window.height(),
+                        pane.picture.width(),
+                        pane.picture.height(),
+                        pane.viewport.hadjustment().value(),
+                        pane.viewport.vadjustment().value(),
+                        pane.picture.scale_factor()
+                    );
+                }
+            }
+            step += 1;
+            glib::ControlFlow::Continue
+        });
+    }
     fn test_finished(&self, index: u32, displayed: bool) {
+        if std::env::var_os("PMT_UI_TEST_RASTER_ZOOM").is_some() {
+            if displayed && self.state.borrow().test_stage == 0 {
+                self.state.borrow_mut().test_stage = 255;
+                self.test_zoom();
+            }
+            return;
+        }
         if self.bound_input.is_bound() && std::env::var_os("PMT_UI_TEST_BOUND_SOURCE").is_some() {
             if displayed && std::env::var_os("PMT_UI_TEST_BOUND_RELEASE").is_some() {
                 use std::os::unix::fs::MetadataExt;
@@ -609,7 +871,8 @@ impl Pane {
                     (m.dev(), m.ino())
                 };
                 let weak_window = self.window.downgrade();
-                let weak_texture = self.picture.paintable().unwrap().downgrade();
+                let weak_texture = self.picture.texture().unwrap().downgrade();
+                let weak_canvas = self.picture.downgrade();
                 let before = std::fs::read_dir("/proc/self/fd")
                     .unwrap()
                     .filter_map(Result::ok)
@@ -642,6 +905,10 @@ impl Pane {
                     assert!(
                         weak_window.upgrade().is_none(),
                         "closed comparison still has widget reference cycles"
+                    );
+                    assert!(
+                        weak_canvas.upgrade().is_none(),
+                        "closed comparison retained its raster canvas"
                     );
                     assert!(
                         weak_texture.upgrade().is_none(),
@@ -694,7 +961,7 @@ impl Pane {
             }
         } else if stage == 1 {
             assert!(!displayed);
-            assert!(self.picture.paintable().is_none());
+            assert!(self.picture.texture().is_none());
             assert!(self.root.borrow().raster_jobs.is_empty());
             eprintln!("PMT_UI_TEST_RASTER_CANCEL cleanup-barrier-no-stale-texture");
             self.state.borrow_mut().test_stage = 2;
@@ -717,7 +984,7 @@ impl Pane {
             });
         } else if stage == 4 {
             assert!(!displayed);
-            assert!(self.picture.paintable().is_none());
+            assert!(self.picture.texture().is_none());
             assert!(self.root.borrow().raster_jobs.is_empty());
             let original = self.state.borrow_mut().original.take().unwrap();
             std::fs::write(&self.source, original).unwrap();

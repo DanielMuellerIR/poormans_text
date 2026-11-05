@@ -8,7 +8,7 @@
 
 ## Linux development preview
 
-The Linux CLI preview now includes local PDF extraction, standard OCR, raster images and a limited RTFD path alongside the shared document parsers. An optional native GTK preview calls the same CLI; legacy DOC uses explicitly isolated LibreOffice/UNO. HEIC is optional through the installed local libheif HEVC decoder; structured OCR remains unavailable; PDF layout and RTFD attachment limits are explicit. The passive GTK source comparison shows PDF pages and image frames beside verified UTF8 references; clipboard originals remain bound to sealed memory files. See [Linux build, dependencies and limits](docs/LINUX-BUILD.md).
+The Linux CLI preview now includes local PDF extraction, standard OCR, raster images and a limited RTFD path alongside the shared document parsers. An optional native GTK preview calls the same CLI; legacy DOC uses explicitly isolated LibreOffice/UNO. HEIC is optional through the installed local libheif HEVC decoder; structured OCR remains unavailable; PDF layout and RTFD attachment limits are explicit. The passive GTK source comparison shows PDF pages and image frames with fit/100%/percentage zoom beside verified UTF8 references; clipboard originals remain bound to sealed memory files. See [Linux build, dependencies and limits](docs/LINUX-BUILD.md).
 
 <p align="center">
   <strong>Convert documents, spreadsheets, PDFs, and images to Markdown.</strong>
@@ -121,7 +121,7 @@ Download the DMG and its `.sha256` file from the
 directory, verify the download before opening it:
 
 ```sh
-shasum -a 256 -c Poor-Mans-Text-0.41.13.dmg.sha256
+shasum -a 256 -c Poor-Mans-Text-0.41.14.dmg.sha256
 ```
 
 Open the DMG and drag Poor Man's Text to Applications. The app is signed with
@@ -668,7 +668,7 @@ and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compa
 their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current version is 0.41.13.
+The current version is 0.41.14.
 
 ## License
 

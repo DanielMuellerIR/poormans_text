@@ -1,0 +1,10 @@
+{
+  "containerRemoved": true,
+  "containerExitedWith": 0,
+  "privateTempEntriesAfterReplay": [],
+  "ownConsumerCopyRemoved": true,
+  "ownProfilesRemoved": true,
+  "originalConsumerHashBeforeAndAfter": "ebb3feacdbab5b4ddf221b54b092697eb142d68f18cc6e84d03be29a5df2f061",
+  "producerCLIHashBeforeAndAfter": "8abc9197eeced8df043d788e349acb553bd86dd81546a6fda1faf15a93bac0cb",
+  "runtimeMountsReadOnly": true
+}

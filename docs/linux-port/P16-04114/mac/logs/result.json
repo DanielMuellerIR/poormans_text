@@ -1,0 +1,82 @@
+{
+  "startedUTC": "2026-11-05T06:29:50.561188+00:00",
+  "stages": [
+    {
+      "stage": "environment",
+      "exit": 0,
+      "seconds": 0.262,
+      "log": "environment.log"
+    },
+    {
+      "stage": "build-poormans-text",
+      "exit": 0,
+      "seconds": 13.567,
+      "log": "build-poormans-text.log"
+    },
+    {
+      "stage": "build-PoorMansTextApp",
+      "exit": 0,
+      "seconds": 7.626,
+      "log": "build-PoorMansTextApp.log"
+    },
+    {
+      "stage": "arch-check",
+      "exit": 1,
+      "seconds": 0.012,
+      "log": "arch-check.log"
+    },
+    {
+      "stage": "environment",
+      "exit": 0,
+      "seconds": 0.09,
+      "log": "environment.log"
+    },
+    {
+      "stage": "arch-check-poormans-text",
+      "exit": 0,
+      "seconds": 0.012,
+      "log": "arch-check-poormans-text.log"
+    },
+    {
+      "stage": "arch-check-PoorMansTextApp",
+      "exit": 0,
+      "seconds": 0.012,
+      "log": "arch-check-PoorMansTextApp.log"
+    },
+    {
+      "stage": "tests",
+      "exit": 0,
+      "seconds": 10.992,
+      "log": "tests.log"
+    },
+    {
+      "stage": "cli-version",
+      "exit": 0,
+      "seconds": 0.321,
+      "log": "cli-version.log"
+    }
+  ],
+  "isolation": {
+    "guiStarted": false,
+    "installation": false,
+    "arch": "arm64"
+  },
+  "source": {
+    "version": "0.41.14",
+    "build": "99",
+    "sourceTreeSHA256": "d9f405aea7cd3521c992a990eda53705ca4af0a396741c8eb437e5f4748c5949",
+    "archiveSHA256": "f6ffa411ac2442f57e269f029a745b823418c77621991742c92d8c63ca1e6ffc"
+  },
+  "archiveSHA256": "f6ffa411ac2442f57e269f029a745b823418c77621991742c92d8c63ca1e6ffc",
+  "verifiedFiles": 337,
+  "cliSHA256": "d4a7f86fb325683bece1909ed47d6465a0a03b1adbd27af278258b5ad45d3ff5",
+  "appSHA256": "a28ba2808ee0d86474d0d0d4373ee6e11119f14d7c868df645cf4de58fb25713",
+  "finished": true,
+  "seconds": 11.867,
+  "endedUTC": "2026-11-05T06:31:03.526367+00:00",
+  "initialHarnessFailure": "arch-check exited 1",
+  "version": "Poor Man's Text 0.41.14",
+  "CFBundleVersion": "99",
+  "appBuiltNotLaunched": true,
+  "sourceFilesUnchanged": true
+}

@@ -20,12 +20,14 @@ zlib und Swift Crypto tragen den gemeinsamen Parser-/Berichtspfad; Apple-Adapter
 bleiben auf macOS. Statische PNGs werden auf Linux direkt mit libpng geprüft;
 weitere freigegebene Rasterformate verwenden einen begrenzten lokalen Pillowprozess.
 Seit 0.41.9 liefern externe Python-/GI-Poppler-/Cairo- und Tesseract-Adapter PDF und
-Standard-OCR. RTFD nutzt verifizierte lokale statische PNGs und den vorhandenen
-RTF-/Pandoc-Pfad. Seit 0.41.10 verwendet Legacy-DOC einen isolierten LibreOffice-/UNO-Ladevertrag; strukturierte OCR bleibt ausdrücklich unverfügbar.
+Standard-OCR. RTFD nutzt verifizierte lokale statische Rasteranhänge und den vorhandenen
+RTF-/Pandoc-Pfad; der tatsächliche Decoderformattyp muss zur Endung passen und
+genau ein Frame vorliegen. Originalbytes bleiben erhalten. TIFF/HEIC besitzen
+einen ausdrücklichen Viewer-Kompatibilitätshinweis. Seit 0.41.10 verwendet Legacy-DOC einen isolierten LibreOffice-/UNO-Ladevertrag; strukturierte OCR bleibt ausdrücklich unverfügbar.
 Details und Grenzen stehen im [Backendbericht](linux-port/P09-P10-INTEGRATION.md).
 
 Der Linux-Prozessadapter verwendet Bubblewrap mit privatem PID-/Netz-Namespace,
-einem C-Guard als PID 1 und einem ausschließlich vom Runner gehaltenen
+einem separaten Prozessguard als PID 1 und einem ausschließlich vom Runner gehaltenen
 Lebensdauerkanal. pidfds binden Wrapper und Namespace-Ende vor dem Cleanup.
 Explizite Schreibbereiche, Eingaben und Captures werden über gehaltene FDs
 gebunden. Der Publikationsadapter hält Zielverzeichnisse und verwendet
@@ -33,6 +35,14 @@ renameat2(RENAME_NOREPLACE); ein ausgetauschter Elternpfad ergibt ESTALE und
 erhält das vollständige Ergebnis zur Wiederherstellung. macOS behält seine
 bisherigen Adapter. Build und Laufzeit stehen in [LINUX-BUILD.md](LINUX-BUILD.md),
 Produktprüfungen und Grenzen im [P05-Bericht](linux-port/P05-INTEGRATION.md).
+
+Der Linux-Quellvergleich verwendet die getrennte passive SourcePreview-Operation
+des Swift-Kerns. Sie liefert begrenzte PNGs samt Quellidentität und Hash, ohne
+Konvertierungsverzeichnis. Rust prüft den Transport vor GTK-Dekodierung und
+zeichnet dieselbe Textur für Fit/Prozentzoom; Zoom startet kein neues Backend.
+Clipboardoriginale liegen in versiegelten memfds und werden für Konvertierung,
+Profile und Vergleich an dieselbe private read-only Quelle gebunden. Die
+Jobbarriere geht der Freigabe von Eingaben, Captures und Texturen voraus.
 
 ## Heutige Modulgrenzen
 

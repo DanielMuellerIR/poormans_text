@@ -1,0 +1,9 @@
+{
+  "hostProfile": {
+    "exists": false,
+    "entries": 0,
+    "metadataSHA256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  "true": "8a63c98320173f79e263115e10cefc170155e47d1fd4b5a70e4429d2699cae28",
+  "dpkgStatus": "b5a597bf504882666ea78de448e4683686f4e34616c747ed37e9b0e3894d12c8"
+}

@@ -67,7 +67,7 @@ bereitgestellte Fixture-/Konvertierungswerkzeug und wird nicht mit PMT gebündel
 
 ## Ergänzende gezielte Proben
 
-Mit den tatsächlichen Prozessrunner-/C-Guard-Quellen wurden nach der
+Mit den tatsächlichen Prozessrunner-/Guard-Quellen wurden nach der
 Capture-FD-Korrektur neun Prozessfälle, vier Scopefälle und zwei Austauschangriffe
 bestanden. Darunter Runner-/Wrapper-/Guard-SIGKILL, abgelöste Enkel, Capturelimit,
 literal übergebene Shellzeichen, readonly Quellen sowie ersetzte Capture-Namen.

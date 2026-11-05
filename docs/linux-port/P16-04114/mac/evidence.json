@@ -1,0 +1,24 @@
+{
+  "version": "0.41.14",
+  "CFBundleVersion": "99",
+  "nativeArchitecture": "arm64",
+  "sourceTreeSHA256": "d9f405aea7cd3521c992a990eda53705ca4af0a396741c8eb437e5f4748c5949",
+  "snapshotFiles": 337,
+  "snapshotFilesUnchanged": true,
+  "rootSelectedFilesChangedAfterSnapshot": [],
+  "ProductInfoTests": {
+    "executed": 5,
+    "failures": 0,
+    "skipped": 0
+  },
+  "CLIsha256": "d4a7f86fb325683bece1909ed47d6465a0a03b1adbd27af278258b5ad45d3ff5",
+  "AppExecutableSHA256": "a28ba2808ee0d86474d0d0d4373ee6e11119f14d7c868df645cf4de58fb25713",
+  "AppBuiltNotLaunched": true,
+  "globalCLIUsed": false,
+  "RosettaUsed": false,
+  "installed": false,
+  "notarized": false,
+  "knownOCRBaselineNotRepeated": true,
+  "sourceArchiveSHA256": "f6ffa411ac2442f57e269f029a745b823418c77621991742c92d8c63ca1e6ffc",
+  "remoteCleanupComplete": true
+}

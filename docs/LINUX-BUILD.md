@@ -56,7 +56,8 @@ Die Oberfläche ist ein dünner Rust-/GTK-Adapter derselben lokalen CLI. Sie bie
 Datei-/Ordnerauswahl, mehrere Quellen, Optionen, sichere Textvorschau,
 Fortschritt/Abbruch, Diagnosen, Assets, Clipboardformate und CLI-Profile.
 PDF-Seiten und Bildframes lassen sich passiv neben verifizierten UTF8-Referenzen
-vergleichen. Clipboardoriginale liegen bis 64 MiB in versiegelten memfds; die
+vergleichen; Anpassen und 25–400 % manueller Zoom verwenden dieselben begrenzten
+Vorschaupixel ohne neue Konvertierung. Clipboardoriginale liegen bis 64 MiB in versiegelten memfds; die
 gebundene private Quelle ist für Konvertierung, Profile und Vergleich dieselbe.
 Der gesamte private /dev-Baum ist für die äußere CLI schreibgeschützt.
 Die Vorschau führt weder HTML noch Links aus. Allgemeine GUI-Einstellungen

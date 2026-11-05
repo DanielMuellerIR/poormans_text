@@ -1,0 +1,42 @@
+{
+  "createdUTC": "2026-11-05T06:42:34.290185+00:00",
+  "version": "0.41.14",
+  "nativeMintLegacyDOC": true,
+  "checks": {
+    "normalDOC": true,
+    "knownRichMacroDOCSafeProductMode": true,
+    "originalPNGBytesEqual": true,
+    "independentTextMarkersExactlyOnce": true,
+    "twoListsEach": true,
+    "sourceManifestHashesVerified": true,
+    "hostProfileMetadataAndSystemUnchanged": true,
+    "ownRemoteRootRemoved": true,
+    "noOwnRemainingProcesses": true,
+    "workingBytes": 362598950,
+    "newDownloads": 0
+  },
+  "limits": [
+    "No new independent macro positive control",
+    "No DDE/remote-link positive control",
+    "No native .14 GUI/zoom claim",
+    "Package extraction only; not installation"
+  ],
+  "files": {
+    "README.md": "2e55cb770270598dd32236d2df7b6796c0a3424b49d63ebb213c36cd4fd6ce36",
+    "run_remote.py": "f0b61c746976f6ac0b4ab843a2b2ad22159ba77a8dd8199021cf8b91ade0417f",
+    "verify_inside.py": "324172092c144fd6310bccf521f5ca46fb1485f5210eaf5b87347d20db5ef342",
+    "finalize_remote.py": "a61dadf664ae7fac5bac306cbdec076029bb59e4d602ea92c0ec4e7c79d4b152",
+    "cleanup_remote.py": "fa22a803c031233e63f9c33de46873397fa2c7ce6453b97654e078c343d317dd",
+    "cleanup.json": "864f383fb3dc29ed09f7e28e5bbeebd20455e4585c3e04a78e314435eaae5613",
+    "remote-root.txt": "0da78cfd1cc9c90042ba54fb455f50eb698737b193754c15929a05fa78be8066",
+    "run.log": "368ae3b2735f5ccdf8970c0184cffd5274bf849614792f68e6e9ce1518cff05a",
+    "finalize.log": "78fe3bf0d291f878309cc95be79b7c1a088d0ecd23cc73b6c2385f81b67395e6",
+    "evidence/content-summary.json": "acf2928c186951d1b00910330a422496f16d1d5280248a028fc4b6ac3bde72e6",
+    "evidence/final-stability.json": "21f8e1e2027963b24364a2ce89482b06263aada4ca5098a45f2418f64994b87e",
+    "evidence/rich-safe-raw.json": "8e617643338045d29e0e1c8bf726dedff4fcb32b46140f1f332d19d506884fd1",
+    "evidence/normal-raw.json": "60070f6eea85a17aa8bc8df8f4a555f074a35f0abf83b348844b888a7019b873",
+    "evidence/doc-run.log": "d3f5e394b35eacd94f597d9c905f2b1043aaa4ee1b1ff31f371c9ab151272732",
+    "evidence/doc-results.json": "b009c255ccfaab1874daf2fa4f0464f6918d0cae971e11b9bf276b632fa60610",
+    "evidence/host-before.json": "5041f65065fcda6a1949a5f84524c424dafbaca01e14aa6d949e3971fd30b21b"
+  }
+}

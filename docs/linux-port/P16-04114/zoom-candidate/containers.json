@@ -1,0 +1,15 @@
+{
+  "ownNamedContainersAbsent": [
+    "pmt-raster-zoom-geometry",
+    "pmt-raster-zoom-geometry-final",
+    "pmt-raster-zoom-dpi2",
+    "pmt-raster-zoom-release",
+    "pmt-raster-zoom-error",
+    "pmt-zoom-acceptance",
+    "pmt-zoom-acceptance-dpi2",
+    "pmt-zoom-acceptance-release",
+    "pmt-zoom-acceptance-verify-error",
+    "pmt-zoom-acceptance-early-error"
+  ],
+  "remainingOwnNamedContainers": []
+}

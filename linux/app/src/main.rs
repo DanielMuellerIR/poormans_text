@@ -5,6 +5,7 @@ mod model;
 mod profiles;
 mod read_output;
 mod source_raster;
+mod source_canvas;
 use gtk::{gio, glib, prelude::*};
 use model::{Options, OutputFile, tr};
 use pmt_bridge::{Bridge, ErrorKind, Event, Job, JobHandle};
@@ -1022,8 +1023,11 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
                         };
                         if error_probe {
                             let mut value = (**file.context.as_ref().unwrap()).clone();
-                            value["outputFiles"][0]["byteCount"] =
-                                serde_json::json!(16 * 1024 * 1024 + 1);
+                            if std::env::var_os("PMT_UI_TEST_BOUND_VERIFY_ERROR").is_some() {
+                                value["outputFiles"][0]["sha256"] = serde_json::json!("0".repeat(64));
+                            } else {
+                                value["outputFiles"][0]["byteCount"] = serde_json::json!(16 * 1024 * 1024 + 1);
+                            }
                             file.context = Some(Arc::new(read_output::Context::new(value)));
                         }
                         next_state.borrow_mut().files = vec![file.clone()];
@@ -1044,7 +1048,7 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
                                     }
                                 }
                                 glib::timeout_add_local_once(
-                                    Duration::from_millis(50),
+                                    Duration::from_millis(450),
                                     move || {
                                         use std::os::unix::fs::MetadataExt;
                                         assert!(next_view.window.is_visible());
@@ -1149,7 +1153,7 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
                     }
                 }
                 for (flag, choice, values) in &view.controls.choices {
-                    if flag == "--pdf-ocr" {
+                    if flag == "--pdf-ocr" || flag == "--image-ocr" {
                         choice.set_selected(values.iter().position(|v| v == "off").unwrap() as u32);
                     }
                 }

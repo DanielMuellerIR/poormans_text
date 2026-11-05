@@ -1,0 +1,23 @@
+{
+  "result": {
+    "PopplerVersion": "24.02.0",
+    "cairoVersion": "1.18.0",
+    "giVersion": "3.48.2",
+    "typelibBindReadOnly": true,
+    "uid": 1000,
+    "namespaces": {
+      "user": "user:[4026532909]",
+      "pid": "pid:[4026532760]",
+      "net": "net:[4026532762]",
+      "mnt": "mnt:[4026532755]"
+    }
+  },
+  "hostNamespaces": {
+    "user": "user:[4026531837]",
+    "pid": "pid:[4026531836]",
+    "net": "net:[4026531833]",
+    "mnt": "mnt:[4026531832]"
+  },
+  "packageMetadata": "Version: 24.02.0-1ubuntu9.11\nArchitecture: amd64\n",
+  "typelibSHA256": "d2f07d8da7fbf142208e4abebfddb2863005c2d233bfb19b83210261cfda6ae9"
+}

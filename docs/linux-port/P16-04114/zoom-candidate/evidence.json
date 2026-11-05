@@ -1,0 +1,319 @@
+{
+  "sourceFiles": {
+    "source_raster.rs": {
+      "beforeSHA256": "6d719d144e79be4f1262f3ba23019882b2726aa20f3baa989a9cfb5147a60ff0",
+      "afterSHA256": "3b5e1ebf4b0501b4673c2f543bc3db6b46444c78ef1d0f3141fa4b9d5da303f9",
+      "rootUnchanged": true
+    },
+    "main.rs": {
+      "beforeSHA256": "3c7a0cccf480904ddce667eea7039e9d68f23e0e6882cc20e05e0957e8eeeeda",
+      "afterSHA256": "208c7e9e6059a55ef9bc1f21455337611a4d802c85bb0bd36034f7e1d9a2298e",
+      "rootUnchanged": true
+    },
+    "source_canvas.rs": {
+      "beforeSHA256": null,
+      "afterSHA256": "0f61b12199e8bcfc9448f4e74b940d821e0001fb285d4e4a6df0454807c928f6",
+      "rootUnchanged": true
+    }
+  },
+  "selfTestExecutableSHA256": "ab7e78fb273c7745d1fda339114e654a41905d7e499a3cb250fac29fe32ad93d",
+  "buildFlags": [
+    "cargo",
+    "build",
+    "--locked",
+    "--offline",
+    "--release",
+    "--jobs",
+    "4",
+    "-p",
+    "poormans-text-gtk",
+    "--features",
+    "ui-self-test"
+  ],
+  "RUSTFLAGS": "-C target-cpu=x86-64",
+  "productionBuildWithoutSelftest": "not run here; Root explicitly takes over after review/integration",
+  "CoreCLI_SHA256": "26470eaf5d0b474e7f164882683b339ffc63b75d20a3ecdd6856729883f8f460",
+  "CoreGuard_SHA256": "cf677f9be88095a27423ceedb9db2b85667f7775d167857cfb52002ff5dda520",
+  "unitTests": {
+    "passed": 35,
+    "failed": 0,
+    "flags": "cargo test --locked --offline --release --jobs 4 -p poormans-text-gtk --features ui-self-test"
+  },
+  "cases": [
+    {
+      "case": "acceptance",
+      "result": {
+        "exit": 0,
+        "stages": [
+          1,
+          3,
+          5,
+          7,
+          9,
+          11,
+          13,
+          15
+        ],
+        "sourceSHA256": "1f0264ed5b41673264a39c61a4d8c08250e128d6bb848dab060e81c7ef89e6fc",
+        "sourceUnchanged": true,
+        "GTKUsesSwiftLD": false
+      },
+      "stages": [
+        "PMT_UI_TEST_ZOOM_STAGE 1 window=1100x850 canvas=418x421 rect=0,53.75,418,313.5 scroll=0,0 zoom=Fit device=1",
+        "PMT_UI_TEST_ZOOM_STAGE 3 window=1100x850 canvas=1024x768 rect=0,0,1024,768 scroll=0,0 zoom=Scale(1.0) device=1",
+        "PMT_UI_TEST_ZOOM_STAGE 5 window=1100x850 canvas=4096x3072 rect=0,0,4096,3072 scroll=0,0 zoom=Scale(4.0) device=1",
+        "PMT_UI_TEST_ZOOM_STAGE 7 window=1100x850 canvas=4096x3072 rect=0,0,4096,3072 scroll=3678,2651 zoom=Scale(4.0) device=1",
+        "PMT_UI_TEST_ZOOM_STAGE 9 window=700x700 canvas=4096x3072 rect=0,0,4096,3072 scroll=3678,2651 zoom=Scale(4.0) device=1",
+        "PMT_UI_TEST_ZOOM_STAGE 11 window=700x700 canvas=261x192 rect=2.5,0,256,192 scroll=0,0 zoom=Scale(0.25) device=1",
+        "PMT_UI_TEST_ZOOM_STAGE 13 window=700x700 canvas=261x111 rect=56.5,0,148,111 scroll=0,0 zoom=Fit device=1",
+        "PMT_UI_TEST_ZOOM_STAGE 15 window=1200x900 canvas=457x471 rect=0,64.125,457,342.75 scroll=0,0 zoom=Fit device=1"
+      ],
+      "releaseMarkers": [
+        "PMT_UI_TEST_ZOOM_RELEASE window-canvas-texture-dropped"
+      ],
+      "outputManifestVerified": [
+        {
+          "byteCount": 44957,
+          "path": "images/image01.png",
+          "sha256": "1f0264ed5b41673264a39c61a4d8c08250e128d6bb848dab060e81c7ef89e6fc"
+        },
+        {
+          "byteCount": 40,
+          "path": "source.md",
+          "sha256": "ff5fe27fa07c782ccfa1fb3e5d9fa22fb0062c7c80c078baa8297aabb5b15c26"
+        }
+      ],
+      "sourceByteCount": 44957,
+      "sourceIdentity": {
+        "byteCount": 44957,
+        "name": "source.png",
+        "sha256": "1f0264ed5b41673264a39c61a4d8c08250e128d6bb848dab060e81c7ef89e6fc"
+      },
+      "screenshots": [
+        {
+          "path": "screenshots/acceptance-stage-1.png",
+          "SHA256": "f5e26fb503db2c691efbe4f8fdc7c7381ffd630be7a9f7118b4f5074259209c7"
+        },
+        {
+          "path": "screenshots/acceptance-stage-11.png",
+          "SHA256": "a04595c7f436eac4bbed9dd3e4dec8130156a0c60b4fde1af9f862d43930810e"
+        },
+        {
+          "path": "screenshots/acceptance-stage-13.png",
+          "SHA256": "6967677c47b15fd4f46f68db6811e5f964b8ff3da2383611c41512a871f8fc86"
+        },
+        {
+          "path": "screenshots/acceptance-stage-15.png",
+          "SHA256": "81adab6d841dc0d04a133cb59ad4f193467e34dc3e1cd50e791545b4be1c357e"
+        },
+        {
+          "path": "screenshots/acceptance-stage-3.png",
+          "SHA256": "8a879f9c888b002c15027f1f8bda271563f01fabf93b81f800b626cb3aa6e99d"
+        },
+        {
+          "path": "screenshots/acceptance-stage-5.png",
+          "SHA256": "dc584152443d98c2d82d15cec0d1bb818171439af2ff482e76f36f66ddfb8479"
+        },
+        {
+          "path": "screenshots/acceptance-stage-7.png",
+          "SHA256": "1cf36615d45879f76b463c12b14714b51d45644da361fed75ce5b9d924492700"
+        },
+        {
+          "path": "screenshots/acceptance-stage-9.png",
+          "SHA256": "cfad07c18388b63e18d2badc9c40590d71564f941fa1e05da1b02fc083902988"
+        }
+      ]
+    },
+    {
+      "case": "acceptance-dpi2",
+      "result": {
+        "exit": 0,
+        "stages": [
+          1,
+          3,
+          5,
+          7,
+          9,
+          11,
+          13,
+          15
+        ],
+        "sourceSHA256": "1f0264ed5b41673264a39c61a4d8c08250e128d6bb848dab060e81c7ef89e6fc",
+        "sourceUnchanged": true,
+        "GTKUsesSwiftLD": false
+      },
+      "stages": [
+        "PMT_UI_TEST_ZOOM_STAGE 1 window=1100x850 canvas=418x431 rect=0,58.75,418,313.5 scroll=0,0 zoom=Fit device=2",
+        "PMT_UI_TEST_ZOOM_STAGE 3 window=1100x850 canvas=1024x768 rect=0,0,1024,768 scroll=0,0 zoom=Scale(1.0) device=2",
+        "PMT_UI_TEST_ZOOM_STAGE 5 window=1100x850 canvas=4096x3072 rect=0,0,4096,3072 scroll=0,0 zoom=Scale(4.0) device=2",
+        "PMT_UI_TEST_ZOOM_STAGE 7 window=1100x850 canvas=4096x3072 rect=0,0,4096,3072 scroll=3678,2641 zoom=Scale(4.0) device=2",
+        "PMT_UI_TEST_ZOOM_STAGE 9 window=700x700 canvas=4096x3072 rect=0,0,4096,3072 scroll=3678,2641 zoom=Scale(4.0) device=2",
+        "PMT_UI_TEST_ZOOM_STAGE 11 window=700x700 canvas=261x192 rect=2.5,0,256,192 scroll=0,0 zoom=Scale(0.25) device=2",
+        "PMT_UI_TEST_ZOOM_STAGE 13 window=700x700 canvas=261x126 rect=46.5,0,168,126 scroll=0,0 zoom=Fit device=2",
+        "PMT_UI_TEST_ZOOM_STAGE 15 window=1200x900 canvas=457x481 rect=0,69.125,457,342.75 scroll=0,0 zoom=Fit device=2"
+      ],
+      "releaseMarkers": [
+        "PMT_UI_TEST_ZOOM_RELEASE window-canvas-texture-dropped"
+      ],
+      "outputManifestVerified": [
+        {
+          "byteCount": 44957,
+          "path": "images/image01.png",
+          "sha256": "1f0264ed5b41673264a39c61a4d8c08250e128d6bb848dab060e81c7ef89e6fc"
+        },
+        {
+          "byteCount": 40,
+          "path": "source.md",
+          "sha256": "ff5fe27fa07c782ccfa1fb3e5d9fa22fb0062c7c80c078baa8297aabb5b15c26"
+        }
+      ],
+      "sourceByteCount": 44957,
+      "sourceIdentity": {
+        "byteCount": 44957,
+        "name": "source.png",
+        "sha256": "1f0264ed5b41673264a39c61a4d8c08250e128d6bb848dab060e81c7ef89e6fc"
+      },
+      "screenshots": [
+        {
+          "path": "screenshots/acceptance-dpi2-stage-1.png",
+          "SHA256": "47b31cdce7fbbb569f896c5c2cde138fe33c3f0f3babfd661e44055d97878421"
+        },
+        {
+          "path": "screenshots/acceptance-dpi2-stage-11.png",
+          "SHA256": "cd55e1ec054960c6bb5215dc048f863e27b1eb9c0124eefa92e34a130c322770"
+        },
+        {
+          "path": "screenshots/acceptance-dpi2-stage-13.png",
+          "SHA256": "19d44273fa63b45c5c7a66ad3bc64cb946aacd68e35145d968eaa09d13d85234"
+        },
+        {
+          "path": "screenshots/acceptance-dpi2-stage-15.png",
+          "SHA256": "0b6e216e3fe399f50e81482c7846d22cfa58b65cec52df3c5aaa42d239f17e02"
+        },
+        {
+          "path": "screenshots/acceptance-dpi2-stage-3.png",
+          "SHA256": "f44642239fdd501388dfdd0abf8d37ec6d238b88a26d885973a2c94b16ae6e69"
+        },
+        {
+          "path": "screenshots/acceptance-dpi2-stage-5.png",
+          "SHA256": "78d7d2c75473dbf394a00e33962cdc3e80c0f3569aa92a23c4192fac1cba467d"
+        },
+        {
+          "path": "screenshots/acceptance-dpi2-stage-7.png",
+          "SHA256": "b9f41e46aee8d420109fe432e324a303a2278a45ffdcc9a17480246a18a7afe9"
+        },
+        {
+          "path": "screenshots/acceptance-dpi2-stage-9.png",
+          "SHA256": "d88924a774eff89ec822d9182d493ca68c8bbbe8bfcf42a62767d60c8804a2b1"
+        }
+      ]
+    },
+    {
+      "case": "acceptance-release",
+      "result": {
+        "exit": 0,
+        "stages": [],
+        "sourceSHA256": "1f0264ed5b41673264a39c61a4d8c08250e128d6bb848dab060e81c7ef89e6fc",
+        "sourceUnchanged": true,
+        "GTKUsesSwiftLD": false
+      },
+      "stages": [],
+      "releaseMarkers": [
+        "PMT_UI_TEST_BOUND_FD_BASELINE 1",
+        "PMT_UI_TEST_BOUND_WIDGET_RELEASE window-and-texture-dropped",
+        "PMT_UI_TEST_BOUND_RELEASE_COMPLETE app-open-source-cleared-fds=0"
+      ],
+      "outputManifestVerified": [
+        {
+          "byteCount": 46,
+          "path": "clipboard.md",
+          "sha256": "8a9f3ee2d03fbfea0683a3a6ac7aee0904c75c6e1a7ddb019f3c5aa6a5be3b9e"
+        },
+        {
+          "byteCount": 44957,
+          "path": "images/image01.png",
+          "sha256": "1f0264ed5b41673264a39c61a4d8c08250e128d6bb848dab060e81c7ef89e6fc"
+        }
+      ],
+      "sourceByteCount": 44957,
+      "sourceIdentity": {
+        "byteCount": 44957,
+        "name": "clipboard.png",
+        "sha256": "1f0264ed5b41673264a39c61a4d8c08250e128d6bb848dab060e81c7ef89e6fc"
+      },
+      "screenshots": []
+    },
+    {
+      "case": "acceptance-verify-error",
+      "result": {
+        "exit": 0,
+        "stages": [],
+        "sourceSHA256": "1f0264ed5b41673264a39c61a4d8c08250e128d6bb848dab060e81c7ef89e6fc",
+        "sourceUnchanged": true,
+        "GTKUsesSwiftLD": false
+      },
+      "stages": [],
+      "releaseMarkers": [
+        "PMT_UI_TEST_BOUND_ERROR_CANVAS_RELEASE window-canvas-dropped-no-texture",
+        "PMT_UI_TEST_BOUND_ERROR_RELEASE app-open-source-cleared-fds=0"
+      ],
+      "outputManifestVerified": [
+        {
+          "byteCount": 46,
+          "path": "clipboard.md",
+          "sha256": "8a9f3ee2d03fbfea0683a3a6ac7aee0904c75c6e1a7ddb019f3c5aa6a5be3b9e"
+        },
+        {
+          "byteCount": 44957,
+          "path": "images/image01.png",
+          "sha256": "1f0264ed5b41673264a39c61a4d8c08250e128d6bb848dab060e81c7ef89e6fc"
+        }
+      ],
+      "sourceByteCount": 44957,
+      "sourceIdentity": {
+        "byteCount": 44957,
+        "name": "clipboard.png",
+        "sha256": "1f0264ed5b41673264a39c61a4d8c08250e128d6bb848dab060e81c7ef89e6fc"
+      },
+      "screenshots": []
+    },
+    {
+      "case": "acceptance-early-error",
+      "result": {
+        "exit": 0,
+        "stages": [],
+        "sourceSHA256": "1f0264ed5b41673264a39c61a4d8c08250e128d6bb848dab060e81c7ef89e6fc",
+        "sourceUnchanged": true,
+        "GTKUsesSwiftLD": false
+      },
+      "stages": [],
+      "releaseMarkers": [
+        "PMT_UI_TEST_BOUND_ERROR_RELEASE app-open-source-cleared-fds=0"
+      ],
+      "outputManifestVerified": [
+        {
+          "byteCount": 46,
+          "path": "clipboard.md",
+          "sha256": "8a9f3ee2d03fbfea0683a3a6ac7aee0904c75c6e1a7ddb019f3c5aa6a5be3b9e"
+        },
+        {
+          "byteCount": 44957,
+          "path": "images/image01.png",
+          "sha256": "1f0264ed5b41673264a39c61a4d8c08250e128d6bb848dab060e81c7ef89e6fc"
+        }
+      ],
+      "sourceByteCount": 44957,
+      "sourceIdentity": {
+        "byteCount": 44957,
+        "name": "clipboard.png",
+        "sha256": "1f0264ed5b41673264a39c61a4d8c08250e128d6bb848dab060e81c7ef89e6fc"
+      },
+      "screenshots": []
+    }
+  ],
+  "visualInspection": "final1x Fit700,400%resize700,25%scroll and2x100% inspected; earlier Fit/100%/700 baseline screenshots also inspected",
+  "createdUTC": "2026-11-05T06:23:20.755112+00:00",
+  "sourceTreeSHA256": "91dd94465468707bff690c01da81a364387fb83641cebd64aceea757e5ec4727",
+  "sourceFileCount": 20,
+  "PNGValidationFunctionUnchanged": true
+}

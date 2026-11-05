@@ -1,0 +1,25 @@
+{
+  "normal": {
+    "independentMarkerCounts": {
+      "Fixture heading ä": 1,
+      "First list item": 1,
+      "Second list item": 1,
+      "Äpfel": 1,
+      "Birnen": 1,
+      "Grüße aus Köln": 1,
+      "Footnote content remains readable.": 1
+    },
+    "sourceUnchanged": true,
+    "assetByteSHAEqual": true
+  },
+  "rich-safe": {
+    "independentMarkerCounts": {
+      "PMT UNO DOC ä Grüße": 1,
+      "First controlled list item": 1,
+      "Second controlled list item": 1,
+      "IMAGE-FOLLOWS": 1
+    },
+    "sourceUnchanged": true,
+    "assetByteSHAEqual": true
+  }
+}

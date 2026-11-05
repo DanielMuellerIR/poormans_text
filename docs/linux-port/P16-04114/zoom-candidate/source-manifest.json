@@ -1,0 +1,25 @@
+{
+  "files": {
+    "Cargo.lock": "3f9cae03d8390fd8cf98214d64cfed93881777429bc8a9c42dd16116057fba26",
+    "Cargo.toml": "d2e332e25b56719e328cc924babc74138d09155119e4413f90022a6da9a00240",
+    "linux/app/Cargo.toml": "cca119322b7f1b8882d0a8c707a822244e71ac66685d6ea8ba8a7bbafe93830b",
+    "linux/app/p14_selftest.py": "2676ffe946ca7022280ee5ec1b1d19ca631a595b0c67eac292cb0b1a736054c9",
+    "linux/app/selftest.py": "be3c7f3c0354b596cfd6d453e7ddfd9feb7d168e409bbbfd72cb7d71ec64ccf1",
+    "linux/app/src/clipboard.rs": "2e051f1de3649227fb5ee54179db4acd9d1223b954780e9a12875a7f458c9e28",
+    "linux/app/src/clipboard_ui.rs": "105b35b39a66bb2d4a5c023521d3fa1e7e4cc2d8b7db7a70221306718d52f428",
+    "linux/app/src/comparison.rs": "bfc19b6a30226d77065ad7630844b93550c49c2c2eaf5db847b3195f6f915adc",
+    "linux/app/src/main.rs": "208c7e9e6059a55ef9bc1f21455337611a4d802c85bb0bd36034f7e1d9a2298e",
+    "linux/app/src/model.rs": "f07cd599050fb9d9e1bcc60324a72b204c605af26d6e38365fe306e5c4793bc8",
+    "linux/app/src/profiles.rs": "be4b51e9292cd1a37eefac9ffe1b05152ccb529918ef00f9f7eb5852d9d0bbba",
+    "linux/app/src/read_output.rs": "b0ee855509c5a5f36b1e82f86b1393922553fbdfac63905932993e0c137bf662",
+    "linux/app/src/source_canvas.rs": "0f61b12199e8bcfc9448f4e74b940d821e0001fb285d4e4a6df0454807c928f6",
+    "linux/app/src/source_raster.rs": "3b5e1ebf4b0501b4673c2f543bc3db6b46444c78ef1d0f3141fa4b9d5da303f9",
+    "linux/bridge/Cargo.toml": "90cc9e095114926f1ecc4fe56a076afeeb8199cb631aaa1816922886e4c73568",
+    "linux/bridge/src/bound_input.rs": "df2b4e19e81202fda8a0dbd11cbe135eb53b481e6ccf8f8b7902a887a3f7e21a",
+    "linux/bridge/src/lib.rs": "51b8d69fcfdc893e30ec0258f6b5b41ae395c59c2b58cb888f51a071df4e94a4",
+    "linux/build.sh": "804b9ffd16579159fa30ec0334256640ca569a966d67aedbbf541a0bd850e77b",
+    "linux/run.sh": "80734466ff2b43610cdead5a95966f08a6e4440292f8c55a6f7d9884f00def25",
+    "linux/test.sh": "1ac377d63f93e596f53ecb670aff3478286efd3408e9c71e331c48eb8a429517"
+  },
+  "sourceTreeSHA256": "91dd94465468707bff690c01da81a364387fb83641cebd64aceea757e5ec4727"
+}

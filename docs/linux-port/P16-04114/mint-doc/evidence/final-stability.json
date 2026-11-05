@@ -1,0 +1,24 @@
+{
+  "hostProfileMetadataTruePackageDBUnchanged": true,
+  "hostAfter": {
+    "hostProfile": {
+      "exists": false,
+      "entries": 0,
+      "metadataSHA256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "true": "8a63c98320173f79e263115e10cefc170155e47d1fd4b5a70e4429d2699cae28",
+    "dpkgStatus": "b5a597bf504882666ea78de448e4683686f4e34616c747ed37e9b0e3894d12c8"
+  },
+  "finalRuntimeHashes": {
+    "bin/poormans-text": "8abc9197eeced8df043d788e349acb553bd86dd81546a6fda1faf15a93bac0cb",
+    "ui/poormans-text-app": "85e70bf0654f4b308a5db2d483eaf258dd376f83773703febe23fa91d05ddcf2",
+    "bin/poormans-text-process-guard": "cf677f9be88095a27423ceedb9db2b85667f7775d167857cfb52002ff5dda520"
+  },
+  "noOwnRemainingProcesses": true,
+  "remainingOwnPIDs": [],
+  "sentinelFiles": [],
+  "workingBytes": 362598950,
+  "newNetworkDownloads": 0,
+  "packageExtractionOnly": true,
+  "optionalZoomNotRun": "No ready production AT-SPI zoom harness; no new test infrastructure"
+}

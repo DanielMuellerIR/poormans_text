@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.41.14 — 2026-11-05
+
+- Add fit, 100% and bounded 25–400% zoom to the Linux source raster comparison, with scrollable original preview pixels, accessible controls and explicit resolution limits.
+- Release the raster canvas and texture after comparison cancellation or closure, including rejected verification paths.
+
 ## 0.41.13 — 2026-11-05
 
 - Allow the Linux CLI to supervise its own children when running as namespace PID 1, while continuing to reject unrelated process ownership.

@@ -1,7 +1,7 @@
 # P12/P14: GTK-Oberfläche über dem gemeinsamen Swift-Kern
 
-Stand: 2026-11-05, Entwicklungsvorschau 0.41.12.
-Die [finalen Produktnachweise](P16-04112/README.md) ergänzen die unten ausdrücklich historischen Erstproben. Die Oberfläche ist ein dünner
+Stand: 2026-11-05, Entwicklungsvorschau 0.41.14.
+Die [finalen Produktnachweise](P16-04114/README.md) ergänzen die unten ausdrücklich historischen Erstproben. Die Oberfläche ist ein dünner
 Rust-/GTK-Adapter; sie enthält keinen zweiten Konverter. GTK4 ist seit 2026-11-05 die gemeinsame reversible Entwicklungswahl mit Fastra.
 Die gesonderte endgültige Desktopabnahme blockiert diese Oberfläche nicht.
 Die nachfolgenden bestandenen Proben sind keine vollständige Desktopabnahme.
@@ -166,3 +166,31 @@ werden auch vom nativen Mac-Quellvergleich nicht gezeichnet. Ihre Abwesenheit
 ist keine Portierungsabnahme-Lücke; page/frame und geprüfte Output-UTF8-Bereiche
 sind die bestehenden Referenzen. Eine spätere Erweiterung bräuchte einen
 begründeten gemeinsamen Produzent-/Vertrags-/UI-Auftrag.
+
+## Rasterzoom 0.41.14
+
+Der Vergleich übernimmt den bestehenden Mac-Bedienumfang Anpassen, 100 % und
+Vergrößern/Verkleinern. Manueller Prozentzoom ist auf 25–400 % der geprüften
+PNG-Pixel begrenzt; Fit passt sich auch außerhalb dieses Bereichs proportional
+an. Ein eigenes kleines GTK-Widget meldet die tatsächlichen Mindestmaße an
+den scrollbaren Viewport und zeichnet die bestehende Textur. Keine neue
+Rasteranfrage oder Originalauflösungsbehauptung: PNGs bleiben maximal 1024 Pixel
+je Kante. Neue Seiten/Frames starten mit Fit; Zoom setzt Scrollpositionen zurück.
+
+Der [isolierte Kandidat](P16-04114/zoom-candidate/README.md) besteht fünf echte
+GUI-Zustände einschließlich 1×/2×, Resize, beider Scrollenden und früher/später
+Verifikationsabweisung. Quell-FDs gehen nach Clear/Close auf 0, Fenster/Canvas/
+Textur werden freigegeben. Der 0.41.14-Produktionsbuild enthält keine Selftesthooks;
+seine tatsächliche Bedienprobe wird im [aktuellen Produktbericht](P16-04114/README.md)
+getrennt dem finalen Binärhash zugeordnet. Keine echte Desktop-/Screenreader-
+oder Mint-Zoomabnahme aus dem Kandidaten abgeleitet.
+
+Das verbleibende RTFD-Pakettor ist enger gefasst: Core zeichnet aktuell keine
+Original-`TXT.rtf`-Memberidentität auf; `memberPath` wird bisher nur für den
+MBOX-Paketstrom genutzt. Native Mac-Vergleiche rendern RTF/RTFD ebenfalls nicht
+als Originalformat. Ein verifizierter Textstromvergleich braucht zuerst die
+Original-TXT-Identität vor Marker-/Listenrewrites und anschließend einen
+FD-gebundenen allowlistbeschränkten GUI-Memberleser. Das vorhandene JSONfeld
+reicht dafür; kein neuer Parser oder Quellrenderer ist erforderlich. Ein TXT-Hash
+bestätigt ausdrücklich keine Paketbildbytes. Die gegenwärtige Sperre wird nicht
+ohne diesen Identitätsnachweis gelockert.

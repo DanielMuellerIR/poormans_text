@@ -77,3 +77,9 @@ Outputroot mit `fastra/manifest.json` und vollständiger bin/libexec/lib/share-
 Laufzeit. Danach lassen sich ENEX/RTF, Missingtool und Abbruch über den echten
 Importdialog gegen die benannte PMT-CLI prüfen. Dieser offene Artefaktnachweis
 ändert weder PMTs CLI-Vertrag noch die Zuständigkeit des Fastra-Chats.
+
+Der [Kompatibilitätsreplay0.41.14](P16-04114/consumer-compatibility/README.md)
+verwendet erneut exakt den historischen echten Consumer-Treiber ebb3feac…
+gegen den finalen Producer8abc9197…:CSV und MBOX bestehen mit korrektem
+`index.md` und unveränderten Quellen. Er ergänzt die Rückwärtskompatibilität;
+das oben beschriebene aktuelle Importdialog-/Artefakttor bleibt offen.

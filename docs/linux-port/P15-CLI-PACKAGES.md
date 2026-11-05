@@ -141,3 +141,9 @@ Der [begrenzte native Mint-COW-Versuch](P16-04113/mint-package-capability/README
 scheitert am Overlaymount vor jeder Paketinstallation. Keine Systemänderung;
 das bleibt ein offenes Installationstor und wird nicht durch Extrahieren eines
 Debianpakets als bestanden ausgegeben.
+
+Die [.14-Paketprüfung](P16-04114/packages.json) besteht wiederum alle drei
+Formate mit echter relocierter Unicode-CSV und Kollisions-/Symlinkelternschutz.
+Die neuen nativen Mint-DOC-/PDF- und Mac-Abschlüsse stehen im
+[aktuellen Produktbericht](P16-04114/README.md); sie sind keine native Mint-
+Paketinstallation oder öffentliche Veröffentlichung.

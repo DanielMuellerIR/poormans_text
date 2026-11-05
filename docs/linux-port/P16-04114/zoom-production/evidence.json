@@ -1,0 +1,188 @@
+{
+  "version": "0.41.14",
+  "CLI_SHA256": "8abc9197eeced8df043d788e349acb553bd86dd81546a6fda1faf15a93bac0cb",
+  "GUI_SHA256": "85e70bf0654f4b308a5db2d483eaf258dd376f83773703febe23fa91d05ddcf2",
+  "runtimeHashesBefore": {
+    ".build/linux-runtime/bin/poormans-text": "8abc9197eeced8df043d788e349acb553bd86dd81546a6fda1faf15a93bac0cb",
+    ".build/linux-runtime/bin/poormans-text-process-guard": "cf677f9be88095a27423ceedb9db2b85667f7775d167857cfb52002ff5dda520",
+    ".build/linux-runtime/bin/PoorMansText_PoorMansTextCore.resources/LinuxBackends/poppler.py": "7236b6c3b9cc4779395c170f716db5eea9b8c2ef626254d2589265667aff1425",
+    ".build/linux-runtime/bin/PoorMansText_PoorMansTextCore.resources/LinuxBackends/raster.py": "3a12816a31bef60aa93012c5628b2e0c268d13877eb0325754ca92a17b0a7513",
+    ".build/linux-runtime/bin/PoorMansText_PoorMansTextCore.resources/LinuxBackends/heif.py": "be3eb12e3934a3a7c5045f26b376b30cd57523da804fa5c8f188cded3ecd478e",
+    ".build/linux-runtime/bin/PoorMansText_PoorMansTextCore.resources/LinuxBackends/legacy_doc.py": "a520e7c9ad8dacf9eae857f30ce04e4fbbc2e0f00a132deed68f81b826374f76",
+    ".build/linux-runtime/lib/libBlocksRuntime.so": "854f7f01ddf854117eb674c5c81fa126ca8c4ad12fea440bf6e329c313550797",
+    ".build/linux-runtime/lib/libFoundation.so": "729f40c8bae7bb6bef71e1ebaae5b1b10f576ed4f105efc430e8869e79db3486",
+    ".build/linux-runtime/lib/libFoundationEssentials.so": "f3b5974e1a63bdce3e31c7167b6e9fe800d675fa352978f487268ecbf2cc15ab",
+    ".build/linux-runtime/lib/libFoundationInternationalization.so": "a77c2a13d56cd4fe1d30c9ce69f5bc0babb18b615a557c344915c40ba6e78e4e",
+    ".build/linux-runtime/lib/libFoundationXML.so": "41d657f136f2153c6e46389a93c55269f4e01fcde878be84de286c4154f9b179",
+    ".build/linux-runtime/lib/lib_FoundationICU.so": "6463c566300feea43c37a430201bffd67354a22374b5a9c6c6bba2f7b6b7f0e7",
+    ".build/linux-runtime/lib/libdispatch.so": "82506303a5dfa7d2b57d91f71539fdedcce5ef4e3d152aeb684b8963f078c5b9",
+    ".build/linux-runtime/lib/libicudata.so.74": "ddbb3718b8bd9cbd780e5ab08b4503c30a6c4fa0706ebe5d074ed6b596c1714e",
+    ".build/linux-runtime/lib/libicuuc.so.74": "7560aadde38e5f4237a47a1ddd5891f9b36768a77a60faae30beee003ac01901",
+    ".build/linux-runtime/lib/liblzma.so.5": "a9793942a8a5f6f4d0f523ef9e0a5be4f0033f2c6c28520cd2b4e706d53c6e17",
+    ".build/linux-runtime/lib/libpng16.so.16": "89c0c6569a8c00480d451401ad4c0a74942e62dc57f229a970592fdc5adb29e8",
+    ".build/linux-runtime/lib/libswiftCore.so": "a2b87638e07a166a481df28c22bc11b3b205278391b066305f9f76defe974134",
+    ".build/linux-runtime/lib/libswiftDispatch.so": "479a7523cfcc596578aabb338b539d985f02fd08045496918c9d89a9fc7207c2",
+    ".build/linux-runtime/lib/libswiftGlibc.so": "8f2dab49d158a6674758cbbf661fa08472c64890c5624fe9eba3f7835525b19b",
+    ".build/linux-runtime/lib/libswiftSynchronization.so": "abe5ee45ed19a0438a37cf1bccd670002d0acd8cc0a19a5e22f900be1d63a094",
+    ".build/linux-runtime/lib/libswift_Concurrency.so": "1c44700fdb77495ab8d59015d7837d36d714322446fdeb73bc2077d720886037",
+    ".build/linux-runtime/lib/libswift_RegexParser.so": "d86e4ca8a52f32d086e6eabdf452ee20f6ece62be9e9f000835fcf4b50550f9c",
+    ".build/linux-runtime/lib/libswift_StringProcessing.so": "0dcde92e47df929767a012bdf042e1bcf84e23d7edcd6f3bf8c137a75dcebe43",
+    ".build/linux-runtime/lib/libxml2.so.2": "0ec89f65e1868cb79caa8a4cd5f47194ce95ac09f7a1d49e76049f391254a3a3",
+    ".build/linux-runtime/lib/libz.so.1": "f61677c7bdb7c2aa2a243ea781bfd16afcb361cede7b4ef76127a9d8eb9a5242",
+    ".build/linux-runtime/ui/poormans-text-app": "85e70bf0654f4b308a5db2d483eaf258dd376f83773703febe23fa91d05ddcf2",
+    ".build/linux-runtime/ui/poormans-text-process-guard": "cf677f9be88095a27423ceedb9db2b85667f7775d167857cfb52002ff5dda520",
+    ".build/linux-runtime/ui/poormans-text": "f093fe7d8af4d32a98698519347411d3fce36adabfd8fb7f51d1e27bb5e8c7b5",
+    ".build/linux-runtime/ui/THIRD-PARTY-NOTICES.txt": "0f8f264a187483ffa557d67650c1555ae0166a2c184889ca4f20f6ccc5e3386c",
+    ".build/linux-runtime/ui/build-info.json": "f5eb7310c3fb12b16145716435536e208bc631cc6d26ae7e00bd9cdba515671b"
+  },
+  "runtimeHashesAfter": {
+    ".build/linux-runtime/bin/poormans-text": "8abc9197eeced8df043d788e349acb553bd86dd81546a6fda1faf15a93bac0cb",
+    ".build/linux-runtime/bin/poormans-text-process-guard": "cf677f9be88095a27423ceedb9db2b85667f7775d167857cfb52002ff5dda520",
+    ".build/linux-runtime/bin/PoorMansText_PoorMansTextCore.resources/LinuxBackends/poppler.py": "7236b6c3b9cc4779395c170f716db5eea9b8c2ef626254d2589265667aff1425",
+    ".build/linux-runtime/bin/PoorMansText_PoorMansTextCore.resources/LinuxBackends/raster.py": "3a12816a31bef60aa93012c5628b2e0c268d13877eb0325754ca92a17b0a7513",
+    ".build/linux-runtime/bin/PoorMansText_PoorMansTextCore.resources/LinuxBackends/heif.py": "be3eb12e3934a3a7c5045f26b376b30cd57523da804fa5c8f188cded3ecd478e",
+    ".build/linux-runtime/bin/PoorMansText_PoorMansTextCore.resources/LinuxBackends/legacy_doc.py": "a520e7c9ad8dacf9eae857f30ce04e4fbbc2e0f00a132deed68f81b826374f76",
+    ".build/linux-runtime/lib/libBlocksRuntime.so": "854f7f01ddf854117eb674c5c81fa126ca8c4ad12fea440bf6e329c313550797",
+    ".build/linux-runtime/lib/libFoundation.so": "729f40c8bae7bb6bef71e1ebaae5b1b10f576ed4f105efc430e8869e79db3486",
+    ".build/linux-runtime/lib/libFoundationEssentials.so": "f3b5974e1a63bdce3e31c7167b6e9fe800d675fa352978f487268ecbf2cc15ab",
+    ".build/linux-runtime/lib/libFoundationInternationalization.so": "a77c2a13d56cd4fe1d30c9ce69f5bc0babb18b615a557c344915c40ba6e78e4e",
+    ".build/linux-runtime/lib/libFoundationXML.so": "41d657f136f2153c6e46389a93c55269f4e01fcde878be84de286c4154f9b179",
+    ".build/linux-runtime/lib/lib_FoundationICU.so": "6463c566300feea43c37a430201bffd67354a22374b5a9c6c6bba2f7b6b7f0e7",
+    ".build/linux-runtime/lib/libdispatch.so": "82506303a5dfa7d2b57d91f71539fdedcce5ef4e3d152aeb684b8963f078c5b9",
+    ".build/linux-runtime/lib/libicudata.so.74": "ddbb3718b8bd9cbd780e5ab08b4503c30a6c4fa0706ebe5d074ed6b596c1714e",
+    ".build/linux-runtime/lib/libicuuc.so.74": "7560aadde38e5f4237a47a1ddd5891f9b36768a77a60faae30beee003ac01901",
+    ".build/linux-runtime/lib/liblzma.so.5": "a9793942a8a5f6f4d0f523ef9e0a5be4f0033f2c6c28520cd2b4e706d53c6e17",
+    ".build/linux-runtime/lib/libpng16.so.16": "89c0c6569a8c00480d451401ad4c0a74942e62dc57f229a970592fdc5adb29e8",
+    ".build/linux-runtime/lib/libswiftCore.so": "a2b87638e07a166a481df28c22bc11b3b205278391b066305f9f76defe974134",
+    ".build/linux-runtime/lib/libswiftDispatch.so": "479a7523cfcc596578aabb338b539d985f02fd08045496918c9d89a9fc7207c2",
+    ".build/linux-runtime/lib/libswiftGlibc.so": "8f2dab49d158a6674758cbbf661fa08472c64890c5624fe9eba3f7835525b19b",
+    ".build/linux-runtime/lib/libswiftSynchronization.so": "abe5ee45ed19a0438a37cf1bccd670002d0acd8cc0a19a5e22f900be1d63a094",
+    ".build/linux-runtime/lib/libswift_Concurrency.so": "1c44700fdb77495ab8d59015d7837d36d714322446fdeb73bc2077d720886037",
+    ".build/linux-runtime/lib/libswift_RegexParser.so": "d86e4ca8a52f32d086e6eabdf452ee20f6ece62be9e9f000835fcf4b50550f9c",
+    ".build/linux-runtime/lib/libswift_StringProcessing.so": "0dcde92e47df929767a012bdf042e1bcf84e23d7edcd6f3bf8c137a75dcebe43",
+    ".build/linux-runtime/lib/libxml2.so.2": "0ec89f65e1868cb79caa8a4cd5f47194ce95ac09f7a1d49e76049f391254a3a3",
+    ".build/linux-runtime/lib/libz.so.1": "f61677c7bdb7c2aa2a243ea781bfd16afcb361cede7b4ef76127a9d8eb9a5242",
+    ".build/linux-runtime/ui/poormans-text-app": "85e70bf0654f4b308a5db2d483eaf258dd376f83773703febe23fa91d05ddcf2",
+    ".build/linux-runtime/ui/poormans-text-process-guard": "cf677f9be88095a27423ceedb9db2b85667f7775d167857cfb52002ff5dda520",
+    ".build/linux-runtime/ui/poormans-text": "f093fe7d8af4d32a98698519347411d3fce36adabfd8fb7f51d1e27bb5e8c7b5",
+    ".build/linux-runtime/ui/THIRD-PARTY-NOTICES.txt": "0f8f264a187483ffa557d67650c1555ae0166a2c184889ca4f20f6ccc5e3386c",
+    ".build/linux-runtime/ui/build-info.json": "f5eb7310c3fb12b16145716435536e208bc631cc6d26ae7e00bd9cdba515671b"
+  },
+  "all31RuntimeHashesUnchanged": true,
+  "regularProductionBuild": true,
+  "selftestMarkerStringsAbsent": true,
+  "noPMTOverridesOrCustomCLIWrapper": true,
+  "actions": [
+    "report checkbox via mouse",
+    "OCR/PDF tab via mouse",
+    "Image OCR Off via dropdown and End/Return",
+    "Convert via mouse",
+    "Completed visually observed",
+    "Compare source via mouse",
+    "Recheck via mouse after correcting evidence directory mutation",
+    "100% via mouse",
+    "seven plus clicks to400%",
+    "vertical wheel and Shift+wheel scroll",
+    "Fit via mouse",
+    "normal X11 WM_DELETE_WINDOW closes comparison while main remains visible",
+    "normal X11 WM_DELETE_WINDOW closes main; exit0"
+  ],
+  "source": {
+    "byteCount": 44957,
+    "name": "Quelle ü.png",
+    "sha256": "1f0264ed5b41673264a39c61a4d8c08250e128d6bb848dab060e81c7ef89e6fc"
+  },
+  "outputs": [
+    {
+      "byteCount": 46,
+      "path": "Quelle ü.md",
+      "sha256": "c3fc6d7e0e91879d8525faa4a4c342c8b6f196dc101b6473253e439d71710b6e"
+    },
+    {
+      "byteCount": 44957,
+      "path": "images/image01.png",
+      "sha256": "1f0264ed5b41673264a39c61a4d8c08250e128d6bb848dab060e81c7ef89e6fc"
+    }
+  ],
+  "options": {
+    "conversionReport": true,
+    "customPandoc": false,
+    "docxChangeMode": "accept",
+    "frontmatter": false,
+    "imageTextRecognition": "disabled",
+    "ocrLanguages": [],
+    "ocrMethod": "standard",
+    "outputLayout": "markdownFolder",
+    "pdfDehyphenate": false,
+    "pdfLayout": "auto",
+    "pdfRemoveHeadersFooters": false,
+    "pdfTextRecognition": "auto",
+    "presentationIncludeNotes": true,
+    "sourceMapping": true,
+    "spreadsheetRendering": "markdownTable"
+  },
+  "renderer": {
+    "GSK_RENDERER": "gl",
+    "LIBGL_ALWAYS_SOFTWARE": "1",
+    "GALLIUM_DRIVER": "llvmpipe",
+    "loadedLibraries": [
+      "/usr/lib/x86_64-linux-gnu/libGLX.so.0.0.0",
+      "/usr/lib/x86_64-linux-gnu/libGLX_mesa.so.0.0.0",
+      "/usr/lib/x86_64-linux-gnu/libLLVM.so.20.1",
+      "/usr/lib/x86_64-linux-gnu/libgallium-25.2.8-0ubuntu0.24.04.4.so"
+    ],
+    "glxinfoAvailable": false,
+    "noRendererFallbackWarning": true
+  },
+  "sourceMatchesCandidate": {
+    "source_raster.rs": {
+      "sha256": "3b5e1ebf4b0501b4673c2f543bc3db6b46444c78ef1d0f3141fa4b9d5da303f9",
+      "matchesZoomCandidateSource": true
+    },
+    "main.rs": {
+      "sha256": "208c7e9e6059a55ef9bc1f21455337611a4d802c85bb0bd36034f7e1d9a2298e",
+      "matchesZoomCandidateSource": true
+    },
+    "source_canvas.rs": {
+      "sha256": "0f61b12199e8bcfc9448f4e74b940d821e0001fb285d4e4a6df0454807c928f6",
+      "matchesZoomCandidateSource": true
+    }
+  },
+  "sessionExit": {
+    "exit": 0,
+    "rendererRequested": "gl",
+    "softwareDriverRequested": "llvmpipe",
+    "noPMTOverrides": true
+  },
+  "screenshots": [
+    {
+      "path": "screenshots/ocr-off.png",
+      "sha256": "a7669ba060d5816d159965b8365378e0238d8f7147de3d4d480094fe4fdde2a1"
+    },
+    {
+      "path": "screenshots/completed.png",
+      "sha256": "7a6f3b9f2acb03d4df698e4a8ebe503f39885e99f047450fe220d2dde8b8dc30"
+    },
+    {
+      "path": "screenshots/zoom-100.png",
+      "sha256": "4ce38bf1ddf07594a6460101d8cffc0527fb2fdd4ab8a3e7e489812b4b89d23b"
+    },
+    {
+      "path": "screenshots/zoom-400.png",
+      "sha256": "ed958c2d0262c143aac0f9bb48ff69a5364034652d8ce1a1b2e4287e7e18cd3a"
+    },
+    {
+      "path": "screenshots/zoom-scrolled.png",
+      "sha256": "eae7a32ffdd16b4766b0fa612e1359fe828462a7a2ae81c0092aa56a7193067f"
+    },
+    {
+      "path": "screenshots/fit-final.png",
+      "sha256": "fb594fcf044bd6e298613130b42a94aaace19e006b3ddd51fe376603a6def809"
+    },
+    {
+      "path": "screenshots/after-close.png",
+      "sha256": "993187be64e04143fe0035ee978955acecd4419964f9ff13cfa9110770c1be5a"
+    }
+  ],
+  "createdUTC": "2026-11-05T06:44:41.296055+00:00"
+}

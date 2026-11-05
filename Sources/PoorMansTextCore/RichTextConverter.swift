@@ -248,6 +248,15 @@ struct RichTextAdapter: DocumentConversionAdapter {
             }
             sourceURL = stagedSource
         }
+        if inputKind == .rtfd {
+            do {
+                try RTFDSource.withText(at: sourceURL) { text in
+                    ConversionExecution.current?.recording?.activateMember(at: text.sourceURL, path: "TXT.rtf")
+                    _ = try ConversionFileFingerprint.read(text)
+                }
+            } catch let error as ConversionError { throw error }
+            catch { throw ConversionError.invalidRichText(inputURL, reason: error.localizedDescription) }
+        }
         var conversionSourceURL = sourceURL
         var conversionKind = inputKind
         var representedRTFDNames = Set<String>()

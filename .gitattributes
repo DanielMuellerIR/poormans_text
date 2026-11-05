@@ -1,3 +1,11 @@
 # Originale Lizenzbeigaben einschließlich vorhandener Zeilenend-Leerzeichen erhalten.
 /scripts/linux-probes/p10-uno/POI-LICENSE whitespace=-blank-at-eol
 /scripts/linux-probes/p10-uno/POI-NOTICE whitespace=-blank-at-eol
+
+# Bytegetreue Binärfixtures und unveränderte Konverter-/OCR-Rohbelege.
+*.pdf binary
+/docs/linux-port/P13-CURRENT-EVIDENCE/output/** whitespace=-blank-at-eof
+/docs/linux-port/P16-04115/cf-release.stderr whitespace=-blank-at-eol
+/docs/linux-port/P16-04115/quality/pdf/outputs/** whitespace=-blank-at-eof,-blank-at-eol
+/docs/linux-port/QUALITY-EVIDENCE-04114/final/pdf/outputs/** whitespace=-blank-at-eof,-blank-at-eol
+/docs/linux-port/QUALITY-EVIDENCE-04114/dpi-run/*.tsv whitespace=-blank-at-eol

@@ -1,0 +1,9 @@
+{
+  "removedOwnPaths": [
+    "attempt1",
+    "attempt2",
+    "__pycache__",
+    "data.tar"
+  ],
+  "noP11RuntimeTouched": true
+}

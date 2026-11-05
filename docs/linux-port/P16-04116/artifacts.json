@@ -1,0 +1,46 @@
+{
+  "poormans-text-0.41.16-1-x86_64.pkg.tar.zst": {
+    "sha256": "9fb0bb9dfd72222bfc0257ad3f1ac1420cd9ed3d23e68392836218b7bd55192e",
+    "bytes": 59452413
+  },
+  "poormans-text-0.41.16-1-x86_64.pkg.tar.zst.sha256": {
+    "sha256": "494a96aab2e55f40516edd8b9a85084ed49102ddf9a834b7162c283877db3b79",
+    "bytes": 109
+  },
+  "poormans-text-0.41.16-linux-x86_64.tar.zst": {
+    "sha256": "a559bc425678d6b903afd504628e46a5631a66190c5c60e7bbea442bde215c41",
+    "bytes": 59461547
+  },
+  "poormans-text-0.41.16-linux-x86_64.tar.zst.sha256": {
+    "sha256": "656533827e5aecdfc85d795225b37278289b72fb1704627e4c421b5ef607e84c",
+    "bytes": 109
+  },
+  "poormans-text_0.41.16~linuxpreview1_amd64.deb": {
+    "sha256": "15ff6b2de7925f760a4aa2c6129ff029ddf3f56931f7ac640335481e5d80f81a",
+    "bytes": 57067084
+  },
+  "poormans-text_0.41.16~linuxpreview1_amd64.deb.sha256": {
+    "sha256": "ae23285d38020640cf9812c318a6956c3e2d804ba80b829f641dc001c240b686",
+    "bytes": 112
+  },
+  "bin/poormans-text": {
+    "sha256": "7df0dff563ac2027d49e116816e61bab586b666695d004e2b49b1ff67daf635f",
+    "bytes": 27328656
+  },
+  "bin/poormans-text-process-guard": {
+    "sha256": "cf677f9be88095a27423ceedb9db2b85667f7775d167857cfb52002ff5dda520",
+    "bytes": 8576448
+  },
+  "ui/poormans-text-app": {
+    "sha256": "8ac52aae6fb23fa7706bd1f8a54712814e88a28698840f4c49ea4c97ad248a63",
+    "bytes": 1172640
+  },
+  "ui/schemas/gschemas.compiled": {
+    "sha256": "c9ddf878a4372fa5379636d6d876eade7f0fb1a893f443c12bc015e9447bd810",
+    "bytes": 1557
+  },
+  "ui/build-info.json": {
+    "sha256": "d26925c4c16c85adcf4d8975ca1b789dfbf2edda9171d2f02b20663f33646dac",
+    "bytes": 2904
+  }
+}

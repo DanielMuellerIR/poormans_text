@@ -25,7 +25,9 @@
       "sourceAndOutputHashes": true
     }
   },
-  "builtUnderUmask": "077",
   "existingPackagesUnchangedOnCollision73": true,
-  "symlinkParentRejectedWithoutOutput": true
+  "symlinkParentRejectedWithoutOutput": true,
+  "buildUmask": null,
+  "publicFileModesVerified": true,
+  "receiptCorrection": "The earlier verifier hardcoded 077; the actual .15 build umask was not recorded. File modes and behavioral checks were executed and remain valid."
 }

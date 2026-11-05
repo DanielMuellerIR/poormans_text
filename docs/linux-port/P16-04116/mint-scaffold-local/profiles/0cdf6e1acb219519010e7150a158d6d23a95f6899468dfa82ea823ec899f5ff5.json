@@ -1,0 +1,22 @@
+{
+  "name" : "Behalten ü",
+  "options" : {
+    "conversionReport" : false,
+    "docxChangeMode" : "accept",
+    "frontmatter" : true,
+    "imageTextRecognition" : "enabled",
+    "ocrLanguages" : [
+
+    ],
+    "ocrMethod" : "standard",
+    "outputLayout" : "markdownFolder",
+    "pdfDehyphenate" : false,
+    "pdfLayout" : "auto",
+    "pdfRemoveHeadersFooters" : false,
+    "pdfTextRecognition" : "auto",
+    "presentationIncludeNotes" : true,
+    "sourceMapping" : false,
+    "spreadsheetRendering" : "markdownTable"
+  },
+  "schemaVersion" : 1
+}

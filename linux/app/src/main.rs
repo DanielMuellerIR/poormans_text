@@ -3,6 +3,7 @@ mod clipboard_ui;
 mod comparison;
 mod model;
 mod profiles;
+mod preferences;
 mod read_output;
 mod source_raster;
 mod source_canvas;
@@ -331,6 +332,10 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
     profile_notice.add_css_class("dim-label");
     profile_notice.connect_label_notify(|label| label.set_visible(!label.label().is_empty()));
     outer.append(&profile_notice);
+    let preferences_notice = label("");
+    preferences_notice.set_visible(false);
+    preferences_notice.add_css_class("warning");
+    outer.append(&preferences_notice);
     let options = gtk::Notebook::new();
     let mut controls = Controls {
         values: vec![],
@@ -536,7 +541,7 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
         "--pandoc",
         &mut controls,
     );
-    advanced.append(&label(tr("Profile werden über die CLI im Profilmenü verwaltet. Einstellungen werden derzeit nicht automatisch gespeichert.","Profiles are managed through the CLI in the Profiles menu. Preferences are not saved automatically.")));
+    advanced.append(&label(tr("Profile werden über die CLI im Profilmenü verwaltet. Allgemeine Optionen und Fensterzustand werden gespeichert; Quellauswahl, Pfade und Profilfreigaben bleiben sitzungsgebunden.","Profiles are managed through the CLI in the Profiles menu. General options and window state are saved; source selections, paths and profile permissions remain session-only.")));
     outer.append(&options);
     let actions = gtk::Box::new(gtk::Orientation::Horizontal, 10);
     let convert = gtk::Button::with_label(tr("Umwandeln", "Convert"));
@@ -658,6 +663,7 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
         #[cfg(feature = "ui-self-test")]
         test_clear: None,
     }));
+    let preferences = preferences::Session::restore(&view, &preferences_notice);
     let bridge = Bridge::new(cli_path());
     let bridge = Rc::new(if let Some(path) = std::env::var_os("PMT_PROCESS_GUARD") {
         bridge.with_guard(PathBuf::from(path))
@@ -876,6 +882,7 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
                 cancel_job(&state, &view);
                 glib::Propagation::Stop
             } else {
+                preferences.save(&view);
                 // Vergleichsfenster sind ebenfalls Application-Fenster und halten sonst
                 // nach dem Hauptfenster den Prozess trotz abgeschlossener Jobs offen.
                 if let Some(application) = view.window.application() {
@@ -924,6 +931,8 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
         set_sources(&state, &view, initial_sources);
     }
     window.present();
+    #[cfg(feature = "ui-self-test")]
+    preferences::probe(&state, &view);
     launch(&state, &view, bridge.start_catalog(), false);
     #[cfg(feature = "ui-self-test")]
     if let Some(input) = std::env::var_os("PMT_UI_TEST_INPUT") {

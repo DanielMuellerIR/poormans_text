@@ -1,0 +1,111 @@
+{
+  "converterVersion" : "0.41.15",
+  "diagnosticGroups" : [
+
+  ],
+  "diagnostics" : [
+
+  ],
+  "format" : "csv",
+  "omittedMappingCount" : 0,
+  "options" : {
+    "conversionReport" : true,
+    "customPandoc" : false,
+    "docxChangeMode" : "accept",
+    "frontmatter" : false,
+    "imageTextRecognition" : "enabled",
+    "ocrLanguages" : [
+
+    ],
+    "ocrMethod" : "standard",
+    "outputLayout" : "markdownFolder",
+    "pdfDehyphenate" : false,
+    "pdfLayout" : "auto",
+    "pdfRemoveHeadersFooters" : false,
+    "pdfTextRecognition" : "auto",
+    "presentationIncludeNotes" : true,
+    "sourceMapping" : true,
+    "spreadsheetRendering" : "markdownTable"
+  },
+  "outputs" : [
+    {
+      "byteCount" : 90,
+      "path" : "source.md",
+      "sha256" : "af1b74e59763f7df698cec1dd9ea61be1176a02463b14cc614285441109e8a24"
+    }
+  ],
+  "schemaVersion" : 1,
+  "source" : {
+    "byteCount" : 30,
+    "name" : "source.csv",
+    "sha256" : "67b72288428ca05f27c1ff7cfea1d50fe4f8fb269332f7880cf13ac4e16b4e22"
+  },
+  "sourceMappings" : [
+    {
+      "output" : {
+        "file" : "source.md",
+        "utf8Length" : 4,
+        "utf8Offset" : 30
+      },
+      "source" : {
+        "cell" : "A1",
+        "sheet" : "source"
+      }
+    },
+    {
+      "output" : {
+        "file" : "source.md",
+        "utf8Length" : 5,
+        "utf8Offset" : 37
+      },
+      "source" : {
+        "cell" : "B1",
+        "sheet" : "source"
+      }
+    },
+    {
+      "output" : {
+        "file" : "source.md",
+        "utf8Length" : 6,
+        "utf8Offset" : 61
+      },
+      "source" : {
+        "cell" : "A2",
+        "sheet" : "source"
+      }
+    },
+    {
+      "output" : {
+        "file" : "source.md",
+        "utf8Length" : 2,
+        "utf8Offset" : 70
+      },
+      "source" : {
+        "cell" : "B2",
+        "sheet" : "source"
+      }
+    },
+    {
+      "output" : {
+        "file" : "source.md",
+        "utf8Length" : 6,
+        "utf8Offset" : 77
+      },
+      "source" : {
+        "cell" : "A3",
+        "sheet" : "source"
+      }
+    },
+    {
+      "output" : {
+        "file" : "source.md",
+        "utf8Length" : 1,
+        "utf8Offset" : 86
+      },
+      "source" : {
+        "cell" : "B3",
+        "sheet" : "source"
+      }
+    }
+  ]
+}

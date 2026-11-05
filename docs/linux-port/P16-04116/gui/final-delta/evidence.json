@@ -1,0 +1,22 @@
+{
+  "app_sha256": "8ac52aae6fb23fa7706bd1f8a54712814e88a28698840f4c49ea4c97ad248a63",
+  "schema_sha256": "c9ddf878a4372fa5379636d6d876eade7f0fb1a893f443c12bc015e9447bd810",
+  "cli_sha256": "7df0dff563ac2027d49e116816e61bab586b666695d004e2b49b1ff67daf635f",
+  "selection_before": [
+    "pdf-pages=7-9",
+    "epub-chapters=2-3",
+    "sheets=2",
+    "cell-range=B2:C5",
+    "slides=4- (visible during typing)"
+  ],
+  "after_restart": "all five fields show placeholder text",
+  "general_after_restart": {
+    "ocr-language": "eng",
+    "report": true
+  },
+  "compare_label": "Package text and output unchanged; source attachments not checked \u00b7 0 recorded positions",
+  "normal_close_exit_codes": [
+    0,
+    0
+  ]
+}

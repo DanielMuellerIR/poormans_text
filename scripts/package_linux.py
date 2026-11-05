@@ -19,6 +19,7 @@ parser.add_argument('--no-build', action='store_true')
 parser.add_argument('--with-gui', action='store_true', help='Include the GTK interface built on the Ubuntu baseline.')
 parser.add_argument('--output-directory', type=Path)
 args = parser.parse_args()
+arch_gui_dependencies = 'depend = gtk4>=4.12\ndepend = dconf' if args.with_gui else ''
 repo = Path(__file__).resolve().parent.parent
 if not args.no_build:
     subprocess.run([str(repo / 'build.sh'), *(['--with-gui'] if args.with_gui else []), args.configuration], check=True)
@@ -41,6 +42,9 @@ if args.with_gui:
                       ('guardSHA256', runtime / 'ui/poormans-text-process-guard')]:
         if info.get(key) != hashlib.sha256(path.read_bytes()).hexdigest():
             raise SystemExit('GUI/runtime fingerprint mismatch; rebuild before packaging: ' + key)
+    schema = runtime / 'ui/schemas/gschemas.compiled'
+    if not schema.is_file() or schema.is_symlink() or hashlib.sha256(schema.read_bytes()).hexdigest() != info.get('preferencesSchemaSHA256'):
+        raise SystemExit('The bundled GUI preferences schema is missing or modified; rebuild before packaging.')
 for entry in runtime.rglob('*'):
     if not args.with_gui and entry.relative_to(runtime).parts[0] == 'ui':
         continue
@@ -179,7 +183,7 @@ Architecture: amd64
 Maintainer: Poor Man's Text contributors
 Section: text
 Priority: optional
-Depends: libc6 (>= 2.39), libstdc++6, libgcc-s1, bubblewrap (>= 0.9.0){', libgtk-4-1 (>= 4.12)' if args.with_gui else ''}
+Depends: libc6 (>= 2.39), libstdc++6, libgcc-s1, bubblewrap (>= 0.9.0){', libgtk-4-1 (>= 4.12), dconf-gsettings-backend' if args.with_gui else ''}
 Recommends: pandoc
 Suggests: python3-pil, python3-gi, python3-cairo, python3-gi-cairo, gir1.2-poppler-0.18, tesseract-ocr, libreoffice-writer, python3-uno, libheif1, libheif-plugin-libde265
 Homepage: https://github.com/DanielMuellerIR/poormans_text
@@ -205,7 +209,7 @@ license = custom:bundled-runtime
 depend = glibc>=2.39
 depend = gcc-libs
 depend = bubblewrap>=0.9.0
-{'depend = gtk4>=4.12' if args.with_gui else ''}
+{arch_gui_dependencies}
 optdepend = pandoc: document conversion
 optdepend = python-pillow: raster decoding
 optdepend = python-gobject: Poppler backend

@@ -154,6 +154,20 @@ try:
             environment = dict(os.environ, CARGO_HOME=f'/proc/self/fd/{cargo_fd}', CARGO_TARGET_DIR=f'/proc/self/fd/{target_fd}',
                                RUSTFLAGS='-C target-cpu=x86-64')
             subprocess.run(command, cwd=source, env=environment, pass_fds=(cargo_fd, target_fd), check=True)
+        schema_output = source / 'compiled-schemas'
+        schema_output.mkdir(mode=0o700)
+        if image:
+            schema_command = ['docker', 'run', '--rm', '--pull', 'never', '--network', 'none',
+                '--user', f'{os.getuid()}:{os.getgid()}',
+                '-v', f'{source}:/source:ro', '-v', f'{schema_output}:/compiled', image,
+                'glib-compile-schemas', '--strict', '--targetdir=/compiled', '/source/linux/app/schemas']
+        else:
+            schema_command = ['glib-compile-schemas', '--strict', f'--targetdir={schema_output}',
+                              str(source / 'linux/app/schemas')]
+        subprocess.run(schema_command, check=True)
+        schema_data = (schema_output / 'gschemas.compiled').read_bytes()
+        if not 8 <= len(schema_data) <= 1_048_576:
+            raise SystemExit('The bundled GTK preferences schema exceeds its build limits.')
     binary = Path('/proc/self/fd') / str(target_fd) / args.configuration / 'poormans-text-gtk'
     if not stat.S_ISREG(binary.lstat().st_mode):
         raise SystemExit('The GTK build did not produce a regular executable.')
@@ -179,6 +193,9 @@ runtime=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd -P) || exit
 LD_LIBRARY_PATH="$runtime/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" exec "$runtime/bin/poormans-text" "$@"
 ''')
             (stage / 'THIRD-PARTY-NOTICES.txt').write_bytes(rust_notices(Path('/proc/self/fd') / str(cargo_fd)) + toolchain_notices(image))
+            (stage / 'schemas').mkdir(mode=0o755)
+            (stage / 'schemas/gschemas.compiled').write_bytes(schema_data)
+            (stage / 'schemas/gschemas.compiled').chmod(0o644)
             for entry in stage.iterdir():
                 entry.chmod(0o644 if entry.name == 'THIRD-PARTY-NOTICES.txt' else 0o755)
             (stage / 'build-info.json').write_text(json.dumps({'producer': 'pmt-linux-gui-build-v1', 'product': 'Poor Mans Text GTK', 'version': version,
@@ -186,6 +203,7 @@ LD_LIBRARY_PATH="$runtime/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" exec "$runti
                 'sourceTreeSHA256': source_digest, 'sourceFiles': source_files,
                 'cliSHA256': hashlib.sha256((held / 'bin/poormans-text').read_bytes()).hexdigest(),
                 'guardSHA256': hashlib.sha256((stage / 'poormans-text-process-guard').read_bytes()).hexdigest(),
+                'preferencesSchemaSHA256': hashlib.sha256(schema_data).hexdigest(),
                 'binarySHA256': hashlib.sha256(binary.read_bytes()).hexdigest()}, indent=2) + '\n')
             if not (parents_unchanged() and unchanged(runtime, runtime_fd)):
                 raise SystemExit('A build parent changed; refusing GUI publication.')
@@ -202,9 +220,25 @@ LD_LIBRARY_PATH="$runtime/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" exec "$runti
                 try:
                     old = Path('/proc/self/fd') / str(old_fd)
                     expected = {'poormans-text-app', 'poormans-text', 'poormans-text-process-guard', 'build-info.json', 'THIRD-PARTY-NOTICES.txt'}
-                    if set(os.listdir(old_fd)) != expected or any(not stat.S_ISREG(os.stat(n, dir_fd=old_fd, follow_symlinks=False).st_mode) for n in expected):
-                        raise SystemExit('The existing GUI directory contains unknown files.')
+                    regular_files = expected.copy()
                     info = json.loads((old / 'build-info.json').read_text())
+                    if 'preferencesSchemaSHA256' in info:
+                        expected.add('schemas')
+                        schema_fd = os.open('schemas', flags, dir_fd=old_fd)
+                        try:
+                            if set(os.listdir(schema_fd)) != {'gschemas.compiled'}:
+                                raise SystemExit('The existing GUI schema directory contains unknown files.')
+                            compiled_fd = os.open('gschemas.compiled', os.O_RDONLY | os.O_NOFOLLOW | os.O_CLOEXEC, dir_fd=schema_fd)
+                            with os.fdopen(compiled_fd, 'rb') as compiled:
+                                metadata = os.fstat(compiled.fileno())
+                                if not stat.S_ISREG(metadata.st_mode) or not 8 <= metadata.st_size <= 1_048_576:
+                                    raise SystemExit('The existing GUI preferences schema is irregular.')
+                                if hashlib.sha256(compiled.read(1_048_577)).hexdigest() != info['preferencesSchemaSHA256']:
+                                    raise SystemExit('The existing GUI preferences schema was modified.')
+                        finally:
+                            os.close(schema_fd)
+                    if set(os.listdir(old_fd)) != expected or any(not stat.S_ISREG(os.stat(n, dir_fd=old_fd, follow_symlinks=False).st_mode) for n in regular_files):
+                        raise SystemExit('The existing GUI directory contains unknown files.')
                     if (info.get('producer') != 'pmt-linux-gui-build-v1'
                             or info.get('product') != 'Poor Mans Text GTK'
                             or not re.fullmatch(r'[0-9]+(?:\.[0-9]+){2}', info.get('version', ''))

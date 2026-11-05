@@ -20,7 +20,7 @@ source=work/'source';source.mkdir();(source/'Sources').mkdir();fixtures=work/'fi
 for name in ['PoorMansTextCore','CPMTLinux','CZlib']:
  shutil.copytree(repo/'Sources'/name,source/'Sources'/name)
 probe=source/'Sources/ProjectionProbe';probe.mkdir()
-for name in ['DoclingProjection.swift','main.swift']:shutil.copyfile(here/name,probe/name)
+for name in ['main.swift']:shutil.copyfile(here/name,probe/name)
 shutil.copyfile(here/'Package.swift',source/'Package.swift')
 for item in manifest['fixtures']:shutil.copyfile(repo/item['path'],fixtures/pathlib.Path(item['path']).name)
 # Python indiziert Unicode-Codepoints; Swift vergleicht die Bytes der identischen Fragmente.

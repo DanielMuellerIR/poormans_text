@@ -1,6 +1,6 @@
 # CLI-Vertrag zwischen Poor Man's Text und Fastra
 
-Stand: 2026-11-05. Dokumentationsstand 5; **keine neue Protokollversion**.
+Stand: 2026-11-05. Dokumentationsstand 6; **keine neue Protokollversion**.
 Bestandsbasis: Poor Man's Text `919c575` (0.41.7), Fastra `6f59816` (1.157.1).
 Diese Datei dokumentiert den vorhandenen Vertrag und trennt geplante
 Linux-Abnahmen davon. Sie implementiert keine neue Schnittstelle.
@@ -98,6 +98,14 @@ Die JSON-Antwort enthält `ok` und `version`; je nach Ergebnis zusätzlich:
 | `outputFiles`, `reportFile` | Ausgabebestand und optionaler Konvertierungsbericht |
 | `documents`, `metadata` | Sammlungsdokumente und Metadaten |
 | `error` | Fehlerbeschreibung bei fehlgeschlagener Ausführung |
+
+Ab 0.41.16 kann `sourceIdentity.memberPath` bei RTFD exakt `TXT.rtf`
+enthalten. `input` bleibt der Paketpfad. SHA256 und `byteCount` binden nur die
+ursprüngliche Textdatei, ausdrücklich keine Anhänge oder das gesamte Paket.
+Der vorhandene MBOX-Paketfall verwendet entsprechend `mbox`. Consumer müssen
+unbekannte optionale Mitglieder ignorieren oder den Vergleich als unverfügbar
+zeigen; weder Paketpfad hashen noch frei gelieferte Mitgliedspfade öffnen.
+Bestehende Mac-Consumer dürfen das Zusatzfeld ignorieren.
 
 Ein Sammlungsdokument führt `sourceIndex` (einsbasiert), `title`, `markdownFile`,
 `assets` und `metadata`. Eine Sammlung ist ein vollständiger Ergebnisbaum mit

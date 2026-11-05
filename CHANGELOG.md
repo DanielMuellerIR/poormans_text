@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.41.16 — 2026-11-05
+
+- Preserve Linux GUI options and window state through a bundled GSettings schema; retain paths, document-specific selections and profile permissions only for the current session.
+- Verify original text streams inside RTFD and MBOX packages in the Linux comparison, with an exact member allowlist and unchanged source/output fingerprints.
+- Bind RTFD source identities to the original TXT.rtf before rich-text rewrites; explicitly exclude attachments from that text identity.
+- Centralize bounded Docling data projection in the shared Swift core without enabling model inference.
+
 ## 0.41.15 — 2026-11-05
 
 - Validate and retain original PDF attachments in Linux ENEX imports using the isolated local Poppler backend, including encrypted attachments.

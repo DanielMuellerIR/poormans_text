@@ -72,6 +72,28 @@ struct Verified {
     limited: bool,
 }
 impl Descriptor {
+    fn verification_label(&self) -> &'static str {
+        match self
+            .file
+            .context
+            .as_ref()
+            .and_then(|context| context.pointer("/sourceIdentity/memberPath"))
+            .and_then(Value::as_str)
+        {
+            Some("TXT.rtf") => tr(
+                "Pakettext und Ausgabe unverändert; Quellanhänge ungeprüft",
+                "Package text and output unchanged; source attachments not checked",
+            ),
+            Some("mbox") => tr(
+                "Nachrichtenstrom und Ausgabe unverändert; andere Paketdateien ungeprüft",
+                "Mailbox stream and output unchanged; other package files not checked",
+            ),
+            _ => tr(
+                "Quelle und Ausgabe sind unverändert",
+                "Source and output are unchanged",
+            ),
+        }
+    }
     fn parse(file: &OutputFile) -> Result<Self, String> {
         let context = file.context.as_ref().ok_or_else(|| {
             tr(
@@ -87,9 +109,17 @@ impl Descriptor {
             )
             .to_string()
         })?;
-        if identity.get("memberPath").is_some_and(|v| !v.is_null()) {
-            return Err(tr("Paketinterne Quelldatenströme sind in dieser Vergleichsansicht noch nicht unterstützt.","Package-member source streams are not supported by this comparison view yet.").into());
-        }
+        let member = match identity.get("memberPath").filter(|value| !value.is_null()) {
+            None => None,
+            Some(Value::String(name)) if matches!(name.as_str(), "mbox" | "TXT.rtf") => Some(name),
+            Some(_) => {
+                return Err(tr(
+                    "Unbekannter paketinterner Quelldatenstrom.",
+                    "Unknown package-member source stream.",
+                )
+                .into());
+            }
+        };
         let (source_count, source_hash) = crate::read_output::fingerprint(identity)?;
         if source_count > SOURCE_LIMIT {
             return Err(tr(
@@ -98,22 +128,23 @@ impl Descriptor {
             )
             .into());
         }
-        let source = PathBuf::from(
+        let input_path = PathBuf::from(
             context
                 .get("input")
                 .and_then(Value::as_str)
                 .ok_or("Missing input path")?,
         );
-        if !source.is_absolute() {
+        if !input_path.is_absolute() {
             return Err("Source path must be absolute".into());
         }
         if let Some(input) = &file.bound_input {
-            if source != input.path() {
+            if member.is_some() || input_path != input.path() {
                 return Err("Bound input path does not match the recorded source".into());
             }
         } else if file.source_origin == crate::model::SourceOrigin::Clipboard {
             return Err("The retained clipboard source is unavailable".into());
         }
+        let source = member.map_or_else(|| input_path.clone(), |name| input_path.join(name));
 
         let (_, relative, output_count, _) = crate::read_output::reference(file)?;
         let relative = relative
@@ -701,10 +732,7 @@ fn start_check(
                 pane.check.set_sensitive(true);
                 pane.status.set_text(&format!(
                     "{} · {} {}{}",
-                    tr(
-                        "Quelle und Ausgabe sind unverändert",
-                        "Source and output are unchanged"
-                    ),
+                    current.verification_label(),
                     verified.positions.len(),
                     tr("belegte Positionen", "recorded positions"),
                     if verified.limited {
@@ -900,6 +928,49 @@ mod tests {
         f.descriptor = Descriptor::parse(&file).unwrap();
         fs::remove_file(&f.source).unwrap();
         f
+    }
+    #[test]
+    fn package_members_are_verified_and_reject_changed_or_linked_text() {
+        for member in ["mbox", "TXT.rtf"] {
+            let mut f = fixture();
+            let original = fs::read(&f.source).unwrap();
+            let package = f.root.join(if member == "mbox" {
+                "source.mbox"
+            } else {
+                "source.rtfd"
+            });
+            fs::create_dir(&package).unwrap();
+            let stream = package.join(member);
+            fs::write(&stream, &original).unwrap();
+            let mut response = (**f.descriptor.file.context.as_ref().unwrap()).clone();
+            response["input"] = serde_json::json!(package);
+            response["sourceIdentity"]["memberPath"] = serde_json::json!(member);
+            f.descriptor = Descriptor::parse(&crate::model::outputs(&response).remove(0)).unwrap();
+            let cancel = AtomicBool::new(false);
+            let verified = verify(&f.descriptor, &cancel).unwrap();
+            assert!(unchanged(&f.descriptor, &verified));
+            fs::write(&stream, b"different source").unwrap();
+            assert!(!unchanged(&f.descriptor, &verified));
+            assert!(verify(&f.descriptor, &cancel).is_err());
+            fs::remove_file(&stream).unwrap();
+            std::os::unix::fs::symlink(&f.source, &stream).unwrap();
+            assert!(verify(&f.descriptor, &cancel).is_err());
+        }
+    }
+    #[test]
+    fn package_member_names_are_an_exact_allowlist() {
+        let f = fixture();
+        for member in [
+            "../outside",
+            "/etc/passwd",
+            "nested/TXT.rtf",
+            "TXT.RTF",
+            "other",
+        ] {
+            let mut response = (**f.descriptor.file.context.as_ref().unwrap()).clone();
+            response["sourceIdentity"]["memberPath"] = serde_json::json!(member);
+            assert!(Descriptor::parse(&crate::model::outputs(&response).remove(0)).is_err());
+        }
     }
     #[test]
     fn bound_source_survives_original_path_loss_and_uses_verified_unicode_ranges() {

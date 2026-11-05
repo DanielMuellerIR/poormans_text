@@ -1,0 +1,79 @@
+{
+  "converterVersion" : "0.41.16",
+  "diagnosticGroups" : [
+    {
+      "code" : "rtfd.layoutNotPreserved",
+      "count" : 1,
+      "kind" : "approximation",
+      "locations" : [
+
+      ],
+      "messages" : [
+        "RTFD attachment positioning and literal list formatting are not fully preserved; review the imported layout."
+      ],
+      "omittedCount" : 0
+    },
+    {
+      "code" : "sourceMap.unavailable",
+      "count" : 1,
+      "kind" : "information",
+      "locations" : [
+
+      ],
+      "messages" : [
+        "No verified source-to-text positions are available for this conversion."
+      ],
+      "omittedCount" : 0
+    }
+  ],
+  "diagnostics" : [
+    {
+      "code" : "rtfd.layoutNotPreserved",
+      "kind" : "approximation",
+      "message" : "RTFD attachment positioning and literal list formatting are not fully preserved; review the imported layout."
+    },
+    {
+      "code" : "sourceMap.unavailable",
+      "kind" : "information",
+      "message" : "No verified source-to-text positions are available for this conversion."
+    }
+  ],
+  "format" : "rtfd",
+  "omittedMappingCount" : 0,
+  "options" : {
+    "conversionReport" : true,
+    "customPandoc" : false,
+    "docxChangeMode" : "accept",
+    "frontmatter" : false,
+    "imageTextRecognition" : "enabled",
+    "ocrLanguages" : [
+
+    ],
+    "ocrMethod" : "standard",
+    "outputLayout" : "markdownFolder",
+    "pdfDehyphenate" : false,
+    "pdfLayout" : "auto",
+    "pdfRemoveHeadersFooters" : false,
+    "pdfTextRecognition" : "auto",
+    "presentationIncludeNotes" : true,
+    "sourceMapping" : true,
+    "spreadsheetRendering" : "markdownTable"
+  },
+  "outputs" : [
+    {
+      "byteCount" : 40,
+      "path" : "source.md",
+      "sha256" : "c4c2d46fcd5e5fa6cf8a91bb8a5738b0b14d1e0556d9c97869f0030e97835df1"
+    }
+  ],
+  "schemaVersion" : 1,
+  "source" : {
+    "byteCount" : 53,
+    "memberPath" : "TXT.rtf",
+    "name" : "source.rtfd",
+    "sha256" : "cfdcb8d95eb37eef45dbe447a72dedc22de77da8d1c939ab8317bf0a1d42ed7f"
+  },
+  "sourceMappings" : [
+
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "outerUID": 1000,
+  "innerUIDMapping": "0 maps to outer unprivileged user; no host-root claim",
+  "before": {
+    "true": "8a63c98320173f79e263115e10cefc170155e47d1fd4b5a70e4429d2699cae28",
+    "hostDPKGStatus": "78c83019f2428aa3c2de0c7d9e29c4e07987114ede3d6d368915c10d93e905bf",
+    "oldDEB": "c93e87876b3882fe078f93cd27741937d4368c32bfe6cb3924fcb4e212e19cb0",
+    "newDEB": "f515ed7df0dcb69060d59f64df534d362580cba5cf8ec3304c604094d9cadfe3",
+    "outsideMarker": "2a53703214233b16c8954f461c2c52af26d0ba68bbeb4a21b28f868044ccf6e5"
+  },
+  "after": {
+    "true": "8a63c98320173f79e263115e10cefc170155e47d1fd4b5a70e4429d2699cae28",
+    "hostDPKGStatus": "78c83019f2428aa3c2de0c7d9e29c4e07987114ede3d6d368915c10d93e905bf",
+    "oldDEB": "c93e87876b3882fe078f93cd27741937d4368c32bfe6cb3924fcb4e212e19cb0",
+    "newDEB": "f515ed7df0dcb69060d59f64df534d362580cba5cf8ec3304c604094d9cadfe3",
+    "outsideMarker": "2a53703214233b16c8954f461c2c52af26d0ba68bbeb4a21b28f868044ccf6e5"
+  },
+  "hostAndPackageInputsUnchanged": true,
+  "sourceUnchanged": true,
+  "exit": 0
+}

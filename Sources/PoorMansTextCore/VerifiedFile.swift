@@ -132,6 +132,10 @@ struct VerifiedFile {
         info.st_mode & S_IFMT == S_IFREG
     }
 
+    var isDirectory: Bool {
+        info.st_mode & S_IFMT == S_IFDIR
+    }
+
     /// Füllt `buffer` und gibt zurück, wie viele Bytes wirklich kamen. Weniger
     /// heißt: Die Datei war kürzer oder wurde inzwischen gekürzt — was das
     /// bedeutet, entscheidet der Aufrufer.

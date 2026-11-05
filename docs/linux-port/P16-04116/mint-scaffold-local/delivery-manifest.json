@@ -1,0 +1,116 @@
+{
+  "purpose": "isolated native Mint DPKG scaffold readiness; local Ubuntu proof only",
+  "reviewAt": "authorized native Mint test",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 4851,
+      "sha256": "8a65e0935385c4179866da57828516c65c0a5a34fcec9156f0e5f8f1b50493ce"
+    },
+    {
+      "path": "attempt1-failure.json",
+      "bytes": 324,
+      "sha256": "789cd39aa1373a180680b46a44d4578831b1a1ff9b77fa88fe9b83231f272ee0"
+    },
+    {
+      "path": "boundary.json",
+      "bytes": 927,
+      "sha256": "b3ad7ddbb9f880599f21c19ae0fa8c01f1c9c91b954eab93a91e100d48745902"
+    },
+    {
+      "path": "cleanup.json",
+      "bytes": 128,
+      "sha256": "a518e392b62fdff1d0cf213b3cad79677da806d96113817dd8e37f9aaadd24c4"
+    },
+    {
+      "path": "dpkg-install-0.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dpkg-install-0.stdout",
+      "bytes": 272,
+      "sha256": "516234c60f6f0d5f544a5748389c5920093fbd7eef6ba841eb2a963cd74e22b2"
+    },
+    {
+      "path": "dpkg-install-1.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dpkg-install-1.stdout",
+      "bytes": 246,
+      "sha256": "aebf08d2703290c8583351b7e88129f0a324b238bcae7804b2e70eed8e78946f"
+    },
+    {
+      "path": "dpkg-remove.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dpkg-remove.stdout",
+      "bytes": 123,
+      "sha256": "0b205c369c545e1d2c75d7af4f63a31be2d113128cab1342b831da8ee06f834e"
+    },
+    {
+      "path": "inside.py",
+      "bytes": 2859,
+      "sha256": "1216d6b92954c4ff814d95c9e23198147b5a75c8459abd0c3c7cac0819ed115f"
+    },
+    {
+      "path": "lifecycle.json",
+      "bytes": 363,
+      "sha256": "f009354370031b6e265dde3f52c5c475abce3063e33924ff1c713b4d05574d3c"
+    },
+    {
+      "path": "outer-evidence/outer.json",
+      "bytes": 1063,
+      "sha256": "447ba87892b8ba64323d4011102566334e813fbadb391d6de0191ec84c6a2379"
+    },
+    {
+      "path": "outer-evidence/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "outer-evidence/stdout.txt",
+      "bytes": 28,
+      "sha256": "ecbfdd8b817eba9862b125b7918a149e2d5e96f2e652964c7a6cebc5876c2d28"
+    },
+    {
+      "path": "profiles/0cdf6e1acb219519010e7150a158d6d23a95f6899468dfa82ea823ec899f5ff5.json",
+      "bytes": 546,
+      "sha256": "23169ff26fea2b50c7df8b9eff0c6ecb796d1bbc882de7995b5f3b93dec301d7"
+    },
+    {
+      "path": "result-0/conversion-report.json",
+      "bytes": 2234,
+      "sha256": "cdefb13d1bbbafb063793fcf5c84069609e248eedab2fdd247a4052b9cd4a0ae"
+    },
+    {
+      "path": "result-0/source.md",
+      "bytes": 90,
+      "sha256": "af1b74e59763f7df698cec1dd9ea61be1176a02463b14cc614285441109e8a24"
+    },
+    {
+      "path": "result-1/conversion-report.json",
+      "bytes": 2234,
+      "sha256": "4b7483d5e73fea62b33fab24b47a00b88453753fa9efe183b2c499146dc4cc9d"
+    },
+    {
+      "path": "result-1/source.md",
+      "bytes": 90,
+      "sha256": "af1b74e59763f7df698cec1dd9ea61be1176a02463b14cc614285441109e8a24"
+    },
+    {
+      "path": "scaffold.py",
+      "bytes": 4233,
+      "sha256": "7672c23216cd6869292d9e82aeb8b48d47279143cb36b9c4c41252e5fddcbc79"
+    },
+    {
+      "path": "source.csv",
+      "bytes": 30,
+      "sha256": "67b72288428ca05f27c1ff7cfea1d50fe4f8fb269332f7880cf13ac4e16b4e22"
+    }
+  ]
+}

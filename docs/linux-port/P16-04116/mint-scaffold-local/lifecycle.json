@@ -1,0 +1,18 @@
+{
+  "normalDPKG": true,
+  "noSkippedTriggersOrDependencyBypass": true,
+  "installs": [
+    {
+      "version": "0.41.14",
+      "conversionPassed": true,
+      "profilePreserved": true
+    },
+    {
+      "version": "0.41.15",
+      "conversionPassed": true,
+      "profilePreserved": true
+    }
+  ],
+  "packageRemoved": true,
+  "sourceAndProfilePreserved": true
+}

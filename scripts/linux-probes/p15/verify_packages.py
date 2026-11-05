@@ -12,6 +12,7 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--packages', required=True, type=Path)
 parser.add_argument('--packager', required=True, type=Path)
 parser.add_argument('--evidence', type=Path)
+parser.add_argument('--build-umask', choices=['022', '077'], help='Nur mit unabhängig protokolliertem Paketbau angeben')
 args = parser.parse_args()
 packages = args.packages.resolve()
 packager = args.packager.resolve()
@@ -63,7 +64,8 @@ with tempfile.TemporaryDirectory(prefix='pmt-package-parent-') as temporary:
     alias.symlink_to(destination, target_is_directory=True)
     p = subprocess.run([str(packager), '--no-build', '--format', 'tar', '--output-directory', str(alias)], capture_output=True, text=True, timeout=15)
     assert p.returncode != 0 and list(destination.iterdir()) == []
-result = {'formats': records, 'builtUnderUmask': '077', 'existingPackagesUnchangedOnCollision73': True,
+result = {'formats': records, 'buildUmask': args.build_umask, 'publicFileModesVerified': True,
+          'existingPackagesUnchangedOnCollision73': True,
           'symlinkParentRejectedWithoutOutput': True}
 if args.evidence:
     args.evidence.write_text(json.dumps(result, indent=2, ensure_ascii=False) + '\n')

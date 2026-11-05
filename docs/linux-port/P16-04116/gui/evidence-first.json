@@ -1,0 +1,26 @@
+{
+  "scope": "Actual production .16 UI before final source-selection whitelist and package-scope label correction; later final delta is recorded separately",
+  "appSHA256": "8e451ce23d77647466590943a3d453e75511f299b0f7d0e49b5d2813b2cbad8d",
+  "schemaSHA256": "3dc32ed298eeff7383741fec21e0ede6f21c80020fd1fdc6f7d8f83375581c13",
+  "screenshots": {
+    "rtfd-recheck.png": "fc9336e338a93b94160f3f471906dd6de9a6524f69d493e8ed7e999c49c3466a",
+    "rtfd-compare.png": "6adb21afbec3144e4843b3a21c5c0021d47c0b71a0d07284b8bde51ced36b10e",
+    "rtfd-done.png": "c748b6964bf70f58d2b8f19bc1278d5fbc918560949765600329635ad304b517",
+    "rtfd-start.png": "21bfccd6843345845211aa947b53324bc588fba165fb0160dc9a38135ee61d9d",
+    "cleared.png": "1e1056e8f2b0a2a557d6c60bcfbe7cc78c7a300c60d064c7d89db57f8fa25f58",
+    "populated.png": "26296fb927cf3b8d15008aba3d79c6d21d8dc9d432b6f6ddb1ab992052b2a3fe",
+    "missing.png": "b153815fcdca81fa323b83768a971b81149f69dde7f1c1965db07935650a1c20",
+    "narrow.png": "6c6b44ff357b2ece306796692e91d43a2e0fc516430b57ad047b56534a9d7d8e",
+    "restart-output.png": "a98c11832d33f2218b9b7c58ef903ea336fa14e38aa06cab0aae7559229260fa",
+    "restart.png": "898fc17d0e24d070ddd2bf7743f0d3c19b14347acf0f1f7a19a5e9062fcff1da",
+    "changed2.png": "f6b37bbe1fdfd8b41b725bbe3ce412805d7b7d741ef9718cff1f6700f2772fc1",
+    "changed.png": "3c508b0d1b273170c67895737a2c2cd7e570efc50ea7c321edb810c2c56b699c",
+    "start.png": "e06b645eed313ce0f4df66e51e8c00c91b1373e75f775f4d25561cb68518dd01"
+  },
+  "actualResizeRestart": true,
+  "reportAndTabRestored": true,
+  "populatedPathsNotRestored": true,
+  "rtfdConvertCompareRecheck": true,
+  "privateDisplayAndBus": true,
+  "network": "none"
+}

@@ -94,8 +94,9 @@ steht in `scripts/linux-probes/p15/verify_gui_build_safety.py`.
 Offen bleiben echte KDE/Wayland- und Cinnamon/X11-Bedienung, Dateimanager-Drops,
 externe Standardanwendungen, Skalierung, Fokus, Eingabemethoden und Barrierefreiheit.
 PDF-/Bildrastervergleich und Clipboardquellströme sind inzwischen integriert;
-paketinterne Quellströme und allgemeine GUI-Präferenzen
-bleiben offen. Eine visuelle Xvfb-Probe ersetzt diese Systemabnahmen nicht.
+MBOX-/RTFD-Textströme und allgemeine GUI-Präferenzen sind ab 0.41.16
+[integriert und isoliert geprüft](P16-04116/README.md). RTFD-Anhänge sind
+ausdrücklich nicht durch den Textfingerprint abgedeckt. Eine visuelle Xvfb-Probe ersetzt diese Systemabnahmen nicht.
 
 ## Verifizierter Textvergleich und gemeinsame Dateizugriffe
 

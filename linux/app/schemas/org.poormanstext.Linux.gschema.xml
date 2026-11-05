@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.poormanstext.Linux" path="/org/poormanstext/Linux/">
+    <key name="window-width" type="i"><range min="700" max="3200"/><default>1060</default></key>
+    <key name="window-height" type="i"><range min="600" max="2400"/><default>850</default></key>
+    <key name="window-maximized" type="b"><default>false</default></key>
+    <key name="options-tab" type="i"><range min="0" max="3"/><default>0</default></key>
+    <key name="ocr-language" type="s"><default>''</default></key>
+    <key name="jobs" type="s"><default>''</default></key>
+    <key name="timeout" type="s"><default>''</default></key>
+    <key name="spreadsheet-format" type="s"><choices><choice value="table"/><choice value="tsv"/></choices><default>'table'</default></key>
+    <key name="image-ocr" type="s"><choices><choice value="on"/><choice value="off"/></choices><default>'on'</default></key>
+    <key name="pdf-ocr" type="s"><choices><choice value="auto"/><choice value="off"/><choice value="always"/></choices><default>'auto'</default></key>
+    <key name="pdf-layout" type="s"><choices><choice value="auto"/><choice value="legacy"/></choices><default>'auto'</default></key>
+    <key name="docx-changes" type="s"><choices><choice value="accept"/><choice value="reject"/><choice value="mark"/></choices><default>'accept'</default></key>
+    <key name="notes" type="s"><choices><choice value="on"/><choice value="off"/></choices><default>'on'</default></key>
+    <key name="frontmatter" type="b"><default>false</default></key>
+    <key name="textbundle" type="b"><default>false</default></key>
+    <key name="report" type="b"><default>false</default></key>
+    <key name="source-map" type="b"><default>true</default></key>
+    <key name="pdf-remove-headers-footers" type="b"><default>false</default></key>
+    <key name="pdf-dehyphenate" type="b"><default>false</default></key>
+  </schema>
+</schemalist>

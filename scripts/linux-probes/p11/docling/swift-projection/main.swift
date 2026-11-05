@@ -4,7 +4,7 @@ import Foundation
 let directory=URL(fileURLWithPath:CommandLine.arguments[1],isDirectory:true)
 let names=["01030000000132","01030000000132-render","01030000000135","structured"]
 var positive=[[String:Any]]();var negative=[[String:Any]]()
-func require(_ ok: Bool,_ message: String) throws { if !ok { throw DoclingProjection.Failure(reason:message) } }
+func require(_ ok: Bool,_ message: String) throws { if !ok { throw DoclingDocumentProjection.Failure(reason:message) } }
 func byteInventory(_ strings: [String]) -> [String:Int] {
     var counts=[String:Int]()
     for string in strings { for word in string.split(whereSeparator: \.isWhitespace) {
@@ -17,7 +17,7 @@ for name in names {
     let receipt=try JSONSerialization.jsonObject(with:Data(contentsOf:directory.appendingPathComponent(name+"-result.json"))) as! [String:Any]
     try require(ConversionFileFingerprint.digest(data)==receipt["jsonSHA256"] as? String,"stored JSON digest mismatch")
     do {
-        let parsed=try DoclingProjection.parse(data)
+        let parsed=try DoclingDocumentProjection.parse(data)
         let rendered=try StructuredOCRRendering.render(parsed.recognition)
         let raw=try JSONSerialization.jsonObject(with:data) as! [String:Any]
         let rawTexts=raw["texts"] as! [[String:Any]]
@@ -65,17 +65,17 @@ tests.append(("fragment-ambiguous-basis",try fragmentMutation { $0["text"]="diff
 tests.append(("fragment-reordered",try fragmentMutation { node in var prov=node["prov"] as! [[String:Any]];prov.swapAt(0,1);node["prov"]=prov }))
 let unicode=try JSONSerialization.jsonObject(with:Data(contentsOf:directory.appendingPathComponent("unicode-control.json"))) as! [String:Any]
 let controlText=unicode["text"] as! String
-let controlFragments=try DoclingProjection.scalarFragments(original:controlText,alternate:controlText,spans:unicode["spans"] as! [[Int]])
+let controlFragments=try DoclingDocumentProjection.scalarFragments(original:controlText,alternate:controlText,spans:unicode["spans"] as! [[Int]])
 let pythonFragments=unicode["fragments"] as! [String]
 try require(controlFragments.map { Array($0.utf8) }==pythonFragments.map { Array($0.utf8) },"Python/Swift scalar slice mismatch")
 try require(controlText.unicodeScalars.count==unicode["pythonCodepointCount"] as! Int,"codepoint count mismatch")
 do {
-    _=try DoclingProjection.scalarFragments(original:controlText,alternate:controlText.precomposedStringWithCanonicalMapping,spans:unicode["spans"] as! [[Int]])
+    _=try DoclingDocumentProjection.scalarFragments(original:controlText,alternate:controlText.precomposedStringWithCanonicalMapping,spans:unicode["spans"] as! [[Int]])
     negative.append(["case":"unicode-canonical-equivalent-ambiguous-basis","rejected":false])
 } catch { negative.append(["case":"unicode-canonical-equivalent-ambiguous-basis","rejected":true,"error":String(describing:error)]) }
 let unicodeEvidence:[String:Any]=["text":controlText,"SwiftUnicodeScalars":controlText.unicodeScalars.count,"SwiftGraphemeCount":controlText.count,"UTF16Count":controlText.utf16.count,"UTF8Bytes":controlText.utf8.count,"fragments":controlFragments,"matchesPythonUTF8Bytes":true]
 for (name,data) in tests {
-    do { _=try DoclingProjection.parse(data);negative.append(["case":name,"rejected":false]) }
+    do { _=try DoclingDocumentProjection.parse(data);negative.append(["case":name,"rejected":false]) }
     catch { negative.append(["case":name,"rejected":true,"error":String(describing:error)]) }
 }
 let report:[String:Any]=["positive":positive,"negative":negative,"unicode":unicodeEvidence,"allPassed":positive.allSatisfy{$0["passed"] as? Bool==true} && negative.allSatisfy{$0["rejected"] as? Bool==true},"scope":"JSON projection only; table paragraphs are derived from authoritative cells, not independent OCR; no GT recovery or product qualification"]

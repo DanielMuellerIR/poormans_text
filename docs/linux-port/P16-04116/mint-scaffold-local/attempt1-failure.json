@@ -1,0 +1,7 @@
+{
+  "phase": "copy private dpkg DB before bwrap",
+  "error": "read permission denied on /var/lib/dpkg/lock, lock-frontend and triggers/Lock",
+  "boundaryOrDpkgReached": false,
+  "correction": "recreate only these process-bound locks as empty private lockfiles; preserve every DB and trigger-content file",
+  "attempts": 2
+}

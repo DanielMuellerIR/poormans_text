@@ -11,7 +11,7 @@ def write(path,text,mode=None):
  if mode is not None:path.chmod(mode)
 def files(path):
  return {str(p.relative_to(path)):hashlib.sha256(p.read_bytes()).hexdigest() for p in path.rglob('*') if p.is_file() and not p.is_symlink()}
-for case in ['unknown-ui','known-ui','swap-target','swap-cache','swap-build-parent','ui-rename-race']:
+for case in ['unknown-ui','known-ui','known-ui-schema','modified-schema','unknown-schema-file','swap-target','swap-cache','swap-build-parent','ui-rename-race']:
  repo=root/case;script=repo/'scripts/build_linux_gui.py';script.parent.mkdir(parents=True);script.write_bytes(source)
  for helper in ['linux_build_support.py','run_linux_cli.sh','run_linux_gui.sh']:
   shutil.copy2(scripts_root/helper,script.parent/helper)
@@ -19,6 +19,7 @@ for case in ['unknown-ui','known-ui','swap-target','swap-cache','swap-build-pare
  write(repo/'Cargo.toml','[workspace]\nmembers=[]\n')
  write(repo/'Cargo.lock','version=4\n[[package]]\nname="fixture-dep"\nversion="1.0.0"\nsource="registry+https://github.com/rust-lang/crates.io-index"\nchecksum="'+'0'*64+'"\n')
  (repo/'linux').mkdir()
+ write(repo/'linux/app/schemas/org.poormanstext.Linux.gschema.xml','<schemalist><schema id="org.poormanstext.Linux" path="/org/poormanstext/Linux/"><key name="own-fixture" type="b"><default>false</default></key></schema></schemalist>\n')
  cache=repo/'.build/linux-ui-cargo';target=repo/'.build/linux-ui-native-target';target.mkdir(parents=True)
  dep=cache/'registry/src/fixture-index/fixture-dep-1.0.0'
  write(dep/'Cargo.toml','[package]\nname="fixture-dep"\nversion="1.0.0"\nlicense="MIT"\n')
@@ -34,6 +35,11 @@ for case in ['unknown-ui','known-ui','swap-target','swap-cache','swap-build-pare
   for name in ['poormans-text','poormans-text-process-guard']:write(ui/name,'old own helper\n',0o755)
   write(ui/'THIRD-PARTY-NOTICES.txt','old own fixture notices\n')
   write(ui/'build-info.json',json.dumps({'producer':'pmt-linux-gui-build-v1','product':'Poor Mans Text GTK','version':'9.9.8','binarySHA256':hashlib.sha256((ui/'poormans-text-app').read_bytes()).hexdigest()}))
+  if case in ['known-ui-schema','modified-schema','unknown-schema-file']:
+   write(ui/'schemas/gschemas.compiled','own synthetic compiled-schema fixture\n')
+   info=json.loads((ui/'build-info.json').read_text());info['preferencesSchemaSHA256']=hashlib.sha256((ui/'schemas/gschemas.compiled').read_bytes()).hexdigest();(ui/'build-info.json').write_text(json.dumps(info))
+   if case=='modified-schema':write(ui/'schemas/gschemas.compiled','modified schema must survive\n')
+   if case=='unknown-schema-file':write(ui/'schemas/foreign-note','must survive\n')
  old=files(ui)
  sysroot=repo/'fake-sysroot';write(sysroot/'share/doc/rust/COPYRIGHT-library.html','<p>Own toolchain fixture</p>\n');write(sysroot/'share/doc/rust/licenses/MIT.txt','Own license fixture\n')
  fake=repo/'fake-bin'
@@ -72,12 +78,12 @@ runpy.run_path(str(script),run_name='__main__')
 ''')
   command=['/usr/bin/python3',str(wrapper),str(script)]
  p=subprocess.run(command,env=env,capture_output=True,text=True,timeout=20)
- if case=='known-ui':
+ if case in ['known-ui','known-ui-schema']:
   check={'exitZero':p.returncode==0,'publishedOwnGUI':(ui/'poormans-text-app').read_text()=='#!/bin/sh\nexit 0\n','oldBackupPreserved':any(files(path)==old for path in runtime.glob('ui-old-*')),'noticesPublished':(ui/'THIRD-PARTY-NOTICES.txt').is_file(),'launcherCreated':(repo/'poormans-text-app').is_file()}
  elif case=='ui-rename-race':
   backups=list(runtime.glob('ui-old-*'))
   check={'failed':p.returncode!=0,'validatedUIUnchanged':files(runtime/'ui-validated-held')==old,'unknownBackupRetained':len(backups)==1 and (backups[0]/'unknown-note').read_text()=='must not be deleted','noLauncher':not(repo/'poormans-text-app').exists()}
- elif case=='unknown-ui':
+ elif case in ['unknown-ui','modified-schema','unknown-schema-file']:
   check={'failed':p.returncode!=0,'oldUIUnchanged':files(ui)==old,'noLauncher':not (repo/'poormans-text-app').exists()}
  else:
   foreign=(repo/'.build/linux-ui-native-target' if case=='swap-target' else repo/'.build/linux-ui-cargo' if case=='swap-cache' else repo/'.build')

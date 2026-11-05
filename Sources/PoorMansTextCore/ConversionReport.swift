@@ -17,6 +17,12 @@ public struct ConversionSourceIdentity: Codable, Hashable, Sendable {
     public func matchesFile(at url: URL) throws -> Bool {
         guard let sha256, let byteCount else { return false }
         if let memberPath {
+            if memberPath == "TXT.rtf" {
+                return try RTFDSource.withText(at: url) { file in
+                    let actual = try ConversionFileFingerprint.read(file)
+                    return actual.sha256 == sha256 && actual.byteCount == byteCount
+                }
+            }
             guard memberPath == "mbox" else { return false }
             return try MBOXSource.withMailbox(at: url) { file, package in
                 guard package else { return false }

@@ -87,7 +87,9 @@ package enum LinuxProcessRunner {
         var sandbox = ["--unshare-pid", "--unshare-net", "--as-pid-1", "--new-session"]
         // Nur Systemlaufzeit und ausdrücklich gebundene Eingaben sind sichtbar.
         // Insbesondere wird kein schreibbarer Host-Elternbaum übernommen.
-        for path in ["/usr", "/bin", "/sbin", "/lib", "/lib64", "/etc/ld.so.cache", "/etc/fonts", "/etc/localtime"] {
+        // Ubuntu legt Office-Registrierung außerhalb von /usr ab; nur dieses
+        // Systemverzeichnis ergänzen, keinen vollständigen /etc-Baum.
+        for path in ["/usr", "/bin", "/sbin", "/lib", "/lib64", "/etc/ld.so.cache", "/etc/fonts", "/etc/localtime", "/etc/libreoffice"] {
             if manager.fileExists(atPath: path) { sandbox += ["--ro-bind", path, path] }
         }
         sandbox += ["--dir", "/pmt", "--dir", "/pmt/input", "--bind-fd", "pmt-fd:0", "/pmt/work-scope",

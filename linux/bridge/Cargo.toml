@@ -1,0 +1,11 @@
+[package]
+name = "pmt-bridge"
+version.workspace = true
+license.workspace = true
+rust-version.workspace = true
+edition = "2021"
+publish = false
+
+[dependencies]
+serde_json = "=1.0.145"
+libc = "=0.2.176"

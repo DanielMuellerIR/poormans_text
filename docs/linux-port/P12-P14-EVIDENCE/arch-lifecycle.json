@@ -1,0 +1,14 @@
+{
+  "installed": "poormans-text 0.41.10-1",
+  "packageSHA256": "28d6e4ee7c839da0eadccaf6f0084409ca35b1da03bb5d13dfa01a7ba03a9951",
+  "actualALPMInstallRemove": true,
+  "privateDatabaseAndRoot": true,
+  "network": "none",
+  "globalHooksMasked": true,
+  "noSwiftSDK": true,
+  "unicodeRelocatedLauncherAndConversion": true,
+  "sourceAndOutputHashes": true,
+  "removedPackageFiles": true,
+  "dependencyResolutionVerified": false,
+  "freshArchChrootVerified": false
+}

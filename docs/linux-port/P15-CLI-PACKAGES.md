@@ -1,8 +1,9 @@
-# P15: lokale Linux-CLI-Pakete
+# P15: lokale Linux-Pakete mit optionaler GTK-Oberfläche
 
-Stand: 2026-11-05, Version 0.41.9. Debian-, Arch- und portable Tar-Pakete sind
-implementiert und lokal geprüft. Das ist der CLI-Anteil von P15, keine öffentliche
-Veröffentlichung und noch kein fertiges GUI-/Desktoppaket.
+Stand: 2026-11-05. Debian-, Arch- und portable Tar-Pakete sind lokal implementiert.
+Seit 0.41.10 ergänzt `--with-gui` GTK und eine Desktopdatei; CLI-Pakete bleiben
+unabhängig baubar. Dies ist keine öffentliche Veröffentlichung oder vollständige
+Zielsystem-/Desktopabnahme.
 
 `release.sh` verwendet unter Linux den vorhandenen Linux-Build und erzeugt alle
 drei Formate samt SHA-256-Dateien. Der Packager hält die Build-Sperre während der
@@ -47,7 +48,26 @@ laufen; er verweigert den normalen Hostaufruf. `scripts/LinuxPackageTest.Dockerf
 erstellt dessen Umgebung. Alte/neue DEBs und Prüfer werden nur read-only eingebunden.
 Kleine Ergebnisse stehen unter [P15-EVIDENCE](P15-EVIDENCE/packages.json).
 
-Offen bleiben GUI-/Desktopinstallation, vollständige Arch-Abhängigkeitsabnahme,
+Offen bleiben echte Desktopinstallation, vollständige Arch-Abhängigkeitsabnahme,
 Mint-Paketinstallation sowie die abschließende Distributions-/Lizenzprüfung vor
 öffentlicher Weitergabe. Die bereits bestandene Laufzeitprüfung auf Mint ist
 keine durchgeführte native Paketinstallation.
+
+## GTK-Pakete 0.41.10
+
+Alle drei unter `umask 077` gebauten GUI-Pakete bestehen dieselben Hash-, Modus-,
+Verschiebe-/Unicode- und realen CSV-Prüfungen einschließlich Kollisionserhalt.
+Alle ausgelieferten ELFs werden vor Paketierung auf maximal glibc 2.39 geprüft.
+GUI und CLI besitzen getrennte Launcher; GTK erhält keine Swift-Library-Pfade.
+Die Paketierung übernimmt sämtliche gelockten Rust-Crate-Lizenz-/Copyrighttexte
+sowie Notices der tatsächlichen Builder-Toolchain. Die dynamischen GTK-/GNOME-
+Systembibliotheken bleiben deklarierte externe Abhängigkeiten.
+
+Die SDK-freie Ubuntu-24.04-Prüfung installiert 0.41.9, legt als unprivilegierter
+Benutzer ein Profil an, aktualisiert auf das GUI-Paket 0.41.10 und entfernt dieses.
+Quelle und Profil bleiben erhalten. Die echte Release-GUI wurde auf privatem Xvfb
+mit Dateiöffnung, Maus-/Tastaturkonvertierung und visuell geprüfter Textvorschau
+benutzt. Die tatsächliche Arch-ALPM-Dateitransaktion wurde auch für das GUI-Paket
+wiederholt; Abhängigkeitsauflösung/frische Arch-Chroot bleiben ausdrücklich offen.
+Kleine Belege liegen unter [P12-P14-EVIDENCE](P12-P14-EVIDENCE/packages.json).
+Die entsprechenden GUI-/Systemgrenzen nennt der [GTK-Bericht](P12-P14-GUI.md).

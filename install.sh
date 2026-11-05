@@ -17,5 +17,9 @@
 #   ./install.sh --with-dmg       # Release: DMG, Checksumme und Installation in einem Lauf
 #   ./install.sh --no-notarize    # nur bauen und lokal signieren (kein /Applications)
 set -euo pipefail
+if [[ "$(uname -s)" == Linux ]]; then
+    echo 'Linux: build local packages with ./release.sh --with-gui; install the chosen package through the native package manager. See docs/LINUX-BUILD.md.' >&2
+    exit 69
+fi
 
 exec "$(cd "$(dirname "$0")" && pwd)/scripts/install.sh" --no-dmg "$@"

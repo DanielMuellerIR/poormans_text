@@ -4,7 +4,7 @@ Die Linux-Portierung verwendet denselben Swift-Konvertierungskern wie macOS.
 P05 stellt Build und Plattformgrenzen her; dies ist noch keine vollständige
 Linux-App oder Distributionsfreigabe. PDF, Standard-OCR und Bilder verwenden
 explizite lokale Backends; RTFD unterstützt zunächst geprüfte lokale statische
-PNG-Anhänge. Legacy-DOC, HEIC und strukturierte OCR bleiben nicht verfügbar.
+PNG-Anhänge. Legacy-DOC verwendet optional LibreOffice mit expliziten sicheren UNO-Ladeparametern. HEIC und strukturierte OCR bleiben nicht verfügbar.
 Die vorhandene Mac-App bleibt nativ.
 
 ## Lokal bauen
@@ -34,7 +34,11 @@ verteilbaren Pakets einschließlich aller Lizenzbeigaben gehört zu P15.
 
 Linux verwendet `Package.linux.resolved` und eine temporäre Quellkopie außerhalb
 des Repositories. Der Mac-Lockfile `Package.resolved` wird dadurch nicht verändert.
-Native und Docker-Buildcaches bleiben getrennt.
+Native und Docker-Buildcaches bleiben getrennt. Vorherige Laufzeiten/GUI-Artefakte
+bleiben nach einem erfolgreichen Austausch als `linux-runtime-old-*` beziehungsweise
+`ui-old-*` erhalten. Fehlgeschlagene UUID-Stages werden ebenfalls erhalten statt
+unbekannte nachträgliche Inhalte zu löschen. Sie dürfen nach eigener Prüfung
+gezielt entfernt werden; der Build führt keine pauschale Bereinigung aus.
 
 Die gemeinsamen und Linux-spezifischen Unit-Tests lassen sich in einer isolierten
 Quellkopie mit `swift test --jobs 6` ausführen. Der echte Produktprüflauf lautet:
@@ -44,6 +48,49 @@ python3 scripts/linux-probes/verify_product.py ./poormans-text --pandoc /pfad/zu
 ```
 
 Der Prüflauf erzeugt seine Dokumente temporär und räumt sie selbst auf.
+
+## Optionale GTK-Oberfläche
+
+Die Oberfläche ist ein dünner Rust-/GTK-Adapter derselben lokalen CLI. Sie bietet
+Datei-/Ordnerauswahl, mehrere Quellen, Optionen, sichere Textvorschau,
+Fortschritt/Abbruch, Diagnosen, Assets, Clipboardformate und CLI-Profile.
+Die Vorschau führt weder HTML noch Links aus. Allgemeine GUI-Einstellungen
+werden noch nicht automatisch gespeichert; Profile können bewusst gespeichert
+werden. Dies ist eine Entwicklungsvorschau, keine vollständige Desktopabnahme.
+
+Für den nativen Bau sind Rust ab 1.92, GTK 4 ab 4.12 und dessen
+Entwicklungsbibliotheken nötig. Der qualifizierte Ubuntu-24.04-Bau verwendet
+eine gepinnte Rust-Toolchain; er vermeidet neuere Host-glibc-Abhängigkeiten:
+
+```sh
+# Einmalig die gelockten öffentlichen Crates bewusst bereitstellen:
+cargo fetch --locked
+# Einmalig das lokale GUI-Buildimage erstellen:
+docker build -t pmt-linux-gui-builder -f scripts/LinuxGUIBuild.Dockerfile .
+PMT_LINUX_BUILD_IMAGE=pmt-linux-builder PMT_LINUX_GUI_BUILD_IMAGE=pmt-linux-gui-builder ./build.sh --with-gui release
+./linux/run.sh
+./release.sh --no-build --with-gui
+```
+
+Der eigentliche Cargo-Bau läuft immer `--locked --offline`; Container ziehen
+keine Images automatisch nach. Native und Ubuntu-Targets sind getrennt.
+Die Registrydaten werden ohne Cargo-Credentials oder Konfiguration in den
+lokalen Buildcache übernommen; `PMT_CARGO_HOME` kann einen ausdrücklich
+bereitgestellten Cache wählen. Pakete weisen jedes ELF oberhalb glibc 2.39 ab.
+
+GTK benutzt die Systembibliotheken. Nur der CLI-Kindprozess erhält die
+mitgelieferte Swift-Bibliothekssuche; sie wird nicht in den GTK-Prozess injiziert.
+Die Oberfläche wird durch einen eigenen PID-/Netznamespace beaufsichtigt:
+Ohne bestätigten namespace-pidfd startet die CLI nicht. Der Prozessbaum ist vor
+der Abschlussmeldung beendet. Unter `ui/THIRD-PARTY-NOTICES.txt` stehen die
+unveränderten Lizenztexte und Copyright-Hinweise der gelockten Rust-Crates
+samt Hashindex sowie die Hinweise der tatsächlich verwendeten Rust-Toolchain.
+GTK und seine GNOME-Systembibliotheken bleiben separat lizenzierte Abhängigkeiten.
+
+GUI-Pakete ergänzen `poormans-text-app` und eine `.desktop`-Datei; sie setzen
+keine Dateityp-Standardzuordnungen. Ohne `--with-gui` bleiben CLI-Pakete unabhängig
+von GTK installierbar. `./install.sh` installiert unter Linux bewusst nichts;
+die erzeugten nativen Pakete sind ausdrücklich mit dem Paketmanager zu verwalten.
 
 ## Laufzeit und Grenzen
 
@@ -60,6 +107,7 @@ ausdrücklich installierte Distributionspakete:
 | --- | --- | --- |
 | Rasterdecoder | `python3-pil` | `python-pillow` |
 | PDF | `python3-gi`, `python3-cairo`, `python3-gi-cairo`, `gir1.2-poppler-0.18` | `python-gobject`, `python-cairo`, `poppler-glib` |
+| Legacy-DOC | `libreoffice-writer`, `python3-uno`, Pandoc | `libreoffice-fresh`, zum System-Python passende UNO-Bindings, Pandoc |
 | Standard-OCR | `tesseract-ocr` und gewählte Sprachpakete | `tesseract` und gewählte `tesseract-data-*` |
 
 Es gibt keine automatischen Paket- oder Sprachdownloads. Ohne explizite
@@ -93,8 +141,7 @@ Bei einem ausgetauschten Elternpfad bleibt ein vollständiges Ergebnis zur
 Wiederherstellung erhalten; ein Erfolg für den inzwischen anderen Pfad wird
 nicht gemeldet.
 
-Die drei lokalen CLI-Paketformate sind unten beschrieben. Desktopintegration,
-Linux-GUI und vollständige Backendabnahme folgen in den weiteren Paketen des [Linux-Plans](LINUX-PORT.md). Die älteren
+Die drei lokalen Paketformate sind unten beschrieben. Eine GTK-Vorschau ist optional; echte Desktopabnahme und vollständige Backendabnahme bleiben Teil des [Linux-Plans](LINUX-PORT.md). Die älteren
 [Entscheidungsproben](linux-port/P03-FOLLOWUP.md) sind von der Produktintegration
 und deren Prüfstand zu unterscheiden.
 

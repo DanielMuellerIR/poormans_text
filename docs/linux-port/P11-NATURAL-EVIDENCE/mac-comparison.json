@@ -1,0 +1,1257 @@
+{
+  "version": "Poor Man's Text 0.41.7",
+  "architecture": "arm64",
+  "cliSHA256": "a0bd72a510a38b02b6305c04d5dc6fdc4cd09492f1b3b40ae5892234abc23ab3",
+  "limits": "Frozen 0.41.7 historical baseline, no new Mac execution; structured flags on all natural cases report structuredFallback. No current Mac regression or equivalent OCR mode claim.",
+  "cases": [
+    {
+      "source": "01030000000132.pdf",
+      "mode": "off",
+      "exit": 0,
+      "sourceUnchangedReported": true,
+      "sourceSHA256": "eded7804127acce26e4b9e7138aa8c95d0d8886280a21148efb0ae9519941ede",
+      "embeddedMarkdownHashMatches": true,
+      "analysis": {
+        "wordInventory": {
+          "expected": 339,
+          "actual": 320,
+          "matched": 319,
+          "missing": {
+            "the": 1,
+            "rio": 1,
+            "s": 1,
+            "lake": 1,
+            "sturgeon": 1,
+            "acipenser": 1,
+            "rubicundus": 1,
+            "le": 1,
+            "p": 1,
+            "drawing": 1,
+            "by": 2,
+            "h": 1,
+            "l": 1,
+            "from": 1,
+            "no": 1,
+            "national": 1,
+            "museum": 1,
+            "j": 1,
+            "w": 1
+          },
+          "extra": {
+            "río": 1
+          }
+        },
+        "nfkcVariantNotPrimary": {
+          "expected": 339,
+          "actual": 320,
+          "matched": 319,
+          "missing": {
+            "the": 1,
+            "rio": 1,
+            "s": 1,
+            "lake": 1,
+            "sturgeon": 1,
+            "acipenser": 1,
+            "rubicundus": 1,
+            "le": 1,
+            "p": 1,
+            "drawing": 1,
+            "by": 2,
+            "h": 1,
+            "l": 1,
+            "from": 1,
+            "no": 1,
+            "national": 1,
+            "museum": 1,
+            "j": 1,
+            "w": 1
+          },
+          "extra": {
+            "río": 1
+          }
+        },
+        "elements": [
+          {
+            "id": 0,
+            "category": "Table",
+            "anchor": [
+              "fish",
+              "species",
+              "on",
+              "iucn",
+              "red",
+              "list",
+              "potosi",
+              "pupfish"
+            ],
+            "anchorOffset": 0,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 1,
+            "category": "Caption",
+            "anchor": [
+              "table",
+              "6",
+              "1",
+              "four",
+              "fish",
+              "species",
+              "on",
+              "iucn"
+            ],
+            "anchorOffset": 23,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 2,
+            "category": "Paragraph",
+            "anchor": [
+              "public",
+              "aquariums",
+              "because",
+              "of",
+              "their",
+              "in",
+              "house",
+              "expertise"
+            ],
+            "anchorOffset": 41,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 3,
+            "category": "Figure",
+            "anchor": [],
+            "anchorOffset": null,
+            "entireElementContiguous": false
+          },
+          {
+            "id": 4,
+            "category": "Caption",
+            "anchor": [
+              "figure",
+              "6",
+              "3",
+              "photo",
+              "of",
+              "the",
+              "critically",
+              "endangered"
+            ],
+            "anchorOffset": 111,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 5,
+            "category": "Paragraph",
+            "anchor": [
+              "the",
+              "breeding",
+              "colonies",
+              "of",
+              "the",
+              "butterfly",
+              "splitfin",
+              "figure"
+            ],
+            "anchorOffset": 123,
+            "entireElementContiguous": false
+          },
+          {
+            "id": 6,
+            "category": "Figure",
+            "anchor": [
+              "the",
+              "lake",
+              "sturgeon",
+              "acipenser",
+              "rubicundus",
+              "le",
+              "s",
+              "p"
+            ],
+            "anchorOffset": null,
+            "entireElementContiguous": false
+          },
+          {
+            "id": 7,
+            "category": "Caption",
+            "anchor": [
+              "figure",
+              "6",
+              "4",
+              "lake",
+              "sturgeon",
+              "acipenser",
+              "fulvescens"
+            ],
+            "anchorOffset": 250,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 8,
+            "category": "Paragraph",
+            "anchor": [
+              "the",
+              "banggai",
+              "cardinalfish",
+              "pterapogon",
+              "kauderni",
+              "a",
+              "small",
+              "endangered"
+            ],
+            "anchorOffset": 257,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 9,
+            "category": "Footer",
+            "anchor": [
+              "132",
+              "public",
+              "aquariums",
+              "and",
+              "their",
+              "role",
+              "in",
+              "education"
+            ],
+            "anchorOffset": 309,
+            "entireElementContiguous": true
+          }
+        ],
+        "foundAnchorsInGTOrder": true,
+        "cells": [
+          {
+            "text": "Fish species on IUCN Red List",
+            "rowspan": 1,
+            "colspan": 2,
+            "tokenOffset": 0,
+            "exactTokenSequenceFound": true,
+            "substringFound": true
+          },
+          {
+            "text": "Potosi Pupfish",
+            "rowspan": 1,
+            "colspan": 1,
+            "tokenOffset": 6,
+            "exactTokenSequenceFound": true,
+            "substringFound": true
+          },
+          {
+            "text": "Cyprinodon alvarezi",
+            "rowspan": 1,
+            "colspan": 1,
+            "tokenOffset": 8,
+            "exactTokenSequenceFound": true,
+            "substringFound": true
+          },
+          {
+            "text": "La Palma Pupfish",
+            "rowspan": 1,
+            "colspan": 1,
+            "tokenOffset": 10,
+            "exactTokenSequenceFound": true,
+            "substringFound": true
+          },
+          {
+            "text": "Cyprinodon longidorsalis",
+            "rowspan": 1,
+            "colspan": 1,
+            "tokenOffset": 13,
+            "exactTokenSequenceFound": true,
+            "substringFound": true
+          },
+          {
+            "text": "Butterfly Splitfin",
+            "rowspan": 1,
+            "colspan": 1,
+            "tokenOffset": 15,
+            "exactTokenSequenceFound": true,
+            "substringFound": true
+          },
+          {
+            "text": "Ameca splendens",
+            "rowspan": 1,
+            "colspan": 1,
+            "tokenOffset": 17,
+            "exactTokenSequenceFound": true,
+            "substringFound": true
+          },
+          {
+            "text": "Golden Skiffia",
+            "rowspan": 1,
+            "colspan": 1,
+            "tokenOffset": 19,
+            "exactTokenSequenceFound": true,
+            "substringFound": true
+          },
+          {
+            "text": "Skiffia francesae",
+            "rowspan": 1,
+            "colspan": 1,
+            "tokenOffset": 21,
+            "exactTokenSequenceFound": true,
+            "substringFound": true
+          }
+        ],
+        "foundCellsInGTOrder": true,
+        "tableStructurePresent": false,
+        "colspanPresent": false
+      },
+      "uncertainOCRPayloads": [],
+      "diagnosticCodes": [
+        "pdf.layoutNotPreserved",
+        "pdf.layoutFallback"
+      ]
+    },
+    {
+      "source": "01030000000132.pdf",
+      "mode": "structured",
+      "exit": 0,
+      "sourceUnchangedReported": true,
+      "sourceSHA256": "eded7804127acce26e4b9e7138aa8c95d0d8886280a21148efb0ae9519941ede",
+      "embeddedMarkdownHashMatches": true,
+      "analysis": {
+        "wordInventory": {
+          "expected": 339,
+          "actual": 323,
+          "matched": 322,
+          "missing": {
+            "rio": 1,
+            "s": 1,
+            "acipenser": 1,
+            "rubicundus": 1,
+            "le": 1,
+            "p": 1,
+            "drawing": 1,
+            "by": 2,
+            "h": 1,
+            "l": 1,
+            "from": 1,
+            "no": 1,
+            "national": 1,
+            "museum": 1,
+            "j": 1,
+            "w": 1
+          },
+          "extra": {
+            "río": 1
+          }
+        },
+        "nfkcVariantNotPrimary": {
+          "expected": 339,
+          "actual": 323,
+          "matched": 322,
+          "missing": {
+            "rio": 1,
+            "s": 1,
+            "acipenser": 1,
+            "rubicundus": 1,
+            "le": 1,
+            "p": 1,
+            "drawing": 1,
+            "by": 2,
+            "h": 1,
+            "l": 1,
+            "from": 1,
+            "no": 1,
+            "national": 1,
+            "museum": 1,
+            "j": 1,
+            "w": 1
+          },
+          "extra": {
+            "río": 1
+          }
+        },
+        "elements": [
+          {
+            "id": 0,
+            "category": "Table",
+            "anchor": [
+              "fish",
+              "species",
+              "on",
+              "iucn",
+              "red",
+              "list",
+              "potosi",
+              "pupfish"
+            ],
+            "anchorOffset": 0,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 1,
+            "category": "Caption",
+            "anchor": [
+              "table",
+              "6",
+              "1",
+              "four",
+              "fish",
+              "species",
+              "on",
+              "iucn"
+            ],
+            "anchorOffset": 23,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 2,
+            "category": "Paragraph",
+            "anchor": [
+              "public",
+              "aquariums",
+              "because",
+              "of",
+              "their",
+              "in",
+              "house",
+              "expertise"
+            ],
+            "anchorOffset": 41,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 3,
+            "category": "Figure",
+            "anchor": [],
+            "anchorOffset": null,
+            "entireElementContiguous": false
+          },
+          {
+            "id": 4,
+            "category": "Caption",
+            "anchor": [
+              "figure",
+              "6",
+              "3",
+              "photo",
+              "of",
+              "the",
+              "critically",
+              "endangered"
+            ],
+            "anchorOffset": 111,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 5,
+            "category": "Paragraph",
+            "anchor": [
+              "the",
+              "breeding",
+              "colonies",
+              "of",
+              "the",
+              "butterfly",
+              "splitfin",
+              "figure"
+            ],
+            "anchorOffset": 123,
+            "entireElementContiguous": false
+          },
+          {
+            "id": 6,
+            "category": "Figure",
+            "anchor": [
+              "the",
+              "lake",
+              "sturgeon",
+              "acipenser",
+              "rubicundus",
+              "le",
+              "s",
+              "p"
+            ],
+            "anchorOffset": null,
+            "entireElementContiguous": false
+          },
+          {
+            "id": 7,
+            "category": "Caption",
+            "anchor": [
+              "figure",
+              "6",
+              "4",
+              "lake",
+              "sturgeon",
+              "acipenser",
+              "fulvescens"
+            ],
+            "anchorOffset": 250,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 8,
+            "category": "Paragraph",
+            "anchor": [
+              "the",
+              "banggai",
+              "cardinalfish",
+              "pterapogon",
+              "kauderni",
+              "a",
+              "small",
+              "endangered"
+            ],
+            "anchorOffset": 257,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 9,
+            "category": "Footer",
+            "anchor": [
+              "132",
+              "public",
+              "aquariums",
+              "and",
+              "their",
+              "role",
+              "in",
+              "education"
+            ],
+            "anchorOffset": 309,
+            "entireElementContiguous": true
+          }
+        ],
+        "foundAnchorsInGTOrder": true,
+        "cells": [
+          {
+            "text": "Fish species on IUCN Red List",
+            "rowspan": 1,
+            "colspan": 2,
+            "tokenOffset": 0,
+            "exactTokenSequenceFound": true,
+            "substringFound": true
+          },
+          {
+            "text": "Potosi Pupfish",
+            "rowspan": 1,
+            "colspan": 1,
+            "tokenOffset": 6,
+            "exactTokenSequenceFound": true,
+            "substringFound": true
+          },
+          {
+            "text": "Cyprinodon alvarezi",
+            "rowspan": 1,
+            "colspan": 1,
+            "tokenOffset": 8,
+            "exactTokenSequenceFound": true,
+            "substringFound": true
+          },
+          {
+            "text": "La Palma Pupfish",
+            "rowspan": 1,
+            "colspan": 1,
+            "tokenOffset": 10,
+            "exactTokenSequenceFound": true,
+            "substringFound": true
+          },
+          {
+            "text": "Cyprinodon longidorsalis",
+            "rowspan": 1,
+            "colspan": 1,
+            "tokenOffset": 13,
+            "exactTokenSequenceFound": true,
+            "substringFound": true
+          },
+          {
+            "text": "Butterfly Splitfin",
+            "rowspan": 1,
+            "colspan": 1,
+            "tokenOffset": 15,
+            "exactTokenSequenceFound": true,
+            "substringFound": true
+          },
+          {
+            "text": "Ameca splendens",
+            "rowspan": 1,
+            "colspan": 1,
+            "tokenOffset": 17,
+            "exactTokenSequenceFound": true,
+            "substringFound": true
+          },
+          {
+            "text": "Golden Skiffia",
+            "rowspan": 1,
+            "colspan": 1,
+            "tokenOffset": 19,
+            "exactTokenSequenceFound": true,
+            "substringFound": true
+          },
+          {
+            "text": "Skiffia francesae",
+            "rowspan": 1,
+            "colspan": 1,
+            "tokenOffset": 21,
+            "exactTokenSequenceFound": true,
+            "substringFound": true
+          }
+        ],
+        "foundCellsInGTOrder": true,
+        "tableStructurePresent": false,
+        "colspanPresent": false
+      },
+      "uncertainOCRPayloads": [],
+      "diagnosticCodes": [
+        "pdf.layoutNotPreserved",
+        "pdf.ocrApplied",
+        "pdf.layoutFallback",
+        "ocr.structuredFallback",
+        "pdf.ocrOriginalRetained"
+      ]
+    },
+    {
+      "source": "01030000000134.pdf",
+      "mode": "off",
+      "exit": 0,
+      "sourceUnchangedReported": true,
+      "sourceSHA256": "4a6baa0f883743ec25b853bae06a49d230ec010c973501945d46a16f9bb75aa9",
+      "embeddedMarkdownHashMatches": true,
+      "analysis": {
+        "wordInventory": {
+          "expected": 237,
+          "actual": 152,
+          "matched": 152,
+          "missing": {
+            "of": 2,
+            "alligator": 1,
+            "in": 2,
+            "years": 2,
+            "by": 2,
+            "fish": 2,
+            "length": 2,
+            "40": 4,
+            "70": 2,
+            "cm": 2,
+            "and": 2,
+            "10": 2,
+            "weight": 2,
+            "gar": 3,
+            "age": 4,
+            "120": 2,
+            "300": 2,
+            "100": 4,
+            "250": 2,
+            "80": 4,
+            "200": 2,
+            "60": 4,
+            "150": 2,
+            "20": 4,
+            "50": 4,
+            "0": 6,
+            "30": 2,
+            "90": 2,
+            "texas": 1,
+            "ibs": 1,
+            "kg": 2,
+            "140": 1,
+            "rod": 1,
+            "reel": 1,
+            "record": 1,
+            "279": 1,
+            "lbs": 2
+          },
+          "extra": {}
+        },
+        "nfkcVariantNotPrimary": {
+          "expected": 237,
+          "actual": 152,
+          "matched": 152,
+          "missing": {
+            "of": 2,
+            "alligator": 1,
+            "in": 2,
+            "years": 2,
+            "by": 2,
+            "fish": 2,
+            "length": 2,
+            "40": 4,
+            "70": 2,
+            "cm": 2,
+            "and": 2,
+            "10": 2,
+            "weight": 2,
+            "gar": 3,
+            "age": 4,
+            "120": 2,
+            "300": 2,
+            "100": 4,
+            "250": 2,
+            "80": 4,
+            "200": 2,
+            "60": 4,
+            "150": 2,
+            "20": 4,
+            "50": 4,
+            "0": 6,
+            "30": 2,
+            "90": 2,
+            "texas": 1,
+            "ibs": 1,
+            "kg": 2,
+            "140": 1,
+            "rod": 1,
+            "reel": 1,
+            "record": 1,
+            "279": 1,
+            "lbs": 2
+          },
+          "extra": {}
+        },
+        "elements": [
+          {
+            "id": 0,
+            "category": "Paragraph",
+            "anchor": [
+              "what",
+              "s",
+              "unique",
+              "about",
+              "the",
+              "growth",
+              "of",
+              "alligator"
+            ],
+            "anchorOffset": 0,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 1,
+            "category": "Chart",
+            "anchor": [
+              "in",
+              "cm",
+              "length",
+              "of",
+              "gar",
+              "fish",
+              "by",
+              "age"
+            ],
+            "anchorOffset": null,
+            "entireElementContiguous": false
+          },
+          {
+            "id": 2,
+            "category": "Caption",
+            "anchor": [
+              "figure",
+              "8",
+              "6",
+              "growth",
+              "in",
+              "length",
+              "of",
+              "alligator"
+            ],
+            "anchorOffset": 109,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 3,
+            "category": "Chart",
+            "anchor": [
+              "ibs",
+              "kg",
+              "weight",
+              "of",
+              "gar",
+              "fish",
+              "by",
+              "age"
+            ],
+            "anchorOffset": null,
+            "entireElementContiguous": false
+          },
+          {
+            "id": 4,
+            "category": "Caption",
+            "anchor": [
+              "figure",
+              "8",
+              "7",
+              "growth",
+              "in",
+              "weight",
+              "of",
+              "alligator"
+            ],
+            "anchorOffset": 120,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 5,
+            "category": "Footer",
+            "anchor": [
+              "angling",
+              "and",
+              "conservation",
+              "of",
+              "living",
+              "fishy",
+              "dinosaurs",
+              "171"
+            ],
+            "anchorOffset": 144,
+            "entireElementContiguous": true
+          }
+        ],
+        "foundAnchorsInGTOrder": true,
+        "cells": [],
+        "foundCellsInGTOrder": true,
+        "tableStructurePresent": false,
+        "colspanPresent": false
+      },
+      "uncertainOCRPayloads": [],
+      "diagnosticCodes": [
+        "pdf.layoutNotPreserved",
+        "pdf.layoutFallback",
+        "pdf.linkUnavailable",
+        "pdf.annotationPreserved"
+      ]
+    },
+    {
+      "source": "01030000000134.pdf",
+      "mode": "structured",
+      "exit": 0,
+      "sourceUnchangedReported": true,
+      "sourceSHA256": "4a6baa0f883743ec25b853bae06a49d230ec010c973501945d46a16f9bb75aa9",
+      "embeddedMarkdownHashMatches": true,
+      "analysis": {
+        "wordInventory": {
+          "expected": 237,
+          "actual": 233,
+          "matched": 230,
+          "missing": {
+            "40": 1,
+            "0": 4,
+            "lbs": 2
+          },
+          "extra": {
+            "10": 1,
+            "ibs": 2
+          }
+        },
+        "nfkcVariantNotPrimary": {
+          "expected": 237,
+          "actual": 233,
+          "matched": 230,
+          "missing": {
+            "40": 1,
+            "0": 4,
+            "lbs": 2
+          },
+          "extra": {
+            "10": 1,
+            "ibs": 2
+          }
+        },
+        "elements": [
+          {
+            "id": 0,
+            "category": "Paragraph",
+            "anchor": [
+              "what",
+              "s",
+              "unique",
+              "about",
+              "the",
+              "growth",
+              "of",
+              "alligator"
+            ],
+            "anchorOffset": 36,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 1,
+            "category": "Chart",
+            "anchor": [
+              "in",
+              "cm",
+              "length",
+              "of",
+              "gar",
+              "fish",
+              "by",
+              "age"
+            ],
+            "anchorOffset": 0,
+            "entireElementContiguous": false
+          },
+          {
+            "id": 2,
+            "category": "Caption",
+            "anchor": [
+              "figure",
+              "8",
+              "6",
+              "growth",
+              "in",
+              "length",
+              "of",
+              "alligator"
+            ],
+            "anchorOffset": 145,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 3,
+            "category": "Chart",
+            "anchor": [
+              "ibs",
+              "kg",
+              "weight",
+              "of",
+              "gar",
+              "fish",
+              "by",
+              "age"
+            ],
+            "anchorOffset": 188,
+            "entireElementContiguous": false
+          },
+          {
+            "id": 4,
+            "category": "Caption",
+            "anchor": [
+              "figure",
+              "8",
+              "7",
+              "growth",
+              "in",
+              "weight",
+              "of",
+              "alligator"
+            ],
+            "anchorOffset": 156,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 5,
+            "category": "Footer",
+            "anchor": [
+              "angling",
+              "and",
+              "conservation",
+              "of",
+              "living",
+              "fishy",
+              "dinosaurs",
+              "171"
+            ],
+            "anchorOffset": 180,
+            "entireElementContiguous": true
+          }
+        ],
+        "foundAnchorsInGTOrder": false,
+        "cells": [],
+        "foundCellsInGTOrder": true,
+        "tableStructurePresent": false,
+        "colspanPresent": false
+      },
+      "uncertainOCRPayloads": [
+        "0",
+        "0"
+      ],
+      "diagnosticCodes": [
+        "pdf.layoutNotPreserved",
+        "pdf.ocrApplied",
+        "pdf.layoutFallback",
+        "ocr.structuredFallback",
+        "pdf.ocrOriginalRetained",
+        "pdf.layoutAmbiguous",
+        "pdf.linkUnavailable",
+        "pdf.annotationPreserved"
+      ]
+    },
+    {
+      "source": "01030000000135.pdf",
+      "mode": "off",
+      "exit": 0,
+      "sourceUnchangedReported": true,
+      "sourceSHA256": "ed941b5cde32cfc778c225dcfa90c334d9995d70c46e7f508635073a3227784b",
+      "embeddedMarkdownHashMatches": true,
+      "analysis": {
+        "wordInventory": {
+          "expected": 561,
+          "actual": 561,
+          "matched": 560,
+          "missing": {
+            "fishermen": 1
+          },
+          "extra": {
+            "fishermen1": 1
+          }
+        },
+        "nfkcVariantNotPrimary": {
+          "expected": 561,
+          "actual": 561,
+          "matched": 560,
+          "missing": {
+            "fishermen": 1
+          },
+          "extra": {
+            "fishermen1": 1
+          }
+        },
+        "elements": [
+          {
+            "id": 0,
+            "category": "Paragraph",
+            "anchor": [
+              "fly",
+              "fishers",
+              "targeting",
+              "trout",
+              "had",
+              "an",
+              "important",
+              "influence"
+            ],
+            "anchorOffset": 0,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 1,
+            "category": "Paragraph",
+            "anchor": [
+              "trout",
+              "and",
+              "salmon",
+              "are",
+              "the",
+              "only",
+              "sport",
+              "fish"
+            ],
+            "anchorOffset": 115,
+            "entireElementContiguous": false
+          },
+          {
+            "id": 2,
+            "category": "Paragraph",
+            "anchor": [
+              "the",
+              "first",
+              "trout",
+              "fishers",
+              "were",
+              "native",
+              "americans",
+              "native"
+            ],
+            "anchorOffset": 263,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 3,
+            "category": "Paragraph",
+            "anchor": [
+              "the",
+              "story",
+              "of",
+              "rocky",
+              "mountain",
+              "trout",
+              "fishing",
+              "begins"
+            ],
+            "anchorOffset": 388,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 4,
+            "category": "Footnote",
+            "anchor": [
+              "1",
+              "although",
+              "maclean",
+              "and",
+              "other",
+              "writers",
+              "use",
+              "the"
+            ],
+            "anchorOffset": 534,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 5,
+            "category": "Footer",
+            "anchor": [
+              "fly",
+              "fishing",
+              "s",
+              "legacy",
+              "for",
+              "conservation",
+              "191"
+            ],
+            "anchorOffset": 554,
+            "entireElementContiguous": true
+          }
+        ],
+        "foundAnchorsInGTOrder": true,
+        "cells": [],
+        "foundCellsInGTOrder": true,
+        "tableStructurePresent": false,
+        "colspanPresent": false
+      },
+      "uncertainOCRPayloads": [],
+      "diagnosticCodes": [
+        "pdf.layoutNotPreserved",
+        "pdf.layoutFallback"
+      ]
+    },
+    {
+      "source": "01030000000135.pdf",
+      "mode": "structured",
+      "exit": 0,
+      "sourceUnchangedReported": true,
+      "sourceSHA256": "ed941b5cde32cfc778c225dcfa90c334d9995d70c46e7f508635073a3227784b",
+      "embeddedMarkdownHashMatches": true,
+      "analysis": {
+        "wordInventory": {
+          "expected": 561,
+          "actual": 561,
+          "matched": 560,
+          "missing": {
+            "fishermen": 1
+          },
+          "extra": {
+            "fishermen1": 1
+          }
+        },
+        "nfkcVariantNotPrimary": {
+          "expected": 561,
+          "actual": 561,
+          "matched": 560,
+          "missing": {
+            "fishermen": 1
+          },
+          "extra": {
+            "fishermen1": 1
+          }
+        },
+        "elements": [
+          {
+            "id": 0,
+            "category": "Paragraph",
+            "anchor": [
+              "fly",
+              "fishers",
+              "targeting",
+              "trout",
+              "had",
+              "an",
+              "important",
+              "influence"
+            ],
+            "anchorOffset": 0,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 1,
+            "category": "Paragraph",
+            "anchor": [
+              "trout",
+              "and",
+              "salmon",
+              "are",
+              "the",
+              "only",
+              "sport",
+              "fish"
+            ],
+            "anchorOffset": 115,
+            "entireElementContiguous": false
+          },
+          {
+            "id": 2,
+            "category": "Paragraph",
+            "anchor": [
+              "the",
+              "first",
+              "trout",
+              "fishers",
+              "were",
+              "native",
+              "americans",
+              "native"
+            ],
+            "anchorOffset": 263,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 3,
+            "category": "Paragraph",
+            "anchor": [
+              "the",
+              "story",
+              "of",
+              "rocky",
+              "mountain",
+              "trout",
+              "fishing",
+              "begins"
+            ],
+            "anchorOffset": 388,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 4,
+            "category": "Footnote",
+            "anchor": [
+              "1",
+              "although",
+              "maclean",
+              "and",
+              "other",
+              "writers",
+              "use",
+              "the"
+            ],
+            "anchorOffset": 534,
+            "entireElementContiguous": true
+          },
+          {
+            "id": 5,
+            "category": "Footer",
+            "anchor": [
+              "fly",
+              "fishing",
+              "s",
+              "legacy",
+              "for",
+              "conservation",
+              "191"
+            ],
+            "anchorOffset": 554,
+            "entireElementContiguous": true
+          }
+        ],
+        "foundAnchorsInGTOrder": true,
+        "cells": [],
+        "foundCellsInGTOrder": true,
+        "tableStructurePresent": false,
+        "colspanPresent": false
+      },
+      "uncertainOCRPayloads": [],
+      "diagnosticCodes": [
+        "pdf.layoutNotPreserved",
+        "pdf.ocrApplied",
+        "pdf.layoutFallback",
+        "ocr.structuredFallback",
+        "pdf.ocrOriginalRetained"
+      ]
+    }
+  ]
+}

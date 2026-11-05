@@ -1,0 +1,57 @@
+{
+  "candidate": "P14 source comparison + shared verified output reader",
+  "patchSha256": "27fafd600987616b29ed1bb53a8a3eab992080d74353426ddaf05cd02382216d",
+  "clippy": {
+    "default": "pass",
+    "ui-self-test": "pass"
+  },
+  "sourceComparison": {
+    "actualCLI": "CSV Unicode / version 0.41.10",
+    "sourceBytes": 40,
+    "sourceSha256": "59e08b460e8b890b44d51fa008b0caa0bde399855a33c9eb7d4bc9ada3dfc12d",
+    "mappingUtf8Offset": 82,
+    "mappingUtf8Length": 23,
+    "gtkCharacterStart": 80,
+    "gtkCharacterEnd": 92,
+    "changedSameSizeSource": "watcher disables positions, rehash rejects",
+    "sourceRestoredHash": "pass",
+    "visualReview": "comparison.png"
+  },
+  "abRegression": {
+    "originalClipboardEncodings": 8,
+    "readLimit": "64 MiB+1 rejected",
+    "clipboardCancel": "pass",
+    "clipboardRealConversionAndHash": "pass",
+    "copyCompleteRealMarkdown": "pass",
+    "clearCleanup": "pass",
+    "closeCleanupAfterJobBarrier": "pass",
+    "profileDefaultsNotOverridden": "pass",
+    "boundSourceMismatch": "rejected",
+    "localProfileConsent": "required",
+    "profileExportImport": "pass"
+  },
+  "cliSha256BeforeAndAfter": "b82333856d0b4fe6114f620094fb263825b53433eafd6a84e0c06282bc946395",
+  "limits": [
+    "No original-format renderer/PDF/image raster preview",
+    "Package-member source streams not supported",
+    "Source hash verification max 1 GiB; comparison/copy max 16 MiB; preview max 2 MiB; verified external-open max 1 GiB",
+    "Max 2048 mapping entries, truncation explicitly shown",
+    "Missing outputFiles manifest blocks reads/open; profiles are not overridden",
+    "Root binding starts at first verified read, then held physical root must remain identical",
+    "GIO default-app launch after explicit click retains unavoidable path handoff TOCTOU; no atomic guarantee claimed",
+    "No real default-editor launch test; external-open uses same tested reader plus immediate metadata/root revalidation"
+  ],
+  "initialCandidateUnits": {
+    "passed": 26,
+    "failed": 0
+  },
+  "finalUnits": {
+    "passed": 28,
+    "failed": 0
+  },
+  "followups": {
+    "verifiedSnapshot": "85fde921348acba69ac71bad13dbbbccac8a2ded54c95ae5f9dc41e4ae16cf06",
+    "boundedSnippetsAndLinearOffsets": "7349d8fd16c53238a1e51bdf5e8a9cd1b5b1f09bcbc52b168cc073bbdaf1c604"
+  },
+  "finalProbeScope": "Snapshot correction reran actual Unicode GTK flow; snippet-only correction ran 2048 overlapping ranges/12MiB stress unit, no layout change."
+}

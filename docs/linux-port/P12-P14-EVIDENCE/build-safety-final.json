@@ -1,0 +1,89 @@
+{
+  "buildScriptSHA256": "2061fd805066bcb5af8621441673d41c531727578efe78f38777160bdded9a3e",
+  "scope": "Actual copied build script, synthetic repo and explicit fake cargo/rustc; filesystem/ownership regression only, no real compiler/GUI/Swift/package acceptance.",
+  "cases": [
+    {
+      "case": "unknown-ui",
+      "exit": 1,
+      "checks": {
+        "failed": true,
+        "oldUIUnchanged": true,
+        "noLauncher": true
+      },
+      "error": [
+        "The existing GUI directory contains unknown files."
+      ]
+    },
+    {
+      "case": "known-ui",
+      "exit": 0,
+      "checks": {
+        "exitZero": true,
+        "publishedOwnGUI": true,
+        "oldBackupPreserved": true,
+        "noticesPublished": true,
+        "launcherCreated": true
+      },
+      "error": []
+    },
+    {
+      "case": "swap-target",
+      "exit": 1,
+      "checks": {
+        "failed": true,
+        "foreignContainsOnlyVictim": true,
+        "writeWentToHeldTarget": true,
+        "writeWentToHeldCargo": true,
+        "oldUIUnchanged": true,
+        "noLauncher": true
+      },
+      "error": [
+        "A build parent changed; refusing GUI publication."
+      ]
+    },
+    {
+      "case": "swap-cache",
+      "exit": 1,
+      "checks": {
+        "failed": true,
+        "foreignContainsOnlyVictim": true,
+        "writeWentToHeldTarget": true,
+        "writeWentToHeldCargo": true,
+        "oldUIUnchanged": true,
+        "noLauncher": true
+      },
+      "error": [
+        "A build parent changed; refusing GUI publication."
+      ]
+    },
+    {
+      "case": "swap-build-parent",
+      "exit": 1,
+      "checks": {
+        "failed": true,
+        "foreignContainsOnlyVictim": true,
+        "writeWentToHeldTarget": true,
+        "writeWentToHeldCargo": true,
+        "oldUIUnchanged": true,
+        "noLauncher": true
+      },
+      "error": [
+        "A build parent changed; refusing GUI publication."
+      ]
+    },
+    {
+      "case": "ui-rename-race",
+      "exit": 1,
+      "checks": {
+        "failed": true,
+        "validatedUIUnchanged": true,
+        "unknownBackupRetained": true,
+        "noLauncher": true
+      },
+      "error": [
+        "GUI artifact changed during publication; unknown backup retained: ui-old-da42bf7dc9a14e068a922180ca5c1fb5"
+      ]
+    }
+  ],
+  "allPassed": true
+}

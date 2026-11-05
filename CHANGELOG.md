@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.41.10 — 2026-11-05
+
+- Add a native GTK Linux interface over the shared CLI, with bounded process capture and mandatory namespace supervision before work starts.
+- Add isolated Linux legacy DOC import through explicit safe UNO loading, verified input snapshots, bounded exports and independent text-loss checks.
+- Add Linux clipboard image/HTML/RTF import, conversion profile management and optional GTK packages.
+
 ## 0.41.9 — 2026-11-05
 
 - Fix Linux FoundationXML crashes in DOCX review and selected EPUB imports, reject malformed XML and unsafe entity declarations, and retain DocBook book titles.

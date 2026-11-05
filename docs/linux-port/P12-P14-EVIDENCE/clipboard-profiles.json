@@ -1,0 +1,13 @@
+{
+  "originalClipboardEncodings": 8,
+  "readLimit": "64 MiB+1 rejected",
+  "clipboardCancel": "pass",
+  "clipboardRealConversionAndHash": "pass",
+  "copyCompleteRealMarkdown": "pass",
+  "clearCleanup": "pass",
+  "closeCleanupAfterJobBarrier": "pass",
+  "profileDefaultsNotOverridden": "pass",
+  "boundSourceMismatch": "rejected",
+  "localProfileConsent": "required",
+  "profileExportImport": "pass"
+}

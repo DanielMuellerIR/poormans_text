@@ -2,23 +2,24 @@
 
 Stand: 2026-11-05. Planungsbasis: Version 0.41.7, Commit `919c575`.
 P00–P04 sind als Entscheidungsproben dokumentiert; Swift ist als gemeinsamer
-Konvertierungskern festgelegt. P05 ist integriert. Der Produktstand 0.41.9 erweitert
-P06–P10 um portierte Formate/Sammlungen, PDF, Standard-OCR, Rasterbilder und begrenztes
-RTFD sowie den CLI-Anteil von P15. Die ausgeführten Produktprüfungen und offenen
-Abnahmegrenzen stehen in den nachfolgend verlinkten Berichten. Legacy-DOC und
-strukturierte OCR sind weiterhin ausdrücklich nicht verfügbar. Die GTK-Oberfläche
-wird als lokaler Entwicklungsstand über die CLI angebunden; eine endgültige
-Toolkit-/Desktopabnahme ist damit nicht erteilt. Es gibt keinen Rust-Neubau des Kerns.
+Konvertierungskern festgelegt. P05 ist integriert. Der Entwicklungsstand 0.41.10
+enthält die portierten P06–P10-Formate/Sammlungen, PDF, Standard-OCR, Rasterbilder,
+begrenztes RTFD und Legacy-DOC sowie die dünne GTK-Oberfläche und lokale Pakete.
+Die ausgeführten Produktprüfungen und noch offenen Abnahmen stehen getrennt in
+den Berichten. HEIC und strukturierte OCR sind weiterhin nicht verfügbar.
+GTK ist eine reversible Entwicklungswahl; die endgültige Toolkit-/Desktopabnahme
+ist offen. Es gibt keinen Rust-Neubau des Konvertierungskerns.
 
 | Paket | Implementierung / nachgewiesener Stand | Noch offene Abnahme |
 | --- | --- | --- |
 | P05/P06 | [Swift-Kern](linux-port/P05-INTEGRATION.md), [CLI/Datei-/Prozessschutz](linux-port/P06-INTEGRATION.md) | Neue Mac-Regression und vollständige Zielsystemmatrix |
 | P07/P08 | [Tabellen, Präsentationen, Notebooks, Mail und Sammlungen](linux-port/P07-P08-INTEGRATION.md) | Externe Referenzkorpora und finale Plattformabnahme |
-| P09/P10 | [PDF, Raster, Standard-OCR und einfaches RTFD](linux-port/P09-P10-INTEGRATION.md) | Natürlicher gepaarter Qualitätskorpus; [DOC-Makrosicherheit](linux-port/P10-DOC-CANDIDATE.md) |
-| P11 | [Klassischer Qualitätsversuch](linux-port/P11-QUALITY.md), keine Produktintegration | Bewusste Backend-/Korpusentscheidung |
-| P12–P14 | GTK-Entwicklungsweg wie Fastras begrenzte GTK-Anwendung; bestehender CLI-Vertrag | GUI, echte Desktops, App-zu-App und vollständige Systemintegration |
-| P15 | [Drei lokale CLI-Paketformate](linux-port/P15-CLI-PACKAGES.md) | GUI-Paket, frische Arch-/Mint-Paketinstallation, öffentliche Distribution |
-| P16 | Teilprüfungen werden bei den Paketen geführt | Vollständige gemeinsame Abnahme |
+| P09/P10 | [PDF, Raster, Standard-OCR und RTFD](linux-port/P09-P10-INTEGRATION.md), [DOC/UNO](linux-port/P10-DOC-UNO.md) | HEIC, breitere natürliche Qualitätsdaten, PDF-/RTFD-Parität und Zielsystemmatrix |
+| P11 | [Klassischer Qualitätsversuch und natürlicher Startkorpus](linux-port/P11-QUALITY.md), keine strukturierte Produkt-OCR | Qualifizierter Strukturbackend-/Korpusentscheid |
+| P12/P14 | [GTK über CLI, Zwischenablage und Profile](linux-port/P12-P14-GUI.md) | Echte Desktops, vollständiger Quellvergleich, allgemeine GUI-Präferenzen und Systemintegration |
+| P13 | [Echte Consumer-/GTK-Replays gegen 0.41.10](linux-port/P13-FASTRA.md) | Aktuelle Commitbindung und vollständige App-zu-App-Matrix |
+| P15 | [Drei lokale Paketformate](linux-port/P15-CLI-PACKAGES.md), optionale GTK-Paketierung | Frische Arch-/Mint-Paketinstallation, echte Desktopintegration und öffentliche Distribution |
+| P16 | [48 echte CLI-Neustarts](linux-port/P16-SERIES/README.md) und paketbezogene Teilprüfungen | Vollständige gemeinsame Abnahme und neue native Mac-Regression |
 
 Die früheren Entscheidungsproben bleiben im [Entscheidungsbericht](LINUX-DECISION.md)
 erhalten und werden nicht nachträglich als Produktabnahme ausgegeben.

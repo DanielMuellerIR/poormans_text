@@ -14,6 +14,8 @@ def directory(path):
   return fd
  except BaseException:os.close(fd);raise
 inherited=os.environ.get('PMT_RUNTIME_PARENT_FD')
+input_descriptor=os.environ.get('PMT_RUNTIME_INPUT_FD')
+inherited_descriptors=tuple(int(value) for value in [inherited,input_descriptor] if value is not None)
 parent=os.dup(int(inherited)) if inherited else directory(destination.parent)
 if not stat.S_ISDIR(os.fstat(parent).st_mode):raise SystemExit('Runtime parent FD is not a directory')
 name=destination.name
@@ -25,7 +27,7 @@ try:
  libraries={};system=set()
  for binary,is_guard in [(cli,False),(guard,True)]:
   if not stat.S_ISREG(binary.lstat().st_mode):raise SystemExit(f'Not a regular executable: {binary}')
-  result=subprocess.run(['ldd',str(binary)],text=True,capture_output=True,pass_fds=(int(inherited),) if inherited else ())
+  result=subprocess.run(['ldd',str(binary)],text=True,capture_output=True,pass_fds=inherited_descriptors)
   if result.returncode and 'not a dynamic executable' not in result.stderr+result.stdout and 'statically linked' not in result.stdout:raise SystemExit(result.stderr or result.stdout)
   for line in result.stdout.splitlines():
    if 'not found' in line:raise SystemExit('Unresolved runtime dependency: '+line.strip())
@@ -64,8 +66,7 @@ try:
  (root/'host-tools.txt').write_text('Pandoc and /usr/bin/bwrap are host dependencies; not bundled.\nNo runtime downloads or global installation.\n')
  os.chmod(root/'bin/poormans-text',0o755);os.chmod(root/'bin/poormans-text-process-guard',0o755)
 except BaseException:
- # Der Eltern-FD bleibt gebunden, auch wenn dessen früherer Pfad ausgetauscht wurde.
- if os.stat(name,dir_fd=parent,follow_symlinks=False).st_ino==os.fstat(fd).st_ino:shutil.rmtree(name,dir_fd=parent)
+ print('Runtime packaging failed; stage retained at the held original parent: '+name,file=sys.stderr)
  raise
 finally:os.close(fd);os.close(parent)
 PY

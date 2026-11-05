@@ -1,0 +1,16 @@
+[workspace]
+members = ["linux/app", "linux/bridge"]
+resolver = "2"
+
+[workspace.package]
+version = "0.41.10"
+license = "WTFPL"
+rust-version = "1.92"
+
+[profile.dev]
+debug = 0
+
+[profile.release]
+strip = true
+lto = "thin"
+codegen-units = 1

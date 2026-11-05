@@ -1,0 +1,38 @@
+{
+  "date": "2026-11-05",
+  "exit": 0,
+  "result": "FASTRA_TOOL_SELFTEST_OK import",
+  "producerVersion": "0.41.10",
+  "producerCLI": "c70a369fc76d0a5988931f5e32e4b16b57cc372bf3299e43b203c86b8c0ec157",
+  "producerGuard": "cf677f9be88095a27423ceedb9db2b85667f7775d167857cfb52002ff5dda520",
+  "guiArtifactSHA256": "9ee04a724e47d724d8adebdf2192a2df76b8a09f08fde220b928a2ce1cf6b4d4",
+  "fixtureBeforeSHA256": "a794c294c413d05971c0424599278b3ec3e1ab20e4d35954f8973a5c1da3bb96",
+  "fixtureAfterSHA256": "a794c294c413d05971c0424599278b3ec3e1ab20e4d35954f8973a5c1da3bb96",
+  "publishedFiles": {
+    "index.md": "c6a8d0b170e4bd11ad079540b15f1f39b526f31c43ff1eec59d3612afbb9a8da",
+    "assets/documents/000002/source.md": "6db0e10be66755c1ada05d30bb1026f2c7424a8d71d70137e150f63f382bd55c",
+    "assets/documents/000001/source.md": "636d0a96c2a93dbe426089bf93a34cfcda40fb2d00ea69934ae95056fe29badd"
+  },
+  "checks": [
+    "catalog via actual producer",
+    "complete preview before adoption",
+    "stale revision refuses adoption",
+    "prepare again and explicit adoption",
+    "correct index.md opened in real GTK editor",
+    "source bytes unchanged"
+  ],
+  "isolation": [
+    "private Xvfb",
+    "private DBus",
+    "private HOME/XDG paths",
+    "network disabled",
+    "existing binaries unchanged"
+  ],
+  "notClaimed": [
+    "visual desktop acceptance",
+    "fresh GUI reopen after both apps exit",
+    "DOCX or image/ENEX cases",
+    "binary-to-source-commit correspondence"
+  ],
+  "harnessCorrection": "first attempt lacked the required private-display marker; corrected retry passed"
+}

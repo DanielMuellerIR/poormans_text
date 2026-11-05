@@ -8,7 +8,7 @@ derselbe Kern von CLI, eigener App und später Fastra benutzt werden kann.
 Seit 2026-11-04 ist **Swift als gemeinsamer Konvertierungskern gewählt**.
 Die P02-Proben belegen den vorhandenen Kern samt dynamischer Laufzeitlieferung
 auf CachyOS und Mint 22.2. Apple-spezifische Fähigkeiten erhalten Plattformadapter;
-die Linux-Oberfläche kann in Rust über die lokale CLI angebunden werden.
+die GTK-Linux-Oberfläche ist als dünner Rust-Adapter über die lokale CLI angebunden.
 Es ist kein vollständiger Rust-Neubau des Kerns vorgesehen. Fastra bleibt ein
 eigenständiger Verbraucher des [CLI-Vertrags](FASTRA-CONTRACT.md).
 
@@ -19,7 +19,7 @@ bleiben auf macOS. Statische PNGs werden auf Linux direkt mit libpng geprüft;
 weitere freigegebene Rasterformate verwenden einen begrenzten lokalen Pillowprozess.
 Seit 0.41.9 liefern externe Python-/GI-Poppler-/Cairo- und Tesseract-Adapter PDF und
 Standard-OCR. RTFD nutzt verifizierte lokale statische PNGs und den vorhandenen
-RTF-/Pandoc-Pfad. Legacy-DOC und strukturierte OCR bleiben ausdrücklich unverfügbar.
+RTF-/Pandoc-Pfad. Seit 0.41.10 verwendet Legacy-DOC einen isolierten LibreOffice-/UNO-Ladevertrag; strukturierte OCR bleibt ausdrücklich unverfügbar.
 Details und Grenzen stehen im [Backendbericht](linux-port/P09-P10-INTEGRATION.md).
 
 Der Linux-Prozessadapter verwendet Bubblewrap mit privatem PID-/Netz-Namespace,

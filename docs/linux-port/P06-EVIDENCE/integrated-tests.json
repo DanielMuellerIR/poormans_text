@@ -1,11 +1,11 @@
 {
-  "productVersion": "0.41.9",
+  "productVersion": "0.41.10",
   "date": "2026-11-05",
-  "total": 334,
-  "passed": 326,
+  "total": 338,
+  "passed": 330,
   "skipped": 8,
   "failures": 0,
-  "wallSeconds": 34.653,
+  "wallSeconds": 35.395,
   "skipReasons": [
     "External MSG corpus not configured",
     "External compressed RTF corpus not configured",
@@ -17,5 +17,6 @@
     "Installed Pandoc has no XLSX input reader for the independent comparison."
   ],
   "nativeLinux": true,
-  "macNativeTested": false
+  "macNativeTested": false,
+  "cliSHA256": "b82333856d0b4fe6114f620094fb263825b53433eafd6a84e0c06282bc946395"
 }

@@ -1,0 +1,71 @@
+{
+  "cases": [
+    {
+      "case": "own",
+      "passed": true,
+      "error": null,
+      "injected": false
+    },
+    {
+      "case": "own-link",
+      "passed": true,
+      "error": null,
+      "injected": false
+    },
+    {
+      "case": "unknown",
+      "passed": true,
+      "error": "RuntimeError",
+      "injected": false
+    },
+    {
+      "case": "unknown-link",
+      "passed": true,
+      "error": "RuntimeError",
+      "injected": false
+    },
+    {
+      "case": "fifo",
+      "passed": true,
+      "error": "RuntimeError",
+      "injected": false
+    },
+    {
+      "case": "missing",
+      "passed": true,
+      "error": null,
+      "injected": false
+    },
+    {
+      "case": "regular-swapped-after-read",
+      "passed": true,
+      "error": "RuntimeError",
+      "injected": true
+    },
+    {
+      "case": "link-swapped-after-bound-read",
+      "passed": true,
+      "error": "RuntimeError",
+      "injected": true
+    },
+    {
+      "case": "concurrent-create",
+      "passed": true,
+      "error": "FileExistsError",
+      "injected": true
+    },
+    {
+      "case": "swap-created-link",
+      "passed": true,
+      "error": "RuntimeError",
+      "injected": true
+    },
+    {
+      "case": "packager-failure-stage-name-swap",
+      "passed": true
+    }
+  ],
+  "passed": 11,
+  "total": 11,
+  "scope": "original helper + embedded packager; only own /tmp; no real compiler or Docker test"
+}

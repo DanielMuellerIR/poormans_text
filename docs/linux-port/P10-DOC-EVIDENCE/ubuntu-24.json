@@ -1,0 +1,197 @@
+{
+  "officeVersion": "24.2.7.2 420(Build:2)",
+  "pythonVersion": "3.12.3",
+  "runtime": "Ubuntu 24.04 without Swift SDK; private PID/net namespaces; uid1000",
+  "cliSHA256": "b82333856d0b4fe6114f620094fb263825b53433eafd6a84e0c06282bc946395",
+  "systemConfiguration": "/etc/libreoffice read-only required; no complete /etc bind",
+  "controls": [
+    {
+      "case": "positive-config",
+      "loadProperties": {
+        "MacroExecutionMode": "4",
+        "UpdateDocMode": "0",
+        "ReadOnly": "True",
+        "Hidden": "False",
+        "Silent": "True",
+        "OpenNewView": "True",
+        "PickListEntry": "False"
+      },
+      "markers": [
+        "m.sentinel"
+      ],
+      "sourceSHA256": "490f2e2f0001bd676b27af70cd604d7bc1dc16c8afc6a3cead6859f7db3cc6c9"
+    },
+    {
+      "case": "negative-config",
+      "loadProperties": {
+        "MacroExecutionMode": "0",
+        "UpdateDocMode": "0",
+        "ReadOnly": "True",
+        "Hidden": "False",
+        "Silent": "True",
+        "OpenNewView": "True",
+        "PickListEntry": "False"
+      },
+      "markers": [],
+      "sourceSHA256": "490f2e2f0001bd676b27af70cd604d7bc1dc16c8afc6a3cead6859f7db3cc6c9"
+    }
+  ],
+  "positiveNegativeReferenceBytesIdentical": true,
+  "cliCases": [
+    {
+      "case": "libreoffice",
+      "exit": 0,
+      "seconds": 1.2001,
+      "checks": {
+        "expectedExit": true,
+        "sourceUnchanged": true,
+        "text:Fixture heading ä": true,
+        "text:First list item": true,
+        "text:Second list item": true,
+        "text:Äpfel": true,
+        "text:12": true,
+        "text:Birnen": true,
+        "text:7": true,
+        "text:Grüße aus Köln": true,
+        "text:Footnote content remains readable.": true,
+        "twoReadableListItems": true,
+        "legacyWarning": true,
+        "sourceHash": true,
+        "manifest:images/image01.png": true,
+        "manifest:libreoffice.md": true,
+        "oneImage": true,
+        "originalPNGBytes": true
+      }
+    },
+    {
+      "case": "textutil",
+      "exit": 0,
+      "seconds": 1.087,
+      "checks": {
+        "expectedExit": true,
+        "sourceUnchanged": true,
+        "text:Fixture heading ä": true,
+        "text:First list item": true,
+        "text:Second list item": true,
+        "text:Äpfel": true,
+        "text:12": true,
+        "text:Birnen": true,
+        "text:7": true,
+        "text:Grüße aus Köln": true,
+        "twoReadableListItems": true,
+        "legacyWarning": true,
+        "sourceHash": true,
+        "manifest:textutil.md": true
+      }
+    },
+    {
+      "case": "textbundle",
+      "exit": 0,
+      "seconds": 1.0517,
+      "checks": {
+        "expectedExit": true,
+        "sourceUnchanged": true,
+        "text:Fixture heading ä": true,
+        "text:First list item": true,
+        "text:Second list item": true,
+        "text:Äpfel": true,
+        "text:12": true,
+        "text:Birnen": true,
+        "text:7": true,
+        "text:Grüße aus Köln": true,
+        "text:Footnote content remains readable.": true,
+        "twoReadableListItems": true,
+        "legacyWarning": true,
+        "sourceHash": true,
+        "manifest:assets/image01.png": true,
+        "manifest:info.json": true,
+        "manifest:text.md": true,
+        "oneImage": true,
+        "originalPNGBytes": true
+      }
+    },
+    {
+      "case": "timeout",
+      "exit": 124,
+      "seconds": 0.2294,
+      "checks": {
+        "expectedExit": true,
+        "sourceUnchanged": true,
+        "noOutput": true,
+        "noStaging": true
+      }
+    },
+    {
+      "case": "invalid",
+      "exit": 65,
+      "seconds": 0.148,
+      "checks": {
+        "expectedExit": true,
+        "sourceUnchanged": true,
+        "noOutput": true,
+        "noStaging": true
+      }
+    },
+    {
+      "case": "cancel",
+      "exit": 130,
+      "checks": {
+        "cancelled130": true,
+        "sourceUnchanged": true,
+        "noOutput": true,
+        "noStaging": true
+      }
+    }
+  ],
+  "activeOffice": [
+    {
+      "case": "cancel-active",
+      "exit": 130,
+      "checks": {
+        "exit": true,
+        "sourceUnchanged": true,
+        "noOutput": true,
+        "noStaging": true,
+        "activeOfficeObserved": true,
+        "officeAddressSpaceBounded": true,
+        "officePidfdEnded": true
+      },
+      "error": "Conversion cancelled."
+    },
+    {
+      "case": "timeout-active",
+      "exit": 124,
+      "checks": {
+        "exit": true,
+        "sourceUnchanged": true,
+        "noOutput": true,
+        "noStaging": true,
+        "activeOfficeObserved": true,
+        "officeAddressSpaceBounded": true,
+        "officePidfdEnded": true
+      },
+      "error": "The conversion tool exceeded its time limit."
+    },
+    {
+      "case": "readonly-parent",
+      "exit": 74,
+      "checks": {
+        "failed": true,
+        "noOutput": true,
+        "sourceUnchanged": true
+      },
+      "response": {
+        "error": "File-system operation failed: Permission denied (errno 13)",
+        "ok": false,
+        "version": "0.41.10"
+      }
+    }
+  ],
+  "exportError": {
+    "exit": 74,
+    "error": "File-system operation failed: The local LibreOffice DOC export could not write its output (com.sun.star.io.IOException).\n",
+    "deniedAtExport": true,
+    "noOutput": true,
+    "noStaging": true
+  }
+}

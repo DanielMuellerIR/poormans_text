@@ -61,14 +61,17 @@ static int launch_sandbox(int argc, char **argv) {
 int main(int argc, char **argv) {
     if (argc > 1 && !strcmp(argv[1], "--pmt-sandbox-launch-v1")) return launch_sandbox(argc, argv);
 
-    if (getpid() != 1 || argc < 6 ||
-        strcmp(argv[1], "--pmt-process-guard-v1") || strcmp(argv[4], "--")) {
+    int ui = argc >= 5 && !strcmp(argv[1], "--pmt-ui-guard-v1");
+    int grace_index = ui ? 2 : 3;
+    int command_index = ui ? 4 : 5;
+    if (getpid() != 1 || argc < command_index + 1 ||
+        (!ui && strcmp(argv[1], "--pmt-process-guard-v1")) || strcmp(argv[command_index - 1], "--")) {
         fputs("PMT process guard requires ABI 1 and a private PID namespace\n", stderr);
         return 125;
     }
     char *end;
     errno = 0;
-    long grace = strtol(argv[3], &end, 10);
+    long grace = strtol(argv[grace_index], &end, 10);
     if (errno || *end || grace < 0 || grace > INT_MAX) return 125;
     if (prctl(PR_SET_DUMPABLE, 0) != 0) return 125;
     if (close_range(3, UINT_MAX, 0) != 0) return 125;
@@ -79,21 +82,23 @@ int main(int argc, char **argv) {
     struct pollfd owner = {.fd = STDIN_FILENO, .events = POLLIN | POLLHUP};
     int ready = poll(&owner, 1, 0);
     if (ready < 0 || (ready > 0 && owner.revents)) return 125;
-    int output = open(argv[2], O_WRONLY | O_NOFOLLOW | O_CLOEXEC);
-    if (output < 0) return 125;
+    // UI-Modus erbt die getrennten Capture-Pipes; Startgate und Lifetime
+    // bleiben wie im Werkzeugmodus ausschließlich beim Namespace-PID1.
+    int output = ui ? -1 : open(argv[2], O_WRONLY | O_NOFOLLOW | O_CLOEXEC);
+    if (!ui && output < 0) return 125;
     pid_t child = fork();
-    if (child < 0) { close(output); return 125; }
+    if (child < 0) { if (output >= 0) close(output); return 125; }
     if (child == 0) {
         int null = open("/dev/null", O_RDONLY | O_CLOEXEC);
-        if (null < 0 || dup2(null, STDIN_FILENO) < 0 || dup2(output, STDOUT_FILENO) < 0 ||
+        if (null < 0 || dup2(null, STDIN_FILENO) < 0 || (!ui && dup2(output, STDOUT_FILENO) < 0) ||
             fcntl(STDOUT_FILENO, F_SETFD, 0) < 0) _exit(125);
         if (null != STDIN_FILENO) close(null);
-        if (output != STDOUT_FILENO) close(output);
-        execv(argv[5], argv + 5);
+        if (output >= 0 && output != STDOUT_FILENO) close(output);
+        execv(argv[command_index], argv + command_index);
         perror("PMT conversion tool exec");
         _exit(127);
     }
-    close(output);
+    if (output >= 0) close(output);
     int main_status = 125, main_ended = 0, stopping = 0;
     long long deadline = 0;
     for (;;) {

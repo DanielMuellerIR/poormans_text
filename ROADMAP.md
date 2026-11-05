@@ -15,12 +15,12 @@ WebP sind implementiert. Ihre Importwege stehen in
 
 ## Linux-Portierung
 
-Die Linux-App und CLI entstehen im bestehenden Repository. Zuerst wird die
-Wiederverwendung des Swift-Konvertierungskerns geprüft; eine Rust-Oberfläche
-nutzt denselben lokalen CLI-Vertrag wie Fastra. Entscheidungstests, Formatpakete
-und Abnahmekriterien stehen im [Linux-Umsetzungsplan](docs/LINUX-PORT.md), die
-App-Grenze im [Fastra-CLI-Vertrag](docs/FASTRA-CONTRACT.md).
-Die Umsetzung hat noch nicht begonnen.
+Die Linux-Portierung behält Swift als gemeinsamen Konvertierungskern. Offene
+Backend-, Desktop-, Paket- und Mac-Regressionsabnahmen stehen im
+[Linux-Umsetzungsplan](docs/LINUX-PORT.md); die App-Grenze steht im
+[Fastra-CLI-Vertrag](docs/FASTRA-CONTRACT.md). Strukturierte OCR, HEIC,
+PDF-/Bildquellvergleich und die vollständige Zielsystemmatrix bleiben offen.
+Eine öffentliche Linux-Veröffentlichung ist gesondert freizugeben.
 
 ## Offene Qualitätsprüfung
 

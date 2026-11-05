@@ -1,6 +1,6 @@
 # P06: Linux-CLI und produktive Sicherheitsabnahme
 
-Stand: 2026-11-05, Produktstand 0.41.9. Der sichere Linux-Datei-/Prozesspfad ist
+Stand: 2026-11-05, Produktstand 0.41.10. Der sichere Linux-Datei-/Prozesspfad ist
 produktiv integriert; die unten genannten Läufe verwenden den vollständigen
 Konverter. Die früheren P03-Entscheidungsproben werden getrennt geführt.
 Eine vollständige GUI-/Fastra-/Mac-Abnahme folgt daraus nicht.
@@ -16,7 +16,7 @@ Markdown-/Assetbestand und Berichte werden unabhängig geprüft. Der kleine
 [CLI-Beleg](P06-EVIDENCE/cli/matrix.json) hält die tatsächliche Binärdatei und
 Werkzeugversion fest; Reproduktion: `scripts/linux-probes/p06/verify_cli.py`.
 
-Die gemeinsame native Linux-Suite führt **334 Fälle** aus: **326 bestanden,
+Die gemeinsame native Linux-Suite führt **338 Fälle** aus: **330 bestanden,
 acht ausdrücklich übersprungen, null Fehler**. Sie verwendet Originaltests für
 Formate, Profile und EPUB direkt, ergänzt portable XML-/Konverterprüfungen und
 Linux-Sicherheits-/Backendregressionen. Die fehlenden externen Referenzen und der

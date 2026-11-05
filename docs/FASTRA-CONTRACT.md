@@ -1,20 +1,23 @@
 # CLI-Vertrag zwischen Poor Man's Text und Fastra
 
-Stand: 2026-11-04. Dokumentationsstand 2; **keine neue Protokollversion**.
+Stand: 2026-11-05. Dokumentationsstand 3; **keine neue Protokollversion**.
 Bestandsbasis: Poor Man's Text `919c575` (0.41.7), Fastra `6f59816` (1.157.1).
 Diese Datei dokumentiert den vorhandenen Vertrag und trennt geplante
 Linux-Abnahmen davon. Sie implementiert keine neue Schnittstelle.
 
 P00/P01 wurden gegen PMT `17328f17` und Fastra `55ca7057` untersucht.
-Die [Vertragsprüfung](linux-port/P01-CONTRACT.md) enthält reale Mac-Producer-
-Antworten und ausführbare Prüfungen des originalen Fastra-Verbrauchers. Dabei
-wurde ein falscher Öffnungspfad bei Sammlungen nachgewiesen; die vollständige
-App-zu-App-Abnahme bleibt offen. Der [Entscheidungsbericht](LINUX-DECISION.md)
-fasst die damaligen P00–P04-Proben zusammen. Seit 0.41.8 ist P05 integriert;
-0.41.9 erweitert die Linux-Backends bei unverändertem CLI-Vertrag. Der neue
-[Producer-Prüfstand](linux-port/P06-INTEGRATION.md) ersetzt weder eine aktuelle
-Fastra-Verbraucher- noch eine vollständige App-zu-App-Abnahme. Die Korrektur des
-Fastra-Verbrauchers bleibt dessen Repository zugeordnet.
+Die [historische Vertragsprüfung](linux-port/P01-CONTRACT.md) enthält reale
+Mac-Producer-Antworten und den damaligen falschen Sammlungs-Öffnungspfad.
+Fastra hat diesen Consumerfehler inzwischen korrigiert; die vorhandenen
+Mac-App-zu-App-Belege sind im [aktuellen P13-Bericht](linux-port/P13-FASTRA.md)
+zugeordnet. Der [Entscheidungsbericht](LINUX-DECISION.md) bleibt historische Basis.
+
+Seit 0.41.8 ist der Linux-Producer integriert; 0.41.10 ergänzt DOC und eine dünne
+GTK-Oberfläche bei unverändertem CLI-Vertrag. Ein vorhandener echter
+Fastra-Rust-Consumer und die tatsächliche GTK-Anwendung bestehen CSV-/MBOX-
+beziehungsweise MBOX-Replays gegen 0.41.10. Die Artefakte sind per SHA256 benannt;
+eine unabhängig gesicherte aktuelle Consumer-Commitbindung und die vollständige
+App-zu-App-Matrix fehlen weiterhin. Bestandene Proben sind keine Gesamtfreigabe.
 
 ## Zuständigkeit
 
@@ -125,8 +128,8 @@ zu laufenden Jobs hinzu; deren Zeilen sind nicht mit Einzelimporten gleichzusetz
 
 Bekannte Phasen: `detectingInput`, `preparingOutput`, `converting`, `publishing`,
 `finished`. Bekannte Einheiten des Producers: `file`, `page`, `sheet`, `frame`,
-`slide`, `chapter`, `cell`, `message`, `note`. Der bisherige Fastra-Parser kennt
-nicht alle diese Einheiten; P01 muss unbekannte Einheiten kontrolliert behandeln.
+`slide`, `chapter`, `cell`, `message`, `note`. Consumer müssen unbekannte Einheiten kontrolliert behandeln. Der in P01
+geprüfte Mac-Parser kannte nicht alle Einheiten.
 Fortschritt kann unvollständig sein; Ausbleiben einer Zeile bedeutet keinen
 Stillstand. Unbekannte stderr-Zeilen sind Diagnosetext, kein Erfolgssignal.
 Dateinamen können Trennzeichen enthalten: Parser-Fixtures müssen das abdecken.
@@ -137,8 +140,9 @@ Zeilenprotokoll nicht zuverlässig darstellen. Das ändert nicht die JSON-Ausgab
 
 Abbruch wird über SIGINT/SIGTERM angefordert. Der Prozessrunner beendet externe
 Werkzeuge einschließlich ihrer Nachkommen und räumt seine temporären Daten auf.
-Diese Zusage muss unter Linux separat belegt werden; Mac-Prozessgruppenverhalten
-ist dafür kein Nachweis. Fastra liest stdout/stderr begrenzt und ohne Deadlocks.
+Für PMT ist diese Zusage unter Linux mit Runner-/Wrapper-/Guardverlust und
+Namespace-pidfds [produktiv geprüft](linux-port/P06-INTEGRATION.md). Fastras eigener
+Besitz-/Abbruchpfad benötigt seine gesonderte Abnahme. Fastra liest stdout/stderr begrenzt und ohne Deadlocks.
 
 ### Diagnosen und Quellzuordnung
 
@@ -175,11 +179,10 @@ darf nicht als bestätigte Gleichheit gelten. Details:
 
 Die Quelle wird nie ersetzt. Ergebnisdateien dürfen weder fremde Dateien
 einschleusen noch beim Aufräumen fremde Verzeichnisse löschen. Linux-Pfade mit
-ungültigem UTF-8 brauchen eine ausdrückliche Fehler-/Transportentscheidung in
-P01; keine stille Ersetzung von Bytes im JSON-Pfad.
-Die Entscheidung für den späteren Linux-Einstieg ist die kontrollierte Ablehnung
-solcher Pfade vor der Konvertierung. Diese Prüfung ist noch nicht implementiert;
-der isolierte P02-Harness ist keine freigegebene Linux-Produkt-CLI.
+ungültigem UTF-8 werden vom Linux-Producer vor der Konvertierung kontrolliert
+abgewiesen. Verzeichnislesen, Aliasziele und Ausgabeeltern ersetzen solche Bytes
+nicht still im JSON-Pfad; die Produktregressionen stehen in der P06-Abnahme.
+Der frühe isolierte P02-Harness wird dafür nicht als Produktbeleg verwendet.
 
 ## Geplante Ergänzungen und Kompatibilitätsabnahme
 
@@ -188,9 +191,10 @@ umgesetzten neuen Felder:
 
 - Den heutigen Vertrag als echte Producer-/Consumer-Fixtures sichern, mit
   unbekannten Zusatzfeldern und fehlenden optionalen Angaben.
-- Heute liest Fastra im Ergebnis hauptsächlich `markdownFile`, `assets` und
-  `warnings`. Strukturierte Diagnosen, Sammlungen und Berichte schrittweise
-  vollständig nutzen; die alten Felder weiterhin liefern.
+- Der historische Mac-Consumer las hauptsächlich `markdownFile`, `assets` und
+  `warnings`. Der aktuelle Linux-Rust-Consumer erhält auch Diagnosen, Dokumente,
+  Berichte und Zusatzfelder. Vollständige Nutzung und Ziel-/Prozessbesitz bleiben
+  getrennte Consumerabnahmen; die alten Felder weiterhin liefern.
 - Falls Textfortschritt oder optionale Fähigkeiten nicht robust genug sind,
   einen ausdrücklich angeforderten strukturierten Modus samt Versions-/Capability-
   Aushandlung entwerfen. Nicht unangekündigt stderr auf JSON umstellen.

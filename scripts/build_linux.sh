@@ -22,6 +22,9 @@ def same(path,fd):
   finally:os.close(observed)
  except OSError:return False
 rootfd=directory(root)
+sys.dont_write_bytecode=True
+sys.path.insert(0,f'/proc/self/fd/{rootfd}/scripts')
+from linux_build_support import publish_launcher
 try:
  try:os.mkdir('.build',0o755,dir_fd=rootfd)
  except FileExistsError:pass
@@ -32,7 +35,6 @@ try:
   try:os.mkdir('linux',0o755,dir_fd=buildfd)
   except FileExistsError:pass
   scratchfd=os.open('linux',flags,dir_fd=buildfd)
-  os.close(scratchfd)
   stage='linux-runtime-new-'+uuid.uuid4().hex
   image=os.environ.get('PMT_LINUX_BUILD_IMAGE')
   if image:
@@ -46,30 +48,32 @@ try:
    shutil.copy2(bound/'Package.swift',source/'Package.swift')
    shutil.copy2(bound/'Package.linux.resolved',source/'Package.resolved')
    shutil.copy2(bound/'scripts/package_linux_runtime.sh',source/'package_linux_runtime.sh')
-   if not (same(root,rootfd) and same(root/'.build',buildfd)):raise SystemExit('Project root changed before build; refusing publication.')
+   if not (same(root,rootfd) and same(root/'.build',buildfd) and same(root/'.build/linux',scratchfd)):raise SystemExit('Project root changed before build; refusing publication.')
    if image:
     # Docker bindet den Inode; vor jedem Schreibzugriff wird dessen Identität geprüft.
     buildpath=str(root/'.build')
     if ',' in buildpath or ',' in str(source):raise SystemExit('Docker bind paths containing commas are unsupported.')
-    held=os.fstat(buildfd)
+    held=os.fstat(buildfd);cached=os.fstat(scratchfd)
     command=['docker','run','--rm','--pull','never','--user',f'{os.getuid()}:{os.getgid()}',
-             '-e','HOME=/tmp','--mount',f'type=bind,source={source},target=/source','--mount',f'type=bind,source={buildpath},target=/out','-w','/source',image]
+             '-e','HOME=/tmp','--mount',f'type=bind,source={source},target=/source','--mount',f'type=bind,source={buildpath},target=/out','--mount',f'type=bind,source={buildpath}/linux,target=/out/linux','-w','/source',image]
     inner=['bash','-eu','-c','''python3 -c 'import os,sys; s=os.stat("/out"); assert (s.st_dev,s.st_ino)==(int(sys.argv[1]),int(sys.argv[2])), "build parent changed before bind"' "$3" "$4"
+python3 -c 'import os,sys; s=os.stat("/out/linux"); assert (s.st_dev,s.st_ino)==(int(sys.argv[1]),int(sys.argv[2])), "build cache changed before bind"' "$5" "$6"
 swift build --package-path /source --scratch-path /out/linux/docker --configuration "$1" --product poormans-text
 swift build --package-path /source --scratch-path /out/linux/docker --configuration "$1" --product poormans-text-process-guard
 bin=$(swift build --package-path /source --scratch-path /out/linux/docker --configuration "$1" --show-bin-path)
 bash /source/package_linux_runtime.sh "$bin/poormans-text" "$bin/poormans-text-process-guard" "/out/$2"
-''','build-linux',configuration,stage,str(held.st_dev),str(held.st_ino)]
+''','build-linux',configuration,stage,str(held.st_dev),str(held.st_ino),str(cached.st_dev),str(cached.st_ino)]
     subprocess.run(command+inner,check=True)
    else:
-    os.dup2(buildfd,200,inheritable=True)
-    scratch='/proc/self/fd/200/linux/native'
+    os.dup2(scratchfd,200,inheritable=True)
+    os.dup2(buildfd,201,inheritable=True)
+    scratch='/proc/self/fd/200/native'
     common=['swift','build','--package-path',str(source),'--scratch-path',scratch,'--configuration',configuration]
     for product in ['poormans-text','poormans-text-process-guard']:subprocess.run(common+['--product',product],pass_fds=(200,),check=True)
     binary=subprocess.check_output(common+['--show-bin-path'],pass_fds=(200,),text=True).strip()
-    environment=dict(os.environ, PMT_RUNTIME_PARENT_FD='200')
-    subprocess.run(['bash',str(source/'package_linux_runtime.sh'),binary+'/poormans-text',binary+'/poormans-text-process-guard',stage],env=environment,pass_fds=(200,),check=True)
-  if not (same(root,rootfd) and same(root/'.build',buildfd)):raise SystemExit('Project root changed; staged runtime retained at held original .build, no success reported.')
+    environment=dict(os.environ, PMT_RUNTIME_PARENT_FD='201', PMT_RUNTIME_INPUT_FD='200')
+    subprocess.run(['bash',str(source/'package_linux_runtime.sh'),binary+'/poormans-text',binary+'/poormans-text-process-guard',stage],env=environment,pass_fds=(200,201),check=True)
+  if not (same(root,rootfd) and same(root/'.build',buildfd) and same(root/'.build/linux',scratchfd)):raise SystemExit('Project root changed; staged runtime retained at held original .build, no success reported.')
   backup=None
   try:
    previous=os.stat('linux-runtime',dir_fd=buildfd,follow_symlinks=False)
@@ -82,17 +86,14 @@ bash /source/package_linux_runtime.sh "$bin/poormans-text" "$bin/poormans-text-p
   except BaseException:
    if backup:os.rename(backup,'linux-runtime',src_dir_fd=buildfd,dst_dir_fd=buildfd)
    raise
-  launcher='poormans-text-new-'+uuid.uuid4().hex
   text='''#!/bin/sh
 base=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P) || exit
 runtime="$base/.build/linux-runtime"
 LD_LIBRARY_PATH="$runtime/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" exec "$runtime/bin/poormans-text" "$@"
 '''
-  launchfd=os.open(launcher,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o755,dir_fd=rootfd)
-  with os.fdopen(launchfd,'w') as stream:stream.write(text)
-  os.rename(launcher,'poormans-text',src_dir_fd=rootfd,dst_dir_fd=rootfd)
-  if backup:shutil.rmtree(backup,dir_fd=buildfd)
-  if not (same(root,rootfd) and same(root/'.build',buildfd)):raise SystemExit('Project root changed after publication; complete runtime retained at original root, no success reported.')
+  publish_launcher(rootfd,'poormans-text',text.encode(),'scripts/run_linux_cli.sh')
+  if backup:print(f'Previous runtime retained for explicit cleanup: {root}/.build/{backup}')
+  if not (same(root,rootfd) and same(root/'.build',buildfd) and same(root/'.build/linux',scratchfd)):raise SystemExit('Project root changed after publication; complete runtime retained at original root, no success reported.')
   print(f'Linux CLI ready: {root}/poormans-text')
   print('Host tools required for external conversions: pandoc and /usr/bin/bwrap (not bundled).')
   missing=[]
@@ -101,8 +102,10 @@ LD_LIBRARY_PATH="$runtime/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" exec "$runti
   if missing:print('Missing host conversion tools: '+', '.join(missing),file=sys.stderr)
  finally:
   if not os.environ.get('PMT_LINUX_BUILD_IMAGE'):
-   try:os.close(200)
-   except OSError:pass
+   for descriptor in [200,201]:
+    try:os.close(descriptor)
+    except OSError:pass
+  if 'scratchfd' in locals():os.close(scratchfd)
   if 'lockfd' in locals():os.close(lockfd)
   os.close(buildfd)
 finally:os.close(rootfd)

@@ -1,0 +1,529 @@
+{
+  "date": "2026-11-05",
+  "tools": {
+    "libreoffice": "26.8.1.1 bf8adb135da2784a1be3ca33001278b7a20af5c1",
+    "python": "3.14.9",
+    "swift": "6.2.1",
+    "pandoc": "3.1.3",
+    "olefile": "0.47",
+    "oletools": "0.60.2"
+  },
+  "sourceSHA256": "490f2e2f0001bd676b27af70cd604d7bc1dc16c8afc6a3cead6859f7db3cc6c9",
+  "sourceByteCount": 26112,
+  "originalPOISHA256": "39e9608c711d38f298ed20a5bfae12fcdaed6f4be2be4d26db670475216ca393",
+  "pngSHA256": "161e77431664be88483d7fef7bdd0123c9ed53318cfc9d1c4fa84af80ea2ab28",
+  "swiftTestsPassed": 4,
+  "baselineCLI": [
+    {
+      "case": "libreoffice",
+      "exit": 0,
+      "checks": {
+        "expectedExit": true,
+        "sourceUnchanged": true,
+        "text:Fixture heading ä": true,
+        "text:First list item": true,
+        "text:Second list item": true,
+        "text:Äpfel": true,
+        "text:12": true,
+        "text:Birnen": true,
+        "text:7": true,
+        "text:Grüße aus Köln": true,
+        "text:Footnote content remains readable.": true,
+        "twoReadableListItems": true,
+        "legacyWarning": true,
+        "sourceHash": true,
+        "manifest:images/image01.png": true,
+        "manifest:libreoffice.md": true,
+        "oneImage": true,
+        "originalPNGBytes": true
+      }
+    },
+    {
+      "case": "textutil",
+      "exit": 0,
+      "checks": {
+        "expectedExit": true,
+        "sourceUnchanged": true,
+        "text:Fixture heading ä": true,
+        "text:First list item": true,
+        "text:Second list item": true,
+        "text:Äpfel": true,
+        "text:12": true,
+        "text:Birnen": true,
+        "text:7": true,
+        "text:Grüße aus Köln": true,
+        "twoReadableListItems": true,
+        "legacyWarning": true,
+        "sourceHash": true,
+        "manifest:textutil.md": true
+      }
+    },
+    {
+      "case": "textbundle",
+      "exit": 0,
+      "checks": {
+        "expectedExit": true,
+        "sourceUnchanged": true,
+        "text:Fixture heading ä": true,
+        "text:First list item": true,
+        "text:Second list item": true,
+        "text:Äpfel": true,
+        "text:12": true,
+        "text:Birnen": true,
+        "text:7": true,
+        "text:Grüße aus Köln": true,
+        "text:Footnote content remains readable.": true,
+        "twoReadableListItems": true,
+        "legacyWarning": true,
+        "sourceHash": true,
+        "manifest:assets/image01.png": true,
+        "manifest:info.json": true,
+        "manifest:text.md": true,
+        "oneImage": true,
+        "originalPNGBytes": true
+      }
+    },
+    {
+      "case": "timeout",
+      "exit": 124,
+      "checks": {
+        "expectedExit": true,
+        "sourceUnchanged": true,
+        "noOutput": true,
+        "noStaging": true
+      }
+    },
+    {
+      "case": "invalid",
+      "exit": 65,
+      "checks": {
+        "expectedExit": true,
+        "sourceUnchanged": true,
+        "noOutput": true,
+        "noStaging": true
+      }
+    },
+    {
+      "case": "cancel",
+      "exit": 130,
+      "checks": {
+        "cancelled130": true,
+        "sourceUnchanged": true,
+        "noOutput": true,
+        "noStaging": true
+      }
+    }
+  ],
+  "baselineChecks": 63,
+  "richCLIChecks": {
+    "success": true,
+    "twoListItems": true,
+    "onePNG": true,
+    "originalPNG": true,
+    "sourceSHA256": true,
+    "noTextLossDiagnostic": true,
+    "text:PMT UNO DOC ä Grüße": true,
+    "text:First controlled list item": true,
+    "text:Second controlled list item": true,
+    "text:IMAGE-FOLLOWS": true,
+    "manifest:RichAutoOpen.md": true,
+    "manifest:images/image01.png": true
+  },
+  "lifecycleCLI": [
+    {
+      "case": "cancel-active",
+      "exit": 130,
+      "checks": {
+        "exit": true,
+        "sourceUnchanged": true,
+        "noOutput": true,
+        "noStaging": true,
+        "activeOfficeObserved": true,
+        "officeAddressSpaceBounded": true,
+        "officePidfdEnded": true
+      },
+      "error": "Conversion cancelled."
+    },
+    {
+      "case": "timeout-active",
+      "exit": 124,
+      "checks": {
+        "exit": true,
+        "sourceUnchanged": true,
+        "noOutput": true,
+        "noStaging": true,
+        "activeOfficeObserved": true,
+        "officeAddressSpaceBounded": true,
+        "officePidfdEnded": true
+      },
+      "error": "The conversion tool exceeded its time limit."
+    },
+    {
+      "case": "readonly-parent",
+      "exit": 74,
+      "checks": {
+        "failed": true,
+        "noOutput": true,
+        "sourceUnchanged": true
+      }
+    }
+  ],
+  "unoExportIOFailure": {
+    "exit": 74,
+    "error": "File-system operation failed: The local LibreOffice DOC export could not write its output (com.sun.star.io.IOException).\n",
+    "deniedAtExport": true,
+    "noOutput": true,
+    "noStaging": true
+  },
+  "controls": {
+    "sourceSHA256": "490f2e2f0001bd676b27af70cd604d7bc1dc16c8afc6a3cead6859f7db3cc6c9",
+    "sourceByteCount": 26112,
+    "cases": [
+      {
+        "case": "final-unsafe",
+        "loadProperties": {
+          "MacroExecutionMode": "4",
+          "UpdateDocMode": "0",
+          "ReadOnly": "True",
+          "Hidden": "False",
+          "OpenNewView": "True",
+          "PickListEntry": "False"
+        },
+        "sentinel": [
+          "m.sentinel"
+        ],
+        "textSHA256": "34dcce0e289c3ae32fb093dfcf9800f2133d9d7bd45210cf56ccb00b857c3d16",
+        "htmlSHA256": "6edf0dcfeb5a0515d41fb3664919ae994f143532758dd41b3a12346f9d5ab47e",
+        "checks": {
+          "text:PMT UNO DOC ä Grüße": true,
+          "text:First controlled list item": true,
+          "text:Second controlled list item": true,
+          "text:IMAGE-FOLLOWS": true,
+          "twoListItems": true,
+          "oneOriginalPNG": true,
+          "macroMarkerExpected": true
+        }
+      },
+      {
+        "case": "final-safe",
+        "loadProperties": {
+          "MacroExecutionMode": "0",
+          "UpdateDocMode": "0",
+          "ReadOnly": "True",
+          "Hidden": "False",
+          "OpenNewView": "True",
+          "PickListEntry": "False"
+        },
+        "sentinel": [],
+        "textSHA256": "34dcce0e289c3ae32fb093dfcf9800f2133d9d7bd45210cf56ccb00b857c3d16",
+        "htmlSHA256": "6edf0dcfeb5a0515d41fb3664919ae994f143532758dd41b3a12346f9d5ab47e",
+        "checks": {
+          "text:PMT UNO DOC ä Grüße": true,
+          "text:First controlled list item": true,
+          "text:Second controlled list item": true,
+          "text:IMAGE-FOLLOWS": true,
+          "twoListItems": true,
+          "oneOriginalPNG": true,
+          "macroMarkerExpected": true
+        }
+      },
+      {
+        "case": "final-hidden",
+        "loadProperties": {
+          "MacroExecutionMode": "0",
+          "UpdateDocMode": "0",
+          "ReadOnly": "True",
+          "Hidden": "True",
+          "OpenNewView": "True",
+          "PickListEntry": "False"
+        },
+        "sentinel": [],
+        "textSHA256": "34dcce0e289c3ae32fb093dfcf9800f2133d9d7bd45210cf56ccb00b857c3d16",
+        "htmlSHA256": "6edf0dcfeb5a0515d41fb3664919ae994f143532758dd41b3a12346f9d5ab47e",
+        "checks": {
+          "text:PMT UNO DOC ä Grüße": true,
+          "text:First controlled list item": true,
+          "text:Second controlled list item": true,
+          "text:IMAGE-FOLLOWS": true,
+          "twoListItems": true,
+          "oneOriginalPNG": true,
+          "macroMarkerExpected": true
+        }
+      },
+      {
+        "case": "repeat-unsafe-2",
+        "loadProperties": {
+          "MacroExecutionMode": "4",
+          "UpdateDocMode": "0",
+          "ReadOnly": "True",
+          "Hidden": "False",
+          "OpenNewView": "True",
+          "PickListEntry": "False"
+        },
+        "sentinel": [
+          "m.sentinel"
+        ],
+        "textSHA256": "34dcce0e289c3ae32fb093dfcf9800f2133d9d7bd45210cf56ccb00b857c3d16",
+        "htmlSHA256": "6edf0dcfeb5a0515d41fb3664919ae994f143532758dd41b3a12346f9d5ab47e",
+        "checks": {
+          "text:PMT UNO DOC ä Grüße": true,
+          "text:First controlled list item": true,
+          "text:Second controlled list item": true,
+          "text:IMAGE-FOLLOWS": true,
+          "twoListItems": true,
+          "oneOriginalPNG": true,
+          "macroMarkerExpected": true
+        }
+      },
+      {
+        "case": "repeat-safe-2",
+        "loadProperties": {
+          "MacroExecutionMode": "0",
+          "UpdateDocMode": "0",
+          "ReadOnly": "True",
+          "Hidden": "False",
+          "OpenNewView": "True",
+          "PickListEntry": "False"
+        },
+        "sentinel": [],
+        "textSHA256": "34dcce0e289c3ae32fb093dfcf9800f2133d9d7bd45210cf56ccb00b857c3d16",
+        "htmlSHA256": "6edf0dcfeb5a0515d41fb3664919ae994f143532758dd41b3a12346f9d5ab47e",
+        "checks": {
+          "text:PMT UNO DOC ä Grüße": true,
+          "text:First controlled list item": true,
+          "text:Second controlled list item": true,
+          "text:IMAGE-FOLLOWS": true,
+          "twoListItems": true,
+          "oneOriginalPNG": true,
+          "macroMarkerExpected": true
+        }
+      },
+      {
+        "case": "repeat-unsafe-3",
+        "loadProperties": {
+          "MacroExecutionMode": "4",
+          "UpdateDocMode": "0",
+          "ReadOnly": "True",
+          "Hidden": "False",
+          "OpenNewView": "True",
+          "PickListEntry": "False"
+        },
+        "sentinel": [
+          "m.sentinel"
+        ],
+        "textSHA256": "34dcce0e289c3ae32fb093dfcf9800f2133d9d7bd45210cf56ccb00b857c3d16",
+        "htmlSHA256": "6edf0dcfeb5a0515d41fb3664919ae994f143532758dd41b3a12346f9d5ab47e",
+        "checks": {
+          "text:PMT UNO DOC ä Grüße": true,
+          "text:First controlled list item": true,
+          "text:Second controlled list item": true,
+          "text:IMAGE-FOLLOWS": true,
+          "twoListItems": true,
+          "oneOriginalPNG": true,
+          "macroMarkerExpected": true
+        }
+      },
+      {
+        "case": "repeat-safe-3",
+        "loadProperties": {
+          "MacroExecutionMode": "0",
+          "UpdateDocMode": "0",
+          "ReadOnly": "True",
+          "Hidden": "False",
+          "OpenNewView": "True",
+          "PickListEntry": "False"
+        },
+        "sentinel": [],
+        "textSHA256": "34dcce0e289c3ae32fb093dfcf9800f2133d9d7bd45210cf56ccb00b857c3d16",
+        "htmlSHA256": "6edf0dcfeb5a0515d41fb3664919ae994f143532758dd41b3a12346f9d5ab47e",
+        "checks": {
+          "text:PMT UNO DOC ä Grüße": true,
+          "text:First controlled list item": true,
+          "text:Second controlled list item": true,
+          "text:IMAGE-FOLLOWS": true,
+          "twoListItems": true,
+          "oneOriginalPNG": true,
+          "macroMarkerExpected": true
+        }
+      },
+      {
+        "case": "final-silent-unsafe",
+        "loadProperties": {
+          "MacroExecutionMode": "4",
+          "UpdateDocMode": "0",
+          "ReadOnly": "True",
+          "Hidden": "False",
+          "Silent": "True",
+          "OpenNewView": "True",
+          "PickListEntry": "False"
+        },
+        "sentinel": [
+          "m.sentinel"
+        ],
+        "textSHA256": "34dcce0e289c3ae32fb093dfcf9800f2133d9d7bd45210cf56ccb00b857c3d16",
+        "htmlSHA256": "6edf0dcfeb5a0515d41fb3664919ae994f143532758dd41b3a12346f9d5ab47e",
+        "checks": {
+          "text:PMT UNO DOC ä Grüße": true,
+          "text:First controlled list item": true,
+          "text:Second controlled list item": true,
+          "text:IMAGE-FOLLOWS": true,
+          "twoListItems": true,
+          "oneOriginalPNG": true,
+          "macroMarkerExpected": true
+        }
+      },
+      {
+        "case": "final-silent-safe",
+        "loadProperties": {
+          "MacroExecutionMode": "0",
+          "UpdateDocMode": "0",
+          "ReadOnly": "True",
+          "Hidden": "False",
+          "Silent": "True",
+          "OpenNewView": "True",
+          "PickListEntry": "False"
+        },
+        "sentinel": [],
+        "textSHA256": "34dcce0e289c3ae32fb093dfcf9800f2133d9d7bd45210cf56ccb00b857c3d16",
+        "htmlSHA256": "6edf0dcfeb5a0515d41fb3664919ae994f143532758dd41b3a12346f9d5ab47e",
+        "checks": {
+          "text:PMT UNO DOC ä Grüße": true,
+          "text:First controlled list item": true,
+          "text:Second controlled list item": true,
+          "text:IMAGE-FOLLOWS": true,
+          "twoListItems": true,
+          "oneOriginalPNG": true,
+          "macroMarkerExpected": true
+        }
+      },
+      {
+        "case": "guarded-final-unsafe",
+        "loadProperties": {
+          "MacroExecutionMode": "4",
+          "UpdateDocMode": "0",
+          "ReadOnly": "True",
+          "Hidden": "False",
+          "Silent": "True",
+          "OpenNewView": "True",
+          "PickListEntry": "False"
+        },
+        "sentinel": [
+          "m.sentinel"
+        ],
+        "textSHA256": "34dcce0e289c3ae32fb093dfcf9800f2133d9d7bd45210cf56ccb00b857c3d16",
+        "htmlSHA256": "6edf0dcfeb5a0515d41fb3664919ae994f143532758dd41b3a12346f9d5ab47e",
+        "checks": {
+          "text:PMT UNO DOC ä Grüße": true,
+          "text:First controlled list item": true,
+          "text:Second controlled list item": true,
+          "text:IMAGE-FOLLOWS": true,
+          "twoListItems": true,
+          "oneOriginalPNG": true,
+          "macroMarkerExpected": true
+        }
+      },
+      {
+        "case": "guarded-final-safe",
+        "loadProperties": {
+          "MacroExecutionMode": "0",
+          "UpdateDocMode": "0",
+          "ReadOnly": "True",
+          "Hidden": "False",
+          "Silent": "True",
+          "OpenNewView": "True",
+          "PickListEntry": "False"
+        },
+        "sentinel": [],
+        "textSHA256": "34dcce0e289c3ae32fb093dfcf9800f2133d9d7bd45210cf56ccb00b857c3d16",
+        "htmlSHA256": "6edf0dcfeb5a0515d41fb3664919ae994f143532758dd41b3a12346f9d5ab47e",
+        "checks": {
+          "text:PMT UNO DOC ä Grüße": true,
+          "text:First controlled list item": true,
+          "text:Second controlled list item": true,
+          "text:IMAGE-FOLLOWS": true,
+          "twoListItems": true,
+          "oneOriginalPNG": true,
+          "macroMarkerExpected": true
+        }
+      },
+      {
+        "case": "reviewed-unsafe",
+        "loadProperties": {
+          "MacroExecutionMode": "4",
+          "UpdateDocMode": "0",
+          "ReadOnly": "True",
+          "Hidden": "False",
+          "Silent": "True",
+          "OpenNewView": "True",
+          "PickListEntry": "False"
+        },
+        "sentinel": [
+          "m.sentinel"
+        ],
+        "textSHA256": "34dcce0e289c3ae32fb093dfcf9800f2133d9d7bd45210cf56ccb00b857c3d16",
+        "htmlSHA256": "6edf0dcfeb5a0515d41fb3664919ae994f143532758dd41b3a12346f9d5ab47e"
+      },
+      {
+        "case": "reviewed-safe",
+        "loadProperties": {
+          "MacroExecutionMode": "0",
+          "UpdateDocMode": "0",
+          "ReadOnly": "True",
+          "Hidden": "False",
+          "Silent": "True",
+          "OpenNewView": "True",
+          "PickListEntry": "False"
+        },
+        "sentinel": [],
+        "textSHA256": "34dcce0e289c3ae32fb093dfcf9800f2133d9d7bd45210cf56ccb00b857c3d16",
+        "htmlSHA256": "6edf0dcfeb5a0515d41fb3664919ae994f143532758dd41b3a12346f9d5ab47e"
+      },
+      {
+        "case": "delivery-unsafe",
+        "loadProperties": {
+          "MacroExecutionMode": "4",
+          "UpdateDocMode": "0",
+          "ReadOnly": "True",
+          "Hidden": "False",
+          "Silent": "True",
+          "OpenNewView": "True",
+          "PickListEntry": "False"
+        },
+        "sentinel": [
+          "m.sentinel"
+        ],
+        "textSHA256": "34dcce0e289c3ae32fb093dfcf9800f2133d9d7bd45210cf56ccb00b857c3d16",
+        "htmlSHA256": "6edf0dcfeb5a0515d41fb3664919ae994f143532758dd41b3a12346f9d5ab47e"
+      },
+      {
+        "case": "delivery-safe",
+        "loadProperties": {
+          "MacroExecutionMode": "0",
+          "UpdateDocMode": "0",
+          "ReadOnly": "True",
+          "Hidden": "False",
+          "Silent": "True",
+          "OpenNewView": "True",
+          "PickListEntry": "False"
+        },
+        "sentinel": [],
+        "textSHA256": "34dcce0e289c3ae32fb093dfcf9800f2133d9d7bd45210cf56ccb00b857c3d16",
+        "htmlSHA256": "6edf0dcfeb5a0515d41fb3664919ae994f143532758dd41b3a12346f9d5ab47e"
+      }
+    ],
+    "onlyModeDiffers": true,
+    "acceptance": "pending root review"
+  },
+  "integrationAcceptance": "pending integration review",
+  "limits": {
+    "addressSpaceBytes": 3221225472,
+    "htmlBytes": 134217728,
+    "referenceBytes": 67108864,
+    "markdownBytes": 134217728,
+    "comparisonTokensPerText": 500000,
+    "tokenUTF8Bytes": 4096,
+    "sparseOversizeHTMLRejected": true,
+    "sparseOversizeTXTRejected": true,
+    "activeOfficeAddressSpaceMeasured": true
+  }
+}

@@ -1,0 +1,174 @@
+{
+  "version": "0.41.10",
+  "cliSHA256": "c70a369fc76d0a5988931f5e32e4b16b57cc372bf3299e43b203c86b8c0ec157",
+  "cases": [
+    {
+      "case": "libreoffice",
+      "exit": 0,
+      "seconds": 1.8587,
+      "checks": {
+        "expectedExit": true,
+        "sourceUnchanged": true,
+        "text:Fixture heading ä": true,
+        "text:First list item": true,
+        "text:Second list item": true,
+        "text:Äpfel": true,
+        "text:12": true,
+        "text:Birnen": true,
+        "text:7": true,
+        "text:Grüße aus Köln": true,
+        "text:Footnote content remains readable.": true,
+        "twoReadableListItems": true,
+        "legacyWarning": true,
+        "sourceHash": true,
+        "manifest:images/image01.png": true,
+        "manifest:libreoffice.md": true,
+        "oneImage": true,
+        "originalPNGBytes": true
+      },
+      "semanticMarkdownListItems": 2,
+      "literalBulletParagraphs": 0
+    },
+    {
+      "case": "textutil",
+      "exit": 0,
+      "seconds": 1.8744,
+      "checks": {
+        "expectedExit": true,
+        "sourceUnchanged": true,
+        "text:Fixture heading ä": true,
+        "text:First list item": true,
+        "text:Second list item": true,
+        "text:Äpfel": true,
+        "text:12": true,
+        "text:Birnen": true,
+        "text:7": true,
+        "text:Grüße aus Köln": true,
+        "twoReadableListItems": true,
+        "legacyWarning": true,
+        "sourceHash": true,
+        "manifest:textutil.md": true
+      },
+      "semanticMarkdownListItems": 0,
+      "literalBulletParagraphs": 2
+    },
+    {
+      "case": "textbundle",
+      "exit": 0,
+      "seconds": 1.8764,
+      "checks": {
+        "expectedExit": true,
+        "sourceUnchanged": true,
+        "text:Fixture heading ä": true,
+        "text:First list item": true,
+        "text:Second list item": true,
+        "text:Äpfel": true,
+        "text:12": true,
+        "text:Birnen": true,
+        "text:7": true,
+        "text:Grüße aus Köln": true,
+        "text:Footnote content remains readable.": true,
+        "twoReadableListItems": true,
+        "legacyWarning": true,
+        "sourceHash": true,
+        "manifest:assets/image01.png": true,
+        "manifest:info.json": true,
+        "manifest:text.md": true,
+        "oneImage": true,
+        "originalPNGBytes": true
+      },
+      "semanticMarkdownListItems": 2,
+      "literalBulletParagraphs": 0
+    },
+    {
+      "case": "timeout",
+      "exit": 124,
+      "seconds": 0.2644,
+      "checks": {
+        "expectedExit": true,
+        "sourceUnchanged": true,
+        "noOutput": true,
+        "noStaging": true
+      }
+    },
+    {
+      "case": "invalid",
+      "exit": 65,
+      "seconds": 0.1695,
+      "checks": {
+        "expectedExit": true,
+        "sourceUnchanged": true,
+        "noOutput": true,
+        "noStaging": true
+      }
+    },
+    {
+      "case": "cancel",
+      "exit": 130,
+      "checks": {
+        "cancelled130": true,
+        "sourceUnchanged": true,
+        "noOutput": true,
+        "noStaging": true
+      }
+    }
+  ],
+  "macroSafetyEvidence": "uno.json; separate positive/negative controls, not inferred from missing CLI sentinel",
+  "activeOffice": [
+    {
+      "case": "cancel-active",
+      "exit": 130,
+      "checks": {
+        "exit": true,
+        "sourceUnchanged": true,
+        "noOutput": true,
+        "noStaging": true,
+        "activeOfficeObserved": true,
+        "officeAddressSpaceBounded": true,
+        "officePidfdEnded": true
+      },
+      "error": "Conversion cancelled."
+    },
+    {
+      "case": "timeout-active",
+      "exit": 124,
+      "checks": {
+        "exit": true,
+        "sourceUnchanged": true,
+        "noOutput": true,
+        "noStaging": true,
+        "activeOfficeObserved": true,
+        "officeAddressSpaceBounded": true,
+        "officePidfdEnded": true
+      },
+      "error": "The conversion tool exceeded its time limit."
+    },
+    {
+      "case": "readonly-parent",
+      "exit": 74,
+      "checks": {
+        "failed": true,
+        "noOutput": true,
+        "sourceUnchanged": true
+      },
+      "response": {
+        "error": "File-system operation failed: Permission denied (errno 13)",
+        "ok": false,
+        "version": "0.41.10"
+      }
+    }
+  ],
+  "exportWriteError": {
+    "exit": 74,
+    "error": "File-system operation failed: The local LibreOffice DOC export could not write its output (com.sun.star.io.IOException).\n",
+    "deniedAtExport": true,
+    "noOutput": true,
+    "noStaging": true
+  },
+  "swiftRegression": {
+    "executed": 338,
+    "skipped": 8,
+    "failures": 0,
+    "seconds": 36.485
+  }
+}

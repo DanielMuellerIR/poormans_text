@@ -64,6 +64,8 @@ public struct ExternalTool: RawRepresentable, Codable, Hashable, Sendable {
     public static let textutil = ExternalTool(rawValue: "textutil")
     public static let bubblewrap = ExternalTool(rawValue: "bwrap")
     public static let processGuard = ExternalTool(rawValue: "poormans-text-process-guard")
+    public static let libreOffice = ExternalTool(rawValue: "libreoffice")
+    public static let pythonUNO = ExternalTool(rawValue: "python3-uno")
     public static let pythonPillow = ExternalTool(rawValue: "python3-pillow")
     public static let pythonPoppler = ExternalTool(rawValue: "python3-gi-poppler")
 }
@@ -114,6 +116,10 @@ public struct ExternalToolResolver {
         case .textutil:
             return fileManager.isExecutableFile(atPath: LegacyWordAdapter.textutilPath)
         #if os(Linux)
+        case .libreOffice:
+            return fileManager.isExecutableFile(atPath: "/usr/bin/libreoffice")
+        case .pythonUNO:
+            return LinuxLegacyWordAdapter.isPythonUNOAvailable()
         case .pythonPillow:
             return LinuxRasterBackend.isAvailable()
         case .pythonPoppler:

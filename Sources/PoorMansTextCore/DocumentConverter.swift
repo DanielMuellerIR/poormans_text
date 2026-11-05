@@ -11,7 +11,7 @@ public struct DocumentConverter: Sendable {
         #if os(macOS)
         registered.append(LegacyWordAdapter())
         #else
-        registered.append(UnavailablePlatformAdapter(descriptor: PlatformFormatDescriptors.doc))
+        registered.append(LinuxLegacyWordAdapter())
         #endif
         registered += [SpreadsheetAdapter(), OpenDocumentMasterAdapter()]
         #if os(macOS)

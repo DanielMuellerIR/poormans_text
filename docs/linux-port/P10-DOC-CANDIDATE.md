@@ -1,4 +1,6 @@
-# P10: Legacy-DOC-Kandidat und offene Sicherheitsabnahme
+# P10: Historischer Legacy-DOC-Kandidat
+
+Dieser frühe Versuch ist durch den [expliziten UNO-Ladevertrag](P10-DOC-UNO.md) ersetzt. Die folgenden Ergebnisse dokumentieren den früheren, nicht freigegebenen Ansatz.
 
 Stand: 2026-11-05. Der LibreOffice-basierte DOC-Kandidat funktioniert in
 isolierten Prüfungen, bleibt im Produktkatalog jedoch deaktiviert. Die

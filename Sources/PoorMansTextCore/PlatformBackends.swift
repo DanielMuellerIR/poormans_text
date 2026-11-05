@@ -27,7 +27,7 @@ enum PlatformFormatDescriptors {
     #endif
     #if os(Linux)
     static let doc = SupportedFormat(format: .doc, fileExtensions: ["doc"],
-        containerKind: .file, requiredTools: [])
+        containerKind: .file, requiredTools: [.libreOffice, .pythonUNO, .pandoc, .bubblewrap, .processGuard])
     #else
     static let doc = SupportedFormat(format: .doc, fileExtensions: ["doc"],
         containerKind: .file, requiredTools: [.textutil, .pandoc])

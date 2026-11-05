@@ -1,0 +1,3 @@
+# Originale Lizenzbeigaben einschließlich vorhandener Zeilenend-Leerzeichen erhalten.
+/scripts/linux-probes/p10-uno/POI-LICENSE whitespace=-blank-at-eol
+/scripts/linux-probes/p10-uno/POI-NOTICE whitespace=-blank-at-eol

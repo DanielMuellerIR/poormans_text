@@ -1,0 +1,21 @@
+{
+  "version": "0.41.10",
+  "cliSHA256": "b82333856d0b4fe6114f620094fb263825b53433eafd6a84e0c06282bc946395",
+  "guiSHA256": "ea25fc57f43a2523134037b38bb829a6ae0f8fa771c5e5869e7c882a1ff4905d",
+  "language": "en",
+  "gdkScale": 2,
+  "physicalWindow": [
+    1400,
+    1700
+  ],
+  "logicalWindow": [
+    700,
+    850
+  ],
+  "environment": "SDK-free Ubuntu24.04, private Xvfb/D-Bus/Home, UID1000, network none",
+  "interaction": "Start Unicode CSV; Ctrl+Return; completed status and verified passive Markdown preview visually inspected",
+  "sourceSHA256": "b4b47bd84d4b734fb8a4e48b8b20d41cfb138f436eaa0b9ba909315da44fec5e",
+  "markdownSHA256": "e042573c6469882df1c69947227d5766554d5dae6575d237015bd338a0fc6b8d",
+  "actualReleaseBinaryWithoutTestHooks": true,
+  "limits": "No real compositor, Cinnamon/KDE/Wayland, accessibility or default-editor acceptance"
+}

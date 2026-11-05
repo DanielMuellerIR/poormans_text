@@ -1,0 +1,24 @@
+{
+  "scope": "Preliminary harness failure, not a product failure",
+  "casesBeforeStop": 14,
+  "aborted": true,
+  "failures": [
+    {
+      "case": "0-mbox",
+      "check": "text:First caf\u00e9"
+    },
+    {
+      "case": "0-mbox",
+      "check": "text:Second message"
+    },
+    {
+      "case": "1-mbox",
+      "check": "text:First caf\u00e9"
+    },
+    {
+      "case": "1-mbox",
+      "check": "text:Second message"
+    }
+  ],
+  "reason": "MBOX body assertions initially read only index.md; actual documents retained both expected bodies."
+}

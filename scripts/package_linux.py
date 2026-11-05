@@ -3,6 +3,7 @@
 import argparse
 import fcntl
 import hashlib
+import json
 import os
 from pathlib import Path
 import re
@@ -15,11 +16,12 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--format', choices=['deb', 'arch', 'tar', 'all'], default='all')
 parser.add_argument('--configuration', choices=['debug', 'release'], default='release')
 parser.add_argument('--no-build', action='store_true')
+parser.add_argument('--with-gui', action='store_true', help='Include the GTK interface built on the Ubuntu baseline.')
 parser.add_argument('--output-directory', type=Path)
 args = parser.parse_args()
 repo = Path(__file__).resolve().parent.parent
 if not args.no_build:
-    subprocess.run([str(repo / 'build.sh'), args.configuration], check=True)
+    subprocess.run([str(repo / 'build.sh'), *(['--with-gui'] if args.with_gui else []), args.configuration], check=True)
 build_lock = os.open(repo / '.build/linux-build.lock', os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW | os.O_CLOEXEC, 0o600)
 fcntl.flock(build_lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
 runtime = repo / '.build/linux-runtime'
@@ -28,6 +30,30 @@ environment = dict(os.environ, LD_LIBRARY_PATH=str(runtime / 'lib'))
 actual = subprocess.check_output([str(runtime / 'bin/poormans-text'), '--version'], env=environment, text=True).strip()
 if actual != 'Poor Man\'s Text ' + version:
     raise SystemExit('Runtime version differs from source; rebuild before packaging.')
+if args.with_gui:
+    gui = runtime / 'ui/poormans-text-app'
+    if not gui.is_file():
+        raise SystemExit('Build the Linux GTK interface before packaging with --with-gui.')
+    info = json.loads((runtime / 'ui/build-info.json').read_text())
+    if info.get('producer') != 'pmt-linux-gui-build-v1' or info.get('version') != version:
+        raise SystemExit('GUI/runtime version or producer mismatch; rebuild before packaging.')
+    for key, path in [('binarySHA256', gui), ('cliSHA256', runtime / 'bin/poormans-text'),
+                      ('guardSHA256', runtime / 'ui/poormans-text-process-guard')]:
+        if info.get(key) != hashlib.sha256(path.read_bytes()).hexdigest():
+            raise SystemExit('GUI/runtime fingerprint mismatch; rebuild before packaging: ' + key)
+for entry in runtime.rglob('*'):
+    if not args.with_gui and entry.relative_to(runtime).parts[0] == 'ui':
+        continue
+    if entry.is_symlink():
+        raise SystemExit('Unexpected runtime symlink: ' + str(entry.relative_to(runtime)))
+    if not entry.is_file():
+        continue
+    with entry.open('rb') as stream:
+        elf = stream.read(4) == b'\x7fELF'
+    if elf:
+        versions = re.findall(r'GLIBC_([0-9.]+)', subprocess.check_output(['readelf', '--version-info', str(entry)], text=True))
+        if versions and max(tuple(map(int, item.split('.'))) for item in versions) > (2, 39):
+            raise SystemExit('Runtime ELF exceeds glibc 2.39 baseline: ' + str(entry.relative_to(runtime)) + '; rebuild on Ubuntu 24.04.')
 output = (args.output_directory or repo / '.build/linux-packages').absolute()
 flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC
 parent = os.open('/', flags)
@@ -97,9 +123,9 @@ try:
             for path in runtime.rglob('*'):
                 if path.is_symlink() or not (path.is_dir() or path.is_file()):
                     raise SystemExit('Unexpected runtime file type: ' + str(path.relative_to(runtime)))
-            shutil.copytree(runtime, destination)
+            shutil.copytree(runtime, destination, ignore=lambda path, names: ['ui'] if Path(path) == runtime and not args.with_gui and 'ui' in names else [])
             for path in [destination, *destination.rglob('*')]:
-                path.chmod(0o755 if path.is_dir() or path.parent == destination / 'bin' and path.is_file() else 0o644)
+                path.chmod(0o755 if path.is_dir() or path.parent in [destination / 'bin', destination / 'ui'] and path.name in ['poormans-text', 'poormans-text-app', 'poormans-text-process-guard'] else 0o644)
             launch = stage / 'usr/bin/poormans-text'
             launch.parent.mkdir(parents=True)
             launch.write_text('''#!/bin/sh
@@ -109,6 +135,30 @@ runtime="$prefix/lib/poormans-text"
 LD_LIBRARY_PATH="$runtime/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" exec "$runtime/bin/poormans-text" "$@"
 ''')
             launch.chmod(0o755)
+            if args.with_gui:
+                app = stage / 'usr/bin/poormans-text-app'
+                app.write_text('''#!/bin/sh
+entry=$(readlink -f -- "$0") || exit
+prefix=$(CDPATH= cd -- "$(dirname -- "$entry")/.." && pwd -P) || exit
+exec "$prefix/lib/poormans-text/ui/poormans-text-app" "$@"
+''')
+                app.chmod(0o755)
+                desktop = stage / 'usr/share/applications'
+                desktop.mkdir(parents=True)
+                (desktop / 'org.poormanstext.Linux.desktop').write_text('''[Desktop Entry]
+Type=Application
+Name=Poor Man's Text
+GenericName=Document converter
+GenericName[de]=Dokumentkonverter
+Comment=Convert local documents to Markdown
+Comment[de]=Lokale Dokumente in Markdown umwandeln
+Exec=poormans-text-app %F
+Icon=text-x-generic
+Terminal=false
+Categories=Office;Utility;
+StartupNotify=true
+''')
+                (desktop / 'org.poormanstext.Linux.desktop').chmod(0o644)
             docs = stage / 'usr/share/doc/poormans-text'
             docs.mkdir(parents=True)
             for filename in ['LICENSE', 'CHANGELOG.md', 'docs/LINUX-BUILD.md']:
@@ -126,9 +176,9 @@ Architecture: amd64
 Maintainer: Poor Man's Text contributors
 Section: text
 Priority: optional
-Depends: libc6 (>= 2.39), libstdc++6, libgcc-s1, bubblewrap (>= 0.9.0)
+Depends: libc6 (>= 2.39), libstdc++6, libgcc-s1, bubblewrap (>= 0.9.0){', libgtk-4-1 (>= 4.12)' if args.with_gui else ''}
 Recommends: pandoc
-Suggests: python3-pil, python3-gi, python3-cairo, python3-gi-cairo, gir1.2-poppler-0.18, tesseract-ocr
+Suggests: python3-pil, python3-gi, python3-cairo, python3-gi-cairo, gir1.2-poppler-0.18, tesseract-ocr, libreoffice-writer, python3-uno
 Homepage: https://github.com/DanielMuellerIR/poormans_text
 Description: Local document conversion with a shared Swift core (Linux preview)
  No runtime downloads. Optional converters and OCR data are host packages.
@@ -152,12 +202,14 @@ license = custom:bundled-runtime
 depend = glibc>=2.39
 depend = gcc-libs
 depend = bubblewrap>=0.9.0
+{'depend = gtk4>=4.12' if args.with_gui else ''}
 optdepend = pandoc: document conversion
 optdepend = python-pillow: raster decoding
 optdepend = python-gobject: Poppler backend
 optdepend = python-cairo: PDF rasterization
 optdepend = poppler-glib: PDF backend
 optdepend = tesseract: local OCR
+optdepend = libreoffice-fresh: legacy Word import
 ''')
                 if kind == 'arch':
                     (stage / '.PKGINFO').chmod(0o644)

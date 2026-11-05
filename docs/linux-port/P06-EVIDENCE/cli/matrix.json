@@ -1,11 +1,11 @@
 {
-  "productVersion": "Poor Man's Text 0.41.9",
-  "cliSHA256": "b8b4c0481b03b7006afe592a97bc664920a2b65087a75767ddcd5aedc5502a55",
+  "productVersion": "Poor Man's Text 0.41.10",
+  "cliSHA256": "c70a369fc76d0a5988931f5e32e4b16b57cc372bf3299e43b203c86b8c0ec157",
   "pandocVersion": "pandoc 3.1.3",
   "pandocSHA256": "5a953bcbcdc7c36fcb0c263fbb09db8c7b84cfa9ca58e48e321d7edf857a7ee7",
   "failures": [],
   "remoteRequests": [],
-  "basisCommit": "15ec1a5",
+  "basisCommit": "8ac5770; integrated 0.41.10 working tree",
   "architecture": "x86_64",
   "cases": 39,
   "checks": 315,
@@ -13,7 +13,7 @@
     {
       "name": "catalog",
       "exit": 0,
-      "seconds": 0.5351,
+      "seconds": 0.8969,
       "checks": {
         "expectedExit": true,
         "available:rtf": true,
@@ -34,7 +34,7 @@
     {
       "name": "format-0",
       "exit": 0,
-      "seconds": 0.1875,
+      "seconds": 0.19,
       "checks": {
         "expectedExit": true,
         "sourceUnchanged": true,
@@ -49,7 +49,7 @@
     {
       "name": "format-1",
       "exit": 0,
-      "seconds": 0.2334,
+      "seconds": 0.2389,
       "checks": {
         "expectedExit": true,
         "sourceUnchanged": true,
@@ -69,7 +69,7 @@
     {
       "name": "format-2",
       "exit": 0,
-      "seconds": 0.2219,
+      "seconds": 0.2257,
       "checks": {
         "expectedExit": true,
         "sourceUnchanged": true,
@@ -88,7 +88,7 @@
     {
       "name": "format-3",
       "exit": 0,
-      "seconds": 0.2341,
+      "seconds": 0.2406,
       "checks": {
         "expectedExit": true,
         "sourceUnchanged": true,
@@ -106,7 +106,7 @@
     {
       "name": "format-4",
       "exit": 0,
-      "seconds": 0.2339,
+      "seconds": 0.238,
       "checks": {
         "expectedExit": true,
         "sourceUnchanged": true,
@@ -124,7 +124,7 @@
     {
       "name": "format-5",
       "exit": 0,
-      "seconds": 0.2377,
+      "seconds": 0.2409,
       "checks": {
         "expectedExit": true,
         "sourceUnchanged": true,
@@ -142,7 +142,7 @@
     {
       "name": "format-6",
       "exit": 0,
-      "seconds": 0.1086,
+      "seconds": 0.1119,
       "checks": {
         "expectedExit": true,
         "sourceUnchanged": true,
@@ -164,7 +164,7 @@
     {
       "name": "format-7",
       "exit": 0,
-      "seconds": 0.1056,
+      "seconds": 0.1094,
       "checks": {
         "expectedExit": true,
         "sourceUnchanged": true,
@@ -181,7 +181,7 @@
     {
       "name": "format-8",
       "exit": 0,
-      "seconds": 0.1918,
+      "seconds": 0.1958,
       "checks": {
         "expectedExit": true,
         "sourceUnchanged": true,
@@ -200,7 +200,7 @@
     {
       "name": "format-9",
       "exit": 0,
-      "seconds": 0.1869,
+      "seconds": 0.1886,
       "checks": {
         "expectedExit": true,
         "sourceUnchanged": true,
@@ -215,7 +215,7 @@
     {
       "name": "format-10",
       "exit": 0,
-      "seconds": 0.217,
+      "seconds": 0.2193,
       "checks": {
         "expectedExit": true,
         "sourceUnchanged": true,
@@ -231,7 +231,7 @@
     {
       "name": "format-11",
       "exit": 0,
-      "seconds": 0.1872,
+      "seconds": 0.1921,
       "checks": {
         "expectedExit": true,
         "sourceUnchanged": true,
@@ -249,7 +249,7 @@
     {
       "name": "format-12",
       "exit": 0,
-      "seconds": 0.186,
+      "seconds": 0.1876,
       "checks": {
         "expectedExit": true,
         "sourceUnchanged": true,
@@ -264,7 +264,7 @@
     {
       "name": "format-13",
       "exit": 0,
-      "seconds": 0.1864,
+      "seconds": 0.1878,
       "checks": {
         "expectedExit": true,
         "sourceUnchanged": true,
@@ -279,7 +279,7 @@
     {
       "name": "format-14",
       "exit": 0,
-      "seconds": 0.1859,
+      "seconds": 0.1876,
       "checks": {
         "expectedExit": true,
         "sourceUnchanged": true,
@@ -294,7 +294,7 @@
     {
       "name": "format-15",
       "exit": 0,
-      "seconds": 0.188,
+      "seconds": 0.1905,
       "checks": {
         "expectedExit": true,
         "sourceUnchanged": true,
@@ -312,7 +312,7 @@
     {
       "name": "format-16",
       "exit": 0,
-      "seconds": 0.1852,
+      "seconds": 0.1899,
       "checks": {
         "expectedExit": true,
         "sourceUnchanged": true,
@@ -326,7 +326,7 @@
     {
       "name": "review-accept",
       "exit": 0,
-      "seconds": 0.3129,
+      "seconds": 0.3411,
       "checks": {
         "expectedExit": true,
         "sourceUnchanged": true,
@@ -346,7 +346,7 @@
     {
       "name": "review-reject",
       "exit": 0,
-      "seconds": 0.3247,
+      "seconds": 0.336,
       "checks": {
         "expectedExit": true,
         "sourceUnchanged": true,
@@ -366,7 +366,7 @@
     {
       "name": "review-mark",
       "exit": 0,
-      "seconds": 0.3148,
+      "seconds": 0.3377,
       "checks": {
         "expectedExit": true,
         "sourceUnchanged": true,
@@ -390,7 +390,7 @@
     {
       "name": "epub-overview",
       "exit": 0,
-      "seconds": 0.0195,
+      "seconds": 0.0255,
       "checks": {
         "expectedExit": true,
         "sourceUnchanged": true,
@@ -400,7 +400,7 @@
     {
       "name": "epub-selected0",
       "exit": 0,
-      "seconds": 0.2788,
+      "seconds": 0.2849,
       "checks": {
         "expectedExit": true,
         "sourceUnchanged": true,
@@ -419,7 +419,7 @@
     {
       "name": "epub-selected1",
       "exit": 0,
-      "seconds": 0.2707,
+      "seconds": 0.291,
       "checks": {
         "expectedExit": true,
         "sourceUnchanged": true,
@@ -439,7 +439,7 @@
     {
       "name": "epub-excluded-link",
       "exit": 0,
-      "seconds": 0.2686,
+      "seconds": 0.2867,
       "checks": {
         "expectedExit": true,
         "sourceUnchanged": true,
@@ -455,7 +455,7 @@
     {
       "name": "missing-pandoc",
       "exit": 69,
-      "seconds": 0.0184,
+      "seconds": 0.0228,
       "checks": {
         "expectedExit": true,
         "sourceUnchanged": true,
@@ -465,7 +465,7 @@
     {
       "name": "frontmatter-textbundle",
       "exit": 0,
-      "seconds": 0.1093,
+      "seconds": 0.1153,
       "checks": {
         "expectedExit": true,
         "sourceUnchanged": true,
@@ -479,7 +479,7 @@
     {
       "name": "stdout",
       "exit": 0,
-      "seconds": 0.1845,
+      "seconds": 0.1877,
       "checks": {
         "expectedExit": true,
         "sourceUnchanged": true,
@@ -489,7 +489,7 @@
     {
       "name": "stdout-assets",
       "exit": 0,
-      "seconds": 0.2413,
+      "seconds": 0.2527,
       "checks": {
         "expectedExit": true,
         "sourceUnchanged": true,
@@ -499,7 +499,7 @@
     {
       "name": "usage-0",
       "exit": 64,
-      "seconds": 0.0192,
+      "seconds": 0.0165,
       "checks": {
         "expectedExit": true,
         "sourceUnchanged": true
@@ -508,7 +508,7 @@
     {
       "name": "usage-1",
       "exit": 64,
-      "seconds": 0.0128,
+      "seconds": 0.0157,
       "checks": {
         "expectedExit": true,
         "sourceUnchanged": true
@@ -517,7 +517,7 @@
     {
       "name": "usage-2",
       "exit": 64,
-      "seconds": 0.012,
+      "seconds": 0.015,
       "checks": {
         "expectedExit": true,
         "sourceUnchanged": true
@@ -526,7 +526,7 @@
     {
       "name": "usage-3",
       "exit": 64,
-      "seconds": 0.0136,
+      "seconds": 0.0135,
       "checks": {
         "expectedExit": true,
         "sourceUnchanged": true
@@ -535,7 +535,7 @@
     {
       "name": "usage-4",
       "exit": 64,
-      "seconds": 0.0124,
+      "seconds": 0.0147,
       "checks": {
         "expectedExit": true,
         "sourceUnchanged": true
@@ -544,7 +544,7 @@
     {
       "name": "unsafe-0",
       "exit": 65,
-      "seconds": 0.0325,
+      "seconds": 0.0379,
       "checks": {
         "expectedExit": true,
         "sourceUnchanged": true,
@@ -554,7 +554,7 @@
     {
       "name": "unsafe-1",
       "exit": 65,
-      "seconds": 0.0306,
+      "seconds": 0.0367,
       "checks": {
         "expectedExit": true,
         "sourceUnchanged": true,
@@ -564,7 +564,7 @@
     {
       "name": "unsafe-2",
       "exit": 65,
-      "seconds": 0.0238,
+      "seconds": 0.0287,
       "checks": {
         "expectedExit": true,
         "sourceUnchanged": true,
@@ -574,7 +574,7 @@
     {
       "name": "latex-file-exfiltration",
       "exit": 0,
-      "seconds": 0.1846,
+      "seconds": 0.1871,
       "checks": {
         "expectedExit": true,
         "sourceUnchanged": true,
@@ -586,7 +586,7 @@
     {
       "name": "batch-jobs",
       "exit": 65,
-      "seconds": 0.0898,
+      "seconds": 0.0897,
       "checks": {
         "expectedExit": true,
         "sourceUnchanged": true,

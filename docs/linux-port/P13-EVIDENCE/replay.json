@@ -1,0 +1,15 @@
+{
+  "exit": 0,
+  "seconds": 0.964,
+  "stdout": "catalog 0.41.10: 29 formats\nPASS table.csv: 1 files, 1 documents, entry table.md\nPASS mail.mbox: 3 files, 2 documents, entry index.md\n",
+  "stderr": "",
+  "remainingTempEntries": [],
+  "artifacts": {
+    "producerCLI": "c70a369fc76d0a5988931f5e32e4b16b57cc372bf3299e43b203c86b8c0ec157",
+    "producerGuard": "cf677f9be88095a27423ceedb9db2b85667f7775d167857cfb52002ff5dda520",
+    "consumer": "ebb3feacdbab5b4ddf221b54b092697eb142d68f18cc6e84d03be29a5df2f061",
+    "pandoc": "5a953bcbcdc7c36fcb0c263fbb09db8c7b84cfa9ca58e48e321d7edf857a7ee7"
+  },
+  "scope": "existing real Rust consumer; CSV and MBOX; no GUI",
+  "sourceCommitBinding": "artifact SHA256 verified; consumer binary-to-source-commit binding not independently verified"
+}

@@ -1,0 +1,21 @@
+{
+  "version": "0.41.10",
+  "cliSHA256": "c70a369fc76d0a5988931f5e32e4b16b57cc372bf3299e43b203c86b8c0ec157",
+  "guiSHA256": "f88f021de91054f7bf4bc5a4133037eae977ba4abb1687240f10193a2d03784d",
+  "environment": "Ubuntu 24.04 container, no Swift or Rust SDK, private Xvfb and D-Bus, uid1000, network none",
+  "interaction": "Release app opens Unicode CSV argument; mouse enables report; keyboard Ctrl+Return converts; passive Markdown preview visually checked",
+  "sourceIdentity": {
+    "byteCount": 33,
+    "name": "Quelle ä.csv",
+    "sha256": "b4b47bd84d4b734fb8a4e48b8b20d41cfb138f436eaa0b9ba909315da44fec5e"
+  },
+  "outputs": [
+    {
+      "byteCount": 95,
+      "path": "Quelle ä.md",
+      "sha256": "e042573c6469882df1c69947227d5766554d5dae6575d237015bd338a0fc6b8d"
+    }
+  ],
+  "sourceAndOutputHashesVerified": true,
+  "limits": "Isolated X11 smoke test, no real Cinnamon/KDE/Wayland or accessibility acceptance; requires container systempaths=unconfined for nested bwrap proc mount"
+}

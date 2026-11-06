@@ -67,8 +67,21 @@ Bold/Marked im Rich-DOM und exakt `Plain **Bold** ==Marked== Ä` als Zieltext.
 Originalpuffer, Originaldatei und Quell-RTF bleiben unverändert. Zwei native
 DE-/EN-MBOX-Flows bestehen ebenfalls. Die Producerbindungen einschließlich aller
 48 Runtimehashes wurden auf PMT-Seite unabhängig gegen den unveränderten
-Handoff geprüft. Das ist kein Releasepaketnachweis und keine allgemeine PDF-/
-OCR-Qualitätsfreigabe; die gemeinsame native Mac-JavaScript-Abnahme bleibt offen.
+Handoff geprüft. Dieser Debugbeleg bleibt unverändert erhalten.
+
+Die zusätzliche [Releasepaarung](linux-port/P16-04119/fastra-release-report.md)
+mit **Fastra 1.185.0/395**, Produktcommit
+`35176c467025a3807b73c20869721794088b7439`, besteht regulären RTF-Dateiimport,
+MBOX-Dateiimport und RTF-MIME-Paste in die Rich-Ansicht. Der optimierte Consumer
+ist durch seinen [Binärhash und Ergebnisbeleg](linux-port/P16-04119/fastra-release-pair.json)
+gebunden; Vorschauen, ausdrückliche Übernahme und tatsächliche Buffer-/Ausgabebytes
+stimmen überein. Originale sowie Paket und Producer bleiben unverändert.
+PMT hat das vollständige Beleginventar, alle 51 Producerdateien und sämtliche
+48 Runtimehashes unabhängig geprüft; die GUI-Aktionen wurden von Fastra ausgeführt.
+Damit ist die Releasepaarung für diese drei einfachen EN-Flüsse bestanden.
+Eine vollständige Format-/Attachment-/Mehrnachrichten-/DE-Matrix, allgemeine
+PDF-/OCR-Qualität und die gemeinsame native Mac-JavaScript-Abnahme sind damit
+nicht freigegeben.
 
 Die .12-Operation `--json --preview-page N -- quelle.pdf` beziehungsweise
 `--json --preview-frame N -- bild` ist eine getrennte passive Leseoperation.

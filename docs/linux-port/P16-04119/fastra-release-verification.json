@@ -1,0 +1,10 @@
+{
+  "verification": "PMT independently checked supplied evidence hashes and producer bindings; consumer UI actions were performed by Fastra, not repeated by PMT.",
+  "evidence_manifest_sha256": "495d597064fc1698efdb449a68aa0fcb4779a2e851c655b1a5953700d7ba2de9",
+  "verified_evidence_files": 55,
+  "verified_runtime_files": 48,
+  "verified_handoff_files": 51,
+  "before_after_inventories_equal": true,
+  "output_tree_hashes_match": true,
+  "rtf_buffer_bytes_match": true
+}

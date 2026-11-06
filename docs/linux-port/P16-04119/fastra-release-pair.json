@@ -1,0 +1,39 @@
+{
+  "consumer_version": "1.185.0",
+  "consumer_build": "395",
+  "consumer_source_id": "49f244eb9c562e89613b182061caf87d357e7661b854696c3b0c659fbe09be34",
+  "consumer_binary_sha256": "e045449cd2fd44479b6106d4167427c03bce359caba7f99a34cb5bc94d8ace1e",
+  "producer_version": "0.41.19",
+  "producer_source_commit": "e2f0b8866aa3acc9b9dd8bf474ffd11d031f4adb",
+  "producer_launcher_sha256": "385d2389430500df83d54bee3a364d198f4ef057936e64ca48df67f0b0573029",
+  "producer_binary_sha256": "f2be32db3964282bbce75e4a03ff320f88833081e0abfd808a3fcea95446fe9b",
+  "verified_runtime_files": 48,
+  "all_package_files_unchanged": 396,
+  "all_producer_handoff_files_unchanged": 51,
+  "actual_product_environment": {
+    "FASTRA_POORMANS_TEXT": "/pmt/poormans-text"
+  },
+  "regular_rtf_release_flow": true,
+  "regular_mbox_release_flow": true,
+  "rtf_mime_clipboard_rich_release_flow": true,
+  "complete_ui_previews_match_producer_bytes": true,
+  "explicit_native_adoption_clicks": true,
+  "original_buffer_and_original_files_unchanged": true,
+  "rtf_markdown_utf8_hex": "506c61696e202a2a426f6c642a2a203d3d4d61726b65643d3d20c3840a",
+  "output_trees": {
+    "rtf-release": {
+      "Source.md": "68469c149d6a83ed1c1b8d27386913a18923cfcccebcf792a7bbd53a6becc620"
+    },
+    "mbox-release": {
+      "assets/documents/000001/Source.md": "d8600873d4ae557b4b1d42f4e0c236b846d65c2fe7d140eba7ba0be54639b1c8",
+      "index.md": "6550ad7b1571e4217da070f91d9ebf2a6251d9e90566c9f94f92d77a16e22179"
+    },
+    "rtf-rich-release": {
+      "Clipboard.md": "68469c149d6a83ed1c1b8d27386913a18923cfcccebcf792a7bbd53a6becc620"
+    }
+  },
+  "no_product_build_or_modification": true,
+  "runtime_repository_mount": false,
+  "regular_native_quit_exit": 0,
+  "final_hashes_rechecked_after_quit": true
+}

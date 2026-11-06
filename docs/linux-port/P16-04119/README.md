@@ -173,6 +173,23 @@ belegt. Der Consumer ist ausdrücklich ein uncommitteter WIP-Debugsnapshot,
 kein Releasepaket. Sein Binärhash steht im Beleg; ein Consumercommit wird daraus
 nicht abgeleitet. Die .19-Übergabe bleibt unverändert.
 
+Die anschließende [echte Releasepaarung](fastra-release-report.md) mit optimiertem
+Fastra **1.185.0/395**, Produktcommit
+`35176c467025a3807b73c20869721794088b7439`, besteht die drei einfachen EN-Flüsse
+RTF-Dateiimport, MBOX-Dateiimport und RTF-MIME-Paste in die Rich-Ansicht.
+[Maschinenlesbares Ergebnis](fastra-release-pair.json): vollständige UI-Vorschauen,
+ausdrückliche Adopt-Klicks, tatsächliche Bufferbytes und Ergebnisbäume stimmen
+mit PMT überein; RTF ergibt exakt `Plain **Bold** ==Marked== Ä` plus LF.
+Alle 396 Consumer-Paketdateien, 51 Producerdateien und Originale bleiben laut
+Vorher-/Nachherinventar auch nach regulärem Quit unverändert.
+PMT hat alle 55 Dateien des [Belegmanifests](fastra-release-evidence.sha256),
+die tatsächlichen 51 Handoffdateien, 48 Runtimehashes und gemeldeten Ausgabe-/
+RTF-Bufferbytes [unabhängig abgeglichen](fastra-release-verification.json).
+Die Consumer-GUI-Aktionen stammen aus Fastras Test und wurden hier nicht wiederholt.
+Dieser begrenzte Releasebeleg ersetzt keine vollständige Format-, Attachment-,
+Mehrnachrichten- oder DE-Matrix, natürliche PDF-/OCR-Qualität oder Mac-GUI-Abnahme.
+Der frühere Debugbeleg wird nicht zum Releasebeleg umetikettiert.
+
 Die beiden eigenen Mac-Testverzeichnisse und das eigene Mint-Testverzeichnis
 wurden nach Sicherung der kleinen Belege vollständig entfernt:
 [Mac](mac-cleanup.json), [Mint](mint-cleanup.json). Keine Hostinstallation und

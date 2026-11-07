@@ -42,6 +42,8 @@ enum ImportXMLParser {
 
 #if os(Linux)
 private final class LinuxImportXMLParser: XMLParser {
+    private static let encodingExpression = try? NSRegularExpression(
+        pattern: #"encoding\s*=\s*['"]([A-Za-z][A-Za-z0-9._-]*)['"]"#)
     var rejectionReason: String?
     private var rejection: Error?
 
@@ -80,7 +82,7 @@ private final class LinuxImportXMLParser: XMLParser {
                 guard let end = remaining.range(of: "?>") else { return nil }
                 if remaining.hasPrefix("<?xml"), remaining.dropFirst(5).first?.isWhitespace == true {
                     let declaration = String(remaining[..<end.upperBound])
-                    guard let expression = try? NSRegularExpression(pattern: #"encoding\s*=\s*['"]([A-Za-z][A-Za-z0-9._-]*)['"]"#) else {
+                    guard let expression = encodingExpression else {
                         return "XML encoding declaration could not be checked"
                     }
                     let range = NSRange(declaration.startIndex..., in: declaration)

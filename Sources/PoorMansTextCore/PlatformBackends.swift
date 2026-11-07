@@ -35,29 +35,8 @@ enum PlatformFormatDescriptors {
 }
 
 #if os(Linux)
-/// Der Katalog kennt die Formate weiterhin, bietet aber keinen ungeprüften Import an.
-struct UnavailablePlatformAdapter: DocumentConversionAdapter {
-    let descriptor: SupportedFormat
-    var supportedFormatDescriptors: [SupportedFormat] { [descriptor] }
-    func unavailableReason(for format: InputFormat) -> String? {
-        if format == .doc {
-            return "The Linux DOC backend remains disabled pending macro-safety acceptance."
-        }
-        return PlatformBackendUnavailable(format.rawValue.uppercased()).localizedDescription
-    }
-    func inspectInput(at inputURL: URL) throws -> AdapterInputDetection { .noMatch }
-    func convert(_ context: AdapterConversionContext) throws -> StagedConversionResult {
-        throw PlatformBackendUnavailable(context.format.rawValue.uppercased())
-    }
-}
-
 enum LegacyWordAdapter {
     static let textutilPath = "/usr/bin/textutil"
 }
 
-enum RTFDInputPreparation {
-    static func prepare(from inputURL: URL, outputURL: URL) throws -> URL {
-        throw PlatformBackendUnavailable("RTFD")
-    }
-}
 #endif

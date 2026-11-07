@@ -15,6 +15,7 @@ struct JSONStructurePreflight {
     private let limits: Limits
     private let documentName: String
     private let bytes: [UInt8]
+    private let keyDecoder = JSONDecoder()
     private var index = 0
     private var nodes = 0
     static func validate(_ data: Data, limits: Limits, documentName: String) throws {
@@ -46,7 +47,7 @@ struct JSONStructurePreflight {
                 if object {
                     let range = try string()
                     let key: String
-                    do { key = try JSONDecoder().decode(String.self, from: Data(bytes[range])) }
+                    do { key = try keyDecoder.decode(String.self, from: Data(bytes[range])) }
                     catch { throw Failure(reason: "The \(documentName) JSON contains an invalid key.") }
                     guard key.utf8.count <= limits.keyBytes, keys.insert(key).inserted else { throw Failure(reason: "The \(documentName) JSON contains duplicate or overlong keys.") }
                     space()

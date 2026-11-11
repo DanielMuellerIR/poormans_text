@@ -21,7 +21,7 @@ LaTeX, DocBook, Org, MediaWiki, Textile, reStructuredText, FictionBook, EML, App
 PNG, JPEG, HEIC, TIFF, GIF, BMP, or WebP images into folders containing
 Markdown and any separately stored image assets.
 
-The project provides two interfaces over the same conversion core:
+On macOS, the project provides two interfaces over the same conversion core. The Linux preview above describes the features and limits available there:
 
 - `poormans-text`, an automation-friendly command-line tool
 - a native macOS app for opening or dropping supported documents, spreadsheets, PDFs, and images

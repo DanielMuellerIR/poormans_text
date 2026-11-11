@@ -25,7 +25,7 @@ PNG-, JPEG-, HEIC-, TIFF-, GIF-, BMP- und
 WebP-Bilder in Ordner mit Markdown und gegebenenfalls separat gespeicherten
 Bildern um.
 
-Das Projekt stellt zwei Oberflächen für denselben Konvertierungskern bereit:
+Unter macOS stellt das Projekt zwei Oberflächen für denselben Konvertierungskern bereit. Der Linux-Entwicklungsstand oben beschreibt die dort verfügbaren Funktionen und Grenzen:
 
 - `poormans-text`, ein automatisierbares Kommandozeilenwerkzeug
 - eine native macOS-App zum Öffnen oder Ablegen unterstützter Dokumente, Tabellen, PDFs und Bilder

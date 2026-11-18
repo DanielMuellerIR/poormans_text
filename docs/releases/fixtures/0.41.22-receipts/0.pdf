@@ -1,0 +1,47 @@
+%PDF-1.7
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R 6 0 R] /Count 2 /Rotate 0 /MediaBox [10.0 20.0 610.0 720.0] >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /CropBox [50.0 70.0 570.0 670.0] /UserUnit 1 /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Length 409 >>
+stream
+BT /F1 18.0 Tf
+1 0 0 1 100.0 630.0 Tm (LEFT ALPHA) Tj
+1 0 0 1 350.0 630.0 Tm (RIGHT OMEGA) Tj
+1 0 0 1 100.0 595.0 Tm (LEFT BRAVO) Tj
+1 0 0 1 350.0 595.0 Tm (RIGHT DELTA) Tj
+1 0 0 1 100.0 540.0 Tm (Invoice number:) Tj
+1 0 0 1 250.0 540.0 Tm (NW-4711) Tj
+1 0 0 1 100.0 500.0 Tm (Invoice date:) Tj
+1 0 0 1 250.0 500.0 Tm (2026-10-13) Tj
+1 0 0 1 380.0 500.0 Tm (2026-10-16) Tj
+1 0 0 1 25.0 685.0 Tm (HIDDEN) Tj
+ET
+endstream
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /Resources << >> >>
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000165 00000 n 
+0000000312 00000 n 
+0000000382 00000 n 
+0000000842 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+906
+%%EOF

@@ -699,6 +699,8 @@ their preserved asset bytes, and exercise both OCR modes. They also cover output
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
 The current source version is 0.41.22.
+The [release candidate checks](docs/releases/0.41.22-candidate.md) list the
+macOS and Linux workflows tested so far and the gaps before a joint release.
 
 ## License
 

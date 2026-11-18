@@ -737,6 +737,8 @@ außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkei
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
 Die aktuelle Quellversion ist 0.41.22.
+Die [Prüfbelege zum Release-Kandidaten](docs/releases/0.41.22-candidate.md)
+zeigen die geprüften Abläufe und die offenen Punkte für ein gemeinsames Release.
 
 ## Lizenz
 

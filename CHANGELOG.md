@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## 0.41.22 — Release candidate
 
 - Add receipt masks, live PDF previews, per-receipt corrections and batch extraction to the Linux GTK app. The Linux CLI accepts the same `extract` command and JSON masks as macOS.
+- Read PDFKit ligatures in receipt PDFs when the complete selection matches the original text span.
 - Read local static image attachments in Cocoa-generated RTFD packages on Linux, preserving the original image bytes and surrounding text.
 - Suppress duplicate OCR lines on macOS when their complete text matches a digital table row at the same position.
 - Honor `SOURCE_DATE_EPOCH` when packaging a Linux source archive without a Git checkout.

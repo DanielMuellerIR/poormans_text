@@ -19,6 +19,8 @@ public enum ReceiptPDF {
     }
 
     #if os(macOS)
+    private static let expandedLigatures: Set<String> = ["ff", "fi", "fl", "ffi", "ffl"]
+
     public static func open(at url: URL) throws -> PDFDocument {
         let data = try VerifiedFile.open(at: url, failure: { _ in
             ReceiptPDFError("The PDF source could not be read.")
@@ -114,14 +116,22 @@ public enum ReceiptPDF {
             wordBounds = .null
         }
 
-        for (index, character) in text.enumerated() {
-            if index.isMultiple(of: 1_024) {
+        var index = text.startIndex
+        var checkedGlyphs = 0
+        while index < text.endIndex {
+            if checkedGlyphs.isMultiple(of: 1_024) {
                 try ConversionExecution.check()
                 try Task.checkCancellation()
             }
-            let value = String(character)
-            let length = value.utf16.count
-            defer { offset += length }
+            let character = text[index]
+            var value = String(character)
+            var length = value.utf16.count
+            var next = text.index(after: index)
+            defer {
+                offset += length
+                index = next
+                checkedGlyphs += 1
+            }
             if character.isWhitespace {
                 try finishWord()
                 if character.isNewline {
@@ -133,8 +143,24 @@ public enum ReceiptPDF {
             // Zeichenindizes von characterBounds und NSString laufen bei
             // synthetischen Umbrüchen auseinander. Die Auswahl belegt beides.
             guard let selection = page.selection(for: NSRange(location: offset, length: length)),
-                  selection.string == value else { throw geometryError }
-            let bounds = selection.bounds(for: page)
+                  let selectedText = selection.string else { throw geometryError }
+            let bounds: CGRect
+            if selectedText == value {
+                bounds = selection.bounds(for: page)
+            } else {
+                // Eine Auswahl auf einem Teilzeichen kann das ganze Ligaturglyph liefern.
+                // Der vollständige Quellbereich muss den Text bytegenau bestätigen.
+                let selectedLength = selectedText.utf16.count
+                guard expandedLigatures.contains(selectedText),
+                      let end = text.index(index, offsetBy: selectedLength, limitedBy: text.endIndex),
+                      text[index..<end].utf16.elementsEqual(selectedText.utf16),
+                      let complete = page.selection(for: NSRange(location: offset, length: selectedLength)),
+                      complete.string?.utf16.elementsEqual(selectedText.utf16) == true else { throw geometryError }
+                value = selectedText
+                length = selectedLength
+                next = end
+                bounds = complete.bounds(for: page)
+            }
             guard usable(bounds) else { throw geometryError }
             guard crop.intersects(bounds) else {
                 try finishWord()
@@ -153,7 +179,7 @@ public enum ReceiptPDF {
                     line += 1
                 }
             }
-            word.append(character)
+            word.append(contentsOf: value)
             wordBounds = wordBounds.union(bounds)
             previousGlyph = bounds
         }

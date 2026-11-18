@@ -95,6 +95,44 @@ final class ReceiptGeometryTests: XCTestCase {
         }
     }
 
+    @MainActor
+    func testEmbeddedLigaturesPreserveAllLettersAndWordBounds() throws {
+        let directory = try testDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let source = directory.appendingPathComponent("ligatures.pdf")
+        let row = "Office file affinity traffic finally rifle"
+        let text = row + "\n" + row
+        var media = CGRect(x: 0, y: 0, width: 450, height: 325)
+        let context = try XCTUnwrap(CGContext(source as CFURL, mediaBox: &media, nil))
+        let font = try XCTUnwrap(NSFont(name: "Helvetica", size: 18))
+        let storage = NSTextStorage(string: text, attributes: [.font: font, .ligature: 2])
+        let layout = NSLayoutManager()
+        let container = NSTextContainer(size: CGSize(width: 420, height: 300))
+        storage.addLayoutManager(layout)
+        layout.addTextContainer(container)
+        layout.ensureLayout(for: container)
+        context.beginPDFPage(nil)
+        context.translateBy(x: 0, y: media.height)
+        context.scaleBy(x: 1, y: -1)
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext(cgContext: context, flipped: true)
+        layout.drawGlyphs(forGlyphRange: layout.glyphRange(for: container), at: CGPoint(x: 10, y: 10))
+        NSGraphicsContext.restoreGraphicsState()
+        context.endPDFPage()
+        context.closePDF()
+
+        let document = try ReceiptPDF.read(at: source)
+        let page = try XCTUnwrap(document.pages.first)
+        let area = ReceiptRectangle(x: 0, y: 0, width: media.width / page.pointsPerMillimeter,
+                                    height: media.height / page.pointsPerMillimeter)
+        let mask = ReceiptMask(fields: [ReceiptField(name: "Text", rule: .region(page: 0, rectangle: area))])
+        let field = try XCTUnwrap(ReceiptExtractor.evaluate(mask, in: document).fields.first)
+        XCTAssertEqual(field.status, .confirmed)
+        XCTAssertEqual(field.value, text)
+        XCTAssertEqual(field.sources.map(\.text), text.split(whereSeparator: \.isWhitespace).map(String.init))
+        XCTAssertTrue(field.sources.allSatisfy { $0.page == 0 && $0.rectangle.isValid })
+    }
+
     private func testDirectory() throws -> URL {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
         try FileManager.default.createDirectory(at: url, withIntermediateDirectories: false)

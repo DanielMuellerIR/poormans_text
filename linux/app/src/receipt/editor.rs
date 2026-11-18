@@ -1,6 +1,6 @@
 use super::*;
 use crate::{
-    bounded_dropdown, label, row, scroll,
+    bounded_dropdown, label, scroll,
     source_canvas::{SourceCanvas, Zoom},
     source_raster::receipt_texture,
     text_view,
@@ -250,8 +250,26 @@ pub(in crate::receipt) fn open(
     section(&right, tr("Extraktionsmaske", "Extraction mask"));
     let partner = gtk::Entry::new();
     let document_type = gtk::Entry::new();
-    row(&right, tr("Partner", "Partner"), &partner);
-    row(&right, tr("Dokumenttyp", "Document type"), &document_type);
+    let metadata = gtk::Grid::builder()
+        .row_spacing(8)
+        .column_spacing(12)
+        .build();
+    for (index, (title, entry)) in [
+        (tr("Partner", "Partner"), &partner),
+        (tr("Dokumenttyp", "Document type"), &document_type),
+    ]
+    .into_iter()
+    .enumerate()
+    {
+        let name = label(title);
+        name.set_mnemonic_widget(Some(entry));
+        entry.update_property(&[gtk::accessible::Property::Label(title)]);
+        entry.set_hexpand(true);
+        entry.set_width_chars(1);
+        metadata.attach(&name, 0, index as i32, 1, 1);
+        metadata.attach(entry, 1, index as i32, 1, 1);
+    }
+    right.append(&metadata);
     let load = gtk::Button::with_label(tr("Maske laden…", "Load mask…"));
     let reload = icon(
         "view-refresh-symbolic",

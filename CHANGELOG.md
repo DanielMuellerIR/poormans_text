@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.41.21 — 2026-11-18
+
+- Preview the same draft receipt mask across multiple PDFs with previous and next navigation. Keep one-off corrections with their document.
+
 ## 0.41.20 — 2026-11-18
 
 - Add reusable masks for extracting named fields from PDFs with embedded text on macOS.

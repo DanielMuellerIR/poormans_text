@@ -42,7 +42,7 @@ Benannte Profile lassen sich in der App verwalten und in der Kurzbefehle-Aktion 
 
 1. **Belegdaten auslesen…** wählen und eine Beispielrechnung oder einen Lieferschein als PDF mit eingebettetem Text öffnen.
 2. Partner und Belegart eintragen. Feldvorschläge übernehmen oder ein Wort anklicken beziehungsweise einen Rahmen ziehen und daraus ein benanntes Feld anlegen. Ein Klick auf einen Wert oder eine Fundstelle zeigt sie im PDF.
-3. Mit **Maske speichern…** eine wiederverwendbare JSON-Maske anlegen. **Wert korrigieren…** ändert nur das aktuelle Ergebnis. Eine neue Bereichszuordnung für das Feld ändert die Maske für künftige Läufe.
+3. Über **Prüf-PDFs hinzufügen…** mehrere Belege mit der aktuellen Maske prüfen. Mit den Pfeilen zwischen den PDFs wechseln. Mit **Maske speichern…** die wiederverwendbare JSON-Maske anlegen. **Wert korrigieren…** ändert nur das aktuelle Ergebnis. Eine neue Bereichszuordnung für das Feld ändert die Maske für künftige Läufe.
 4. **Maske anwenden…** öffnen, die gespeicherte Maske auswählen und PDFs ablegen oder im Dateidialog auswählen. Die Dateien neben den PDFs oder in einem gemeinsamen Zielordner ausgeben. **Prüfen…** öffnet einen betroffenen Beleg mit seinen Feldern.
 
 Aus `Rechnung-4711.pdf` wird standardmäßig `Rechnung-4711.pdf.json`.
@@ -718,7 +718,7 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Quellversion ist 0.41.20.
+Die aktuelle Quellversion ist 0.41.21.
 
 ## Lizenz
 

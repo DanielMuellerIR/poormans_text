@@ -33,6 +33,9 @@ enum ReceiptFilePanels {
 struct ReceiptEditorView: View {
     let input: ReceiptEditorInput
 
+    @State private var testPDFs: [URL] = []
+    @State private var currentIndex = 0
+    @State private var didLoadInitialMask = false
     @State private var document: ReceiptDocument?
     @State private var pdf: PDFDocument?
     @State private var isLoading = true
@@ -41,34 +44,46 @@ struct ReceiptEditorView: View {
     @State private var result: ReceiptResult?
     @State private var suggestions: [ReceiptField] = []
     @State private var suggestedValues: [ReceiptValue] = []
-    @State private var corrections: [UUID: String] = [:]
+    @State private var corrections: [URL: [UUID: String]] = [:]
+    @State private var rejectedRules: Set<ReceiptRule> = []
     @State private var selectedRegion: ReceiptPDFRegion?
     @State private var markedRegion: ReceiptPDFMark?
     @State private var zoom: ReceiptPDFZoom?
     @State private var error: String?
     @State private var loadError: String?
-    @State private var previewJSON: JSONPreview?
-    @State private var correction: Correction?
+    @State private var sheet: EditorSheet?
 
-    private struct JSONPreview: Identifiable {
-        let id = UUID()
-        let text: String
-    }
-
-    private struct Correction: Identifiable {
-        let id: UUID
+    private struct Correction {
+        let field: UUID
+        let source: URL
         let name: String
         var value: String
     }
+
+    private enum EditorSheet: Identifiable {
+        case json(String)
+        case correction(Correction)
+
+        var id: String {
+            switch self {
+            case .json: "json"
+            case .correction: "correction"
+            }
+        }
+    }
+
+    private var pdfs: [URL] { [input.pdf] + testPDFs }
+    private var currentPDF: URL { pdfs[currentIndex] }
 
     var body: some View {
         HSplitView {
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
-                    Text(verbatim: input.pdf.lastPathComponent)
+                    Text(verbatim: currentPDF.lastPathComponent)
                         .font(.headline)
                         .lineLimit(1)
                         .truncationMode(.middle)
+                        .help(currentPDF.path)
                     Spacer(minLength: 4)
                     if pdf != nil {
                         Button { zoom = ReceiptPDFZoom(action: .outwards) } label: {
@@ -80,6 +95,7 @@ struct ReceiptEditorView: View {
                         }
                     }
                 }
+                documentNavigation
                 if let pdf, let document {
                     ReceiptPDFView(pdf: pdf, text: document, markedRegion: markedRegion, selectedRegion: selectedRegion, zoom: zoom) {
                         selectedRegion = $0
@@ -119,38 +135,80 @@ struct ReceiptEditorView: View {
             .frame(minWidth: 390, idealWidth: 470)
         }
         .frame(minWidth: 750, minHeight: 530)
-        .task(id: input) { await loadInput() }
+        .task(id: currentPDF) { await loadDocument(currentPDF) }
         .alert("Receipt Data", isPresented: Binding(get: { error != nil }, set: { if !$0 { error = nil } })) {
             Button("OK") { error = nil }
         } message: {
             Text(verbatim: error ?? "")
         }
-        .sheet(item: $previewJSON) { preview in
-            VStack(alignment: .leading, spacing: 14) {
-                Text("Preview JSON").font(.headline)
-                ScrollView {
-                    Text(verbatim: preview.text)
-                        .font(.system(.body, design: .monospaced))
-                        .textSelection(.enabled)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+        .sheet(item: $sheet) { sheet in
+            switch sheet {
+            case let .json(text):
+                VStack(alignment: .leading, spacing: 14) {
+                    Text("Preview JSON").font(.headline)
+                    ScrollView {
+                        Text(verbatim: text)
+                            .font(.system(.body, design: .monospaced))
+                            .textSelection(.enabled)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .frame(idealHeight: 400, maxHeight: 540)
+                    HStack {
+                        Spacer()
+                        Button("Done") { self.sheet = nil }.keyboardShortcut(.cancelAction)
+                    }
                 }
-                HStack {
-                    Spacer()
-                    Button("Done") { previewJSON = nil }.keyboardShortcut(.cancelAction)
+                .padding(20)
+                .frame(minWidth: 580, minHeight: 420)
+            case let .correction(draft):
+                ReceiptCorrectionView(name: draft.name, value: draft.value) { value in
+                    corrections[draft.source, default: [:]][draft.field] = value
+                    evaluate()
+                    self.sheet = nil
+                } cancel: {
+                    self.sheet = nil
                 }
             }
-            .padding(20)
-            .frame(minWidth: 580, minHeight: 420)
         }
-        .sheet(item: $correction) { draft in
-            ReceiptCorrectionView(name: draft.name, value: draft.value) { value in
-                corrections[draft.id] = value
-                evaluate()
-                correction = nil
-            } cancel: {
-                correction = nil
+    }
+
+    private var documentNavigation: some View {
+        HStack(spacing: 8) {
+            Button("Add Test PDFs…", action: addTestPDFs)
+            Spacer(minLength: 4)
+            if pdfs.count > 1 {
+                Button { showPDF(at: currentIndex - 1) } label: {
+                    Image(systemName: "chevron.left").accessibilityLabel("Previous PDF")
+                }
+                .help("Previous PDF")
+                .disabled(currentIndex == 0)
+                Text(String(format: NSLocalizedString("PDF %lld of %lld", comment: ""),
+                            Int64(currentIndex + 1), Int64(pdfs.count)))
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(.secondary)
+                Button { showPDF(at: currentIndex + 1) } label: {
+                    Image(systemName: "chevron.right").accessibilityLabel("Next PDF")
+                }
+                .help("Next PDF")
+                .disabled(currentIndex == pdfs.count - 1)
             }
         }
+    }
+
+    private func addTestPDFs() {
+        let urls = ReceiptFilePanels.open(.pdf, title: "Choose Test PDFs", multiple: true)
+        var seen = Set(pdfs.map { $0.standardizedFileURL.resolvingSymlinksInPath() })
+        let newPDFs = urls.map(\.standardizedFileURL).filter { seen.insert($0.resolvingSymlinksInPath()).inserted }
+        guard !newPDFs.isEmpty else { return }
+        let firstNewIndex = pdfs.count
+        testPDFs.append(contentsOf: newPDFs)
+        showPDF(at: firstNewIndex)
+    }
+
+    private func showPDF(at index: Int) {
+        guard pdfs.indices.contains(index), currentIndex != index else { return }
+        clearDocument()
+        currentIndex = index
     }
 
     private var maskControls: some View {
@@ -211,7 +269,7 @@ struct ReceiptEditorView: View {
                                 guard let rule = rule(for: region),
                                       let index = mask.fields.firstIndex(where: { $0.id == field.id }) else { return }
                                 mask.fields[index].rule = rule
-                                corrections.removeValue(forKey: field.id)
+                                discardCorrections(for: field.id)
                                 finishRegion()
                             }
                         }
@@ -242,14 +300,14 @@ struct ReceiptEditorView: View {
                         }
                         Spacer()
                         Button("Accept") { accept([field]) }
-                        Button("Reject") { suggestions.removeAll { $0.id == field.id } }
+                        Button("Reject") { reject([field]) }
                     }
                     .controlSize(.small)
                 }
                 Divider()
                 HStack {
                     Spacer()
-                    Button("Reject All") { suggestions = [] }
+                    Button("Reject All") { reject(suggestions) }
                     Button("Accept All") { accept(suggestions) }
                 }
             }
@@ -287,7 +345,7 @@ struct ReceiptEditorView: View {
                 .accessibilityLabel("Field Name")
                 Button(role: .destructive) {
                     mask.fields.removeAll { $0.id == field.id }
-                    corrections.removeValue(forKey: field.id)
+                    discardCorrections(for: field.id)
                     evaluate()
                 } label: {
                     Image(systemName: "trash").accessibilityLabel("Remove Field")
@@ -322,7 +380,7 @@ struct ReceiptEditorView: View {
                     }
                     Spacer()
                     Button("Correct Value…") {
-                        correction = Correction(id: value.id, name: value.name, value: value.value ?? "")
+                        sheet = .correction(Correction(field: value.id, source: currentPDF, name: value.name, value: value.value ?? ""))
                     }
                 }
                 if let diagnostic = value.diagnostic {
@@ -351,37 +409,41 @@ struct ReceiptEditorView: View {
         }
     }
 
-    private func loadInput() async {
+    private func clearDocument() {
         isLoading = true
         loadError = nil
         document = nil
         pdf = nil
         suggestions = []
         suggestedValues = []
-        mask = ReceiptMask()
         result = nil
         markedRegion = nil
         selectedRegion = nil
-        corrections = [:]
-        maskURL = nil
-        let url = input.pdf
-        do {
-            let loaded = try await Self.readPDF(url)
-            guard !Task.isCancelled else { return }
-            document = loaded.document
-            pdf = loaded.pdf
+        zoom = nil
+    }
+
+    private func loadDocument(_ url: URL) async {
+        if !didLoadInitialMask {
+            didLoadInitialMask = true
             if let initialMask = input.initialMask {
                 mask = initialMask
                 maskURL = input.mask
             } else if let maskURL = input.mask {
                 loadMask(maskURL)
             }
-            let existing = Set(mask.fields.map(\.name))
-            suggestions = ReceiptExtractor.suggestions(in: loaded.document).filter { !existing.contains($0.name) }
+        }
+        do {
+            let loaded = try await Self.readPDF(url)
+            guard !Task.isCancelled, currentPDF == url else { return }
+            document = loaded.document
+            pdf = loaded.pdf
+            suggestions = ReceiptExtractor.suggestions(in: loaded.document)
+            removeKnownSuggestions()
             suggestedValues = ReceiptExtractor.evaluate(ReceiptMask(fields: suggestions), in: loaded.document).fields
             evaluate()
         } catch {
-            if !Task.isCancelled { loadError = error.localizedDescription }
+            guard !Task.isCancelled, currentPDF == url else { return }
+            loadError = error.localizedDescription
         }
         isLoading = false
     }
@@ -437,10 +499,27 @@ struct ReceiptEditorView: View {
         evaluate()
     }
 
+    private func reject(_ fields: [ReceiptField]) {
+        rejectedRules.formUnion(fields.map(\.rule))
+        removeKnownSuggestions()
+    }
+
+    private func removeKnownSuggestions() {
+        let names = Set(mask.fields.map(\.name))
+        let rules = Set(mask.fields.map(\.rule)).union(rejectedRules)
+        suggestions.removeAll { names.contains($0.name) || rules.contains($0.rule) }
+    }
+
+    private func discardCorrections(for field: UUID) {
+        for source in Array(corrections.keys) {
+            corrections[source]?.removeValue(forKey: field)
+        }
+    }
+
     private func evaluate() {
         guard let document else { return }
         var evaluated = ReceiptExtractor.evaluate(mask, in: document)
-        for (field, value) in corrections { evaluated.correct(field: field, value: value) }
+        for (field, value) in corrections[currentPDF] ?? [:] { evaluated.correct(field: field, value: value) }
         result = evaluated
     }
 
@@ -451,8 +530,7 @@ struct ReceiptEditorView: View {
             corrections = [:]
             selectedRegion = nil
             markedRegion = nil
-            let existing = Set(mask.fields.map(\.name))
-            suggestions.removeAll { existing.contains($0.name) }
+            removeKnownSuggestions()
             evaluate()
         } catch {
             self.error = error.localizedDescription
@@ -468,7 +546,7 @@ struct ReceiptEditorView: View {
     }
 
     private func exportResult() {
-        let name = ReceiptBatch.destination(for: input.pdf).lastPathComponent
+        let name = ReceiptBatch.destination(for: currentPDF).lastPathComponent
         guard let result, let url = ReceiptFilePanels.saveJSON(title: "Export Receipt Data", name: name) else { return }
         do { try result.write(to: url) }
         catch { self.error = error.localizedDescription }
@@ -477,7 +555,7 @@ struct ReceiptEditorView: View {
     private func showPreview() {
         guard let result else { return }
         do {
-            previewJSON = JSONPreview(text: String(decoding: try result.jsonData(), as: UTF8.self))
+            sheet = .json(String(decoding: try result.jsonData(), as: UTF8.self))
         } catch { self.error = error.localizedDescription }
     }
 }

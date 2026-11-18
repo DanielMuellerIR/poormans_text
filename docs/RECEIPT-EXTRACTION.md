@@ -7,6 +7,11 @@ right of a label. The label and value can move together between receipts.
 A region stays at its saved location. Partner and document type describe the
 mask and appear in the result. They do not identify or validate the input.
 
+Use **Add Test PDFs…** in the editor to compare several examples before saving
+the mask. The arrows switch the displayed PDF and the extraction runs again
+from the current rules. Per-receipt corrections stay with their source file
+when switching.
+
 ## Unattended CLI
 
 ```sh

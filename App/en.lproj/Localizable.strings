@@ -528,3 +528,8 @@
 "Zoom In" = "Zoom In";
 "Zoom Out" = "Zoom Out";
 "x %.1f, y %.1f · %.1f × %.1f mm" = "x %.1f, y %.1f · %.1f × %.1f mm";
+"Add Test PDFs…" = "Add Test PDFs…";
+"Choose Test PDFs" = "Choose Test PDFs";
+"Previous PDF" = "Previous PDF";
+"Next PDF" = "Next PDF";
+"PDF %lld of %lld" = "PDF %lld of %lld";

@@ -12,15 +12,6 @@ struct LinuxRTFDPreparation {
     private let prefix: String
     private let images: [(marker: String, name: String)]
 
-    private struct Group {
-        let start: Int
-        var firstControl = true
-        var starred = false
-        var opaque = false
-        var codepage: UInt32 = 1252
-        var attachmentStart: Int?
-    }
-
     static func prepare(package: URL) throws -> Self {
         func failure(_ reason: String) -> ConversionError { .invalidRichText(package, reason: reason) }
         let directory = open(package.path, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
@@ -47,109 +38,36 @@ struct LinuxRTFDPreparation {
         var prefix: String
         repeat { prefix = "POORMANSTEXTRTFDIMAGE" + UUID().uuidString.replacingOccurrences(of: "-", with: "") }
         while source.range(of: Data(prefix.utf8)) != nil
-        var groups = [Group]()
         var replacements = [(range: Range<Int>, marker: String, name: String)]()
         var verifiedNames = Set<String>()
         var viewerLimitedFormats = Set<String>()
-        var index = 0
-        var nextCancellationCheck = 0
-        let opaqueDestinations: Set<String> = ["pict", "object", "objdata", "fonttbl", "colortbl", "stylesheet", "info", "listtable", "listoverridetable"]
-        func alpha(_ b: UInt8) -> Bool { (65...90).contains(b) || (97...122).contains(b) }
-        func digit(_ b: UInt8) -> Bool { (48...57).contains(b) }
-        while index < bytes.count {
-            if index >= nextCancellationCheck { try ConversionExecution.check(); nextCancellationCheck = index + 4096 }
-            let byte = bytes[index]
-            if byte == 123 {
-                guard groups.count < 256 else { throw failure("RTFD group nesting exceeds its limit") }
-                if groups.last?.attachmentStart != nil { throw failure("nested RTFD attachment names are unsupported") }
-                groups.append(Group(start: index, opaque: groups.last?.opaque ?? false, codepage: groups.last?.codepage ?? 1252))
-                index += 1; continue
+        for attachment in try RTFDAttachmentGroups.scan(bytes, rejectInlineObjects: true, failure: failure) {
+            try ConversionExecution.check()
+            let name = try attachmentName(Array(bytes[attachment.name]), codepage: attachment.codepage, failure: failure)
+            let formats = ["png": "png", "jpg": "jpg", "jpeg": "jpg", "tif": "tiff",
+                           "tiff": "tiff", "gif": "gif", "bmp": "bmp", "webp": "webp", "heic": "heic"]
+            guard let expectedFormat = formats[URL(fileURLWithPath: name).pathExtension.lowercased()] else {
+                throw failure("RTFD supports only local static PNG, JPEG, TIFF, GIF, BMP, WebP and HEIC attachments")
             }
-            if byte == 125 {
-                guard let group = groups.popLast() else { throw failure("RTFD has an unmatched closing group") }
-                if let nameStart = group.attachmentStart {
-                    let name = try attachmentName(Array(bytes[nameStart..<index]), codepage: group.codepage, failure: failure)
-                    let formats = ["png": "png", "jpg": "jpg", "jpeg": "jpg", "tif": "tiff",
-                                   "tiff": "tiff", "gif": "gif", "bmp": "bmp", "webp": "webp", "heic": "heic"]
-                    guard let expectedFormat = formats[URL(fileURLWithPath: name).pathExtension.lowercased()] else {
-                        throw failure("RTFD supports only local static PNG, JPEG, TIFF, GIF, BMP, WebP and HEIC attachments")
-                    }
-                    if verifiedNames.insert(FileSystemPath.key(name)).inserted {
-                        let image = try member(name)
-                        let info: RasterImageInfo
-                        do { info = try RasterImageBackend.validate(image) }
-                        catch let error as RasterImageValidationError {
-                            throw failure("RTFD attachment \(name): \(error.localizedDescription)")
-                        } catch let ConversionError.invalidInput(_, _, reason) {
-                            throw failure("RTFD attachment \(name): \(reason)")
-                        }
-                        guard info.fileExtension == expectedFormat, info.frameCount == 1 else {
-                            throw failure("RTFD attachment \(name) must be a single static image matching its file extension")
-                        }
-                        if ["tiff", "heic"].contains(info.fileExtension) {
-                            viewerLimitedFormats.insert(info.fileExtension)
-                        }
-                    }
-                    guard replacements.count < RichTextLimits.maximumPackageEntries else { throw failure("RTFD attachment count exceeds its limit") }
-                    let marker = prefix + String(replacements.count) + "END"
-                    var range = group.start..<(index + 1)
-                    // Cocoa umschließt die Bilddestination und ihr Platzhalterbyte mit
-                    // einer eigenen Gruppe. Das Byte gehört zum Bild, nicht zum Text.
-                    if groups.count > 1, let outer = groups.last, outer.start + 1 == group.start,
-                       index + 2 < bytes.count, bytes[index + 1] == 0xAC, bytes[index + 2] == 125 {
-                        groups.removeLast()
-                        range = outer.start..<(index + 3)
-                        index += 2
-                    }
-                    replacements.append((range, marker, name))
+            if verifiedNames.insert(FileSystemPath.key(name)).inserted {
+                let image = try member(name)
+                let info: RasterImageInfo
+                do { info = try RasterImageBackend.validate(image) }
+                catch let error as RasterImageValidationError {
+                    throw failure("RTFD attachment \(name): \(error.localizedDescription)")
+                } catch let ConversionError.invalidInput(_, _, reason) {
+                    throw failure("RTFD attachment \(name): \(reason)")
                 }
-                index += 1; continue
-            }
-            guard byte == 92, index + 1 < bytes.count else {
-                if ![9, 10, 13, 32].contains(byte), !groups.isEmpty { groups[groups.count - 1].firstControl = false }
-                index += 1; continue
-            }
-            let start = index
-            index += 1
-            guard alpha(bytes[index]) else {
-                if bytes[index] == 42, !groups.isEmpty, groups[groups.count - 1].firstControl {
-                    groups[groups.count - 1].starred = true
-                } else if bytes[index] == 39 {
-                    guard index + 2 < bytes.count else { throw failure("RTFD contains a truncated byte escape") }
-                    index += 2
+                guard info.fileExtension == expectedFormat, info.frameCount == 1 else {
+                    throw failure("RTFD attachment \(name) must be a single static image matching its file extension")
                 }
-                index += 1; continue
+                if ["tiff", "heic"].contains(info.fileExtension) {
+                    viewerLimitedFormats.insert(info.fileExtension)
+                }
             }
-            let wordStart = index
-            while index < bytes.count, alpha(bytes[index]) { index += 1 }
-            let word = String(decoding: bytes[wordStart..<index], as: UTF8.self)
-            let numberStart = index
-            if index < bytes.count, bytes[index] == 45 { index += 1 }
-            while index < bytes.count, digit(bytes[index]) { index += 1 }
-            let parameter = Int(String(decoding: bytes[numberStart..<index], as: UTF8.self))
-            if index < bytes.count, bytes[index] == 32 { index += 1 }
-            if word == "bin" {
-                guard let parameter, parameter >= 0, parameter <= bytes.count - index else { throw failure("RTFD binary data is truncated") }
-                index += parameter
-            }
-            guard !groups.isEmpty else { throw failure("RTFD control word is outside its document group") }
-            let current = groups.count - 1
-            if ["pict", "object", "objdata", "shppict", "nonshppict"].contains(word), !groups[current].opaque {
-                throw failure("inline RTF pictures and objects in RTFD are not supported; local static raster package attachments are required")
-            }
-            if word == "NeXTGraphic", !groups[current].opaque {
-                guard groups[current].firstControl else { throw failure("RTFD attachment is not a separate destination") }
-                groups[current].attachmentStart = index
-            } else if groups[current].firstControl,
-                      groups[current].starred || opaqueDestinations.contains(word) {
-                groups[current].opaque = true
-            }
-            if word == "ansicpg", let parameter, parameter > 0, parameter <= Int(UInt32.max) { groups[current].codepage = UInt32(parameter) }
-            if word == "mac" { groups[current].codepage = 10000 }
-            groups[current].firstControl = false
-            guard index > start else { throw failure("RTFD parser did not advance") }
+            let marker = prefix + String(replacements.count) + "END"
+            replacements.append((attachment.range, marker, name))
         }
-        guard groups.isEmpty else { throw failure("RTFD has an unclosed group") }
         var prepared = Data()
         var cursor = 0
         for replacement in replacements {

@@ -385,14 +385,9 @@ struct RichTextAdapter: DocumentConversionAdapter {
             #else
             let preparedRTFD = workDirectory.appendingPathComponent("marked.rtfd", isDirectory: true)
             let textutilInput = try RTFDInputPreparation.prepare(
-                from: inputURL,
+                fromStagedPackage: inputURL,
                 outputURL: preparedRTFD
             )
-            // Ohne Farbmarker oder ergänzte Listenmetadaten reicht
-            // `prepare` den Eingabepfad unverändert
-            // durch. Der ist hier bereits aufgelöst — der Aufrufer hat das genau
-            // einmal vor dem ersten Lesen erledigt —, deshalb bekommt `textutil`
-            // denselben Pfad, den auch die Vorbereitung gelesen hat.
             let textutilInputPath = textutilInput.path
             let result: ProcessResult
             do {

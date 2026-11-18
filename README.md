@@ -6,10 +6,6 @@
 
 **🌐 Sprache / Language:** [English](README.md) · [Deutsch](README.de.md)
 
-## Linux development preview
-
-The Linux CLI preview now includes local PDF extraction, standard OCR, raster images and a limited RTFD path alongside the shared document parsers. An optional native GTK preview calls the same CLI; legacy DOC uses explicitly isolated LibreOffice/UNO. HEIC is optional through the installed local libheif HEVC decoder; structured OCR is opt-in through a separately verified local model runtime; PDF layout and RTFD attachment limits are explicit. The passive GTK source comparison shows PDF pages and image frames with fit/100%/percentage zoom beside verified UTF8 references; clipboard originals remain bound to sealed memory files. See [Linux build, dependencies and limits](docs/LINUX-BUILD.md).
-
 <p align="center">
   <strong>Convert documents to Markdown and extract invoice and delivery note fields to JSON.</strong>
 </p>
@@ -21,10 +17,9 @@ LaTeX, DocBook, Org, MediaWiki, Textile, reStructuredText, FictionBook, EML, App
 PNG, JPEG, HEIC, TIFF, GIF, BMP, or WebP images into folders containing
 Markdown and any separately stored image assets.
 
-On macOS, the project provides two interfaces over the same conversion core. The Linux preview above describes the features and limits available there:
-
-- `poormans-text`, an automation-friendly command-line tool
-- a native macOS app for opening or dropping supported documents, spreadsheets, PDFs, and images
+Both platforms include the `poormans-text` command-line tool and a desktop app. The macOS
+app integrates with Finder and Shortcuts. Linux uses GTK for its desktop app and Poppler
+for PDFs. See [Linux requirements and format limits](docs/LINUX-BUILD.md).
 
 Conversion is deliberately lossy. Markdown can preserve document structure,
 links, simple emphasis, lists, and images, but not every font, layout, or
@@ -146,18 +141,22 @@ minutes; Homebrew never waits for keyboard input.
 
 ## Download
 
-Download the DMG and its `.sha256` file from the
-[latest GitHub release](../../releases/latest). With both files in the same
-directory, verify the download before opening it:
+The [latest GitHub release](../../releases/latest) provides a notarized
+Universal DMG for macOS 13 or newer and x86-64 Linux packages for Mint/Ubuntu
+and Arch-based systems. Portable Linux TAR and ZIP archives include both the
+GTK app and CLI. Download the archive or package and its matching `.sha256` file.
 
-```sh
-shasum -a 256 -c Poor-Mans-Text-0.41.21.dmg.sha256
-```
+**macOS.** Verify the file with `shasum -a 256 -c Poor-Mans-Text-0.41.24.dmg.sha256`,
+open the DMG, then drag the app to Applications. The app includes the CLI.
+Word-processing, mail, ENEX and ODM imports require Pandoc, available separately
+with `brew install pandoc`.
 
-Open the DMG and drag Poor Man's Text to Applications. The app is signed with
-Developer ID, notarized by Apple, and includes the matching universal CLI.
-Pandoc remains a separate requirement for word-processing, mail, ENEX and ODM files and can,
-for example, be installed with `brew install pandoc`.
+**Linux.** Run `sha256sum -c` with the checksum file, then install the DEB with
+`sudo apt install ./poormans-text_0.41.24-1_amd64.deb` or the Arch package with
+`sudo pacman -U ./poormans-text-0.41.24-1-x86_64.pkg.tar.zst`. For the portable
+archive, extract it and run `usr/bin/poormans-text-app` or `usr/bin/poormans-text`
+from the extracted directory. Start with `poormans-text --formats` to see what
+is available on your system. [Linux dependency and installation details](docs/LINUX-BUILD.md).
 
 ## Updates
 
@@ -700,9 +699,10 @@ and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compa
 their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current source version is 0.41.23.
-The [release candidate checks](docs/releases/0.41.23-candidate.md) list the
-macOS and Linux workflows tested so far and the gaps before a joint release.
+The current source version is 0.41.24.
+The [release notes](docs/releases/0.41.24.md) describe the platform differences.
+The [desktop test matrix](docs/releases/0.41.23-candidate.md) records the macOS,
+Mint and CachyOS workflows exercised on the previous candidate.
 
 ## License
 

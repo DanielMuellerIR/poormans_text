@@ -6,10 +6,6 @@
 
 **🌐 Sprache / Language:** [English](README.md) · [Deutsch](README.de.md)
 
-## Linux-Entwicklungsstand
-
-Die Linux-CLI enthält jetzt lokale PDF-Extraktion, Standard-OCR, Rasterbilder und einen begrenzten RTFD-Pfad neben den gemeinsamen Dokumentparsern. Eine optionale native GTK-Vorschau verwendet dieselbe CLI; Legacy-DOC verwendet ausdrücklich isoliertes LibreOffice/UNO. HEIC ist über den installierten lokalen libheif-HEVC-Decoder optional verfügbar; strukturierte OCR ist mit separat geprüfter lokaler Modellruntime optional verfügbar; PDF-Layout- und RTFD-Anhangsgrenzen werden ausdrücklich gemeldet. Der passive GTK-Quellvergleich zeigt PDF-Seiten und Bildframes mit Anpassen/100 %/Prozentzoom neben geprüften UTF8-Referenzen; Clipboardoriginale bleiben an versiegelte Speicherdateien gebunden. Siehe [Linux-Build, Abhängigkeiten und Grenzen](docs/LINUX-BUILD.md).
-
 <p align="center">
   <strong>Dokumente in Markdown umwandeln und Felder aus Rechnungen und Lieferscheinen als JSON ausgeben.</strong>
 </p>
@@ -25,10 +21,10 @@ PNG-, JPEG-, HEIC-, TIFF-, GIF-, BMP- und
 WebP-Bilder in Ordner mit Markdown und gegebenenfalls separat gespeicherten
 Bildern um.
 
-Unter macOS stellt das Projekt zwei Oberflächen für denselben Konvertierungskern bereit. Der Linux-Entwicklungsstand oben beschreibt die dort verfügbaren Funktionen und Grenzen:
-
-- `poormans-text`, ein automatisierbares Kommandozeilenwerkzeug
-- eine native macOS-App zum Öffnen oder Ablegen unterstützter Dokumente, Tabellen, PDFs und Bilder
+Auf beiden Plattformen gibt es die Desktop-App und das Kommandozeilenwerkzeug
+`poormans-text`. Unter macOS ist die App in Finder und Kurzbefehle eingebunden.
+Die Linux-App verwendet GTK, PDFs liest Poppler. Die
+[Linux-Dokumentation](docs/LINUX-BUILD.md) beschreibt Abhängigkeiten und Formatgrenzen.
 
 Die Konvertierung ist bewusst verlustbehaftet. Markdown kann Dokumentstruktur,
 Links, einfache Hervorhebungen, Listen und Bilder bewahren, aber nicht jede
@@ -155,19 +151,23 @@ Tastatureingabe.
 
 ## Download
 
-DMG und zugehörige `.sha256`-Datei stehen im
-[neuesten GitHub-Release](../../releases/latest). Liegen beide Dateien im selben
-Ordner, lässt sich der Download vor dem Öffnen prüfen:
+Das [neueste GitHub-Release](../../releases/latest) enthält ein notarisiertes
+Universal-DMG für macOS ab Version 13 sowie x86-64-Pakete für Mint/Ubuntu und
+Arch-basierte Systeme. Die portablen TAR- und ZIP-Archive für Linux enthalten
+GTK-App und CLI. Zu jedem Download gehört eine `.sha256`-Datei.
 
-```sh
-shasum -a 256 -c Poor-Mans-Text-0.41.21.dmg.sha256
-```
+**macOS.** Die Datei mit `shasum -a 256 -c Poor-Mans-Text-0.41.24.dmg.sha256`
+prüfen, das DMG öffnen und die App in den Programme-Ordner ziehen. Die CLI
+ist in der App enthalten. Textdokumente, E-Mail, ENEX und ODM benötigen
+separat installiertes Pandoc, etwa mit `brew install pandoc`.
 
-Danach das DMG öffnen und Poor Man's Text in den Programme-Ordner ziehen. Die
-App ist mit Developer ID signiert, von Apple notarisiert und enthält die passende
-universelle CLI. Pandoc bleibt für Textdokumente, E-Mail, ENEX und ODM eine getrennte
-Voraussetzung und lässt sich beispielsweise mit `brew install pandoc`
-installieren.
+**Linux.** Die Datei mit `sha256sum -c` und der zugehörigen Prüfsummendatei
+prüfen. Das DEB mit `sudo apt install ./poormans-text_0.41.24-1_amd64.deb`
+installieren, das Arch-Paket mit `sudo pacman -U ./poormans-text-0.41.24-1-x86_64.pkg.tar.zst`.
+Beim portablen Archiv nach dem Entpacken `usr/bin/poormans-text-app` oder
+`usr/bin/poormans-text` aus dem entpackten Ordner starten.
+`poormans-text --formats` zeigt die auf dem System verfügbaren Formate.
+[Linux-Installation und Abhängigkeiten](docs/LINUX-BUILD.md).
 
 ## Updates
 
@@ -738,9 +738,10 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Quellversion ist 0.41.23.
-Die [Prüfbelege zum Release-Kandidaten](docs/releases/0.41.23-candidate.md)
-zeigen die geprüften Abläufe und die offenen Punkte für ein gemeinsames Release.
+Die aktuelle Quellversion ist 0.41.24.
+Die [Release-Hinweise](docs/releases/0.41.24.md) erklären die Plattformunterschiede.
+Die [Funktionsmatrix](docs/releases/0.41.23-candidate.md) dokumentiert die
+Desktop-Prüfungen des vorherigen Kandidaten auf macOS, Mint und CachyOS.
 
 ## Lizenz
 

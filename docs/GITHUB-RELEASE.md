@@ -1,13 +1,13 @@
 # GitHub release procedure
 
-The distributable files are built and notarized locally because signing and
-notarization credentials are intentionally not stored in GitHub Actions.
+Release artifacts are built locally from one Git tag. The macOS app and DMG
+are signed and notarized locally. Linux packages are built on a Linux x86-64 host.
 
 ## Repository metadata
 
 Suggested description:
 
-> Convert documents to Markdown locally. Extract invoice and delivery note fields to JSON on macOS. Native app and CLI; Linux development preview.
+> Convert documents to Markdown and extract invoice and delivery note fields to JSON. Local OCR, desktop apps and CLI for macOS and Linux.
 
 Suggested topics:
 
@@ -51,20 +51,23 @@ VERSION="$(sed -n 's/.*static let version = "\(.*\)".*/\1/p' \
 8. Only after explicit publication approval, create the public remote, push
    `main` and the tag, enable secret scanning, push protection, Issues, and
    private vulnerability reporting, and wait for CI to pass.
-9. Create a draft GitHub release from the exact tag:
+9. Build the Linux packages at the same tag with `./release-linux.sh --format all`.
+   Verify the package inventory and checksums. Create a draft GitHub release
+   from the tag and attach the macOS and Linux downloads:
 
     ```sh
     gh release create "v$VERSION" \
       "Poor-Mans-Text-$VERSION.dmg" \
       "Poor-Mans-Text-$VERSION.dmg.sha256" \
+      "$LINUX_RELEASE_DIRECTORY"/* \
       --verify-tag \
       --draft \
       --title "Poor Man's Text $VERSION" \
       --notes-file "docs/releases/$VERSION.md"
     ```
 
-Download the draft assets again, verify the checksum, and only then publish the
-draft. No unsigned, ad-hoc-signed, or merely Developer-ID-signed build may be
+Use a Linux release directory containing the four packages and their four checksum
+files. Download the draft assets again and verify all five checksums before publishing. No unsigned, ad-hoc-signed, or merely Developer-ID-signed build may be
 uploaded as the release application.
 
 10. Publishing the release starts `.github/workflows/publish-appcast.yml`, which

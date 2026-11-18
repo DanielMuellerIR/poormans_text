@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.41.24 — 2026-11-18
+
+- Release the macOS app and CLI alongside Linux x86-64 packages with the GTK app and CLI.
+- Preserve text after a bare RTFD image attachment on macOS by normalizing the private working copy for Cocoa.
+- Recommend the local PDF and receipt dependencies from the Debian package.
+
 ## 0.41.23 — Release candidate
 
 - Explain conversion settings, receipt mask rules, and batch controls in English and German tooltips on macOS and Linux.

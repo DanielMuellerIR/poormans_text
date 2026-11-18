@@ -58,6 +58,30 @@ final class RichTextConverterTests: XCTestCase {
         XCTAssertEqual(Set(convertedImageData), Set(fixture.imageData))
     }
 
+    func testBareRTFDAttachmentPreservesFollowingTextAndImage() throws {
+        try requirePandoc()
+        let fixture = try FixtureFactory.createRichRTFD(in: temporaryDirectory)
+        let image = try XCTUnwrap(fixture.imageData.first)
+        let package = temporaryDirectory.appendingPathComponent("Bare.rtfd", isDirectory: true)
+        try FileManager.default.createDirectory(at: package, withIntermediateDirectories: false)
+        let source = package.appendingPathComponent("TXT.rtf")
+        let imageURL = package.appendingPathComponent("image.png")
+        let rtf = Data(#"{\rtf1\ansi\ansicpg1252\deff0{\fonttbl{\f0 Arial;}}\f0\fs24 Before {\NeXTGraphic image.png \width16 \height12} After\par}"#.utf8)
+        try rtf.write(to: source)
+        try image.write(to: imageURL)
+
+        let result = try RTFDConverter().convert(inputURL: package)
+        let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+        let before = try XCTUnwrap(markdown.range(of: "Before"))
+        let link = try XCTUnwrap(markdown.range(of: "](images/image01.png)"))
+        let after = try XCTUnwrap(markdown.range(of: "After"))
+        XCTAssertLessThan(before.upperBound, link.lowerBound)
+        XCTAssertLessThan(link.upperBound, after.lowerBound)
+        XCTAssertEqual(try result.assets.map { try Data(contentsOf: $0) }, [image])
+        XCTAssertEqual(try Data(contentsOf: source), rtf)
+        XCTAssertEqual(try Data(contentsOf: imageURL), image)
+    }
+
     func testConvertsRealRTFWithoutChangingTextOrEmbeddedImage() throws {
         try requirePandoc()
         let fixture = try FixtureFactory.createRichRTF(in: temporaryDirectory)

@@ -5,7 +5,8 @@ import AppKit
 enum RTFDInputPreparation {
     /// Bereitet ausschließlich die Arbeitskopie vor: Listenmetadaten zuerst,
     /// dann Farbmarker, damit Listenzeichen nicht innerhalb der Hervorhebung stehen bleiben.
-    static func prepare(from inputURL: URL, outputURL: URL) throws -> URL {
+    static func prepare(fromStagedPackage inputURL: URL, outputURL: URL) throws -> URL {
+        try normalizeAttachmentGroups(in: inputURL)
         let document: NSMutableAttributedString
         do {
             document = try NSMutableAttributedString(
@@ -38,5 +39,41 @@ enum RTFDInputPreparation {
         return outputURL
     }
 
+    private static func normalizeAttachmentGroups(in package: URL) throws {
+        let rtf = package.appendingPathComponent("TXT.rtf")
+        let source = try Data(contentsOf: rtf, options: .mappedIfSafe)
+        guard source.range(of: Data(#"{\NeXTGraphic"#.utf8)) != nil else { return }
+
+        let bytes = [UInt8](source)
+        let attachments: [RTFDAttachmentGroups.Attachment]
+        do {
+            attachments = try RTFDAttachmentGroups.scan(bytes, rejectInlineObjects: false) {
+                .invalidRichText(package, reason: $0)
+            }
+        } catch ConversionError.invalidRichText {
+            try ConversionExecution.check()
+            return
+        }
+        let bare = attachments.filter { $0.destination == $0.range }
+        guard !bare.isEmpty else { return }
+        guard source.count <= RichTextLimits.maximumSourceSize - bare.count * 3 else {
+            throw ConversionError.invalidRichText(package, reason: "prepared RTFD exceeds its size limit")
+        }
+
+        // Ohne die äußere Gruppe mit Bildplatzhalter verschluckt Cocoa den
+        // folgenden Text. Nur die Arbeitskopie erhält die Cocoa-Klammerung.
+        var normalized = Data(capacity: source.count + bare.count * 3)
+        var cursor = 0
+        for attachment in bare {
+            let range = attachment.destination
+            normalized.append(contentsOf: bytes[cursor..<range.lowerBound])
+            normalized.append(123)
+            normalized.append(contentsOf: bytes[range])
+            normalized.append(contentsOf: [0xAC, 125])
+            cursor = range.upperBound
+        }
+        normalized.append(contentsOf: bytes[cursor...])
+        try normalized.write(to: rtf, options: .atomic)
+    }
 }
 #endif

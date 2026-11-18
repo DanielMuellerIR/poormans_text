@@ -101,7 +101,7 @@ if epoch is None:
     epoch = subprocess.check_output(
         ['git', '-C', str(repo), 'show', '-s', '--format=%ct', 'HEAD'], text=True).strip()
 epoch = int(epoch)
-names = {'deb': f'poormans-text_{version}~linuxpreview1_amd64.deb',
+names = {'deb': f'poormans-text_{version}-1_amd64.deb',
          'arch': f'poormans-text-{version}-1-x86_64.pkg.tar.zst',
          'tar': f'poormans-text-{version}-linux-x86_64.tar.zst',
          'zip': f'poormans-text-{version}-linux-x86_64.zip'}
@@ -200,17 +200,17 @@ StartupNotify=true
                 control.mkdir()
                 control.chmod(0o755)
                 (control / 'control').write_text(f'''Package: poormans-text
-Version: {version}~linuxpreview1
+Version: {version}-1
 Architecture: amd64
 Maintainer: Poor Man's Text contributors
 Section: text
 Priority: optional
 Installed-Size: {installed_kib}
 Depends: libc6 (>= 2.39), libstdc++6, libgcc-s1, bubblewrap (>= 0.9.0){', libgtk-4-1 (>= 4.12), dconf-gsettings-backend' if args.with_gui else ''}
-Recommends: pandoc
-Suggests: python3-pil, python3-gi, python3-cairo, python3-gi-cairo, gir1.2-poppler-0.18, qpdf (>= 11), tesseract-ocr, libreoffice-writer, python3-uno, libheif1, libheif-plugin-libde265
+Recommends: pandoc, python3-gi, python3-cairo, python3-gi-cairo, gir1.2-poppler-0.18, qpdf (>= 11)
+Suggests: python3-pil, tesseract-ocr, libreoffice-writer, python3-uno, libheif1, libheif-plugin-libde265
 Homepage: https://github.com/DanielMuellerIR/poormans_text
-Description: Local document conversion with a shared Swift core (Linux preview)
+Description: Convert documents to Markdown and extract PDF receipt fields to JSON
  No runtime downloads. Optional converters and OCR data are host packages.
 ''')
                 (control / 'control').chmod(0o644)
@@ -236,7 +236,7 @@ Description: Local document conversion with a shared Swift core (Linux preview)
                     (stage / '.PKGINFO').write_text(f'''pkgname = poormans-text
 pkgbase = poormans-text
 pkgver = {version}-1
-pkgdesc = Local document conversion with a shared Swift core (Linux preview)
+pkgdesc = Convert documents to Markdown and extract PDF receipt fields to JSON
 url = https://github.com/DanielMuellerIR/poormans_text
 builddate = {epoch}
 packager = Poor Man's Text contributors

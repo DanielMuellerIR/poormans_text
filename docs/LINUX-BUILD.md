@@ -1,12 +1,33 @@
-# Linux-Entwicklungsstand
+# Linux-Installation und Build
 
-Die Linux-Portierung verwendet denselben Swift-Konvertierungskern wie macOS.
-P05 stellt Build und Plattformgrenzen her; dies ist noch keine vollständige
-Linux-App oder Distributionsfreigabe. PDF, Standard-OCR und Bilder verwenden
-explizite lokale Backends; RTFD unterstützt zunächst geprüfte lokale statische
-PNG-, JPEG-, TIFF-, GIF-, BMP-, WebP- und optionale HEIC-Anhänge. Mehrframes
-werden abgewiesen; TIFF/HEIC bleiben Originaldateien mit Viewer-Kompatibilitätshinweis. Legacy-DOC verwendet optional LibreOffice mit expliziten sicheren UNO-Ladeparametern. HEIC verwendet optional den lokalen libheif-HEVC-Decoder. Strukturierte OCR ist mit einer ausdrücklich bereitgestellten, gepinnten Offline-Modelllaufzeit optional verfügbar; bekannte Qualitätsgrenzen bleiben unten dokumentiert.
-Die vorhandene Mac-App bleibt nativ.
+Die GTK-App und die CLI für Linux x86-64 stehen im
+[GitHub-Release](https://github.com/DanielMuellerIR/poormans_text/releases/latest) als Debian-Paket, Arch-Paket
+und portable TAR- und ZIP-Archive bereit. Die Paket- und Desktop-Abläufe
+wurden auf Linux Mint 22.2 unter Cinnamon/X11 und auf CachyOS unter KDE/Wayland
+geprüft. Mint und Ubuntu benötigen glibc 2.39 oder neuer. Bei den portablen
+Archiven gelten dieselben Systemvoraussetzungen für die enthaltene Laufzeit.
+
+Linux und macOS nutzen denselben Konvertierungskern und dieselben JSON-Masken
+für Belege mit eingebettetem PDF-Text. Unter Linux liest Poppler die PDFs,
+qpdf prüft Seitengeometrie und Verschlüsselung, und Tesseract übernimmt
+Standard-OCR. Strukturierte OCR ist mit einer separaten Offline-Laufzeit
+verfügbar. Die folgenden Abschnitte nennen die Abhängigkeiten und Grenzen.
+
+## Pakete installieren
+
+Prüfe den Download mit seiner `.sha256`-Datei. Installiere das DEB mit
+`sudo apt install ./<Datei>.deb` oder das Arch-Paket mit
+`sudo pacman -U ./<Datei>.pkg.tar.zst`. APT installiert üblicherweise die
+empfohlenen Werkzeuge für Pandoc- und PDF-Import mit. Unter Arch und bei den
+portablen Archiven müssen die in der Tabelle unter **Laufzeit und Grenzen**
+genannten Pakete passend zu den benötigten Formaten vorhanden sein.
+
+Die installierte App erscheint als **Poor Man’s Text** im Anwendungsmenü.
+Aus einem entpackten Archiv startet sie über `usr/bin/poormans-text-app`.
+Die CLI liegt im selben Verzeichnis. Für ein Upgrade das neuere Paket über
+den Paketmanager installieren. Zum Entfernen `sudo apt remove poormans-text`
+oder `sudo pacman -R poormans-text` ausführen. Portable Kopien lassen sich
+durch Entfernen des entpackten Programmordners deinstallieren.
 
 ## Lokal bauen
 
@@ -51,7 +72,7 @@ python3 scripts/linux-probes/verify_product.py ./poormans-text --pandoc /pfad/zu
 
 Der Prüflauf erzeugt seine Dokumente temporär und räumt sie selbst auf.
 
-## Optionale GTK-Oberfläche
+## GTK-Oberfläche aus dem Quellcode bauen
 
 Die Oberfläche ist ein dünner Rust-/GTK-Adapter derselben lokalen CLI. Sie bietet
 Datei-/Ordnerauswahl, mehrere Quellen, Optionen, sichere Textvorschau,
@@ -231,24 +252,19 @@ Bei einem ausgetauschten Elternpfad bleibt ein vollständiges Ergebnis zur
 Wiederherstellung erhalten; ein Erfolg für den inzwischen anderen Pfad wird
 nicht gemeldet.
 
-Die drei lokalen Paketformate sind unten beschrieben. Eine GTK-Vorschau ist optional; echte Desktopabnahme und vollständige Backendabnahme bleiben Teil des [Linux-Plans](LINUX-PORT.md). Die älteren
-[Entscheidungsproben](linux-port/P03-FOLLOWUP.md) sind von der Produktintegration
-und deren Prüfstand zu unterscheiden.
+Die [Funktionsmatrix](releases/0.41.23-candidate.md) dokumentiert die Desktop- und Paketprüfungen des Kandidaten. Die älteren [Entscheidungsproben](linux-port/P03-FOLLOWUP.md) beschreiben den Entwicklungsstand vor der Integration.
 
-## Lokale CLI-Pakete
+## Lokale Pakete bauen
 
 ```sh
-PMT_LINUX_BUILD_IMAGE=pmt-linux-builder ./release.sh --format all
+PMT_LINUX_BUILD_IMAGE=pmt-linux-builder \
+PMT_LINUX_GUI_BUILD_IMAGE=pmt-linux-gui-builder ./release-linux.sh --format all
 ```
 
-Unter Linux erzeugt `release.sh` ausschließlich lokale Debian-, Arch- und
-portable Tar-Pakete samt SHA-256-Dateien unter `.build/linux-packages`.
-`--format deb|arch|tar` wählt ein Format; `--no-build` verwendet den vorhandenen
-versionsgleichen Laufzeitbuild. Vorhandene Paketdateien werden nicht ersetzt.
-Es wird nichts installiert, hochgeladen oder nach macOS `/Applications` kopiert.
-Die nativen Paketmanager verwalten Installation und Entfernung; Benutzerdaten
-liegen außerhalb des Paketbaums. Der Stand ist eine Entwicklungsvorschau,
-keine öffentliche Veröffentlichung.
+Das Skript erzeugt lokale Debian-, Arch-, TAR- und ZIP-Pakete samt
+SHA-256-Dateien in `.build/linux-packages`. `--format deb|arch|tar|zip`
+wählt ein Format. `--no-build` verwendet einen vorhandenen Build derselben
+Version. Vorhandene Pakete bleiben geschützt.
 
 ## Optionale lokale strukturierte OCR
 

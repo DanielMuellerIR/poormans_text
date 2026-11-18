@@ -56,7 +56,7 @@ def main():
         package = args.package.absolute() if args.package else None
         if package is None:
             version = re.search(r'static let version = "([0-9.]+)"', (repo/'Sources/PoorMansTextCore/ProductInfo.swift').read_text())[1]
-            name = f'poormans-text_{version}~linuxpreview1_amd64.deb' if manager == 'apt' else f'poormans-text-{version}-1-x86_64.pkg.tar.zst'
+            name = f'poormans-text_{version}-1_amd64.deb' if manager == 'apt' else f'poormans-text-{version}-1-x86_64.pkg.tar.zst'
             package = work/name
             command = [str(repo/'release-linux.sh'), '--format', 'deb' if manager == 'apt' else 'arch',
                        '--output-directory', str(work), '--configuration', args.configuration]

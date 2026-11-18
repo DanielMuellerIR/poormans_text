@@ -7,7 +7,7 @@ notarization credentials are intentionally not stored in GitHub Actions.
 
 Suggested description:
 
-> Convert documents, spreadsheets, PDFs, and images to Markdown on macOS.
+> Convert documents to Markdown locally. Extract invoice and delivery note fields to JSON on macOS. Native app and CLI; Linux development preview.
 
 Suggested topics:
 

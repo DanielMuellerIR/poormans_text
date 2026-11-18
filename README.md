@@ -11,7 +11,7 @@
 The Linux CLI preview now includes local PDF extraction, standard OCR, raster images and a limited RTFD path alongside the shared document parsers. An optional native GTK preview calls the same CLI; legacy DOC uses explicitly isolated LibreOffice/UNO. HEIC is optional through the installed local libheif HEVC decoder; structured OCR is opt-in through a separately verified local model runtime; PDF layout and RTFD attachment limits are explicit. The passive GTK source comparison shows PDF pages and image frames with fit/100%/percentage zoom beside verified UTF8 references; clipboard originals remain bound to sealed memory files. See [Linux build, dependencies and limits](docs/LINUX-BUILD.md).
 
 <p align="center">
-  <strong>Convert documents, spreadsheets, PDFs, and images to Markdown.</strong>
+  <strong>Convert documents to Markdown and extract invoice and delivery note fields to JSON.</strong>
 </p>
 
 Poor Man's Text converts RTF, RTFD, DOCX (including DOCM and DOTX/DOTM), ODT,
@@ -36,15 +36,30 @@ Named profiles can be managed in the app and selected in the **Convert Document 
 
 ## Extract receipt data on macOS
 
+Create a mask for a partner and document type, then reuse it across PDFs with
+the same layout. The mask specifies where to find fields such as the invoice
+number and date. The app shows each value alongside its source in the PDF.
+
 1. Choose **Extract Receipt Data…** and open an example invoice or delivery note with embedded PDF text.
 2. Enter the partner and document type. Accept suggested invoice or delivery-note fields, or click a word or drag out a region and add a named field. Click a value or source in the preview to locate it in the PDF.
 3. Use **Add Test PDFs…** to preview the current mask on several PDFs. The arrows change the active PDF. Choose **Save Mask…** to create a reusable JSON mask. **Correct Value…** changes the current result only. Use the field's region rule to change future runs.
 4. Open **Apply Mask…**, choose the saved mask, and drop PDFs or select them in the file picker. Choose **Beside Each PDF** or a common output folder and apply the mask. Use **Review…** on a flagged PDF to inspect the matching fields.
 
-The default result for `Invoice-4711.pdf` is `Invoice-4711.pdf.json`. Existing
-files stay protected. Missing and ambiguous values appear as JSON `null` with a
-review status. See the [receipt extraction contract](docs/RECEIPT-EXTRACTION.md)
-for unattended CLI runs, exit codes and JSON fields.
+![Receipt editor with an example invoice on the left and extracted fields on the right. The date is marked ambiguous.](docs/images/receipt-editor.png)
+
+Use the same mask and JSON output from a script:
+
+```sh
+mkdir -p Results
+poormans-text extract --mask invoice-mask.json --output-dir Results Invoice-4711.pdf Invoice-4712.pdf
+```
+
+Without `--output-dir`, the app and CLI write `Invoice-4711.pdf.json`
+beside the PDF. Existing files stay protected. Missing and ambiguous values
+appear as JSON `null` with a review status and any matching sources. This
+feature reads embedded PDF text and exports JSON. The
+[receipt extraction contract](docs/RECEIPT-EXTRACTION.md) documents the JSON
+fields, machine-readable run summary and exit codes.
 
 ## Output
 
@@ -133,7 +148,7 @@ Download the DMG and its `.sha256` file from the
 directory, verify the download before opening it:
 
 ```sh
-shasum -a 256 -c Poor-Mans-Text-0.41.19.dmg.sha256
+shasum -a 256 -c Poor-Mans-Text-0.41.21.dmg.sha256
 ```
 
 Open the DMG and drag Poor Man's Text to Applications. The app is signed with

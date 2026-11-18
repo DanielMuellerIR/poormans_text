@@ -11,7 +11,7 @@
 Die Linux-CLI enthält jetzt lokale PDF-Extraktion, Standard-OCR, Rasterbilder und einen begrenzten RTFD-Pfad neben den gemeinsamen Dokumentparsern. Eine optionale native GTK-Vorschau verwendet dieselbe CLI; Legacy-DOC verwendet ausdrücklich isoliertes LibreOffice/UNO. HEIC ist über den installierten lokalen libheif-HEVC-Decoder optional verfügbar; strukturierte OCR ist mit separat geprüfter lokaler Modellruntime optional verfügbar; PDF-Layout- und RTFD-Anhangsgrenzen werden ausdrücklich gemeldet. Der passive GTK-Quellvergleich zeigt PDF-Seiten und Bildframes mit Anpassen/100 %/Prozentzoom neben geprüften UTF8-Referenzen; Clipboardoriginale bleiben an versiegelte Speicherdateien gebunden. Siehe [Linux-Build, Abhängigkeiten und Grenzen](docs/LINUX-BUILD.md).
 
 <p align="center">
-  <strong>Dokumente, Tabellen, PDFs und Bilder in Markdown umwandeln.</strong>
+  <strong>Dokumente in Markdown umwandeln und Felder aus Rechnungen und Lieferscheinen als JSON ausgeben.</strong>
 </p>
 
 Poor Man's Text wandelt RTF, RTFD, DOCX (einschließlich DOCM und DOTX/DOTM), ODT,
@@ -40,15 +40,31 @@ Benannte Profile lassen sich in der App verwalten und in der Kurzbefehle-Aktion 
 
 ## Belegdaten unter macOS auslesen
 
+Lege für einen Geschäftspartner und eine Belegart eine Maske an und verwende
+sie für weitere PDFs mit demselben Layout. Die Maske legt fest, wie Felder
+wie Rechnungsnummer und Datum gefunden werden. Die App zeigt die Werte neben
+dem PDF und springt auf Wunsch zur Fundstelle.
+
 1. **Belegdaten auslesen…** wählen und eine Beispielrechnung oder einen Lieferschein als PDF mit eingebettetem Text öffnen.
 2. Partner und Belegart eintragen. Feldvorschläge übernehmen oder ein Wort anklicken beziehungsweise einen Rahmen ziehen und daraus ein benanntes Feld anlegen. Ein Klick auf einen Wert oder eine Fundstelle zeigt sie im PDF.
 3. Über **Prüf-PDFs hinzufügen…** mehrere Belege mit der aktuellen Maske prüfen. Mit den Pfeilen zwischen den PDFs wechseln. Mit **Maske speichern…** die wiederverwendbare JSON-Maske anlegen. **Wert korrigieren…** ändert nur das aktuelle Ergebnis. Eine neue Bereichszuordnung für das Feld ändert die Maske für künftige Läufe.
 4. **Maske anwenden…** öffnen, die gespeicherte Maske auswählen und PDFs ablegen oder im Dateidialog auswählen. Die Dateien neben den PDFs oder in einem gemeinsamen Zielordner ausgeben. **Prüfen…** öffnet einen betroffenen Beleg mit seinen Feldern.
 
-Aus `Rechnung-4711.pdf` wird standardmäßig `Rechnung-4711.pdf.json`.
+![Belegeditor mit einer Beispielrechnung links und den ausgelesenen Feldern rechts. Das Datum ist als mehrdeutig markiert.](docs/images/receipt-editor.png)
+
+Dieselbe Maske liefert auch im Skript dieselben JSON-Ergebnisse:
+
+```sh
+mkdir -p Ergebnisse
+poormans-text extract --mask rechnungsmaske.json --output-dir Ergebnisse Rechnung-4711.pdf Rechnung-4712.pdf
+```
+
+Ohne Zielordner schreiben App und CLI `Rechnung-4711.pdf.json` neben das PDF.
 Vorhandene Dateien bleiben geschützt. Fehlende und mehrdeutige Werte stehen
-als JSON-`null` mit Prüfstatus im Ergebnis. [CLI-Aufruf, Exitcodes und JSON-Felder](docs/RECEIPT-EXTRACTION.md)
-beschreiben den unbeaufsichtigten Lauf.
+als JSON-`null` mit Prüfstatus und gegebenenfalls Fundstellen im Ergebnis.
+Die Funktion liest eingebetteten PDF-Text und gibt JSON aus.
+Die [CLI-Dokumentation](docs/RECEIPT-EXTRACTION.md) beschreibt die JSON-Felder,
+die maschinenlesbare Laufzusammenfassung und die Exitcodes.
 
 ## Ausgabe
 
@@ -142,7 +158,7 @@ DMG und zugehörige `.sha256`-Datei stehen im
 Ordner, lässt sich der Download vor dem Öffnen prüfen:
 
 ```sh
-shasum -a 256 -c Poor-Mans-Text-0.41.19.dmg.sha256
+shasum -a 256 -c Poor-Mans-Text-0.41.21.dmg.sha256
 ```
 
 Danach das DMG öffnen und Poor Man's Text in den Programme-Ordner ziehen. Die

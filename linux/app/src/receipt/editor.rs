@@ -186,8 +186,20 @@ pub(in crate::receipt) fn open(
     let source = padded(8, 0);
     source.set_size_request(320, -1);
     let add = gtk::Button::with_label(tr("PDFs hinzufügen…", "Add PDFs…"));
+    add.set_tooltip_text(Some(tr(
+        "Fügt weitere Belege desselben Geschäftspartners hinzu, um dieselben Regeln zu testen.",
+        "Adds more receipts from the same business partner to test the same rules.",
+    )));
     let previous_pdf = icon("go-previous-symbolic", tr("Vorheriges PDF", "Previous PDF"));
+    previous_pdf.set_tooltip_text(Some(tr(
+        "Prüft dieselbe Maske am vorherigen PDF in der Liste.",
+        "Tests the same mask against the previous PDF in the list.",
+    )));
     let next_pdf = icon("go-next-symbolic", tr("Nächstes PDF", "Next PDF"));
+    next_pdf.set_tooltip_text(Some(tr(
+        "Prüft dieselbe Maske am nächsten PDF in der Liste.",
+        "Tests the same mask against the next PDF in the list.",
+    )));
     let doc_count = gtk::Label::new(None);
     let docs = gtk::Box::new(gtk::Orientation::Horizontal, 8);
     docs.append(&add);
@@ -207,10 +219,22 @@ pub(in crate::receipt) fn open(
         "go-previous-symbolic",
         tr("Vorherige Seite", "Previous page"),
     );
+    previous_page.set_tooltip_text(Some(tr(
+        "Zeigt die vorherige Seite im aktuellen PDF.",
+        "Shows the previous page of the current PDF.",
+    )));
     let next_page = icon("go-next-symbolic", tr("Nächste Seite", "Next page"));
+    next_page.set_tooltip_text(Some(tr(
+        "Zeigt die nächste Seite im aktuellen PDF.",
+        "Shows the next page of the current PDF.",
+    )));
     let page_count = gtk::Label::new(None);
     let zoom_out = icon("zoom-out-symbolic", tr("Verkleinern", "Zoom out"));
     let fit = gtk::Button::with_label(tr("Einpassen", "Fit"));
+    fit.set_tooltip_text(Some(tr(
+        "Passt die PDF-Seite in die Vorschau ein.",
+        "Fits the PDF page in the preview.",
+    )));
     let zoom_in = icon("zoom-in-symbolic", tr("Vergrößern", "Zoom in"));
     let page_nav = gtk::Box::new(gtk::Orientation::Horizontal, 6);
     page_nav.append(&previous_page);
@@ -225,6 +249,10 @@ pub(in crate::receipt) fn open(
     page_nav.append(&zoom);
     source.append(&page_nav);
     let picture = SourceCanvas::new();
+    picture.set_tooltip_text(Some(tr(
+        "Auf ein Wort klicken oder einen Rahmen ziehen, um einen Textbereich für eine Regel zu wählen.",
+        "Click a word or drag a rectangle to select a text region for a rule.",
+    )));
     picture.update_property(&[gtk::accessible::Property::Label(tr(
         "PDF-Quelle",
         "Source PDF",
@@ -249,7 +277,15 @@ pub(in crate::receipt) fn open(
     let right = padded(10, 12);
     section(&right, tr("Extraktionsmaske", "Extraction mask"));
     let partner = gtk::Entry::new();
+    partner.set_tooltip_text(Some(tr(
+        "Name des Geschäftspartners, für dessen Belege diese Maske gedacht ist.",
+        "Name of the business partner whose receipts use this mask.",
+    )));
     let document_type = gtk::Entry::new();
+    document_type.set_tooltip_text(Some(tr(
+        "Kategorie der Belege in dieser Maske, etwa Rechnung oder Lieferschein.",
+        "Category of receipts covered by this mask, such as invoice or delivery note.",
+    )));
     let metadata = gtk::Grid::builder()
         .row_spacing(8)
         .column_spacing(12)
@@ -271,11 +307,23 @@ pub(in crate::receipt) fn open(
     }
     right.append(&metadata);
     let load = gtk::Button::with_label(tr("Maske laden…", "Load mask…"));
+    load.set_tooltip_text(Some(tr(
+        "Öffnet eine gespeicherte JSON-Maske und prüft ihre Regeln am aktuellen PDF.",
+        "Opens a saved JSON mask and tests its rules against the current PDF.",
+    )));
     let reload = icon(
         "view-refresh-symbolic",
         tr("Maske neu laden", "Reload mask"),
     );
+    reload.set_tooltip_text(Some(tr(
+        "Liest die Maskendatei erneut ein und verwirft ungespeicherte Änderungen an der Maske.",
+        "Reads the mask file again and discards unsaved mask changes.",
+    )));
     let save = gtk::Button::with_label(tr("Maske speichern…", "Save mask…"));
+    save.set_tooltip_text(Some(tr(
+        "Speichert die Regeln als wiederverwendbare JSON-Maske.",
+        "Saves the rules as a reusable JSON mask.",
+    )));
     buttons(&right, &[&load, &reload, &save]);
     let mask_file = single_line("");
     mask_file.add_css_class("dim-label");
@@ -286,10 +334,22 @@ pub(in crate::receipt) fn open(
     let selected_region = label("");
     selected.append(&selected_region);
     let add_region = gtk::Button::with_label(tr("Neues Bereichsfeld", "New region field"));
+    add_region.set_tooltip_text(Some(tr(
+        "Legt ein Feld an, das Text auf dieser Seite an derselben Position liest.",
+        "Creates a field that reads text at the same position on this page.",
+    )));
     let clear_region = gtk::Button::with_label(tr("Aufheben", "Clear selection"));
+    clear_region.set_tooltip_text(Some(tr(
+        "Hebt die Auswahl im PDF auf.",
+        "Clears the selection in the PDF.",
+    )));
     buttons(&selected, &[&add_region, &clear_region]);
     let replace_row = gtk::Box::new(gtk::Orientation::Horizontal, 8);
     let replace = gtk::DropDown::from_strings(&[]);
+    replace.set_tooltip_text(Some(tr(
+        "Wählt das Feld, das künftig den markierten Bereich verwenden soll.",
+        "Chooses the field that should use the selected region.",
+    )));
     replace.set_hexpand(true);
     replace.update_property(&[gtk::accessible::Property::Label(tr(
         "Feld, dessen Regel ersetzt wird",
@@ -297,6 +357,10 @@ pub(in crate::receipt) fn open(
     ))]);
     bounded_dropdown(&replace);
     let replace_region = gtk::Button::with_label(tr("Regel ersetzen", "Replace rule"));
+    replace_region.set_tooltip_text(Some(tr(
+        "Ersetzt die Suchregel des gewählten Felds durch den markierten PDF-Bereich.",
+        "Replaces the selected field’s extraction rule with the marked PDF region.",
+    )));
     replace_row.append(&replace);
     replace_row.append(&replace_region);
     selected.append(&replace_row);
@@ -321,10 +385,22 @@ pub(in crate::receipt) fn open(
     status.connect_label_notify(|label| label.set_visible(!label.label().is_empty()));
     outer.append(&status);
     let preview_json = gtk::Button::with_label(tr("JSON-Vorschau", "Preview JSON"));
+    preview_json.set_tooltip_text(Some(tr(
+        "Zeigt Werte und Prüfstatus des aktuellen Belegs vor dem Speichern. Fehlende oder mehrdeutige Werte erscheinen als null.",
+        "Shows values and review statuses for the current receipt before saving. Missing or ambiguous values appear as null.",
+    )));
     let export = gtk::Button::with_label(tr("JSON exportieren…", "Export JSON…"));
+    export.set_tooltip_text(Some(tr(
+        "Speichert die Werte und Prüfstatus des aktuellen Belegs einschließlich seiner Korrekturen als JSON.",
+        "Saves current values and review statuses, including corrections for this receipt, as JSON.",
+    )));
     export.add_css_class("suggested-action");
     let cancel = gtk::Button::with_label(tr("Abbrechen", "Cancel"));
     let batch = gtk::Button::with_label(tr("Stapelverarbeitung…", "Batch extraction…"));
+    batch.set_tooltip_text(Some(tr(
+        "Öffnet die Stapelverarbeitung für mehrere PDF-Belege.",
+        "Opens batch extraction for multiple PDF receipts.",
+    )));
     let footer = gtk::Box::new(gtk::Orientation::Horizontal, 8);
     footer.append(&batch);
     footer.append(&cancel);
@@ -1207,6 +1283,10 @@ impl Editor {
                 .label(tr("Quelle zeigen", "Show source"))
                 .build();
             let correct = gtk::Button::with_label(tr("Wert korrigieren…", "Correct value…"));
+            correct.set_tooltip_text(Some(tr(
+                "Ändert den Wert nur für diesen Beleg. Die Suchregel der Maske bleibt erhalten.",
+                "Changes the value for this receipt only. The mask’s rule stays the same.",
+            )));
             let actions = gtk::Box::new(gtk::Orientation::Horizontal, 8);
             actions.append(&evidence);
             actions.append(&correct);
@@ -1430,8 +1510,16 @@ impl Editor {
             title.set_hexpand(true);
             info.append(&title);
             let accept = gtk::Button::with_label(tr("Übernehmen", "Accept"));
+            accept.set_tooltip_text(Some(tr(
+                "Fügt die vorgeschlagene Suchregel zur Maske hinzu.",
+                "Adds the suggested extraction rule to the mask.",
+            )));
             accept.set_sensitive(has_room);
             let reject = gtk::Button::with_label(tr("Verwerfen", "Reject"));
+            reject.set_tooltip_text(Some(tr(
+                "Blendet die vorgeschlagene Suchregel in diesem Editor aus.",
+                "Dismisses the suggested extraction rule in this editor.",
+            )));
             info.append(&accept);
             info.append(&reject);
             self.suggestions.append(&info);
@@ -1542,6 +1630,10 @@ impl Editor {
         content.append(&entry);
         let cancel = gtk::Button::with_label(tr("Abbrechen", "Cancel"));
         let apply = gtk::Button::with_label(tr("Übernehmen", "Apply"));
+        apply.set_tooltip_text(Some(tr(
+            "Übernimmt den eingegebenen Wert für diesen Beleg.",
+            "Applies the entered value to this receipt.",
+        )));
         apply.add_css_class("suggested-action");
         apply.set_sensitive(!entry.text().trim().is_empty());
         let actions = gtk::Box::new(gtk::Orientation::Horizontal, 8);

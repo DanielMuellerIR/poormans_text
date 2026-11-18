@@ -270,6 +270,8 @@ Anführungszeichen, Daten sind ISO 8601 in UTC. Eine Quelle ohne solche Angaben
 bekommt eine Warnung statt eines leeren Kopfs. Dieselben Felder stehen als
 `metadata` in jeder `--json`-Antwort, auch ohne den Schalter.
 
+Die Bedienelemente in den Konvertierungsoptionen und Belegfenstern zeigen beim Darüberfahren einen kurzen Hilfetext. Die Option für YAML-Metadaten schreibt Angaben wie Titel und Autor an den Anfang der Markdown-Datei, damit andere Programme sie auslesen können.
+
 `--textbundle` schreibt `Bericht.textbundle` statt `Bericht-markdown`: Das
 Markdown heißt `text.md`, Bilder liegen unter `assets/`, und `info.json`
 kennzeichnet das Paket, sodass Bear, iA Writer und Ulysses es direkt öffnen.
@@ -736,8 +738,8 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Quellversion ist 0.41.22.
-Die [Prüfbelege zum Release-Kandidaten](docs/releases/0.41.22-candidate.md)
+Die aktuelle Quellversion ist 0.41.23.
+Die [Prüfbelege zum Release-Kandidaten](docs/releases/0.41.23-candidate.md)
 zeigen die geprüften Abläufe und die offenen Punkte für ein gemeinsames Release.
 
 ## Lizenz

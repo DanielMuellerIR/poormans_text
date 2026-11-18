@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.41.23 — Release candidate
+
+- Explain conversion settings, receipt mask rules, and batch controls in English and German tooltips on macOS and Linux.
+
 ## 0.41.22 — Release candidate
 
 - Add receipt masks, live PDF previews, per-receipt corrections and batch extraction to the Linux GTK app. The Linux CLI accepts the same `extract` command and JSON masks as macOS.

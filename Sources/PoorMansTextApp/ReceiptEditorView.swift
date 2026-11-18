@@ -90,6 +90,7 @@ struct ReceiptEditorView: View {
                             Image(systemName: "minus.magnifyingglass").accessibilityLabel("Zoom Out")
                         }
                         Button("Fit") { zoom = ReceiptPDFZoom(action: .fit) }
+                            .help("Fits the PDF page in the preview.")
                         Button { zoom = ReceiptPDFZoom(action: .inwards) } label: {
                             Image(systemName: "plus.magnifyingglass").accessibilityLabel("Zoom In")
                         }
@@ -127,8 +128,10 @@ struct ReceiptEditorView: View {
                 Divider()
                 HStack {
                     Button("Preview JSON") { showPreview() }.disabled(result == nil)
+                        .help("Shows values and review statuses for the current receipt before saving. Missing or ambiguous values appear as null.")
                     Spacer()
                     Button("Export JSON…") { exportResult() }.disabled(mask.fields.isEmpty || result == nil)
+                        .help("Saves current values and review statuses, including corrections for this receipt, as JSON.")
                 }
                 .padding(16)
             }
@@ -175,13 +178,14 @@ struct ReceiptEditorView: View {
     private var documentNavigation: some View {
         HStack(spacing: 8) {
             Button("Add Test PDFs…", action: addTestPDFs)
+                .help("Adds more receipts from the same business partner to test the same rules.")
             Spacer(minLength: 4)
             if pdfs.count > 1 {
                 Button { showPDF(at: currentIndex - 1) } label: {
                     Image(systemName: "chevron.left").accessibilityLabel("Previous PDF")
                 }
-                .help("Previous PDF")
                 .disabled(currentIndex == 0)
+                .help("Tests the same mask against the previous PDF in the list.")
                 Text(String(format: NSLocalizedString("PDF %lld of %lld", comment: ""),
                             Int64(currentIndex + 1), Int64(pdfs.count)))
                     .font(.caption.monospacedDigit())
@@ -189,8 +193,8 @@ struct ReceiptEditorView: View {
                 Button { showPDF(at: currentIndex + 1) } label: {
                     Image(systemName: "chevron.right").accessibilityLabel("Next PDF")
                 }
-                .help("Next PDF")
                 .disabled(currentIndex == pdfs.count - 1)
+                .help("Tests the same mask against the next PDF in the list.")
             }
         }
     }
@@ -217,10 +221,12 @@ struct ReceiptEditorView: View {
                 LabeledContent("Partner") {
                     TextField("Partner", text: Binding(get: { mask.partner }, set: { mask.partner = $0; evaluate() }))
                         .labelsHidden()
+                        .help("Name of the business partner whose receipts use this mask.")
                 }
                 LabeledContent("Document Type") {
                     TextField("Document Type", text: Binding(get: { mask.documentType }, set: { mask.documentType = $0; evaluate() }))
                         .labelsHidden()
+                        .help("Category of receipts covered by this mask, such as invoice or delivery note.")
                 }
                 if let maskURL {
                     Text(verbatim: maskURL.lastPathComponent).font(.caption).foregroundStyle(.secondary)
@@ -229,12 +235,15 @@ struct ReceiptEditorView: View {
                     Button("Load Mask…") {
                         if let url = ReceiptFilePanels.open(.json, title: "Choose Extraction Mask").first { loadMask(url) }
                     }
+                    .help("Opens a saved JSON mask and tests its rules against the current PDF.")
                     Button("Reload Mask") {
                         if let maskURL { loadMask(maskURL) }
                     }
                     .disabled(maskURL == nil)
+                    .help("Reads the mask file again and discards unsaved mask changes.")
                     Spacer()
                     Button("Save Mask…") { saveMask() }.disabled(mask.fields.isEmpty)
+                        .help("Saves the rules as a reusable JSON mask.")
                 }
             }
             .padding(.top, 5)
@@ -263,6 +272,7 @@ struct ReceiptEditorView: View {
                         mask.fields.append(ReceiptField(name: name, rule: rule))
                         finishRegion()
                     }
+                    .help("Creates a field that reads text at the same position on this page.")
                     Menu("Replace Field Rule") {
                         ForEach(mask.fields) { field in
                             Button(field.name) {
@@ -275,6 +285,7 @@ struct ReceiptEditorView: View {
                         }
                     }
                     .disabled(mask.fields.isEmpty)
+                    .help("Replaces the selected field’s extraction rule with the marked PDF region.")
                     Spacer()
                     Button("Clear") { selectedRegion = nil }
                 }
@@ -300,7 +311,9 @@ struct ReceiptEditorView: View {
                         }
                         Spacer()
                         Button("Accept") { accept([field]) }
+                            .help("Adds the suggested extraction rule to the mask.")
                         Button("Reject") { reject([field]) }
+                            .help("Dismisses the suggested extraction rule in this editor.")
                     }
                     .controlSize(.small)
                 }
@@ -343,6 +356,7 @@ struct ReceiptEditorView: View {
                     evaluate()
                 }))
                 .accessibilityLabel("Field Name")
+                .help("Names this result field in the mask and the JSON output.")
                 Button(role: .destructive) {
                     mask.fields.removeAll { $0.id == field.id }
                     discardCorrections(for: field.id)
@@ -382,6 +396,7 @@ struct ReceiptEditorView: View {
                     Button("Correct Value…") {
                         sheet = .correction(Correction(field: value.id, source: currentPDF, name: value.name, value: value.value ?? ""))
                     }
+                    .help("Changes the value for this receipt only. The mask’s rule stays the same.")
                 }
                 if let diagnostic = value.diagnostic {
                     Text(verbatim: diagnostic).font(.caption).foregroundStyle(.secondary).textSelection(.enabled)

@@ -115,7 +115,15 @@ pub(crate) fn attach(state: &Shared, view: &View, bridge: Rc<Bridge>) {
             "Empty: CLI default profile store",
         ))
         .build();
-    row(&content, tr("Profilordner", "Profile store"), &directory);
+    row(
+        &content,
+        tr("Profilordner", "Profile store"),
+        tr(
+            "Ordner, aus dem die App Profile lädt und in dem sie neue Profile speichert.",
+            "Folder where the app loads and saves conversion profiles.",
+        ),
+        &directory,
+    );
     let refresh = gtk::Button::with_label(tr("Vorhandene Profile laden", "Load saved profiles"));
     content.append(&refresh);
     let selector = gtk::DropDown::from_strings(&[tr("Ohne Profil", "No profile")]);
@@ -140,7 +148,15 @@ pub(crate) fn attach(state: &Shared, view: &View, bridge: Rc<Bridge>) {
     let name = gtk::Entry::builder()
         .placeholder_text(tr("Name für neues Profil", "Name for a new profile"))
         .build();
-    row(&content, tr("Speichern als", "Save as"), &name);
+    row(
+        &content,
+        tr("Speichern als", "Save as"),
+        tr(
+            "Name, unter dem die aktuellen Konvertierungsoptionen gespeichert werden.",
+            "Name to use when saving the current conversion settings.",
+        ),
+        &name,
+    );
     let bind = gtk::CheckButton::with_label(tr(
         "Inhaltsauswahl an genau eine gewählte Quelle binden",
         "Bind content selection to exactly one selected source",

@@ -75,6 +75,10 @@ pub(super) fn open(
     let outer = padded(12, 18);
     section(&outer, tr("Extraktionsmaske", "Extraction mask"));
     let choose = gtk::Button::with_label(tr("Maske wählen…", "Choose mask…"));
+    choose.set_tooltip_text(Some(tr(
+        "Wählt die gespeicherte JSON-Maske für alle PDFs in der Liste.",
+        "Selects the saved JSON mask for all PDFs in the list.",
+    )));
     let mask_label = single_line("");
     let mask_row = gtk::Box::new(gtk::Orientation::Horizontal, 8);
     mask_row.append(&choose);
@@ -84,6 +88,10 @@ pub(super) fn open(
     let sources = gtk::Box::new(gtk::Orientation::Horizontal, 8);
     section(&sources, tr("Belege", "Receipts"));
     let add = gtk::Button::with_label(tr("PDFs hinzufügen…", "Add PDFs…"));
+    add.set_tooltip_text(Some(tr(
+        "Fügt PDF-Belege hinzu, auf die dieselbe Maske angewendet wird.",
+        "Adds PDF receipts that will use the same mask.",
+    )));
     let spacer = gtk::Box::new(gtk::Orientation::Horizontal, 0);
     spacer.set_hexpand(true);
     sources.append(&spacer);
@@ -97,7 +105,15 @@ pub(super) fn open(
 
     section(&outer, tr("JSON-Ziel", "JSON destination"));
     let folder = gtk::Button::with_label(tr("Ordner wählen…", "Choose folder…"));
+    folder.set_tooltip_text(Some(tr(
+        "Speichert alle JSON-Dateien in einem gemeinsamen Ordner.",
+        "Saves all JSON files in one shared folder.",
+    )));
     let beside = gtk::Button::with_label(tr("Neben PDFs speichern", "Save beside PDFs"));
+    beside.set_tooltip_text(Some(tr(
+        "Speichert jede JSON-Datei im Ordner des zugehörigen PDFs.",
+        "Saves each JSON file in the folder containing its PDF.",
+    )));
     buttons(&outer, &[&folder, &beside]);
     let destination = single_line("");
     outer.append(&destination);
@@ -111,7 +127,15 @@ pub(super) fn open(
     progress.set_visible(false);
     outer.append(&progress);
     let cancel = gtk::Button::with_label(tr("Abbrechen", "Cancel"));
+    cancel.set_tooltip_text(Some(tr(
+        "Stoppt die Stapelverarbeitung. Bereits fertig gespeicherte Ergebnisse bleiben erhalten.",
+        "Stops the batch. Results already saved are kept.",
+    )));
     let run = gtk::Button::with_label(tr("Maske anwenden", "Apply mask"));
+    run.set_tooltip_text(Some(tr(
+        "Wendet die Maske an und schreibt je Beleg eine JSON-Datei. Vorhandene Dateien werden geschützt.",
+        "Applies the mask and writes one JSON file per receipt. Existing files are protected.",
+    )));
     run.add_css_class("suggested-action");
     let actions = gtk::Box::new(gtk::Orientation::Horizontal, 8);
     actions.set_halign(gtk::Align::End);
@@ -532,6 +556,10 @@ impl Batch {
             }
             if item.is_some_and(|item| item.status == ItemStatus::ReviewRequired) {
                 let review = gtk::Button::with_label(tr("Prüfen…", "Review…"));
+                review.set_tooltip_text(Some(tr(
+                    "Öffnet den Beleg mit derselben Maske zur Prüfung und Korrektur.",
+                    "Opens the receipt with the same mask for review and correction.",
+                )));
                 review.set_sensitive(idle);
                 let source = source.clone();
                 clicked(&review, self, move |batch| {

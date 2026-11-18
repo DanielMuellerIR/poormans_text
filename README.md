@@ -256,6 +256,8 @@ quoted, dates are ISO 8601 in UTC. A source without
 any of these gets a warning instead of an empty header. The same fields appear
 as `metadata` in every `--json` answer, whether or not the header was written.
 
+Hover over a control in the conversion options or receipt windows for a short explanation. The YAML frontmatter option adds source details such as title and author at the top of the Markdown file for other tools to read.
+
 `--textbundle` writes `Report.textbundle` instead of `Report-markdown`: the
 Markdown is `text.md`, images live in `assets/`, and `info.json` identifies the
 bundle, so Bear, iA Writer, and Ulysses open it directly. With `--output`, the
@@ -698,8 +700,8 @@ and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compa
 their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current source version is 0.41.22.
-The [release candidate checks](docs/releases/0.41.22-candidate.md) list the
+The current source version is 0.41.23.
+The [release candidate checks](docs/releases/0.41.23-candidate.md) list the
 macOS and Linux workflows tested so far and the gaps before a joint release.
 
 ## License

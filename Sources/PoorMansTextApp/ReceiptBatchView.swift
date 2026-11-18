@@ -36,6 +36,7 @@ struct ReceiptBatchView: View {
                     }
                     Spacer()
                     Button("Choose Mask…") { chooseMask() }
+                        .help("Selects the saved JSON mask for all PDFs in the list.")
                 }
                 .padding(.top, 5)
             }
@@ -45,6 +46,7 @@ struct ReceiptBatchView: View {
                 Text("PDF Documents").font(.headline)
                 Spacer()
                 Button("Choose Files…") { add(ReceiptFilePanels.open(.pdf, title: "Choose PDF Documents", multiple: true)) }
+                    .help("Adds PDF receipts that will use the same mask.")
                     .disabled(isRunning)
             }
 
@@ -94,6 +96,7 @@ struct ReceiptBatchView: View {
                 }
                 .labelsHidden()
                 .pickerStyle(.radioGroup)
+                .help("Saves each JSON beside its PDF or saves all JSON files in one shared folder.")
                 if let outputDirectory {
                     HStack {
                         Text(verbatim: outputDirectory.path).lineLimit(1).truncationMode(.middle)
@@ -129,6 +132,7 @@ struct ReceiptBatchView: View {
                     .disabled(isCancelling)
                 } else {
                     Button("Apply Mask") { run() }
+                        .help("Applies the mask and writes one JSON file per receipt. Existing files are protected.")
                         .keyboardShortcut(.defaultAction)
                         .disabled(inputs.isEmpty || loadedMask == nil || pendingDrops > 0)
                 }
@@ -157,6 +161,7 @@ struct ReceiptBatchView: View {
                     }
                     if item.status == .reviewRequired {
                         Button("Review…") { openWindow(value: ReceiptEditorInput(pdf: input, mask: maskURL, initialMask: loadedMask)) }
+                            .help("Opens the receipt with the same mask for review and correction.")
                     }
                 } else {
                     Text(isRunning ? "Waiting" : "Ready").foregroundStyle(.secondary)

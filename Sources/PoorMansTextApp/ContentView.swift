@@ -453,6 +453,7 @@ struct ContentView: View {
     private var pasteControls: some View {
         VStack(spacing: 6) {
             Button("Paste Text or Image") { model.pasteRichText() }
+                .help("Imports text, rich text, or an image from the clipboard for conversion.")
                 .disabled(!model.acceptsNewDocuments)
                 .accessibilityIdentifier("clipboardPaste")
             Text("⌘V · Rich text, images and screenshots")
@@ -471,14 +472,17 @@ struct ContentView: View {
                     Text(model.destinationFolder?.path ?? NSLocalizedString("Next to each source", comment: ""))
                         .lineLimit(1).truncationMode(.middle)
                     Button("Choose…") { model.chooseDestinationFolder() }
+                        .help("Selects the folder where the app will create new conversion results.")
                     if model.destinationFolder != nil {
                         Button("Reset") { model.destinationFolder = nil }
+                            .help("Saves new results next to their source documents again.")
                     }
                 }
                 Picker("Tables", selection: $model.spreadsheetRendering) {
                     Text("Markdown tables").tag(SpreadsheetRendering.markdownTable)
                     Text("Tab-separated text").tag(SpreadsheetRendering.tabSeparated)
                 }
+                .help("Markdown creates a readable table. Tab-separated text separates cells with tabs for use in spreadsheet tools.")
                 Picker("DOCX text changes", selection: $model.docxChangeMode) {
                     Text("Accept changes").tag(DOCXChangeMode.accept)
                     Text("Reject changes").tag(DOCXChangeMode.reject)
@@ -490,11 +494,13 @@ struct ContentView: View {
                     Text("Add local OCR text").tag(ImageTextRecognition.enabled)
                     Text("Keep only the image").tag(ImageTextRecognition.disabled)
                 }
+                .help("Run local text recognition to include text found in images, or keep just the image.")
                 Picker("PDF OCR", selection: $model.pdfTextRecognition) {
                     Text("Automatic").tag(PDFTextRecognition.automatic)
                     Text("Always").tag(PDFTextRecognition.always)
                     Text("Off").tag(PDFTextRecognition.disabled)
                 }
+                .help("Automatic recognizes text on pages without usable embedded text. Always also checks pages with embedded text. Off uses the existing text layer.")
                 Picker("OCR method", selection: $model.ocrMethod) {
                     Text("Standard OCR").tag(OCRMethod.standard)
                     Text("Structured OCR (macOS 26+)").tag(OCRMethod.structured)
@@ -502,24 +508,34 @@ struct ContentView: View {
                 .accessibilityIdentifier("ocrMethod")
                 .help("Structured OCR preserves paragraphs, lists and tables. If unavailable or uncertain, standard OCR is used with a diagnostic.")
                 TextField("OCR languages (empty: automatic; e.g. de,en)", text: $model.ocrLanguageCodes)
+                    .help("Separate language codes with commas, such as de,en for German and English. Leave empty for automatic selection.")
                 Picker("PDF text order", selection: $model.pdfLayout) {
                     Text("Automatic layout").tag(PDFLayout.automatic)
                     Text("Legacy extraction").tag(PDFLayout.legacy)
                 }
+                .help("Automatic tries to identify columns and reading order. Try legacy extraction if the resulting order is hard to read.")
                 Toggle("Remove repeated PDF headers and footers", isOn: $model.pdfRemoveHeadersFooters)
+                    .help("Omits repeated lines identified as headers or footers from the PDF output.")
                 Toggle("Join conservative PDF word breaks", isOn: $model.pdfDehyphenate)
+                    .help("Joins words when a PDF line break is likely to be a hyphenation break.")
                 Toggle("Include presentation notes", isOn: $model.presentationIncludeNotes)
+                    .help("Includes presenter notes when converting presentations.")
                 Toggle("Record source locations", isOn: $model.sourceMapping)
+                    .help("Links Markdown sections to their locations in the source, such as PDF pages, when possible. This helps when comparing the output with the source.")
                 Toggle("Write conversion report", isOn: $model.conversionReport)
+                    .help("Saves a JSON file alongside the Markdown with conversion details, tools used and warnings.")
                 Picker("Batch documents at once", selection: $model.batchParallelism) {
                     ForEach(1...4, id: \.self) { Text(String($0)).tag($0) }
                 }
+                .help("Number of documents processed at once. A higher value may use more memory.")
                 Text("Local OCR processes one image at a time.").font(.caption)
                 Toggle("Add YAML frontmatter", isOn: $model.frontmatter)
+                    .help("Writes details such as the title, author or date in a block at the top of the Markdown file. A line of three dashes (---) opens and closes the block. Other tools can read these details separately from the text.")
                 Picker("Output", selection: $model.outputLayout) {
                     Text("Markdown folder").tag(OutputLayout.markdownFolder)
                     Text("Textbundle").tag(OutputLayout.textbundle)
                 }
+                .help("Choose a plain output folder or package Markdown and images in a .textbundle folder for apps such as iA Writer.")
             }
             .padding(.top, 8)
             .disabled(!model.acceptsNewDocuments)
@@ -594,9 +610,11 @@ struct ContentView: View {
     }
     @ViewBuilder private var inspectResultButtons: some View {
         Button("Copy Markdown") { model.copyMarkdown() }
+            .help("Copies the entire selected Markdown file to the clipboard.")
         Button("Preview") { showsComparison = false; showsPreview = true; model.loadPreview() }
         if !model.isClipboardResult, model.selectedResult?.isCollection != true {
             Button("Compare") { showsComparison = true; showsPreview = true; model.loadPreview() }
+                .help("Opens the selected Markdown output beside its source.")
         }
         if model.selectedResult?.reportFile != nil { Button("Open Report") { model.openReport() } }
     }

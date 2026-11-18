@@ -5,6 +5,7 @@ import SwiftUI
 @main
 struct PoorMansTextDesktopApp: App {
     @NSApplicationDelegateAdaptor(OpenedDocumentsRelay.self) private var openedDocuments
+    @Environment(\.openWindow) private var openWindow
     @StateObject private var model = AppModel()
     @StateObject private var updates = UpdateController()
     /// Muss die App überleben: `NSApp.servicesProvider` hält nur eine schwache
@@ -58,11 +59,28 @@ struct PoorMansTextDesktopApp: App {
                 // Pandoc-Installation war ⌘O aktiv, aber wirkungslos
                 // (Roadmap-Punkt, 2026-09-10).
                 .disabled(!model.acceptsNewDocuments)
+                Divider()
+                Button("Extract Receipt Data…") { chooseReceiptPDF(openWindow: openWindow) }
+                Button("Apply Mask…") { openWindow(id: "receipt-batch") }
             }
             CommandGroup(after: .pasteboard) {
                 Button("Paste Text or Image") { model.pasteRichText() }
                     .disabled(!model.acceptsNewDocuments)
             }
         }
+        WindowGroup("Receipt Data", for: ReceiptEditorInput.self) { $input in
+            if let input { ReceiptEditorView(input: input) }
+        }
+        .defaultSize(width: 1100, height: 720)
+        Window("Apply Mask", id: "receipt-batch") {
+            ReceiptBatchView()
+        }
+        .defaultSize(width: 810, height: 580)
     }
+}
+
+@MainActor
+func chooseReceiptPDF(openWindow: OpenWindowAction) {
+    guard let pdf = ReceiptFilePanels.open(.pdf, title: "Choose Receipt PDF").first else { return }
+    openWindow(value: ReceiptEditorInput(pdf: pdf))
 }

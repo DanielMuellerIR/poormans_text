@@ -62,8 +62,11 @@ private let ocrMethodHelp = "Local OCR method (structured: macOS 26+, with fallb
 let usage = """
 Usage: poormans-text [options] INPUT [INPUT ...]
        poormans-text --formats [--json] [--pandoc PATH]
+       poormans-text extract --mask FILE [--output-dir DIRECTORY] [--format json] INPUT [INPUT ...]
 
 Convert documents, spreadsheets, presentations, notebooks, mail archives, ENEX notes, PDFs, or images into new Markdown folders.
+
+Run poormans-text extract --help for receipt extraction options and exit codes.
 
 Options:
   -o, --output DIRECTORY  Set the new output directory.

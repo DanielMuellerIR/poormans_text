@@ -5,6 +5,7 @@ import UniformTypeIdentifiers
 
 struct ContentView: View {
     @EnvironmentObject private var model: AppModel
+    @Environment(\.openWindow) private var openWindow
     @AppStorage("CLIInstallDeclined") private var cliInstallDeclined = false
     @AppStorage("PandocInstallDeclined") private var pandocInstallDeclined = false
     @State private var showsCLIInstallOffer = false
@@ -265,6 +266,10 @@ struct ContentView: View {
                     }
                     .accessibilityLabel("Select Content…").accessibilityIdentifier("selectionChoose")
                 }.controlSize(.large)
+                HStack(spacing: 12) {
+                    Button("Extract Receipt Data…") { chooseReceiptPDF(openWindow: openWindow) }
+                    Button("Apply Mask…") { openWindow(id: "receipt-batch") }
+                }
                 pasteControls
             }
 

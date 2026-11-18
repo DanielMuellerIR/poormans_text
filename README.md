@@ -34,6 +34,18 @@ After conversion, choose **Open in Fastra** to open the Markdown directly in Fas
 
 Named profiles can be managed in the app and selected in the **Convert Document with Profile** Shortcuts action. Its **Profile Value / On / Off** choices preserve saved settings or explicitly override them. See the [profile contract](docs/PROFILES.md).
 
+## Extract receipt data on macOS
+
+1. Choose **Extract Receipt Data…** and open an example invoice or delivery note with embedded PDF text.
+2. Enter the partner and document type. Accept suggested invoice or delivery-note fields, or click a word or drag out a region and add a named field. Click a value or source in the preview to locate it in the PDF.
+3. Choose **Save Mask…** to create a reusable JSON mask. **Correct Value…** changes the current result only. Use the field's region rule to change future runs.
+4. Open **Apply Mask…**, choose the saved mask, and drop PDFs or select them in the file picker. Choose **Beside Each PDF** or a common output folder and apply the mask. Use **Review…** on a flagged PDF to inspect the matching fields.
+
+The default result for `Invoice-4711.pdf` is `Invoice-4711.pdf.json`. Existing
+files stay protected. Missing and ambiguous values appear as JSON `null` with a
+review status. See the [receipt extraction contract](docs/RECEIPT-EXTRACTION.md)
+for unattended CLI runs, exit codes and JSON fields.
+
 ## Output
 
 Regular MBOX files and exported Apple Mail `.mbox` packages become ordered message collections with headers, bodies and local assets. In the app, select the overview or a numbered message to open, copy or preview it; the optional report covers the complete collection. App, CLI, Finder service and Shortcuts use the same reader. See the [MBOX limits and variant contract](docs/MBOX.md).
@@ -668,7 +680,7 @@ and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compa
 their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current version is 0.41.19.
+The current source version is 0.41.20.
 
 ## License
 

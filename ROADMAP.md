@@ -41,6 +41,26 @@ Eine Vorplanung von Stapelläufen mit Zielübersicht und früher Auflösung von
 Namenskollisionen sowie eine Warteschlange für zusätzliche Dateien können
 sinnvoll sein. Beides gehört derzeit nicht zum Umsetzungsumfang.
 
+## Belegdaten
+
+- Die Feldregeln an freigegebenen realen Rechnungen und Lieferscheinen mit
+  verschiedenen Layouts prüfen. Belege mit vertraulichen Daten bleiben lokal.
+- Positionstabellen im PDF anhand von markiertem Tabellenkopf und Beispielposition
+  einrichten. Spalten vorschlagen und ihre Grenzen im PDF korrigieren lassen.
+  Tabellen mit und ohne Gitterlinien, mehrzeilige Beschreibungen, wiederholte Köpfe,
+  über Seiten fortgesetzte Positionen, Überträge und Summen getrennt abnehmen.
+- MwSt.-Sätze und Skontobedingungen als eigene Felder erfassen. Gedruckte Beträge
+  samt Fundstellen erhalten und mit den Positionen vergleichen.
+- XML als zweiten Export desselben Ergebnisses ergänzen. Frei gewählte Feldnamen
+  als Attribut oder Inhalt eines festen Elements abbilden, Positionen wiederholen
+  und fehlende von absichtlich leeren Werten unterscheiden. Sonderzeichen über
+  den XML-Serializer behandeln. Für CSV eine ausdrücklich ausgewählte Tabelle
+  über den Stapel exportieren, etwa alle Rechnungspositionen.
+- Dieselbe Maske auf gescannte und gemischte PDFs anwenden. OCR-Fundstellen in
+  denselben Seitenraum überführen, Herkunft sichtbar machen und Konflikte
+  zwischen OCR und eingebettetem Text zur Prüfung melden. Weitere strukturierte
+  Eingabeformate danach ergänzen.
+
 ## Weitere offene Produktarbeit
 
 - RTF: Fortlaufende Nummerierung über verschachtelte Aufzählungen hinweg

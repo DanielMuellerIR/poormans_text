@@ -107,6 +107,18 @@ und fehlende Verfügbarkeit führen mit Diagnose zur bisherigen Erkennung zurüc
 Vertrag und Vergleich stehen unter
 [Strukturierte OCR](STRUCTURED-OCR.md).
 
+## Belegextraktion
+
+Die [Belegextraktion](RECEIPT-EXTRACTION.md) verwendet einen eigenen Auftrag
+neben der Markdown-Konvertierung. Die Maske beschreibt benannte Regeln, der
+Kern wertet sie auf einem neutralen Seiten- und Wortmodell aus. Der erste
+Plattformadapter liefert eingebetteten PDF-Text aus PDFKit. Er führt sichtbare
+Wortgrenzen auf physische Millimeter im ungedrehten PDF-Seitenraum zurück.
+SwiftUI übersetzt PDFView-Auswahlen in denselben Raum, ohne Zoom- oder
+Fensterwerte zu speichern. Der Kern trennt Felder, Fundstellen und Prüfstatus
+und schreibt JSON atomar, mit exklusiver Veröffentlichung neben der Quelle
+oder in einem gemeinsamen Zielordner. App und CLI rufen denselben Stapeldienst auf.
+
 ## Formatneutrale Konvertierung
 
 Die aktuelle Grenze sieht so aus:

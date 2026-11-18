@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.41.20 — 2026-11-18
+
+- Add reusable masks for extracting named fields from PDFs with embedded text on macOS.
+- Add a PDF mask editor, a batch window and the unattended `extract` CLI command. Export field data, source coordinates and review statuses to JSON without overwriting existing files.
+
 ## 0.41.19 — 2026-11-05
 
 - Preserve RTF text backgrounds as highlight markers through the shared import path, including Unicode and nested formatting; retain explicit color approximation diagnostics.

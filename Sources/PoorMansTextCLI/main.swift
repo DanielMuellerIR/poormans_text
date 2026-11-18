@@ -19,10 +19,11 @@ private let signalSources: [DispatchSourceSignal] = [SIGINT, SIGTERM].map { numb
     return source
 }
 private var parsedArguments = ParsedArguments()
+private let rawArguments = Array(CommandLine.arguments.dropFirst())
+private let isReceiptExtraction = rawArguments.first == "extract"
 
 do {
     _ = signalSources
-    let rawArguments = Array(CommandLine.arguments.dropFirst())
     // Der wertbewusste Vorabscan legt den Ausgabemodus fest, bevor der Parser
     // an einem früheren Argument scheitern kann.
     parsedArguments.json = requestsJSONOutput(rawArguments)
@@ -34,6 +35,9 @@ do {
         }
     }
     #endif
+    if isReceiptExtraction {
+        exit(runReceiptExtraction(rawArguments.dropFirst(), cancellation: cancellation))
+    }
     try parseArguments(rawArguments, into: &parsedArguments)
 
     if parsedArguments.showHelp {
@@ -174,6 +178,9 @@ do {
 
     exit(CLIExitCode.success.rawValue)
 } catch {
+    if isReceiptExtraction {
+        exit(writeReceiptCLIError(error, cancellation: cancellation))
+    }
     let message = error.localizedDescription
 
     // `json` stammt aus dem Vorabscan und gilt deshalb auch für einen Fehler

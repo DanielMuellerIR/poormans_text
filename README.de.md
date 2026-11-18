@@ -38,6 +38,18 @@ Nach der Konvertierung öffnet **In Fastra öffnen** das Markdown direkt in Fast
 
 Benannte Profile lassen sich in der App verwalten und in der Kurzbefehle-Aktion **Dokument mit Profil umwandeln** auswählen. **Profilwert / Ein / Aus** übernehmen gespeicherte Einstellungen oder überschreiben sie ausdrücklich. Einzelheiten stehen im [Profilvertrag](docs/PROFILES.md).
 
+## Belegdaten unter macOS auslesen
+
+1. **Belegdaten auslesen…** wählen und eine Beispielrechnung oder einen Lieferschein als PDF mit eingebettetem Text öffnen.
+2. Partner und Belegart eintragen. Feldvorschläge übernehmen oder ein Wort anklicken beziehungsweise einen Rahmen ziehen und daraus ein benanntes Feld anlegen. Ein Klick auf einen Wert oder eine Fundstelle zeigt sie im PDF.
+3. Mit **Maske speichern…** eine wiederverwendbare JSON-Maske anlegen. **Wert korrigieren…** ändert nur das aktuelle Ergebnis. Eine neue Bereichszuordnung für das Feld ändert die Maske für künftige Läufe.
+4. **Maske anwenden…** öffnen, die gespeicherte Maske auswählen und PDFs ablegen oder im Dateidialog auswählen. Die Dateien neben den PDFs oder in einem gemeinsamen Zielordner ausgeben. **Prüfen…** öffnet einen betroffenen Beleg mit seinen Feldern.
+
+Aus `Rechnung-4711.pdf` wird standardmäßig `Rechnung-4711.pdf.json`.
+Vorhandene Dateien bleiben geschützt. Fehlende und mehrdeutige Werte stehen
+als JSON-`null` mit Prüfstatus im Ergebnis. [CLI-Aufruf, Exitcodes und JSON-Felder](docs/RECEIPT-EXTRACTION.md)
+beschreiben den unbeaufsichtigten Lauf.
+
 ## Ausgabe
 
 Reguläre MBOX-Dateien und exportierte Apple-Mail-`.mbox`-Pakete werden zu geordneten Nachrichtensammlungen mit Kopfzeilen, Körpern und lokalen Assets. In der App die Übersicht oder eine nummerierte Nachricht zum Öffnen, Kopieren oder Vorschauen wählen; der optionale Bericht umfasst die vollständige Sammlung. App, CLI, Finder-Dienst und Kurzbefehle verwenden denselben Leser. [MBOX-Grenzen und Varianten](docs/MBOX.md) sind dokumentiert.
@@ -706,7 +718,7 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Version ist 0.41.19.
+Die aktuelle Quellversion ist 0.41.20.
 
 ## Lizenz
 

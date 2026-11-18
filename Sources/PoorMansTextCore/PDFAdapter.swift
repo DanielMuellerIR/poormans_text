@@ -324,17 +324,10 @@ struct PDFAdapter: DocumentConversionAdapter {
                     continue
                 }
                 guard let recognized = result.standard else { throw PDFAdapterError("the standard OCR result is missing") }
-                for line in recognized.lines {
-                    try ConversionExecution.check()
-                    let rectangle = CGRect(x: box.minX + line.bounds.minX * box.width, y: box.minY + line.bounds.minY * box.height,
-                        width: line.bounds.width * box.width, height: line.bounds.height * box.height)
-                    // Nur räumlich gleiche, textgleiche OCR-Dubletten verwerfen.
-                    let key = line.recognized.trimmingCharacters(in: .whitespacesAndNewlines)
-                    if original.contains(where: { source in
-                        source.bounds.intersects(rectangle) && source.text.trimmingCharacters(in: .whitespacesAndNewlines) == key
-                    }) { continue }
+                let supplements = try Self.standardOCRLines(recognized, original: original, bounds: box)
+                for line in supplements {
                     try accountText(line.text, totalBytes: &sourceBytes)
-                    pages[plan.outputIndex].append(PDFTextLine(text: line.text, bounds: rectangle))
+                    pages[plan.outputIndex].append(line)
                 }
             } catch {
                 try ConversionExecution.check()
@@ -382,6 +375,53 @@ struct PDFAdapter: DocumentConversionAdapter {
         try ConversionExecution.report(unit: .page, completed: indices.count, total: indices.count)
         return PDFExtraction(pages: textPages, pageNumbers: indices.map { $0 + 1 }, usedOCR: !plans.isEmpty, hadOCRFailure: failed,
             hasPageWithoutText: textPages.contains { $0.isEmpty }, diagnostics: diagnostics.result, isStructured: true)
+    }
+
+    static func standardOCRLines(_ recognition: TextRecognition, original: [PDFTextLine], bounds: CGRect) throws -> [PDFTextLine] {
+        let candidates = recognition.lines.map { line in
+            let rectangle = CGRect(x: bounds.minX + line.bounds.minX * bounds.width, y: bounds.minY + line.bounds.minY * bounds.height,
+                width: line.bounds.width * bounds.width, height: line.bounds.height * bounds.height)
+            return PDFTextLine(text: line.text, bounds: rectangle)
+        }
+        let splitDuplicates = try splitOCRDuplicateIndices(recognition, candidates: candidates, original: original)
+        return try candidates.indices.compactMap { index in
+            try ConversionExecution.check()
+            guard !splitDuplicates.contains(index) else { return nil }
+            let candidate = candidates[index]
+            let key = recognition.lines[index].recognized.trimmingCharacters(in: .whitespacesAndNewlines)
+            return original.contains(where: { source in
+                source.bounds.intersects(candidate.bounds) && source.text.trimmingCharacters(in: .whitespacesAndNewlines) == key
+            }) ? nil : candidate
+        }
+    }
+
+    private static func splitOCRDuplicateIndices(_ recognition: TextRecognition, candidates: [PDFTextLine], original: [PDFTextLine]) throws -> Set<Int> {
+        guard candidates.count >= 2, !original.isEmpty, candidates.count <= 1_000_000 / original.count else { return [] }
+        func key(_ text: String) -> String {
+            text.split(whereSeparator: \.isWhitespace).joined(separator: " ")
+        }
+        var duplicates = Set<Int>()
+        for source in original {
+            try ConversionExecution.check()
+            let row = source.bounds
+            let edgeTolerance = max(2, row.height / 3)
+            // Vision trennt weit auseinander stehende Zellen, die PDFKit als
+            // eine Zeile liest. Nur die vollständig belegte Zeile darf entfallen.
+            let fragments = candidates.indices.filter { index in
+                let rect = candidates[index].bounds
+                return abs(rect.midY - row.midY) <= min(rect.height, row.height) * 0.4
+                    && rect.minX >= row.minX - edgeTolerance && rect.maxX <= row.maxX + edgeTolerance
+            }.sorted { candidates[$0].bounds.minX < candidates[$1].bounds.minX }
+            guard fragments.count >= 2, let first = fragments.first, let last = fragments.last,
+                  abs(candidates[first].bounds.minX - row.minX) <= edgeTolerance,
+                  abs(candidates[last].bounds.maxX - row.maxX) <= edgeTolerance,
+                  zip(fragments, fragments.dropFirst()).allSatisfy({
+                      candidates[$0].bounds.maxX <= candidates[$1].bounds.minX
+                  }),
+                  key(fragments.map { recognition.lines[$0].recognized }.joined(separator: " ")) == key(source.text) else { continue }
+            duplicates.formUnion(fragments)
+        }
+        return duplicates
     }
 
     private func extractLegacyText(from document: PDFDocument, options: ConversionOptions, indices: [Int]) throws -> PDFExtraction {

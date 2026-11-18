@@ -456,7 +456,7 @@ checksum = "f6b464fbc74e149a392436b17d523f769e057cb6877f6a5c4618bc6f11800548"
 
 [[package]]
 name = "pmt-bridge"
-version = "0.41.21"
+version = "0.41.22"
 dependencies = [
  "libc",
  "serde_json",
@@ -464,11 +464,12 @@ dependencies = [
 
 [[package]]
 name = "poormans-text-gtk"
-version = "0.41.21"
+version = "0.41.22"
 dependencies = [
  "gtk4",
  "libc",
  "pmt-bridge",
+ "serde",
  "serde_json",
 ]
 
@@ -527,6 +528,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9a8e94ea7f378bd32cbbd37198a4a91436180c5bb472411e48b5ec2e2124ae9e"
 dependencies = [
  "serde_core",
+ "serde_derive",
 ]
 
 [[package]]

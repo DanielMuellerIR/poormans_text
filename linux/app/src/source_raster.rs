@@ -25,6 +25,31 @@ struct VerifiedPNG {
     width: u32,
     height: u32,
 }
+impl VerifiedPNG {
+    fn into_texture(self) -> Result<gdk::Texture, String> {
+        let texture = gdk::Texture::from_bytes(&glib::Bytes::from_owned(self.bytes))
+            .map_err(|error| error.to_string())?;
+        if texture.width() != self.width as i32 || texture.height() != self.height as i32 {
+            return Err("Decoded preview dimensions changed".into());
+        }
+        Ok(texture)
+    }
+}
+
+pub(crate) fn receipt_texture(
+    preview: &Value,
+    index: u32,
+    count: usize,
+    hash: &str,
+    size: u64,
+) -> Result<gdk::Texture, String> {
+    let checked = preview_payload(preview, "page", index, hash, size)?;
+    if checked.count as usize != count {
+        return Err("Receipt and source preview page count disagree".into());
+    }
+    checked.into_texture()
+}
+
 fn payload(
     value: &Value,
     kind: &str,
@@ -35,11 +60,20 @@ fn payload(
     if value.get("operation").and_then(Value::as_str) != Some("source-preview") {
         return Err("Unexpected source preview operation".into());
     }
+    let p = value.get("preview").ok_or("Missing source preview")?;
+    preview_payload(p, kind, index, hash, size)
+}
+fn preview_payload(
+    p: &Value,
+    kind: &str,
+    index: u32,
+    hash: &str,
+    size: u64,
+) -> Result<VerifiedPNG, String> {
     if hash.len() != 64 || !hash.bytes().all(|b| b.is_ascii_hexdigit()) || size > 128 * 1024 * 1024
     {
         return Err("Invalid expected source identity or source size limit".into());
     }
-    let p = value.get("preview").ok_or("Missing source preview")?;
     let number = |key: &str| {
         p.get(key)
             .and_then(Value::as_u64)
@@ -629,14 +663,14 @@ impl Pane {
                             };
                             match checked {
                                 Ok(checked) => {
-                                    let texture = gdk::Texture::from_bytes(
-                                        &glib::Bytes::from_owned(checked.bytes),
-                                    );
-                                    match texture {
-                                        Ok(texture)
-                                            if texture.width() == checked.width as i32
-                                                && texture.height() == checked.height as i32 =>
-                                        {
+                                    let VerifiedPNG {
+                                        count,
+                                        width,
+                                        height,
+                                        ..
+                                    } = checked;
+                                    match checked.into_texture() {
+                                        Ok(texture) => {
                                             pane.picture.set_texture(Some(&texture));
                                             for button in &pane.zoom_buttons {
                                                 button.set_sensitive(true);
@@ -647,7 +681,7 @@ impl Pane {
                                             pane.viewport.vadjustment().set_value(0.0);
                                             let mut s = pane.state.borrow_mut();
                                             s.index = index;
-                                            s.count = checked.count;
+                                            s.count = count;
                                             pane.counter.set_text(&format!(
                                                 "{} {index}/{} · {}×{}",
                                                 if pane.kind == "page" {
@@ -655,18 +689,15 @@ impl Pane {
                                                 } else {
                                                     tr("Bild", "Frame")
                                                 },
-                                                checked.count,
-                                                checked.width,
-                                                checked.height
+                                                count,
+                                                width,
+                                                height
                                             ));
                                             pane.previous.set_sensitive(index > 1);
-                                            pane.next.set_sensitive(index < checked.count);
+                                            pane.next.set_sensitive(index < count);
                                             pane.status.set_text(tr("Quellbytes stimmen mit dem Vergleichsbeleg überein.","Source bytes match the comparison identity."));
                                         }
-                                        Ok(_) => pane
-                                            .status
-                                            .set_text("Decoded preview dimensions changed"),
-                                        Err(e) => pane.status.set_text(&e.to_string()),
+                                        Err(e) => pane.status.set_text(&e),
                                     }
                                 }
                                 Err(e) => pane.status.set_text(&e),

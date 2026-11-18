@@ -123,6 +123,7 @@ pub struct Bridge {
 enum Operation {
     Catalog,
     Conversion,
+    ReceiptBatch,
     Other,
 }
 impl Bridge {
@@ -158,6 +159,9 @@ impl Bridge {
     }
     pub fn start_operation(&self, arguments: Vec<OsString>) -> Job {
         self.start(arguments, Operation::Other)
+    }
+    pub fn start_receipt_batch(&self, arguments: Vec<OsString>) -> Job {
+        self.start(arguments, Operation::ReceiptBatch)
     }
     pub fn start_catalog(&self) -> Job {
         self.start(vec![OsString::from("--formats")], Operation::Catalog)
@@ -292,8 +296,10 @@ impl Bridge {
             .arg("--pmt-ui-guard-v1")
             .arg(self.policy.termination_grace.as_millis().to_string())
             .arg("--")
-            .arg(&self.cli)
-            .arg("--json");
+            .arg(&self.cli);
+        if !matches!(operation, Operation::ReceiptBatch) {
+            command.arg("--json");
+        }
         if matches!(operation, Operation::Conversion) {
             command.arg("--progress");
         }
@@ -465,6 +471,19 @@ impl Bridge {
                 None,
             )
         })?;
+        if matches!(operation, Operation::ReceiptBatch) {
+            if value.get("items").and_then(Value::as_array).is_none()
+                || value.get("cancelled").and_then(Value::as_bool).is_none()
+                || value.get("error").is_some_and(|error| !error.is_null())
+            {
+                return Err(error(
+                    ErrorKind::InvalidResponse,
+                    "The CLI did not return a receipt batch summary.".into(),
+                    Some(value),
+                ));
+            }
+            return Ok(value);
+        }
         if value.get("ok").and_then(Value::as_bool) != Some(true)
             || value.get("error").is_some_and(|error| !error.is_null())
         {
@@ -492,7 +511,7 @@ impl Bridge {
         let validation = match operation {
             Operation::Catalog => validate_catalog(&value),
             Operation::Conversion => validate_conversion(&value, None),
-            Operation::Other => Ok(()),
+            Operation::Other | Operation::ReceiptBatch => Ok(()),
         };
         validation.map_err(|mut e| {
             e.stderr = stderr_text;

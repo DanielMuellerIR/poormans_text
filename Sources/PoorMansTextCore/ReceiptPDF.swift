@@ -1,14 +1,24 @@
+import Foundation
 #if os(macOS)
 import CoreGraphics
-import Foundation
 import PDFKit
+#endif
 
 public enum ReceiptPDF {
-    private static let maximumSourceBytes = 64 * 1_024 * 1_024
-    private static let maximumPages = 1_000
-    private static let maximumPageCharacters = 100_000
-    private static let maximumDocumentCharacters = 1_000_000
+    static let maximumSourceBytes = 64 * 1_024 * 1_024
+    static let maximumPages = 1_000
+    static let maximumPageCharacters = 100_000
+    static let maximumDocumentCharacters = 1_000_000
 
+    public static func read(at url: URL) throws -> ReceiptDocument {
+        #if os(macOS)
+        return try read(open(at: url))
+        #else
+        return try LinuxReceiptPDF.read(at: url).document
+        #endif
+    }
+
+    #if os(macOS)
     public static func open(at url: URL) throws -> PDFDocument {
         let data = try VerifiedFile.open(at: url, failure: { _ in
             ReceiptPDFError("The PDF source could not be read.")
@@ -160,11 +170,11 @@ public enum ReceiptPDF {
                             width: box.width / pointsPerMillimeter, height: box.height / pointsPerMillimeter)
         return usable(result) ? result : nil
     }
+    #endif
 }
 
-private struct ReceiptPDFError: LocalizedError {
+struct ReceiptPDFError: LocalizedError {
     let errorDescription: String?
 
     init(_ message: String) { errorDescription = message }
 }
-#endif

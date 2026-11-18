@@ -1,6 +1,7 @@
 # Extract receipt data
 
-The macOS editor saves a versioned JSON mask for one partner and document type.
+The macOS and Linux GTK editors save the same versioned JSON mask for one
+partner and document type.
 A region rule reads a rectangle on a given page. The date and identifier
 suggestions look for a value of the expected shape on the same row to the
 right of a label. The label and value can move together between receipts.
@@ -60,7 +61,9 @@ PDF coordinate origin, with y increasing upwards. Cropping and display zoom
 do not change these coordinates. The origin of every current source is
 `embeddedText`.
 
-This first version reads embedded text in PDFs on macOS. It supports the
+Receipt extraction reads embedded text using PDFKit on macOS and Poppler on
+Linux. Linux also uses qpdf 11 or later to check PDF encryption and page
+geometry. It supports the
 printed date forms `YYYY-MM-DD` and day–month–year with dots, slashes or
 hyphens, and alphanumeric identifiers containing at least one digit. The
 limits are 64 MiB, 1,000 pages, 100,000 UTF-16 units per page and one million

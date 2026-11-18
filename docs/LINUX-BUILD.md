@@ -195,6 +195,7 @@ ausdrücklich installierte Distributionspakete:
 | Rasterdecoder | `python3-pil` | `python-pillow` |
 | HEIC (optional) | `libheif1`, `libheif-plugin-libde265` | `libheif`; beim geprüften Pluginstand zusätzlich `ffmpeg` |
 | PDF | `python3-gi`, `python3-cairo`, `python3-gi-cairo`, `gir1.2-poppler-0.18` | `python-gobject`, `python-cairo`, `poppler-glib` |
+| PDF-Belegdaten | PDF-Abhängigkeiten und `qpdf` ab Version 11 | PDF-Abhängigkeiten und `qpdf` ab Version 11 |
 | Legacy-DOC | `libreoffice-writer`, `python3-uno`, Pandoc | `libreoffice-fresh`, zum System-Python passende UNO-Bindings, Pandoc |
 | Standard-OCR | `tesseract-ocr` und gewählte Sprachpakete | `tesseract` und gewählte `tesseract-data-*` |
 

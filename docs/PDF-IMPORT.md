@@ -73,8 +73,10 @@ Ergebnisse mit geringer Erkennungswahrscheinlichkeit erscheinen als
 128-MiB-Ausgabebudgets.
 
 Im automatischen Layout bleibt eingebetteter Text vollständig erhalten. Der Adapter ergänzt OCR-Zeilen
-und entfernt nur räumlich überlappende, exakt textgleiche Dubletten. Abweichende
-OCR-Lesarten können deshalb zusätzlich zum digitalen Original erscheinen.
+und entfernt räumlich überlappende, exakt textgleiche Dubletten. Teilt die
+Standard-OCR eine digitale Zeile in mehrere Teile, müssen diese zusammen
+denselben vollständigen Text an derselben Stelle ergeben. Abweichende
+OCR-Lesarten können zusätzlich zum digitalen Original erscheinen.
 
 Die automatische Textordnung liest Zeichen über `PDFSelection` und prüft den
 nichtleeren Zeichenbestand. Synthetische Leerzeichen bestimmen nicht die Breite

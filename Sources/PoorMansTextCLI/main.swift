@@ -21,6 +21,10 @@ private let signalSources: [DispatchSourceSignal] = [SIGINT, SIGTERM].map { numb
 private var parsedArguments = ParsedArguments()
 private let rawArguments = Array(CommandLine.arguments.dropFirst())
 private let isReceiptExtraction = rawArguments.first == "extract"
+#if os(Linux)
+private let receiptEditorArguments = rawArguments.first == "--json" ? rawArguments.dropFirst() : rawArguments[...]
+private let isReceiptEditor = receiptEditorArguments.first == "receipt-editor"
+#endif
 
 do {
     _ = signalSources
@@ -38,6 +42,11 @@ do {
     if isReceiptExtraction {
         exit(runReceiptExtraction(rawArguments.dropFirst(), cancellation: cancellation))
     }
+    #if os(Linux)
+    if isReceiptEditor {
+        exit(runReceiptEditor(receiptEditorArguments.dropFirst(), cancellation: cancellation))
+    }
+    #endif
     try parseArguments(rawArguments, into: &parsedArguments)
 
     if parsedArguments.showHelp {
@@ -178,6 +187,11 @@ do {
 
     exit(CLIExitCode.success.rawValue)
 } catch {
+    #if os(Linux)
+    if isReceiptEditor {
+        exit(writeReceiptCLIError(error, cancellation: cancellation))
+    }
+    #endif
     if isReceiptExtraction {
         exit(writeReceiptCLIError(error, cancellation: cancellation))
     }

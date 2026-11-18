@@ -33,6 +33,21 @@ final class RTFDTests: XCTestCase {
     }
 
 
+    func testCocoaRasterAttachmentConsumesItsPlaceholderAndPreservesFollowingText() throws {
+        let image = try XCTUnwrap(Data(base64Encoded: "iVBORw0KGgoAAAANSUhEUgAAABAAAAAMCAIAAADkharWAAAAGElEQVR4nGP8z0AaYCJRPcOoBmLAcAglAGavARduQJjLAAAAAElFTkSuQmCC"))
+        let before = #"{\rtf1\ansi\ansicpg1252\cocoartf2870 BEFORE "#
+        let attachment = #"{{\NeXTGraphic image.png \width320 \height240 \appleattachmentpadding0 \appleembedtype0 \appleaqc"#
+        let after = #" AFTER\par NEXT}"#
+        let source = Data((before + attachment + "\n}").utf8) + Data([0xAC, 0x7D]) + Data(after.utf8)
+        let url = try package(source, asset: image)
+        let prepared = try LinuxRTFDPreparation.prepare(package: url)
+        let restored = try prepared.restoringImages(in: String(decoding: prepared.data, as: UTF8.self),
+                                                    packageName: "source.rtfd", inputURL: url)
+        XCTAssertEqual(restored, before + #"<img src="source.rtfd/image.png" alt="image">"# + after)
+        XCTAssertEqual(try Data(contentsOf: url.appendingPathComponent("TXT.rtf")), source)
+        XCTAssertEqual(try Data(contentsOf: url.appendingPathComponent("image.png")), image)
+    }
+
     func testSingleFrameRasterAttachmentsKeepOriginalBytesExtensionAndPosition() throws {
         let fixtures: [String: String] = [
             "bmp": "Qk12AgAAAAAAADYAAAAoAAAAEAAAAAwAAAABABgAAAAAAEACAADEDgAAxA4AAAAAAAAAAAAAAAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/",

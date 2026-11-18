@@ -33,7 +33,6 @@ public enum ReceiptBatch {
         progress: (@Sendable (Int, Int, ReceiptBatchItem) -> Void)? = nil
     ) throws -> ReceiptBatchSummary {
         try mask.validate()
-        #if os(macOS)
         if let outputDirectory {
             var isDirectory: ObjCBool = false
             guard outputDirectory.isFileURL,
@@ -58,19 +57,14 @@ public enum ReceiptBatch {
             return items
         }
         return ReceiptBatchSummary(items: items, cancelled: items.contains { $0.status == .cancelled })
-        #else
-        throw ReceiptError.unsupportedPlatform
-        #endif
     }
 
-    #if os(macOS)
     private static func process(_ input: URL, output: URL, mask: ReceiptMask, conflict: Bool) -> ReceiptBatchItem {
         do {
             try ConversionExecution.check()
             guard !conflict, !ReceiptJSON.destinationExists(output) else { throw ReceiptError.outputConflict(output) }
-            let pdf = try ReceiptPDF.open(at: input)
-            let document = try ReceiptPDF.read(pdf)
-            let result = try ReceiptExtractor.evaluate(mask, in: document, checkCancellation: ConversionExecution.check)
+            let document = try ReceiptPDF.read(at: input)
+            let result = try ReceiptExtractor.evaluateForExport(mask, in: document)
             try result.write(to: output)
             let review = result.fields.filter { $0.status.needsReview }.map(\.name)
             return ReceiptBatchItem(source: input.path, output: output.path,
@@ -85,12 +79,15 @@ public enum ReceiptBatch {
 
     private static func pathKey(_ url: URL) -> String {
         let parent = url.deletingLastPathComponent().resolvingSymlinksInPath().standardizedFileURL
+        #if os(macOS)
         let caseSensitive = try? parent.resourceValues(forKeys: [.volumeSupportsCaseSensitiveNamesKey])
             .volumeSupportsCaseSensitiveNames
         let name = caseSensitive == true ? url.lastPathComponent : url.lastPathComponent.lowercased()
+        #else
+        let name = url.lastPathComponent
+        #endif
         return parent.path + "/" + name
     }
-    #endif
 }
 
 enum ReceiptJSON {
@@ -102,6 +99,17 @@ enum ReceiptJSON {
 
     static func write(_ data: Data, to url: URL) throws {
         try ConversionExecution.check()
+        #if os(Linux)
+        try LinuxPathValidation.validate(url)
+        guard !destinationExists(url) else { throw ReceiptError.outputConflict(url) }
+        let publication = try LinuxOutputPublication(outputURL: url)
+        try data.write(to: publication.temporaryRoot.appendingPathComponent("result"))
+        do {
+            try publication.publish(beforeRename: ConversionExecution.check)
+        } catch ConversionError.outputAlreadyExists {
+            throw ReceiptError.outputConflict(url)
+        }
+        #else
         let parent = url.deletingLastPathComponent().resolvingSymlinksInPath()
         let staging = parent.appendingPathComponent(".pmt-receipt-" + UUID().uuidString, isDirectory: true)
         let manager = FileManager.default
@@ -111,17 +119,14 @@ enum ReceiptJSON {
         let temporary = staging.appendingPathComponent("result")
         try data.write(to: temporary)
         try ConversionExecution.check()
-        #if os(macOS)
         // Eine exklusive Umbenennung veröffentlicht die fertige Datei in einem Schritt.
         let status = renamex_np(temporary.path, url.path, UInt32(RENAME_EXCL))
-        #else
-        let status = link(temporary.path, url.path)
-        #endif
         if status != 0 {
             let error = errno
             if error == EEXIST || destinationExists(url) { throw ReceiptError.outputConflict(url) }
             throw POSIXError(POSIXErrorCode(rawValue: error) ?? .EIO)
         }
+        #endif
     }
 
     static func destinationExists(_ url: URL) -> Bool {

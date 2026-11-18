@@ -122,7 +122,6 @@ public enum ReceiptError: LocalizedError, Sendable {
     case invalidDocument(String)
     case invalidOutputDirectory(URL)
     case outputConflict(URL)
-    case unsupportedPlatform
 
     public var errorDescription: String? {
         switch self {
@@ -132,8 +131,6 @@ public enum ReceiptError: LocalizedError, Sendable {
             return "Output directory is unavailable: \(url.path)"
         case let .outputConflict(url):
             return "Output name is already in use: \(url.path)"
-        case .unsupportedPlatform:
-            return "Receipt extraction currently requires macOS."
         }
     }
 }

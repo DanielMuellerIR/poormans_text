@@ -181,12 +181,14 @@ enum VerifiedFileStaging {
     static func contents(
         of sourceURL: URL,
         maximumBytes: Int,
-        describedAs subject: String
+        describedAs subject: String,
+        followSourceSymlink: Bool = true
     ) throws -> Data {
         try withVerifiedSource(
             at: sourceURL,
             maximumBytes: maximumBytes,
-            describedAs: subject
+            describedAs: subject,
+            followSourceSymlink: followSourceSymlink
         ) { source, size in
             var contents = Data()
             contents.reserveCapacity(Int(size))

@@ -114,3 +114,19 @@ func writeReceiptCLIError(_ error: Error, cancellation: ConversionCancellationTo
     writeJSON(ReceiptCLIError(error: message, cancelled: cancelled))
     return cancelled ? CLIExitCode.cancelled.rawValue : 2
 }
+
+#if os(Linux)
+func runReceiptEditor(_ arguments: ArraySlice<String>, cancellation: ConversionCancellationToken) -> Int32 {
+    do {
+        guard arguments.count == 2, arguments.first == "--request", let path = arguments.last else {
+            throw CLIArgumentError.invalidConversionOption("receipt-editor requires --request FILE")
+        }
+        let response = try ReceiptEditorProtocol.run(requestFile: fileURL(path, option: "--request"),
+                                                     cancellation: cancellation)
+        FileHandle.standardOutput.write(response)
+        return 0
+    } catch {
+        return writeReceiptCLIError(error, cancellation: cancellation)
+    }
+}
+#endif

@@ -5,6 +5,7 @@ mod model;
 mod preferences;
 mod profiles;
 mod read_output;
+mod receipt;
 mod source_canvas;
 mod source_raster;
 use gtk::{gio, glib, prelude::*};
@@ -308,7 +309,17 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
     let folder = gtk::Button::with_label(tr("Ordner wählen…", "Choose folder…"));
     let clear = gtk::Button::with_label(tr("Leeren", "Clear"));
     let catalog = gtk::Button::with_label(tr("Formate und Werkzeuge", "Formats and tools"));
-    for b in [&choose, &folder, &clear, &catalog] {
+    let receipt_editor =
+        gtk::Button::with_label(tr("Belegmaske bearbeiten…", "Edit receipt mask…"));
+    let receipt_batch = gtk::Button::with_label(tr("Belegmaske anwenden…", "Apply receipt mask…"));
+    for b in [
+        &choose,
+        &folder,
+        &clear,
+        &catalog,
+        &receipt_editor,
+        &receipt_batch,
+    ] {
         source_controls.append(b);
     }
     outer.append(&source_controls);
@@ -681,6 +692,22 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
     });
     clipboard_ui::attach_clipboard(&state, &view);
     profiles::attach(&state, &view, bridge.clone());
+    for (button, open) in [
+        (
+            receipt_editor,
+            receipt::open_editor as fn(&gtk::ApplicationWindow, &Bridge, &[PathBuf]),
+        ),
+        (receipt_batch, receipt::open_batch),
+    ] {
+        let window = window.downgrade();
+        let state = state.clone();
+        let bridge = bridge.clone();
+        button.connect_clicked(move |_| {
+            if let Some(window) = window.upgrade() {
+                open(&window, &bridge, &state.borrow().sources);
+            }
+        });
+    }
     {
         let state = state.clone();
         let view = view.clone();

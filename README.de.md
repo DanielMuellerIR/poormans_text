@@ -38,21 +38,22 @@ Nach der Konvertierung öffnet **In Fastra öffnen** das Markdown direkt in Fast
 
 Benannte Profile lassen sich in der App verwalten und in der Kurzbefehle-Aktion **Dokument mit Profil umwandeln** auswählen. **Profilwert / Ein / Aus** übernehmen gespeicherte Einstellungen oder überschreiben sie ausdrücklich. Einzelheiten stehen im [Profilvertrag](docs/PROFILES.md).
 
-## Belegdaten unter macOS auslesen
+## Belegdaten auslesen
 
-Lege für einen Geschäftspartner und eine Belegart eine Maske an und verwende
-sie für weitere PDFs mit demselben Layout. Die Maske legt fest, wie Felder
-wie Rechnungsnummer und Datum gefunden werden. Die App zeigt die Werte neben
-dem PDF und springt auf Wunsch zur Fundstelle.
+Lege für einen Geschäftspartner und eine Belegart eine JSON-Maske an und
+verwende sie für weitere PDFs mit demselben Layout. Die Maske legt fest, wie
+Felder wie Rechnungsnummer und Datum gefunden werden. Die macOS- und GTK-Apps
+zeigen die ausgelesenen Werte neben dem PDF. Unter Linux benötigt der Ablauf
+Poppler und qpdf ab Version 11. [Linux-Pakete und Abhängigkeiten](docs/LINUX-BUILD.md).
 
-1. **Belegdaten auslesen…** wählen und eine Beispielrechnung oder einen Lieferschein als PDF mit eingebettetem Text öffnen.
-2. Partner und Belegart eintragen. Feldvorschläge übernehmen oder ein Wort anklicken beziehungsweise einen Rahmen ziehen und daraus ein benanntes Feld anlegen. Ein Klick auf einen Wert oder eine Fundstelle zeigt sie im PDF.
-3. Über **Prüf-PDFs hinzufügen…** mehrere Belege mit der aktuellen Maske prüfen. Mit den Pfeilen zwischen den PDFs wechseln. Mit **Maske speichern…** die wiederverwendbare JSON-Maske anlegen. **Wert korrigieren…** ändert nur das aktuelle Ergebnis. Eine neue Bereichszuordnung für das Feld ändert die Maske für künftige Läufe.
-4. **Maske anwenden…** öffnen, die gespeicherte Maske auswählen und PDFs ablegen oder im Dateidialog auswählen. Die Dateien neben den PDFs oder in einem gemeinsamen Zielordner ausgeben. **Prüfen…** öffnet einen betroffenen Beleg mit seinen Feldern.
+1. Auf macOS **Belegdaten auslesen…** oder unter Linux **Belegmaske bearbeiten…** wählen. Eine Beispielrechnung oder einen Lieferschein als PDF mit eingebettetem Text öffnen.
+2. Partner und Belegart eintragen. Feldvorschläge übernehmen oder einen Rahmen ziehen und daraus ein benanntes Feld anlegen. Ein Klick auf einen Ergebniswert zeigt seine Fundstelle im PDF.
+3. Auf macOS **Prüf-PDFs hinzufügen…** oder unter Linux **PDFs hinzufügen…** wählen. Mit den Pfeilen zwischen den Belegen wechseln und die Maske in einer neuen JSON-Datei speichern. Eine manuelle Wertkorrektur gehört zum aktuellen Beleg. Das korrigierte Ergebnis in eine neue Datei exportieren.
+4. Auf macOS **Maske anwenden…** oder unter Linux **Belegmaske anwenden…** öffnen. Die gespeicherte Maske und die PDFs auswählen. Die Ergebnisse neben den PDFs oder in einem gemeinsamen Zielordner ausgeben. **Prüfen…** öffnet einen betroffenen Beleg mit seinen Feldern.
 
-![Belegeditor mit einer Beispielrechnung links und den ausgelesenen Feldern rechts. Das Datum ist als mehrdeutig markiert.](docs/images/receipt-editor.png)
+![Belegeditor unter macOS mit einer Beispielrechnung links und den ausgelesenen Feldern rechts. Das Datum ist als mehrdeutig markiert.](docs/images/receipt-editor.png)
 
-Dieselbe Maske liefert auch im Skript dieselben JSON-Ergebnisse:
+Ein Skript kann dieselbe Maske verwenden und JSON ausgeben.
 
 ```sh
 mkdir -p Ergebnisse
@@ -62,7 +63,8 @@ poormans-text extract --mask rechnungsmaske.json --output-dir Ergebnisse Rechnun
 Ohne Zielordner schreiben App und CLI `Rechnung-4711.pdf.json` neben das PDF.
 Vorhandene Dateien bleiben geschützt. Fehlende und mehrdeutige Werte stehen
 als JSON-`null` mit Prüfstatus und gegebenenfalls Fundstellen im Ergebnis.
-Die Funktion liest eingebetteten PDF-Text und gibt JSON aus.
+Die Funktion liest eingebetteten PDF-Text und gibt JSON aus. Gescannte Belege
+brauchen dafür eine eingebettete Textebene.
 Die [CLI-Dokumentation](docs/RECEIPT-EXTRACTION.md) beschreibt die JSON-Felder,
 die maschinenlesbare Laufzusammenfassung und die Exitcodes.
 
@@ -734,7 +736,7 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Quellversion ist 0.41.21.
+Die aktuelle Quellversion ist 0.41.22.
 
 ## Lizenz
 

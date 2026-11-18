@@ -34,18 +34,20 @@ After conversion, choose **Open in Fastra** to open the Markdown directly in Fas
 
 Named profiles can be managed in the app and selected in the **Convert Document with Profile** Shortcuts action. Its **Profile Value / On / Off** choices preserve saved settings or explicitly override them. See the [profile contract](docs/PROFILES.md).
 
-## Extract receipt data on macOS
+## Extract receipt data
 
-Create a mask for a partner and document type, then reuse it across PDFs with
-the same layout. The mask specifies where to find fields such as the invoice
-number and date. The app shows each value alongside its source in the PDF.
+Create a JSON mask for a partner and document type, then reuse it across PDFs
+with the same layout. The mask specifies where to find fields such as the
+invoice number and date. The macOS and GTK apps show the extracted values next
+to the PDF. On Linux, this workflow requires Poppler and qpdf 11 or later.
+[Linux packages and dependencies](docs/LINUX-BUILD.md).
 
-1. Choose **Extract Receipt Data…** and open an example invoice or delivery note with embedded PDF text.
-2. Enter the partner and document type. Accept suggested invoice or delivery-note fields, or click a word or drag out a region and add a named field. Click a value or source in the preview to locate it in the PDF.
-3. Use **Add Test PDFs…** to preview the current mask on several PDFs. The arrows change the active PDF. Choose **Save Mask…** to create a reusable JSON mask. **Correct Value…** changes the current result only. Use the field's region rule to change future runs.
-4. Open **Apply Mask…**, choose the saved mask, and drop PDFs or select them in the file picker. Choose **Beside Each PDF** or a common output folder and apply the mask. Use **Review…** on a flagged PDF to inspect the matching fields.
+1. Choose **Extract Receipt Data…** on macOS or **Edit receipt mask…** on Linux. Open an example invoice or delivery note with embedded PDF text.
+2. Enter the partner and document type. Accept suggested invoice or delivery-note fields or drag out a region and add a named field. Select a result to locate its source in the PDF.
+3. Use **Add Test PDFs…** on macOS or **Add PDFs…** on Linux. Use the arrows to check the current mask on each document and save the mask to a new JSON file. A manual value correction belongs to the current receipt. Export the corrected result to a new file.
+4. Open **Apply Mask…** on macOS or **Apply receipt mask…** on Linux. Choose the saved mask and add PDFs. Write the results beside each PDF or in a common output folder. Use **Review…** on a flagged PDF to inspect the matching fields.
 
-![Receipt editor with an example invoice on the left and extracted fields on the right. The date is marked ambiguous.](docs/images/receipt-editor.png)
+![macOS receipt editor with an example invoice on the left and extracted fields on the right. The date is marked ambiguous.](docs/images/receipt-editor.png)
 
 Use the same mask and JSON output from a script:
 
@@ -57,7 +59,8 @@ poormans-text extract --mask invoice-mask.json --output-dir Results Invoice-4711
 Without `--output-dir`, the app and CLI write `Invoice-4711.pdf.json`
 beside the PDF. Existing files stay protected. Missing and ambiguous values
 appear as JSON `null` with a review status and any matching sources. This
-feature reads embedded PDF text and exports JSON. The
+feature reads embedded PDF text and exports JSON. Scanned receipts need an
+embedded text layer for this workflow. The
 [receipt extraction contract](docs/RECEIPT-EXTRACTION.md) documents the JSON
 fields, machine-readable run summary and exit codes.
 
@@ -695,7 +698,7 @@ and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compa
 their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current source version is 0.41.21.
+The current source version is 0.41.22.
 
 ## License
 

@@ -6,6 +6,28 @@ import XCTest
 @testable import PoorMansTextCore
 
 final class PDFQualityTests: XCTestCase {
+    func testStandardOCRDoesNotRepeatDigitalRowSplitIntoCells() throws {
+        let page = CGRect(x: 0, y: 0, width: 1000, height: 1000)
+        let original = [PDFTextLine(text: "Potosi Pupfish  Cyprinodon alvarezi",
+                                    bounds: CGRect(x: 60, y: 633, width: 147, height: 11))]
+        func observation(_ text: String, x: CGFloat, y: CGFloat, width: CGFloat) -> RecognizedTextLine {
+            RecognizedTextLine(text: text, bounds: CGRect(x: x / page.width, y: y / page.height,
+                                                         width: width / page.width, height: 10 / page.height))
+        }
+        let left = observation("Potosi Pupfish", x: 59, y: 632, width: 55)
+        let right = observation("Cyprinodon alvarezi", x: 128, y: 631, width: 79)
+        let repeatedElsewhere = observation(left.text, x: 59, y: 580, width: 55)
+        let newTextOnSameRow = observation("Photograph caption", x: 250, y: 632, width: 100)
+        let recognition = TextRecognition(text: "", lines: [right, left, newTextOnSameRow, repeatedElsewhere])
+        XCTAssertEqual(try PDFAdapter.standardOCRLines(recognition, original: original, bounds: page).map(\.text),
+                       [newTextOnSameRow.text, repeatedElsewhere.text])
+
+        let differingCell = observation("Cyprinodon alvarez!", x: 128, y: 631, width: 79)
+        let mismatch = TextRecognition(text: "", lines: [left, differingCell])
+        XCTAssertEqual(try PDFAdapter.standardOCRLines(mismatch, original: original, bounds: page).map(\.text),
+                       [left.text, differingCell.text])
+    }
+
     func testRealMixedColumnsAndMarginsPreserveSourceContent() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)

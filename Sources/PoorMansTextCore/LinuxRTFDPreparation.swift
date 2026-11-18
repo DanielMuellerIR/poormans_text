@@ -92,7 +92,16 @@ struct LinuxRTFDPreparation {
                     }
                     guard replacements.count < RichTextLimits.maximumPackageEntries else { throw failure("RTFD attachment count exceeds its limit") }
                     let marker = prefix + String(replacements.count) + "END"
-                    replacements.append((group.start..<(index + 1), marker, name))
+                    var range = group.start..<(index + 1)
+                    // Cocoa umschließt die Bilddestination und ihr Platzhalterbyte mit
+                    // einer eigenen Gruppe. Das Byte gehört zum Bild, nicht zum Text.
+                    if groups.count > 1, let outer = groups.last, outer.start + 1 == group.start,
+                       index + 2 < bytes.count, bytes[index + 1] == 0xAC, bytes[index + 2] == 125 {
+                        groups.removeLast()
+                        range = outer.start..<(index + 3)
+                        index += 2
+                    }
+                    replacements.append((range, marker, name))
                 }
                 index += 1; continue
             }
@@ -214,13 +223,13 @@ struct LinuxRTFDPreparation {
                                         failure: (String) -> ConversionError) throws -> String {
         var name = [UInt8]()
         var index = 0
-        var dimensionsStarted = false
+        var controlsStarted = false
         while index < bytes.count {
             if bytes[index] == 92 {
                 index += 1
                 guard index < bytes.count else { throw failure("RTFD attachment name is truncated") }
-                if [92, 123, 125].contains(bytes[index]), !dimensionsStarted { name.append(bytes[index]); index += 1; continue }
-                if bytes[index] == 39, !dimensionsStarted {
+                if [92, 123, 125].contains(bytes[index]), !controlsStarted { name.append(bytes[index]); index += 1; continue }
+                if bytes[index] == 39, !controlsStarted {
                     guard index + 2 < bytes.count,
                           let value = UInt8(String(decoding: bytes[(index + 1)...(index + 2)], as: UTF8.self), radix: 16) else {
                         throw failure("RTFD attachment name has an invalid byte escape")
@@ -230,13 +239,20 @@ struct LinuxRTFDPreparation {
                 let start = index
                 while index < bytes.count, (65...90).contains(bytes[index]) || (97...122).contains(bytes[index]) { index += 1 }
                 let word = String(decoding: bytes[start..<index], as: UTF8.self)
-                guard ["width", "height"].contains(word) else { throw failure("unsupported RTFD attachment-name control: \(word)") }
-                dimensionsStarted = true
+                guard ["width", "height", "appleattachmentpadding", "appleembedtype", "appleaqc"].contains(word) else {
+                    throw failure("unsupported RTFD attachment-name control: \(word)")
+                }
+                controlsStarted = true
+                if word == "appleaqc" { continue }
+                let parameterStart = index
                 if index < bytes.count, bytes[index] == 45 { index += 1 }
                 let numberStart = index
                 while index < bytes.count, (48...57).contains(bytes[index]) { index += 1 }
-                guard index > numberStart else { throw failure("RTFD attachment dimensions are malformed") }
-            } else if dimensionsStarted {
+                guard index > numberStart else { throw failure("RTFD attachment parameter is malformed: \(word)") }
+                if word == "appleembedtype", !bytes[parameterStart..<index].elementsEqual([48]) {
+                    throw failure("RTFD supports only static image attachments")
+                }
+            } else if controlsStarted {
                 guard [9, 10, 13, 32].contains(bytes[index]) else { throw failure("RTFD attachment contains unexpected content") }
                 index += 1
             } else {

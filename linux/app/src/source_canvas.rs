@@ -1,6 +1,8 @@
 use gtk::{gdk, glib, graphene, prelude::*, subclass::prelude::*};
 use std::cell::{Cell, RefCell};
 
+pub(crate) type CanvasRect = [f64; 4];
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) enum Zoom {
     Fit,
@@ -12,12 +14,16 @@ mod imp {
     pub struct SourceCanvas {
         pub(super) texture: RefCell<Option<gdk::Texture>>,
         pub(super) zoom: Cell<Zoom>,
+        pub(super) marks: RefCell<Vec<CanvasRect>>,
+        pub(super) selection: Cell<Option<CanvasRect>>,
     }
     impl Default for SourceCanvas {
         fn default() -> Self {
             Self {
                 texture: RefCell::new(None),
                 zoom: Cell::new(Zoom::Fit),
+                marks: RefCell::new(vec![]),
+                selection: Cell::new(None),
             }
         }
     }
@@ -70,6 +76,29 @@ mod imp {
                     texture,
                     &graphene::Rect::new(x as f32, y as f32, w as f32, h as f32),
                 );
+                let draw = |[left, top, width, height]: CanvasRect, color: [f32; 3]| {
+                    let [r, g, b] = color;
+                    let bounds = graphene::Rect::new(
+                        (x + left * w) as f32,
+                        (y + top * h) as f32,
+                        (width * w) as f32,
+                        (height * h) as f32,
+                    );
+                    snapshot.append_color(&gdk::RGBA::new(r, g, b, 0.20), &bounds);
+                    snapshot.append_border(
+                        &gtk::gsk::RoundedRect::from_rect(bounds, 0.0),
+                        &[1.5; 4],
+                        &std::array::from_fn(|_| gdk::RGBA::new(r, g, b, 1.0)),
+                    );
+                };
+                snapshot.push_clip(&graphene::Rect::new(x as f32, y as f32, w as f32, h as f32));
+                for &rect in self.marks.borrow().iter() {
+                    draw(rect, [0.85, 0.35, 0.07]);
+                }
+                if let Some(rect) = self.selection.get() {
+                    draw(rect, [0.15, 0.48, 0.85]);
+                }
+                snapshot.pop();
             }
         }
     }
@@ -86,6 +115,8 @@ impl SourceCanvas {
     pub(crate) fn set_texture(&self, texture: Option<&gdk::Texture>) {
         *self.imp().texture.borrow_mut() = texture.cloned();
         self.imp().zoom.set(Zoom::Fit);
+        self.imp().marks.borrow_mut().clear();
+        self.imp().selection.set(None);
         self.queue_resize();
         self.queue_draw();
     }
@@ -108,7 +139,14 @@ impl SourceCanvas {
         self.queue_resize();
         self.queue_draw();
     }
-    #[cfg(feature = "ui-self-test")]
+    pub(crate) fn set_marks(&self, marks: Vec<CanvasRect>) {
+        *self.imp().marks.borrow_mut() = marks;
+        self.queue_draw();
+    }
+    pub(crate) fn set_selection(&self, selection: Option<CanvasRect>) {
+        self.imp().selection.set(selection);
+        self.queue_draw();
+    }
     pub(crate) fn rectangle(&self) -> (f64, f64, f64, f64) {
         let Some(t) = self.texture() else {
             return (0.0, 0.0, 0.0, 0.0);

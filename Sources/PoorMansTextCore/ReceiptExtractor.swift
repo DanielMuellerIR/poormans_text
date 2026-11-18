@@ -2,12 +2,26 @@ import Foundation
 
 public enum ReceiptExtractor {
     public static func evaluate(_ mask: ReceiptMask, in document: ReceiptDocument) -> ReceiptResult {
-        evaluate(mask, in: document, checkCancellation: {})
+        evaluate(mask, in: document, checkCancellation: {}, checkField: { _ in })
     }
 
-    static func evaluate<Failure: Error>(
+    static func evaluateForExport(_ mask: ReceiptMask, in document: ReceiptDocument) throws -> ReceiptResult {
+        var evidenceCount = 0
+        var textBytes = 0
+        return try evaluate(mask, in: document, checkCancellation: ConversionExecution.check) { field in
+            evidenceCount += field.sources.count
+            textBytes += field.value?.utf8.count ?? 0
+            textBytes += field.sources.reduce(0) { $0 + $1.text.utf8.count }
+            // Überlappende Regionen können denselben Text pro Feld erneut erfassen.
+            guard evidenceCount <= 30_000, textBytes <= 2 * 1024 * 1024 else {
+                throw ReceiptError.invalidDocument("The receipt result exceeds its text and evidence limit.")
+            }
+        }
+    }
+
+    private static func evaluate<Failure: Error>(
         _ mask: ReceiptMask, in document: ReceiptDocument,
-        checkCancellation: () throws(Failure) -> Void
+        checkCancellation: () throws(Failure) -> Void, checkField: (ReceiptValue) throws(Failure) -> Void
     ) throws(Failure) -> ReceiptResult {
         var pages: [IndexedPage] = []
         for page in document.pages {
@@ -17,13 +31,16 @@ public enum ReceiptExtractor {
         var fields: [ReceiptValue] = []
         for field in mask.fields {
             try checkCancellation()
+            let value: ReceiptValue
             switch field.rule {
             case let .region(page, rectangle):
-                fields.append(region(field, page: page, rectangle: rectangle, in: pages))
+                value = region(field, page: page, rectangle: rectangle, in: pages)
             case let .rightOf(label, kind):
                 let matches = try candidates(rightOf: label, kind: kind, in: pages, checkCancellation: checkCancellation)
-                fields.append(anchored(field, candidates: matches))
+                value = anchored(field, candidates: matches)
             }
+            try checkField(value)
+            fields.append(value)
         }
         return ReceiptResult(mask: mask, fields: fields)
     }

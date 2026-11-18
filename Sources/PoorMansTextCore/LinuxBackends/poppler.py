@@ -5,6 +5,7 @@ import math
 import struct
 import zlib
 import shutil
+import subprocess
 from pathlib import Path
 import resource
 import sys
@@ -26,6 +27,10 @@ MAX_TEXT = 64 * 1024**2
 MAX_PAGE_JSON = 16 * 1024**2
 MAX_PIXELS = 16_000_000
 MAX_TOTAL_PIXELS = 64_000_000
+MAX_RECEIPT_SOURCE = 64 * 1024**2
+MAX_RECEIPT_PAGE_CHARACTERS = 100_000
+MAX_RECEIPT_CHARACTERS = 1_000_000
+MAX_RECEIPT_ATTRIBUTES = 32 * 1024**2
 
 
 def bounded(value, maximum=65536):
@@ -164,6 +169,189 @@ def retain_render_resolution(destination, width, height, page_width, page_height
     temporary.replace(destination)
 
 
+def receipt_page_attributes(source):
+    # Die öffentliche Poppler-GI-API liefert weder /Rotate noch /UserUnit.
+    # qpdf liest dieselbe private PDF-Kopie im selben Sandbox-Prozessbaum.
+    executable = '/usr/bin/qpdf'
+    encrypted = subprocess.run([executable, '--is-encrypted', source], stdout=subprocess.DEVNULL,
+                               stderr=subprocess.DEVNULL, check=False)
+    if encrypted.returncode == 0:
+        raise ValueError('Password-protected PDFs are unsupported.')
+    arguments = [executable, '--json=2', '--json-key=pages', '--json-key=qpdf',
+                 '--json-stream-data=none', source]
+    with subprocess.Popen(arguments, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL) as process:
+        data = process.stdout.read(MAX_RECEIPT_ATTRIBUTES + 1)
+        if len(data) > MAX_RECEIPT_ATTRIBUTES:
+            process.kill()
+            raise ValueError('The PDF exceeds the receipt page attributes limit.')
+        if process.wait() != 0:
+            raise ValueError('The PDF page attributes are damaged or unreadable.')
+    attributes = json.loads(data)
+    pages = attributes['pages']
+    if not 1 <= len(pages) <= MAX_PAGES:
+        raise ValueError(f'The PDF must contain between 1 and {MAX_PAGES} pages.')
+    objects = attributes['qpdf'][1]
+
+    def resolve(value):
+        for _ in range(64):
+            if not isinstance(value, str) or not value.endswith(' R'):
+                return value
+            value = objects['obj:' + value]['value']
+        raise ValueError('Cyclic PDF object reference')
+
+    def box(value):
+        coordinates = [resolve(item) for item in resolve(value)]
+        if len(coordinates) != 4 or not all(type(x) in (int, float) and math.isfinite(x) for x in coordinates):
+            raise ValueError('Unusable PDF page box')
+        x1, y1, x2, y2 = coordinates
+        return min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2)
+
+    for index, page in enumerate(pages, 1):
+        try:
+            leaf = resolve(page['object'])
+            unit = resolve(leaf.get('/UserUnit', 1))
+            if type(unit) not in (int, float) or not math.isfinite(unit) or unit <= 0:
+                raise ValueError('Invalid PDF user unit')
+            inherited = {}
+            node = leaf
+            for _ in range(64):
+                for key in ('/MediaBox', '/CropBox', '/Rotate'):
+                    if key in node and node[key] is not None:
+                        inherited.setdefault(key, node[key])
+                if '/Parent' not in node:
+                    break
+                node = resolve(node['/Parent'])
+            else:
+                raise ValueError('PDF page parents exceed the depth limit')
+            media = box(inherited['/MediaBox'])
+            crop = box(inherited['/CropBox']) if '/CropBox' in inherited else media
+            crop = (max(crop[0], media[0]), max(crop[1], media[1]), min(crop[2], media[2]), min(crop[3], media[3]))
+            rotate = resolve(inherited.get('/Rotate', 0))
+            if type(rotate) is not int or rotate % 90 != 0 or crop[0] >= crop[2] or crop[1] >= crop[3]:
+                raise ValueError('Invalid PDF rotation or crop bounds')
+            yield media, crop, rotate % 360, 72 / (25.4 * unit)
+        except (ArithmeticError, KeyError, TypeError, ValueError) as error:
+            raise ValueError(f'PDF page {index} has unusable text coordinates.') from error
+
+
+def receipt_rectangle(bounds, points_per_mm):
+    x1, y1, x2, y2 = bounds
+    values = (x1 / points_per_mm, y1 / points_per_mm, (x2 - x1) / points_per_mm, (y2 - y1) / points_per_mm)
+    if not all(math.isfinite(value) for value in values) or values[2] <= 0 or values[3] <= 0:
+        raise ValueError('Unusable PDF bounds')
+    return dict(zip(('x', 'y', 'width', 'height'), values))
+
+
+def receipt_words(page, text, media, crop, rotation, points_per_mm):
+    if not text.strip():
+        return []
+    valid, boxes = page.get_text_layout()
+    if not valid or len(boxes) != len(text):
+        raise ValueError('The PDF backend did not return matching text and glyph bounds.')
+    left, bottom, right, top = crop
+    word, words = [], []
+    bounds = previous = None
+    line = 0
+
+    def finish_word():
+        nonlocal word, bounds
+        if not word:
+            return
+        x1, y1, x2, y2 = bounds
+        horizontal_margin = max(12, (y2 - y1) * 1.5)
+        vertical_margin = (y2 - y1) * 0.75
+        if ((left > media[0] and x1 - left < horizontal_margin) or
+            (right < media[2] and right - x2 < horizontal_margin) or
+            (bottom > media[1] and y1 - bottom < vertical_margin) or
+            (top < media[3] and top - y2 < vertical_margin)):
+            raise ValueError('The PDF crop boundary is too close to embedded text for reliable extraction.')
+        words.append(dict(text=''.join(word), rectangle=receipt_rectangle(bounds, points_per_mm), line=line))
+        word, bounds = [], None
+
+    for char, box in zip(text, boxes):
+        if char.isspace():
+            finish_word()
+            if char in '\r\n\v\f\x85\u2028\u2029':
+                previous = None
+                line += 1
+            continue
+        # Poppler-Textkoordinaten beginnen oben links in der gedrehten CropBox.
+        if rotation == 90:
+            glyph = left + box.y1, bottom + box.x1, left + box.y2, bottom + box.x2
+        elif rotation == 180:
+            glyph = right - box.x2, bottom + box.y1, right - box.x1, bottom + box.y2
+        elif rotation == 270:
+            glyph = right - box.y2, top - box.x2, right - box.y1, top - box.x1
+        else:
+            glyph = left + box.x1, top - box.y2, left + box.x2, top - box.y1
+        x1, y1, x2, y2 = glyph
+        if not all(math.isfinite(value) for value in glyph) or x2 < x1 or y2 <= y1:
+            raise ValueError('The PDF contains unusable glyph bounds.')
+        if x1 >= right or x2 < left or y1 >= top or y2 <= bottom:
+            finish_word()
+            previous = None
+            line += 1
+            continue
+        if x1 < left or x2 > right or y1 < bottom or y2 > top:
+            raise ValueError('The PDF crop boundary cuts through embedded text.')
+        if previous is not None:
+            px1, py1, px2, py2 = previous
+            height = max(y2 - y1, py2 - py1)
+            gap = max(x1 - px2, px1 - x2)
+            if gap > max(12, height * 1.5) or abs(y1 + y2 - py1 - py2) > 1.5 * height:
+                finish_word()
+                line += 1
+            elif gap > max(4, height * 0.6):
+                # Wie beim PDF-Konverter sichtbare Lücken zwischen Glyphen bewahren,
+                # wenn Poppler getrennte Textobjekte ohne Leerzeichen zusammenfügt.
+                finish_word()
+        word.append(char)
+        bounds = ((min(bounds[0], x1), min(bounds[1], y1), max(bounds[2], x2), max(bounds[3], y2))
+                  if bounds is not None else glyph)
+        previous = glyph
+    finish_word()
+    return words
+
+
+def extract_receipt(source):
+    if not Path(source).is_file() or Path(source).stat().st_size > MAX_RECEIPT_SOURCE:
+        raise ValueError('The PDF source exceeds the 64 MiB limit or is unreadable.')
+    attributes = list(receipt_page_attributes(source))
+    document = open_document(source)
+    if len(attributes) != document.get_n_pages():
+        raise ValueError('The PDF tools disagree about its page count.')
+    character_counts = []
+    remaining = MAX_RECEIPT_CHARACTERS
+    protocol_bytes = 0
+    for index, (media, crop, rotation, points_per_mm) in enumerate(attributes):
+        page = document.get_page(index)
+        poppler_crop = page.get_crop_box()
+        width, height = page_size(page)
+        expected_size = (crop[2] - crop[0], crop[3] - crop[1])
+        if rotation in (90, 270):
+            expected_size = expected_size[::-1]
+        actual = (poppler_crop.x1, poppler_crop.y1, poppler_crop.x2, poppler_crop.y2, width, height)
+        if not all(math.isclose(a, b, rel_tol=1e-12, abs_tol=1e-6) for a, b in zip(actual, (*crop, *expected_size))):
+            raise ValueError(f'PDF page {index + 1} has unusable text coordinates.')
+        text = page.get_text() or ''
+        count = len(text.encode('utf-16-le')) // 2
+        if count > min(MAX_RECEIPT_PAGE_CHARACTERS, remaining):
+            raise ValueError('The PDF exceeds the text extraction limit for this import.')
+        remaining -= count
+        character_counts.append(count)
+        bounds = receipt_rectangle(crop, points_per_mm)
+        words = receipt_words(page, text, media, crop, rotation, points_per_mm)
+        payload = dict(geometry=dict(bounds=bounds, rotation=rotation), pointsPerMillimeter=points_per_mm, words=words)
+        data = json.dumps(payload, ensure_ascii=False, separators=(',', ':'), allow_nan=False).encode('utf-8')
+        if len(data) > MAX_PAGE_JSON:
+            raise ValueError('The PDF page exceeds the receipt geometry limit.')
+        protocol_bytes += len(data)
+        if protocol_bytes > 128 * 1024**2:
+            raise ValueError('The PDF exceeds the receipt geometry limit.')
+        Path(f'receipt-{index + 1}.json').write_bytes(data)
+    return dict(characterCounts=character_counts)
+
+
 def render_page(page, destination, w, h, preserve_resolution=False):
     width, height = page_size(page)
     surface = cairo.ImageSurface(cairo.FORMAT_RGB24, w, h)
@@ -278,6 +466,14 @@ def main():
         if not 1 <= maximum <= 1000:
             raise ValueError('PDF overview page limit is invalid')
         return summary(open_document(sys.argv[2]), maximum)
+    if len(sys.argv) == 3 and sys.argv[1] == 'receipt':
+        try:
+            return extract_receipt(sys.argv[2])
+        except FileNotFoundError as error:
+            if error.filename != '/usr/bin/qpdf':
+                raise
+            print('Install qpdf 11 or later to extract PDF receipt data.', file=sys.stderr)
+            sys.exit(69)
     if len(sys.argv) == 4 and sys.argv[1] == 'preview':
         if Path(sys.argv[2]).stat().st_size > 128 * 1024**2:
             raise ValueError('preview source exceeds 128 MiB')

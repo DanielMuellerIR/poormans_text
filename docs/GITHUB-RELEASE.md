@@ -77,3 +77,8 @@ uploaded as the release application.
     what Sparkle shows in its update dialog. The German
     [SPARKLE-RELEASE.md](SPARKLE-RELEASE.md) describes the one-time setup, the
     key handling, and this step in detail.
+
+If GitHub cannot assign an Arm64 runner, dispatch CI manually from `main`
+with the exact release tag as `source-ref` and `macos-26-intel` as `runner`.
+For an appcast job blocked by runner availability, start a fresh manual
+appcast run from `main` with the published `tag` and the Intel runner.

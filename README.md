@@ -701,8 +701,8 @@ the CLI-link guard, and the app's `NSItemProvider` drop path.
 
 The current source version is 0.41.24.
 The [release notes](docs/releases/0.41.24.md) describe the platform differences.
-The [desktop test matrix](docs/releases/0.41.23-candidate.md) records the macOS,
-Mint and CachyOS workflows exercised on the previous candidate.
+The [test matrix](docs/releases/0.41.24-verification.md) records the desktop
+and package checks on macOS, Mint and CachyOS.
 
 ## License
 

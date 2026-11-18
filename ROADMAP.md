@@ -15,17 +15,13 @@ WebP sind implementiert. Ihre Importwege stehen in
 
 ## Linux-Portierung
 
-Die Linux-Portierung behält Swift als gemeinsamen Konvertierungskern. Offen
-bleiben echte Desktop-/Portalabnahmen, breitere natürliche Qualitätskorpora,
-HEIC-/RTFD-Parität und die vollständige Zielsystemmatrix. Einzelne externe
-Mac-Korpora sind noch nicht als Referenzdaten verfügbar. Die opt-in strukturierte
-OCR erreicht noch keine allgemeine Inhaltsvollständigkeit; bekannte Zeichen-
-und Diagrammverluste bleiben Fehler der automatischen Qualitätsfreigabe.
-Öffentliche Modellverteilung benötigt zusätzlich die vollständige Prüfung der
-Lizenz-/Quellangebotsauflagen. Der [Linux-Plan](docs/LINUX-PORT.md) und der
-[Fastra-Vertrag](docs/FASTRA-CONTRACT.md) unterscheiden diese Grenzen von den
-bereits integrierten und geprüften Produktpfaden.
-Eine öffentliche Linux-Veröffentlichung ist gesondert freizugeben.
+Offen sind die Prüfung weiterer Distributionen und breitere natürliche
+Vergleichskorpora für PDF, HEIC und RTFD. Die optionale strukturierte OCR
+kann Zeichen, Tabellenzellen und Diagramme verlieren. Eine öffentliche
+Verteilung der optionalen Modelllaufzeit setzt eine Prüfung ihrer Lizenzen
+und Quellangebote voraus. Die [Release-Abnahme](docs/releases/0.41.24-verification.md)
+dokumentiert die geprüften Desktop-, Paket- und Belegabläufe.
+
 
 ## Offene Qualitätsprüfung
 
@@ -43,8 +39,8 @@ sinnvoll sein. Beides gehört derzeit nicht zum Umsetzungsumfang.
 
 ## Belegdaten
 
-- Die Feldregeln an freigegebenen realen Rechnungen und Lieferscheinen mit
-  verschiedenen Layouts prüfen. Belege mit vertraulichen Daten bleiben lokal.
+- Den Vergleich der Feldregeln auf weitere Layouts freigegebener Rechnungen
+  und Lieferscheine ausweiten. Belege mit vertraulichen Daten bleiben lokal.
 - Positionstabellen im PDF anhand von markiertem Tabellenkopf und Beispielposition
   einrichten. Spalten vorschlagen und ihre Grenzen im PDF korrigieren lassen.
   Tabellen mit und ohne Gitterlinien, mehrzeilige Beschreibungen, wiederholte Köpfe,

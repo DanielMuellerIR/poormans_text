@@ -740,8 +740,8 @@ CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
 Die aktuelle Quellversion ist 0.41.24.
 Die [Release-Hinweise](docs/releases/0.41.24.md) erklären die Plattformunterschiede.
-Die [Funktionsmatrix](docs/releases/0.41.23-candidate.md) dokumentiert die
-Desktop-Prüfungen des vorherigen Kandidaten auf macOS, Mint und CachyOS.
+Die [Funktionsmatrix](docs/releases/0.41.24-verification.md) dokumentiert
+die Desktop- und Paketprüfungen auf macOS, Mint und CachyOS.
 
 ## Lizenz
 

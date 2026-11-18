@@ -9,6 +9,13 @@ on:
         description: Already published release tag, for example v0.8.0
         required: true
         type: string
+      runner:
+        description: Hosted macOS runner
+        type: choice
+        options:
+          - macos-26
+          - macos-26-intel
+        default: macos-26
 
 permissions:
   contents: read
@@ -21,9 +28,8 @@ concurrency:
 
 jobs:
   appcast:
-    # Derselbe Runner wie in ci.yml: Package.swift verlangt swift-tools-version
-    # 6.2, ältere Images bringen dafür kein passendes Xcode mit.
-    runs-on: macos-26
+    # Beide Runner stellen die für das Paket benötigte Swift-Toolchain bereit.
+    runs-on: ${{ inputs.runner || 'macos-26' }}
     # Ein Prerelease darf nie in den Produktions-Feed: Sparkle bietet den
     # veröffentlichten Appcast allen normalen Installationen an.
     if: github.event_name != 'release' || github.event.release.prerelease == false

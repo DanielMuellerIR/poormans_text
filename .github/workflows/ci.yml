@@ -4,6 +4,18 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+    inputs:
+      source-ref:
+        description: Exact tag or ref to test
+        required: false
+        type: string
+      runner:
+        description: Hosted macOS runner
+        type: choice
+        options:
+          - macos-26
+          - macos-26-intel
+        default: macos-26
 
 permissions:
   contents: read
@@ -14,12 +26,14 @@ concurrency:
 
 jobs:
   build-and-test:
-    runs-on: macos-26
+    runs-on: ${{ inputs.runner || 'macos-26' }}
     timeout-minutes: 30
 
     steps:
       - name: Check out source
         uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs['source-ref'] || github.sha }}
 
       - name: Install Pandoc
         run: brew install pandoc

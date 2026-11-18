@@ -252,7 +252,7 @@ Bei einem ausgetauschten Elternpfad bleibt ein vollständiges Ergebnis zur
 Wiederherstellung erhalten; ein Erfolg für den inzwischen anderen Pfad wird
 nicht gemeldet.
 
-Die [Funktionsmatrix](releases/0.41.23-candidate.md) dokumentiert die Desktop- und Paketprüfungen des Kandidaten. Die älteren [Entscheidungsproben](linux-port/P03-FOLLOWUP.md) beschreiben den Entwicklungsstand vor der Integration.
+Die [Funktionsmatrix](releases/0.41.24-verification.md) dokumentiert die Desktop- und Paketprüfungen. Die älteren [Entscheidungsproben](linux-port/P03-FOLLOWUP.md) beschreiben den Entwicklungsstand vor der Integration.
 
 ## Lokale Pakete bauen
 

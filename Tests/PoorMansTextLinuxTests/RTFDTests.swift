@@ -34,16 +34,24 @@ final class RTFDTests: XCTestCase {
 
 
     func testCocoaRasterAttachmentConsumesItsPlaceholderAndPreservesFollowingText() throws {
+        guard ExternalToolResolver().isAvailable(.pandoc) else { throw XCTSkip("Pandoc is required for RTFD conversion") }
         let image = try XCTUnwrap(Data(base64Encoded: "iVBORw0KGgoAAAANSUhEUgAAABAAAAAMCAIAAADkharWAAAAGElEQVR4nGP8z0AaYCJRPcOoBmLAcAglAGavARduQJjLAAAAAElFTkSuQmCC"))
-        let before = #"{\rtf1\ansi\ansicpg1252\cocoartf2870 BEFORE "#
+        let before = #"{\rtf1\ansi\ansicpg1252\cocoartf2870 BEFORE\b"#
         let attachment = #"{{\NeXTGraphic image.png \width320 \height240 \appleattachmentpadding0 \appleembedtype0 \appleaqc"#
         let after = #" AFTER\par NEXT}"#
         let source = Data((before + attachment + "\n}").utf8) + Data([0xAC, 0x7D]) + Data(after.utf8)
         let url = try package(source, asset: image)
-        let prepared = try LinuxRTFDPreparation.prepare(package: url)
-        let restored = try prepared.restoringImages(in: String(decoding: prepared.data, as: UTF8.self),
-                                                    packageName: "source.rtfd", inputURL: url)
-        XCTAssertEqual(restored, before + #"<img src="source.rtfd/image.png" alt="image">"# + after)
+        let result = try RTFDConverter().convert(inputURL: url)
+        addTeardownBlock { try? FileManager.default.removeItem(at: result.outputDirectory) }
+        let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+        let beforeText = try XCTUnwrap(markdown.range(of: "BEFORE"))
+        let link = try XCTUnwrap(markdown.range(of: "](images/"))
+        let afterText = try XCTUnwrap(markdown.range(of: "AFTER"))
+        let next = try XCTUnwrap(markdown.range(of: "NEXT"))
+        XCTAssertLessThan(beforeText.lowerBound, link.lowerBound)
+        XCTAssertLessThan(link.lowerBound, afterText.lowerBound)
+        XCTAssertLessThan(afterText.lowerBound, next.lowerBound)
+        XCTAssertEqual(try result.assets.map { try Data(contentsOf: $0) }, [image])
         XCTAssertEqual(try Data(contentsOf: url.appendingPathComponent("TXT.rtf")), source)
         XCTAssertEqual(try Data(contentsOf: url.appendingPathComponent("image.png")), image)
     }
@@ -65,7 +73,7 @@ final class RTFDTests: XCTestCase {
             let url = try package(rtf, asset: image, filename: filename)
             let prepared = try LinuxRTFDPreparation.prepare(package: url)
             let html = try prepared.restoringImages(in: String(decoding: prepared.data, as: UTF8.self), packageName: "source.rtfd", inputURL: url)
-            XCTAssertEqual(html, before + "<img src=\"source.rtfd/local%20picture." + extensionName + "\" alt=\"image\">" + after)
+            XCTAssertEqual(html, before + "{<img src=\"source.rtfd/local%20picture." + extensionName + "\" alt=\"image\">}" + after)
             XCTAssertEqual(prepared.viewerLimitedFormats, extensionName == "tiff" ? ["tiff"] : [])
             XCTAssertEqual(try Data(contentsOf: url.appendingPathComponent(filename)), image)
             XCTAssertEqual(try Data(contentsOf: url.appendingPathComponent("TXT.rtf")), rtf)

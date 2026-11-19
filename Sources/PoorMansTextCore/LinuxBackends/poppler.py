@@ -313,17 +313,21 @@ def receipt_words(page, text, media, crop, rotation, points_per_mm):
     return words
 
 
-def extract_receipt(source):
+def extract_receipt(source, selected_page=None):
     if not Path(source).is_file() or Path(source).stat().st_size > MAX_RECEIPT_SOURCE:
         raise ValueError('The PDF source exceeds the 64 MiB limit or is unreadable.')
     attributes = list(receipt_page_attributes(source))
     document = open_document(source)
     if len(attributes) != document.get_n_pages():
         raise ValueError('The PDF tools disagree about its page count.')
+    if selected_page is not None and not 0 <= selected_page < len(attributes):
+        raise ValueError('The selected page does not exist in this PDF.')
+    indices = range(len(attributes)) if selected_page is None else [selected_page]
     character_counts = []
     remaining = MAX_RECEIPT_CHARACTERS
     protocol_bytes = 0
-    for index, (media, crop, rotation, points_per_mm) in enumerate(attributes):
+    for index in indices:
+        media, crop, rotation, points_per_mm = attributes[index]
         page = document.get_page(index)
         poppler_crop = page.get_crop_box()
         width, height = page_size(page)
@@ -466,9 +470,9 @@ def main():
         if not 1 <= maximum <= 1000:
             raise ValueError('PDF overview page limit is invalid')
         return summary(open_document(sys.argv[2]), maximum)
-    if len(sys.argv) == 3 and sys.argv[1] == 'receipt':
+    if len(sys.argv) in (3, 4) and sys.argv[1] == 'receipt':
         try:
-            return extract_receipt(sys.argv[2])
+            return extract_receipt(sys.argv[2], int(sys.argv[3]) if len(sys.argv) == 4 else None)
         except FileNotFoundError as error:
             if error.filename != '/usr/bin/qpdf':
                 raise

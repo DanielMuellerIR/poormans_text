@@ -72,7 +72,8 @@ struct LinuxRTFDPreparation {
         var cursor = 0
         for replacement in replacements {
             prepared.append(contentsOf: bytes[cursor..<replacement.range.lowerBound])
-            prepared.append(contentsOf: replacement.marker.utf8)
+            // Die Gruppe beendet ein direkt davor stehendes RTF-Steuerwort.
+            prepared.append(contentsOf: "{\(replacement.marker)}".utf8)
             cursor = replacement.range.upperBound
         }
         prepared.append(contentsOf: bytes[cursor..<bytes.count])

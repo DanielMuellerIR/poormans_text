@@ -38,13 +38,18 @@ struct ReceiptEditorView: View {
     @State private var didLoadInitialMask = false
     @State private var document: ReceiptDocument?
     @State private var pdf: PDFDocument?
+    @State private var prepared: ReceiptExtractor.Prepared?
+    @State private var sourceIdentity: ConversionSourceIdentity?
+    @State private var evaluationTask: Task<Void, Never>?
+    @State private var evaluationError: String?
     @State private var isLoading = true
     @State private var mask = ReceiptMask()
     @State private var maskURL: URL?
+    @State private var rawResult: ReceiptResult?
     @State private var result: ReceiptResult?
-    @State private var suggestions: [ReceiptField] = []
+    @State private var availableSuggestions: [ReceiptField] = []
     @State private var suggestedValues: [ReceiptValue] = []
-    @State private var corrections: [URL: [UUID: String]] = [:]
+    @State private var corrections: [URL: SourceCorrections] = [:]
     @State private var rejectedRules: Set<ReceiptRule> = []
     @State private var selectedRegion: ReceiptPDFRegion?
     @State private var markedRegion: ReceiptPDFMark?
@@ -53,9 +58,15 @@ struct ReceiptEditorView: View {
     @State private var loadError: String?
     @State private var sheet: EditorSheet?
 
+    private struct SourceCorrections {
+        let identity: ConversionSourceIdentity
+        var values: [UUID: String] = [:]
+    }
+
     private struct Correction {
         let field: UUID
         let source: URL
+        let identity: ConversionSourceIdentity
         let name: String
         var value: String
     }
@@ -74,6 +85,12 @@ struct ReceiptEditorView: View {
 
     private var pdfs: [URL] { [input.pdf] + testPDFs }
     private var currentPDF: URL { pdfs[currentIndex] }
+
+    private var suggestions: [ReceiptField] {
+        let names = Set(mask.fields.map(\.name))
+        let rules = Set(mask.fields.map(\.rule)).union(rejectedRules)
+        return availableSuggestions.filter { !names.contains($0.name) && !rules.contains($0.rule) }
+    }
 
     var body: some View {
         HSplitView {
@@ -121,6 +138,9 @@ struct ReceiptEditorView: View {
                         if let selectedRegion { regionControls(selectedRegion) }
                         if !suggestions.isEmpty { suggestionControls }
                         fieldControls
+                        if let evaluationError {
+                            Text(verbatim: evaluationError).foregroundStyle(.secondary).textSelection(.enabled)
+                        }
                     }
                     .padding(16)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -139,6 +159,7 @@ struct ReceiptEditorView: View {
         }
         .frame(minWidth: 750, minHeight: 530)
         .task(id: currentPDF) { await loadDocument(currentPDF) }
+        .onDisappear { evaluationTask?.cancel() }
         .alert("Receipt Data", isPresented: Binding(get: { error != nil }, set: { if !$0 { error = nil } })) {
             Button("OK") { error = nil }
         } message: {
@@ -165,8 +186,10 @@ struct ReceiptEditorView: View {
                 .frame(minWidth: 580, minHeight: 420)
             case let .correction(draft):
                 ReceiptCorrectionView(name: draft.name, value: draft.value) { value in
-                    corrections[draft.source, default: [:]][draft.field] = value
-                    evaluate()
+                    if currentPDF == draft.source, sourceIdentity == draft.identity {
+                        corrections[draft.source, default: SourceCorrections(identity: draft.identity)].values[draft.field] = value
+                        refreshResult()
+                    }
                     self.sheet = nil
                 } cancel: {
                     self.sheet = nil
@@ -219,12 +242,12 @@ struct ReceiptEditorView: View {
         GroupBox("Extraction Mask") {
             VStack(alignment: .leading, spacing: 10) {
                 LabeledContent("Partner") {
-                    TextField("Partner", text: Binding(get: { mask.partner }, set: { mask.partner = $0; evaluate() }))
+                    TextField("Partner", text: Binding(get: { mask.partner }, set: { mask.partner = $0; refreshResult() }))
                         .labelsHidden()
                         .help("Name of the business partner whose receipts use this mask.")
                 }
                 LabeledContent("Document Type") {
-                    TextField("Document Type", text: Binding(get: { mask.documentType }, set: { mask.documentType = $0; evaluate() }))
+                    TextField("Document Type", text: Binding(get: { mask.documentType }, set: { mask.documentType = $0; refreshResult() }))
                         .labelsHidden()
                         .help("Category of receipts covered by this mask, such as invoice or delivery note.")
                 }
@@ -263,7 +286,7 @@ struct ReceiptEditorView: View {
                 }
                 HStack {
                     Button("New Region Field") {
-                        guard let rule = rule(for: region) else { return }
+                        guard mask.fields.count < ReceiptMask.maximumFields, let rule = rule(for: region) else { return }
                         let existing = Set(mask.fields.map(\.name))
                         let format = NSLocalizedString("Field %lld", comment: "")
                         let name = (1...(existing.count + 1)).lazy
@@ -272,6 +295,7 @@ struct ReceiptEditorView: View {
                         mask.fields.append(ReceiptField(name: name, rule: rule))
                         finishRegion()
                     }
+                    .disabled(mask.fields.count >= ReceiptMask.maximumFields)
                     .help("Creates a field that reads text at the same position on this page.")
                     Menu("Replace Field Rule") {
                         ForEach(mask.fields) { field in
@@ -311,6 +335,7 @@ struct ReceiptEditorView: View {
                         }
                         Spacer()
                         Button("Accept") { accept([field]) }
+                            .disabled(mask.fields.count >= ReceiptMask.maximumFields)
                             .help("Adds the suggested extraction rule to the mask.")
                         Button("Reject") { reject([field]) }
                             .help("Dismisses the suggested extraction rule in this editor.")
@@ -322,6 +347,7 @@ struct ReceiptEditorView: View {
                     Spacer()
                     Button("Reject All") { reject(suggestions) }
                     Button("Accept All") { accept(suggestions) }
+                        .disabled(mask.fields.count >= ReceiptMask.maximumFields)
                 }
             }
             .padding(.top, 5)
@@ -353,7 +379,7 @@ struct ReceiptEditorView: View {
                 }, set: { name in
                     guard let index = mask.fields.firstIndex(where: { $0.id == field.id }) else { return }
                     mask.fields[index].name = name
-                    evaluate()
+                    refreshResult()
                 }))
                 .accessibilityLabel("Field Name")
                 .help("Names this result field in the mask and the JSON output.")
@@ -394,7 +420,9 @@ struct ReceiptEditorView: View {
                     }
                     Spacer()
                     Button("Correct Value…") {
-                        sheet = .correction(Correction(field: value.id, source: currentPDF, name: value.name, value: value.value ?? ""))
+                        guard let sourceIdentity else { return }
+                        sheet = .correction(Correction(field: value.id, source: currentPDF, identity: sourceIdentity,
+                                                       name: value.name, value: value.value ?? ""))
                     }
                     .help("Changes the value for this receipt only. The mask’s rule stays the same.")
                 }
@@ -427,10 +455,15 @@ struct ReceiptEditorView: View {
     private func clearDocument() {
         isLoading = true
         loadError = nil
+        evaluationTask?.cancel()
+        evaluationError = nil
         document = nil
         pdf = nil
-        suggestions = []
+        prepared = nil
+        sourceIdentity = nil
+        availableSuggestions = []
         suggestedValues = []
+        rawResult = nil
         result = nil
         markedRegion = nil
         selectedRegion = nil
@@ -448,13 +481,15 @@ struct ReceiptEditorView: View {
             }
         }
         do {
-            let loaded = try await Self.readPDF(url)
+            let loaded = try await Self.runWorker { try Self.readPDF(url) }
             guard !Task.isCancelled, currentPDF == url else { return }
+            if corrections[url]?.identity != loaded.identity { corrections.removeValue(forKey: url) }
+            sourceIdentity = loaded.identity
             document = loaded.document
             pdf = loaded.pdf
-            suggestions = ReceiptExtractor.suggestions(in: loaded.document)
-            removeKnownSuggestions()
-            suggestedValues = ReceiptExtractor.evaluate(ReceiptMask(fields: suggestions), in: loaded.document).fields
+            prepared = loaded.prepared
+            availableSuggestions = loaded.suggestions
+            suggestedValues = loaded.suggestedValues
             evaluate()
         } catch {
             guard !Task.isCancelled, currentPDF == url else { return }
@@ -463,22 +498,33 @@ struct ReceiptEditorView: View {
         isLoading = false
     }
 
-    private struct LoadedPDF {
+    // PDFKit bleibt bis zur Übergabe beim Worker und wird danach nur im Editor verwendet.
+    private struct LoadedPDF: @unchecked Sendable {
         let pdf: PDFDocument
+        let identity: ConversionSourceIdentity
         let document: ReceiptDocument
+        let prepared: ReceiptExtractor.Prepared
+        let suggestions: [ReceiptField]
+        let suggestedValues: [ReceiptValue]
     }
 
-    private nonisolated static func readPDF(_ url: URL) async throws -> sending LoadedPDF {
-        try await withCheckedThrowingContinuation { continuation in
-            DispatchQueue.global(qos: .userInitiated).async {
-                do {
-                    let pdf = try ReceiptPDF.open(at: url)
-                    let document = try ReceiptPDF.read(pdf)
-                    continuation.resume(returning: LoadedPDF(pdf: pdf, document: document))
-                } catch {
-                    continuation.resume(throwing: error)
-                }
-            }
+    private nonisolated static func readPDF(_ url: URL) throws -> LoadedPDF {
+        let (pdf, identity) = try ReceiptPDF.openWithIdentity(at: url)
+        let document = try ReceiptPDF.read(pdf)
+        let prepared = try ReceiptExtractor.Prepared(document)
+        let suggestions = try prepared.suggestions()
+        let suggestedValues = try? prepared.evaluate(ReceiptMask(fields: suggestions)).fields
+        try Task.checkCancellation()
+        return LoadedPDF(pdf: pdf, identity: identity, document: document, prepared: prepared,
+                         suggestions: suggestions, suggestedValues: suggestedValues ?? [])
+    }
+
+    private nonisolated static func runWorker<T: Sendable>(_ work: @escaping @Sendable () throws -> T) async throws -> T {
+        let worker = Task.detached(priority: .userInitiated, operation: work)
+        return try await withTaskCancellationHandler {
+            try await worker.value
+        } onCancel: {
+            worker.cancel()
         }
     }
 
@@ -508,33 +554,55 @@ struct ReceiptEditorView: View {
     }
 
     private func accept(_ fields: [ReceiptField]) {
-        mask.fields.append(contentsOf: fields)
-        let accepted = Set(fields.map(\.id))
-        suggestions.removeAll { accepted.contains($0.id) }
-        evaluate()
+        let visible = Set(suggestions.map(\.id))
+        var names = Set(mask.fields.map(\.name))
+        var rules = Set(mask.fields.map(\.rule))
+        let previousCount = mask.fields.count
+        for field in fields where visible.contains(field.id) {
+            guard mask.fields.count < ReceiptMask.maximumFields else { break }
+            guard !names.contains(field.name), !rules.contains(field.rule) else { continue }
+            mask.fields.append(field)
+            names.insert(field.name)
+            rules.insert(field.rule)
+        }
+        if mask.fields.count != previousCount { evaluate() }
     }
 
     private func reject(_ fields: [ReceiptField]) {
         rejectedRules.formUnion(fields.map(\.rule))
-        removeKnownSuggestions()
-    }
-
-    private func removeKnownSuggestions() {
-        let names = Set(mask.fields.map(\.name))
-        let rules = Set(mask.fields.map(\.rule)).union(rejectedRules)
-        suggestions.removeAll { names.contains($0.name) || rules.contains($0.rule) }
     }
 
     private func discardCorrections(for field: UUID) {
         for source in Array(corrections.keys) {
-            corrections[source]?.removeValue(forKey: field)
+            corrections[source]?.values.removeValue(forKey: field)
         }
     }
 
     private func evaluate() {
-        guard let document else { return }
-        var evaluated = ReceiptExtractor.evaluate(mask, in: document)
-        for (field, value) in corrections[currentPDF] ?? [:] { evaluated.correct(field: field, value: value) }
+        evaluationTask?.cancel()
+        evaluationError = nil
+        rawResult = nil
+        result = nil
+        guard let prepared else { return }
+        let draft = mask
+        evaluationTask = Task {
+            do {
+                let evaluated = try await Self.runWorker { try prepared.evaluate(draft) }
+                guard !Task.isCancelled else { return }
+                rawResult = evaluated
+                refreshResult()
+            } catch {
+                guard !Task.isCancelled else { return }
+                evaluationError = error.localizedDescription
+            }
+        }
+    }
+
+    private func refreshResult() {
+        guard var evaluated = rawResult?.withMetadata(from: mask) else { return }
+        if let corrected = corrections[currentPDF], corrected.identity == sourceIdentity {
+            for (field, value) in corrected.values { evaluated.correct(field: field, value: value) }
+        }
         result = evaluated
     }
 
@@ -545,7 +613,6 @@ struct ReceiptEditorView: View {
             corrections = [:]
             selectedRegion = nil
             markedRegion = nil
-            removeKnownSuggestions()
             evaluate()
         } catch {
             self.error = error.localizedDescription

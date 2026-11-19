@@ -139,6 +139,21 @@ impl SourceCanvas {
         self.queue_resize();
         self.queue_draw();
     }
+    pub(crate) fn step_zoom(&self, zoom_in: bool) -> bool {
+        let Some(texture) = self.texture() else {
+            return false;
+        };
+        let scale = match self.zoom() {
+            Zoom::Fit => self.rectangle().2 / f64::from(texture.width()),
+            Zoom::Scale(scale) => scale,
+        };
+        if (zoom_in && scale >= 4.0) || (!zoom_in && scale <= 0.25) {
+            return false;
+        }
+        let next = if zoom_in { scale * 1.25 } else { scale / 1.25 };
+        self.set_zoom(Zoom::Scale(next));
+        true
+    }
     pub(crate) fn set_marks(&self, marks: Vec<CanvasRect>) {
         *self.imp().marks.borrow_mut() = marks;
         self.queue_draw();

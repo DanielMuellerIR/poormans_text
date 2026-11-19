@@ -22,7 +22,20 @@ public enum ReceiptPDF {
     private static let expandedLigatures: Set<String> = ["ff", "fi", "fl", "ffi", "ffl"]
 
     public static func open(at url: URL) throws -> PDFDocument {
-        let data = try VerifiedFile.open(at: url, failure: { _ in
+        try open(readData(at: url))
+    }
+
+    public static func openWithIdentity(at url: URL) throws -> (PDFDocument, ConversionSourceIdentity) {
+        let data = try readData(at: url)
+        let pdf = try open(data)
+        let identity = ConversionSourceIdentity(name: url.lastPathComponent,
+            sha256: ConversionFileFingerprint.digest(data), byteCount: data.count, unavailableReason: nil)
+        try Task.checkCancellation()
+        return (pdf, identity)
+    }
+
+    private static func readData(at url: URL) throws -> Data {
+        try VerifiedFile.open(at: url, failure: { _ in
             ReceiptPDFError("The PDF source could not be read.")
         }) { source in
             guard source.isRegularFile else { throw ReceiptPDFError("The PDF source is not a regular file.") }
@@ -31,11 +44,16 @@ public enum ReceiptPDF {
             var data = Data()
             _ = try source.readChunks(maximumBytes: maximumSourceBytes, chunkSize: 64 * 1_024,
                                       budgetExceeded: { sizeError }) { chunk in
+                try Task.checkCancellation()
                 data.append(contentsOf: chunk)
                 return true
             }
             return data
         }
+    }
+
+    private static func open(_ data: Data) throws -> PDFDocument {
+        try Task.checkCancellation()
         guard data.prefix(1_024).range(of: Data("%PDF-".utf8)) != nil,
               let pdf = PDFDocument(data: data) else { throw ReceiptPDFError("The PDF is damaged or unreadable.") }
         try validate(pdf)

@@ -146,14 +146,14 @@ Universal DMG for macOS 13 or newer and x86-64 Linux packages for Mint/Ubuntu
 and Arch-based systems. Portable Linux TAR and ZIP archives include both the
 GTK app and CLI. Download the archive or package and its matching `.sha256` file.
 
-**macOS.** Verify the file with `shasum -a 256 -c Poor-Mans-Text-0.41.24.dmg.sha256`,
+**macOS.** Verify the file with `shasum -a 256 -c Poor-Mans-Text-0.41.25.dmg.sha256`,
 open the DMG, then drag the app to Applications. The app includes the CLI.
 Word-processing, mail, ENEX and ODM imports require Pandoc, available separately
 with `brew install pandoc`.
 
 **Linux.** Run `sha256sum -c` with the checksum file, then install the DEB with
-`sudo apt install ./poormans-text_0.41.24-1_amd64.deb` or the Arch package with
-`sudo pacman -U ./poormans-text-0.41.24-1-x86_64.pkg.tar.zst`. For the portable
+`sudo apt install ./poormans-text_0.41.25-1_amd64.deb` or the Arch package with
+`sudo pacman -U ./poormans-text-0.41.25-1-x86_64.pkg.tar.zst`. For the portable
 archive, extract it and run `usr/bin/poormans-text-app` or `usr/bin/poormans-text`
 from the extracted directory. Start with `poormans-text --formats` to see what
 is available on your system. [Linux dependency and installation details](docs/LINUX-BUILD.md).
@@ -699,9 +699,9 @@ and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compa
 their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
 the CLI-link guard, and the app's `NSItemProvider` drop path.
 
-The current source version is 0.41.24.
-The [release notes](docs/releases/0.41.24.md) describe the platform differences.
-The [test matrix](docs/releases/0.41.24-verification.md) records the desktop
+The current source version is 0.41.25.
+The [release notes](docs/releases/0.41.25.md) describe the fixes in this update.
+The [0.41.24 test matrix](docs/releases/0.41.24-verification.md) records the desktop
 and package checks on macOS, Mint and CachyOS.
 
 ## License

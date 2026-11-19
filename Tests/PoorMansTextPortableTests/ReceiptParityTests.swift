@@ -3,6 +3,59 @@ import XCTest
 @testable import PoorMansTextCore
 
 final class ReceiptParityTests: XCTestCase {
+    func testMaskRejectsUnsupportedPagesAndDoesNotPublishOversizedJSON() throws {
+        let directory = try temporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let output = directory.appendingPathComponent("mask.json")
+        let rectangle = ReceiptRectangle(x: 1, y: 1, width: 2, height: 2)
+        for page in [999, 1_000, Int.max] {
+            let mask = ReceiptMask(partner: "Partner", documentType: "Invoice", fields: [
+                ReceiptField(name: "Field", rule: .region(page: page, rectangle: rectangle)),
+            ])
+            if page == 999 {
+                try mask.save(to: output)
+                XCTAssertEqual(try ReceiptMask.load(from: output), mask)
+                try FileManager.default.removeItem(at: output)
+            } else {
+                XCTAssertThrowsError(try mask.save(to: output))
+                try JSONEncoder().encode(mask).write(to: output)
+                XCTAssertThrowsError(try ReceiptMask.load(from: output))
+                try FileManager.default.removeItem(at: output)
+            }
+        }
+
+        let quote = String(repeating: "\"", count: 512)
+        let fields = (0..<500).map { index in
+            ReceiptField(name: String(quote.prefix(509)) + "\(index)", rule: .rightOf(label: quote, kind: .identifier))
+        }
+        let oversized = ReceiptMask(partner: "Partner", documentType: "Invoice", fields: fields)
+        XCTAssertThrowsError(try oversized.save(to: output)) { error in
+            XCTAssertTrue(error.localizedDescription.contains("1 MB"))
+        }
+        XCTAssertFalse(FileManager.default.fileExists(atPath: output.path))
+    }
+
+    func testPreparedEvaluationKeepsRepeatedAnchorsOnTheirRowsAndBoundsEvidence() throws {
+        let rows = (0..<1_000).flatMap { index -> [ReceiptWord] in
+            let y = Double(1_000 - index) * 5
+            return [ReceiptWord(text: "Number:", rectangle: .init(x: 0, y: y, width: 14, height: 3), line: index),
+                    ReceiptWord(text: "N-\(index)", rectangle: .init(x: 30, y: y, width: 16, height: 3), line: index + 1_000)]
+        }
+        let document = ReceiptDocument(pages: [ReceiptPage(pointsPerMillimeter: 1, words: rows)])
+        let prepared = try ReceiptExtractor.Prepared(document)
+        let rule = ReceiptRule.rightOf(label: "Number", kind: .identifier)
+        let value = try XCTUnwrap(prepared.evaluate(ReceiptMask(fields: [.init(name: "Number", rule: rule)])).fields.first)
+        XCTAssertEqual(value.status, .ambiguous)
+        XCTAssertEqual(value.sources.map(\.text), (0..<1_000).map { "N-\($0)" })
+
+        let overlapping = ReceiptMask(fields: (0..<16).map { index in
+            ReceiptField(name: "Field \(index)", rule: .region(page: 0, rectangle: .init(x: 0, y: 0, width: 50, height: 5_010)))
+        })
+        XCTAssertThrowsError(try prepared.evaluate(overlapping)) { error in
+            XCTAssertTrue(error.localizedDescription.contains("evidence limit"))
+        }
+    }
+
     func testSharedMaskExtractsTheSameFieldsFromRotatedAndScaledRealPDFs() throws {
         try requireReceiptBackend()
         let directory = try temporaryDirectory()
@@ -64,7 +117,9 @@ final class ReceiptParityTests: XCTestCase {
             return try object(ReceiptEditorProtocol.run(requestFile: requestFile))
         }
 
-        let inspection = try request(["action": "inspect", "source": source.path, "page": 0])
+        let mask = Self.mask()
+        let maskObject = try object(JSONEncoder().encode(mask))
+        let inspection = try request(["action": "inspect", "source": source.path, "page": 0, "mask": maskObject])
         let sourceIdentity = try XCTUnwrap(inspection["sourceIdentity"] as? [String: Any])
         let pages = try XCTUnwrap(inspection["pages"] as? [[String: Any]])
         XCTAssertEqual(pages.first?["rotation"] as? Int, 90)
@@ -77,8 +132,22 @@ final class ReceiptParityTests: XCTestCase {
         XCTAssertEqual((inspection["suggestions"] as? [[String: Any]])?.compactMap { $0["name"] as? String },
                        ["Invoice number", "Invoice date"])
 
-        let mask = Self.mask()
-        let maskObject = try object(JSONEncoder().encode(mask))
+        let evaluated = try request(["action": "evaluate", "source": source.path, "sourceIdentity": sourceIdentity,
+                                     "mask": maskObject])
+        let previewResult = try XCTUnwrap(inspection["result"] as? NSDictionary)
+        XCTAssertEqual(previewResult, evaluated["result"] as? NSDictionary)
+        XCTAssertEqual((previewResult["data"] as? [String: Any])?["Number"] as? String, "NW-4711")
+        XCTAssertNil(evaluated["fields"])
+
+        let pageRequest: [String: Any] = ["action": "previewPage", "source": source.path, "page": 1,
+                                          "sourceIdentity": sourceIdentity]
+        let secondPage = try request(pageRequest)
+        XCTAssertEqual((secondPage["preview"] as? [String: Any])?["index"] as? Int, 2)
+        XCTAssertEqual((secondPage["words"] as? [[String: Any]])?.count, 0)
+        XCTAssertEqual(secondPage["wordsTruncated"] as? Bool, false)
+        XCTAssertNil(secondPage["suggestions"])
+        XCTAssertNil(secondPage["result"])
+
         let destination = directory.appendingPathComponent("corrected.json")
         let export: [String: Any] = ["action": "export", "source": source.path, "sourceIdentity": sourceIdentity,
                                      "path": destination.path, "mask": maskObject,
@@ -87,10 +156,13 @@ final class ReceiptParityTests: XCTestCase {
         let result = try object(Data(contentsOf: destination))
         XCTAssertEqual((result["data"] as? [String: Any])?["Date"] as? String, "2026-10-16")
         XCTAssertEqual((result["review"] as? [String: [String: String]])?["Date"]?["status"], "corrected")
-        let fields = try XCTUnwrap(exported["fields"] as? [[String: Any]])
-        XCTAssertEqual((fields[2]["sources"] as? [[String: Any]])?.count, 2)
+        XCTAssertEqual(Set(exported.keys), ["ok", "version", "operation"])
+        XCTAssertEqual((result["sources"] as? [String: [[String: Any]]])?["Date"]?.count, 2)
         XCTAssertThrowsError(try request(export))
         _ = try makePDF(in: directory, name: "rotated", rotation: 180)
+        XCTAssertThrowsError(try request(pageRequest)) { error in
+            XCTAssertTrue(error.localizedDescription.contains("source has changed"))
+        }
         let stale = directory.appendingPathComponent("stale.json")
         var afterChange = export
         afterChange["path"] = stale.path

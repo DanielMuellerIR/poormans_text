@@ -35,13 +35,20 @@ struct Document {
     suggested_values: Vec<FieldValue>,
 }
 
+#[derive(Deserialize)]
+struct FieldReview {
+    status: ValueStatus,
+    diagnostic: Option<String>,
+}
+
 struct CurrentResult {
     fields: Vec<FieldValue>,
     json: Option<Value>,
 }
 
 enum Request {
-    Inspect(Location),
+    Inspect(Location, u64),
+    PreviewPage(Location),
     Evaluate(u64),
     LoadMask(PathBuf),
     SaveMask(PathBuf),
@@ -459,6 +466,7 @@ pub(in crate::receipt) fn open(
         editor.install_mask(mask, path);
     } else {
         editor.rebuild_fields();
+        editor.render_results();
     }
     editor.update_controls();
     editor.add_pdfs(Ok(paths));
@@ -659,6 +667,7 @@ impl Editor {
             state.revision += 1;
         }
         self.stop_debounce();
+        self.status.set_text("");
         self.render_results();
         self.render_suggestions();
         self.show_page(0);
@@ -684,7 +693,9 @@ impl Editor {
             state.location = None;
             state.selection = None;
             state.inspect_pending = true;
-            if state.result.is_none() {
+            if let Some(active) = &state.active
+                && matches!(active.request, Request::Evaluate(_))
+            {
                 state.evaluate_pending = true;
             }
             if let Some(active) = &mut state.active {
@@ -696,7 +707,6 @@ impl Editor {
         self.picture.set_texture(None);
         self.source_status
             .set_text(tr("PDF wird gelesen…", "Reading PDF…"));
-        self.status.set_text("");
         self.render_selection();
         self.update_controls();
         self.pump();
@@ -755,12 +765,26 @@ impl Editor {
             let source = location.source.to_str().expect("validated PDF path");
             let identity = state.identities.get(&location.source);
             if state.inspect_pending {
-                let payload = json!({
-                    "action": "inspect", "source": source, "page": location.page,
-                    "sourceIdentity": identity,
-                });
+                let (request, payload) = if state.document.is_some() {
+                    (
+                        Request::PreviewPage(location.clone()),
+                        json!({
+                            "action": "previewPage", "source": source, "page": location.page,
+                            "sourceIdentity": identity,
+                        }),
+                    )
+                } else {
+                    (
+                        Request::Inspect(location.clone(), state.revision),
+                        json!({
+                            "action": "inspect", "source": source, "page": location.page,
+                            "sourceIdentity": identity, "mask": state.mask,
+                            "corrections": state.corrections.get(&location.source),
+                        }),
+                    )
+                };
                 state.inspect_pending = false;
-                (Request::Inspect(location), payload)
+                (request, payload)
             } else if state.evaluate_pending
                 && state.location.is_some()
                 && self.debounce.borrow().is_none()
@@ -850,34 +874,23 @@ impl Editor {
 
     fn finished(self: &Rc<Self>, request: Request, result: Result<Value, String>) {
         let outcome = match request {
-            Request::Inspect(location) => result
-                .and_then(|value| self.show_inspection(location, &value))
+            Request::Inspect(location, revision) => result
+                .and_then(|value| self.show_inspection(location, Some(revision), &value))
+                .inspect_err(|error| self.source_status.set_text(error)),
+            Request::PreviewPage(location) => result
+                .and_then(|value| self.show_inspection(location, None, &value))
                 .inspect_err(|error| self.source_status.set_text(error)),
             Request::Evaluate(revision) => result.and_then(|value| {
+                let identity: Identity = decode(&value, "sourceIdentity")?;
                 let mut state = self.state.borrow_mut();
-                if state.revision == revision {
-                    let identity: Identity = decode(&value, "sourceIdentity")?;
-                    if state
-                        .source()
-                        .and_then(|source| state.identities.get(source))
-                        != Some(&identity)
-                    {
-                        return Err(tr("Das PDF hat sich geändert.", "The PDF changed.").into());
-                    }
-                    let json = value.get("result").filter(|v| v.is_object()).cloned();
-                    self.status.set_text(if json.is_some() {
-                        ""
-                    } else {
-                        tr(
-                            "Feldnamen müssen für den JSON-Export eindeutig sein.",
-                            "Field names must be unique before exporting JSON.",
-                        )
-                    });
-                    state.result = Some(CurrentResult {
-                        fields: decode(&value, "fields")?,
-                        json,
-                    });
+                if state
+                    .source()
+                    .and_then(|source| state.identities.get(source))
+                    != Some(&identity)
+                {
+                    return Err(tr("Das PDF hat sich geändert.", "The PDF changed.").into());
                 }
+                self.apply_evaluation(&mut state, revision, &value)?;
                 drop(state);
                 self.render_results();
                 Ok(())
@@ -910,19 +923,119 @@ impl Editor {
         self.pump();
     }
 
+    fn apply_evaluation(
+        &self,
+        state: &mut State,
+        revision: u64,
+        response: &Value,
+    ) -> Result<(), String> {
+        if state.revision != revision {
+            return Ok(());
+        }
+        if let Some(error) = response.get("evaluationError").and_then(Value::as_str) {
+            state.evaluate_pending = false;
+            self.status.set_text(error);
+        } else if let Some(result) = response.get("result") {
+            let data: HashMap<String, Option<String>> = decode(result, "data")?;
+            let mut sources: HashMap<String, Vec<Evidence>> = decode(result, "sources")?;
+            let mut review: HashMap<String, FieldReview> = decode(result, "review")?;
+            let fields = state
+                .mask
+                .fields
+                .iter()
+                .map(|field| {
+                    let FieldReview { status, diagnostic } = review
+                        .remove(&field.name)
+                        .ok_or("Missing receipt field status")?;
+                    Ok(FieldValue {
+                        id: field.id.clone(),
+                        value: data
+                            .get(&field.name)
+                            .ok_or("Missing receipt field value")?
+                            .clone(),
+                        status,
+                        sources: sources
+                            .remove(&field.name)
+                            .ok_or("Missing receipt field sources")?,
+                        diagnostic,
+                    })
+                })
+                .collect::<Result<Vec<_>, &str>>()?;
+            state.result = Some(CurrentResult {
+                fields,
+                json: Some(result.clone()),
+            });
+            state.evaluate_pending = false;
+            self.status.set_text("");
+        } else if response.get("fields").is_some() {
+            state.result = Some(CurrentResult {
+                fields: decode(response, "fields")?,
+                json: None,
+            });
+            state.evaluate_pending = false;
+            self.status.set_text(tr(
+                "Feldnamen müssen für den JSON-Export eindeutig sein.",
+                "Field names must be unique before exporting JSON.",
+            ));
+        }
+        Ok(())
+    }
+
     fn show_inspection(
         self: &Rc<Self>,
         location: Location,
+        revision: Option<u64>,
         response: &Value,
     ) -> Result<(), String> {
-        let pages: Vec<Page> = decode(response, "pages")?;
-        if pages.len() > 1000
-            || !pages.iter().all(|page| page.valid())
-            || location.page >= pages.len()
-        {
+        let mut state = self.state.borrow_mut();
+        let changed = || tr("Das PDF hat sich geändert.", "The PDF changed.").to_string();
+        if state.current_location().as_ref() != Some(&location) {
+            return Err(changed());
+        }
+        let identity = if revision.is_some() {
+            let identity: Identity = decode(response, "sourceIdentity")?;
+            if state
+                .identities
+                .get(&location.source)
+                .is_some_and(|old| old != &identity)
+            {
+                return Err(changed());
+            }
+            identity
+        } else {
+            state
+                .identities
+                .get(&location.source)
+                .ok_or_else(changed)?
+                .clone()
+        };
+        #[derive(Deserialize)]
+        struct Word {
+            rectangle: Rect,
+        }
+        let words: Vec<Rect> = decode::<Vec<Word>>(response, "words")?
+            .into_iter()
+            .map(|word| word.rectangle)
+            .collect();
+        let can_click = !words.is_empty();
+        let truncated: bool = decode(response, "wordsTruncated")?;
+        let pages: Vec<Page> = if revision.is_some() {
+            let pages: Vec<Page> = decode(response, "pages")?;
+            if pages.len() > 1000 || !pages.iter().all(|page| page.valid()) {
+                return Err("Invalid receipt page geometry".into());
+            }
+            pages
+        } else {
+            state
+                .document
+                .as_ref()
+                .ok_or("Missing receipt geometry")?
+                .pages
+                .clone()
+        };
+        if location.page >= pages.len() {
             return Err("Invalid receipt page geometry".into());
         }
-        let identity: Identity = decode(response, "sourceIdentity")?;
         let texture = receipt_texture(
             response.get("preview").ok_or("Missing receipt raster")?,
             (location.page + 1) as u32,
@@ -930,48 +1043,35 @@ impl Editor {
             &identity.sha256,
             identity.byte_count,
         )?;
-        let mut state = self.state.borrow_mut();
-        if state.current_location().as_ref() != Some(&location)
-            || state
-                .identities
-                .get(&location.source)
-                .is_some_and(|old| old != &identity)
-        {
-            return Err(tr("Das PDF hat sich geändert.", "The PDF changed.").into());
+        if let Some(revision) = revision {
+            let document = Document {
+                pages,
+                words,
+                suggestions: decode(response, "suggestions")?,
+                suggested_values: decode(response, "suggestedValues")?,
+            };
+            self.apply_evaluation(&mut state, revision, response)?;
+            state.document = Some(document);
+            state.identities.insert(location.source.clone(), identity);
+        } else if let Some(document) = state.document.as_mut() {
+            document.words = words;
         }
-        #[derive(Deserialize)]
-        struct Word {
-            rectangle: Rect,
-        }
-        let words = if response.get("words").is_some() {
-            decode::<Vec<Word>>(response, "words")?
-                .into_iter()
-                .map(|word| word.rectangle)
-                .collect()
-        } else {
-            vec![]
-        };
-        state.document = Some(Document {
-            pages,
-            words,
-            suggestions: decode(response, "suggestions")?,
-            suggested_values: decode(response, "suggestedValues")?,
-        });
-        state.identities.insert(location.source.clone(), identity);
         state.location = Some(location);
         drop(state);
         self.picture.set_texture(Some(&texture));
         self.viewport.hadjustment().set_value(0.0);
         self.viewport.vadjustment().set_value(0.0);
         self.render_selection();
-        self.render_suggestions();
-        let can_click = self
-            .state
-            .borrow()
-            .document
-            .as_ref()
-            .is_some_and(|doc| !doc.words.is_empty());
-        self.source_status.set_text(if can_click {
+        if revision.is_some() {
+            self.render_suggestions();
+            self.render_results();
+        }
+        self.source_status.set_text(if truncated {
+            tr(
+                "Nur die ersten 10.000 Wörter sind anklickbar. Weitere Wörter mit einem Rahmen auswählen.",
+                "Only the first 10,000 words are clickable. Drag a rectangle to select other words.",
+            )
+        } else if can_click {
             tr(
                 "Ein Wort anklicken oder einen Bereich aufziehen.",
                 "Click a word or drag a rectangle.",
@@ -991,7 +1091,10 @@ impl Editor {
         state.evaluate_pending = false;
         if let Some(active) = &mut state.active {
             active.cancelled = true;
-            if matches!(active.request, Request::Inspect(_)) {
+            if matches!(
+                active.request,
+                Request::Inspect(..) | Request::PreviewPage(_)
+            ) {
                 self.source_status.set_text(tr(
                     "PDF-Ladevorgang abgebrochen.",
                     "Reading the PDF was cancelled.",
@@ -1102,15 +1205,8 @@ impl Editor {
     fn zoom(&self, direction: i8) {
         if direction == 0 {
             self.picture.set_zoom(Zoom::Fit);
-        } else if let Some(texture) = self.picture.texture() {
-            let current = match self.picture.zoom() {
-                Zoom::Fit => self.picture.rectangle().2 / f64::from(texture.width()),
-                Zoom::Scale(scale) => scale,
-            };
-            let next = current * if direction < 0 { 0.8 } else { 1.25 };
-            if direction > 0 || next >= 0.25 {
-                self.picture.set_zoom(Zoom::Scale(next));
-            }
+        } else {
+            self.picture.step_zoom(direction > 0);
         }
     }
 
@@ -1331,7 +1427,6 @@ impl Editor {
         }
         *self.field_rows.borrow_mut() = rows;
         self.update_replace_fields();
-        self.render_results();
     }
 
     fn update_replace_fields(&self) {

@@ -156,14 +156,14 @@ Universal-DMG für macOS ab Version 13 sowie x86-64-Pakete für Mint/Ubuntu und
 Arch-basierte Systeme. Die portablen TAR- und ZIP-Archive für Linux enthalten
 GTK-App und CLI. Zu jedem Download gehört eine `.sha256`-Datei.
 
-**macOS.** Die Datei mit `shasum -a 256 -c Poor-Mans-Text-0.41.24.dmg.sha256`
+**macOS.** Die Datei mit `shasum -a 256 -c Poor-Mans-Text-0.41.25.dmg.sha256`
 prüfen, das DMG öffnen und die App in den Programme-Ordner ziehen. Die CLI
 ist in der App enthalten. Textdokumente, E-Mail, ENEX und ODM benötigen
 separat installiertes Pandoc, etwa mit `brew install pandoc`.
 
 **Linux.** Die Datei mit `sha256sum -c` und der zugehörigen Prüfsummendatei
-prüfen. Das DEB mit `sudo apt install ./poormans-text_0.41.24-1_amd64.deb`
-installieren, das Arch-Paket mit `sudo pacman -U ./poormans-text-0.41.24-1-x86_64.pkg.tar.zst`.
+prüfen. Das DEB mit `sudo apt install ./poormans-text_0.41.25-1_amd64.deb`
+installieren, das Arch-Paket mit `sudo pacman -U ./poormans-text-0.41.25-1-x86_64.pkg.tar.zst`.
 Beim portablen Archiv nach dem Entpacken `usr/bin/poormans-text-app` oder
 `usr/bin/poormans-text` aus dem entpackten Ordner starten.
 `poormans-text --formats` zeigt die auf dem System verfügbaren Formate.
@@ -738,9 +738,9 @@ vergleichen die erhaltenen Asset-Bytes und prüfen beide OCR-Modi. Sie prüfen
 außerdem vorhandene Ziele, defekte oder unsichere Pakete, fehlende Abhängigkeiten, den
 CLI-Link-Schutz und den `NSItemProvider`-Drop-Pfad der App.
 
-Die aktuelle Quellversion ist 0.41.24.
-Die [Release-Hinweise](docs/releases/0.41.24.md) erklären die Plattformunterschiede.
-Die [Funktionsmatrix](docs/releases/0.41.24-verification.md) dokumentiert
+Die aktuelle Quellversion ist 0.41.25.
+Die [Release-Hinweise](docs/releases/0.41.25.md) beschreiben die Korrekturen dieses Updates.
+Die [Funktionsmatrix zu 0.41.24](docs/releases/0.41.24-verification.md) dokumentiert
 die Desktop- und Paketprüfungen auf macOS, Mint und CachyOS.
 
 ## Lizenz

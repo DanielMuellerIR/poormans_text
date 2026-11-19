@@ -79,6 +79,16 @@ public struct ReceiptResult: Encodable, Sendable {
 
     public var needsReview: Bool { fields.contains { $0.status.needsReview } }
 
+    /// Aktualisiert die Beschriftungen eines bereits mit denselben Regeln ausgewerteten Entwurfs.
+    public func withMetadata(from mask: ReceiptMask) -> Self {
+        let names = Dictionary(mask.fields.map { ($0.id, $0.name) }, uniquingKeysWith: { first, _ in first })
+        let renamed = fields.map { field in
+            ReceiptValue(id: field.id, name: names[field.id] ?? field.name, value: field.value,
+                         status: field.status, sources: field.sources, diagnostic: field.diagnostic)
+        }
+        return Self(mask: mask, fields: renamed)
+    }
+
     public mutating func correct(field: UUID, value: String) {
         guard let index = fields.firstIndex(where: { $0.id == field }) else { return }
         fields[index].value = value

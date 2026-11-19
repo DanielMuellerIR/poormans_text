@@ -19,6 +19,8 @@ struct LinuxReceiptPDF {
         let text: String
         let rectangle: ReceiptRectangle
         let line: Int
+
+        var receiptWord: ReceiptWord { ReceiptWord(text: text, rectangle: rectangle, line: line) }
     }
 
     let document: ReceiptDocument
@@ -30,6 +32,49 @@ struct LinuxReceiptPDF {
         at url: URL, renderPage: Int? = nil, expectedIdentity: ReceiptEditorSourceIdentity? = nil,
         includeIdentity: Bool = false
     ) throws -> Self {
+        try withSnapshot(at: url, expectedIdentity: expectedIdentity, includeIdentity: includeIdentity || renderPage != nil) {
+            snapshot, identity in
+            let payloads = try readPages(snapshot)
+            var preview: SourcePreview?
+            if let renderPage, let identity {
+                guard payloads.indices.contains(renderPage) else {
+                    throw ReceiptPDFError("The selected page does not exist in this PDF.")
+                }
+                preview = try LinuxSourcePreview.renderVerifiedSnapshot(snapshot, original: url, identity: identity,
+                                                                        selection: .page(renderPage + 1))
+            }
+            let pages = payloads.map { page in
+                ReceiptPage(pointsPerMillimeter: page.pointsPerMillimeter,
+                            words: page.words.map(\.receiptWord))
+            }
+            guard pages.contains(where: { !$0.words.isEmpty }) else {
+                throw ReceiptPDFError("The PDF contains no usable embedded text. Scanned pages require OCR.")
+            }
+            return Self(document: ReceiptDocument(pages: pages), pages: payloads.map(\.geometry),
+                        sourceIdentity: identity, preview: preview)
+        }
+    }
+
+    static func previewPage(
+        at url: URL, page: Int, expectedIdentity: ReceiptEditorSourceIdentity
+    ) throws -> (words: [ReceiptWord], preview: SourcePreview) {
+        guard (0..<ReceiptPDF.maximumPages).contains(page) else {
+            throw ReceiptPDFError("The selected page does not exist in this PDF.")
+        }
+        return try withSnapshot(at: url, expectedIdentity: expectedIdentity, includeIdentity: true) { snapshot, identity in
+            guard let identity, let payload = try readPages(snapshot, page: page).first else {
+                throw ReceiptPDFError("The selected page does not exist in this PDF.")
+            }
+            let preview = try LinuxSourcePreview.renderVerifiedSnapshot(snapshot, original: url, identity: identity,
+                                                                        selection: .page(page + 1))
+            return (payload.words.map(\.receiptWord), preview)
+        }
+    }
+
+    private static func withSnapshot<T>(
+        at url: URL, expectedIdentity: ReceiptEditorSourceIdentity?, includeIdentity: Bool,
+        use: (URL, ConversionSourceIdentity?) throws -> T
+    ) throws -> T {
         try LinuxPathValidation.validate(url)
         return try LinuxBackendWorkDirectory.withTemporaryDirectory { sourceDirectory in
             let snapshot = sourceDirectory.appendingPathComponent("source.pdf")
@@ -43,7 +88,7 @@ struct LinuxReceiptPDF {
                                                         prefixBytes: 1024, describedAs: "the PDF source")
             guard prefix.range(of: Data("%PDF-".utf8)) != nil else { throw ReceiptPDFError("The PDF is damaged or unreadable.") }
             var identity: ConversionSourceIdentity?
-            if includeIdentity || renderPage != nil || expectedIdentity != nil {
+            if includeIdentity || expectedIdentity != nil {
                 let fingerprint = try ConversionFileFingerprint.read(snapshot)
                 if let expectedIdentity, expectedIdentity.sha256 != fingerprint.sha256 ||
                     expectedIdentity.byteCount != fingerprint.byteCount {
@@ -52,30 +97,15 @@ struct LinuxReceiptPDF {
                 identity = ConversionSourceIdentity(name: url.lastPathComponent, sha256: fingerprint.sha256,
                     byteCount: fingerprint.byteCount, unavailableReason: nil)
             }
-            let payloads = try readPages(snapshot)
-            var preview: SourcePreview?
-            if let renderPage, let identity {
-                guard payloads.indices.contains(renderPage) else {
-                    throw ReceiptPDFError("The selected page does not exist in this PDF.")
-                }
-                preview = try LinuxSourcePreview.renderVerifiedSnapshot(snapshot, original: url, identity: identity,
-                                                                        selection: .page(renderPage + 1))
-            }
-            let pages = payloads.map { page in
-                ReceiptPage(pointsPerMillimeter: page.pointsPerMillimeter,
-                            words: page.words.map { ReceiptWord(text: $0.text, rectangle: $0.rectangle, line: $0.line) })
-            }
-            guard pages.contains(where: { !$0.words.isEmpty }) else {
-                throw ReceiptPDFError("The PDF contains no usable embedded text. Scanned pages require OCR.")
-            }
-            return Self(document: ReceiptDocument(pages: pages), pages: payloads.map(\.geometry),
-                        sourceIdentity: identity, preview: preview)
+            return try use(snapshot, identity)
         }
     }
 
-    private static func readPages(_ snapshot: URL) throws -> [PagePayload] {
+    private static func readPages(_ snapshot: URL, page: Int? = nil) throws -> [PagePayload] {
         try LinuxBackendWorkDirectory.withTemporaryDirectory { directory in
-            let result = try LinuxBackendResources.runPython(script: "poppler", arguments: ["receipt", snapshot.path],
+            var arguments = ["receipt", snapshot.path]
+            if let page { arguments.append(String(page)) }
+            let result = try LinuxBackendResources.runPython(script: "poppler", arguments: arguments,
                                                               in: directory, readOnlyPaths: [snapshot])
             try ConversionExecution.check()
             if result.status == 69 {
@@ -91,12 +121,12 @@ struct LinuxReceiptPDF {
             let manifest = try JSONDecoder().decode(Manifest.self, from: Data(result.standardOutput.utf8))
             let counts = manifest.characterCounts
             let invalidProtocol = ReceiptPDFError("The local PDF backend returned unusable receipt text coordinates.")
-            guard (1...ReceiptPDF.maximumPages).contains(counts.count),
+            guard (1...ReceiptPDF.maximumPages).contains(counts.count), page == nil || counts.count == 1,
                   counts.allSatisfy({ (0...ReceiptPDF.maximumPageCharacters).contains($0) }),
                   counts.reduce(0, +) <= ReceiptPDF.maximumDocumentCharacters else { throw invalidProtocol }
             return try counts.enumerated().map { index, count in
                 try ConversionExecution.check()
-                let url = directory.appendingPathComponent("receipt-\(index + 1).json")
+                let url = directory.appendingPathComponent("receipt-\((page ?? index) + 1).json")
                 let data = try VerifiedFileStaging.contents(of: url, maximumBytes: 16 * 1024 * 1024,
                                                              describedAs: "the locally generated PDF receipt page",
                                                              followSourceSymlink: false)

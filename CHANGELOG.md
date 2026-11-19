@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.41.25 — 2026-11-19
+
+- Reject unsupported receipt page numbers and masks that exceed the JSON size limit before saving.
+- Keep macOS receipt editing responsive on large PDFs, prevent duplicate suggestions, and discard receipt corrections when the underlying PDF changes.
+- Speed up page navigation in the GTK editor, align its zoom limits with source comparison and show when word selection is limited.
+- Preserve Linux RTFD image attachments immediately after formatting commands.
+- Keep manually dispatched release CI independent of push CI.
+
 ## 0.41.24 — 2026-11-18
 
 - Release the macOS app and CLI alongside Linux x86-64 packages with the GTK app and CLI.

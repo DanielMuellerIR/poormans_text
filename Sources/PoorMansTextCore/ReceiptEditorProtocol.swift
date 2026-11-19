@@ -7,8 +7,11 @@ struct ReceiptEditorSourceIdentity: Decodable {
 }
 
 public enum ReceiptEditorProtocol {
+    private static let wordLimit = 10_000
+    private static let maximumResponseBytes = 16 * 1_024 * 1_024
+
     private enum Action: String, Decodable {
-        case inspect, evaluate, export, loadMask, saveMask
+        case inspect, previewPage, evaluate, export, loadMask, saveMask
     }
 
     private struct Request: Decodable {
@@ -23,7 +26,6 @@ public enum ReceiptEditorProtocol {
 
     private struct Field: Encodable {
         let id: UUID
-        let name: String
         let value: String?
         let status: ReceiptValueStatus
         let sources: [ReceiptEvidence]
@@ -31,7 +33,6 @@ public enum ReceiptEditorProtocol {
 
         init(_ value: ReceiptValue) {
             id = value.id
-            name = value.name
             self.value = value.value
             status = value.status
             sources = value.sources
@@ -50,12 +51,27 @@ public enum ReceiptEditorProtocol {
         var mask: ReceiptMask?
         var pages: [LinuxReceiptPageGeometry]?
         var words: [Word]?
+        var wordsTruncated: Bool?
         var preview: SourcePreview?
         var sourceIdentity: ConversionSourceIdentity?
         var suggestions: [ReceiptField]?
         var suggestedValues: [Field]?
         var fields: [Field]?
         var result: ReceiptResult?
+        var evaluationError: String?
+
+        mutating func setWords(_ words: [ReceiptWord]) {
+            self.words = words.prefix(ReceiptEditorProtocol.wordLimit).map { Word(rectangle: $0.rectangle) }
+            wordsTruncated = words.count > ReceiptEditorProtocol.wordLimit
+        }
+
+        mutating func setResult(_ result: ReceiptResult) {
+            if Set(result.fields.map(\.name)).count == result.fields.count {
+                self.result = result
+            } else {
+                fields = result.fields.map(Field.init)
+            }
+        }
     }
 
     public static func run(
@@ -69,16 +85,18 @@ public enum ReceiptEditorProtocol {
             try JSONStructurePreflight.validate(data, limits: .init(depth: 16, nodes: 25_000, keyBytes: 128),
                                                 documentName: "receipt editor request")
             let request = try JSONDecoder().decode(Request.self, from: data)
-            let payload = try execute(request)
-            var response = try JSONEncoder().encode(payload)
-            guard response.count < 16 * 1024 * 1024 else {
-                throw ReceiptError.invalidDocument("The receipt preview exceeds its response size limit.")
+            var payload = try execute(request)
+            let encoder = JSONEncoder()
+            var response = try encoder.encode(payload)
+            if response.count >= maximumResponseBytes, request.action == .inspect,
+               payload.result != nil || payload.fields != nil {
+                payload.result = nil
+                payload.fields = nil
+                // Der Editor kann die Auswertung separat vom Raster erneut anfordern.
+                response = try encoder.encode(payload)
             }
-            if request.action == .export {
-                guard let result = payload.result else {
-                    throw ReceiptError.invalidMask("Field names must be unique before exporting.")
-                }
-                try result.write(to: url(request.path))
+            guard response.count < maximumResponseBytes else {
+                throw ReceiptError.invalidDocument("The receipt preview exceeds its response size limit.")
             }
             response.append(0x0A)
             return response
@@ -96,31 +114,57 @@ public enum ReceiptEditorProtocol {
             let page = request.page ?? 0
             let loaded = try LinuxReceiptPDF.read(at: url(request.source), renderPage: page,
                                                   expectedIdentity: request.sourceIdentity)
-            let suggestions = ReceiptExtractor.suggestions(in: loaded.document)
-            let suggestedValues = try ReceiptExtractor.evaluateForExport(ReceiptMask(fields: suggestions), in: loaded.document)
-            return Response(pages: loaded.pages, words: loaded.document.pages[page].words.prefix(10_000).map {
-                Word(rectangle: $0.rectangle)
-            }, preview: loaded.preview, sourceIdentity: loaded.sourceIdentity,
-                suggestions: suggestions, suggestedValues: suggestedValues.fields.map(Field.init))
+            let index = try ReceiptExtractor.Prepared(loaded.document)
+            let suggestions = try index.suggestions()
+            let suggestedValues = try? index.evaluate(ReceiptMask(fields: suggestions))
+            var response = Response(pages: loaded.pages, preview: loaded.preview, sourceIdentity: loaded.sourceIdentity,
+                                    suggestions: suggestions, suggestedValues: suggestedValues?.fields.map(Field.init) ?? [])
+            response.setWords(loaded.document.pages[page].words)
+            if request.mask != nil {
+                do {
+                    response.setResult(try evaluate(request, index: index))
+                } catch let error as ReceiptError {
+                    response.evaluationError = error.localizedDescription
+                }
+            }
+            try ConversionExecution.check()
+            return response
+        case .previewPage:
+            guard let identity = request.sourceIdentity, let page = request.page else {
+                throw ReceiptPDFError("The receipt page preview requires a verified PDF identity and page.")
+            }
+            let loaded = try LinuxReceiptPDF.previewPage(at: url(request.source), page: page, expectedIdentity: identity)
+            var response = Response(preview: loaded.preview)
+            response.setWords(loaded.words)
+            return response
         case .evaluate, .export:
-            let mask = try mask(request)
             let loaded = try LinuxReceiptPDF.read(at: url(request.source), expectedIdentity: request.sourceIdentity,
                                                   includeIdentity: true)
-            var result = try ReceiptExtractor.evaluateForExport(mask, in: loaded.document)
-            for (key, value) in request.corrections ?? [:] {
-                guard let id = UUID(uuidString: key) else {
-                    throw ReceiptError.invalidMask("A correction references an invalid field identifier.")
-                }
-                result.correct(field: id, value: value)
+            let result = try evaluate(request, index: ReceiptExtractor.Prepared(loaded.document))
+            if request.action == .export {
+                try ConversionExecution.check()
+                try result.write(to: url(request.path))
+                return Response()
             }
-            let uniqueNames = Set(result.fields.map(\.name)).count == result.fields.count
-            return Response(sourceIdentity: loaded.sourceIdentity, fields: result.fields.map(Field.init),
-                            result: uniqueNames ? result : nil)
+            var response = Response(sourceIdentity: loaded.sourceIdentity)
+            response.setResult(result)
+            return response
         }
     }
 
+    private static func evaluate(_ request: Request, index: ReceiptExtractor.Prepared) throws -> ReceiptResult {
+        var result = try index.evaluate(mask(request))
+        for (key, value) in request.corrections ?? [:] {
+            guard let id = UUID(uuidString: key) else {
+                throw ReceiptError.invalidMask("A correction references an invalid field identifier.")
+            }
+            result.correct(field: id, value: value)
+        }
+        return result
+    }
+
     private static func mask(_ request: Request) throws -> ReceiptMask {
-        guard let mask = request.mask, mask.version == 1, mask.fields.count <= 500,
+        guard let mask = request.mask, mask.version == 1, mask.fields.count <= ReceiptMask.maximumFields,
               Set(mask.fields.map(\.id)).count == mask.fields.count else {
             throw ReceiptError.invalidMask("The receipt editor requires a version 1 mask with up to 500 distinct fields.")
         }

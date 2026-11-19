@@ -46,6 +46,8 @@ public struct ReceiptField: Codable, Hashable, Identifiable, Sendable {
 }
 
 public struct ReceiptMask: Codable, Hashable, Sendable {
+    public static let maximumFields = 500
+    private static let maximumBytes = 1_000_000
     public let version: Int
     public var partner: String
     public var documentType: String
@@ -63,7 +65,7 @@ public struct ReceiptMask: Codable, Hashable, Sendable {
         let data = try VerifiedFile.open(at: url, failure: { _ in failure }) { file in
             guard file.isRegularFile else { throw failure }
             var data = Data()
-            _ = try file.readChunks(maximumBytes: 1_000_000, chunkSize: 64 * 1024, budgetExceeded: { failure }) {
+            _ = try file.readChunks(maximumBytes: maximumBytes, chunkSize: 64 * 1024, budgetExceeded: { failure }) {
                 data.append(contentsOf: $0)
                 return true
             }
@@ -82,14 +84,18 @@ public struct ReceiptMask: Codable, Hashable, Sendable {
 
     public func save(to url: URL) throws {
         try validate()
-        try ReceiptJSON.write(ReceiptJSON.encode(self), to: url)
+        let data = try ReceiptJSON.encode(self)
+        guard data.count <= Self.maximumBytes else {
+            throw ReceiptError.invalidMask("The mask exceeds the 1 MB JSON size limit.")
+        }
+        try ReceiptJSON.write(data, to: url)
     }
 
     func validate() throws {
         guard version == 1 else {
             throw ReceiptError.invalidMask("Unsupported mask version \(version).")
         }
-        guard Self.validName(partner), Self.validName(documentType), (1...500).contains(fields.count) else {
+        guard Self.validName(partner), Self.validName(documentType), (1...Self.maximumFields).contains(fields.count) else {
             throw ReceiptError.invalidMask("Enter a partner, a document type and between one and 500 fields.")
         }
         var names = Set<String>()
@@ -100,7 +106,7 @@ public struct ReceiptMask: Codable, Hashable, Sendable {
             }
             switch field.rule {
             case let .region(page, rectangle):
-                guard page >= 0, rectangle.isValid else {
+                guard (0..<ReceiptPDF.maximumPages).contains(page), rectangle.isValid else {
                     throw ReceiptError.invalidMask("Invalid selection for \(field.name).")
                 }
             case let .rightOf(label, _):

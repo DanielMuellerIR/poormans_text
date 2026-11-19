@@ -393,24 +393,12 @@ impl Pane {
                 if owned.picture.texture().is_none() {
                     return;
                 }
-                let scale = match owned.picture.zoom() {
-                    Zoom::Scale(value) => value,
-                    Zoom::Fit => {
-                        let texture = owned.picture.texture().unwrap();
-                        (owned.viewport.hadjustment().page_size() / f64::from(texture.width())).min(
-                            owned.viewport.vadjustment().page_size() / f64::from(texture.height()),
-                        )
-                    }
-                };
-                let zoom = match index {
-                    0 => Zoom::Fit,
-                    1 => Zoom::Scale(1.0),
-                    2 if scale <= 0.25 => return,
-                    3 if scale >= 4.0 => return,
-                    2 => Zoom::Scale(scale / 1.25),
-                    _ => Zoom::Scale(scale * 1.25),
-                };
-                owned.picture.set_zoom(zoom);
+                match index {
+                    0 => owned.picture.set_zoom(Zoom::Fit),
+                    1 => owned.picture.set_zoom(Zoom::Scale(1.0)),
+                    _ if !owned.picture.step_zoom(index == 3) => return,
+                    _ => {}
+                }
                 owned.viewport.hadjustment().set_value(0.0);
                 owned.viewport.vadjustment().set_value(0.0);
                 owned.zoom_status.set_text(&match owned.picture.zoom() {

@@ -17,15 +17,15 @@ Universal-DMG für macOS ab Version 13 sowie Linux-Pakete und portable Archive
 für x86-64. Lade die gewünschte Datei und die zugehörige `.sha256`-Datei herunter.
 
 **macOS.** Prüfe den Download mit
-`shasum -a 256 -c Poor-Mans-Text-0.41.25.dmg.sha256`. Öffne das DMG und ziehe die
+`shasum -a 256 -c Poor-Mans-Text-0.41.26.dmg.sha256`. Öffne das DMG und ziehe die
 App in den Programme-Ordner. Die App kann das mitgelieferte Kommandozeilenprogramm
 in einem Verzeichnis auf `PATH` verlinken. Pandoc gibt es als
 [offizielles Installationspaket](https://pandoc.org/installing.html) und über
 Homebrew. Falls Pandoc fehlt, bietet die App beim Start Hilfe zur Installation an.
 
 **Linux.** Prüfe den Download mit `sha256sum -c`. Installiere das DEB mit
-`sudo apt install ./poormans-text_0.41.25-1_amd64.deb` oder das Arch-Paket mit
-`sudo pacman -U ./poormans-text-0.41.25-1-x86_64.pkg.tar.zst`. Im entpackten
+`sudo apt install ./poormans-text_0.41.26-1_amd64.deb` oder das Arch-Paket mit
+`sudo pacman -U ./poormans-text-0.41.26-1-x86_64.pkg.tar.zst`. Im entpackten
 portablen Archiv startet `usr/bin/poormans-text-app` die GTK-App und
 `usr/bin/poormans-text` die CLI. [Linux-Abhängigkeiten und Installation](docs/LINUX-BUILD.md)
 
@@ -145,7 +145,7 @@ swift test
 
 [macOS-Build und Tests](docs/BUILD-AND-TEST.md) · [Linux-Build und Paketierung](docs/LINUX-BUILD.md) · [Architektur](docs/ARCHITECTURE.md)
 
-Quellversion **0.41.25**. [Versionshinweise](docs/releases/0.41.25.md) · [Änderungsprotokoll](CHANGELOG.md)
+Quellversion **0.41.26**. [Versionshinweise](docs/releases/0.41.26.md) · [Änderungsprotokoll](CHANGELOG.md)
 
 ## Lizenz
 

@@ -17,15 +17,15 @@ for macOS 13 and later, plus x86-64 Linux packages and portable archives.
 Download the installer or archive and its matching `.sha256` file.
 
 **macOS.** Verify the download with
-`shasum -a 256 -c Poor-Mans-Text-0.41.25.dmg.sha256`. Open the DMG and drag the
+`shasum -a 256 -c Poor-Mans-Text-0.41.26.dmg.sha256`. Open the DMG and drag the
 app to Applications. The app can link its bundled CLI into a directory on
 `PATH`. Pandoc is available from its [official installer](https://pandoc.org/installing.html)
 or through Homebrew. The app offers installation help on startup if Pandoc is
 missing.
 
 **Linux.** Verify the download with `sha256sum -c`. Install the DEB with
-`sudo apt install ./poormans-text_0.41.25-1_amd64.deb`, or install the Arch
-package with `sudo pacman -U ./poormans-text-0.41.25-1-x86_64.pkg.tar.zst`.
+`sudo apt install ./poormans-text_0.41.26-1_amd64.deb`, or install the Arch
+package with `sudo pacman -U ./poormans-text-0.41.26-1-x86_64.pkg.tar.zst`.
 From a portable archive, run `usr/bin/poormans-text-app` for GTK or
 `usr/bin/poormans-text` for the CLI. [Linux dependencies and installation](docs/LINUX-BUILD.md)
 
@@ -141,7 +141,7 @@ swift test
 
 [macOS build and test guide](docs/BUILD-AND-TEST.md) · [Linux build and packaging](docs/LINUX-BUILD.md) · [Architecture](docs/ARCHITECTURE.md)
 
-Source version **0.41.25**. [Release notes](docs/releases/0.41.25.md) · [Changelog](CHANGELOG.md)
+Source version **0.41.26**. [Release notes](docs/releases/0.41.26.md) · [Changelog](CHANGELOG.md)
 
 ## License
 

@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.41.26 — 2026-11-21
+
+- Preserve DOCX text, comments, tracked changes and embedded images on Linux when documents use standard XML namespaces.
+- Reject missing or nonlocal RTFD attachments before conversion on macOS and retain valid local attachments with accented filenames.
+- Report CLI output failures with a nonzero exit status.
+- Run shared conversion tests and native Linux product checks in CI, and reorganize the converter and desktop app modules.
+
 ## 0.41.25 — 2026-11-19
 
 - Reject unsupported receipt page numbers and masks that exceed the JSON size limit before saving.

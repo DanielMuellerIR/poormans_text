@@ -15,13 +15,16 @@ public struct ShortcutProfileQuery: EntityStringQuery {
         let store = ConversionProfileStore()
         return try await Task.detached {
             try identifiers.compactMap { name in
-                do { return ShortcutProfile(name: try store.load(named: name).name) }
-                catch let error as ConversionProfileError where error.kind == .missing { return nil }
+                do { return ShortcutProfile(name: try store.load(named: name).name) } catch let error
+                    as ConversionProfileError where error.kind == .missing
+                { return nil }
             }
         }.value
     }
     public func suggestedEntities() async throws -> [ShortcutProfile] {
-        try await Task.detached { try ConversionProfileStore().profiles().map { ShortcutProfile(name: $0.name) } }.value
+        try await Task.detached {
+            try ConversionProfileStore().profiles().map { ShortcutProfile(name: $0.name) }
+        }.value
     }
     public func entities(matching string: String) async throws -> [ShortcutProfile] {
         try await suggestedEntities().filter { $0.id.localizedCaseInsensitiveContains(string) }

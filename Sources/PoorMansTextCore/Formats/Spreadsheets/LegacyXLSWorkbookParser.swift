@@ -1,0 +1,1090 @@
+import Foundation
+
+enum LegacyXLSWorkbookParser {
+    static func parse(_ data: Data) throws -> SpreadsheetWorkbook {
+        let compound = try OLECompoundDocument(data: data)
+        let tree = try compound.storageTree()
+        guard
+            let workbookStream = try tree.stream(at: ["Workbook"])
+                ?? tree.stream(at: ["Book"])
+        else {
+            throw ParserError("the OLE compound document contains no Excel workbook stream")
+        }
+        var workbook = try BIFFParser.parse(workbookStream)
+        workbook.hasUnsupportedObjects =
+            workbook.hasUnsupportedObjects
+            || compound.entryNames.contains {
+                $0.caseInsensitiveCompare("_VBA_PROJECT_CUR") == .orderedSame
+                    || $0.localizedCaseInsensitiveContains("VBA")
+                    || $0.localizedCaseInsensitiveContains("ObjectPool")
+            }
+        return workbook
+    }
+
+    /// Die OLE-Signatur am Dateianfang. Acht Bytes entscheiden, ob eine Datei
+    /// überhaupt ein Compound-Dokument sein kann — die Erkennung muss dafür
+    /// nicht die ganze Datei lesen.
+    static let compoundDocumentSignature = OLECompoundDocument.signature
+
+    static func hasCompoundDocumentSignature(_ header: Data) -> Bool {
+        OLECompoundDocument.hasSignature(header)
+    }
+
+    static func looksLikeXLS(_ data: Data) -> Bool {
+        guard let compound = try? OLECompoundDocument(data: data),
+            let tree = try? compound.storageTree()
+        else {
+            return false
+        }
+        let candidate: Data?
+        do {
+            candidate =
+                try tree.stream(at: ["Workbook"])
+                ?? tree.stream(at: ["Book"])
+        } catch {
+            return false
+        }
+        guard let stream = candidate, stream.count >= 8 else { return false }
+        return stream.legacyUInt16(at: 0) == 0x0809
+            && stream.legacyUInt16(at: 6) == 0x0005
+    }
+
+    /// Nicht `private`: Tests prüfen `setCell` und `CellBudget` direkt, weil
+    /// ein BIFF-Fixture mit einer Million Zellen den OLE-Schreiber der Tests
+    /// sprengen würde.
+    enum BIFFParser {
+        static func parse(_ data: Data) throws -> SpreadsheetWorkbook {
+            // Die Workbook-Globals enden am ersten EOF-Record (0x000A). BOF,
+            // FilePass, SST und alle BOUNDSHEET-Records liegen davor, die
+            // Blatt-Substreams dahinter werden je Blatt ohnehin einzeln
+            // gelesen — ohne das frühe Ende würde hier der komplette Stream
+            // kopiert.
+            let records = try records(in: data, stopAfterID: 0x000A)
+            guard let first = records.first,
+                first.id == 0x0809,
+                first.payload.legacyUInt16(at: 2) == 0x0005
+            else {
+                throw ParserError("the Excel workbook-global BOF record is missing")
+            }
+            if records.contains(where: { $0.id == 0x002F }) {
+                throw ParserError("encrypted XLS workbooks are not supported")
+            }
+            let sharedStrings = try parseSharedStrings(records)
+            let numberStyles = try parseNumberStyles(records)
+            var allBounds = [BoundSheet]()
+            var hasUnsupportedObjects = false
+            for record in records where record.id == 0x0085 {
+                guard record.payload.count >= 8 else {
+                    throw ParserError("an XLS sheet directory record is invalid")
+                }
+                let type = record.payload[5]
+                let name = try biffShortString(record.payload, at: 6)
+                let offset = Int(record.payload.legacyUInt32(at: 0))
+                guard offset >= 0, offset < data.count else {
+                    throw ParserError("an XLS sheet directory offset is invalid")
+                }
+                let visibility: SpreadsheetSheetVisibility =
+                    switch record.payload[4] {
+                    case 0: .visible
+                    case 1: .hidden
+                    case 2: .veryHidden
+                    default: .unknown
+                    }
+                allBounds.append(BoundSheet(offset: offset, name: name, type: type, visibility: visibility))
+                hasUnsupportedObjects = hasUnsupportedObjects || type != 0
+            }
+            let bounds = allBounds.filter { $0.type == 0 }
+            guard !bounds.isEmpty else {
+                throw ParserError("the XLS workbook contains no worksheets")
+            }
+            guard bounds.count <= SpreadsheetLimits.maximumSheets else {
+                throw ParserError("the XLS workbook contains too many sheets")
+            }
+            // Auch Chart-, Makro- und andere BIFF-Unterstreams begrenzen das
+            // physisch davor liegende Worksheet. Erst die spätere Ausgabe wird
+            // nach Blatttyp gefiltert; sonst könnte deren EOF ein beschädigtes
+            // Worksheet fälschlich abschließen.
+            let physicalOffsets = allBounds.map(\.offset).sorted()
+            guard Set(physicalOffsets).count == physicalOffsets.count else {
+                throw ParserError("the XLS workbook contains duplicate sheet offsets")
+            }
+
+            var workbook = SpreadsheetWorkbook(sheets: [])
+            workbook.sheetSummaries = allBounds.enumerated().map {
+                .init(
+                    index: $0.offset + 1, name: $0.element.name, visibility: $0.element.visibility,
+                    isReadable: $0.element.type == 0)
+            }
+            var expandedCellCount = 0
+            var hyperlinkScannedCellCount = 0
+            for bound in bounds {
+                try ConversionExecution.report(
+                    unit: .sheet, completed: workbook.sheets.count, total: bounds.count)
+                let endOffset = physicalOffsets.first(where: { $0 > bound.offset }) ?? data.count
+                let parsed = try parseSheet(
+                    data,
+                    at: bound.offset,
+                    before: endOffset,
+                    sharedStrings: sharedStrings,
+                    maximumCells: SpreadsheetLimits.maximumCells - expandedCellCount,
+                    maximumHyperlinkScans: SpreadsheetLimits.maximumHyperlinkScans
+                        - hyperlinkScannedCellCount,
+                    numberStyles: numberStyles
+                )
+                expandedCellCount += parsed.expandedCellCount
+                hyperlinkScannedCellCount += parsed.hyperlinkScannedCellCount
+                workbook.sheets.append(
+                    SpreadsheetSheet(
+                        name: bound.name, rows: parsed.rows,
+                        sourceIndex: allBounds.firstIndex(where: { $0.offset == bound.offset }).map {
+                            $0 + 1
+                        }, visibility: bound.visibility))
+                for warning in parsed.diagnostics.values {
+                    workbook.packageDiagnostics.append(
+                        warning.at(
+                            (warning.location ?? ConversionLocation()).merging(
+                                ConversionLocation(sheet: bound.name))))
+                }
+                workbook.packageDiagnostics.addOmitted(parsed.diagnostics.omittedCount)
+                workbook.hasFlattenedMerges = workbook.hasFlattenedMerges || parsed.hasMerges
+                workbook.hasFormulaWithoutResult =
+                    workbook.hasFormulaWithoutResult
+                    || parsed.hasFormulaWithoutResult
+                hasUnsupportedObjects = hasUnsupportedObjects || parsed.hasUnsupportedObjects
+            }
+            workbook.hasUnsupportedObjects = hasUnsupportedObjects
+            return workbook
+        }
+
+        /// Liest BIFF-Records ab `start`.
+        ///
+        /// `stopAfterID` beendet den Lauf nach dem ersten Record dieser Art.
+        /// Für die Workbook-Globals wie für ein einzelnes Blatt ist das der
+        /// EOF-Record: Ohne ihn würde jeweils der gesamte restliche
+        /// Arbeitsmappen-Stream eingelesen und jede Nutzlast kopiert — bei bis
+        /// zu 256 Blättern also immer wieder von vorn, obwohl die Auswertung
+        /// ohnehin am ersten EOF endet.
+        private static func records(
+            in data: Data,
+            start: Int = 0,
+            end: Int? = nil,
+            stopAfterID: UInt16? = nil
+        ) throws -> [Record] {
+            var result = [Record]()
+            var offset = start
+            let end = end ?? data.count
+            guard start >= 0, start <= end, end <= data.count else {
+                throw ParserError("an XLS BIFF record range is invalid")
+            }
+            while offset + 4 <= end {
+                try ConversionExecution.check()
+                let id = data.legacyUInt16(at: offset)
+                let length = Int(data.legacyUInt16(at: offset + 2))
+                guard offset + 4 + length <= end else {
+                    throw ParserError("an XLS BIFF record extends beyond its stream range")
+                }
+                result.append(
+                    Record(
+                        id: id,
+                        offset: offset,
+                        payload: data.subdata(in: (offset + 4)..<(offset + 4 + length))
+                    )
+                )
+                offset += 4 + length
+                if id == stopAfterID {
+                    break
+                }
+            }
+            return result
+        }
+
+        private static func parseSharedStrings(_ records: [Record]) throws -> [String] {
+            guard let index = records.firstIndex(where: { $0.id == 0x00FC }) else {
+                return []
+            }
+            var segments = [records[index].payload]
+            var next = index + 1
+            while next < records.count, records[next].id == 0x003C {
+                segments.append(records[next].payload)
+                next += 1
+            }
+            var cursor = SegmentedCursor(segments: segments)
+            _ = try cursor.readUInt32()
+            let uniqueCount = Int(try cursor.readUInt32())
+            guard uniqueCount <= SpreadsheetLimits.maximumSharedStrings else {
+                throw ParserError("the XLS shared-string table exceeds the supported limit")
+            }
+            var strings = [String]()
+            strings.reserveCapacity(uniqueCount)
+            for _ in 0..<uniqueCount {
+                try ConversionExecution.check()
+                strings.append(try cursor.readUnicodeString())
+            }
+            return strings
+        }
+
+        private struct BIFFNumberStyles {
+            let formats: [SpreadsheetNumberFormat]
+            let dateSystem: SpreadsheetDateSystem
+
+            func cell(
+                _ raw: String, style: Int, formula: String?, row: Int, column: Int,
+                diagnostics: inout BoundedConversionDiagnostics
+            ) -> SpreadsheetCell {
+                let result =
+                    formats.indices.contains(style)
+                    ? formats[style].format(raw, dateSystem: dateSystem)
+                    : SpreadsheetFormattedNumber(
+                        text: raw, issue: "cell XF index \(style) has no valid definition")
+                if result.issue != nil {
+                    var remaining = column + 1
+                    var name = ""
+                    while remaining > 0 {
+                        remaining -= 1
+                        name = String(UnicodeScalar(65 + remaining % 26)!) + name
+                        remaining /= 26
+                    }
+                    if let warning = result.warning(
+                        storedValue: raw, at: ConversionLocation(cell: "\(name)\(row + 1)"))
+                    {
+                        diagnostics.append(warning)
+                    }
+                }
+                return SpreadsheetCell(value: .number(raw), displayText: result.text, formula: formula)
+            }
+        }
+
+        private static func parseNumberStyles(_ records: [Record]) throws -> BIFFNumberStyles {
+            var codes: [Int: String] = [:]
+            var xfs: [(format: Int, isStyle: Bool, parent: Int, applies: Bool)] = []
+            var dateSystem = SpreadsheetDateSystem.excel1900
+            var sawDateSystem = false
+            var codeBytes = 0
+            for (index, record) in records.enumerated() {
+                try ConversionExecution.check()
+                switch record.id {
+                case 0x0022:  // Date1904
+                    guard !sawDateSystem, record.payload.count == 2, record.payload.legacyUInt16(at: 0) <= 1
+                    else {
+                        throw ParserError("the XLS date system is invalid or duplicated")
+                    }
+                    sawDateSystem = true
+                    dateSystem = record.payload.legacyUInt16(at: 0) == 1 ? .excel1904 : .excel1900
+                case 0x041E:  // FORMAT, BIFF8 XLUnicodeString
+                    guard record.payload.count >= 5 else {
+                        throw ParserError("an XLS number format is truncated")
+                    }
+                    let id = Int(record.payload.legacyUInt16(at: 0))
+                    guard codes[id] == nil, codes.count < 65_536 else {
+                        throw ParserError("XLS number formats are duplicated or exceed their budget")
+                    }
+                    var segments = [Data(record.payload.dropFirst(2))]
+                    var bytes = segments[0].count
+                    guard bytes <= 16_384 else {
+                        throw ParserError("an XLS number format exceeds its record budget")
+                    }
+                    var next = index + 1
+                    while next < records.count && records[next].id == 0x003C {
+                        bytes += records[next].payload.count
+                        guard bytes <= 16_384 else {
+                            throw ParserError("an XLS number format exceeds its record budget")
+                        }
+                        segments.append(records[next].payload)
+                        next += 1
+                    }
+                    var cursor = SegmentedCursor(segments: segments)
+                    let code = try cursor.readUnicodeString(requiresValidUnicode: true)
+                    guard codeBytes <= 1_048_576 - code.utf8.count else {
+                        throw ParserError("XLS number formats exceed their text budget")
+                    }
+                    codes[id] = code
+                    codeBytes += code.utf8.count
+                case 0x00E0:  // XF, BIFF8: fAtrNum in Byte 9, Bit 2
+                    guard record.payload.count == 20, xfs.count < 65_536 else {
+                        throw ParserError("an XLS XF is invalid or exceeds the style budget")
+                    }
+                    let flags = record.payload.legacyUInt16(at: 4)
+                    xfs.append(
+                        (
+                            Int(record.payload.legacyUInt16(at: 2)), flags & 4 != 0,
+                            Int(flags >> 4), record.payload[9] & 4 != 0
+                        ))
+                default: break
+                }
+            }
+            var compiled: [Int: SpreadsheetNumberFormat] = [:]
+            let formats = xfs.map { xf -> SpreadsheetNumberFormat in
+                let id: Int
+                if !xf.isStyle && !xf.applies {
+                    guard xfs.indices.contains(xf.parent), xfs[xf.parent].isStyle else {
+                        return SpreadsheetNumberFormat(
+                            unsupported: "the inherited XLS number style has no valid definition")
+                    }
+                    id = xfs[xf.parent].applies ? xf.format : xfs[xf.parent].format
+                } else {
+                    id = xf.format
+                }
+                if let cached = compiled[id] { return cached }
+                let format =
+                    (codes[id] ?? SpreadsheetNumberFormat.builtInCode(id)).map {
+                        SpreadsheetNumberFormat(code: $0)
+                    }
+                    ?? SpreadsheetNumberFormat(
+                        unsupported: "number format ID \(id) has no supported definition")
+                compiled[id] = format
+                return format
+            }
+            return BIFFNumberStyles(
+                formats: formats.isEmpty ? [SpreadsheetNumberFormat(code: "General")] : formats,
+                dateSystem: dateSystem)
+        }
+
+        private static func parseSheet(
+            _ data: Data,
+            at offset: Int,
+            before endOffset: Int,
+            sharedStrings: [String],
+            maximumCells: Int,
+            maximumHyperlinkScans: Int,
+            numberStyles: BIFFNumberStyles
+        ) throws -> SheetResult {
+            guard offset >= 0, offset + 8 <= endOffset, endOffset <= data.count,
+                data.legacyUInt16(at: offset) == 0x0809
+            else {
+                throw ParserError("an XLS worksheet BOF offset is invalid")
+            }
+            let sheetRecords = try records(
+                in: data,
+                start: offset,
+                end: endOffset,
+                stopAfterID: 0x000A
+            )
+            guard sheetRecords.last?.id == 0x000A else {
+                throw ParserError("an XLS worksheet has no EOF before the next sheet")
+            }
+            var cells = [Int: [Int: SpreadsheetCell]]()
+            // Zählt die tatsächlich gesetzten Zellen: Die dünne Struktur wuchs
+            // vorher ungebremst, und `maximumCells` griff erst beim Verdichten
+            // — ein Blatt mit Millionen Zellrecords belegte den Speicher
+            // längst vorher. Die dünne Zahl ist
+            // nie größer als die verdichtete, die Prüfung also nie strenger.
+            var budget = CellBudget(maximum: maximumCells)
+            var hasMerges = false
+            var hasFormulaWithoutResult = false
+            var hasUnsupportedObjects = false
+            var pendingStringFormula: (row: Int, column: Int, formula: String?)?
+            var hyperlinks = [BIFFHyperlink]()
+            var hyperlinkScannedCellCount = 0
+            var diagnostics = BoundedConversionDiagnostics()
+
+            for record in sheetRecords.dropFirst() {
+                try ConversionExecution.check()
+                if record.id == 0x000A { break }
+                switch record.id {
+                case 0x00FD:  // LABELSST
+                    guard record.payload.count >= 10 else { throw ParserError("an XLS text cell is invalid") }
+                    let index = Int(record.payload.legacyUInt32(at: 6))
+                    guard sharedStrings.indices.contains(index) else {
+                        throw ParserError("an XLS shared-string index is invalid")
+                    }
+                    try setCell(
+                        .init(
+                            value: .string(sharedStrings[index]), displayText: sharedStrings[index],
+                            formula: nil),
+                        row: Int(record.payload.legacyUInt16(at: 0)),
+                        column: Int(record.payload.legacyUInt16(at: 2)),
+                        in: &cells,
+                        budget: &budget
+                    )
+                case 0x0203:  // NUMBER
+                    guard record.payload.count >= 14 else {
+                        throw ParserError("an XLS number cell is invalid")
+                    }
+                    let number = record.payload.legacyDouble(at: 6)
+                    let text = format(number)
+                    try setCell(
+                        numberStyles.cell(
+                            text, style: Int(record.payload.legacyUInt16(at: 4)), formula: nil,
+                            row: Int(record.payload.legacyUInt16(at: 0)),
+                            column: Int(record.payload.legacyUInt16(at: 2)), diagnostics: &diagnostics),
+                        row: Int(record.payload.legacyUInt16(at: 0)),
+                        column: Int(record.payload.legacyUInt16(at: 2)),
+                        in: &cells,
+                        budget: &budget
+                    )
+                case 0x027E:  // RK
+                    guard record.payload.count >= 10 else { throw ParserError("an XLS RK cell is invalid") }
+                    let text = format(decodeRK(record.payload.legacyUInt32(at: 6)))
+                    try setCell(
+                        numberStyles.cell(
+                            text, style: Int(record.payload.legacyUInt16(at: 4)), formula: nil,
+                            row: Int(record.payload.legacyUInt16(at: 0)),
+                            column: Int(record.payload.legacyUInt16(at: 2)), diagnostics: &diagnostics),
+                        row: Int(record.payload.legacyUInt16(at: 0)),
+                        column: Int(record.payload.legacyUInt16(at: 2)),
+                        in: &cells,
+                        budget: &budget
+                    )
+                case 0x00BD:  // MULRK
+                    try parseMultipleRK(
+                        record.payload, into: &cells, budget: &budget,
+                        numberStyles: numberStyles, diagnostics: &diagnostics)
+                case 0x0205:  // BOOLERR
+                    guard record.payload.count >= 8 else {
+                        throw ParserError("an XLS boolean cell is invalid")
+                    }
+                    let isError = record.payload[7] != 0
+                    let text = isError ? "#ERROR" : (record.payload[6] == 0 ? "FALSE" : "TRUE")
+                    try setCell(
+                        .init(
+                            value: isError ? .string(text) : .boolean(record.payload[6] != 0),
+                            displayText: text,
+                            formula: nil
+                        ),
+                        row: Int(record.payload.legacyUInt16(at: 0)),
+                        column: Int(record.payload.legacyUInt16(at: 2)),
+                        in: &cells,
+                        budget: &budget
+                    )
+                case 0x0006:  // FORMULA
+                    guard record.payload.count >= 14 else {
+                        throw ParserError("an XLS formula cell is invalid")
+                    }
+                    let row = Int(record.payload.legacyUInt16(at: 0))
+                    let column = Int(record.payload.legacyUInt16(at: 2))
+                    let formulaMarker = "BIFF formula"
+                    if record.payload[12] == 0xFF, record.payload[13] == 0xFF {
+                        switch record.payload[6] {
+                        case 0:
+                            pendingStringFormula = (row, column, formulaMarker)
+                        case 1:
+                            let value = record.payload[8] != 0
+                            try setCell(
+                                .init(
+                                    value: .boolean(value), displayText: value ? "TRUE" : "FALSE",
+                                    formula: formulaMarker),
+                                row: row, column: column, in: &cells,
+                                budget: &budget
+                            )
+                        case 2:
+                            try setCell(
+                                .init(
+                                    value: .string("#ERROR"), displayText: "#ERROR", formula: formulaMarker),
+                                row: row, column: column, in: &cells,
+                                budget: &budget
+                            )
+                        default:
+                            hasFormulaWithoutResult = true
+                            try setCell(
+                                .init(value: .empty, displayText: "", formula: formulaMarker), row: row,
+                                column: column, in: &cells, budget: &budget)
+                        }
+                    } else {
+                        let text = format(record.payload.legacyDouble(at: 6))
+                        try setCell(
+                            numberStyles.cell(
+                                text, style: Int(record.payload.legacyUInt16(at: 4)), formula: formulaMarker,
+                                row: row, column: column, diagnostics: &diagnostics),
+                            row: row, column: column, in: &cells, budget: &budget)
+                    }
+                case 0x0207:  // STRING result after FORMULA
+                    if let pending = pendingStringFormula {
+                        let text = try biffLongString(record.payload)
+                        try setCell(
+                            .init(value: .string(text), displayText: text, formula: pending.formula),
+                            row: pending.row,
+                            column: pending.column,
+                            in: &cells,
+                            budget: &budget
+                        )
+                        pendingStringFormula = nil
+                    }
+                case 0x00E5:
+                    hasMerges = true
+                case 0x01B8:  // HLINK
+                    switch try parseHyperlink(record.payload) {
+                    case let .supported(hyperlink):
+                        hyperlinks.append(hyperlink)
+                    case .unsupported:
+                        hasUnsupportedObjects = true
+                    }
+                // OBJ, TXO, MSODRAWING und MSODRAWINGGROUP haben kein
+                // Gegenstück im Arbeitsmappenmodell und bleiben deshalb eine
+                // sichtbare Verlustwarnung.
+                case 0x005D, 0x01B6, 0x00EC, 0x00EB:
+                    hasUnsupportedObjects = true
+                default:
+                    break
+                }
+            }
+            if let pendingStringFormula {
+                hasFormulaWithoutResult = true
+                try setCell(
+                    .init(value: .empty, displayText: "", formula: pendingStringFormula.formula),
+                    row: pendingStringFormula.row,
+                    column: pendingStringFormula.column,
+                    in: &cells,
+                    budget: &budget
+                )
+            }
+            for hyperlink in hyperlinks {
+                try applyHyperlink(
+                    hyperlink,
+                    to: &cells,
+                    scannedCellCount: &hyperlinkScannedCellCount,
+                    maximumScannedCells: maximumHyperlinkScans,
+                    hasUnsupportedObjects: &hasUnsupportedObjects
+                )
+            }
+            let dense = try denseRows(cells, maximumCells: maximumCells)
+            return SheetResult(
+                rows: dense.rows,
+                hasMerges: hasMerges,
+                hasFormulaWithoutResult: hasFormulaWithoutResult,
+                hasUnsupportedObjects: hasUnsupportedObjects,
+                expandedCellCount: dense.expandedCellCount,
+                hyperlinkScannedCellCount: hyperlinkScannedCellCount,
+                diagnostics: diagnostics
+            )
+        }
+
+        /// Das Zellbudget eines Blattes, gemessen an den gesetzten Zellen.
+        struct CellBudget {
+            private(set) var count = 0
+            let maximum: Int
+
+            init(maximum: Int) { self.maximum = maximum }
+
+            mutating func countNewCell() throws {
+                guard count < maximum else {
+                    throw ParserError("the XLS sheet exceeds the cell budget")
+                }
+                count += 1
+            }
+        }
+
+        static func setCell(
+            _ cell: SpreadsheetCell,
+            row: Int,
+            column: Int,
+            in cells: inout [Int: [Int: SpreadsheetCell]],
+            budget: inout CellBudget
+        ) throws {
+            guard row >= 0, row < SpreadsheetLimits.maximumRows,
+                column >= 0, column < SpreadsheetLimits.maximumColumns
+            else {
+                throw ParserError("an XLS cell lies outside the supported row or column budget")
+            }
+            if cells[row]?[column] == nil {
+                try budget.countNewCell()
+            }
+            cells[row, default: [:]][column] = cell
+        }
+
+        static func denseRows(
+            _ cells: [Int: [Int: SpreadsheetCell]],
+            maximumCells: Int
+        ) throws -> (rows: [[SpreadsheetCell]], expandedCellCount: Int) {
+            guard let maximumRow = cells.keys.max() else { return ([], 0) }
+            guard maximumRow < maximumCells else {
+                throw ParserError(SpreadsheetLimits.cellBudgetMessage)
+            }
+            var cellBudget = 0
+            var rows = [[SpreadsheetCell]]()
+            rows.reserveCapacity(maximumRow + 1)
+            for rowIndex in 0...maximumRow {
+                guard let sparse = cells[rowIndex], let maximumColumn = sparse.keys.max() else {
+                    cellBudget += 1
+                    guard cellBudget <= maximumCells else {
+                        throw ParserError(SpreadsheetLimits.cellBudgetMessage)
+                    }
+                    rows.append([])
+                    continue
+                }
+                cellBudget += maximumColumn + 1
+                guard cellBudget <= maximumCells else {
+                    throw ParserError(SpreadsheetLimits.cellBudgetMessage)
+                }
+                var row = [SpreadsheetCell](repeating: .empty, count: maximumColumn + 1)
+                for (column, cell) in sparse { row[column] = cell }
+                rows.append(row)
+            }
+            return (rows, cellBudget)
+        }
+
+        private static func parseHyperlink(_ payload: Data) throws -> ParsedHyperlink {
+            // HLINK beginnt mit dem Zellbereich und der CLSID des Hyperlink-
+            // Objekts. Die detaillierte Nutzlast folgt dem gemeinsamen Office-
+            // Format; nur URL-, Datei- und als Zeichenkette gespeicherte Ziele
+            // können ohne Windows-COM sinnvoll nach Markdown übertragen werden.
+            var cursor = HyperlinkCursor(data: payload)
+            let range = try BIFFHyperlinkRange(cursor: &cursor)
+            guard try cursor.readData(count: 16) == HyperlinkConstants.objectCLSID else {
+                return .unsupported
+            }
+            guard try cursor.readUInt32() == 2 else {
+                return .unsupported
+            }
+            let flags = try cursor.readUInt32()
+
+            if flags & HyperlinkConstants.hasDisplayName != 0 {
+                _ = try cursor.readString()
+            }
+            if flags & HyperlinkConstants.hasFrameName != 0 {
+                _ = try cursor.readString()
+            }
+
+            var target: String?
+            if flags & HyperlinkConstants.hasMoniker != 0 {
+                if flags & HyperlinkConstants.monikerSavedAsString != 0 {
+                    target = try cursor.readString()
+                } else {
+                    let monikerCLSID = try cursor.readData(count: 16)
+                    if monikerCLSID == HyperlinkConstants.urlMonikerCLSID {
+                        target = try cursor.readURLMoniker()
+                    } else if monikerCLSID == HyperlinkConstants.fileMonikerCLSID {
+                        target = try cursor.readFileMoniker()
+                    } else {
+                        return .unsupported
+                    }
+                }
+            }
+
+            let location =
+                flags & HyperlinkConstants.hasLocation != 0
+                ? try cursor.readString()
+                : nil
+            if flags & HyperlinkConstants.hasGUID != 0 {
+                _ = try cursor.readData(count: 16)
+            }
+            if flags & HyperlinkConstants.hasCreationTime != 0 {
+                _ = try cursor.readData(count: 8)
+            }
+
+            let resolvedTarget: String?
+            if let target, !target.isEmpty {
+                if let location, !location.isEmpty {
+                    resolvedTarget = target + (target.contains("#") ? "" : "#") + location
+                } else {
+                    resolvedTarget = target
+                }
+            } else if let location, !location.isEmpty {
+                resolvedTarget = "#\(location)"
+            } else {
+                return .unsupported
+            }
+            // Auch hier gilt die Schemaprüfung; ein verworfenes Ziel wird zum
+            // gemeldeten Verlust wie ein nicht darstellbares Objekt.
+            guard let resolvedTarget,
+                let acceptedTarget = SpreadsheetLinkTarget.accepted(resolvedTarget)
+            else {
+                return .unsupported
+            }
+            return .supported(BIFFHyperlink(range: range, target: acceptedTarget))
+        }
+
+        private static func applyHyperlink(
+            _ hyperlink: BIFFHyperlink,
+            to cells: inout [Int: [Int: SpreadsheetCell]],
+            scannedCellCount: inout Int,
+            maximumScannedCells: Int,
+            hasUnsupportedObjects: inout Bool
+        ) throws {
+            let rows = hyperlink.range.lastRow - hyperlink.range.firstRow + 1
+            let columns = hyperlink.range.lastColumn - hyperlink.range.firstColumn + 1
+            guard rows > 0, columns > 0,
+                columns <= SpreadsheetLimits.maximumHyperlinkScans / rows
+            else {
+                throw ParserError("the XLS hyperlinks exceed the scan budget")
+            }
+            let scannedCells = rows * columns
+            guard scannedCellCount <= maximumScannedCells - scannedCells else {
+                throw ParserError("the XLS hyperlinks exceed the scan budget")
+            }
+            scannedCellCount += scannedCells
+            // HLINK steht im BIFF-Blatt erst nach den Zellrecords. Deshalb
+            // werden nur bereits vorhandene sichtbare Zellen verändert; eine
+            // leere Zielzelle hat keinen Text, den der Markdown-Renderer zeigen
+            // könnte, und wird nicht künstlich materialisiert.
+            for row in hyperlink.range.firstRow...hyperlink.range.lastRow {
+                guard var sparse = cells[row] else { continue }
+                for column in hyperlink.range.firstColumn...hyperlink.range.lastColumn {
+                    guard let cell = sparse[column] else { continue }
+                    if let existingTarget = cell.linkTarget,
+                        existingTarget != hyperlink.target
+                    {
+                        // Überlappende HLINK-Records können nicht mehrere
+                        // Ziele in dieselbe Modellzelle schreiben. Das zuerst
+                        // gelesene Ziel bleibt deshalb erhalten und der Rest
+                        // wird als Verlust ausgewiesen.
+                        hasUnsupportedObjects = true
+                        continue
+                    }
+                    sparse[column] = SpreadsheetCell(
+                        value: cell.value,
+                        displayText: cell.displayText,
+                        formula: cell.formula,
+                        linkTarget: hyperlink.target
+                    )
+                }
+                cells[row] = sparse
+            }
+        }
+
+        private static func parseMultipleRK(
+            _ payload: Data,
+            into cells: inout [Int: [Int: SpreadsheetCell]],
+            budget: inout CellBudget,
+            numberStyles: BIFFNumberStyles,
+            diagnostics: inout BoundedConversionDiagnostics
+        ) throws {
+            guard payload.count >= 12, (payload.count - 6) % 6 == 0 else {
+                throw ParserError("an XLS multiple-number record is invalid")
+            }
+            let row = Int(payload.legacyUInt16(at: 0))
+            let firstColumn = Int(payload.legacyUInt16(at: 2))
+            let lastColumn = Int(payload.legacyUInt16(at: payload.count - 2))
+            let count = (payload.count - 6) / 6
+            guard lastColumn - firstColumn + 1 == count else {
+                throw ParserError("an XLS multiple-number column range is invalid")
+            }
+            for index in 0..<count {
+                let text = format(decodeRK(payload.legacyUInt32(at: 6 + index * 6)))
+                try setCell(
+                    numberStyles.cell(
+                        text, style: Int(payload.legacyUInt16(at: 4 + index * 6)), formula: nil,
+                        row: row, column: firstColumn + index, diagnostics: &diagnostics),
+                    row: row,
+                    column: firstColumn + index,
+                    in: &cells,
+                    budget: &budget
+                )
+            }
+        }
+
+        private static func decodeRK(_ raw: UInt32) -> Double {
+            let value: Double
+            if raw & 0x2 != 0 {
+                value = Double(Int32(bitPattern: raw) >> 2)
+            } else {
+                value = Double(bitPattern: UInt64(raw & 0xFFFF_FFFC) << 32)
+            }
+            return raw & 0x1 != 0 ? value / 100 : value
+        }
+
+        private static func format(_ number: Double) -> String {
+            String(format: "%.15g", locale: Locale(identifier: "en_US_POSIX"), number)
+        }
+
+        private static func biffShortString(_ data: Data, at offset: Int) throws -> String {
+            guard offset + 2 <= data.count else { throw ParserError("an XLS sheet name is invalid") }
+            let count = Int(data[offset])
+            let isWide = data[offset + 1] & 0x1 != 0
+            let start = offset + 2
+            let byteCount = count * (isWide ? 2 : 1)
+            guard start + byteCount <= data.count else { throw ParserError("an XLS sheet name is truncated") }
+            return decodeCharacters(data.subdata(in: start..<(start + byteCount)), wide: isWide)
+        }
+
+        private static func biffLongString(_ data: Data) throws -> String {
+            guard data.count >= 3 else { throw ParserError("an XLS formula string is invalid") }
+            let count = Int(data.legacyUInt16(at: 0))
+            let isWide = data[2] & 0x1 != 0
+            let byteCount = count * (isWide ? 2 : 1)
+            guard 3 + byteCount <= data.count else { throw ParserError("an XLS formula string is truncated") }
+            return decodeCharacters(data.subdata(in: 3..<(3 + byteCount)), wide: isWide)
+        }
+
+        private static func decodeCharacters(_ data: Data, wide: Bool) -> String {
+            if wide {
+                var units = [UInt16]()
+                for offset in stride(from: 0, to: data.count, by: 2) {
+                    units.append(data.legacyUInt16(at: offset))
+                }
+                return String(decoding: units, as: UTF16.self)
+            }
+            // BIFF8 fHighByte=0 speichert Unicode-Lowbytes mit Highbyte null,
+            // keine ANSI-Codepage (MS-XLS 2.5.293). Euro und typografische
+            // Zeichen benötigen die breite Darstellung.
+            return String(decoding: data.map(UInt16.init), as: UTF16.self)
+        }
+
+        private struct Record {
+            let id: UInt16
+            let offset: Int
+            let payload: Data
+        }
+
+        private struct BoundSheet {
+            let offset: Int
+            let name: String
+            let type: UInt8
+            let visibility: SpreadsheetSheetVisibility
+        }
+
+        private struct BIFFHyperlinkRange {
+            let firstRow: Int
+            let lastRow: Int
+            let firstColumn: Int
+            let lastColumn: Int
+
+            init(cursor: inout HyperlinkCursor) throws {
+                firstRow = Int(try cursor.readUInt16())
+                lastRow = Int(try cursor.readUInt16())
+                firstColumn = Int(try cursor.readUInt16())
+                lastColumn = Int(try cursor.readUInt16())
+                guard firstRow <= lastRow, firstColumn <= lastColumn,
+                    lastRow < SpreadsheetLimits.maximumRows, lastColumn < SpreadsheetLimits.maximumColumns
+                else {
+                    throw ParserError("an XLS hyperlink lies outside the supported row or column budget")
+                }
+            }
+        }
+
+        private struct BIFFHyperlink {
+            let range: BIFFHyperlinkRange
+            let target: String
+        }
+
+        private enum ParsedHyperlink {
+            case supported(BIFFHyperlink)
+            case unsupported
+        }
+
+        private struct SheetResult {
+            let rows: [[SpreadsheetCell]]
+            let hasMerges: Bool
+            let hasFormulaWithoutResult: Bool
+            let hasUnsupportedObjects: Bool
+            let expandedCellCount: Int
+            let hyperlinkScannedCellCount: Int
+            let diagnostics: BoundedConversionDiagnostics
+        }
+
+        private struct HyperlinkCursor {
+            private let data: Data
+            private var offset = 0
+
+            init(data: Data) {
+                self.data = data
+            }
+
+            mutating func readUInt16() throws -> UInt16 {
+                let bytes = try readData(count: 2)
+                return UInt16(bytes[bytes.startIndex])
+                    | UInt16(bytes[bytes.startIndex + 1]) << 8
+            }
+
+            mutating func readUInt32() throws -> UInt32 {
+                let bytes = try readData(count: 4)
+                return UInt32(bytes[bytes.startIndex])
+                    | UInt32(bytes[bytes.startIndex + 1]) << 8
+                    | UInt32(bytes[bytes.startIndex + 2]) << 16
+                    | UInt32(bytes[bytes.startIndex + 3]) << 24
+            }
+
+            mutating func readData(count: Int) throws -> Data {
+                guard count >= 0, offset <= data.count - count else {
+                    throw ParserError("an XLS hyperlink record is truncated")
+                }
+                defer { offset += count }
+                return data.subdata(in: offset..<(offset + count))
+            }
+
+            mutating func readString() throws -> String {
+                let characterCount = Int(try readUInt32())
+                guard characterCount > 0, characterCount <= (data.count - offset) / 2 else {
+                    throw ParserError("an XLS hyperlink string is invalid")
+                }
+                let stringData = try readData(count: characterCount * 2)
+                let units = stride(from: 0, to: stringData.count, by: 2).map {
+                    UInt16(stringData[$0]) | UInt16(stringData[$0 + 1]) << 8
+                }
+                guard units.last == 0 else {
+                    throw ParserError("an XLS hyperlink string is not terminated")
+                }
+                return String(decoding: units.dropLast(), as: UTF16.self)
+            }
+
+            mutating func readURLMoniker() throws -> String {
+                let byteCount = Int(try readUInt32())
+                guard byteCount >= 2, byteCount <= data.count - offset, byteCount.isMultiple(of: 2) else {
+                    throw ParserError("an XLS URL hyperlink is invalid")
+                }
+                let monikerData = try readData(count: byteCount)
+                var units = [UInt16]()
+                for index in stride(from: 0, to: monikerData.count, by: 2) {
+                    let unit = UInt16(monikerData[index]) | UInt16(monikerData[index + 1]) << 8
+                    units.append(unit)
+                    if unit == 0 { break }
+                }
+                guard let terminator = units.lastIndex(of: 0) else {
+                    throw ParserError("an XLS URL hyperlink is not terminated")
+                }
+                let urlByteCount = (terminator + 1) * 2
+                guard byteCount == urlByteCount || byteCount == urlByteCount + 24 else {
+                    throw ParserError("an XLS URL hyperlink has an invalid length")
+                }
+                return String(decoding: units[..<terminator], as: UTF16.self)
+            }
+
+            mutating func readFileMoniker() throws -> String {
+                let parentCount = Int(try readUInt16())
+                let parents = String(repeating: "../", count: parentCount)
+                let ansiLength = Int(try readUInt32())
+                guard ansiLength > 0, ansiLength <= data.count - offset else {
+                    throw ParserError("an XLS file hyperlink is invalid")
+                }
+                let ansiPath = try readData(count: ansiLength)
+                guard ansiPath.last == 0 else {
+                    throw ParserError("an XLS file hyperlink is not terminated")
+                }
+                _ = try readUInt16()  // UNC-Serverende
+                guard try readUInt16() == 0xDEAD else {
+                    throw ParserError("an XLS file hyperlink has an unsupported version")
+                }
+                _ = try readData(count: 20)  // reservierte Felder
+                let unicodeStructureLength = Int(try readUInt32())
+                if unicodeStructureLength == 0 {
+                    return parents
+                        + (String(data: ansiPath.dropLast(), encoding: .windowsCP1252)
+                            ?? String(decoding: ansiPath.dropLast(), as: UTF8.self))
+                }
+                guard unicodeStructureLength >= 6 else {
+                    throw ParserError("an XLS file hyperlink has an invalid Unicode path")
+                }
+                let unicodeByteCount = Int(try readUInt32())
+                guard try readUInt16() == 3,
+                    unicodeByteCount == unicodeStructureLength - 6,
+                    unicodeByteCount.isMultiple(of: 2)
+                else {
+                    throw ParserError("an XLS file hyperlink has an invalid Unicode path")
+                }
+                let unicodePath = try readData(count: unicodeByteCount)
+                let units = stride(from: 0, to: unicodePath.count, by: 2).map {
+                    UInt16(unicodePath[$0]) | UInt16(unicodePath[$0 + 1]) << 8
+                }
+                return parents + String(decoding: units, as: UTF16.self)
+            }
+        }
+
+        private enum HyperlinkConstants {
+            static let hasMoniker: UInt32 = 0x0000_0001
+            static let hasLocation: UInt32 = 0x0000_0008
+            static let hasDisplayName: UInt32 = 0x0000_0010
+            static let hasGUID: UInt32 = 0x0000_0020
+            static let hasCreationTime: UInt32 = 0x0000_0040
+            static let hasFrameName: UInt32 = 0x0000_0080
+            static let monikerSavedAsString: UInt32 = 0x0000_0100
+
+            // GUIDs liegen im BIFF-Stream in der Little-Endian-Reihenfolge der
+            // ersten drei GUID-Felder. Die Werte sind die HLink-, URLMoniker-
+            // und FileMoniker-CLSID der Office-Formatspezifikation.
+            static let objectCLSID = Data([
+                0xD0, 0xC9, 0xEA, 0x79, 0xF9, 0xBA, 0xCE, 0x11,
+                0x8C, 0x82, 0x00, 0xAA, 0x00, 0x4B, 0xA9, 0x0B,
+            ])
+            static let urlMonikerCLSID = Data([
+                0xE0, 0xC9, 0xEA, 0x79, 0xF9, 0xBA, 0xCE, 0x11,
+                0x8C, 0x82, 0x00, 0xAA, 0x00, 0x4B, 0xA9, 0x0B,
+            ])
+            static let fileMonikerCLSID = Data([
+                0x03, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46,
+            ])
+        }
+
+        private struct SegmentedCursor {
+            let segments: [Data]
+            var segmentIndex = 0
+            var offset = 0
+
+            mutating func readUInt16() throws -> UInt16 {
+                UInt16(try readRawByte()) | UInt16(try readRawByte()) << 8
+            }
+
+            mutating func readUInt32() throws -> UInt32 {
+                UInt32(try readRawByte())
+                    | UInt32(try readRawByte()) << 8
+                    | UInt32(try readRawByte()) << 16
+                    | UInt32(try readRawByte()) << 24
+            }
+
+            mutating func readUnicodeString(requiresValidUnicode: Bool = false) throws -> String {
+                let characterCount = Int(try readUInt16())
+                let flags = try readRawByte()
+                guard !requiresValidUnicode || flags & 0xF2 == 0 else {
+                    throw ParserError("an XLS number format has unsupported string flags")
+                }
+                var wide = flags & 0x1 != 0
+                let richRunCount = flags & 0x8 != 0 ? Int(try readUInt16()) : 0
+                let extensionSize = flags & 0x4 != 0 ? Int(try readUInt32()) : 0
+                var remaining = characterCount
+                var units = [UInt16]()
+                units.reserveCapacity(characterCount)
+                while remaining > 0 {
+                    try ConversionExecution.check()
+                    if offset == segments[segmentIndex].count {
+                        try moveToNextSegment()
+                        wide = try readRawByte() & 0x1 != 0
+                    }
+                    let bytesPerCharacter = wide ? 2 : 1
+                    let available = (segments[segmentIndex].count - offset) / bytesPerCharacter
+                    guard available > 0 else {
+                        throw ParserError("an XLS shared string splits a character at a record boundary")
+                    }
+                    let count = min(remaining, available)
+                    let byteCount = count * bytesPerCharacter
+                    let chunk = segments[segmentIndex].subdata(in: offset..<(offset + byteCount))
+                    if wide {
+                        units += stride(from: 0, to: chunk.count, by: 2).map {
+                            UInt16(chunk[$0]) | UInt16(chunk[$0 + 1]) << 8
+                        }
+                    } else {
+                        units += chunk.map(UInt16.init)
+                    }
+                    offset += byteCount
+                    remaining -= count
+                }
+                try skipRaw(richRunCount * 4 + extensionSize)
+                // CONTINUE darf zwischen den beiden UTF-16-Einheiten eines
+                // Surrogatpaars liegen; erst die vollständige Zeichenkette dekodieren.
+                let text = String(decoding: units, as: UTF16.self)
+                guard !requiresValidUnicode || text.utf16.elementsEqual(units) else {
+                    throw ParserError("an XLS number format contains invalid UTF-16")
+                }
+                return text
+            }
+
+            private mutating func readRawByte() throws -> UInt8 {
+                while segmentIndex < segments.count, offset == segments[segmentIndex].count {
+                    try moveToNextSegment()
+                }
+                guard segmentIndex < segments.count, offset < segments[segmentIndex].count else {
+                    throw ParserError("the XLS shared-string table is truncated")
+                }
+                defer { offset += 1 }
+                return segments[segmentIndex][offset]
+            }
+
+            private mutating func skipRaw(_ count: Int) throws {
+                for _ in 0..<count { _ = try readRawByte() }
+            }
+
+            private mutating func moveToNextSegment() throws {
+                guard segmentIndex + 1 < segments.count else {
+                    throw ParserError("the XLS shared-string continuation is missing")
+                }
+                segmentIndex += 1
+                offset = 0
+            }
+        }
+
+    }
+
+    private struct ParserError: LocalizedError {
+        let reason: String
+        init(_ reason: String) { self.reason = reason }
+        var errorDescription: String? { reason }
+    }
+}

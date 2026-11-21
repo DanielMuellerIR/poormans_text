@@ -47,6 +47,10 @@ jobs:
       - name: Run tests
         run: swift test
 
+      - name: Check Swift formatting
+        if: ${{ hashFiles('.swift-format') != '' }}
+        run: swift format lint --strict --recursive Sources
+
       - name: Build universal app and CLI
         run: ./build.sh release
 
@@ -54,6 +58,7 @@ jobs:
         run: scripts/verify_bundle.sh "Poor Man's Text.app"
 
   linux:
+    if: ${{ !inputs['source-ref'] }}
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     defaults:
@@ -77,7 +82,7 @@ jobs:
           sudo apt-get install --no-install-recommends -y \
             apparmor bubblewrap dbus-x11 fonts-dejavu-core gnupg libgtk-4-dev \
             libpng-dev libreoffice-writer pandoc pkg-config python3-uno python3-venv python3-yaml qpdf shellcheck \
-            unzip xauth xvfb zip zlib1g-dev \
+            unzip xauth xvfb zip zlib1g-dev zstd \
             gir1.2-poppler-0.18 python3-gi python3-gi-cairo python3-pil \
             tesseract-ocr tesseract-ocr-deu
           rustup toolchain install "$RUSTUP_TOOLCHAIN" --profile minimal --component clippy --component rustfmt
@@ -91,14 +96,15 @@ jobs:
 
       - name: Check shell and Python
         run: |
-          mapfile -d '' -t shell_scripts < <(git ls-files -z -- '*.sh' ':!docs/**' ':!scripts/linux-probes/**')
+          mapfile -d '' -t shell_scripts < <(git ls-files -z -- '*.sh' ':!docs/**')
           shellcheck --severity=error "${shell_scripts[@]}"
           shellcheck --include=SC2046,SC2068,SC2086,SC2095,SC2115,SC2155,SC2181 "${shell_scripts[@]}"
           python3 -m venv "$RUNNER_TEMP/pmt-lint"
           "$RUNNER_TEMP/pmt-lint/bin/pip" install --disable-pip-version-check ruff==0.15.16
           "$RUNNER_TEMP/pmt-lint/bin/ruff" check --select E9,F63,F7,F82 \
-            Sources/PoorMansTextCore/LinuxBackends linux/app scripts \
-            --exclude scripts/linux-probes
+            Sources/PoorMansTextCore/LinuxBackends linux/app scripts
+          "$RUNNER_TEMP/pmt-lint/bin/ruff" format --check \
+            scripts/build_linux.py scripts/linux_checks linux/app/clipboard_profile_selftest.py
           python3 -B -m unittest discover -s scripts -p 'test_*.py'
 
       - name: Prepare and check isolated namespaces
@@ -133,7 +139,7 @@ jobs:
       - name: Build and verify the Linux CLI
         run: |
           ./build.sh debug
-          python3 scripts/linux-probes/verify_product.py ./poormans-text --pandoc /usr/bin/pandoc
+          python3 scripts/linux_checks/verify_product.py ./poormans-text --pandoc /usr/bin/pandoc
 
       - name: Check Rust formatting and lints
         run: |

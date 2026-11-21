@@ -262,7 +262,8 @@ func writeFormats(_ catalog: [FormatAvailability], json: Bool) throws {
     let containerWidth = rows.map(\.2.count).max() ?? 0
     let toolWidth = rows.map(\.3.count).max() ?? 0
     for row in rows {
-        let line = row.0.padding(toLength: max(formatWidth, row.0.count) + 2, withPad: " ", startingAt: 0)
+        let line =
+            row.0.padding(toLength: max(formatWidth, row.0.count) + 2, withPad: " ", startingAt: 0)
             + row.1.padding(toLength: max(extensionWidth, row.1.count) + 2, withPad: " ", startingAt: 0)
             + row.2.padding(toLength: max(containerWidth, row.2.count) + 2, withPad: " ", startingAt: 0)
             + row.3.padding(toLength: max(toolWidth, row.3.count) + 2, withPad: " ", startingAt: 0)
@@ -330,7 +331,7 @@ func exitCode(for error: Error) -> CLIExitCode {
     case .inputDoesNotExist:
         return .noInput
     case .unsupportedInput, .invalidInput, .ambiguousInput,
-         .invalidRichText, .unsafeImageReference:
+        .invalidRichText, .unsafeImageReference:
         return .dataError
     case .pandocNotFound:
         return .unavailable
@@ -344,7 +345,6 @@ func exitCode(for error: Error) -> CLIExitCode {
         return .inputOutput
     }
 }
-
 
 struct JSONSourcePreview: Encodable {
     let ok = true

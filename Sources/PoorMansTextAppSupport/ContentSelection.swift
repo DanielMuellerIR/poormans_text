@@ -22,10 +22,20 @@ public enum ContentOverview: Sendable {
         let converter = DocumentConverter()
         let format = try converter.detectFormat(at: input, cancellation: cancellation, processTimeout: 120)
         switch format {
-        case .pdf: return .pdf(try converter.inspectPDFContents(input, cancellation: cancellation, processTimeout: 120))
-        case .xlsx, .xls, .ods: return .spreadsheet(try converter.inspectSpreadsheetContents(input, cancellation: cancellation, processTimeout: 120))
-        case .pptx, .odp: return .presentation(try converter.inspectPresentationContents(input, cancellation: cancellation, processTimeout: 120))
-        case .epub: return .epub(try converter.inspectEPUBContents(input, cancellation: cancellation, processTimeout: 120))
+        case .pdf:
+            return .pdf(
+                try converter.inspectPDFContents(input, cancellation: cancellation, processTimeout: 120))
+        case .xlsx, .xls, .ods:
+            return .spreadsheet(
+                try converter.inspectSpreadsheetContents(
+                    input, cancellation: cancellation, processTimeout: 120))
+        case .pptx, .odp:
+            return .presentation(
+                try converter.inspectPresentationContents(
+                    input, cancellation: cancellation, processTimeout: 120))
+        case .epub:
+            return .epub(
+                try converter.inspectEPUBContents(input, cancellation: cancellation, processTimeout: 120))
         default: return .complete(format)
         }
     }
@@ -39,8 +49,10 @@ public enum DocumentContentSelection: Equatable, Sendable {
 
     public func applying(to options: ConversionOptions) -> ConversionOptions {
         var options = options
-        options.pdfPages = nil; options.spreadsheetSelection = nil
-        options.presentationSelection = nil; options.epubChapters = nil
+        options.pdfPages = nil
+        options.spreadsheetSelection = nil
+        options.presentationSelection = nil
+        options.epubChapters = nil
         switch self {
         case .pdf(let value): options.pdfPages = value
         case .spreadsheet(let value): options.spreadsheetSelection = value
@@ -66,24 +78,39 @@ public final class ContentSelectionModel: ObservableObject {
     public func load() {
         cancel()
         let token = ConversionCancellationToken(), current = UUID(), input = input
-        cancellation = token; generation = current
-        overview = nil; error = nil; isLoading = true
+        cancellation = token
+        generation = current
+        overview = nil
+        error = nil
+        isLoading = true
         task = Task {
             do {
                 let value = try await Task.detached(priority: .userInitiated) {
                     try ContentOverview.read(input, cancellation: token)
                 }.value
                 guard generation == current, !token.isCancelled else { return }
-                overview = value; isLoading = false; task = nil; cancellation = nil
+                overview = value
+                isLoading = false
+                task = nil
+                cancellation = nil
             } catch {
                 guard generation == current, !token.isCancelled else { return }
-                self.error = AppErrorMessage.describe(error); isLoading = false; task = nil; cancellation = nil
+                self.error = AppErrorMessage.describe(error)
+                isLoading = false
+                task = nil
+                cancellation = nil
             }
         }
     }
     public func cancel() {
-        generation = UUID(); cancellation?.cancel(); cancellation = nil
-        task?.cancel(); task = nil; isLoading = false; overview = nil; error = nil
+        generation = UUID()
+        cancellation?.cancel()
+        cancellation = nil
+        task?.cancel()
+        task = nil
+        isLoading = false
+        overview = nil
+        error = nil
     }
 }
 
@@ -106,7 +133,9 @@ public enum ContentSelectionParsing {
         return try fields.map { try SpreadsheetCellRange($0.trimmingCharacters(in: .whitespacesAndNewlines)) }
     }
     public static func requiredIndices(_ text: String, count: Int) throws -> IndexSelection {
-        guard let value = try indices(text) else { throw ContentSelectionFailure("Select at least one item.") }
+        guard let value = try indices(text) else {
+            throw ContentSelectionFailure("Select at least one item.")
+        }
         _ = try value.zeroBasedIndices(itemCount: count)
         return value
     }

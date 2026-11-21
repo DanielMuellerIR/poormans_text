@@ -1,0 +1,177 @@
+import Foundation
+
+/// Legt fest, wie lange und an welcher Stelle das Ergebnis veröffentlicht wird.
+public enum ConversionDestination: Equatable, Sendable {
+    /// Dauerhafter Nachbarordner mit dem bisherigen Namen `Eingabe-markdown`.
+    case adjacentToInput
+    /// Dauerhafter, vom Aufrufer festgelegter Ordner.
+    case directory(URL)
+    /// Eindeutiger temporärer Ordner, den der Aufrufer nach Gebrauch entfernt.
+    case temporary
+}
+
+/// Werkzeugoptionen, die App, CLI und spätere Hosts einheitlich übergeben.
+public enum SpreadsheetRendering: String, Codable, Equatable, Sendable {
+    case markdownTable
+    case tabSeparated
+}
+
+/// Legt fest, ob Bildimporte zusätzlich lokal erkannten Text ausgeben.
+public enum ImageTextRecognition: String, Codable, Equatable, Sendable {
+    case enabled
+    case disabled
+}
+
+/// Strukturierte lokale Erkennung ist ab macOS 26 verfügbar; Standard bleibt
+/// der bisherige Textleser. Ein Rückfall wird im Ergebnis diagnostiziert.
+public enum OCRMethod: String, Codable, Equatable, Sendable {
+    case standard
+    case structured
+}
+
+public enum PDFTextRecognition: String, Codable, Equatable, Sendable {
+    case automatic = "auto"
+    case always
+    case disabled = "off"
+}
+
+public enum PDFLayout: String, Codable, Equatable, Sendable {
+    case automatic = "auto"
+    case legacy
+}
+
+public enum DOCXChangeMode: String, Codable, Equatable, Sendable {
+    case accept, reject, mark
+}
+
+/// Wie das Ergebnis auf der Platte liegt.
+public enum OutputLayout: String, Codable, Equatable, Sendable {
+    /// `Name-markdown/Name.md` plus `images/`, das bisherige Format.
+    case markdownFolder
+    /// `Name.textbundle/text.md` plus `assets/` und `info.json`, wie Bear,
+    /// iA Writer und Ulysses es öffnen.
+    case textbundle
+}
+
+public struct ConversionOptions: Equatable, Sendable {
+    public var pandocExecutable: URL?
+    public var spreadsheetRendering: SpreadsheetRendering
+    public var imageTextRecognition: ImageTextRecognition
+    /// YAML-Kopf mit Titel, Autor und Daten aus dem Quelldokument voranstellen.
+    public var frontmatter: Bool
+    public var outputLayout: OutputLayout
+    public var pdfTextRecognition: PDFTextRecognition
+    public var ocrLanguages: [String]
+    public var ocrMethod: OCRMethod
+    public var docxChangeMode: DOCXChangeMode
+    public var pdfLayout: PDFLayout
+    public var pdfRemoveHeadersFooters: Bool
+    public var pdfDehyphenate: Bool
+    /// Wiederverwendbare Notizpräferenz; eine explizite Folienauswahl hat Vorrang.
+    public var presentationIncludeNotes: Bool
+    /// Physische PDF-Seiten; nil importiert alle. Andere Formate lehnen die Auswahl ab.
+    public var pdfPages: IndexSelection?
+    public var epubChapters: IndexSelection?
+    public var presentationSelection: PresentationSelection?
+    public var spreadsheetSelection: SpreadsheetSelection?
+    public var sourceMapping: Bool
+    public var conversionReport: Bool
+    var includesSourceMappings: Bool { sourceMapping || conversionReport }
+
+    public init(
+        pandocExecutable: URL? = nil,
+        spreadsheetRendering: SpreadsheetRendering = .markdownTable,
+        imageTextRecognition: ImageTextRecognition = .enabled,
+        frontmatter: Bool = false,
+        outputLayout: OutputLayout = .markdownFolder,
+        pdfTextRecognition: PDFTextRecognition = .automatic,
+        ocrLanguages: [String] = [],
+        ocrMethod: OCRMethod = .standard,
+        docxChangeMode: DOCXChangeMode = .accept,
+        pdfLayout: PDFLayout = .automatic,
+        pdfRemoveHeadersFooters: Bool = false,
+        pdfDehyphenate: Bool = false,
+        presentationIncludeNotes: Bool = true,
+        pdfPages: IndexSelection? = nil,
+        epubChapters: IndexSelection? = nil,
+        presentationSelection: PresentationSelection? = nil,
+        spreadsheetSelection: SpreadsheetSelection? = nil,
+        sourceMapping: Bool = false,
+        conversionReport: Bool = false
+    ) {
+        self.pandocExecutable = pandocExecutable
+        self.spreadsheetRendering = spreadsheetRendering
+        self.imageTextRecognition = imageTextRecognition
+        self.frontmatter = frontmatter
+        self.outputLayout = outputLayout
+        self.pdfTextRecognition = pdfTextRecognition
+        self.ocrLanguages = ocrLanguages
+        self.ocrMethod = ocrMethod
+        self.docxChangeMode = docxChangeMode
+        self.pdfLayout = pdfLayout
+        self.pdfRemoveHeadersFooters = pdfRemoveHeadersFooters
+        self.pdfDehyphenate = pdfDehyphenate
+        self.presentationIncludeNotes = presentationIncludeNotes
+        self.pdfPages = pdfPages
+        self.epubChapters = epubChapters
+        self.presentationSelection = presentationSelection
+        self.spreadsheetSelection = spreadsheetSelection
+        self.sourceMapping = sourceMapping
+        self.conversionReport = conversionReport
+    }
+}
+
+/// Vollständige, GUI-unabhängige Anfrage an den Konvertierungskern.
+public struct ConversionRequest: Equatable, Sendable {
+    public let inputURL: URL
+    public let destination: ConversionDestination
+    public let options: ConversionOptions
+    /// Erwartete Bytes einer zuvor gelesenen Inhaltsübersicht, nur für diesen Auftrag.
+    public let expectedSourceIdentity: ConversionSourceIdentity?
+
+    public init(
+        inputURL: URL,
+        destination: ConversionDestination = .adjacentToInput,
+        options: ConversionOptions = ConversionOptions(),
+        expectedSourceIdentity: ConversionSourceIdentity? = nil
+    ) {
+        self.inputURL = inputURL
+        self.destination = destination
+        self.options = options
+        self.expectedSourceIdentity = expectedSourceIdentity
+    }
+}
+
+/// Grobe Phase einer synchronen Konvertierung. Der Callback läuft auf dem
+/// Konvertierungs-Thread; UI-Aufrufer wechseln bei Bedarf selbst zum Main Actor.
+public struct ConversionProgress: Equatable, Sendable {
+    public enum Phase: String, Equatable, Sendable {
+        case detectingInput
+        case preparingOutput
+        case converting
+        case publishing
+        case finished
+    }
+
+    public enum Unit: String, Equatable, Sendable {
+        case file, page, sheet, frame, slide, chapter, cell, message, note
+    }
+    public let phase: Phase
+    public let format: InputFormat?
+    public let unit: Unit?
+    public let completed: Int?
+    public let total: Int?
+
+    public init(
+        phase: Phase, format: InputFormat? = nil, unit: Unit? = nil,
+        completed: Int? = nil, total: Int? = nil
+    ) {
+        self.phase = phase
+        self.format = format
+        self.unit = unit
+        self.completed = completed
+        self.total = total
+    }
+}
+
+public typealias ConversionProgressHandler = @Sendable (ConversionProgress) -> Void

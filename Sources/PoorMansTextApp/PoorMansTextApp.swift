@@ -56,8 +56,7 @@ struct PoorMansTextDesktopApp: App {
                 }
                 .keyboardShortcut("o")
                 // Dieselbe Sperre wie Drop-Zone und Knopf: Während der
-                // Pandoc-Installation war ⌘O aktiv, aber wirkungslos
-                // (Roadmap-Punkt, 2026-09-10).
+                // Pandoc-Installation war ⌘O aktiv, aber wirkungslos.
                 .disabled(!model.acceptsNewDocuments)
                 Divider()
                 Button("Extract Receipt Data…") { chooseReceiptPDF(openWindow: openWindow) }

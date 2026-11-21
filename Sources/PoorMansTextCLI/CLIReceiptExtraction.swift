@@ -2,15 +2,15 @@ import Foundation
 import PoorMansTextCore
 
 private let receiptUsage = """
-Usage: poormans-text extract --mask FILE [--output-dir DIRECTORY] [--format json] INPUT [INPUT ...]
+    Usage: poormans-text extract --mask FILE [--output-dir DIRECTORY] [--format json] INPUT [INPUT ...]
 
-Extract receipt fields using a local mask. Results are saved next to each
-input unless --output-dir specifies a destination.
-The JSON summary goes to stdout. Progress and errors go to stderr.
+    Extract receipt fields using a local mask. Results are saved next to each
+    input unless --output-dir specifies a destination.
+    The JSON summary goes to stdout. Progress and errors go to stderr.
 
-Exit codes: 0 all inputs succeeded, 1 review required or an input failed,
-2 invalid command, mask, or output directory, 130 cancelled.
-"""
+    Exit codes: 0 all inputs succeeded, 1 review required or an input failed,
+    2 invalid command, mask, or output directory, 130 cancelled.
+    """
 
 private struct ReceiptCLIArguments {
     let maskURL: URL
@@ -74,7 +74,9 @@ private struct ReceiptCLIError: Encodable {
     let items: [ReceiptBatchItem] = []
 }
 
-func runReceiptExtraction(_ arguments: ArraySlice<String>, cancellation: ConversionCancellationToken) throws -> Int32 {
+func runReceiptExtraction(_ arguments: ArraySlice<String>, cancellation: ConversionCancellationToken) throws
+    -> Int32
+{
     if arguments.count == 1 && (arguments.first == "--help" || arguments.first == "-h") {
         try writeJSON(ReceiptCLIHelp(help: receiptUsage))
         return 0
@@ -112,12 +114,15 @@ func writeReceiptCLIError(_ error: Error, cancellation: ConversionCancellationTo
 }
 
 #if os(Linux)
-func runReceiptEditor(_ arguments: ArraySlice<String>, cancellation: ConversionCancellationToken) throws -> Int32 {
+func runReceiptEditor(_ arguments: ArraySlice<String>, cancellation: ConversionCancellationToken) throws
+    -> Int32
+{
     guard arguments.count == 2, arguments.first == "--request", let path = arguments.last else {
         throw CLIArgumentError.invalidConversionOption("receipt-editor requires --request FILE")
     }
-    let response = try ReceiptEditorProtocol.run(requestFile: fileURL(path, option: "--request"),
-                                                 cancellation: cancellation)
+    let response = try ReceiptEditorProtocol.run(
+        requestFile: fileURL(path, option: "--request"),
+        cancellation: cancellation)
     try writeOutput(response)
     return 0
 }

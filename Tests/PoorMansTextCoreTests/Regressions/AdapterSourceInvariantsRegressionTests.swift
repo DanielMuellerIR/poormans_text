@@ -9,7 +9,7 @@ final class AdapterSourceInvariantsRegressionTests: XCTestCase {
         // ohne den Testprozess mitzunehmen.
         let adapter = try String(
             contentsOf: RegressionFixtures.projectRoot.appendingPathComponent(
-                "Sources/PoorMansTextCore/SpreadsheetAdapter.swift"
+                "Sources/PoorMansTextCore/Formats/Spreadsheets/SpreadsheetAdapter.swift"
             ),
             encoding: .utf8
         )
@@ -34,10 +34,10 @@ final class AdapterSourceInvariantsRegressionTests: XCTestCase {
     /// geprüfte.
     func testAdaptersStageFromTheResolvedSource() throws {
         for name in [
-            "RichTextConverter.swift",
-            "WordProcessingPackageAdapter.swift",
-            "LegacyWordAdapter.swift",
-            "SpreadsheetAdapter.swift",
+            "Formats/RichText/RichTextConverter.swift",
+            "Formats/WordProcessing/WordProcessingPackageAdapter.swift",
+            "Formats/WordProcessing/LegacyWordAdapter.swift",
+            "Formats/Spreadsheets/SpreadsheetAdapter.swift",
         ] {
             let quelle = try String(
                 contentsOf: RegressionFixtures.projectRoot.appendingPathComponent("Sources/PoorMansTextCore/\(name)"),
@@ -51,7 +51,7 @@ final class AdapterSourceInvariantsRegressionTests: XCTestCase {
     func testMasterAdapterUsesTheSharedHeadingEscaping() throws {
         let quelle = try String(
             contentsOf: RegressionFixtures.projectRoot.appendingPathComponent(
-                "Sources/PoorMansTextCore/OpenDocumentMasterAdapter.swift"
+                "Sources/PoorMansTextCore/Formats/OpenDocument/OpenDocumentMasterAdapter.swift"
             ),
             encoding: .utf8
         )

@@ -1,0 +1,1013 @@
+import Foundation
+
+struct PresentationAdapter: DocumentConversionAdapter {
+    let supportedFormatDescriptors = [
+        SupportedFormat(
+            format: .pptx, fileExtensions: ["pptx", "pptm", "potx"], containerKind: .file, requiredTools: []),
+        SupportedFormat(format: .odp, fileExtensions: ["odp"], containerKind: .file, requiredTools: []),
+    ]
+    func inspectInput(at inputURL: URL) throws -> AdapterInputDetection {
+        let claimed: InputFormat? =
+            ["pptx", "pptm", "potx"].contains(inputURL.pathExtension.lowercased())
+            ? .pptx : inputURL.pathExtension.lowercased() == "odp" ? .odp : nil
+        do {
+            let prefix = try VerifiedFileStaging.prefix(
+                of: inputURL, maximumBytes: 1_073_741_824, prefixBytes: 4,
+                describedAs: "the presentation source")
+            guard prefix.starts(with: [0x50, 0x4B]) else {
+                if let claimed {
+                    return .invalid(
+                        format: claimed, priority: 115, reason: "the presentation ZIP signature is missing")
+                }
+                return .noMatch
+            }
+            let reader = try ZIPArchiveInspector.inspectionSnapshot(at: inputURL)
+            guard let format = try format(reader) else { return .noMatch }
+            return .match(
+                AdapterInputInspection(
+                    format: format, priority: 115,
+                    expectedWarnings: [
+                        ConversionWarning(
+                            code: "presentation.layoutNotPreserved",
+                            message:
+                                "Slide positions, themes, transitions, animations and exact formatting are not preserved."
+                        )
+                    ]
+                        + (reader.entryNames.contains(where: { $0.hasSuffix("vbaProject.bin") })
+                            ? [
+                                ConversionWarning(
+                                    code: "presentation.macrosNotPreserved",
+                                    message: "Presentation macros are never executed and are not copied.")
+                            ] : [])))
+        } catch {
+            try ConversionExecution.check()
+            return claimed.map { .invalid(format: $0, priority: 115, reason: error.localizedDescription) }
+                ?? .noMatch
+        }
+    }
+    private func format(_ reader: any ZIPPackageReading) throws -> InputFormat? {
+        if reader.entryNames.contains("ppt/presentation.xml") {
+            let root = try ImportXML.parse(reader.data(named: "ppt/presentation.xml"))
+            guard root.name == "presentation", root.namespace == PresentationImport.presentation else {
+                throw ImportFailure("invalid presentation root")
+            }
+            let types = try ImportXML.parse(reader.data(named: "[Content_Types].xml"))
+            let accepted = [
+                "application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml",
+                "application/vnd.ms-powerpoint.presentation.macroEnabled.main+xml",
+                "application/vnd.openxmlformats-officedocument.presentationml.template.main+xml",
+            ]
+            guard types.name == "Types",
+                types.namespace == "http://schemas.openxmlformats.org/package/2006/content-types",
+                types.children.contains(where: {
+                    $0.name == "Override" && $0.namespace == types.namespace
+                        && $0.attribute("PartName") == "/ppt/presentation.xml"
+                        && accepted.contains($0.attribute("ContentType") ?? "")
+                })
+            else { throw ImportFailure("unsupported presentation content type") }
+            return .pptx
+        }
+        if try reader.dataIfPresent(named: "mimetype").map({ String(decoding: $0, as: UTF8.self) })
+            == "application/vnd.oasis.opendocument.presentation"
+        {
+            let root = try ImportXML.parse(reader.data(named: "content.xml"))
+            let pages = root.elements("body", namespace: PresentationImport.office).flatMap {
+                $0.elements("presentation", namespace: PresentationImport.office)
+            }.flatMap { $0.elements("page", namespace: PresentationImport.draw) }
+            guard root.name == "document-content", root.namespace == PresentationImport.office,
+                !pages.isEmpty, pages.count <= 1_000
+            else { throw ImportFailure("invalid OpenDocument presentation content or slide count") }
+            return .odp
+        }
+        return nil
+    }
+    func inspectContents(at inputURL: URL, maximumSlides: Int) throws -> PresentationContentSummary {
+        guard (1...PresentationContentSummary.maximumSummarySlides).contains(maximumSlides) else {
+            throw ImportFailure("the presentation overview limit must be between 1 and 500")
+        }
+        return try ZIPArchiveInspector.withVerifiedReader(at: inputURL.resolvingSymlinksInPath()) { reader in
+            guard let format = try format(reader) else {
+                throw ImportFailure("the input is not a supported presentation")
+            }
+            let importer = PresentationImport(
+                reader: reader,
+                output: reader.url.deletingLastPathComponent().appendingPathComponent(
+                    "unused-overview-output"))
+            let fingerprint = try ConversionFileFingerprint.read(reader.url)
+            let identity = ConversionSourceIdentity(
+                name: inputURL.lastPathComponent, sha256: fingerprint.sha256,
+                byteCount: fingerprint.byteCount, unavailableReason: nil)
+            return try importer.overview(
+                format: format, sourceIdentity: identity, maximumSlides: maximumSlides)
+        }
+    }
+
+    func convert(_ context: AdapterConversionContext) throws -> StagedConversionResult {
+        do {
+            let reader = try ZIPArchiveInspector.openVerifiedPackage(
+                from: context.resolvedInputURL, into: context.workDirectory, named: "presentation.zip")
+            guard try format(reader) == context.format else {
+                throw ImportFailure("presentation format changed after inspection")
+            }
+            let importer = PresentationImport(reader: reader, output: context.stagedOutputDirectory)
+            let markdown = try importer.convert(
+                format: context.format, title: context.inputURL.deletingPathExtension().lastPathComponent,
+                selection: context.options.presentationSelection,
+                defaultIncludeNotes: context.options.presentationIncludeNotes)
+            let filename = context.inputURL.deletingPathExtension().lastPathComponent + ".md"
+            try Data(markdown.utf8).write(
+                to: context.stagedOutputDirectory.appendingPathComponent(filename), options: .atomic)
+            return StagedConversionResult(
+                markdownRelativePath: filename, assetRelativePaths: importer.media.paths,
+                warnings: importer.diagnostics.result,
+                metadata: PackageMetadataParser.read(
+                    from: reader, entryName: context.format == .pptx ? "docProps/core.xml" : "meta.xml"))
+        } catch {
+            try ConversionExecution.check()
+            throw ConversionError.invalidInput(
+                context.inputURL, format: context.format, reason: error.localizedDescription)
+        }
+    }
+}
+
+/// Paketpfade werden innerhalb des Archivs aufgelöst, niemals auf der Quelle.
+enum ImportPackagePath {
+    static func resolve(_ target: String, relativeTo part: String) throws -> String {
+        guard let decoded = target.removingPercentEncoding, !decoded.isEmpty,
+            !decoded.hasPrefix("/"), !decoded.contains("\\"), !decoded.contains(":"),
+            !decoded.contains("?"), !decoded.contains("#"),
+            !decoded.unicodeScalars.contains(where: { $0.value < 32 })
+        else { throw ImportFailure("unsafe or external package reference: \(target)") }
+        var components = part.split(separator: "/").dropLast().map(String.init)
+        for component in decoded.split(separator: "/") {
+            if component == "." { continue }
+            if component == ".." {
+                guard !components.isEmpty else {
+                    throw ImportFailure("package reference escapes the archive")
+                }
+                components.removeLast()
+            } else {
+                components.append(String(component))
+            }
+        }
+        guard !components.isEmpty else { throw ImportFailure("empty package reference") }
+        return components.joined(separator: "/")
+    }
+}
+
+final class PresentationImport {
+    static let presentation = "http://schemas.openxmlformats.org/presentationml/2006/main"
+    static let drawing = "http://schemas.openxmlformats.org/drawingml/2006/main"
+    static let relations = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+    static let office = "urn:oasis:names:tc:opendocument:xmlns:office:1.0"
+    static let draw = "urn:oasis:names:tc:opendocument:xmlns:drawing:1.0"
+    static let text = "urn:oasis:names:tc:opendocument:xmlns:text:1.0"
+    static let table = "urn:oasis:names:tc:opendocument:xmlns:table:1.0"
+    static let xlink = "http://www.w3.org/1999/xlink"
+    let reader: any ZIPPackageReading
+    let media: ImportMediaStore
+    var diagnostics = ImportDiagnostics()
+    private var page = 0
+    private var expandedTextBytes = 0
+    private var listStyles: [String: [Int: Bool]] = [:]
+    private var paragraphPositions: [ObjectIdentifier: Int] = [:]
+    private var currentNote: String?
+    private var slideTargets: [String: [Int]] = [:]
+    private var selectedSlideNumbers = Set<Int>()
+    private var sourceSlideCount = 0
+    private var hyperlinkCount = 0
+    /// Bereits abgelegte Bilder je Paketpfad. Die Ablage dedupliziert zwar
+    /// nach Prüfsumme, aber erst nach Entpacken, Dekodieren und Hashen; ein
+    /// Bild mit vielen Verweisen kostete das je Verweis erneut. Fehlschläge werden nicht gemerkt: Ihre Diagnose gehört zu
+    /// jeder Stelle.
+    private var storedImages: [String: String] = [:]
+    init(reader: any ZIPPackageReading, output: URL) {
+        self.reader = reader
+        media = ImportMediaStore(output: output)
+    }
+    private struct Relation {
+        let type: String
+        let target: String
+        let external: Bool
+    }
+    private func relationships(for part: String) throws -> [String: Relation] {
+        let url = part as NSString
+        let path = (url.deletingLastPathComponent as NSString).appendingPathComponent(
+            "_rels/" + url.lastPathComponent + ".rels")
+        guard let data = try reader.dataIfPresent(named: path) else { return [:] }
+        let root = try ImportXML.parse(data)
+        guard root.name == "Relationships",
+            root.namespace == "http://schemas.openxmlformats.org/package/2006/relationships"
+        else { throw ImportFailure("invalid relationship root") }
+        var result: [String: Relation] = [:]
+        for node in root.children {
+            guard let id = node.attribute("Id"), let target = node.attribute("Target"),
+                let type = node.attribute("Type"), result[id] == nil
+            else { throw ImportFailure("invalid or duplicate package relationship") }
+            result[id] = Relation(
+                type: type, target: target, external: node.attribute("TargetMode") == "External")
+        }
+        return result
+    }
+
+    func overview(format: InputFormat, sourceIdentity: ConversionSourceIdentity, maximumSlides: Int) throws
+        -> PresentationContentSummary
+    {
+        var summaries = [PresentationSlideSummary]()
+        let count: Int
+        if format == .pptx {
+            let part = "ppt/presentation.xml"
+            let root = try ImportXML.parse(reader.data(named: part))
+            let relations = try relationships(for: part)
+            let ids = root.elements("sldIdLst", namespace: Self.presentation).flatMap {
+                $0.elements("sldId", namespace: Self.presentation)
+            }
+            guard !ids.isEmpty, ids.count <= 1_000 else {
+                throw ImportFailure("presentation requires between 1 and 1,000 slides")
+            }
+            count = ids.count
+            for (index, id) in ids.prefix(maximumSlides).enumerated() {
+                try ConversionExecution.check()
+                guard let key = id.attribute("id", namespace: Self.relations), let relation = relations[key],
+                    !relation.external, relation.type.hasSuffix("/slide")
+                else { throw ImportFailure("missing or external slide relationship") }
+                let path = try ImportPackagePath.resolve(relation.target, relativeTo: part)
+                let slide = try ImportXML.parse(reader.data(named: path))
+                guard slide.name == "sld", slide.namespace == Self.presentation else {
+                    throw ImportFailure("invalid slide root at \(path)")
+                }
+                slide.selectAlternateContent(supportedNamespaces: [
+                    Self.presentation, Self.drawing, Self.relations,
+                ])
+                let title = slide.descendants("p", namespace: Self.drawing).lazy.map(drawingText).first {
+                    !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                }
+                let hasNotes = try relationships(for: path).values.contains { relation in
+                    guard !relation.external, relation.type.hasSuffix("/notesSlide") else { return false }
+                    return reader.entryNames.contains(
+                        try ImportPackagePath.resolve(relation.target, relativeTo: path))
+                }
+                summaries.append(.init(number: index + 1, title: boundedTitle(title), hasNotes: hasNotes))
+            }
+        } else {
+            let root = try ImportXML.parse(reader.data(named: "content.xml"))
+            let slides = root.elements("body", namespace: Self.office).flatMap {
+                $0.elements("presentation", namespace: Self.office)
+            }.flatMap { $0.elements("page", namespace: Self.draw) }
+            guard !slides.isEmpty, slides.count <= 1_000 else {
+                throw ImportFailure("presentation requires between 1 and 1,000 slides")
+            }
+            count = slides.count
+            for (index, slide) in slides.prefix(maximumSlides).enumerated() {
+                try ConversionExecution.check()
+                let body = slide.children.filter {
+                    $0.name != "notes" || $0.namespace != Self.presentationODF
+                }
+                let title = body.lazy.flatMap {
+                    ($0.name == "p" && $0.namespace == Self.text ? [$0] : [])
+                        + $0.descendants("p", namespace: Self.text)
+                }.map(\.text).first { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+                summaries.append(
+                    .init(
+                        number: index + 1, title: boundedTitle(title),
+                        hasNotes: !slide.elements("notes", namespace: Self.presentationODF).isEmpty))
+            }
+        }
+        return .init(
+            sourceIdentity: sourceIdentity,
+            slideCount: count, slides: summaries, slidesTruncated: summaries.count < count)
+    }
+
+    private func boundedTitle(_ value: String?) -> String? {
+        guard let value = value?.trimmingCharacters(in: .whitespacesAndNewlines), !value.isEmpty else {
+            return nil
+        }
+        guard value.utf8.count > 256 else { return value }
+        var bytes = Data(value.utf8.prefix(253))
+        for _ in 0..<3 where String(data: bytes, encoding: .utf8) == nil { bytes.removeLast() }
+        return (String(data: bytes, encoding: .utf8) ?? "") + "…"
+    }
+    func convert(
+        format: InputFormat, title: String, selection: PresentationSelection? = nil,
+        defaultIncludeNotes: Bool = true
+    ) throws -> String {
+        let includeNotes = selection?.includeNotes ?? defaultIncludeNotes
+        diagnostics.add(
+            "presentation.layoutNotPreserved",
+            "Slide positions, themes, transitions, animations and exact formatting are not preserved.")
+        if reader.entryNames.contains(where: { $0.hasSuffix("vbaProject.bin") }) {
+            diagnostics.add(
+                "presentation.macrosNotPreserved",
+                "Presentation macros are never executed and are not copied.")
+        }
+        var markdown = "# " + MarkdownEscaping.heading(title) + "\n\n"
+        func append(_ text: String) throws {
+            guard markdown.utf8.count <= 128 * 1_024 * 1_024 - text.utf8.count else {
+                throw ImportFailure("presentation Markdown exceeds 128 MiB")
+            }
+            markdown += text
+        }
+        if format == .pptx {
+            let part = "ppt/presentation.xml"
+            let root = try ImportXML.parse(reader.data(named: part))
+            let relations = try relationships(for: part)
+            let ids = root.elements("sldIdLst", namespace: Self.presentation).flatMap {
+                $0.elements("sldId", namespace: Self.presentation)
+            }
+            guard !ids.isEmpty, ids.count <= 1_000 else {
+                throw ImportFailure("presentation requires between 1 and 1,000 slides")
+            }
+            let selected = try selection?.slides?.zeroBasedIndices(itemCount: ids.count) ?? Array(ids.indices)
+            selectedSlideNumbers = Set(selected.map { $0 + 1 })
+            sourceSlideCount = ids.count
+            for (index, id) in ids.enumerated() {
+                if let key = id.attribute("id", namespace: Self.relations), let relation = relations[key],
+                    !relation.external,
+                    relation.type.hasSuffix("/slide"),
+                    let path = try? ImportPackagePath.resolve(relation.target, relativeTo: part)
+                {
+                    slideTargets[path, default: []].append(index + 1)
+                }
+            }
+            for (completed, index) in selected.enumerated() {
+                let id = ids[index]
+                page = index + 1
+                try ConversionExecution.report(unit: .slide, completed: completed, total: selected.count)
+                guard let key = id.attribute("id", namespace: Self.relations), let relation = relations[key],
+                    !relation.external, relation.type.hasSuffix("/slide")
+                else { throw ImportFailure("missing or external slide relationship") }
+                let path = try ImportPackagePath.resolve(relation.target, relativeTo: part)
+                let slide = try autoreleasepool { try pptxSlide(path, includeNotes: includeNotes) }
+                let offset = markdown.utf8.count
+                try append(
+                    PresentationRenderer.render(
+                        slide, number: page, maximumBytes: 128 * 1_024 * 1_024 - offset))
+                ConversionExecution.current?.recording?.record(
+                    ConversionLocation(slide: page), offset: offset, length: markdown.utf8.count - offset)
+            }
+            try ConversionExecution.report(unit: .slide, completed: selected.count, total: selected.count)
+        } else {
+            let root = try ImportXML.parse(reader.data(named: "content.xml"))
+            if let data = try reader.dataIfPresent(named: "styles.xml") {
+                collectListStyles(try ImportXML.parse(data))
+            }
+            collectListStyles(root)
+            guard root.name == "document-content", root.namespace == Self.office else {
+                throw ImportFailure("invalid OpenDocument presentation root")
+            }
+            let slides = root.elements("body", namespace: Self.office).flatMap {
+                $0.elements("presentation", namespace: Self.office)
+            }.flatMap { $0.elements("page", namespace: Self.draw) }
+            guard !slides.isEmpty, slides.count <= 1_000 else {
+                throw ImportFailure("presentation requires between 1 and 1,000 slides")
+            }
+            let selected =
+                try selection?.slides?.zeroBasedIndices(itemCount: slides.count) ?? Array(slides.indices)
+            selectedSlideNumbers = Set(selected.map { $0 + 1 })
+            sourceSlideCount = slides.count
+            for (index, slide) in slides.enumerated() {
+                let names = Set(
+                    [
+                        slide.attribute("name", namespace: Self.draw),
+                        slide.attribute("id", namespace: Self.draw),
+                        slide.attribute("id", namespace: "http://www.w3.org/XML/1998/namespace"),
+                    ].compactMap { $0 })
+                for name in names { slideTargets[name, default: []].append(index + 1) }
+            }
+            for (completed, index) in selected.enumerated() {
+                let node = slides[index]
+                page = index + 1
+                try ConversionExecution.report(unit: .slide, completed: completed, total: selected.count)
+                indexParagraphs(in: node, namespace: Self.text)
+                var slide = PresentationSlide()
+                var noteIndex = 0
+                for child in node.children {
+                    if child.name == "notes", child.namespace == Self.presentationODF {
+                        guard includeNotes else { continue }
+                        noteIndex += 1
+                        currentNote = String(noteIndex)
+                        defer { currentNote = nil }
+                        slide.notes += try odpBlocks(child, level: nil)
+                    } else {
+                        slide.blocks += try odpBlocks(child, level: nil)
+                    }
+                }
+                let offset = markdown.utf8.count
+                try append(
+                    PresentationRenderer.render(
+                        slide, number: page, maximumBytes: 128 * 1_024 * 1_024 - offset))
+                ConversionExecution.current?.recording?.record(
+                    ConversionLocation(slide: page), offset: offset, length: markdown.utf8.count - offset)
+            }
+            try ConversionExecution.report(unit: .slide, completed: selected.count, total: selected.count)
+        }
+        return markdown
+    }
+    static let presentationODF = "urn:oasis:names:tc:opendocument:xmlns:presentation:1.0"
+    private func pptxSlide(_ part: String, includeNotes: Bool) throws -> PresentationSlide {
+        let root = try ImportXML.parse(reader.data(named: part))
+        guard root.name == "sld", root.namespace == Self.presentation else {
+            throw ImportFailure("invalid slide root at \(part)")
+        }
+        root.selectAlternateContent(supportedNamespaces: [Self.presentation, Self.drawing, Self.relations])
+        currentNote = nil
+        indexParagraphs(in: root, namespace: Self.drawing)
+        let relations = try relationships(for: part)
+        var result = PresentationSlide(blocks: try pptxBlocks(root, part: part, relations: relations))
+        // Nach Beziehungs-Id sortiert: `relations.values` ist ungeordnet, und
+        // eine Folie mit zwei Notizteilen ergab je Lauf eine andere Reihenfolge
+        // der Notizblöcke.
+        for relation in relations.sorted(by: { $0.key < $1.key }).map(\.value)
+        where includeNotes && relation.type.hasSuffix("/notesSlide") {
+            let previous = diagnostics.context
+            diagnostics.context = ConversionLocation(page: page, slide: page, note: relation.target)
+            defer { diagnostics.context = previous }
+            guard !relation.external else {
+                diagnostics.add(
+                    "presentation.notesUnavailable", "External notes were not loaded.", page: page)
+                continue
+            }
+            let path = try ImportPackagePath.resolve(relation.target, relativeTo: part)
+            diagnostics.context = ConversionLocation(page: page, slide: page, note: path)
+            guard let data = try reader.dataIfPresent(named: path) else {
+                diagnostics.add(
+                    "presentation.notesUnavailable", "A notes part is missing: \(path)", page: page)
+                continue
+            }
+            let notes = try ImportXML.parse(data)
+            notes.selectAlternateContent(supportedNamespaces: [
+                Self.presentation, Self.drawing, Self.relations,
+            ])
+            currentNote = path
+            indexParagraphs(in: notes, namespace: Self.drawing)
+            defer { currentNote = nil }
+            result.notes += try pptxBlocks(notes, part: path, relations: relationships(for: path))
+        }
+        return result
+    }
+    private func pptxBlocks(
+        _ node: ImportXML, part: String, relations: [String: Relation], inheritedLink: String? = nil
+    ) throws -> [PresentationBlock] {
+        try ConversionExecution.check()
+        let previous = diagnostics.context
+        diagnostics.context = (previous ?? ConversionLocation()).merging(
+            ConversionLocation(
+                page: page, slide: page, paragraph: paragraphPositions[ObjectIdentifier(node)],
+                note: currentNote))
+        defer { diagnostics.context = previous }
+        var inheritedLink = inheritedLink
+        if node.namespace == Self.presentation, ["sp", "graphicFrame", "cxnSp", "pic"].contains(node.name) {
+            let links = node.children.filter { $0.name.hasPrefix("nv") }.flatMap {
+                $0.elements("cNvPr", namespace: Self.presentation)
+            }.flatMap { $0.elements("hlinkClick", namespace: Self.drawing) }
+            if !links.isEmpty {
+                if node.name == "pic" {
+                    diagnostics.add(
+                        "presentation.hyperlinkNotRepresented",
+                        "An image hyperlink has no supported text range; the image was retained without activating its target.",
+                        page: page)
+                } else {
+                    inheritedLink = try pptxLinks(links, part: part, relations: relations)
+                }
+            }
+        }
+        if node.name == "sp", node.namespace == Self.presentation,
+            !node.descendants("ph", namespace: Self.presentation).isEmpty,
+            node.descendants("p", namespace: Self.drawing).contains(where: {
+                $0.elements("pPr", namespace: Self.drawing).isEmpty
+            })
+        {
+            diagnostics.add(
+                "presentation.inheritedListStyleNotPreserved",
+                "Layout/master list formatting is not reconstructed; all paragraph text is retained.",
+                page: page)
+        }
+        if node.name == "p", node.namespace == Self.drawing {
+            let text = try drawingRichText(
+                node, part: part, relations: relations, inheritedLink: inheritedLink)
+            guard !text.isEmpty else { return [] }
+            let properties = node.elements("pPr", namespace: Self.drawing).first
+            let noBullet = properties?.elements("buNone", namespace: Self.drawing).isEmpty == false
+            let hasBullet =
+                properties?.attribute("lvl") != nil
+                || properties?.children.contains(where: { ["buChar", "buAutoNum"].contains($0.name) }) == true
+            let level = noBullet || !hasBullet ? nil : Int(properties?.attribute("lvl") ?? "0") ?? 0
+            return [
+                .paragraph(
+                    text, level: level,
+                    ordered: properties?.elements("buAutoNum", namespace: Self.drawing).isEmpty == false)
+            ]
+        }
+        if node.name == "tbl", node.namespace == Self.drawing {
+            let rows = try node.elements("tr", namespace: Self.drawing).map { row in
+                try row.elements("tc", namespace: Self.drawing).map { cell in
+                    var text = PresentationText()
+                    for (index, paragraph) in cell.descendants("p", namespace: Self.drawing).enumerated() {
+                        if index > 0 { text.append("\n") }
+                        text.append(
+                            try drawingRichText(
+                                paragraph, part: part, relations: relations, inheritedLink: inheritedLink))
+                    }
+                    return text
+                }
+            }
+            if node.descendants("tc", namespace: Self.drawing).contains(where: {
+                $0.attribute("gridSpan") != nil || $0.attribute("rowSpan") != nil
+            }) {
+                diagnostics.add(
+                    "presentation.tableMergesFlattened", "Merged table cells were flattened.", page: page)
+            }
+            return [.table(rows)]
+        }
+        if node.name == "blip", node.namespace == Self.drawing {
+            guard
+                let id = node.attribute("embed", namespace: Self.relations)
+                    ?? node.attribute("link", namespace: Self.relations), let relation = relations[id],
+                relation.type.hasSuffix("/image"), !relation.external
+            else {
+                diagnostics.add(
+                    "presentation.imageUnavailable",
+                    "An external or missing image relationship was not loaded.", page: page)
+                return []
+            }
+            return try packageImage(relation.target, part: part)
+        }
+        if node.namespace == Self.presentation, node.name == "sp",
+            node.descendants("ph", namespace: Self.presentation).contains(where: {
+                ["sldImg", "sldNum", "hdr", "ftr", "dt"].contains($0.attribute("type") ?? "")
+            })
+        {
+            return []
+        }
+        if ["chart", "relIds", "oleObj", "videoFile", "audioFile", "contentPart"].contains(node.name) {
+            diagnostics.add(
+                "presentation.objectNotRepresented", "A \(node.name) object is not represented as Markdown.",
+                page: page)
+        }
+        return try node.children.flatMap {
+            try pptxBlocks($0, part: part, relations: relations, inheritedLink: inheritedLink)
+        }
+    }
+    private func internalLink(_ numbers: [Int]?) -> String? {
+        guard let numbers, numbers.count == 1, let number = numbers.first,
+            (1...sourceSlideCount).contains(number)
+        else {
+            diagnostics.add(
+                "presentation.linkUnavailable",
+                "An internal hyperlink has a missing or ambiguous slide target; its visible text was retained.",
+                page: page)
+            return nil
+        }
+        guard selectedSlideNumbers.contains(number) else {
+            diagnostics.add(
+                "presentation.linkExcluded",
+                "A hyperlink points to an excluded slide; its visible text was retained without a dead link.",
+                page: page)
+            return nil
+        }
+        return "#" + PresentationLinkTarget.anchor(number)
+    }
+    private func externalLink(_ target: String) -> String? {
+        guard let target = PresentationLinkTarget.external(target) else {
+            diagnostics.add(
+                "presentation.linkUnsafe",
+                "An unsafe or unsupported hyperlink target was retained as visible text only.", page: page)
+            return nil
+        }
+        return target
+    }
+    private func countHyperlink() throws {
+        guard hyperlinkCount < 8_192 else { throw ImportFailure("presentation exceeds 8192 hyperlinks") }
+        hyperlinkCount += 1
+    }
+    private func pptxLinks(_ nodes: [ImportXML], part: String, relations: [String: Relation]) throws
+        -> String?
+    {
+        guard nodes.count == 1, let node = nodes.first else {
+            for _ in nodes { try countHyperlink() }
+            diagnostics.add(
+                "presentation.linkUnavailable",
+                "A text range has ambiguous hyperlink definitions; its visible text was retained.", page: page
+            )
+            return nil
+        }
+        return try pptxLink(node, part: part, relations: relations)
+    }
+    private func odfLink(_ node: ImportXML) throws -> String? {
+        try countHyperlink()
+        guard let href = node.attribute("href", namespace: Self.xlink) else {
+            diagnostics.add(
+                "presentation.linkUnavailable", "A hyperlink has no target; its visible text was retained.",
+                page: page)
+            return nil
+        }
+        if href.hasPrefix("#"), let name = String(href.dropFirst()).removingPercentEncoding {
+            return internalLink(
+                slideTargets[name] ?? (name.hasSuffix("|page") ? slideTargets[String(name.dropLast(5))] : nil)
+            )
+        }
+        return externalLink(href)
+    }
+    private func pptxLink(_ node: ImportXML, part: String, relations: [String: Relation]) throws -> String? {
+        try countHyperlink()
+        let action = node.attribute("action") ?? ""
+        let jumps = [
+            "ppaction://hlinkshowjump?jump=firstslide": 1,
+            "ppaction://hlinkshowjump?jump=lastslide": sourceSlideCount,
+            "ppaction://hlinkshowjump?jump=nextslide": page + 1,
+            "ppaction://hlinkshowjump?jump=previousslide": page - 1,
+        ]
+        if let number = jumps[action] { return internalLink([number]) }
+        guard action.isEmpty || action == "ppaction://hlinksldjump" else {
+            diagnostics.add(
+                "presentation.linkActionNotRepresented",
+                "A presentation action cannot be represented as a static hyperlink; its text was retained and the action was not executed.",
+                page: page)
+            return nil
+        }
+        guard let id = node.attribute("id", namespace: Self.relations), let relation = relations[id] else {
+            diagnostics.add(
+                "presentation.linkUnavailable",
+                "A hyperlink relationship is missing; its visible text was retained.", page: page)
+            return nil
+        }
+        if !relation.external, relation.type == Self.relations + "/slide",
+            let path = try? ImportPackagePath.resolve(
+                relation.target.hasPrefix("/") ? String(relation.target.dropFirst()) : relation.target,
+                relativeTo: relation.target.hasPrefix("/") ? "package.xml" : part),
+            reader.entryNames.contains(path)
+        {
+            return internalLink(slideTargets[path])
+        }
+        guard action.isEmpty, relation.external, relation.type == Self.relations + "/hyperlink" else {
+            diagnostics.add(
+                "presentation.linkUnavailable",
+                "A hyperlink relationship has an unsupported type or a missing slide target; its visible text was retained.",
+                page: page)
+            return nil
+        }
+        return externalLink(relation.target)
+    }
+    private func drawingRichText(
+        _ node: ImportXML, part: String, relations: [String: Relation], inheritedLink: String? = nil
+    ) throws -> PresentationText {
+        let previous = diagnostics.context
+        diagnostics.context = (previous ?? ConversionLocation()).merging(
+            .init(paragraph: paragraphPositions[ObjectIdentifier(node)]))
+        defer { diagnostics.context = previous }
+        let defaults =
+            node.elements("pPr", namespace: Self.drawing).first?.elements("defRPr", namespace: Self.drawing)
+            .first?.elements("hlinkClick", namespace: Self.drawing) ?? []
+        let defaultTarget =
+            defaults.isEmpty ? inheritedLink : try pptxLinks(defaults, part: part, relations: relations)
+        var output = PresentationText()
+        func visit(_ child: ImportXML) throws {
+            try ConversionExecution.check()
+            if child.namespace == Self.drawing {
+                if ["r", "fld"].contains(child.name) {
+                    let properties = child.elements("rPr", namespace: Self.drawing).first
+                    let links = properties?.elements("hlinkClick", namespace: Self.drawing) ?? []
+                    let target =
+                        links.isEmpty ? defaultTarget : try pptxLinks(links, part: part, relations: relations)
+                    output.append(drawingText(child), target: target)
+                    return
+                }
+                if child.name == "t" {
+                    output.append(child.text)
+                    return
+                }
+                if child.name == "br" {
+                    output.append("\n")
+                    return
+                }
+                if child.name == "tab" {
+                    output.append("\t")
+                    return
+                }
+                if ["pPr", "endParaRPr"].contains(child.name) { return }
+            }
+            for item in child.children { try visit(item) }
+        }
+        try visit(node)
+        if !node.descendants("hlinkMouseOver", namespace: Self.drawing).isEmpty {
+            diagnostics.add(
+                "presentation.linkActionNotRepresented",
+                "A mouse-over hyperlink was not converted to a click action; its visible text was retained.",
+                page: page)
+        }
+        return output
+    }
+    private func odfRichText(_ node: ImportXML, inheritedLink: String? = nil) throws -> PresentationText {
+        let previous = diagnostics.context
+        diagnostics.context = (previous ?? ConversionLocation()).merging(
+            .init(paragraph: paragraphPositions[ObjectIdentifier(node)]))
+        defer { diagnostics.context = previous }
+        var output = PresentationText()
+        var bytes = 0
+        func append(_ text: String, target: String?) throws {
+            guard text.utf8.count <= min(16 * 1_024 * 1_024 - bytes, 128 * 1_024 * 1_024 - expandedTextBytes)
+            else { throw ImportFailure("expanded presentation text exceeds its output budget") }
+            bytes += text.utf8.count
+            expandedTextBytes += text.utf8.count
+            output.append(text, target: target)
+        }
+        func visit(_ child: ImportXML, target: String?) throws {
+            try ConversionExecution.check()
+            var target = target
+            if child.namespace == Self.draw, child.name == "a" {
+                target = try odfLink(child)
+                if !child.descendants("image", namespace: Self.draw).isEmpty {
+                    diagnostics.add(
+                        "presentation.hyperlinkNotRepresented",
+                        "An inline image hyperlink has no supported text range; the image was retained without activating its target.",
+                        page: page)
+                }
+            }
+            if child.namespace == Self.text {
+                if child.name == "a" {
+                    target = try odfLink(child)
+                }
+                if child.name == "s" {
+                    try append(
+                        String(
+                            repeating: " ",
+                            count: repeatCount(child.attribute("c", namespace: Self.text), maximum: 4_096)),
+                        target: target)
+                    return
+                }
+                if child.name == "tab" {
+                    try append("\t", target: target)
+                    return
+                }
+                if child.name == "line-break" {
+                    try append("\n", target: target)
+                    return
+                }
+            }
+            for item in child.content {
+                switch item {
+                case .text(let text): try append(text, target: target)
+                case .element(let element): try visit(element, target: target)
+                }
+            }
+        }
+        try visit(node, target: inheritedLink)
+        return output
+    }
+    private func drawingText(_ node: ImportXML) -> String {
+        if node.namespace == Self.drawing {
+            if node.name == "t" { return node.text }
+            if node.name == "br" { return "\n" }
+            if node.name == "tab" { return "\t" }
+        }
+        return node.children.map(drawingText).joined()
+    }
+    private func packageImage(_ target: String, part: String) throws -> [PresentationBlock] {
+        do {
+            let path = try ImportPackagePath.resolve(target, relativeTo: part)
+            if let stored = storedImages[path] { return [.image(stored, "Slide image")] }
+            let stored = try media.save(reader.data(named: path))
+            storedImages[path] = stored
+            return [.image(stored, "Slide image")]
+        } catch {
+            try ConversionExecution.check()
+            diagnostics.add(
+                "presentation.imageUnavailable",
+                "Image \(target) was not copied: \(error.localizedDescription)", page: page)
+            return []
+        }
+    }
+    private func odpBlocks(
+        _ node: ImportXML, level: Int?, listStyle: String? = nil, inheritedLink: String? = nil
+    ) throws -> [PresentationBlock] {
+        try ConversionExecution.check()
+        let previous = diagnostics.context
+        diagnostics.context = (previous ?? ConversionLocation()).merging(
+            ConversionLocation(
+                page: page, slide: page, paragraph: paragraphPositions[ObjectIdentifier(node)],
+                note: currentNote))
+        defer { diagnostics.context = previous }
+        var inheritedLink = inheritedLink
+        if node.namespace == Self.draw, node.name == "a" { inheritedLink = try odfLink(node) }
+        if node.namespace == Self.text {
+            if node.name == "p" || node.name == "h" {
+                let text = try odfRichText(node, inheritedLink: inheritedLink)
+                // ODF erlaubt im Absatz einen Zeichenrahmen mit Bild
+                // (`draw:frame` > `draw:image`). Vorher endete der Abstieg
+                // beim Absatztext, und das Bild fehlte ohne Diagnose. Der Text verschachtelter
+                // Textrahmen steckt schon in `odfRichText`; hier kommen nur die
+                // Bilder dazu, nach dem Absatz.
+                let images = try node.descendants("image", namespace: Self.draw).flatMap {
+                    try odpBlocks($0, level: level, listStyle: listStyle, inheritedLink: inheritedLink)
+                }
+                if text.isEmpty, !images.isEmpty { return images }
+                return [
+                    .paragraph(
+                        text, level: level,
+                        ordered: listStyle.flatMap { listStyles[$0]?[(level ?? 0) + 1] } ?? false)
+                ] + images
+            }
+            if node.name == "list" {
+                let style = node.attribute("style-name", namespace: Self.text) ?? listStyle
+                if let style, listStyles[style] == nil {
+                    diagnostics.add(
+                        "presentation.listStyleNotPreserved",
+                        "An unavailable list style was rendered as bullets: \(style)", page: page)
+                }
+                return try node.children.flatMap {
+                    try odpBlocks(
+                        $0, level: (level ?? -1) + 1, listStyle: style, inheritedLink: inheritedLink)
+                }
+            }
+        }
+        if node.namespace == Self.table, node.name == "table" {
+            var rows: [[PresentationText]] = []
+            var images: [PresentationBlock] = []
+            var expandedBytes = 0
+            for row in tableRows(node) {
+                var cells: [PresentationText] = []
+                var rowImages: [PresentationBlock] = []
+                var rowBytes = 3
+                for cell in row.children
+                where cell.namespace == Self.table
+                    && ["table-cell", "covered-table-cell"].contains(cell.name)
+                {
+                    let count = try repeatCount(
+                        cell.attribute("number-columns-repeated", namespace: Self.table), maximum: 256)
+                    var text = PresentationText()
+                    for (index, paragraph) in tableCellParagraphs(cell).enumerated() {
+                        if index > 0 { text.append("\n") }
+                        text.append(try odfRichText(paragraph, inheritedLink: inheritedLink))
+                    }
+                    if text.isEmpty {
+                        text = PresentationText(
+                            cell.attribute("string-value", namespace: Self.office) ?? cell.attribute(
+                                "value", namespace: Self.office) ?? cell.attribute(
+                                    "date-value", namespace: Self.office) ?? cell.attribute(
+                                    "boolean-value", namespace: Self.office) ?? cell.attribute(
+                                    "time-value", namespace: Self.office) ?? "")
+                    }
+                    // Vor Tabellenwiederholungen auch die möglichen Linkziele
+                    // und Mehrzeilenmaskierungen ins Ausgabebudget einrechnen.
+                    let cellImages = try cell.descendants("image", namespace: Self.draw).flatMap {
+                        try odpBlocks($0, level: level, listStyle: listStyle, inheritedLink: inheritedLink)
+                    }
+                    let imageBytes = cellImages.reduce(0) { bytes, block in
+                        if case .image(let path, let alt) = block {
+                            return bytes + path.utf8.count + alt.utf8.count * 2 + 10
+                        }
+                        return bytes
+                    }
+                    let cellBytes = text.maximumRenderedBytes + 3 + imageBytes
+                    guard cellBytes <= (128 * 1_024 * 1_024 - rowBytes) / count else {
+                        throw ImportFailure("expanded presentation table exceeds its output budget")
+                    }
+                    rowBytes += cellBytes * count
+                    if !cell.descendants("table", namespace: Self.table).isEmpty {
+                        diagnostics.add(
+                            "presentation.nestedTableFlattened",
+                            "A nested table was flattened into cell text.", page: page)
+                    }
+                    guard cells.count <= 256 - count else {
+                        throw ImportFailure("presentation table exceeds 256 columns")
+                    }
+                    cells += Array(repeating: text, count: count)
+                    for _ in 0..<count { rowImages += cellImages }
+                    if cell.attribute("number-columns-spanned", namespace: Self.table) != nil
+                        || cell.attribute("number-rows-spanned", namespace: Self.table) != nil
+                    {
+                        diagnostics.add(
+                            "presentation.tableMergesFlattened", "Merged table cells were flattened.",
+                            page: page)
+                    }
+                }
+                let count = try repeatCount(
+                    row.attribute("number-rows-repeated", namespace: Self.table), maximum: 1_000)
+                guard rows.count <= 1_000 - count else {
+                    throw ImportFailure("presentation table exceeds 1,000 rows")
+                }
+                guard rowBytes <= (128 * 1_024 * 1_024 - expandedBytes) / count else {
+                    throw ImportFailure("expanded presentation table exceeds its output budget")
+                }
+                expandedBytes += rowBytes * count
+                rows += Array(repeating: cells, count: count)
+                for _ in 0..<count { images += rowImages }
+            }
+            return [.table(rows)] + images
+        }
+        if node.namespace == Self.draw, node.name == "image" {
+            if inheritedLink != nil {
+                diagnostics.add(
+                    "presentation.hyperlinkNotRepresented",
+                    "An image hyperlink has no supported text range; the image was retained without activating its target.",
+                    page: page)
+            }
+            guard let target = node.attribute("href", namespace: Self.xlink) else {
+                diagnostics.add(
+                    "presentation.imageUnavailable", "An image has no local reference.", page: page)
+                return []
+            }
+            return try packageImage(target, part: "content.xml")
+        }
+        if node.namespace == Self.draw, ["object", "object-ole", "plugin", "applet"].contains(node.name) {
+            diagnostics.add(
+                "presentation.objectNotRepresented",
+                "An embedded \(node.name) object is not represented as Markdown.", page: page)
+        }
+        return try node.children.flatMap {
+            try odpBlocks($0, level: level, listStyle: listStyle, inheritedLink: inheritedLink)
+        }
+    }
+    private func tableCellParagraphs(_ node: ImportXML) -> [ImportXML] {
+        node.children.flatMap { child in
+            if child.namespace == Self.text, child.name == "p" || child.name == "h" { return [child] }
+            return tableCellParagraphs(child)
+        }
+    }
+
+    private func tableRows(_ node: ImportXML) -> [ImportXML] {
+        node.children.flatMap { child -> [ImportXML] in
+            guard child.namespace == Self.table else { return [] }
+            if child.name == "table-row" { return [child] }
+            if ["table-header-rows", "table-rows", "table-row-group"].contains(child.name) {
+                return tableRows(child)
+            }
+            return []
+        }
+    }
+
+    private func collectListStyles(_ root: ImportXML) {
+        for style in root.descendants("list-style", namespace: Self.text) {
+            guard
+                let name = style.attribute(
+                    "name", namespace: "urn:oasis:names:tc:opendocument:xmlns:style:1.0")
+            else { continue }
+            for level in style.children where level.namespace == Self.text {
+                if let number = Int(level.attribute("level", namespace: Self.text) ?? ""),
+                    (1...16).contains(number)
+                {
+                    listStyles[name, default: [:]][number] = level.name == "list-level-style-number"
+                }
+            }
+        }
+    }
+
+    private func repeatCount(_ value: String?, maximum: Int) throws -> Int {
+        guard let count = Int(value ?? "1"), count > 0, count <= maximum else {
+            throw ImportFailure("invalid presentation table repetition")
+        }
+        return count
+    }
+    private func odfText(_ node: ImportXML) throws -> String {
+        let previous = diagnostics.context
+        diagnostics.context = (previous ?? ConversionLocation()).merging(
+            ConversionLocation(paragraph: paragraphPositions[ObjectIdentifier(node)]))
+        defer { diagnostics.context = previous }
+        var output = ImportTextBuilder(
+            maximumBytes: min(16 * 1_024 * 1_024, 128 * 1_024 * 1_024 - expandedTextBytes))
+        try appendODFText(node, to: &output)
+        expandedTextBytes += output.bytes
+        return output.value
+    }
+    private func indexParagraphs(in root: ImportXML, namespace: String) {
+        paragraphPositions = [:]
+        var count = 0
+        func visit(_ node: ImportXML, paragraph: Int?) {
+            var paragraph = paragraph
+            if node.namespace == namespace, node.name == "p" || node.name == "h" {
+                count += 1
+                paragraph = count
+            }
+            if let paragraph { paragraphPositions[ObjectIdentifier(node)] = paragraph }
+            for child in node.children { visit(child, paragraph: paragraph) }
+        }
+        visit(root, paragraph: nil)
+    }
+    private func appendODFText(_ node: ImportXML, to output: inout ImportTextBuilder) throws {
+        try ConversionExecution.check()
+        if node.namespace == Self.text {
+            if node.name == "s" {
+                let count = try repeatCount(node.attribute("c", namespace: Self.text), maximum: 4_096)
+                guard count <= output.maximumBytes - output.bytes else {
+                    throw ImportFailure("expanded presentation text exceeds its output budget")
+                }
+                try output.append(String(repeating: " ", count: count))
+                return
+            }
+            if node.name == "tab" {
+                try output.append("\t")
+                return
+            }
+            if node.name == "line-break" {
+                try output.append("\n")
+                return
+            }
+        }
+        for content in node.content {
+            switch content {
+            case .text(let text): try output.append(text)
+            case .element(let child): try appendODFText(child, to: &output)
+            }
+        }
+    }
+}

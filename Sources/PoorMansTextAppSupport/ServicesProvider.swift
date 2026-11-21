@@ -24,15 +24,18 @@ public final class ServicesProvider: NSObject {
         userData: String?,
         error: AutoreleasingUnsafeMutablePointer<NSString?>
     ) {
-        guard let urls = pasteboard.readObjects(
-            forClasses: [NSURL.self],
-            options: [.urlReadingFileURLsOnly: true]
-        ) as? [URL], !urls.isEmpty else {
+        guard
+            let urls = pasteboard.readObjects(
+                forClasses: [NSURL.self],
+                options: [.urlReadingFileURLsOnly: true]
+            ) as? [URL], !urls.isEmpty
+        else {
             error.pointee = NSLocalizedString("The service received no files.", comment: "") as NSString
             return
         }
         guard model.acceptsNewDocuments else {
-            error.pointee = NSLocalizedString("Poor Man's Text is busy with another conversion.", comment: "") as NSString
+            error.pointee =
+                NSLocalizedString("Poor Man's Text is busy with another conversion.", comment: "") as NSString
             return
         }
         NSApp?.activate(ignoringOtherApps: true)
@@ -50,7 +53,8 @@ public final class ServicesProvider: NSObject {
             return
         }
         guard model.acceptsNewDocuments else {
-            error.pointee = NSLocalizedString("Poor Man's Text is busy with another conversion.", comment: "") as NSString
+            error.pointee =
+                NSLocalizedString("Poor Man's Text is busy with another conversion.", comment: "") as NSString
             return
         }
         NSApp?.activate(ignoringOtherApps: true)

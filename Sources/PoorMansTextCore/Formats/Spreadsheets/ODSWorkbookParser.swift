@@ -1,0 +1,599 @@
+import Foundation
+#if os(Linux)
+import FoundationXML
+#endif
+
+enum ODSWorkbookParser {
+    static func parse(
+        _ xml: Data, styles: Data? = nil, maximumTextBytes: Int = SpreadsheetLimits.maximumOutputBytes
+    ) throws -> SpreadsheetWorkbook {
+        let numberStyles = try ODSNumberStyles.parse(content: xml, styles: styles)
+        let delegate = ContentDelegate(maximumTextBytes: maximumTextBytes, numberStyles: numberStyles)
+        let parser = ImportXMLParser.make(xml, delegate: delegate)
+        let parsedSuccessfully = parser.parse()
+        try ConversionExecution.check()
+        guard parsedSuccessfully, delegate.failure == nil else {
+            throw delegate.failure ?? parser.parserError ?? CocoaError(.fileReadCorruptFile)
+        }
+        guard !delegate.workbook.sheets.isEmpty else {
+            throw ParserError("content.xml contains no spreadsheet sheets")
+        }
+        return delegate.workbook
+    }
+
+    private final class ContentDelegate: NSObject, XMLParserDelegate {
+        var workbook = SpreadsheetWorkbook(sheets: [])
+        var failure: Error?
+        private let maximumTextBytes: Int
+        private var textBytes = 0
+        private var numberStyles: ODSNumberStyles
+        private var columnStyles: [String?] = []
+        private var rowStyle: String?
+        private var nullDate = "1899-12-30"
+
+        init(maximumTextBytes: Int, numberStyles: ODSNumberStyles) {
+            self.maximumTextBytes = max(0, maximumTextBytes)
+            self.numberStyles = numberStyles
+        }
+
+        private func locate(_ warning: ConversionWarning) {
+            // Leere Wiederholungen sind noch nicht materialisiert. Bei einem
+            // wiederholten betroffenen Element bezeichnet der Bezug dessen erste Zelle.
+            var column = (currentRow?.count ?? 0) + pendingEmptyCells + 1
+            var name = ""
+            while column > 0 {
+                column -= 1
+                name = String(UnicodeScalar(65 + column % 26)!) + name
+                column /= 26
+            }
+            workbook.packageDiagnostics.append(
+                warning.at(
+                    ConversionLocation(
+                        sheet: currentSheetName, cell: "\(name)\(currentRows.count + pendingEmptyRows + 1)")))
+        }
+        private var currentSheetName: String?
+        private var currentSheetVisibility = SpreadsheetSheetVisibility.visible
+        private var currentRows = [[SpreadsheetCell]]()
+        private var currentRow: [SpreadsheetCell]?
+        private var currentRowRepeat = 1
+        private var pendingEmptyCells = 0
+        private var pendingEmptyRows = 0
+        private var currentCell: CellBuilder?
+        private var paragraphDepth = 0
+        private var annotationDepth: Int?
+        private var capturesCellText: Bool { paragraphDepth > 0 && annotationDepth == nil }
+        private var paragraphCount = 0
+        private var expandedCellCount = 0
+        private var tableDepth = 0
+        private var sawRoot = false
+        /// Wahr, solange der Parser im Container
+        /// `office:document-content/office:body/office:spreadsheet` steht. Nur
+        /// dort ist ein `table:table` wirklich ein Arbeitsblatt; in einem
+        /// `office:text` wäre es eine Textabelle.
+        private var spreadsheetDepth: Int?
+        private var elementStack = [(namespaceURI: String?, name: String)]()
+        private let namespacePrefixes = NamespacePrefixTracker()
+
+        func parser(
+            _ parser: XMLParser,
+            didStartMappingPrefix prefix: String,
+            toURI namespaceURI: String
+        ) {
+            if ConversionExecution.isCancelled {
+                parser.abortParsing()
+                return
+            }
+            namespacePrefixes.startMapping(prefix: prefix, uri: namespaceURI)
+        }
+
+        func parser(_ parser: XMLParser, didEndMappingPrefix prefix: String) {
+            if ConversionExecution.isCancelled {
+                parser.abortParsing()
+                return
+            }
+            namespacePrefixes.endMapping(prefix: prefix)
+        }
+
+        func parser(
+            _ parser: XMLParser,
+            didStartElement elementName: String,
+            namespaceURI: String?,
+            qualifiedName qName: String?,
+            attributes attributeDict: [String: String] = [:]
+        ) {
+            if ConversionExecution.isCancelled {
+                parser.abortParsing()
+                return
+            }
+            guard failure == nil else { return }
+
+            let parent = elementStack.last
+            elementStack.append((namespaceURI, elementName))
+
+            if !sawRoot {
+                sawRoot = true
+                guard namespaceURI == Namespaces.office,
+                    elementName == "document-content"
+                else {
+                    return fail("content.xml has no valid OpenDocument content root", parser: parser)
+                }
+                return
+            }
+            if namespaceURI == Namespaces.office,
+                elementName == "spreadsheet",
+                parent?.namespaceURI == Namespaces.office,
+                parent?.name == "body",
+                elementStack.count == 3
+            {
+                spreadsheetDepth = elementStack.count
+                return
+            }
+            guard spreadsheetDepth != nil else { return }
+            if namespaceURI == Namespaces.table, elementName == "null-date",
+                parent?.namespaceURI == Namespaces.table, parent?.name == "calculation-settings"
+            {
+                nullDate =
+                    attribute("date-value", namespace: Namespaces.table, in: attributeDict) ?? "1899-12-30"
+                return
+            }
+            if annotationDepth != nil { return }
+            if namespaceURI == Namespaces.office, elementName == "annotation" {
+                workbook.hasUnsupportedObjects = true
+                annotationDepth = elementStack.count
+                return
+            }
+
+            if namespaceURI == Namespaces.table, elementName == "table" {
+                guard currentSheetName == nil else {
+                    tableDepth += 1
+                    workbook.hasUnsupportedObjects = true
+                    return
+                }
+                guard workbook.sheets.count < SpreadsheetLimits.maximumSheets else {
+                    return fail("the workbook contains too many sheets", parser: parser)
+                }
+                tableDepth = 1
+                currentSheetName =
+                    attribute("name", namespace: Namespaces.table, in: attributeDict)
+                    ?? "Sheet \(workbook.sheets.count + 1)"
+                currentSheetVisibility = numberStyles.tableVisibility(
+                    styleName: attribute("style-name", namespace: Namespaces.table, in: attributeDict),
+                    display: attribute("display", namespace: Namespaces.table, in: attributeDict))
+                currentRows = []
+                pendingEmptyRows = 0
+                columnStyles = []
+                return
+            }
+            guard currentSheetName != nil else { return }
+            guard tableDepth == 1 else { return }
+
+            if namespaceURI == Namespaces.table, elementName == "table-column" {
+                let repeated = positiveRepeat(
+                    attribute("number-columns-repeated", namespace: Namespaces.table, in: attributeDict),
+                    maximum: SpreadsheetLimits.maximumColumns, parser: parser)
+                let count = min(repeated, SpreadsheetLimits.maximumColumns - columnStyles.count)
+                columnStyles.append(
+                    contentsOf: repeatElement(
+                        attribute("default-cell-style-name", namespace: Namespaces.table, in: attributeDict),
+                        count: count))
+                return
+            }
+
+            if namespaceURI == Namespaces.table, elementName == "table-row" {
+                currentRow = []
+                pendingEmptyCells = 0
+                rowStyle = attribute(
+                    "default-cell-style-name", namespace: Namespaces.table, in: attributeDict)
+                currentRowRepeat = positiveRepeat(
+                    attribute("number-rows-repeated", namespace: Namespaces.table, in: attributeDict),
+                    maximum: SpreadsheetLimits.maximumRows,
+                    parser: parser
+                )
+                return
+            }
+
+            if namespaceURI == Namespaces.table,
+                elementName == "table-cell" || elementName == "covered-table-cell"
+            {
+                guard currentRow != nil else { return }
+                let repeated = positiveRepeat(
+                    attribute("number-columns-repeated", namespace: Namespaces.table, in: attributeDict),
+                    maximum: SpreadsheetLimits.maximumColumns,
+                    parser: parser
+                )
+                let columnSpan = positiveRepeat(
+                    attribute("number-columns-spanned", namespace: Namespaces.table, in: attributeDict),
+                    maximum: SpreadsheetLimits.maximumColumns,
+                    parser: parser
+                )
+                let rowSpan = positiveRepeat(
+                    attribute("number-rows-spanned", namespace: Namespaces.table, in: attributeDict),
+                    maximum: SpreadsheetLimits.maximumRows,
+                    parser: parser
+                )
+                if columnSpan > 1 || rowSpan > 1 {
+                    workbook.hasFlattenedMerges = true
+                    locate(.spreadsheetMergesFlattened)
+                }
+                currentCell = CellBuilder(
+                    repeated: repeated,
+                    isCovered: elementName == "covered-table-cell",
+                    styleName: attribute("style-name", namespace: Namespaces.table, in: attributeDict),
+                    valueType: attribute("value-type", namespace: Namespaces.office, in: attributeDict),
+                    rawValue: attribute("value", namespace: Namespaces.office, in: attributeDict)
+                        ?? attribute("string-value", namespace: Namespaces.office, in: attributeDict)
+                        ?? attribute("date-value", namespace: Namespaces.office, in: attributeDict)
+                        ?? attribute("time-value", namespace: Namespaces.office, in: attributeDict)
+                        ?? attribute("boolean-value", namespace: Namespaces.office, in: attributeDict),
+                    formula: attribute("formula", namespace: Namespaces.table, in: attributeDict)
+                )
+                paragraphCount = 0
+                paragraphDepth = 0
+                return
+            }
+
+            if namespaceURI == Namespaces.text, elementName == "p", currentCell != nil {
+                if paragraphCount > 0 {
+                    appendText("\n", parser: parser)
+                }
+                paragraphCount += 1
+                paragraphDepth += 1
+                return
+            }
+            if namespaceURI == Namespaces.text, elementName == "a", capturesCellText {
+                guard
+                    let rawTarget = namespacePrefixes.attributeValue(
+                        localName: "href",
+                        namespaceURI: Namespaces.xlink,
+                        in: attributeDict
+                    ), !rawTarget.isEmpty
+                else {
+                    return
+                }
+                guard let target = SpreadsheetLinkTarget.accepted(rawTarget) else {
+                    // Ein nicht übernehmbares Schema ist ein sichtbarer
+                    // Verlust: Der Linktext bleibt, das Ziel fällt weg.
+                    workbook.hasUnsupportedObjects = true
+                    locate(
+                        ConversionWarning(
+                            code: "spreadsheet.hyperlinkNotPreserved",
+                            message: "A cell hyperlink could not be preserved safely."))
+                    return
+                }
+                // Ein Tabellenfeld kann im gemeinsamen Modell genau ein Ziel
+                // tragen. Mehrere verschiedene Inline-Links behalten ihren
+                // Text, aber der zusätzliche Zielwechsel bleibt sichtbar als
+                // Verlustwarnung.
+                if let existing = currentCell?.linkTarget, existing != target {
+                    workbook.hasUnsupportedObjects = true
+                    locate(
+                        ConversionWarning(
+                            code: "spreadsheet.hyperlinkNotPreserved",
+                            message: "A cell hyperlink could not be preserved safely."))
+                } else {
+                    currentCell?.linkTarget = target
+                }
+            }
+            if namespaceURI == Namespaces.text, elementName == "line-break", capturesCellText {
+                appendText("\n", parser: parser)
+            } else if namespaceURI == Namespaces.text, elementName == "tab", capturesCellText {
+                appendText("\t", parser: parser)
+            } else if namespaceURI == Namespaces.text, elementName == "s", capturesCellText {
+                guard let count = Int(attribute("c", namespace: Namespaces.text, in: attributeDict) ?? "1"),
+                    count > 0
+                else {
+                    return fail("an explicit space count is invalid", parser: parser)
+                }
+                // Vor der Expansion prüfen: Wenige XML-Bytes können sonst
+                // beliebig viel Zelltext erzeugen. Die Spaltenzahl begrenzt
+                // keine Zeichenfolge und darf deren Inhalt nicht kürzen.
+                guard count <= maximumTextBytes - textBytes else {
+                    return fail("the spreadsheet exceeds the materialized-text budget", parser: parser)
+                }
+                appendText(String(repeating: " ", count: count), parser: parser)
+            }
+
+            if namespaceURI == Namespaces.drawing || namespaceURI == Namespaces.chart {
+                workbook.hasUnsupportedObjects = true
+            }
+        }
+
+        func parser(_ parser: XMLParser, foundCharacters string: String) {
+            if ConversionExecution.isCancelled {
+                parser.abortParsing()
+                return
+            }
+            if tableDepth == 1, capturesCellText {
+                appendText(string, parser: parser)
+            }
+        }
+
+        func parser(_ parser: XMLParser, foundCDATA cdata: Data) {
+            self.parser(parser, foundCharacters: String(decoding: cdata, as: UTF8.self))
+        }
+
+        private func appendText(_ string: String, parser: XMLParser) {
+            guard failure == nil, currentCell != nil else { return }
+            let count = string.utf8.count
+            guard count <= maximumTextBytes - textBytes else {
+                return fail("the spreadsheet exceeds the materialized-text budget", parser: parser)
+            }
+            textBytes += count
+            currentCell?.text.append(string)
+        }
+
+        func parser(
+            _ parser: XMLParser,
+            didEndElement elementName: String,
+            namespaceURI: String?,
+            qualifiedName qName: String?
+        ) {
+            if ConversionExecution.isCancelled {
+                parser.abortParsing()
+                return
+            }
+            defer {
+                if elementStack.last?.namespaceURI == namespaceURI,
+                    elementStack.last?.name == elementName
+                {
+                    elementStack.removeLast()
+                }
+            }
+            guard failure == nil else { return }
+            if let annotationDepth {
+                if annotationDepth == elementStack.count { self.annotationDepth = nil }
+                return
+            }
+            if namespaceURI == Namespaces.office,
+                elementName == "spreadsheet",
+                spreadsheetDepth == elementStack.count
+            {
+                spreadsheetDepth = nil
+                return
+            }
+            guard spreadsheetDepth != nil else { return }
+            if namespaceURI == Namespaces.table, elementName == "table" {
+                if tableDepth > 1 {
+                    tableDepth -= 1
+                    return
+                }
+                if tableDepth == 1, let name = currentSheetName {
+                    workbook.sheets.append(
+                        SpreadsheetSheet(
+                            name: name, rows: currentRows, sourceIndex: workbook.sheets.count + 1,
+                            visibility: currentSheetVisibility))
+                    currentSheetName = nil
+                    currentRows = []
+                    pendingEmptyRows = 0
+                    tableDepth = 0
+                }
+                return
+            }
+            guard tableDepth == 1 else { return }
+            if namespaceURI == Namespaces.text, elementName == "p" {
+                paragraphDepth = max(0, paragraphDepth - 1)
+                return
+            }
+            if namespaceURI == Namespaces.table,
+                elementName == "table-cell" || elementName == "covered-table-cell"
+            {
+                finishCell(parser: parser)
+                return
+            }
+            if namespaceURI == Namespaces.table, elementName == "table-row" {
+                finishRow(parser: parser)
+                return
+            }
+        }
+
+        private func attribute(_ name: String, namespace: String, in attributes: [String: String]) -> String?
+        {
+            namespacePrefixes.attributeValue(localName: name, namespaceURI: namespace, in: attributes)
+        }
+
+        private func finishCell(parser: XMLParser) {
+            guard let builder = currentCell, currentRow != nil else { return }
+            defer { currentCell = nil }
+            let cell = builder.cell(display: builder.text.isEmpty ? builder.rawValue ?? "" : builder.text)
+            if builder.formula != nil, cell.displayText.isEmpty {
+                workbook.hasFormulaWithoutResult = true
+            }
+            if builder.isCovered {
+                flushPendingCells(parser: parser)
+                guard failure == nil,
+                    currentRow!.count + builder.repeated <= SpreadsheetLimits.maximumColumns
+                else {
+                    return fail(SpreadsheetLimits.columnBudgetMessage, parser: parser)
+                }
+                currentRow!.append(contentsOf: repeatElement(.empty, count: builder.repeated))
+                expandedCellCount += builder.repeated
+                checkCellBudget(parser: parser)
+                return
+            }
+            if cell.isEmpty {
+                pendingEmptyCells += builder.repeated
+                guard currentRow!.count + pendingEmptyCells <= SpreadsheetLimits.maximumColumns else {
+                    return fail(SpreadsheetLimits.columnBudgetMessage, parser: parser)
+                }
+                return
+            }
+            flushPendingCells(parser: parser)
+            guard failure == nil else { return }
+            guard currentRow!.count + builder.repeated <= SpreadsheetLimits.maximumColumns else {
+                return fail(SpreadsheetLimits.columnBudgetMessage, parser: parser)
+            }
+            for repetition in 0..<builder.repeated {
+                if ConversionExecution.isCancelled {
+                    parser.abortParsing()
+                    return
+                }
+                var display = cell.displayText
+                if builder.text.isEmpty, let raw = builder.rawValue,
+                    ["float", "currency", "percentage", "date", "time"].contains(builder.valueType ?? "")
+                {
+                    let column = currentRow!.count
+                    let style =
+                        builder.styleName ?? rowStyle
+                        ?? (column < columnStyles.count ? columnStyles[column] : nil)
+                    let formatted = numberStyles.format(
+                        raw, type: builder.valueType, styleName: style, nullDate: nullDate)
+                    display = formatted.text
+                    if let warning = formatted.warning(storedValue: raw, at: ConversionLocation()) {
+                        locate(warning)
+                    }
+                }
+                let additionalBytes = display.utf8.count - (repetition == 0 ? builder.text.utf8.count : 0)
+                // Der eingegebene Text wurde beim Lesen bereits einmal berechnet.
+                // Wiederholte und neu erzeugte Texte zählen ebenfalls zum Budget.
+                let charged = max(0, additionalBytes)
+                guard charged <= maximumTextBytes - textBytes else {
+                    return fail("the spreadsheet exceeds the materialized-text budget", parser: parser)
+                }
+                textBytes += charged
+                currentRow!.append(builder.cell(display: display))
+            }
+            expandedCellCount += builder.repeated
+            checkCellBudget(parser: parser)
+        }
+
+        private func flushPendingCells(parser: XMLParser) {
+            guard pendingEmptyCells > 0 else { return }
+            guard currentRow!.count + pendingEmptyCells <= SpreadsheetLimits.maximumColumns else {
+                return fail(SpreadsheetLimits.columnBudgetMessage, parser: parser)
+            }
+            currentRow!.append(contentsOf: repeatElement(.empty, count: pendingEmptyCells))
+            expandedCellCount += pendingEmptyCells
+            pendingEmptyCells = 0
+            checkCellBudget(parser: parser)
+        }
+
+        private func finishRow(parser: XMLParser) {
+            guard let row = currentRow else { return }
+            defer { currentRow = nil }
+            // Ausgedehnte leere Randzellen werden absichtlich nicht materialisiert.
+            pendingEmptyCells = 0
+            if row.isEmpty {
+                // Leere Zeilen sammeln sich nur an; sie kosten erst etwas, wenn
+                // eine gefüllte Zeile folgt und sie dafür materialisiert werden
+                // müssen. Am Blattende fallen sie ersatzlos weg. Der Zähler
+                // sättigt deshalb eine Stufe über dem Budget, damit die Prüfung
+                // unten weiterhin greift.
+                pendingEmptyRows = min(
+                    pendingEmptyRows + currentRowRepeat, SpreadsheetLimits.maximumRows + 1
+                )
+                return
+            }
+            if pendingEmptyRows > 0 {
+                guard currentRows.count + pendingEmptyRows <= SpreadsheetLimits.maximumRows else {
+                    return fail(SpreadsheetLimits.rowBudgetMessage, parser: parser)
+                }
+                // Auch leere Zwischenzeilen belegen Speicher; alle Blätter
+                // teilen sich dieses Budget, bevor Zeilen angelegt werden.
+                guard expandedCellCount <= SpreadsheetLimits.maximumCells - pendingEmptyRows else {
+                    return fail(SpreadsheetLimits.cellBudgetMessage, parser: parser)
+                }
+                expandedCellCount += pendingEmptyRows
+                currentRows.append(contentsOf: repeatElement([], count: pendingEmptyRows))
+                pendingEmptyRows = 0
+            }
+            guard currentRows.count + currentRowRepeat <= SpreadsheetLimits.maximumRows else {
+                return fail(SpreadsheetLimits.rowBudgetMessage, parser: parser)
+            }
+            let repeatedCellCount = row.count * max(0, currentRowRepeat - 1)
+            guard expandedCellCount <= SpreadsheetLimits.maximumCells - repeatedCellCount else {
+                return fail(SpreadsheetLimits.cellBudgetMessage, parser: parser)
+            }
+            let rowBytes = row.reduce(0) { $0 + $1.displayText.utf8.count }
+            let repetitions = max(0, currentRowRepeat - 1)
+            guard repetitions == 0 || rowBytes <= (maximumTextBytes - textBytes) / repetitions else {
+                return fail("the spreadsheet exceeds the materialized-text budget", parser: parser)
+            }
+            textBytes += rowBytes * repetitions
+            currentRows.append(contentsOf: repeatElement(row, count: currentRowRepeat))
+            expandedCellCount += repeatedCellCount
+        }
+
+        private func positiveRepeat(
+            _ text: String?,
+            maximum: Int,
+            parser: XMLParser
+        ) -> Int {
+            guard let text else { return 1 }
+            // Die DEKLARIERTE Wiederholung darf das Budget übersteigen, ohne die
+            // Datei abzuweisen: LibreOffice schreibt am Ende eines formatierten
+            // Blattes eine LEERE Zeile mit `number-rows-repeated="1048575"`, die
+            // nie materialisiert wird. Entschieden wird deshalb erst beim
+            // Materialisieren — eine leere Wiederholung fällt am Blattende weg,
+            // eine mit Inhalt läuft weiterhin in das Zeilen- beziehungsweise
+            // Zellbudget. Geklemmt wird hier NICHT, sonst würde eine zu große
+            // Wiederholung mit Inhalt still gekürzt statt abgelehnt.
+            guard let value = Int(text), value > 0, value <= Self.maximumDeclaredRepeat else {
+                fail("a repeated row or column count exceeds its budget", parser: parser)
+                return 1
+            }
+            _ = maximum
+            return value
+        }
+
+        /// Obergrenze für die reine Zahl im Attribut. Sie hält die Additionen
+        /// mit `pendingEmptyRows` weit von einem Überlauf entfernt und liegt
+        /// über allem, was ein Tabellenprogramm je schreibt (ODF erlaubt
+        /// 2^20 Zeilen, Excel 2^20).
+        private static let maximumDeclaredRepeat = 1 << 31
+
+        private func checkCellBudget(parser: XMLParser) {
+            if expandedCellCount > SpreadsheetLimits.maximumCells {
+                fail(SpreadsheetLimits.cellBudgetMessage, parser: parser)
+            }
+        }
+
+        private func fail(_ reason: String, parser: XMLParser) {
+            guard failure == nil else { return }
+            failure = ParserError(reason)
+            parser.abortParsing()
+        }
+    }
+
+    private struct CellBuilder {
+        let repeated: Int
+        let isCovered: Bool
+        let styleName: String?
+        let valueType: String?
+        let rawValue: String?
+        let formula: String?
+        var text = ""
+        var linkTarget: String?
+
+        func cell(display: String) -> SpreadsheetCell {
+            let value: SpreadsheetCellValue =
+                switch valueType {
+                case "float", "currency", "percentage": .number(rawValue ?? display)
+                case "boolean": .boolean((rawValue ?? display).lowercased() == "true")
+                case "date", "time": .date(rawValue ?? display)
+                case "string": .string(display)
+                default: display.isEmpty ? .empty : .string(display)
+                }
+            return SpreadsheetCell(
+                value: value,
+                displayText: display,
+                formula: formula,
+                linkTarget: linkTarget
+            )
+        }
+    }
+
+    private enum Namespaces {
+        static let table = "urn:oasis:names:tc:opendocument:xmlns:table:1.0"
+        static let text = "urn:oasis:names:tc:opendocument:xmlns:text:1.0"
+        static let office = "urn:oasis:names:tc:opendocument:xmlns:office:1.0"
+        static let drawing = "urn:oasis:names:tc:opendocument:xmlns:drawing:1.0"
+        static let chart = "urn:oasis:names:tc:opendocument:xmlns:chart:1.0"
+        static let xlink = "http://www.w3.org/1999/xlink"
+    }
+
+    private struct ParserError: LocalizedError {
+        let reason: String
+        init(_ reason: String) { self.reason = reason }
+        var errorDescription: String? { reason }
+    }
+}

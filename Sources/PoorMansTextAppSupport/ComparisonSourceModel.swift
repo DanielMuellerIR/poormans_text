@@ -10,11 +10,17 @@ package final class ComparisonSourceModel: ObservableObject {
             switch self {
             case .loading: NSLocalizedString("Verifying source…", comment: "")
             case .verified: NSLocalizedString("Source bytes match the conversion.", comment: "")
-            case .changed: NSLocalizedString("The source or its folder changed. Recheck the comparison.", comment: "")
-            case .missing: NSLocalizedString("The source is missing. The comparison no longer matches.", comment: "")
-            case .unverified: NSLocalizedString("No source fingerprint is available. Positions cannot be verified.", comment: "")
+            case .changed:
+                NSLocalizedString("The source or its folder changed. Recheck the comparison.", comment: "")
+            case .missing:
+                NSLocalizedString("The source is missing. The comparison no longer matches.", comment: "")
+            case .unverified:
+                NSLocalizedString(
+                    "No source fingerprint is available. Positions cannot be verified.", comment: "")
             case .limit: NSLocalizedString("The source exceeds the verification limit.", comment: "")
-            case .unreadable: NSLocalizedString("The source cannot be read safely. Positions cannot be verified.", comment: "")
+            case .unreadable:
+                NSLocalizedString(
+                    "The source cannot be read safely. Positions cannot be verified.", comment: "")
             }
         }
     }
@@ -36,9 +42,15 @@ package final class ComparisonSourceModel: ObservableObject {
 
     package func load(_ result: ConversionResult) {
         stop()
-        state = .loading; count = 0; number = 1; image = nil; imageUnavailable = false
+        state = .loading
+        count = 0
+        number = 1
+        image = nil
+        imageUnavailable = false
         let token = generation
-        let watchedURL = result.sourceIdentity?.memberPath == "mbox" ? result.inputURL.appendingPathComponent("mbox") : result.inputURL
+        let watchedURL =
+            result.sourceIdentity?.memberPath == "mbox"
+            ? result.inputURL.appendingPathComponent("mbox") : result.inputURL
         watcher = ComparisonSourceWatcher(url: watchedURL) { [weak self] in
             Task { @MainActor [weak self] in
                 guard let self, self.generation == token else { return }
@@ -48,50 +60,82 @@ package final class ComparisonSourceModel: ObservableObject {
         let read = Task.detached(priority: .userInitiated) { try ComparisonSourceSnapshot.read(result) }
         operation = Task { [weak self] in
             do {
-                let snapshot = try await withTaskCancellationHandler(operation: { try await read.value }, onCancel: { read.cancel() })
+                let snapshot = try await withTaskCancellationHandler(
+                    operation: { try await read.value }, onCancel: { read.cancel() })
                 guard let self, !Task.isCancelled, self.generation == token else { return }
-                guard self.watcher?.hasChanged != true else { self.invalidate(); return }
+                guard self.watcher?.hasChanged != true else {
+                    self.invalidate()
+                    return
+                }
                 self.state = .verified
                 if result.format == .pdf || result.format == .image {
-                    guard snapshot.data != nil else { self.imageUnavailable = true; return }
+                    guard snapshot.data != nil else {
+                        self.imageUnavailable = true
+                        return
+                    }
                     let renderer = ComparisonSourceRenderer(snapshot)
                     let count = try await renderer.prepare()
                     guard !Task.isCancelled, self.generation == token, self.isVerified else { return }
-                    self.renderer = renderer; self.count = count
+                    self.renderer = renderer
+                    self.count = count
                     self.select(1)
                 }
             } catch {
                 guard let self, !Task.isCancelled, self.generation == token else { return }
-                if self.isVerified { self.imageUnavailable = true }
-                else { self.state = Self.state(for: error) }
+                if self.isVerified {
+                    self.imageUnavailable = true
+                } else {
+                    self.state = Self.state(for: error)
+                }
             }
         }
     }
 
     package func select(_ number: Int) {
         guard isVerified, (1...max(1, count)).contains(number), let renderer else { return }
-        self.number = number; image = nil; imageBusy = true; imageUnavailable = false
+        self.number = number
+        image = nil
+        imageBusy = true
+        imageUnavailable = false
         rendering?.cancel()
-        let token = UUID(); renderGeneration = token
+        let token = UUID()
+        renderGeneration = token
         rendering = Task { [weak self] in
             do {
                 let data = try await renderer.render(number)
-                guard let self, !Task.isCancelled, self.renderGeneration == token, self.isVerified else { return }
-                self.image = NSImage(data: data); self.imageUnavailable = self.image == nil; self.imageBusy = false
+                guard let self, !Task.isCancelled, self.renderGeneration == token, self.isVerified else {
+                    return
+                }
+                self.image = NSImage(data: data)
+                self.imageUnavailable = self.image == nil
+                self.imageBusy = false
             } catch {
-                guard let self, !Task.isCancelled, self.renderGeneration == token, self.isVerified else { return }
-                self.imageUnavailable = true; self.imageBusy = false
+                guard let self, !Task.isCancelled, self.renderGeneration == token, self.isVerified else {
+                    return
+                }
+                self.imageUnavailable = true
+                self.imageBusy = false
             }
         }
     }
 
     package func stop() {
-        operation?.cancel(); operation = nil; rendering?.cancel(); rendering = nil
-        watcher = nil; renderer = nil; generation = UUID(); renderGeneration = UUID()
+        operation?.cancel()
+        operation = nil
+        rendering?.cancel()
+        rendering = nil
+        watcher = nil
+        renderer = nil
+        generation = UUID()
+        renderGeneration = UUID()
     }
     private func invalidate() {
-        operation?.cancel(); rendering?.cancel(); renderer = nil
-        state = .changed; image = nil; imageBusy = false
+        operation?.cancel()
+        rendering?.cancel()
+        renderer = nil
+        state = .changed
+        image = nil
+        imageBusy = false
     }
     private static func state(for error: Error) -> State {
         switch error as? ComparisonSourceSnapshot.Failure {

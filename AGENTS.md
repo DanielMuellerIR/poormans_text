@@ -26,8 +26,7 @@ Roadmap-Punkte beim Release ins Changelog überführen und aus der Roadmap entfe
   Dateiende fortschreiben: Inline-Code nur öffnen, wenn eine gleich lange
   Abschlussfolge existiert, sonst den Run als Literal behandeln; Fences an ihren
   Listen- oder Blockquote-Container binden, damit spätere echte Links weiter
-  verarbeitet werden (Lern-Inbox 2026-08-09, Anschluss an den Review-Fix vom
-  gleichen Tag).
+  verarbeitet werden.
 - Identifier Englisch, nicht offensichtliche Kommentare Deutsch.
 
 ## Verifikation und Distribution

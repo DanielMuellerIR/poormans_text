@@ -65,8 +65,9 @@
 "Command-Line Installation Failed" = "Installation des Kommandozeilenwerkzeugs fehlgeschlagen";
 "Choose Documents, Spreadsheets, PDFs, Images, or a Folder" = "Dokumente, Tabellen, PDFs, Bilder oder einen Ordner auswählen";
 "Convert" = "Konvertieren";
-"Pandoc is required for word-processing documents, HTML, e-books, text markups, and ODM master documents. Spreadsheets, CSV, PDF, and images work without it. Install Pandoc now with Homebrew? This can take a few minutes." = "Pandoc wird für Textverarbeitungsdokumente, HTML, E-Books, Textauszeichnungen und ODM-Globaldokumente benötigt. Tabellen, CSV, PDF und Bilder funktionieren ohne Pandoc. Jetzt mit Homebrew installieren? Das kann einige Minuten dauern.";
-"Pandoc is required for word-processing documents, HTML, e-books, text markups, and ODM master documents. Spreadsheets, CSV, PDF, and images work without it. The Pandoc website offers an official installer." = "Pandoc wird für Textverarbeitungsdokumente, HTML, E-Books, Textauszeichnungen und ODM-Globaldokumente benötigt. Tabellen, CSV, PDF und Bilder funktionieren ohne Pandoc. Auf der Pandoc-Website gibt es ein offizielles Installationsprogramm.";
+"Pandoc is required for word-processing documents, HTML, e-books, text markups, ODM master documents, ENEX, and the HTML parts of email. Spreadsheets, CSV, PDF, and images work without it." = "Pandoc wird für Textverarbeitungsdokumente, HTML, E-Books, Textauszeichnungen, ODM-Globaldokumente, ENEX und HTML-Teile von E-Mails benötigt. Tabellen, CSV, PDF und Bilder funktionieren ohne Pandoc.";
+"Installing with Homebrew can take a few minutes." = "Die Installation mit Homebrew kann einige Minuten dauern.";
+"The Pandoc website offers an official installer." = "Auf der Pandoc-Website gibt es ein offizielles Installationsprogramm.";
 "Converting %@…" = "%@ wird konvertiert…";
 "Version %@" = "Version %@";
 "%d lines, ready to paste" = "%d Zeilen, bereit zum Einfügen";

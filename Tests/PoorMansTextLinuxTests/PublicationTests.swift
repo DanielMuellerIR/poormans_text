@@ -121,6 +121,22 @@ final class PublicationTests: XCTestCase {
         XCTAssertTrue(FileManager.default.fileExists(atPath: stage.path))
     }
 
+    func testCleanupRemovesDeepValidStagingDirectories() throws {
+        let root = try temporary()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let publication = try LinuxOutputPublication(outputURL: root.appendingPathComponent("out"))
+        var directory = publication.temporaryRoot
+        for _ in 0..<300 {
+            directory.appendPathComponent("d", isDirectory: true)
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: false)
+        }
+        try Data("staged".utf8).write(to: directory.appendingPathComponent("leaf"))
+
+        publication.cleanup()
+
+        XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: root.path).isEmpty)
+    }
+
     func testCleanupAfterParentExchangeUsesHeldDirectory() throws {
         let root = try temporary()
         defer { try? FileManager.default.removeItem(at: root) }

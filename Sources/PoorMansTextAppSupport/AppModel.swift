@@ -83,7 +83,11 @@ public final class AppModel: ObservableObject {
 
     private func beginConversion(keepingClipboardDraft: Bool = false) -> ConversionCancellationToken {
         selectedDocumentIndex = nil
-        if !keepingClipboardDraft { clipboardDraft = nil; clipboardProfile = nil; isClipboardResult = false }
+        if !keepingClipboardDraft {
+            clipboardDraft = nil
+            clipboardProfile = nil
+            isClipboardResult = false
+        }
         let token = ConversionCancellationToken()
         activeCancellation = token
         cancellationRequested = false
@@ -134,7 +138,7 @@ public final class AppModel: ObservableObject {
     /// Warum die zuletzt über Dock, Doppelklick oder `open -a` übergebenen
     /// Dateien nicht angenommen wurden. Drop meldet `false` (Cursor), der
     /// Dienst meldet Text an das rufende Programm — dieser Weg hatte bisher
-    /// keinen Kanal und schwieg (Roadmap-Punkt, 2026-09-10). Der nächste
+    /// keinen Kanal und schwieg. Der nächste
     /// angenommene Auftrag löscht die Meldung wieder.
     @Published public private(set) var openRejectionMessage: String?
     @Published public private(set) var preview: MarkdownPreview?
@@ -169,11 +173,16 @@ public final class AppModel: ObservableObject {
     /// Die Vorschau löst Ressourcen relativ zum gewählten Sammlungsdokument auf.
     public var selectedOutput: ConversionResult? {
         guard let result = selectedResult, let document = selectedDocument else { return selectedResult }
-        return ConversionResult(inputURL: result.inputURL, format: result.format,
-            outputDirectory: document.markdownFile.deletingLastPathComponent(), markdownFile: document.markdownFile,
-            assets: document.assets, outputLifetime: result.outputLifetime, diagnostics: result.diagnostics.filter {
-                $0.location?.message == String(document.sourceIndex) || $0.location?.note == String(document.sourceIndex)
-            }, metadata: document.metadata, sourceIdentity: result.sourceIdentity, reportFile: result.reportFile)
+        return ConversionResult(
+            inputURL: result.inputURL, format: result.format,
+            outputDirectory: document.markdownFile.deletingLastPathComponent(),
+            markdownFile: document.markdownFile,
+            assets: document.assets, outputLifetime: result.outputLifetime,
+            diagnostics: result.diagnostics.filter {
+                $0.location?.message == String(document.sourceIndex)
+                    || $0.location?.note == String(document.sourceIndex)
+            }, metadata: document.metadata, sourceIdentity: result.sourceIdentity,
+            reportFile: result.reportFile)
     }
 
     public func selectCollectionDocument(_ index: Int?) {
@@ -187,7 +196,9 @@ public final class AppModel: ObservableObject {
     public func openReport() {
         guard let file = selectedResult?.reportFile else { return }
         actionMessage = nil
-        if !NSWorkspace.shared.open(file) { actionMessage = NSLocalizedString("The conversion report could not be opened.", comment: "") }
+        if !NSWorkspace.shared.open(file) {
+            actionMessage = NSLocalizedString("The conversion report could not be opened.", comment: "")
+        }
     }
 
     public var failedInputs: [URL] {
@@ -224,8 +235,7 @@ public final class AppModel: ObservableObject {
     /// Angenommene Drops, deren Datei-URLs noch geladen werden. Solange einer
     /// aussteht, ist die App belegt: Vorher konnte ein zweiter Drop, ein
     /// Finder-Dienst oder ein Öffnen in diesem Fenster ebenfalls angenommen
-    /// werden, und `convert(_:)` verwarf den späteren Auftrag stumm
-    /// (Review-Fund 2026-09-03).
+    /// werden, und `convert(_:)` verwarf den späteren Auftrag stumm.
     private var pendingDrops = 0
 
     public init(defaults: UserDefaults = .standard, profileStore: ConversionProfileStore = .init()) {
@@ -240,11 +250,21 @@ public final class AppModel: ObservableObject {
 
     public func request(for input: URL, options: ConversionOptions) -> ConversionRequest {
         let outputRoot = settings.values.destinationFolder
-        let destination = destinationOverrides[input.path] ?? (usesExactProfileDestination ? outputRoot : outputRoot.map {
-            let parent = (relativeDirectories[input.path] ?? []).reduce($0) { $0.appendingPathComponent($1, isDirectory: true) }
-            return parent.appendingPathComponent(DocumentConverter.outputDirectoryName(for: input, layout: options.outputLayout))
-        })
-        return ConversionRequest(inputURL: input, destination: destination.map(ConversionDestination.directory) ?? .adjacentToInput, options: options)
+        let destination =
+            destinationOverrides[input.path]
+            ?? (usesExactProfileDestination
+                ? outputRoot
+                : outputRoot.map {
+                    let parent = (relativeDirectories[input.path] ?? []).reduce($0) {
+                        $0.appendingPathComponent($1, isDirectory: true)
+                    }
+                    return parent.appendingPathComponent(
+                        DocumentConverter.outputDirectoryName(for: input, layout: options.outputLayout))
+                })
+        return ConversionRequest(
+            inputURL: input,
+            destination: destination.map(ConversionDestination.directory) ?? .adjacentToInput,
+            options: options)
     }
 
     /// Alle Teilaufträge laufen durch dieselbe Core-Planung wie CLI-Batches.
@@ -257,18 +277,22 @@ public final class AppModel: ObservableObject {
     /// Elternordner als „output parent directory does not exist". Vorher
     /// übergab die App keine Wurzel, legte einen gelöschten Zielordner samt
     /// Pfadkette still neu an und zeigte bei einer Datei je Eingabe einen rohen
-    /// Dateisystemfehler — gleiche Option, zwei Verhalten (Roadmap-Punkt,
-    /// 2026-09-10).
-    private func executeBatch(_ requests: [ConversionRequest], original: [BatchItem], slots: [Int], jobs: Int,
-                              outputRoot: URL?, cancellation: ConversionCancellationToken, profile: AppProfileInvocation) async -> [BatchItem] {
+    /// Dateisystemfehler — gleiche Option, zwei Verhalten.
+    private func executeBatch(
+        _ requests: [ConversionRequest], original: [BatchItem], slots: [Int], jobs: Int,
+        outputRoot: URL?, cancellation: ConversionCancellationToken, profile: AppProfileInvocation
+    ) async -> [BatchItem] {
         let attempted = Set(slots)
-        do { try await Task.detached { try profile.validateBatch() }.value }
-        catch {
+        do { try await Task.detached { try profile.validateBatch() }.value } catch {
             return original.enumerated().map { index, item in
-                attempted.contains(index) ? BatchItem(input: item.input, outcome: .failed(AppErrorMessage.describe(error))) : item
+                attempted.contains(index)
+                    ? BatchItem(input: item.input, outcome: .failed(AppErrorMessage.describe(error))) : item
             }
         }
-        batchDisplayItems = Dictionary(uniqueKeysWithValues: original.enumerated().filter { !attempted.contains($0.offset) }.map { ($0.offset, $0.element) })
+        batchDisplayItems = Dictionary(
+            uniqueKeysWithValues: original.enumerated().filter { !attempted.contains($0.offset) }.map {
+                ($0.offset, $0.element)
+            })
         let baseCompleted = original.count - slots.count
         let handler: BatchConversionProgressHandler = { [weak self] event in
             Task { @MainActor in
@@ -278,11 +302,18 @@ public final class AppModel: ObservableObject {
                 }
                 guard event.sequence > self.batchSequence else { return }
                 self.batchSequence = event.sequence
-                if let document = event.documentProgress { self.batchDocumentProgress[event.index] = document }
-                self.runningJobs = event.running.map { BatchRunningJob(id: slots[$0], input: requests[$0].inputURL, progress: self.batchDocumentProgress[$0]) }
+                if let document = event.documentProgress {
+                    self.batchDocumentProgress[event.index] = document
+                }
+                self.runningJobs = event.running.map {
+                    BatchRunningJob(
+                        id: slots[$0], input: requests[$0].inputURL, progress: self.batchDocumentProgress[$0])
+                }
                 let finished = self.batchDisplayItems.sorted { $0.key < $1.key }.map(\.value)
-                self.state = .convertingBatch(BatchProgress(finished: finished, current: self.runningJobs.first?.input ?? event.inputURL,
-                    total: original.count, completed: baseCompleted + event.completed))
+                self.state = .convertingBatch(
+                    BatchProgress(
+                        finished: finished, current: self.runningJobs.first?.input ?? event.inputURL,
+                        total: original.count, completed: baseCompleted + event.completed))
             }
         }
         var updated = original
@@ -290,12 +321,16 @@ public final class AppModel: ObservableObject {
             let protectedInputs = original.map(\.input)
             let outputRoots = outputRoot.map { [$0] } ?? []
             let results = try await Task.detached(priority: .userInitiated) {
-                try BatchConverter().convert(requests, jobs: jobs, outputRoots: outputRoots, protecting: protectedInputs,
+                try BatchConverter().convert(
+                    requests, jobs: jobs, outputRoots: outputRoots, protecting: protectedInputs,
                     cancellation: cancellation, progress: handler)
             }.value
             for result in results { updated[slots[result.index]] = Self.batchItem(result) }
         } catch {
-            for (index, request) in requests.enumerated() { updated[slots[index]] = BatchItem(input: request.inputURL, outcome: .failed(AppErrorMessage.describe(error))) }
+            for (index, request) in requests.enumerated() {
+                updated[slots[index]] = BatchItem(
+                    input: request.inputURL, outcome: .failed(AppErrorMessage.describe(error)))
+            }
         }
         return updated
     }
@@ -303,7 +338,8 @@ public final class AppModel: ObservableObject {
     nonisolated private static func batchItem(_ result: BatchConversionResult) -> BatchItem {
         switch result.outcome {
         case .success(let value): return BatchItem(input: result.inputURL, outcome: .succeeded(value))
-        case .failure(let error): return BatchItem(input: result.inputURL, outcome: .failed(AppErrorMessage.describe(error)))
+        case .failure(let error):
+            return BatchItem(input: result.inputURL, outcome: .failed(AppErrorMessage.describe(error)))
         }
     }
 
@@ -322,7 +358,8 @@ public final class AppModel: ObservableObject {
         chooseAlternativeDestination(for: input) {
             let panel = NSSavePanel()
             panel.title = NSLocalizedString("Choose a new output folder name", comment: "")
-            panel.nameFieldStringValue = DocumentConverter.outputDirectoryName(for: input, layout: settings.values.outputLayout)
+            panel.nameFieldStringValue = DocumentConverter.outputDirectoryName(
+                for: input, layout: settings.values.outputLayout)
             panel.directoryURL = settings.values.destinationFolder ?? input.deletingLastPathComponent()
             panel.canCreateDirectories = true
             return panel.runModal() == .OK ? panel.url : nil
@@ -331,8 +368,10 @@ public final class AppModel: ObservableObject {
 
     func chooseAlternativeDestination(for input: URL, selectDestination: () -> URL?) {
         guard acceptsNewDocuments, let url = selectDestination() else { return }
-        let needsBundleExtension = settings.values.outputLayout == .textbundle && url.pathExtension.lowercased() != "textbundle"
-        destinationOverrides[input.path] = needsBundleExtension ? url.appendingPathExtension("textbundle") : url
+        let needsBundleExtension =
+            settings.values.outputLayout == .textbundle && url.pathExtension.lowercased() != "textbundle"
+        destinationOverrides[input.path] =
+            needsBundleExtension ? url.appendingPathExtension("textbundle") : url
         retryFailed(only: input)
     }
 
@@ -353,17 +392,22 @@ public final class AppModel: ObservableObject {
     public func openResultInFastra() {
         guard let result = selectedOutput else { return }
         actionMessage = nil
-        guard let application = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "de.dm0.fastra") else {
-            actionMessage = NSLocalizedString("Fastra is not installed. Install Fastra or use Open Markdown.", comment: "")
+        guard let application = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "de.dm0.fastra")
+        else {
+            actionMessage = NSLocalizedString(
+                "Fastra is not installed. Install Fastra or use Open Markdown.", comment: "")
             return
         }
-        NSWorkspace.shared.open([result.markdownFile], withApplicationAt: application,
-            configuration: NSWorkspace.OpenConfiguration()) { [weak self] _, error in
-                guard error != nil else { return }
-                Task { @MainActor in
-                    self?.actionMessage = NSLocalizedString("The Markdown file could not be opened in Fastra.", comment: "")
-                }
+        NSWorkspace.shared.open(
+            [result.markdownFile], withApplicationAt: application,
+            configuration: NSWorkspace.OpenConfiguration()
+        ) { [weak self] _, error in
+            guard error != nil else { return }
+            Task { @MainActor in
+                self?.actionMessage = NSLocalizedString(
+                    "The Markdown file could not be opened in Fastra.", comment: "")
             }
+        }
     }
 
     public func loadPreview() {
@@ -373,23 +417,35 @@ public final class AppModel: ObservableObject {
         let relative = String(result.markdownFile.path.dropFirst(prefix.count))
         let expected = collection.outputFiles.first { $0.path == relative }
         let generation = UUID()
-        previewGeneration = generation; isLoadingPreview = true; actionMessage = nil
-        let read = Task.detached(priority: .userInitiated) { try MarkdownPreview.read(result.markdownFile, expected: expected) }
+        previewGeneration = generation
+        isLoadingPreview = true
+        actionMessage = nil
+        let read = Task.detached(priority: .userInitiated) {
+            try MarkdownPreview.read(result.markdownFile, expected: expected)
+        }
         previewTask = Task { [weak self] in
             do {
-                let prepared = try await withTaskCancellationHandler(operation: { try await read.value }, onCancel: { read.cancel() })
+                let prepared = try await withTaskCancellationHandler(
+                    operation: { try await read.value }, onCancel: { read.cancel() })
                 guard !Task.isCancelled, let self, self.previewGeneration == generation else { return }
-                self.preview = prepared; self.isLoadingPreview = false; self.previewTask = nil
+                self.preview = prepared
+                self.isLoadingPreview = false
+                self.previewTask = nil
             } catch {
                 guard !Task.isCancelled, let self, self.previewGeneration == generation else { return }
-                self.actionMessage = AppErrorMessage.describe(error); self.isLoadingPreview = false; self.previewTask = nil
+                self.actionMessage = AppErrorMessage.describe(error)
+                self.isLoadingPreview = false
+                self.previewTask = nil
             }
         }
     }
 
     public func closePreview() {
-        previewTask?.cancel(); previewTask = nil; previewGeneration = UUID()
-        preview = nil; isLoadingPreview = false
+        previewTask?.cancel()
+        previewTask = nil
+        previewGeneration = UUID()
+        preview = nil
+        isLoadingPreview = false
     }
 
     public func copyMarkdown(to pasteboard: NSPasteboard = .general) {
@@ -409,12 +465,16 @@ public final class AppModel: ObservableObject {
             let text = try String(contentsOf: result.markdownFile, encoding: .utf8)
             pasteboard.clearContents()
             guard pasteboard.setString(text, forType: .string) else {
-                actionMessage = NSLocalizedString("The Markdown could not be placed on the clipboard.", comment: "")
+                actionMessage = NSLocalizedString(
+                    "The Markdown could not be placed on the clipboard.", comment: "")
                 return
             }
-            actionMessage = result.assets.isEmpty
+            actionMessage =
+                result.assets.isEmpty
                 ? NSLocalizedString("Markdown copied to the clipboard", comment: "")
-                : NSLocalizedString("Markdown copied. Image and attachment files were not copied; relative links require the output folder.", comment: "")
+                : NSLocalizedString(
+                    "Markdown copied. Image and attachment files were not copied; relative links require the output folder.",
+                    comment: "")
         } catch { actionMessage = AppErrorMessage.describe(error) }
     }
 
@@ -422,9 +482,9 @@ public final class AppModel: ObservableObject {
         guard acceptsNewDocuments else { return }
         if !failedEnumerationInputs.isEmpty {
             // Der Filter galt hier nicht: Ein „nur dieses eine noch einmal"
-            // versuchte alle gescheiterten Eingaben erneut
-            // (Review-Fund 2026-09-10).
-            let retry = input.map { url in failedEnumerationInputs.filter { $0 == url } }
+            // versuchte alle gescheiterten Eingaben erneut.
+            let retry =
+                input.map { url in failedEnumerationInputs.filter { $0 == url } }
                 ?? failedEnumerationInputs
             guard !retry.isEmpty else { return }
             convert(retry, keepingDestinationOverrides: true)
@@ -435,7 +495,9 @@ public final class AppModel: ObservableObject {
             guard let first = retry.first else { return }
             let options = conversionOptions
             let requests = retry.map { request(for: $0.input, options: options) }
-            state = .convertingBatch(BatchProgress(finished: items.filter { $0.result != nil }, current: first.input, total: items.count))
+            state = .convertingBatch(
+                BatchProgress(
+                    finished: items.filter { $0.result != nil }, current: first.input, total: items.count))
             let cancellation = beginConversion()
             let jobs = settings.values.batchParallelism
             let outputRoot = settings.values.destinationFolder
@@ -443,11 +505,14 @@ public final class AppModel: ObservableObject {
             let slots = retry.compactMap { item in items.firstIndex { $0.id == item.id } }
             conversionTask = Task {
                 defer { finishConversion(cancellation) }
-                let updated = await executeBatch(requests, original: items, slots: slots, jobs: jobs,
+                let updated = await executeBatch(
+                    requests, original: items, slots: slots, jobs: jobs,
                     outputRoot: outputRoot, cancellation: cancellation, profile: profile)
                 state = .batchFinished(updated)
             }
-        } else if let first = failedInputs.first { convertSingle(first, isRetry: true) }
+        } else if let first = failedInputs.first {
+            convertSingle(first, isRetry: true)
+        }
     }
 
     /// Wandelt eine einzelne Datei oder ein Paket um. Ein durchsuchbarer Ordner
@@ -456,8 +521,13 @@ public final class AppModel: ObservableObject {
         convertSingle(inputURL, isRetry: false)
     }
 
-    public func convertSelection(_ input: URL, selection: DocumentContentSelection, identity: ConversionSourceIdentity) {
-        convertSingle(input, isRetry: false, selection: BoundSelection(input: input.standardizedFileURL, selection: selection, identity: identity))
+    public func convertSelection(
+        _ input: URL, selection: DocumentContentSelection, identity: ConversionSourceIdentity
+    ) {
+        convertSingle(
+            input, isRetry: false,
+            selection: BoundSelection(
+                input: input.standardizedFileURL, selection: selection, identity: identity))
     }
 
     private func convertSingle(_ inputURL: URL, isRetry: Bool, selection: BoundSelection? = nil) {
@@ -466,7 +536,10 @@ public final class AppModel: ObservableObject {
         }
         // Ein Dateitausch kann die Verzeichniskennzeichnung der URL ändern.
         // Für denselben Pfad muss die alte Quellbindung trotzdem gelten.
-        let bound = selection ?? (isRetry && retrySelection?.input.path == inputURL.standardizedFileURL.path ? retrySelection : nil)
+        let bound =
+            selection
+            ?? (isRetry && retrySelection?.input.path == inputURL.standardizedFileURL.path
+                ? retrySelection : nil)
         if bound == nil && InputEnumerator().isSearchableDirectory(inputURL) {
             convert([inputURL])
             return
@@ -481,8 +554,11 @@ public final class AppModel: ObservableObject {
         closePreview()
         actionMessage = nil
         retrySelection = bound
-        let base = request(for: inputURL, options: bound?.selection.applying(to: conversionOptions) ?? conversionOptions)
-        let request = ConversionRequest(inputURL: base.inputURL, destination: base.destination, options: base.options, expectedSourceIdentity: bound?.identity)
+        let base = request(
+            for: inputURL, options: bound?.selection.applying(to: conversionOptions) ?? conversionOptions)
+        let request = ConversionRequest(
+            inputURL: base.inputURL, destination: base.destination, options: base.options,
+            expectedSourceIdentity: bound?.identity)
         let profile = profileInvocation()
 
         // Die Dateikonvertierung läuft außerhalb des Main Actors, damit das Fenster
@@ -494,7 +570,8 @@ public final class AppModel: ObservableObject {
             do {
                 let result = try await Task.detached(priority: .userInitiated) {
                     let resolved = try profile.prepare(request, cancellation: cancellation)
-                    return try DocumentConverter().convert(resolved, progress: progress, cancellation: cancellation)
+                    return try DocumentConverter().convert(
+                        resolved, progress: progress, cancellation: cancellation)
                 }.value
                 retrySelection = nil
                 state = .succeeded(result)
@@ -513,7 +590,7 @@ public final class AppModel: ObservableObject {
     ///   Laufs; ein Wiederholen muss sie dagegen behalten, sonst löschte
     ///   `convert` genau die Vorgabe, die `chooseAlternativeDestination` gerade
     ///   gesetzt hat, und „Anderen Namen oder Zielordner wählen…" blieb ohne
-    ///   Wirkung (Review-Fund 2026-09-10).
+    ///   Wirkung.
     public func convert(_ inputURLs: [URL], keepingDestinationOverrides: Bool = false) {
         guard acceptsNewDocuments, let first = inputURLs.first else {
             return
@@ -552,14 +629,30 @@ public final class AppModel: ObservableObject {
                 return
             }
 
-            relativeDirectories = Dictionary(uniqueKeysWithValues: inputs.map { ($0.url.path, $0.relativeDirectory) })
+            relativeDirectories = Dictionary(
+                uniqueKeysWithValues: inputs.map { ($0.url.path, $0.relativeDirectory) })
             let requests = inputs.map { input in
-                let parent = outputRoot.map { root in input.relativeDirectory.reduce(root) { $0.appendingPathComponent($1, isDirectory: true) } }
-                let destination = overrides[input.url.path] ?? parent.map { $0.appendingPathComponent(DocumentConverter.outputDirectoryName(for: input.url, layout: options.outputLayout)) }
-                return ConversionRequest(inputURL: input.url, destination: destination.map(ConversionDestination.directory) ?? .adjacentToInput, options: options)
+                let parent = outputRoot.map { root in
+                    input.relativeDirectory.reduce(root) { $0.appendingPathComponent($1, isDirectory: true) }
+                }
+                let destination =
+                    overrides[input.url.path]
+                    ?? parent.map {
+                        $0.appendingPathComponent(
+                            DocumentConverter.outputDirectoryName(
+                                for: input.url, layout: options.outputLayout))
+                    }
+                return ConversionRequest(
+                    inputURL: input.url,
+                    destination: destination.map(ConversionDestination.directory) ?? .adjacentToInput,
+                    options: options)
             }
-            let original = inputs.map { BatchItem(input: $0.url, outcome: .failed(AppErrorMessage.describe(ConversionError.cancelled))) }
-            let finished = await executeBatch(requests, original: original, slots: Array(original.indices), jobs: jobs,
+            let original = inputs.map {
+                BatchItem(
+                    input: $0.url, outcome: .failed(AppErrorMessage.describe(ConversionError.cancelled)))
+            }
+            let finished = await executeBatch(
+                requests, original: original, slots: Array(original.indices), jobs: jobs,
                 outputRoot: outputRoot, cancellation: cancellation, profile: profile)
             selectedInput = finished.first(where: { $0.result != nil })?.id
             state = .batchFinished(finished)
@@ -612,8 +705,10 @@ public final class AppModel: ObservableObject {
     @discardableResult
     public func openDocuments(_ urls: [URL]) -> Bool {
         guard acceptsNewDocuments else {
-            openRejectionMessage = isInstallingPandoc
-                ? NSLocalizedString("Files are accepted again once the installation has finished.", comment: "")
+            openRejectionMessage =
+                isInstallingPandoc
+                ? NSLocalizedString(
+                    "Files are accepted again once the installation has finished.", comment: "")
                 : NSLocalizedString("Poor Man's Text is busy with another conversion.", comment: "")
             return false
         }
@@ -654,13 +749,15 @@ public final class AppModel: ObservableObject {
     /// erlaubt; ein Ordner wird wie beim Drop rekursiv durchsucht.
     private static func presentOpenPanel() -> [URL] {
         let panel = NSOpenPanel()
-        panel.title = NSLocalizedString("Choose Documents, Spreadsheets, PDFs, Images, or a Folder", comment: "")
+        panel.title = NSLocalizedString(
+            "Choose Documents, Spreadsheets, PDFs, Images, or a Folder", comment: "")
         panel.prompt = NSLocalizedString("Convert", comment: "")
         let extensions = DocumentConverter().supportedFormatDescriptors
             .flatMap(\.fileExtensions)
-        panel.allowedContentTypes = Array(Set(extensions)).sorted().compactMap {
-            UTType(filenameExtension: $0)
-        } + [.folder]
+        panel.allowedContentTypes =
+            Array(Set(extensions)).sorted().compactMap {
+                UTType(filenameExtension: $0)
+            } + [.folder]
         panel.allowsMultipleSelection = true
         panel.canChooseDirectories = true
         panel.canChooseFiles = true
@@ -686,7 +783,7 @@ public final class AppModel: ObservableObject {
     /// Die Installation bekommt wie eine Umwandlung einen Abbruch-Token und ein
     /// Zeitlimit (`PandocInstaller.installationTimeout`). Vorher lief
     /// `brew install` ohne beides: Hing Homebrew, blieb die Sperre bis zum
-    /// Neustart der App bestehen (Roadmap-Punkt, 2026-09-10). Ein Abbruch
+    /// Neustart der App bestehen. Ein Abbruch
     /// durch den Nutzer ist kein Fehler und endet wie der parallele Aufruf mit
     /// `false`: Es wurde nichts installiert, aber auch nichts ist schiefgegangen.
     @discardableResult
@@ -734,13 +831,17 @@ public final class AppModel: ObservableObject {
     public func revealResult() {
         switch state {
         case .succeeded:
-            if let result = selectedOutput { NSWorkspace.shared.activateFileViewerSelecting([result.markdownFile]) }
+            if let result = selectedOutput {
+                NSWorkspace.shared.activateFileViewerSelecting([result.markdownFile])
+            }
         case .batchFinished(let items):
             if let result = selectedOutput {
                 NSWorkspace.shared.activateFileViewerSelecting([result.markdownFile])
                 return
             }
-            let files = items.filter { selectedInput == nil || $0.id == selectedInput }.compactMap { $0.result?.markdownFile }
+            let files = items.filter { selectedInput == nil || $0.id == selectedInput }.compactMap {
+                $0.result?.markdownFile
+            }
             guard !files.isEmpty else {
                 return
             }
@@ -770,7 +871,8 @@ public final class AppModel: ObservableObject {
             do {
                 let outcome = try await Task.detached(priority: .userInitiated) {
                     try profile.validateClipboard()
-                    return try RichTextClipboard.convert(source, options: options, progress: progress, cancellation: cancellation)
+                    return try RichTextClipboard.convert(
+                        source, options: options, progress: progress, cancellation: cancellation)
                 }.value
                 try cancellation.checkCancellation()
                 // `setString` meldet `false`, wenn inzwischen ein anderer
@@ -780,7 +882,8 @@ public final class AppModel: ObservableObject {
                 guard outputPasteboard.setString(outcome.markdown, forType: .string) else {
                     state = .failed(
                         input: nil,
-                        message: NSLocalizedString("The Markdown could not be placed on the clipboard.", comment: "")
+                        message: NSLocalizedString(
+                            "The Markdown could not be placed on the clipboard.", comment: "")
                     )
                     return
                 }
@@ -799,7 +902,9 @@ public final class AppModel: ObservableObject {
             let source = try RichTextClipboard.Source.read(from: pasteboard)
             let options = conversionOptions
             let profile = profileInvocation()
-            closePreview(); actionMessage = nil; retrySelection = nil
+            closePreview()
+            actionMessage = nil
+            retrySelection = nil
             let cancellation = beginConversion()
             state = .converting(URL(fileURLWithPath: source.fileName))
             let progress = progressHandler(cancellation)
@@ -808,7 +913,8 @@ public final class AppModel: ObservableObject {
                 do {
                     let draft = try await Task.detached(priority: .userInitiated) {
                         try profile.validateClipboard()
-                        let result = try RichTextClipboard.convertDocument(source, options: options, progress: progress, cancellation: cancellation)
+                        let result = try RichTextClipboard.convertDocument(
+                            source, options: options, progress: progress, cancellation: cancellation)
                         return RichTextClipboard.Draft(source: source, options: options, result: result)
                     }.value
                     try cancellation.checkCancellation()
@@ -831,17 +937,22 @@ public final class AppModel: ObservableObject {
         let panel = NSSavePanel()
         panel.title = NSLocalizedString("Save Markdown and Assets", comment: "")
         panel.prompt = NSLocalizedString("Save Result", comment: "")
-        panel.nameFieldStringValue = DocumentConverter.outputDirectoryName(for: URL(fileURLWithPath: draft.source.fileName), layout: draft.options.outputLayout)
+        panel.nameFieldStringValue = DocumentConverter.outputDirectoryName(
+            for: URL(fileURLWithPath: draft.source.fileName), layout: draft.options.outputLayout)
         panel.directoryURL = settings.values.destinationFolder
         panel.canCreateDirectories = true
         if panel.runModal() == .OK, let url = panel.url {
-            saveClipboardResult(to: draft.options.outputLayout == .textbundle && url.pathExtension.lowercased() != "textbundle" ? url.appendingPathExtension("textbundle") : url)
+            saveClipboardResult(
+                to: draft.options.outputLayout == .textbundle
+                    && url.pathExtension.lowercased() != "textbundle"
+                    ? url.appendingPathExtension("textbundle") : url)
         }
     }
 
     public func saveClipboardResult(to destination: URL) {
         guard acceptsNewDocuments, let draft = clipboardDraft else { return }
-        closePreview(); actionMessage = nil
+        closePreview()
+        actionMessage = nil
         let profile = clipboardProfile ?? profileInvocation()
         let cancellation = beginConversion(keepingClipboardDraft: true)
         let progress = progressHandler(cancellation)
@@ -853,7 +964,9 @@ public final class AppModel: ObservableObject {
                     try profile.validateClipboard()
                     // Derselbe gelesene Snapshot und dieselben Optionen wie in
                     // der Vorschau, mit atomarer Veröffentlichung im Kern.
-                    return try RichTextClipboard.convertDocument(draft.source, destination: .directory(destination), options: draft.options, progress: progress, cancellation: cancellation)
+                    return try RichTextClipboard.convertDocument(
+                        draft.source, destination: .directory(destination), options: draft.options,
+                        progress: progress, cancellation: cancellation)
                 }.value
                 clipboardDraft = nil
                 state = .succeeded(result)
@@ -892,5 +1005,7 @@ public final class AppModel: ObservableObject {
 }
 
 private struct AppClipboardWriteError: LocalizedError {
-    var errorDescription: String? { NSLocalizedString("The Markdown could not be placed on the clipboard.", comment: "") }
+    var errorDescription: String? {
+        NSLocalizedString("The Markdown could not be placed on the clipboard.", comment: "")
+    }
 }

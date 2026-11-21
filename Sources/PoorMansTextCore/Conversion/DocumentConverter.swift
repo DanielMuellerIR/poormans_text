@@ -1,0 +1,947 @@
+import Foundation
+
+/// Formatneutrale Orchestrierung für Erkennung, Adapterwahl und Veröffentlichung.
+public struct DocumentConverter: Sendable {
+    private let adapters: [any DocumentConversionAdapter]
+
+    public init() {
+        self.init(adapters: [
+            RichTextAdapter(), WordProcessingPackageAdapter(), PlatformLegacyWordAdapter(),
+            SpreadsheetAdapter(), OpenDocumentMasterAdapter(), PlatformImageAdapter(), PlatformPDFAdapter(),
+            PresentationAdapter(), NotebookAdapter(), DelimitedTextAdapter(), PandocTextAdapter(),
+            MailAdapter(), MBOXAdapter(), ENEXAdapter(), MSGAdapter(),
+        ])
+    }
+
+    init(adapters: [any DocumentConversionAdapter]) {
+        var registeredFormats = Set<InputFormat>()
+        for adapter in adapters {
+            for format in adapter.supportedFormats {
+                precondition(
+                    registeredFormats.insert(format).inserted,
+                    "More than one adapter handles \(format.rawValue)"
+                )
+            }
+        }
+        self.adapters = adapters
+    }
+
+    public var supportedFormats: Set<InputFormat> {
+        Set(adapters.flatMap(\.supportedFormats))
+    }
+
+    /// Alle bekannten Formate in stabiler Reihenfolge (Adapterreihenfolge, darin
+    /// wie deklariert). Reine Deklaration, ohne jede Dateisystem- oder
+    /// Prozessarbeit.
+    public var supportedFormatDescriptors: [SupportedFormat] {
+        adapters.flatMap(\.supportedFormatDescriptors)
+    }
+
+    /// Derselbe Katalog, zusätzlich mit der Verfügbarkeit auf DIESEM Rechner.
+    ///
+    /// Gedacht für Hosts, die vor dem Anbieten wissen müssen, ob eine
+    /// Umwandlung überhaupt gelingen kann. Optionale Linux-Bibliotheken werden
+    /// dafür in begrenzten isolierten Hilfsprozessen geprüft. Hosts sollten den
+    /// Katalog bei Bedarf aktualisieren, nicht für jede einzelne Quelldatei.
+    public func formatCatalog(
+        resolver: ExternalToolResolver = ExternalToolResolver()
+    ) -> [FormatAvailability] {
+        // Jedes Werkzeug höchstens einmal prüfen: `pandoc` steht bei fast jedem
+        // Format und würde sonst pro Format erneut im Dateisystem gesucht.
+        var checked = [ExternalTool: Bool]()
+        return supportedFormatDescriptors.map { descriptor in
+            let missing = descriptor.requiredTools.filter { tool in
+                if let known = checked[tool] { return !known }
+                let available = resolver.isAvailable(tool)
+                checked[tool] = available
+                return !available
+            }
+            let backendReason = adapters.first { $0.supportedFormats.contains(descriptor.format) }?
+                .unavailableReason(for: descriptor.format)
+            var availableDescriptor = descriptor
+            #if os(Linux)
+            if descriptor.format == .image, descriptor.fileExtensions.contains("heic"),
+                !(missing.isEmpty && backendReason == nil && LinuxRasterBackend.isHEICAvailable())
+            {
+                availableDescriptor = SupportedFormat(
+                    format: descriptor.format,
+                    fileExtensions: descriptor.fileExtensions.filter { $0 != "heic" },
+                    containerKind: descriptor.containerKind, requiredTools: descriptor.requiredTools,
+                    additionalContainerKinds: descriptor.containerKinds.filter {
+                        $0 != descriptor.containerKind
+                    })
+            }
+            #endif
+            return FormatAvailability(
+                format: availableDescriptor,
+                isAvailable: missing.isEmpty && backendReason == nil,
+                unavailableReason: backendReason
+                    ?? (missing.isEmpty
+                        ? nil
+                        : "missing required tool: "
+                            + missing.map(\.rawValue).joined(separator: ", ")),
+                missingTools: missing
+            )
+        }
+    }
+
+    /// Erkennt das Format erneut aus der Quelle und beschreibt bekannte Verluste.
+    ///
+    /// Die Erkennung startet für DOC ein `textutil -info`. Ohne gebundenen
+    /// Ausführungskontext lief dieser Prozess ohne Zeitgrenze und ohne
+    /// erreichbaren Abbruch-Token: Eine Datei, an der `textutil` sich festläuft,
+    /// hielt den aufrufenden Thread endlos fest. Deshalb nehmen Erkennung und
+    /// Prüfung dieselben Grenzen entgegen wie `convert`.
+    public func inspect(
+        _ requestedInputURL: URL,
+        cancellation: ConversionCancellationToken? = nil,
+        processTimeout: TimeInterval? = nil
+    ) throws -> InputInspection {
+        try FileSystemPath.validate(requestedInputURL)
+        let inputURL = requestedInputURL.standardizedFileURL
+        let detected = try withDetectionContext(cancellation, processTimeout) {
+            try detectInput(at: inputURL)
+        }
+        return InputInspection(
+            inputURL: inputURL,
+            format: detected.inspection.format,
+            expectedWarnings: detected.inspection.expectedWarnings
+        )
+    }
+
+    public func detectFormat(
+        at requestedInputURL: URL,
+        cancellation: ConversionCancellationToken? = nil,
+        processTimeout: TimeInterval? = nil
+    ) throws -> InputFormat {
+        try FileSystemPath.validate(requestedInputURL)
+        return try withDetectionContext(cancellation, processTimeout) {
+            try detectInput(at: requestedInputURL.standardizedFileURL).inspection.format
+        }
+    }
+
+    /// Liefert einen begrenzten passiven Rasterausschnitt ohne öffentliche Ausgabedateien.
+    public func renderSourcePreview(
+        _ inputURL: URL,
+        selection: SourcePreviewSelection,
+        cancellation: ConversionCancellationToken? = nil,
+        processTimeout: TimeInterval? = nil
+    ) throws -> SourcePreview {
+        #if os(Linux)
+        return try withDetectionContext(cancellation, processTimeout) {
+            try LinuxSourcePreview.render(inputURL, selection: selection)
+        }
+        #else
+        throw PlatformBackendUnavailable(
+            "CLI source raster preview; the macOS app uses its native source viewer")
+        #endif
+    }
+
+    public func inspectPDFContents(
+        _ inputURL: URL,
+        maximumPages: Int = 200,
+        cancellation: ConversionCancellationToken? = nil,
+        processTimeout: TimeInterval? = nil
+    ) throws -> PDFContentSummary {
+        try FileSystemPath.validate(inputURL)
+        #if os(macOS)
+        return try withDetectionContext(cancellation, processTimeout) {
+            do {
+                return try PlatformPDFAdapter().inspectContents(
+                    at: inputURL.standardizedFileURL, maximumPages: maximumPages)
+            } catch {
+                try ConversionExecution.check()
+                throw ConversionError.invalidInput(inputURL, format: .pdf, reason: error.localizedDescription)
+            }
+        }
+        #else
+        return try withDetectionContext(cancellation, processTimeout) {
+            try PlatformPDFAdapter().inspectContents(
+                at: inputURL.standardizedFileURL, maximumPages: maximumPages)
+        }
+        #endif
+    }
+
+    /// Liest die vollständig geprüfte Arbeitsmappe ohne Ausgabeordner. Die
+    /// bestehenden Importbudgets gelten auch für die Inhaltsübersicht.
+    public func inspectSpreadsheetContents(
+        _ inputURL: URL,
+        cancellation: ConversionCancellationToken? = nil,
+        processTimeout: TimeInterval? = nil
+    ) throws -> SpreadsheetContentSummary {
+        try FileSystemPath.validate(inputURL)
+        return try withDetectionContext(cancellation, processTimeout) {
+            let detected = try detectInput(at: inputURL.standardizedFileURL)
+            let format = detected.inspection.format
+            guard [InputFormat.xlsx, .xls, .ods].contains(format) else {
+                throw ConversionError.unsupportedInput(inputURL)
+            }
+            do { return try SpreadsheetAdapter().inspectContents(at: inputURL.standardizedFileURL) } catch {
+                try ConversionExecution.check()
+                throw ConversionError.invalidInput(
+                    inputURL, format: format, reason: error.localizedDescription)
+            }
+        }
+    }
+
+    public func inspectPresentationContents(
+        _ inputURL: URL,
+        maximumSlides: Int = 200,
+        cancellation: ConversionCancellationToken? = nil,
+        processTimeout: TimeInterval? = nil
+    ) throws -> PresentationContentSummary {
+        try FileSystemPath.validate(inputURL)
+        return try withDetectionContext(cancellation, processTimeout) {
+            let detected = try detectInput(at: inputURL.standardizedFileURL)
+            let format = detected.inspection.format
+            guard [InputFormat.pptx, .odp].contains(format) else {
+                throw ConversionError.unsupportedInput(inputURL)
+            }
+            do {
+                return try PresentationAdapter().inspectContents(
+                    at: inputURL.standardizedFileURL, maximumSlides: maximumSlides)
+            } catch {
+                try ConversionExecution.check()
+                throw ConversionError.invalidInput(
+                    inputURL, format: format, reason: error.localizedDescription)
+            }
+        }
+    }
+
+    public func inspectEPUBContents(
+        _ inputURL: URL,
+        maximumChapters: Int = 200,
+        cancellation: ConversionCancellationToken? = nil,
+        processTimeout: TimeInterval? = nil
+    ) throws -> EPUBContentSummary {
+        try FileSystemPath.validate(inputURL)
+        return try withDetectionContext(cancellation, processTimeout) {
+            guard (1...EPUBContentSummary.maximumSummaryChapters).contains(maximumChapters) else {
+                throw ConversionError.invalidInput(
+                    inputURL, format: .epub, reason: "the EPUB overview limit must be between 1 and 500")
+            }
+            let detected = try detectInput(at: inputURL.standardizedFileURL)
+            guard detected.inspection.format == .epub else {
+                throw ConversionError.unsupportedInput(inputURL)
+            }
+            do {
+                return try ZIPArchiveInspector.withVerifiedReader(at: inputURL.resolvingSymlinksInPath()) {
+                    reader in
+                    let fingerprint = try ConversionFileFingerprint.read(reader.url)
+                    let identity = ConversionSourceIdentity(
+                        name: inputURL.lastPathComponent, sha256: fingerprint.sha256,
+                        byteCount: fingerprint.byteCount, unavailableReason: nil)
+                    return try EPUBSelectionPackage(reader: reader).summary(
+                        identity: identity, maximumChapters: maximumChapters)
+                }
+            } catch {
+                try ConversionExecution.check()
+                throw ConversionError.invalidInput(
+                    inputURL, format: .epub, reason: error.localizedDescription)
+            }
+        }
+    }
+
+    /// Bindet einen Kontext nur, wenn noch keiner steht. Ein Aufruf aus einer
+    /// laufenden Konvertierung heraus behält damit deren Token und Zeitgrenze.
+    private func withDetectionContext<T>(
+        _ cancellation: ConversionCancellationToken?,
+        _ processTimeout: TimeInterval?,
+        _ body: () throws -> T
+    ) throws -> T {
+        if ConversionExecution.current != nil, cancellation == nil, processTimeout == nil {
+            do {
+                try ConversionExecution.check()
+                let result = try body()
+                try ConversionExecution.check()
+                return result
+            } catch {
+                try ConversionExecution.check()
+                throw error
+            }
+        }
+        let inherited = ConversionExecution.current
+        let context = ConversionExecution.Context(
+            cancellation: cancellation.map { ConversionCancellationToken(parent: $0) }
+                ?? inherited?.cancellation ?? ConversionCancellationToken(),
+            progress: nil,
+            processTimeout: processTimeout ?? inherited?.processTimeout,
+            protectedInputs: inherited?.protectedInputs ?? [],
+            plannedSources: inherited?.plannedSources ?? [:]
+        )
+        return try ConversionExecution.$current.withValue(context) {
+            do {
+                try context.cancellation.checkCancellation()
+                let result = try body()
+                try context.cancellation.checkCancellation()
+                return result
+            } catch {
+                try context.cancellation.checkCancellation()
+                throw error
+            }
+        }
+    }
+
+    public func convert(
+        _ request: ConversionRequest,
+        progress: ConversionProgressHandler? = nil,
+        cancellation: ConversionCancellationToken? = nil,
+        processTimeout: TimeInterval? = nil
+    ) throws -> ConversionResult {
+        try FileSystemPath.validate(request.inputURL)
+        if case .directory(let output) = request.destination {
+            try FileSystemPath.validate(output)
+        }
+        var options = request.options
+        options.ocrLanguages = try OCRLanguageSelection.resolve(options.ocrLanguages)
+        let request = ConversionRequest(
+            inputURL: request.inputURL, destination: request.destination, options: options,
+            expectedSourceIdentity: request.expectedSourceIdentity)
+        let inherited = ConversionExecution.current
+        let context = ConversionExecution.Context(
+            cancellation: cancellation.map { ConversionCancellationToken(parent: $0) }
+                ?? inherited?.cancellation ?? ConversionCancellationToken(),
+            progress: progress ?? inherited?.progress,
+            processTimeout: processTimeout ?? inherited?.processTimeout,
+            protectedInputs: inherited?.protectedInputs ?? [],
+            plannedSources: inherited?.plannedSources ?? [:],
+            recording: options.includesSourceMappings || request.expectedSourceIdentity != nil
+                ? ConversionRecording() : nil)
+        return try ConversionExecution.$current.withValue(context) {
+            do { return try convertInContext(request) } catch {
+                // Parser und Systemadapter dürfen ihre Fehler übersetzen. Ein
+                // angeforderter Abbruch bleibt an der API-Grenze trotzdem Abbruch.
+                try context.cancellation.checkCancellation()
+                throw error
+            }
+        }
+    }
+
+    private func convertInContext(_ request: ConversionRequest) throws -> ConversionResult {
+        try ConversionExecution.report(ConversionProgress(phase: .detectingInput))
+        let inputURL = request.inputURL.standardizedFileURL
+        let (resolvedInputURL, detected) = try resolveInput(for: request, inputURL: inputURL)
+        let format = detected.inspection.format
+        let recording = ConversionExecution.current?.recording
+        recording?.activate(at: resolvedInputURL)
+
+        try ConversionExecution.report(ConversionProgress(phase: .preparingOutput, format: format))
+        let destination = try resolveDestination(for: request, inputURL: inputURL)
+        let fileManager = FileManager.default
+        try validateOutput(
+            destination.url,
+            resolvedInputURL: resolvedInputURL,
+            fileManager: fileManager
+        )
+
+        let workspace = try ConversionWorkspace(outputURL: destination.url)
+        let temporaryRoot = workspace.temporaryRoot
+        let stagedOutput = workspace.stagedOutput
+        try workspace.prepareDirectories()
+
+        try ConversionExecution.report(ConversionProgress(phase: .converting, format: format))
+        var execution =
+            ConversionExecution.current
+            ?? ConversionExecution.Context(
+                cancellation: ConversionCancellationToken(), progress: nil, processTimeout: nil)
+        execution.processWriteScope = temporaryRoot
+        let stagedResult = try ConversionExecution.$current.withValue(execution) {
+            try detected.adapter.convert(
+                AdapterConversionContext(
+                    inputURL: inputURL,
+                    resolvedInputURL: resolvedInputURL,
+                    format: format,
+                    workDirectory: workspace.workDirectory,
+                    stagedOutputDirectory: stagedOutput,
+                    options: request.options
+                )
+            )
+        }
+
+        let (markdownRelativePath, assetRelativePaths, preparedWarnings) = try prepareOutput(
+            stagedResult,
+            in: stagedOutput,
+            inputURL: inputURL,
+            format: format,
+            options: request.options,
+            recording: recording
+        )
+        var warnings = preparedWarnings
+
+        var sourceIdentity: ConversionSourceIdentity?
+        var sourceMappings: [ConversionSourceMapping] = []
+        var outputFiles: [ConversionOutputFile] = []
+        var reportRelativePath: String?
+        if let recording, request.options.includesSourceMappings {
+            do {
+                let identity = try recording.identity(named: inputURL.lastPathComponent)
+                sourceIdentity = identity
+                let markdownData = try Data(
+                    contentsOf: stagedOutput.appendingPathComponent(markdownRelativePath))
+                sourceMappings = try recording.mappings(file: markdownRelativePath, markdown: markdownData)
+                if let documents = stagedResult.documents {
+                    sourceMappings += try CollectionPostprocessor.mappings(
+                        documents, in: stagedOutput, frontmatter: request.options.frontmatter)
+                }
+                if recording.omittedMappingCount > 0 {
+                    warnings.append(
+                        ConversionWarning(
+                            code: "sourceMap.limited",
+                            message:
+                                "\(recording.omittedMappingCount) further source mappings were omitted because of mapping bounds or text replacements.",
+                            kind: .information, omittedCount: recording.omittedMappingCount))
+                } else if sourceMappings.isEmpty {
+                    warnings.append(
+                        ConversionWarning(
+                            code: "sourceMap.unavailable",
+                            message:
+                                "No verified source-to-text positions are available for this conversion.",
+                            kind: .information))
+                }
+                var files = [markdownRelativePath] + assetRelativePaths
+                files += stagedResult.documents?.map(\.markdownRelativePath) ?? []
+                if request.options.outputLayout == .textbundle { files.append("info.json") }
+                outputFiles = try files.sorted().map { path in
+                    try ConversionExecution.check()
+                    let fingerprint = try ConversionFileFingerprint.read(
+                        stagedOutput.appendingPathComponent(path))
+                    return ConversionOutputFile(
+                        path: path, sha256: fingerprint.sha256, byteCount: fingerprint.byteCount)
+                }
+                if request.options.conversionReport {
+                    let portableWarnings = ConversionPostprocessor.portableDiagnostics(
+                        warnings,
+                        paths: [
+                            (inputURL.path, "[source]"), (resolvedInputURL.path, "[source]"),
+                            (temporaryRoot.path, "[staging]"), (destination.url.path, "[output]"),
+                            (NSHomeDirectory(), "[home]"),
+                        ])
+                    let report = ConversionReport(
+                        schemaVersion: 1, converterVersion: ProductInfo.version, format: format,
+                        source: identity, options: ConversionReport.Options(request.options),
+                        diagnostics: portableWarnings,
+                        diagnosticGroups: ConversionDiagnosticGroup.grouped(portableWarnings),
+                        outputs: outputFiles,
+                        sourceMappings: sourceMappings, omittedMappingCount: recording.omittedMappingCount,
+                        documents: stagedResult.documents?.map {
+                            .init(
+                                sourceIndex: $0.sourceIndex, title: $0.title,
+                                markdownFile: $0.markdownRelativePath, assets: $0.assetRelativePaths)
+                        })
+                    reportRelativePath = try ConversionPostprocessor.write(report, in: stagedOutput)
+                }
+            } catch let error as ConversionError { throw error } catch is ConversionRecording.Failure {
+                throw ConversionError.invalidInput(
+                    inputURL, format: format, reason: "the primary source changed between verified reads")
+            } catch {
+                try ConversionExecution.check()
+                throw ConversionError.fileSystemFailure(error.localizedDescription)
+            }
+        }
+
+        try ConversionExecution.report(ConversionProgress(phase: .publishing, format: format))
+        if let expected = request.expectedSourceIdentity {
+            let actual: ConversionSourceIdentity
+            do {
+                guard let recording else { throw ConversionRecording.Failure.conflictingSource }
+                actual = try recording.identity(named: inputURL.lastPathComponent)
+            } catch {
+                try ConversionExecution.check()
+                throw ConversionError.invalidInput(
+                    inputURL, format: format,
+                    reason: "The source changed or could not be verified. Read the content overview again.")
+            }
+            guard let hash = expected.sha256, let count = expected.byteCount,
+                actual.sha256 == hash, actual.byteCount == count, actual.memberPath == expected.memberPath
+            else {
+                throw ConversionError.invalidInput(
+                    inputURL, format: format,
+                    reason: "The source changed or could not be verified. Read the content overview again.")
+            }
+            sourceIdentity = actual
+        }
+        try workspace.publish {
+            try validateOutput(destination.url, resolvedInputURL: resolvedInputURL, fileManager: fileManager)
+        }
+
+        let result = ConversionResult(
+            inputURL: inputURL,
+            format: format,
+            outputDirectory: destination.url,
+            markdownFile: destination.url.appendingPathComponent(markdownRelativePath),
+            assets: (assetRelativePaths + (stagedResult.documents?.map(\.markdownRelativePath) ?? [])).map {
+                destination.url.appendingPathComponent($0)
+            },
+            outputLifetime: destination.lifetime,
+            diagnostics: warnings,
+            metadata: stagedResult.metadata,
+            sourceIdentity: sourceIdentity,
+            sourceMappings: sourceMappings,
+            outputFiles: outputFiles,
+            reportFile: reportRelativePath.map { destination.url.appendingPathComponent($0) },
+            documents: stagedResult.documents?.map {
+                .init(
+                    sourceIndex: $0.sourceIndex, title: $0.title,
+                    markdownFile: destination.url.appendingPathComponent($0.markdownRelativePath),
+                    assets: $0.assetRelativePaths.map { destination.url.appendingPathComponent($0) },
+                    metadata: $0.metadata)
+            },
+            isCollection: stagedResult.documents != nil
+        )
+        ConversionExecution.current?.progress?(ConversionProgress(phase: .finished, format: format))
+        return result
+    }
+
+    private func resolveInput(
+        for request: ConversionRequest,
+        inputURL: URL
+    ) throws -> (URL, DetectedInput) {
+        // Bei der Erkennung bestimmt der sichtbare Dateiname mögliche Adapter.
+        // Der aufgelöste Pfad bleibt anschließend für Adapter und Zielschutz gebunden.
+        try FileSystemPath.validate(inputURL)
+        let resolvedBeforeDetection = inputURL.resolvingSymlinksInPath()
+        if let planned = ConversionExecution.current?.plannedSources[FileSystemPath.key(inputURL.path)],
+            !FileSystemPath.equal(planned, resolvedBeforeDetection)
+        {
+            throw ConversionError.fileSystemFailure("the batch source changed after output planning")
+        }
+        let detected = try detectInput(at: inputURL)
+        let format = detected.inspection.format
+        if request.options.pdfPages != nil, format != .pdf {
+            throw ConversionError.invalidInput(
+                inputURL, format: format, reason: "PDF page selection can only be used with a PDF input")
+        }
+        if request.options.spreadsheetSelection != nil, ![InputFormat.xlsx, .xls, .ods].contains(format) {
+            throw ConversionError.invalidInput(
+                inputURL, format: format,
+                reason: "spreadsheet selection can only be used with XLSX, XLS or ODS input")
+        }
+        if request.options.presentationSelection != nil, ![InputFormat.pptx, .odp].contains(format) {
+            throw ConversionError.invalidInput(
+                inputURL, format: format,
+                reason: "presentation selection can only be used with PPTX, PPTM, POTX or ODP input")
+        }
+        if request.options.epubChapters != nil, format != .epub {
+            throw ConversionError.invalidInput(
+                inputURL, format: format, reason: "EPUB chapter selection can only be used with EPUB input")
+        }
+        if detected.adapter.unavailableReason(for: format) != nil {
+            throw PlatformBackendUnavailable(format.rawValue.uppercased())
+        }
+        #if os(Linux)
+        let required =
+            detected.adapter.supportedFormatDescriptors.first { $0.format == format }?.requiredTools ?? []
+        let resolver = ExternalToolResolver(pandocExecutable: request.options.pandocExecutable)
+        for tool in required where tool == .bubblewrap || tool == .processGuard {
+            guard resolver.isAvailable(tool) else { throw PlatformBackendUnavailable(tool.rawValue) }
+        }
+        #endif
+        try FileSystemPath.validate(inputURL)
+        let resolvedInputURL = inputURL.resolvingSymlinksInPath()
+        guard FileSystemPath.equal(resolvedInputURL, resolvedBeforeDetection) else {
+            throw ConversionError.invalidInput(
+                inputURL,
+                format: format,
+                reason: "the input changed while it was being inspected"
+            )
+        }
+        return (resolvedInputURL, detected)
+    }
+
+    private func prepareOutput(
+        _ stagedResult: StagedConversionResult,
+        in stagedOutput: URL,
+        inputURL: URL,
+        format: InputFormat,
+        options: ConversionOptions,
+        recording: ConversionRecording?
+    ) throws -> (markdown: String, assets: [String], warnings: [ConversionWarning]) {
+        try ConversionExecution.check()
+        let fileManager = FileManager.default
+        var markdownRelativePath = try validateRelativePath(stagedResult.markdownRelativePath)
+        var assetRelativePaths = try stagedResult.assetRelativePaths.map(validateRelativePath)
+        var warnings = stagedResult.warnings
+        let stagedMarkdown = stagedOutput.appendingPathComponent(markdownRelativePath)
+        guard isRegularFile(stagedMarkdown, fileManager: fileManager) else {
+            throw ConversionError.fileSystemFailure("adapter produced no Markdown file")
+        }
+        for assetRelativePath in assetRelativePaths {
+            let stagedAsset = stagedOutput.appendingPathComponent(assetRelativePath)
+            guard isRegularFile(stagedAsset, fileManager: fileManager) else {
+                throw ConversionError.fileSystemFailure("adapter reported a missing asset")
+            }
+        }
+
+        // Nachbearbeitung noch im Staging-Bereich: Erst wenn Frontmatter und
+        // Ablageform fertig sind, wird veröffentlicht — halbfertige Ergebnisse
+        // erreichen das Ziel nie.
+        if options.frontmatter {
+            if let frontmatter = stagedResult.metadata.frontmatter {
+                try ConversionPostprocessor.prepend(frontmatter, to: stagedMarkdown)
+                recording?.shift(by: frontmatter.utf8.count)
+            } else {
+                warnings.append(.metadataUnavailable)
+            }
+        }
+        if let documents = stagedResult.documents {
+            do {
+                warnings += try CollectionPostprocessor.prepare(
+                    documents, in: stagedOutput, primary: markdownRelativePath,
+                    assets: assetRelativePaths, frontmatter: options.frontmatter)
+                if options.outputLayout == .textbundle {
+                    markdownRelativePath = try CollectionPostprocessor.applyTextbundle(
+                        in: stagedOutput, primary: markdownRelativePath, documents: documents)
+                }
+            } catch let error as ConversionError { throw error } catch let error as ImportFailure {
+                try ConversionExecution.check()
+                throw ConversionError.invalidInput(inputURL, format: format, reason: error.reason)
+            } catch {
+                try ConversionExecution.check()
+                throw ConversionError.fileSystemFailure(error.localizedDescription)
+            }
+        } else if options.outputLayout == .textbundle {
+            (markdownRelativePath, assetRelativePaths) = try ConversionPostprocessor.applyTextbundleLayout(
+                in: stagedOutput,
+                markdownRelativePath: markdownRelativePath,
+                assetRelativePaths: assetRelativePaths,
+                fileManager: fileManager,
+                recording: recording
+            )
+        }
+
+        return (markdownRelativePath, assetRelativePaths, warnings)
+    }
+
+    public static func defaultOutputDirectory(
+        for inputURL: URL,
+        layout: OutputLayout = .markdownFolder
+    ) -> URL {
+        let inputURL = inputURL.standardizedFileURL
+        return
+            inputURL
+            .deletingLastPathComponent()
+            .appendingPathComponent(outputDirectoryName(for: inputURL, layout: layout), isDirectory: true)
+    }
+
+    /// Nur der Ordnername (`Eingabe-markdown` oder `Eingabe.textbundle`), damit
+    /// ein Mehrfachlauf denselben Namen unter einem gemeinsamen Elternordner
+    /// verwenden kann.
+    public static func outputDirectoryName(
+        for inputURL: URL,
+        layout: OutputLayout = .markdownFolder
+    ) -> String {
+        let stem = inputURL.standardizedFileURL.deletingPathExtension().lastPathComponent
+        switch layout {
+        case .markdownFolder:
+            return stem + InputEnumerator.outputDirectorySuffix
+        case .textbundle:
+            return stem + "." + InputEnumerator.textbundleExtension
+        }
+    }
+
+    private func detectInput(at inputURL: URL) throws -> DetectedInput {
+        // Ein einziger `stat` beantwortet beide Fragen: ob die Eingabe
+        // überhaupt erreichbar ist und was für ein Objekt dort liegt. Als
+        // Eingabe kommen nur reguläre Dateien und Ordnerpakete wie RTFD in
+        // Frage. Der Rest — FIFO, Socket, Gerätedatei — wird hier abgewiesen,
+        // BEVOR ein Adapter ihn öffnet: Ein `open` auf eine FIFO ohne Schreiber
+        // kehrt nie zurück, und die Erkennung öffnet die Eingabe als Erstes.
+        // Ein solcher Pfad ließ die Umwandlung ohne Zeitgrenze stehen.
+        var info = stat()
+        guard stat(inputURL.path, &info) == 0 else {
+            throw ConversionError.inputDoesNotExist(inputURL)
+        }
+        let inputKind = info.st_mode & S_IFMT
+        guard inputKind == S_IFREG || inputKind == S_IFDIR else {
+            throw ConversionError.unsupportedInput(inputURL)
+        }
+
+        var matches = [DetectedInput]()
+        var invalidInputs = [InvalidDetectedInput]()
+        for adapter in adapters {
+            switch try adapter.inspectInput(at: inputURL) {
+            case .noMatch:
+                continue
+            case .match(let inspection):
+                precondition(
+                    adapter.supportedFormats.contains(inspection.format),
+                    "Adapter inspected unsupported format \(inspection.format.rawValue)"
+                )
+                matches.append(DetectedInput(inspection: inspection, adapter: adapter))
+            case .invalid(let format, let priority, let reason):
+                precondition(
+                    adapter.supportedFormats.contains(format),
+                    "Adapter rejected unsupported format \(format.rawValue)"
+                )
+                invalidInputs.append(
+                    InvalidDetectedInput(format: format, priority: priority, reason: reason)
+                )
+            }
+        }
+
+        if !matches.isEmpty {
+            let highestPriority = matches.map(\.inspection.priority).max() ?? 0
+            let preferred = matches.filter { $0.inspection.priority == highestPriority }
+            guard preferred.count == 1, let detected = preferred.first else {
+                throw ConversionError.ambiguousInput(
+                    inputURL,
+                    formats: preferred.map(\.inspection.format)
+                )
+            }
+            return detected
+        }
+
+        for adapter in adapters {
+            if let descriptor = adapter.supportedFormatDescriptors.first(where: {
+                $0.fileExtensions.contains(inputURL.pathExtension.lowercased())
+            }), adapter.unavailableReason(for: descriptor.format) != nil {
+                throw PlatformBackendUnavailable(descriptor.format.rawValue.uppercased())
+            }
+        }
+
+        if let invalid = invalidInputs.max(by: { $0.priority < $1.priority }) {
+            throw ConversionError.invalidInput(
+                inputURL,
+                format: invalid.format,
+                reason: invalid.reason
+            )
+        }
+
+        throw ConversionError.unsupportedInput(inputURL)
+    }
+
+    private func resolveDestination(
+        for request: ConversionRequest,
+        inputURL: URL
+    ) throws -> ResolvedDestination {
+        let layout = request.options.outputLayout
+        switch request.destination {
+        case .adjacentToInput:
+            return ResolvedDestination(
+                url: Self.defaultOutputDirectory(for: inputURL, layout: layout),
+                lifetime: .persistent
+            )
+        case .directory(let url):
+            // Ein Textbundle ist für den Finder nur mit seiner Endung ein Paket.
+            // Ein stilles Anhängen würde ein anderes Ziel erzeugen als genannt.
+            let namedTextbundle = url.pathExtension.lowercased() == InputEnumerator.textbundleExtension
+            if layout == .textbundle, !namedTextbundle {
+                throw ConversionError.invalidOutputName(
+                    url,
+                    reason: "a Textbundle output must end in .textbundle"
+                )
+            }
+            // Die Regel gilt in beide Richtungen: Ohne Textbundle-Ablage
+            // entstünde unter diesem Namen ein Ordner ohne `info.json` und
+            // `text.md`. Der Finder hielte ihn trotzdem für ein Paket, kein
+            // Editor könnte ihn öffnen, und ein späterer Mehrfachlauf über den
+            // Elternordner überspränge ihn als vermeintlich eigenes Ergebnis.
+            if layout != .textbundle, namedTextbundle {
+                throw ConversionError.invalidOutputName(
+                    url,
+                    reason: "an output named .textbundle needs the Textbundle layout"
+                )
+            }
+            return ResolvedDestination(url: url.standardizedFileURL, lifetime: .persistent)
+        case .temporary:
+            let url = FileManager.default.temporaryDirectory.appendingPathComponent(
+                "PoorMansTextImport-\(UUID().uuidString)"
+                    + (layout == .textbundle ? "." + InputEnumerator.textbundleExtension : ""),
+                isDirectory: true
+            )
+            return ResolvedDestination(url: url, lifetime: .temporary)
+        }
+    }
+
+    /// - Parameter resolvedInputURL: die einmal aufgelöste echte Quelle. Sie
+    ///   kommt von außen, damit beide Prüfungen und der Adapter über DASSELBE
+    ///   Dokument reden.
+    private func validateOutput(
+        _ outputURL: URL,
+        resolvedInputURL: URL,
+        fileManager: FileManager
+    ) throws {
+        try BatchSourceProtection.validate(
+            [outputURL], sources: ConversionExecution.current?.protectedInputs ?? [])
+        guard !fileManager.fileExists(atPath: outputURL.path) else {
+            throw ConversionError.outputAlreadyExists(outputURL)
+        }
+
+        var resolvedInputPath = resolvedInputURL.path + "/"
+        var resolvedOutputPath = outputURL.resolvingSymlinksInPath().path + "/"
+        // `hasPrefix` vergleicht Zeichen für Zeichen. Auf einem Dateisystem, das
+        // Groß-/Kleinschreibung im Namen nicht unterscheidet (Standard bei APFS),
+        // zeigt "…/INPUT.RTFD/Converted" auf dasselbe Verzeichnis wie
+        // "…/input.rtfd/Converted" und läge damit im Quelldokument. Deshalb dort
+        // beide Pfade vor dem Vergleich kleinschreiben. Lässt sich die
+        // Volume-Eigenschaft nicht ermitteln, wird ebenfalls kleingeschrieben:
+        // Das ist die sichere Richtung, weil dann höchstens ein ohnehin
+        // verdächtiges Ziel abgelehnt wird.
+        let volumeValues = try? resolvedInputURL.resourceValues(
+            forKeys: [.volumeSupportsCaseSensitiveNamesKey]
+        )
+        if volumeValues?.volumeSupportsCaseSensitiveNames != true {
+            resolvedInputPath = resolvedInputPath.lowercased()
+            resolvedOutputPath = resolvedOutputPath.lowercased()
+        }
+        guard !FileSystemPath.hasPrefix(resolvedOutputPath, resolvedInputPath) else {
+            throw ConversionError.outputInsideInput(outputURL)
+        }
+
+        let parent = outputURL.deletingLastPathComponent()
+        var isDirectory: ObjCBool = false
+        guard fileManager.fileExists(atPath: parent.path, isDirectory: &isDirectory),
+            isDirectory.boolValue
+        else {
+            throw ConversionError.outputParentDoesNotExist(parent)
+        }
+    }
+
+    private func validateRelativePath(_ path: String) throws -> String {
+        let components = NSString(string: path).pathComponents
+        guard !path.isEmpty,
+            !path.hasPrefix("/"),
+            !components.contains("..")
+        else {
+            throw ConversionError.fileSystemFailure("adapter produced an unsafe output path")
+        }
+        return path
+    }
+
+    private func isRegularFile(_ url: URL, fileManager: FileManager) -> Bool {
+        var isDirectory: ObjCBool = false
+        return fileManager.fileExists(atPath: url.path, isDirectory: &isDirectory)
+            && !isDirectory.boolValue
+    }
+
+    private struct ResolvedDestination {
+        let url: URL
+        let lifetime: ConversionOutputLifetime
+    }
+
+    private struct DetectedInput: Sendable {
+        let inspection: AdapterInputInspection
+        let adapter: any DocumentConversionAdapter
+    }
+
+    private struct InvalidDetectedInput {
+        let format: InputFormat
+        let priority: Int
+        let reason: String
+    }
+}
+
+protocol DocumentConversionAdapter: Sendable {
+    /// Die vollständige Beschreibung jedes angebotenen Formats. Sie ist die
+    /// EINZIGE Stelle, an der ein Adapter seine Formate deklariert — Endungen,
+    /// Ablageform und nötige Werkzeuge inklusive. Dadurch bleibt der
+    /// veröffentlichte Formatkatalog automatisch vollständig, wenn ein neuer
+    /// Adapter dazukommt.
+    var supportedFormatDescriptors: [SupportedFormat] { get }
+
+    func inspectInput(at inputURL: URL) throws -> AdapterInputDetection
+    func unavailableReason(for format: InputFormat) -> String?
+    func convert(_ context: AdapterConversionContext) throws -> StagedConversionResult
+}
+
+extension DocumentConversionAdapter {
+    func unavailableReason(for format: InputFormat) -> String? { nil }
+
+    var supportedFormats: Set<InputFormat> {
+        Set(supportedFormatDescriptors.map(\.format))
+    }
+}
+
+enum AdapterInputDetection: Sendable {
+    case noMatch
+    case match(AdapterInputInspection)
+    case invalid(format: InputFormat, priority: Int, reason: String)
+}
+
+struct AdapterInputInspection: Sendable {
+    let format: InputFormat
+    let priority: Int
+    let expectedWarnings: [ConversionWarning]
+}
+
+struct AdapterConversionContext: Sendable {
+    /// Der vom Nutzer gewählte Pfad. Er benennt die Ausgabe und steht in den
+    /// Fehlermeldungen.
+    let inputURL: URL
+    /// Dieselbe Quelle, aber EINMAL zentral aufgelöst. Adapter, die einem
+    /// Verweis folgen müssen, nehmen diesen Pfad, statt selbst aufzulösen —
+    /// sonst können Ausgabeprüfung und gelesenes Dokument auseinanderlaufen.
+    let resolvedInputURL: URL
+    let format: InputFormat
+    let workDirectory: URL
+    let stagedOutputDirectory: URL
+    let options: ConversionOptions
+
+    init(
+        inputURL: URL,
+        resolvedInputURL: URL? = nil,
+        format: InputFormat,
+        workDirectory: URL,
+        stagedOutputDirectory: URL,
+        options: ConversionOptions
+    ) {
+        self.inputURL = inputURL
+        self.resolvedInputURL = resolvedInputURL ?? inputURL.resolvingSymlinksInPath()
+        self.format = format
+        self.workDirectory = workDirectory
+        self.stagedOutputDirectory = stagedOutputDirectory
+        self.options = options
+    }
+}
+extension AdapterConversionContext {
+    /// Schreibt das Ergebnis-Markdown in den Staging-Bereich und liefert seinen
+    /// relativen Pfad.
+    ///
+    /// Name, Schreibweg und Fehlerabbildung standen wortgleich in drei Adaptern. ImageAdapter und PresentationAdapter schreiben
+    /// bewusst weiter selbst: Sie bilden einen Schreibfehler auf ihren eigenen
+    /// Formatfehler ab, nicht auf `fileSystemFailure`.
+    func writeMarkdown(_ markdown: String) throws -> String {
+        let name = inputURL.deletingPathExtension().lastPathComponent + ".md"
+        do {
+            try Data(markdown.utf8).write(
+                to: stagedOutputDirectory.appendingPathComponent(name),
+                options: .atomic
+            )
+        } catch {
+            throw ConversionError.fileSystemFailure(error.localizedDescription)
+        }
+        return name
+    }
+}
+
+struct StagedConversionResult: Sendable {
+    let markdownRelativePath: String
+    let assetRelativePaths: [String]
+    let warnings: [ConversionWarning]
+    let metadata: DocumentMetadata
+    let documents: [StagedConversionDocument]?
+
+    init(
+        markdownRelativePath: String,
+        assetRelativePaths: [String],
+        warnings: [ConversionWarning],
+        metadata: DocumentMetadata = DocumentMetadata(),
+        documents: [StagedConversionDocument]? = nil
+    ) {
+        self.markdownRelativePath = markdownRelativePath
+        self.assetRelativePaths = assetRelativePaths
+        self.warnings = warnings
+        self.metadata = metadata
+        self.documents = documents
+    }
+}
+
+#if os(macOS)
+private typealias PlatformLegacyWordAdapter = LegacyWordAdapter
+private typealias PlatformImageAdapter = ImageAdapter
+private typealias PlatformPDFAdapter = PDFAdapter
+#else
+private typealias PlatformLegacyWordAdapter = LinuxLegacyWordAdapter
+private typealias PlatformImageAdapter = LinuxImageAdapter
+private typealias PlatformPDFAdapter = LinuxPDFAdapter
+#endif

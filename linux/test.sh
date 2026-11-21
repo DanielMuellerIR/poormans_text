@@ -9,8 +9,12 @@ PMT_TEST_CLI="$root/poormans-text" PMT_TEST_GUARD="$root/.build/linux-runtime/bi
 if [[ ${PMT_ISOLATED_DISPLAY:-0} == 1 ]]; then
   : "${DISPLAY:?Use a private Xvfb display}"
   : "${PMT_UI_TEST_ROOT:?Choose an own new temporary test directory}"
+  export GSETTINGS_BACKEND=memory
   cargo build --locked --offline -p poormans-text-gtk --features ui-self-test
   python3 linux/app/selftest.py --binary "$CARGO_TARGET_DIR/debug/poormans-text-gtk" \
     --cli "$root/poormans-text" --guard "$root/.build/linux-runtime/bin/poormans-text-process-guard" \
     --display "$DISPLAY" --work-directory "$PMT_UI_TEST_ROOT"
+  python3 linux/app/clipboard_profile_selftest.py --binary "$CARGO_TARGET_DIR/debug/poormans-text-gtk" \
+    --cli "$root/poormans-text" --guard "$root/.build/linux-runtime/bin/poormans-text-process-guard" \
+    --support-root "$root" --display "$DISPLAY" --work-directory "$PMT_UI_TEST_ROOT/clipboard-profile"
 fi

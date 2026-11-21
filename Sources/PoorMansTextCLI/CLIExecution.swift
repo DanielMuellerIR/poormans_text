@@ -4,10 +4,16 @@ import PoorMansTextCore
 /// `--stdout`: in ein temporäres Ziel umwandeln, den Text ausgeben, aufräumen.
 /// Bilder haben auf der Standardausgabe keinen Platz; ihre Verweise bleiben im
 /// Text stehen, und die Zahl der ausgelassenen Dateien geht an stderr.
-func convertToStandardOutput(_ inputURL: URL, options: ConversionOptions, arguments: ParsedArguments, cancellation: ConversionCancellationToken) throws {
+func convertToStandardOutput(
+    _ inputURL: URL, options: ConversionOptions, arguments: ParsedArguments,
+    cancellation: ConversionCancellationToken
+) throws {
     let result = try DocumentConverter().convert(
-        ConversionRequest(inputURL: inputURL, destination: .temporary, options: options, expectedSourceIdentity: arguments.expectedSourceIdentity),
-        progress: progressHandler(arguments, input: inputURL), cancellation: cancellation, processTimeout: arguments.timeout
+        ConversionRequest(
+            inputURL: inputURL, destination: .temporary, options: options,
+            expectedSourceIdentity: arguments.expectedSourceIdentity),
+        progress: progressHandler(arguments, input: inputURL), cancellation: cancellation,
+        processTimeout: arguments.timeout
     )
     defer { try? FileManager.default.removeItem(at: result.outputDirectory) }
     try writeToStandardOutput(result, cancellation: cancellation)
@@ -16,7 +22,9 @@ func convertToStandardOutput(_ inputURL: URL, options: ConversionOptions, argume
 func writeToStandardOutput(_ result: ConversionResult, cancellation: ConversionCancellationToken) throws {
     try cancellation.checkCancellation()
     guard !result.isCollection else {
-        throw CLIArgumentError.invalidConversionOption("--stdout cannot represent a document collection. Choose an output folder or Textbundle to retain its documents and links.")
+        throw CLIArgumentError.invalidConversionOption(
+            "--stdout cannot represent a document collection. Choose an output folder or Textbundle to retain its documents and links."
+        )
     }
     let markdown: Data
     do {
@@ -30,20 +38,35 @@ func writeToStandardOutput(_ result: ConversionResult, cancellation: ConversionC
         writeDiagnostic("Warning: \(warning)\n")
     }
     if !result.assets.isEmpty {
-        writeDiagnostic("Warning: \(result.assets.count) image asset(s) were not written; --stdout emits text only.\n")
+        writeDiagnostic(
+            "Warning: \(result.assets.count) image asset(s) were not written; --stdout emits text only.\n")
     }
 }
 
 /// Die Planung bleibt ohne Dateisystemänderung. Der gemeinsame Core-Batchplan
 /// prüft alle Quellen, bevor er Root oder gespiegelte Elternordner anlegt.
-func batchDestination(for input: EnumeratedInput, outputRoot: URL?, options: ConversionOptions) -> ConversionDestination {
+func batchDestination(for input: EnumeratedInput, outputRoot: URL?, options: ConversionOptions)
+    -> ConversionDestination
+{
     guard let outputRoot else { return .adjacentToInput }
-    let parent = input.relativeDirectory.reduce(outputRoot) { $0.appendingPathComponent($1, isDirectory: true) }
-    return .directory(parent.appendingPathComponent(DocumentConverter.outputDirectoryName(for: input.url, layout: options.outputLayout)))
+    let parent = input.relativeDirectory.reduce(outputRoot) {
+        $0.appendingPathComponent($1, isDirectory: true)
+    }
+    return .directory(
+        parent.appendingPathComponent(
+            DocumentConverter.outputDirectoryName(for: input.url, layout: options.outputLayout)))
 }
 
-func convertBatch(_ inputs: [EnumeratedInput], arguments: ParsedArguments, options: ConversionOptions, cancellation: ConversionCancellationToken) throws -> CLIExitCode {
-    let requests = inputs.map { ConversionRequest(inputURL: $0.url, destination: batchDestination(for: $0, outputRoot: arguments.outputURL, options: options), options: options) }
+func convertBatch(
+    _ inputs: [EnumeratedInput], arguments: ParsedArguments, options: ConversionOptions,
+    cancellation: ConversionCancellationToken
+) throws -> CLIExitCode {
+    let requests = inputs.map {
+        ConversionRequest(
+            inputURL: $0.url,
+            destination: batchDestination(for: $0, outputRoot: arguments.outputURL, options: options),
+            options: options)
+    }
     let handler: BatchConversionProgressHandler?
     if arguments.progress {
         let output = BatchProgressOutput()
@@ -59,7 +82,8 @@ func convertBatch(_ inputs: [EnumeratedInput], arguments: ParsedArguments, optio
     } else {
         handler = nil
     }
-    let results = try BatchConverter().convert(requests, jobs: arguments.jobs,
+    let results = try BatchConverter().convert(
+        requests, jobs: arguments.jobs,
         outputRoots: arguments.outputURL.map { [$0] } ?? [], cancellation: cancellation,
         processTimeout: arguments.timeout, progress: handler)
     var entries: [JSONBatchEntry] = []
@@ -68,20 +92,29 @@ func convertBatch(_ inputs: [EnumeratedInput], arguments: ParsedArguments, optio
     for item in results {
         switch item.outcome {
         case .success(let result):
-            if arguments.json { entries.append(.success(result)) }
-            else {
+            if arguments.json {
+                entries.append(.success(result))
+            } else {
                 try writeOutputLine(result.outputDirectory.path)
-                for warning in result.warnings { writeDiagnostic("Warning: \(item.inputURL.lastPathComponent): \(warning)\n") }
+                for warning in result.warnings {
+                    writeDiagnostic("Warning: \(item.inputURL.lastPathComponent): \(warning)\n")
+                }
             }
         case .failure(let error):
             failures += 1
             if firstFailure == nil { firstFailure = exitCode(for: error) }
-            if arguments.json { entries.append(.failure(item.inputURL, error.localizedDescription)) }
-            else { writeError("\(item.inputURL.path): \(error.localizedDescription)") }
+            if arguments.json {
+                entries.append(.failure(item.inputURL, error.localizedDescription))
+            } else {
+                writeError("\(item.inputURL.path): \(error.localizedDescription)")
+            }
         }
     }
-    if arguments.json { try writeJSON(JSONBatchResponse(ok: failures == 0, version: ProductInfo.version, results: entries)) }
-    else if failures > 0 { writeError("\(failures) of \(inputs.count) inputs failed.") }
+    if arguments.json {
+        try writeJSON(JSONBatchResponse(ok: failures == 0, version: ProductInfo.version, results: entries))
+    } else if failures > 0 {
+        writeError("\(failures) of \(inputs.count) inputs failed.")
+    }
     return cancellation.isCancelled ? .cancelled : firstFailure ?? .success
 }
 

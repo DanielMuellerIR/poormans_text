@@ -27,13 +27,16 @@ public final class OpenedDocumentsRelay: NSObject, NSApplicationDelegate, NSUser
     /// an den adaptierten App-Delegate weiter. Nur dessen Ziel wird gebunden;
     /// Titel, Kürzel und die übrigen nativen Bearbeitungsbefehle bleiben erhalten.
     public func configurePaste(handler: @escaping () -> Void, canPaste: @escaping () -> Bool) {
-        pasteHandler = handler; self.canPaste = canPaste
+        pasteHandler = handler
+        self.canPaste = canPaste
         installPasteTarget()
         if menuObservers.isEmpty {
             for name in [NSMenu.didAddItemNotification, NSMenu.didChangeItemNotification] {
-                menuObservers.append(NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
-                    MainActor.assumeIsolated { self?.installPasteTarget() }
-                })
+                menuObservers.append(
+                    NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) {
+                        [weak self] _ in
+                        MainActor.assumeIsolated { self?.installPasteTarget() }
+                    })
             }
         }
         DispatchQueue.main.async { [weak self] in self?.installPasteTarget() }
@@ -44,15 +47,17 @@ public final class OpenedDocumentsRelay: NSObject, NSApplicationDelegate, NSUser
         installingPasteTarget = true
         defer { installingPasteTarget = false }
         func isCommand(_ item: NSMenuItem, _ key: String) -> Bool {
-            item.keyEquivalent.lowercased() == key &&
-                item.keyEquivalentModifierMask.intersection([.command, .shift, .option, .control]) == .command
+            item.keyEquivalent.lowercased() == key
+                && item.keyEquivalentModifierMask.intersection([.command, .shift, .option, .control])
+                    == .command
         }
         // Das Bearbeiten-Menü unabhängig von seiner Sprache erkennen; keine
         // gleich belegten Einträge aus fremden Systemdiensten verändern.
         for topItem in menu.items {
             guard let submenu = topItem.submenu,
-                  submenu.items.contains(where: { isCommand($0, "x") }),
-                  submenu.items.contains(where: { isCommand($0, "c") }) else { continue }
+                submenu.items.contains(where: { isCommand($0, "x") }),
+                submenu.items.contains(where: { isCommand($0, "c") })
+            else { continue }
             for item in submenu.items {
                 guard isCommand(item, "v") else { continue }
                 if item.target !== self || item.action != #selector(pasteFromMenu(_:)) {

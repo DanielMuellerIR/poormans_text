@@ -56,28 +56,28 @@ public enum CLIInstaller {
 
         // Die Meldung im Skript ist bewusst ENGLISCH: Sie wandert als Ursache
         // in die Fehlermeldung der App. Vorher stand dort ein deutscher Satz
-        // mitten in einer englischen Meldung (Review-Fund 2026-09-10).
+        // mitten in einer englischen Meldung.
         let script = #"""
-        on run argv
-            set sourcePath to item 1 of argv
-            set targetPath to item 2 of argv
-            set targetDirectory to item 3 of argv
-            set useAdministratorPrivileges to item 4 of argv
-            set quotedSource to quoted form of sourcePath
-            set quotedTarget to quoted form of targetPath
-            set quotedDirectory to quoted form of targetDirectory
-            set shellCommand to "set -eu; " & ¬
-                "if [ -e " & quotedTarget & " ] || [ -L " & quotedTarget & " ]; then " & ¬
-                "echo 'the command-line target is already in use' >&2; exit 73; fi; " & ¬
-                "/bin/mkdir -p " & quotedDirectory & "; " & ¬
-                "/bin/ln -s " & quotedSource & " " & quotedTarget
-            if useAdministratorPrivileges is "true" then
-                do shell script shellCommand with administrator privileges
-            else
-                do shell script shellCommand
-            end if
-        end run
-        """#
+            on run argv
+                set sourcePath to item 1 of argv
+                set targetPath to item 2 of argv
+                set targetDirectory to item 3 of argv
+                set useAdministratorPrivileges to item 4 of argv
+                set quotedSource to quoted form of sourcePath
+                set quotedTarget to quoted form of targetPath
+                set quotedDirectory to quoted form of targetDirectory
+                set shellCommand to "set -eu; " & ¬
+                    "if [ -e " & quotedTarget & " ] || [ -L " & quotedTarget & " ]; then " & ¬
+                    "echo 'the command-line target is already in use' >&2; exit 73; fi; " & ¬
+                    "/bin/mkdir -p " & quotedDirectory & "; " & ¬
+                    "/bin/ln -s " & quotedSource & " " & quotedTarget
+                if useAdministratorPrivileges is "true" then
+                    do shell script shellCommand with administrator privileges
+                else
+                    do shell script shellCommand
+                end if
+            end run
+            """#
 
         // CapturedProcess schreibt die Fehlerausgabe in eine Datei statt in
         // eine Pipe — sonst könnte ein gesprächiges osascript am vollen

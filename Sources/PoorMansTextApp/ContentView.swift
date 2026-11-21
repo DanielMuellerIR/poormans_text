@@ -9,24 +9,25 @@ struct ContentView: View {
     @AppStorage("CLIInstallDeclined") private var cliInstallDeclined = false
     @AppStorage("PandocInstallDeclined") private var pandocInstallDeclined = false
     @State private var activeSheet: Sheet?
+    @State private var previewPresentationID: UUID?
     @State private var activeOffer: InstallOffer?
     @State private var activeAlert: InstallAlert?
     @State private var isDropTargeted = false
     @State private var collectionQuery = ""
 
-    private enum PreviewMode: String {
+    private enum PreviewMode {
         case preview
         case comparison
     }
 
     private enum Sheet: Identifiable {
-        case preview(PreviewMode)
+        case preview(PreviewMode, UUID)
         case contentSelection(ContentSelectionTicket)
 
-        var id: String {
+        var id: UUID {
             switch self {
-            case .preview(let mode): mode.rawValue
-            case .contentSelection(let ticket): ticket.id.uuidString
+            case .preview(_, let id): id
+            case .contentSelection(let ticket): ticket.id
             }
         }
     }
@@ -97,15 +98,15 @@ struct ContentView: View {
         )
         .sheet(item: $activeSheet) { sheet in
             switch sheet {
-            case .preview(let mode):
-                previewSheet(mode)
-                    .onDisappear { model.closePreview() }
+            case .preview(let mode, let id):
+                previewSheet(mode, id: id)
+                    .onDisappear { closePreview(id: id) }
             case .contentSelection(let ticket):
                 ContentSelectionView(input: ticket.input).environmentObject(model).id(ticket.id)
             }
         }
         .onChange(of: previewAvailable) { available in
-            if !available, case .preview = activeSheet { activeSheet = nil }
+            if !available, !previewAvailable, case .preview = activeSheet { activeSheet = nil }
         }
         .task {
             preparePandocOffer()
@@ -138,15 +139,16 @@ struct ContentView: View {
             }
         } message: { offer in
             switch offer {
-            case .pandoc(.homebrewInstall):
-                Text("Pandoc is required for word-processing documents, HTML, e-books, text markups, and ODM master documents. Spreadsheets, CSV, PDF, and images work without it. Install Pandoc now with Homebrew? This can take a few minutes.")
-            case .pandoc(.manualGuidance):
-                Text("Pandoc is required for word-processing documents, HTML, e-books, text markups, and ODM master documents. Spreadsheets, CSV, PDF, and images work without it. The Pandoc website offers an official installer.")
+            case .pandoc(let installation):
+                Text(verbatim: pandocOfferMessage(installation))
             case .commandLine:
-                Text("Make poormans-text available in Terminal by linking it to the copy embedded in this app.")
+                Text(
+                    "Make poormans-text available in Terminal by linking it to the copy embedded in this app."
+                )
             }
         }
-        .alert(activeAlert?.title ?? "", isPresented: isShowingInstallAlert, presenting: activeAlert) { alert in
+        .alert(activeAlert?.title ?? "", isPresented: isShowingInstallAlert, presenting: activeAlert) {
+            alert in
             switch alert {
             case .pandocInstalled: Button("OK") { activeAlert = nil }
             case .pandocFailed, .commandLineFailed: Button("OK", role: .cancel) { activeAlert = nil }
@@ -161,7 +163,22 @@ struct ContentView: View {
         }
     }
 
-    private func previewSheet(_ mode: PreviewMode) -> some View {
+    private func pandocOfferMessage(_ installation: PandocInstaller.Offer) -> String {
+        let formats = String(
+            localized:
+                "Pandoc is required for word-processing documents, HTML, e-books, text markups, ODM master documents, ENEX, and the HTML parts of email. Spreadsheets, CSV, PDF, and images work without it."
+        )
+        let guidance: String
+        switch installation {
+        case .homebrewInstall:
+            guidance = String(localized: "Installing with Homebrew can take a few minutes.")
+        case .manualGuidance:
+            guidance = String(localized: "The Pandoc website offers an official installer.")
+        }
+        return formats + "\n\n" + guidance
+    }
+
+    private func previewSheet(_ mode: PreviewMode, id: UUID) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Text(mode == .comparison ? "Compare source and result" : "Preview").font(.headline)
@@ -183,8 +200,7 @@ struct ContentView: View {
             HStack {
                 Spacer()
                 Button("Done") {
-                    activeSheet = nil
-                    model.closePreview()
+                    dismissPreview(id: id)
                 }
                 .keyboardShortcut(.cancelAction)
             }
@@ -198,7 +214,23 @@ struct ContentView: View {
 
     private func presentPreview(_ mode: PreviewMode) {
         model.loadPreview()
-        if previewAvailable { activeSheet = .preview(mode) }
+        guard previewAvailable else { return }
+        let id = UUID()
+        previewPresentationID = id
+        activeSheet = .preview(mode, id)
+    }
+
+    private func closePreview(id: UUID) {
+        // Das Ende einer älteren Sheet-Animation darf eine neue Vorschau nicht schließen.
+        guard previewPresentationID == id else { return }
+        previewPresentationID = nil
+        model.closePreview()
+    }
+
+    private func dismissPreview(id: UUID) {
+        guard activeSheet?.id == id else { return }
+        activeSheet = nil
+        closePreview(id: id)
     }
 
     private var header: some View {
@@ -233,16 +265,23 @@ struct ContentView: View {
             }
             if model.isConverting {
                 if let progress = model.conversionProgress {
-                    if let completed = progress.completed, let total = progress.total, let unit = progress.unit {
+                    if let completed = progress.completed, let total = progress.total,
+                        let unit = progress.unit
+                    {
                         ProgressView(value: Double(completed), total: Double(max(total, 1)))
-                        Text(String(format: NSLocalizedString("%@ %d of %d", comment: ""),
-                            NSLocalizedString(unit.rawValue, comment: ""), min(completed + 1, total), total))
+                        Text(
+                            String(
+                                format: NSLocalizedString("%@ %d of %d", comment: ""),
+                                NSLocalizedString(unit.rawValue, comment: ""), min(completed + 1, total),
+                                total))
                     } else {
                         Text(LocalizedStringKey(progress.phase.rawValue))
                     }
                 }
-                Button(model.cancellationRequested ? "Cancelling…" : "Cancel Conversion") { model.cancelConversion() }
-                    .disabled(model.cancellationRequested)
+                Button(model.cancellationRequested ? "Cancelling…" : "Cancel Conversion") {
+                    model.cancelConversion()
+                }
+                .disabled(model.cancellationRequested)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -295,15 +334,19 @@ struct ContentView: View {
                     .accessibilityHidden(true)
                 Text("Drop documents, spreadsheets, PDFs, images, or a folder here")
                     .font(.title3.bold())
-                Text("A new folder with Markdown and assets is created at the selected destination. A dropped folder is searched for supported documents.")
-                    .multilineTextAlignment(.center)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: 390)
+                Text(
+                    "A new folder with Markdown and assets is created at the selected destination. A dropped folder is searched for supported documents."
+                )
+                .multilineTextAlignment(.center)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: 390)
                 HStack(spacing: 12) {
                     Button("Choose Document…") { model.chooseDocument() }
                         .keyboardShortcut(.defaultAction)
                     Button("Select Content…") {
-                        guard model.acceptsNewDocuments, let input = AppModel.chooseSelectionDocument() else { return }
+                        guard model.acceptsNewDocuments, let input = AppModel.chooseSelectionDocument() else {
+                            return
+                        }
                         activeSheet = .contentSelection(ContentSelectionTicket(input: input))
                     }
                     .accessibilityLabel("Select Content…").accessibilityIdentifier("selectionChoose")
@@ -329,12 +372,22 @@ struct ContentView: View {
                 .font(.system(size: 48))
                 .foregroundStyle(.green)
                 .accessibilityHidden(true)
-            Text(LocalizedStringKey(model.clipboardDraft == nil ? "Markdown created" : model.clipboardDraft?.source.isImage == true ? "Image ready to preview" : "Rich text ready to preview"))
-                .font(.title3.bold())
-            Text(model.clipboardDraft == nil ? result.outputDirectory.lastPathComponent : NSLocalizedString("Temporary result — choose how to keep it", comment: ""))
-                .font(.body.monospaced())
-                .lineLimit(2)
-                .textSelection(.enabled)
+            Text(
+                LocalizedStringKey(
+                    model.clipboardDraft == nil
+                        ? "Markdown created"
+                        : model.clipboardDraft?.source.isImage == true
+                            ? "Image ready to preview" : "Rich text ready to preview")
+            )
+            .font(.title3.bold())
+            Text(
+                model.clipboardDraft == nil
+                    ? result.outputDirectory.lastPathComponent
+                    : NSLocalizedString("Temporary result — choose how to keep it", comment: "")
+            )
+            .font(.body.monospaced())
+            .lineLimit(2)
+            .textSelection(.enabled)
             Text(assetSummary(result))
                 .foregroundStyle(.secondary)
             let warningMessages = result.warnings
@@ -359,12 +412,21 @@ struct ContentView: View {
                 HStack(spacing: 12) {
                     Button("Save Markdown and Assets…") { model.chooseClipboardDestination() }
                         .keyboardShortcut(.defaultAction)
-                    Button(LocalizedStringKey(model.clipboardDraft?.source.isImage == true ? "Copy Recognized Text" : "Copy Markdown Only")) { model.copyMarkdown() }
+                    Button(
+                        LocalizedStringKey(
+                            model.clipboardDraft?.source.isImage == true
+                                ? "Copy Recognized Text" : "Copy Markdown Only")
+                    ) { model.copyMarkdown() }
                 }.controlSize(.large)
-                Text(LocalizedStringKey(model.clipboardDraft?.source.isImage == true ? "Copying keeps recognized text only and omits the image." : "Copying keeps text only. Image links need a saved result with its assets."))
-                    .font(.callout).foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
+                Text(
+                    LocalizedStringKey(
+                        model.clipboardDraft?.source.isImage == true
+                            ? "Copying keeps recognized text only and omits the image."
+                            : "Copying keeps text only. Image links need a saved result with its assets.")
+                )
+                .font(.callout).foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
                 Button("Discard") { model.reset() }.keyboardShortcut(.cancelAction)
                 if let message = model.actionMessage { Text(message).font(.callout).textSelection(.enabled) }
             } else {
@@ -382,13 +444,24 @@ struct ContentView: View {
                 total: Double(max(progress.total, 1))
             )
             .frame(maxWidth: 320)
-            Text(String(format: NSLocalizedString("Completed %d of %d documents", comment: ""), progress.completed, progress.total))
+            Text(
+                String(
+                    format: NSLocalizedString("Completed %d of %d documents", comment: ""),
+                    progress.completed, progress.total))
             ForEach(model.runningJobs) { job in
                 HStack {
                     Text(job.input.lastPathComponent).lineLimit(1)
-                    if let value = job.progress, let unit = value.unit, let completed = value.completed, let total = value.total {
-                        Text(String(format: NSLocalizedString("%@ %d of %d", comment: ""), NSLocalizedString(unit.rawValue, comment: ""), min(completed + 1, total), total))
-                    } else if let value = job.progress { Text(LocalizedStringKey(value.phase.rawValue)) }
+                    if let value = job.progress, let unit = value.unit, let completed = value.completed,
+                        let total = value.total
+                    {
+                        Text(
+                            String(
+                                format: NSLocalizedString("%@ %d of %d", comment: ""),
+                                NSLocalizedString(unit.rawValue, comment: ""), min(completed + 1, total),
+                                total))
+                    } else if let value = job.progress {
+                        Text(LocalizedStringKey(value.phase.rawValue))
+                    }
                 }
                 .font(.caption)
             }
@@ -403,10 +476,13 @@ struct ContentView: View {
 
         case .batchFinished(let items):
             let succeeded = items.filter { $0.result != nil }.count
-            Image(systemName: succeeded == items.count ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-                .font(.system(size: 48))
-                .foregroundStyle(succeeded == items.count ? .green : .orange)
-                .accessibilityHidden(true)
+            Image(
+                systemName: succeeded == items.count
+                    ? "checkmark.circle.fill" : "exclamationmark.triangle.fill"
+            )
+            .font(.system(size: 48))
+            .foregroundStyle(succeeded == items.count ? .green : .orange)
+            .accessibilityHidden(true)
             Text(batchSummary(succeeded: succeeded, total: items.count))
                 .font(.title3.bold())
             batchList(items)
@@ -465,7 +541,9 @@ struct ContentView: View {
             if let input {
                 HStack {
                     Button("Retry") { model.retryFailed() }
-                    Button("Choose Another Name or Destination…") { model.chooseAlternativeDestination(for: input) }
+                    Button("Choose Another Name or Destination…") {
+                        model.chooseAlternativeDestination(for: input)
+                    }
                 }
             }
             Text("Conversion failed")
@@ -510,7 +588,10 @@ struct ContentView: View {
         if let result = model.selectedResult {
             if result.isCollection { collectionSelection(result).id(result.outputDirectory) }
             ViewThatFits(in: .horizontal) {
-                HStack { openResultButtons; inspectResultButtons }
+                HStack {
+                    openResultButtons
+                    inspectResultButtons
+                }
                 VStack(spacing: 8) {
                     HStack { openResultButtons }
                     HStack { inspectResultButtons }
@@ -523,10 +604,18 @@ struct ContentView: View {
     }
 
     private func collectionSelection(_ result: ConversionResult) -> some View {
-        let documents = result.documents.filter { collectionQuery.isEmpty || $0.title.localizedCaseInsensitiveContains(collectionQuery) || String($0.sourceIndex) == collectionQuery }
-        let countText = result.format == .enex && result.documents.count == 1
+        let documents = result.documents.filter {
+            collectionQuery.isEmpty || $0.title.localizedCaseInsensitiveContains(collectionQuery)
+                || String($0.sourceIndex) == collectionQuery
+        }
+        let countText =
+            result.format == .enex && result.documents.count == 1
             ? NSLocalizedString("1 note", comment: "")
-            : String(format: NSLocalizedString(result.format == .mbox ? "%d messages" : result.format == .enex ? "%d notes" : "%d documents", comment: ""), result.documents.count)
+            : String(
+                format: NSLocalizedString(
+                    result.format == .mbox
+                        ? "%d messages" : result.format == .enex ? "%d notes" : "%d documents", comment: ""),
+                result.documents.count)
         return VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(countText).font(.headline)
@@ -534,35 +623,53 @@ struct ContentView: View {
                 Button("Overview") { model.selectCollectionDocument(nil) }
                     .accessibilityIdentifier("collectionOverview")
             }
-            TextField(LocalizedStringKey(result.format == .mbox ? "Find a message" : result.format == .enex ? "Find a note" : "Find a document"), text: $collectionQuery)
-                .textFieldStyle(.roundedBorder)
-                .accessibilityIdentifier("collectionSearch")
-                .help("Press Return to select the first match.")
-                .onSubmit {
-                    if !collectionQuery.isEmpty, let document = documents.first { model.selectCollectionDocument(document.sourceIndex) }
+            TextField(
+                LocalizedStringKey(
+                    result.format == .mbox
+                        ? "Find a message" : result.format == .enex ? "Find a note" : "Find a document"),
+                text: $collectionQuery
+            )
+            .textFieldStyle(.roundedBorder)
+            .accessibilityIdentifier("collectionSearch")
+            .help("Press Return to select the first match.")
+            .onSubmit {
+                if !collectionQuery.isEmpty, let document = documents.first {
+                    model.selectCollectionDocument(document.sourceIndex)
                 }
+            }
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 4) {
                     ForEach(documents, id: \.sourceIndex) { document in
-                        Button { model.selectCollectionDocument(document.sourceIndex) } label: {
+                        Button {
+                            model.selectCollectionDocument(document.sourceIndex)
+                        } label: {
                             HStack(alignment: .firstTextBaseline, spacing: 8) {
                                 Text("\(document.sourceIndex).").monospacedDigit().foregroundStyle(.secondary)
                                 Text(verbatim: document.title).lineLimit(2).multilineTextAlignment(.leading)
                                 Spacer(minLength: 0)
-                                if model.selectedDocumentIndex == document.sourceIndex { Image(systemName: "checkmark") }
-                            }.padding(6).frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
+                                if model.selectedDocumentIndex == document.sourceIndex {
+                                    Image(systemName: "checkmark")
+                                }
+                            }.padding(6).frame(maxWidth: .infinity, alignment: .leading).contentShape(
+                                Rectangle())
                         }
                         .buttonStyle(.plain)
-                        .background(model.selectedDocumentIndex == document.sourceIndex ? Color.accentColor.opacity(0.15) : Color.clear)
+                        .background(
+                            model.selectedDocumentIndex == document.sourceIndex
+                                ? Color.accentColor.opacity(0.15) : Color.clear
+                        )
                         .clipShape(RoundedRectangle(cornerRadius: 5))
                         .accessibilityIdentifier("collectionDocument-\(document.sourceIndex)")
                     }
                     if documents.isEmpty { Text("No matching documents.").foregroundStyle(.secondary) }
                 }
             }.frame(height: 110)
-            Text(model.selectedDocument.map { "\($0.sourceIndex). \($0.title)" } ?? NSLocalizedString("Overview", comment: ""))
-                .font(.callout).foregroundStyle(.secondary).lineLimit(2)
-                .accessibilityIdentifier("collectionSelected")
+            Text(
+                model.selectedDocument.map { "\($0.sourceIndex). \($0.title)" }
+                    ?? NSLocalizedString("Overview", comment: "")
+            )
+            .font(.callout).foregroundStyle(.secondary).lineLimit(2)
+            .accessibilityIdentifier("collectionSelected")
         }
         .frame(maxWidth: 520)
         .onAppear { collectionQuery = "" }
@@ -641,12 +748,16 @@ struct ContentView: View {
                         }
                     }
                     .padding(5)
-                    .background(model.selectedInput == item.id ? Color.accentColor.opacity(0.15) : Color.clear)
+                    .background(
+                        model.selectedInput == item.id ? Color.accentColor.opacity(0.15) : Color.clear
+                    )
                     .contentShape(Rectangle())
                     .onTapGesture { model.selectResult(item) }
                     .accessibilityAction { model.selectResult(item) }
                     if item.result == nil && !model.isConverting {
-                        Button("Choose Another Name or Destination…") { model.chooseAlternativeDestination(for: item.input) }
+                        Button("Choose Another Name or Destination…") {
+                            model.chooseAlternativeDestination(for: item.input)
+                        }
                     }
                 }
             }
@@ -656,15 +767,21 @@ struct ContentView: View {
     }
 
     private func clipboardSummary(_ outcome: ClipboardOutcome) -> String {
-        let lines = outcome.markdown.split(omittingEmptySubsequences: false, whereSeparator: \.isNewline).count
-        return lines == 1 ? NSLocalizedString("1 line, ready to paste", comment: "") : String(format: NSLocalizedString("%d lines, ready to paste", comment: ""), lines)
+        let lines = outcome.markdown.split(omittingEmptySubsequences: false, whereSeparator: \.isNewline)
+            .count
+        return lines == 1
+            ? NSLocalizedString("1 line, ready to paste", comment: "")
+            : String(format: NSLocalizedString("%d lines, ready to paste", comment: ""), lines)
     }
 
     private func batchSummary(succeeded: Int, total: Int) -> String {
         if succeeded == total {
-            return total == 1 ? NSLocalizedString("Markdown created", comment: "") : String(format: NSLocalizedString("%d documents converted", comment: ""), total)
+            return total == 1
+                ? NSLocalizedString("Markdown created", comment: "")
+                : String(format: NSLocalizedString("%d documents converted", comment: ""), total)
         }
-        return String(format: NSLocalizedString("%d of %d documents converted", comment: ""), succeeded, total)
+        return String(
+            format: NSLocalizedString("%d of %d documents converted", comment: ""), succeeded, total)
     }
 
     private func assetSummary(_ result: ConversionResult) -> String {
@@ -708,8 +825,9 @@ struct ContentView: View {
 
     private func prepareCLIInstallationOffer() {
         guard !cliInstallDeclined,
-              Bundle.main.bundleURL.deletingLastPathComponent().standardizedFileURL.path
-                == "/Applications" else {
+            Bundle.main.bundleURL.deletingLastPathComponent().standardizedFileURL.path
+                == "/Applications"
+        else {
             return
         }
 
@@ -722,10 +840,12 @@ struct ContentView: View {
             return
         }
 
-        guard CLIInstaller.status(
-            sourceURL: sourceURL,
-            targetURL: CLIInstaller.defaultTargetURL
-        ) == .available else {
+        guard
+            CLIInstaller.status(
+                sourceURL: sourceURL,
+                targetURL: CLIInstaller.defaultTargetURL
+            ) == .available
+        else {
             return
         }
         activeOffer = .commandLine

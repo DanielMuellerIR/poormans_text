@@ -103,19 +103,26 @@ struct ReceiptEditorView: View {
                         .help(currentPDF.path)
                     Spacer(minLength: 4)
                     if pdf != nil {
-                        Button { zoom = ReceiptPDFZoom(action: .outwards) } label: {
+                        Button {
+                            zoom = ReceiptPDFZoom(action: .outwards)
+                        } label: {
                             Image(systemName: "minus.magnifyingglass").accessibilityLabel("Zoom Out")
                         }
                         Button("Fit") { zoom = ReceiptPDFZoom(action: .fit) }
                             .help("Fits the PDF page in the preview.")
-                        Button { zoom = ReceiptPDFZoom(action: .inwards) } label: {
+                        Button {
+                            zoom = ReceiptPDFZoom(action: .inwards)
+                        } label: {
                             Image(systemName: "plus.magnifyingglass").accessibilityLabel("Zoom In")
                         }
                     }
                 }
                 documentNavigation
                 if let pdf, let document {
-                    ReceiptPDFView(pdf: pdf, text: document, markedRegion: markedRegion, selectedRegion: selectedRegion, zoom: zoom) {
+                    ReceiptPDFView(
+                        pdf: pdf, text: document, markedRegion: markedRegion, selectedRegion: selectedRegion,
+                        zoom: zoom
+                    ) {
                         selectedRegion = $0
                     }
                     Text("Click a word or drag a rectangle to select a region.")
@@ -139,7 +146,8 @@ struct ReceiptEditorView: View {
                         if !suggestions.isEmpty { suggestionControls }
                         fieldControls
                         if let evaluationError {
-                            Text(verbatim: evaluationError).foregroundStyle(.secondary).textSelection(.enabled)
+                            Text(verbatim: evaluationError).foregroundStyle(.secondary).textSelection(
+                                .enabled)
                         }
                     }
                     .padding(16)
@@ -148,10 +156,14 @@ struct ReceiptEditorView: View {
                 Divider()
                 HStack {
                     Button("Preview JSON") { showPreview() }.disabled(result == nil)
-                        .help("Shows values and review statuses for the current receipt before saving. Missing or ambiguous values appear as null.")
+                        .help(
+                            "Shows values and review statuses for the current receipt before saving. Missing or ambiguous values appear as null."
+                        )
                     Spacer()
                     Button("Export JSON…") { exportResult() }.disabled(mask.fields.isEmpty || result == nil)
-                        .help("Saves current values and review statuses, including corrections for this receipt, as JSON.")
+                        .help(
+                            "Saves current values and review statuses, including corrections for this receipt, as JSON."
+                        )
                 }
                 .padding(16)
             }
@@ -187,7 +199,8 @@ struct ReceiptEditorView: View {
             case let .correction(draft):
                 ReceiptCorrectionView(name: draft.name, value: draft.value) { value in
                     if currentPDF == draft.source, sourceIdentity == draft.identity {
-                        corrections[draft.source, default: SourceCorrections(identity: draft.identity)].values[draft.field] = value
+                        corrections[draft.source, default: SourceCorrections(identity: draft.identity)]
+                            .values[draft.field] = value
                         refreshResult()
                     }
                     self.sheet = nil
@@ -204,16 +217,23 @@ struct ReceiptEditorView: View {
                 .help("Adds more receipts from the same business partner to test the same rules.")
             Spacer(minLength: 4)
             if pdfs.count > 1 {
-                Button { showPDF(at: currentIndex - 1) } label: {
+                Button {
+                    showPDF(at: currentIndex - 1)
+                } label: {
                     Image(systemName: "chevron.left").accessibilityLabel("Previous PDF")
                 }
                 .disabled(currentIndex == 0)
                 .help("Tests the same mask against the previous PDF in the list.")
-                Text(String(format: NSLocalizedString("PDF %lld of %lld", comment: ""),
-                            Int64(currentIndex + 1), Int64(pdfs.count)))
-                    .font(.caption.monospacedDigit())
-                    .foregroundStyle(.secondary)
-                Button { showPDF(at: currentIndex + 1) } label: {
+                Text(
+                    String(
+                        format: NSLocalizedString("PDF %lld of %lld", comment: ""),
+                        Int64(currentIndex + 1), Int64(pdfs.count))
+                )
+                .font(.caption.monospacedDigit())
+                .foregroundStyle(.secondary)
+                Button {
+                    showPDF(at: currentIndex + 1)
+                } label: {
                     Image(systemName: "chevron.right").accessibilityLabel("Next PDF")
                 }
                 .disabled(currentIndex == pdfs.count - 1)
@@ -225,7 +245,9 @@ struct ReceiptEditorView: View {
     private func addTestPDFs() {
         let urls = ReceiptFilePanels.open(.pdf, title: "Choose Test PDFs", multiple: true)
         var seen = Set(pdfs.map { $0.standardizedFileURL.resolvingSymlinksInPath() })
-        let newPDFs = urls.map(\.standardizedFileURL).filter { seen.insert($0.resolvingSymlinksInPath()).inserted }
+        let newPDFs = urls.map(\.standardizedFileURL).filter {
+            seen.insert($0.resolvingSymlinksInPath()).inserted
+        }
         guard !newPDFs.isEmpty else { return }
         let firstNewIndex = pdfs.count
         testPDFs.append(contentsOf: newPDFs)
@@ -242,21 +264,39 @@ struct ReceiptEditorView: View {
         GroupBox("Extraction Mask") {
             VStack(alignment: .leading, spacing: 10) {
                 LabeledContent("Partner") {
-                    TextField("Partner", text: Binding(get: { mask.partner }, set: { mask.partner = $0; refreshResult() }))
-                        .labelsHidden()
-                        .help("Name of the business partner whose receipts use this mask.")
+                    TextField(
+                        "Partner",
+                        text: Binding(
+                            get: { mask.partner },
+                            set: {
+                                mask.partner = $0
+                                refreshResult()
+                            })
+                    )
+                    .labelsHidden()
+                    .help("Name of the business partner whose receipts use this mask.")
                 }
                 LabeledContent("Document Type") {
-                    TextField("Document Type", text: Binding(get: { mask.documentType }, set: { mask.documentType = $0; refreshResult() }))
-                        .labelsHidden()
-                        .help("Category of receipts covered by this mask, such as invoice or delivery note.")
+                    TextField(
+                        "Document Type",
+                        text: Binding(
+                            get: { mask.documentType },
+                            set: {
+                                mask.documentType = $0
+                                refreshResult()
+                            })
+                    )
+                    .labelsHidden()
+                    .help("Category of receipts covered by this mask, such as invoice or delivery note.")
                 }
                 if let maskURL {
                     Text(verbatim: maskURL.lastPathComponent).font(.caption).foregroundStyle(.secondary)
                 }
                 HStack {
                     Button("Load Mask…") {
-                        if let url = ReceiptFilePanels.open(.json, title: "Choose Extraction Mask").first { loadMask(url) }
+                        if let url = ReceiptFilePanels.open(.json, title: "Choose Extraction Mask").first {
+                            loadMask(url)
+                        }
                     }
                     .help("Opens a saved JSON mask and tests its rules against the current PDF.")
                     Button("Reload Mask") {
@@ -279,17 +319,23 @@ struct ReceiptEditorView: View {
                 Text(String(format: NSLocalizedString("Page %lld", comment: ""), Int64(region.page)))
                     .foregroundStyle(.secondary)
                 if case let .region(_, rectangle) = rule(for: region) {
-                    Text(String(format: NSLocalizedString("x %.1f, y %.1f · %.1f × %.1f mm", comment: ""),
-                                locale: Locale.current, rectangle.x, rectangle.y, rectangle.width, rectangle.height))
-                        .foregroundStyle(.secondary)
-                        .font(.caption.monospacedDigit())
+                    Text(
+                        String(
+                            format: NSLocalizedString("x %.1f, y %.1f · %.1f × %.1f mm", comment: ""),
+                            locale: Locale.current, rectangle.x, rectangle.y, rectangle.width,
+                            rectangle.height)
+                    )
+                    .foregroundStyle(.secondary)
+                    .font(.caption.monospacedDigit())
                 }
                 HStack {
                     Button("New Region Field") {
-                        guard mask.fields.count < ReceiptMask.maximumFields, let rule = rule(for: region) else { return }
+                        guard mask.fields.count < ReceiptMask.maximumFields, let rule = rule(for: region)
+                        else { return }
                         let existing = Set(mask.fields.map(\.name))
                         let format = NSLocalizedString("Field %lld", comment: "")
-                        let name = (1...(existing.count + 1)).lazy
+                        let name =
+                            (1...(existing.count + 1)).lazy
                             .map { String(format: format, Int64($0)) }
                             .first { !existing.contains($0) } ?? format
                         mask.fields.append(ReceiptField(name: name, rule: rule))
@@ -301,7 +347,8 @@ struct ReceiptEditorView: View {
                         ForEach(mask.fields) { field in
                             Button(field.name) {
                                 guard let rule = rule(for: region),
-                                      let index = mask.fields.firstIndex(where: { $0.id == field.id }) else { return }
+                                    let index = mask.fields.firstIndex(where: { $0.id == field.id })
+                                else { return }
                                 mask.fields[index].rule = rule
                                 discardCorrections(for: field.id)
                                 finishRegion()
@@ -358,7 +405,8 @@ struct ReceiptEditorView: View {
         GroupBox("Fields and Current Results") {
             VStack(alignment: .leading, spacing: 12) {
                 if mask.fields.isEmpty {
-                    Text("Accept a suggestion or select a PDF region to add a field.").foregroundStyle(.secondary)
+                    Text("Accept a suggestion or select a PDF region to add a field.").foregroundStyle(
+                        .secondary)
                 }
                 ForEach(mask.fields) { field in
                     fieldRow(field)
@@ -374,13 +422,20 @@ struct ReceiptEditorView: View {
         let value = result?.fields.first { $0.id == field.id }
         return VStack(alignment: .leading, spacing: 6) {
             HStack {
-                TextField("Field Name", text: Binding(get: {
-                    mask.fields.first { $0.id == field.id }?.name ?? field.name
-                }, set: { name in
-                    guard let index = mask.fields.firstIndex(where: { $0.id == field.id }) else { return }
-                    mask.fields[index].name = name
-                    refreshResult()
-                }))
+                TextField(
+                    "Field Name",
+                    text: Binding(
+                        get: {
+                            mask.fields.first { $0.id == field.id }?.name ?? field.name
+                        },
+                        set: { name in
+                            guard let index = mask.fields.firstIndex(where: { $0.id == field.id }) else {
+                                return
+                            }
+                            mask.fields[index].name = name
+                            refreshResult()
+                        })
+                )
                 .accessibilityLabel("Field Name")
                 .help("Names this result field in the mask and the JSON output.")
                 Button(role: .destructive) {
@@ -421,13 +476,16 @@ struct ReceiptEditorView: View {
                     Spacer()
                     Button("Correct Value…") {
                         guard let sourceIdentity else { return }
-                        sheet = .correction(Correction(field: value.id, source: currentPDF, identity: sourceIdentity,
-                                                       name: value.name, value: value.value ?? ""))
+                        sheet = .correction(
+                            Correction(
+                                field: value.id, source: currentPDF, identity: sourceIdentity,
+                                name: value.name, value: value.value ?? ""))
                     }
                     .help("Changes the value for this receipt only. The mask’s rule stays the same.")
                 }
                 if let diagnostic = value.diagnostic {
-                    Text(verbatim: diagnostic).font(.caption).foregroundStyle(.secondary).textSelection(.enabled)
+                    Text(verbatim: diagnostic).font(.caption).foregroundStyle(.secondary).textSelection(
+                        .enabled)
                 }
             }
         }
@@ -438,8 +496,9 @@ struct ReceiptEditorView: View {
         case .region(let page, _):
             String(format: NSLocalizedString("Region on page %lld", comment: ""), Int64(page + 1))
         case .rightOf(let label, let kind):
-            String(format: NSLocalizedString("Search to the right of “%@” (%@)", comment: ""), label,
-                   NSLocalizedString(kind == .date ? "Date" : "Identifier", comment: ""))
+            String(
+                format: NSLocalizedString("Search to the right of “%@” (%@)", comment: ""), label,
+                NSLocalizedString(kind == .date ? "Date" : "Identifier", comment: ""))
         }
     }
 
@@ -515,11 +574,14 @@ struct ReceiptEditorView: View {
         let suggestions = try prepared.suggestions()
         let suggestedValues = try? prepared.evaluate(ReceiptMask(fields: suggestions)).fields
         try Task.checkCancellation()
-        return LoadedPDF(pdf: pdf, identity: identity, document: document, prepared: prepared,
-                         suggestions: suggestions, suggestedValues: suggestedValues ?? [])
+        return LoadedPDF(
+            pdf: pdf, identity: identity, document: document, prepared: prepared,
+            suggestions: suggestions, suggestedValues: suggestedValues ?? [])
     }
 
-    private nonisolated static func runWorker<T: Sendable>(_ work: @escaping @Sendable () throws -> T) async throws -> T {
+    private nonisolated static func runWorker<T: Sendable>(_ work: @escaping @Sendable () throws -> T)
+        async throws -> T
+    {
         let worker = Task.detached(priority: .userInitiated, operation: work)
         return try await withTaskCancellationHandler {
             try await worker.value
@@ -532,8 +594,9 @@ struct ReceiptEditorView: View {
         guard let document, document.pages.indices.contains(region.page - 1) else { return nil }
         let scale = document.pages[region.page - 1].pointsPerMillimeter
         let bounds = region.bounds
-        let rectangle = ReceiptRectangle(x: bounds.minX / scale, y: bounds.minY / scale,
-                                         width: bounds.width / scale, height: bounds.height / scale)
+        let rectangle = ReceiptRectangle(
+            x: bounds.minX / scale, y: bounds.minY / scale,
+            width: bounds.width / scale, height: bounds.height / scale)
         return .region(page: region.page - 1, rectangle: rectangle)
     }
 
@@ -620,7 +683,8 @@ struct ReceiptEditorView: View {
     }
 
     private func saveMask() {
-        guard let url = ReceiptFilePanels.saveJSON(title: "Save Extraction Mask", name: "receipt-mask.json") else { return }
+        guard let url = ReceiptFilePanels.saveJSON(title: "Save Extraction Mask", name: "receipt-mask.json")
+        else { return }
         do {
             try mask.save(to: url)
             maskURL = url
@@ -629,9 +693,9 @@ struct ReceiptEditorView: View {
 
     private func exportResult() {
         let name = ReceiptBatch.destination(for: currentPDF).lastPathComponent
-        guard let result, let url = ReceiptFilePanels.saveJSON(title: "Export Receipt Data", name: name) else { return }
-        do { try result.write(to: url) }
-        catch { self.error = error.localizedDescription }
+        guard let result, let url = ReceiptFilePanels.saveJSON(title: "Export Receipt Data", name: name)
+        else { return }
+        do { try result.write(to: url) } catch { self.error = error.localizedDescription }
     }
 
     private func showPreview() {

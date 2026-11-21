@@ -79,7 +79,9 @@ final class ReceiptPDFCanvas: PDFView {
             let regions = marked?.regions ?? []
             marks = regions.compactMap { add($0, color: .systemOrange) }
             if let first = regions.first, let page = document?.page(at: first.page - 1) {
-                let visible = regions.filter { $0.page == first.page }.reduce(CGRect.null) { $0.union($1.bounds) }
+                let visible = regions.filter { $0.page == first.page }.reduce(CGRect.null) {
+                    $0.union($1.bounds)
+                }
                 go(to: visible, on: page)
             }
         }
@@ -109,7 +111,9 @@ final class ReceiptPDFCanvas: PDFView {
         stopSelection()
         guard window != nil else { return }
         // PDFKit verarbeitet Mausklicks in der internen PDFPageView.
-        selectionMonitor = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown, .leftMouseDragged, .leftMouseUp]) { [weak self] event in
+        selectionMonitor = NSEvent.addLocalMonitorForEvents(matching: [
+            .leftMouseDown, .leftMouseDragged, .leftMouseUp,
+        ]) { [weak self] event in
             self?.handleSelection(event) == true ? nil : event
         }
     }
@@ -127,15 +131,18 @@ final class ReceiptPDFCanvas: PDFView {
         switch event.type {
         case .leftMouseDown:
             guard let contentView = window?.contentView,
-                  let hit = contentView.hitTest(event.locationInWindow), hit.isDescendant(of: self),
-                  !(hit is NSScroller) else { return false }
+                let hit = contentView.hitTest(event.locationInWindow), hit.isDescendant(of: self),
+                !(hit is NSScroller)
+            else { return false }
             let point = convert(event.locationInWindow, from: nil)
             guard let page = page(for: point, nearest: false) else { return false }
             dragStart = (page, convert(point, to: page))
         case .leftMouseDragged:
             guard let dragStart else { return false }
             remove(dragAnnotation)
-            dragAnnotation = region(for: event, start: dragStart, allowClick: false).flatMap { add($0, color: .systemBlue) }
+            dragAnnotation = region(for: event, start: dragStart, allowClick: false).flatMap {
+                add($0, color: .systemBlue)
+            }
         case .leftMouseUp:
             guard let dragStart else { return false }
             self.dragStart = nil
@@ -150,7 +157,9 @@ final class ReceiptPDFCanvas: PDFView {
         return true
     }
 
-    private func region(for event: NSEvent, start: (page: PDFPage, location: CGPoint), allowClick: Bool) -> ReceiptPDFRegion? {
+    private func region(for event: NSEvent, start: (page: PDFPage, location: CGPoint), allowClick: Bool)
+        -> ReceiptPDFRegion?
+    {
         guard let document else { return nil }
         let pageIndex = document.index(for: start.page)
         guard pageIndex < document.pageCount else { return nil }
@@ -163,10 +172,14 @@ final class ReceiptPDFCanvas: PDFView {
             let page = text.pages[pageIndex]
             let scale = page.pointsPerMillimeter
             let position = CGPoint(x: start.location.x / scale, y: start.location.y / scale)
-            guard let word = page.words.first(where: { $0.rectangle.cgRect.contains(position) }) else { return nil }
+            guard let word = page.words.first(where: { $0.rectangle.cgRect.contains(position) }) else {
+                return nil
+            }
             bounds = word.rectangle.cgRect.applying(CGAffineTransform(scaleX: scale, y: scale))
         } else {
-            bounds = CGRect(x: min(start.location.x, location.x), y: min(start.location.y, location.y), width: max(width, 3), height: max(height, 3))
+            bounds = CGRect(
+                x: min(start.location.x, location.x), y: min(start.location.y, location.y),
+                width: max(width, 3), height: max(height, 3))
         }
         let clipped = bounds.intersection(start.page.bounds(for: displayBox))
         guard !clipped.isNull, !clipped.isEmpty else { return nil }

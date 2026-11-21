@@ -226,7 +226,7 @@ final class DoclingDocumentProjectionTests: XCTestCase {
     func testNaturalRecognitionFixturesPreserveIndependentOriginalInventory() throws {
         let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
             .deletingLastPathComponent().deletingLastPathComponent()
-        let fixtures = root.appendingPathComponent("docs/linux-port/P11-DOCLING-EVIDENCE/documents")
+        let fixtures = root.appendingPathComponent("Tests/Fixtures/Docling")
         for filename in [
             "01030000000132.json", "01030000000132-render.json", "01030000000135.json",
             "structured.json",

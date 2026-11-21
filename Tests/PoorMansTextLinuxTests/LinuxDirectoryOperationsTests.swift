@@ -25,27 +25,6 @@ final class LinuxDirectoryOperationsTests: XCTestCase {
         }
     }
 
-    func testCleanupStopsAtItsDepthLimitAndRetainsTheRemainingTree() throws {
-        try withTestDirectory { root in
-            let staging = root.appendingPathComponent("staging", isDirectory: true)
-            var leaf = staging
-            for _ in 0..<270 {
-                leaf = leaf.appendingPathComponent("d", isDirectory: true)
-            }
-            try FileManager.default.createDirectory(at: leaf, withIntermediateDirectories: true)
-            let parent = pmt_process_open_directory(root.path)
-            XCTAssertGreaterThanOrEqual(parent, 0)
-            guard parent >= 0 else { return }
-            defer { close(parent) }
-
-            let result = pmt_remove_staging_at(parent, staging.lastPathComponent, -1)
-            let error = errno
-            XCTAssertEqual(result, -1)
-            XCTAssertEqual(error, ELOOP)
-            XCTAssertTrue(FileManager.default.fileExists(atPath: leaf.path))
-        }
-    }
-
     private func withTestDirectory(_ body: (URL) throws -> Void) throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)

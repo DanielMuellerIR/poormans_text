@@ -1,0 +1,428 @@
+import Foundation
+#if os(Linux)
+import FoundationXML
+#endif
+
+enum ODMContentItem: Equatable {
+    case markdown(String)
+    case section(name: String?, reference: String)
+}
+
+enum ODMContentParser {
+    struct Content {
+        let items: [ODMContentItem]
+        let hasTrackedChanges: Bool
+    }
+
+    static func parse(_ xml: Data, maximumTextBytes: Int = 128 * 1_024 * 1_024) throws -> [ODMContentItem] {
+        try read(xml, maximumTextBytes: maximumTextBytes).items
+    }
+
+    static func read(_ xml: Data, maximumTextBytes: Int = 128 * 1_024 * 1_024) throws -> Content {
+        let delegate = Delegate(maximumTextBytes: maximumTextBytes)
+        let parser = ImportXMLParser.make(xml, delegate: delegate)
+        let parsedSuccessfully = parser.parse()
+        try ConversionExecution.check()
+        guard parsedSuccessfully, delegate.failure == nil else {
+            throw delegate.failure ?? parser.parserError ?? CocoaError(.fileReadCorruptFile)
+        }
+        guard !delegate.items.isEmpty else {
+            throw ParserError("the ODM content contains no text or linked sections")
+        }
+        return Content(items: delegate.items, hasTrackedChanges: delegate.hasTrackedChanges)
+    }
+
+    private final class Delegate: NSObject, XMLParserDelegate {
+        var items = [ODMContentItem]()
+        var failure: Error?
+        var hasTrackedChanges = false
+        private var ignoredDepth = 0
+        private let maximumTextBytes: Int
+        private var textBytes = 0
+
+        init(maximumTextBytes: Int) {
+            self.maximumTextBytes = max(0, maximumTextBytes)
+        }
+        private var sections = [SectionBuilder]()
+        /// Absätze können ineinander liegen: Eine ODF-Notiz mitten in einem
+        /// Absatz enthält selbst wieder `text:p`. Mit nur einem Builder würde
+        /// der innere Absatz den äußeren überschreiben und der Text davor und
+        /// danach still verschwinden. Deshalb ein Stapel; oben liegt der
+        /// gerade offene Absatz.
+        private var texts = [TextBuilder]()
+        private let prefixes = NamespacePrefixTracker()
+
+        func parser(
+            _ parser: XMLParser,
+            didStartMappingPrefix prefix: String,
+            toURI namespaceURI: String
+        ) {
+            if ConversionExecution.isCancelled {
+                parser.abortParsing()
+                return
+            }
+            prefixes.startMapping(prefix: prefix, uri: namespaceURI)
+        }
+
+        func parser(_ parser: XMLParser, didEndMappingPrefix prefix: String) {
+            if ConversionExecution.isCancelled {
+                parser.abortParsing()
+                return
+            }
+            prefixes.endMapping(prefix: prefix)
+        }
+
+        func parser(
+            _ parser: XMLParser,
+            didStartElement elementName: String,
+            namespaceURI: String?,
+            qualifiedName qName: String?,
+            attributes attributeDict: [String: String] = [:]
+        ) {
+            if ConversionExecution.isCancelled {
+                parser.abortParsing()
+                return
+            }
+            if ignoredDepth > 0 {
+                ignoredDepth += 1
+                return
+            }
+            if namespaceURI == Namespaces.text, elementName == "tracked-changes" {
+                hasTrackedChanges = true
+                ignoredDepth = 1
+                return
+            }
+            if namespaceURI == Namespaces.text, elementName == "section" {
+                sections.append(
+                    SectionBuilder(
+                        name: prefixes.attributeValue(
+                            localName: "name",
+                            namespaceURI: Namespaces.text,
+                            in: attributeDict
+                        ))
+                )
+            } else if namespaceURI == Namespaces.text, elementName == "section-source",
+                !sections.isEmpty,
+                let reference = prefixes.attributeValue(
+                    localName: "href",
+                    namespaceURI: Namespaces.xlink,
+                    in: attributeDict
+                )
+            {
+                sections[sections.count - 1].reference = reference
+            } else if namespaceURI == Namespaces.text,
+                (elementName == "h" || elementName == "p")
+            {
+                let headingLevel =
+                    elementName == "h"
+                    ? min(
+                        6,
+                        max(
+                            1,
+                            Int(
+                                prefixes.attributeValue(
+                                    localName: "outline-level",
+                                    namespaceURI: Namespaces.text,
+                                    in: attributeDict
+                                ) ?? "1") ?? 1))
+                    : nil
+                texts.append(TextBuilder(headingLevel: headingLevel))
+            } else if namespaceURI == Namespaces.text, elementName == "line-break",
+                !texts.isEmpty
+            {
+                // Markdown kennt den harten Umbruch als zwei Leerzeichen vor dem
+                // Zeilenende; ein nacktes "\n" wäre nur ein weicher Umbruch und
+                // ginge beim Rendern verloren.
+                appendToOpenParagraph("  \n", parser: parser)
+            } else if namespaceURI == Namespaces.text, elementName == "tab", !texts.isEmpty {
+                appendToOpenParagraph(ODMText.literalTab, parser: parser)
+            } else if namespaceURI == Namespaces.text, elementName == "s", !texts.isEmpty {
+                guard
+                    let count = Int(
+                        prefixes.attributeValue(
+                            localName: "c",
+                            namespaceURI: Namespaces.text,
+                            in: attributeDict
+                        ) ?? "1"), count > 0,
+                    count <= (maximumTextBytes - textBytes) / ODMText.literalSpace.utf8.count
+                else {
+                    failure = ParserError("an explicit space count exceeds the ODM text budget or is invalid")
+                    parser.abortParsing()
+                    return
+                }
+                // Diese Leerzeichen stehen ausdrücklich im Dokument. Sie werden
+                // als Platzhalter gesammelt, damit das Trimmen am Absatzende nur
+                // den Leerraum der XML-Formatierung entfernt.
+                appendToOpenParagraph(String(repeating: ODMText.literalSpace, count: count), parser: parser)
+            }
+        }
+
+        func parser(_ parser: XMLParser, foundCharacters string: String) {
+            if ConversionExecution.isCancelled {
+                parser.abortParsing()
+                return
+            }
+            guard ignoredDepth == 0 else { return }
+            appendToOpenParagraph(string, parser: parser)
+        }
+
+        func parser(_ parser: XMLParser, foundCDATA cdata: Data) {
+            self.parser(parser, foundCharacters: String(decoding: cdata, as: UTF8.self))
+        }
+
+        private func appendToOpenParagraph(_ string: String, parser: XMLParser) {
+            guard failure == nil, !texts.isEmpty else { return }
+            let index = texts.count - 1
+            let needsBoundary =
+                texts[index].needsSemanticBoundary && needsSpace(between: texts[index].value, and: string)
+            guard
+                reserveTextBytes(
+                    string.utf8.count + (needsBoundary ? ODMText.literalSpace.utf8.count : 0), parser: parser)
+            else { return }
+            if texts[index].needsSemanticBoundary {
+                if needsBoundary {
+                    texts[index].value.append(ODMText.literalSpace)
+                }
+                texts[index].needsSemanticBoundary = false
+            }
+            texts[index].value.append(string)
+        }
+
+        private func reserveTextBytes(_ count: Int, parser: XMLParser) -> Bool {
+            guard count <= maximumTextBytes - textBytes else {
+                failure = ParserError("the ODM text exceeds its materialized-text budget")
+                parser.abortParsing()
+                return false
+            }
+            textBytes += count
+            return true
+        }
+
+        private func appendNestedParagraph(_ raw: String, parser: XMLParser) {
+            guard failure == nil, !texts.isEmpty else { return }
+            let value = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !value.isEmpty else { return }
+            let index = texts.count - 1
+            if needsSpace(between: texts[index].value, and: value) {
+                guard reserveTextBytes(ODMText.literalSpace.utf8.count, parser: parser) else { return }
+                // Zwei semantische ODF-Absätze dürfen auch dann nicht zu einem
+                // Wort verschmelzen, wenn die XML-Datei zwischen ihren Tags
+                // keinerlei Formatierungsleerraum enthält.
+                texts[index].value.append(ODMText.literalSpace)
+            }
+            texts[index].value.append(value)
+            texts[index].needsSemanticBoundary = true
+        }
+
+        /// Zeichen, vor denen nie ein Leerzeichen steht (schließende
+        /// Interpunktion, Anführungszeichen, Binde- und Schrägstrich).
+        private static let noSpaceBefore = Set<Character>(
+            ",.;:!?…)]}»”“\"'%/-–—"
+        )
+
+        /// Zeichen, nach denen nie ein Leerzeichen steht (öffnende
+        /// Interpunktion, dieselben ambivalenten Anführungszeichen).
+        private static let noSpaceAfter = Set<Character>(
+            "([{«„”“\"'/-–—"
+        )
+
+        /// Braucht die Naht zwischen zwei zusammengeführten Absätzen ein
+        /// Leerzeichen?
+        ///
+        /// Die beiden Richtungen werden getrennt beurteilt. Die frühere Regel
+        /// „beide Seiten müssen Buchstabe oder Ziffer sein" verlangte vom LINKEN
+        /// Rand fälschlich dasselbe wie vom rechten: Ein verschachtelter
+        /// Notizabsatz, der auf einen Punkt endet, wurde deshalb ohne Trennung
+        /// an das folgende Wort geklebt — aus `Before`, `Note.`, `After` wurde
+        /// `Before Note.After`.
+        private func needsSpace(between left: String, and right: String) -> Bool {
+            guard let leftCharacter = left.last, let rightCharacter = right.first else {
+                return false
+            }
+            // Vorhandener Leerraum an der Naht genügt bereits.
+            guard !Self.isSpacing(leftCharacter), !Self.isSpacing(rightCharacter) else {
+                return false
+            }
+            guard !Self.noSpaceBefore.contains(rightCharacter),
+                !Self.noSpaceAfter.contains(leftCharacter)
+            else {
+                return false
+            }
+            return true
+        }
+
+        /// Steht an dieser Stelle bereits ein Leerzeichen?
+        ///
+        /// `text:s` und `text:tab` sammelt der Parser als Platzhalter U+FFFF und
+        /// U+FFFE und macht daraus erst in `ODMText.markdown` wieder Leerzeichen
+        /// und Tabulator. Beide Zeichen sind kein `isWhitespace`, weshalb die
+        /// Naht sie übersah und neben dem vorhandenen Platzhalter ein ZWEITES
+        /// Leerzeichen einfügte.
+        private static func isSpacing(_ character: Character) -> Bool {
+            character.isWhitespace
+                || character == ODMText.literalSpaceCharacter
+                || character == ODMText.literalTabCharacter
+        }
+
+        func parser(
+            _ parser: XMLParser,
+            didEndElement elementName: String,
+            namespaceURI: String?,
+            qualifiedName qName: String?
+        ) {
+            if ConversionExecution.isCancelled {
+                parser.abortParsing()
+                return
+            }
+            if ignoredDepth > 0 {
+                ignoredDepth -= 1
+                return
+            }
+            if namespaceURI == Namespaces.text,
+                (elementName == "h" || elementName == "p"),
+                let text = texts.popLast()
+            {
+                if !texts.isEmpty {
+                    // Ein Absatz in einer Notiz gehört an genau diese Stelle des
+                    // noch offenen Elternabsatzes. Erst den äußeren Absatz als
+                    // Ganzes zu maskieren verhindert außerdem doppelte Escapes.
+                    appendNestedParagraph(text.value, parser: parser)
+                    return
+                }
+                let value = ODMText.markdown(from: text.value)
+                if !value.isEmpty {
+                    let markdown =
+                        text.headingLevel.map {
+                            String(repeating: "#", count: $0) + " " + value
+                        } ?? value
+                    append(.markdown(markdown))
+                }
+            } else if namespaceURI == Namespaces.text, elementName == "section",
+                let section = sections.popLast()
+            {
+                let sectionItems: [ODMContentItem]
+                if let reference = section.reference {
+                    sectionItems = [.section(name: section.name, reference: reference)]
+                } else {
+                    sectionItems = section.items
+                }
+                if sections.isEmpty {
+                    items.append(contentsOf: sectionItems)
+                } else {
+                    sections[sections.count - 1].items.append(contentsOf: sectionItems)
+                }
+            }
+        }
+
+        private func append(_ item: ODMContentItem) {
+            if sections.isEmpty {
+                items.append(item)
+            } else {
+                sections[sections.count - 1].items.append(item)
+            }
+        }
+    }
+
+    private struct SectionBuilder {
+        let name: String?
+        var reference: String?
+        var items = [ODMContentItem]()
+    }
+
+    private struct TextBuilder {
+        let headingLevel: Int?
+        var value = ""
+        var needsSemanticBoundary = false
+    }
+
+    private enum Namespaces {
+        static let text = "urn:oasis:names:tc:opendocument:xmlns:text:1.0"
+        static let xlink = "http://www.w3.org/1999/xlink"
+    }
+
+    /// Macht aus dem gesammelten Absatztext gültiges Markdown.
+    ///
+    /// Drei Dinge müssen dabei zusammenpassen: Der Leerraum, den die XML-Datei
+    /// nur zur eigenen Formatierung enthält, muss verschwinden; die
+    /// ausdrücklichen Leerzeichen aus `text:s` müssen bleiben; und Zeichen, die
+    /// Markdown als Auszeichnung liest, dürfen den Text nicht umdeuten. Ohne die
+    /// Maskierung würde aus dem gewöhnlichen Absatz `# Text` eine Überschrift.
+    enum ODMText {
+        /// Platzhalter für ein Leerzeichen aus `text:s`. U+FFFF ist in
+        /// XML-Inhalten nicht erlaubt und kann deshalb nie aus dem Dokument
+        /// selbst stammen.
+        static let literalSpaceCharacter: Character = "\u{FFFF}"
+        static let literalTabCharacter: Character = "\u{FFFE}"
+        static let literalSpace = String(literalSpaceCharacter)
+        static let literalTab = String(literalTabCharacter)
+
+        static func markdown(from raw: String) -> String {
+            let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            let restored =
+                trimmed
+                .replacingOccurrences(of: literalSpace, with: " ")
+                .replacingOccurrences(of: literalTab, with: "\t")
+            guard !restored.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                return ""
+            }
+            return restored.split(separator: "\n", omittingEmptySubsequences: false)
+                .map(escapedLine)
+                .joined(separator: "\n")
+        }
+
+        /// Zeichen, die überall in der Zeile eine Auszeichnung beginnen können.
+        private static let inlineSpecials: Set<Character> = [
+            "\\", "`", "*", "_", "[", "]", "<", ">", "~", "&",
+        ]
+
+        private static func escapedLine(_ line: Substring) -> String {
+            var escaped = ""
+            for character in line {
+                if inlineSpecials.contains(character) {
+                    escaped.append("\\")
+                }
+                escaped.append(character)
+            }
+            return escapingLeadingBlockMarker(escaped)
+        }
+
+        /// Am Zeilenanfang entscheidet das erste sichtbare Zeichen über den
+        /// Blocktyp: `# ` wäre eine Überschrift, `- ` oder `+ ` eine Liste,
+        /// `1. ` eine nummerierte Liste und `=` eine Unterstreichungs-Überschrift.
+        /// Genau dort kommt ein Backslash davor, im Rest der Zeile nicht — sonst
+        /// stünde in jedem Bindestrich eines gewöhnlichen Wortes einer.
+        private static func escapingLeadingBlockMarker(_ line: String) -> String {
+            let indent = line.prefix { $0 == " " || $0 == "\t" }
+            let rest = line[indent.endIndex...]
+            if indent.contains("\t") || indent.count >= 4 {
+                // Vier Leerzeichen oder ein Tab eröffnen in GFM einen Codeblock.
+                // Geschützte Leerzeichen bleiben sichtbar, ohne den Blocktyp des
+                // ursprünglichen ODF-Absatzes zu verändern.
+                let visibleIndent = indent.map { character in
+                    character == "\t"
+                        ? "&nbsp;&nbsp;&nbsp;&nbsp;"
+                        : "&nbsp;"
+                }.joined()
+                return visibleIndent + rest
+            }
+            guard let first = rest.first else {
+                return line
+            }
+            if "#-+=".contains(first) {
+                return String(indent) + "\\" + rest
+            }
+            let digits = rest.prefix(while: \.isNumber)
+            let afterDigits = rest[digits.endIndex...]
+            if !digits.isEmpty, let marker = afterDigits.first, marker == "." || marker == ")" {
+                return String(indent) + digits + "\\" + afterDigits
+            }
+            return line
+        }
+    }
+
+    private struct ParserError: LocalizedError {
+        let reason: String
+        init(_ reason: String) { self.reason = reason }
+        var errorDescription: String? { reason }
+    }
+}

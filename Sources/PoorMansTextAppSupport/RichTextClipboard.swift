@@ -47,15 +47,20 @@ public enum RichTextClipboard {
         }
 
         @MainActor
-        public static func read(from pasteboard: NSPasteboard, includingImages: Bool = true) throws -> Source {
+        public static func read(from pasteboard: NSPasteboard, includingImages: Bool = true) throws -> Source
+        {
             let change = pasteboard.changeCount
             let types = pasteboard.types ?? []
             guard !types.isEmpty else { throw ClipboardError.emptyClipboard }
             let items = pasteboard.pasteboardItems ?? []
             guard items.count <= 1 else { throw ClipboardError.multipleItems }
-            for (type, kind) in [(NSPasteboard.PasteboardType.rtfd, Kind.flatRTFD), (.rtf, .rtf), (.html, .html)] {
+            for (type, kind) in [
+                (NSPasteboard.PasteboardType.rtfd, Kind.flatRTFD), (.rtf, .rtf), (.html, .html),
+            ] {
                 if types.contains(type) {
-                    guard let data = pasteboard.data(forType: type), !data.isEmpty else { throw ClipboardError.unreadableRichText }
+                    guard let data = pasteboard.data(forType: type), !data.isEmpty else {
+                        throw ClipboardError.unreadableRichText
+                    }
                     guard data.count <= maximumSourceBytes else { throw ClipboardError.tooLarge }
                     guard pasteboard.changeCount == change else { throw ClipboardError.changedDuringRead }
                     return Source(kind: kind, data: data)
@@ -68,7 +73,9 @@ public enum RichTextClipboard {
                 let item = items.first
                 let imageTypes = item?.types ?? []
                 for format in ClipboardImageFormat.allCases where imageTypes.contains(format.pasteboardType) {
-                    guard let data = item?.data(forType: format.pasteboardType), !data.isEmpty else { throw ClipboardError.unreadableImage }
+                    guard let data = item?.data(forType: format.pasteboardType), !data.isEmpty else {
+                        throw ClipboardError.unreadableImage
+                    }
                     guard data.count <= maximumSourceBytes else { throw ClipboardError.tooLarge }
                     guard pasteboard.changeCount == change else { throw ClipboardError.changedDuringRead }
                     return Source(kind: .image(format), data: data)
@@ -105,7 +112,9 @@ public enum RichTextClipboard {
 
         init(source: Source, options: ConversionOptions, result: ConversionResult) {
             precondition(result.outputLifetime == .temporary)
-            self.source = source; self.options = options; self.result = result
+            self.source = source
+            self.options = options
+            self.result = result
         }
 
         func discard() { try? FileManager.default.removeItem(at: result.outputDirectory) }
@@ -122,7 +131,8 @@ public enum RichTextClipboard {
         progress: ConversionProgressHandler? = nil,
         cancellation: ConversionCancellationToken? = nil
     ) throws -> ClipboardOutcome {
-        let result = try convertDocument(source, options: options, progress: progress, cancellation: cancellation)
+        let result = try convertDocument(
+            source, options: options, progress: progress, cancellation: cancellation)
         defer { try? FileManager.default.removeItem(at: result.outputDirectory) }
         return try clipboardOutcome(from: result)
     }
@@ -168,7 +178,9 @@ public enum RichTextClipboard {
         if source.isImage {
             // Nur Bilddaten erlauben: Ein falscher Pasteboard-Typ darf keine
             // andere Dokumentkonvertierung oder externe Werkzeuge auslösen.
-            guard try converter.detectFormat(at: inputURL) == .image else { throw ClipboardError.unreadableImage }
+            guard try converter.detectFormat(at: inputURL) == .image else {
+                throw ClipboardError.unreadableImage
+            }
         }
         return try converter.convert(
             ConversionRequest(inputURL: inputURL, destination: destination, options: options),
@@ -183,24 +195,35 @@ public enum RichTextClipboard {
             // Der Bildadapter hält OCR hinter dieser Überschrift getrennt.
             // Nur diesen Teil kopieren: Titel, Metadaten und Originalbildlink
             // gehören zum dauerhaft zu sichernden Dokument, nicht zum OCR-Text.
-            guard let start = markdown.range(of: "\n\n## OCR text\n\n") else { throw ClipboardError.noRecognizedText }
+            guard let start = markdown.range(of: "\n\n## OCR text\n\n") else {
+                throw ClipboardError.noRecognizedText
+            }
             let text = String(markdown[start.upperBound...])
-            let content = text.replacingOccurrences(of: "_No text could be extracted from this image frame._", with: "")
-                .replacingOccurrences(of: "(?m)^### Frame [0-9]+$", with: "", options: .regularExpression)
-                .trimmingCharacters(in: .whitespacesAndNewlines)
+            let content = text.replacingOccurrences(
+                of: "_No text could be extracted from this image frame._", with: ""
+            )
+            .replacingOccurrences(of: "(?m)^### Frame [0-9]+$", with: "", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
             guard !content.isEmpty else { throw ClipboardError.noRecognizedText }
-            warnings.append(NSLocalizedString("The image was omitted. Only recognized text was copied; save Markdown and Assets to keep the image.", comment: ""))
+            warnings.append(
+                NSLocalizedString(
+                    "The image was omitted. Only recognized text was copied; save Markdown and Assets to keep the image.",
+                    comment: ""))
             return ClipboardOutcome(markdown: content, warnings: warnings)
         }
         if !result.assets.isEmpty {
             // Der Hinweis landet direkt im Fenster, deshalb übersetzt: Vorher
-            // ging er als englischer Rohtext in die Oberfläche
-            // (Roadmap-Punkt, 2026-09-10).
+            // ging er als englischer Rohtext in die Oberfläche.
             let count = result.assets.count
             warnings.append(
                 count == 1
-                    ? NSLocalizedString("1 image was left out; the clipboard holds text only, so its image link points nowhere.", comment: "")
-                    : String(format: NSLocalizedString("%d images were left out; the clipboard holds text only, so their image links point nowhere.", comment: ""), count)
+                    ? NSLocalizedString(
+                        "1 image was left out; the clipboard holds text only, so its image link points nowhere.",
+                        comment: "")
+                    : String(
+                        format: NSLocalizedString(
+                            "%d images were left out; the clipboard holds text only, so their image links point nowhere.",
+                            comment: ""), count)
             )
         }
         return ClipboardOutcome(markdown: markdown, warnings: warnings)

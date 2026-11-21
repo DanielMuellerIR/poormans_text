@@ -54,126 +54,130 @@ struct ParsedArguments {
 }
 
 #if os(Linux)
-private let ocrMethodHelp = "Local OCR method (Linux structured: separately verified local model runtime required)."
+private let ocrMethodHelp =
+    "Local OCR method (Linux structured: separately verified local model runtime required)."
 #else
 private let ocrMethodHelp = "Local OCR method (structured: macOS 26+, with fallback)."
 #endif
 
 let usage = """
-Usage: poormans-text [options] INPUT [INPUT ...]
-       poormans-text --formats [--json] [--pandoc PATH]
-       poormans-text extract --mask FILE [--output-dir DIRECTORY] [--format json] INPUT [INPUT ...]
+    Usage: poormans-text [options] INPUT [INPUT ...]
+           poormans-text --formats [--json] [--pandoc PATH]
+           poormans-text extract --mask FILE [--output-dir DIRECTORY] [--format json] INPUT [INPUT ...]
 
-Convert documents, spreadsheets, presentations, notebooks, mail archives, ENEX notes, PDFs, or images into new Markdown folders.
+    Convert documents, spreadsheets, presentations, notebooks, mail archives, ENEX notes, PDFs, or images into new Markdown folders.
 
-Run poormans-text extract --help for receipt extraction options and exit codes.
+    Run poormans-text extract --help for receipt extraction options and exit codes.
 
-Options:
-  -o, --output DIRECTORY  Set the new output directory.
-      --profile NAME      Apply a saved profile; explicit options take precedence.
-      --save-profile NAME Save options without converting an input.
-      --list-profiles     List profile names and scopes.
-      --import-profile FILE  Import a versioned profile without overwriting names.
-      --export-profile FILE  Export --profile NAME to a new file.
-      --profiles-directory DIR  Use another local profile store.
-      --profile-source FILE  Bind saved content selections to this exact document.
-      --profile-local     Explicitly permit local targets in profile operations.
-      --clear-profile-selection  Discard a chosen profile's bound content selection.
-      --no-frontmatter, --markdown-folder, --no-source-map, --no-report
-                          Explicitly disable profile output preferences.
-      --no-pdf-remove-headers-footers, --no-pdf-dehyphenate
-                          Explicitly disable profile PDF cleanup preferences.
-      --pandoc PATH       Use a specific Pandoc executable.
-      --formats           List the supported input formats instead of converting.
-      --spreadsheet-format table|tsv
-                          Render spreadsheets as a GFM table (default) or escaped TSV.
-      --sheets all|visible|RANGES  Select source sheet indices, e.g. 1,3-5.
-      --sheet-name NAME   Select an exact sheet name (repeatable; excludes --sheets).
-      --cell-range A1:B8  Select a cell rectangle on each selected sheet (repeatable).
-      --list-sheets       Inspect sheet names, indices and visibility without output folders.
-      --slides RANGES    Select source slides, e.g. 1,3-5 (PPTX/PPTM/POTX/ODP).
-      --notes on|off     Include presentation notes (default: on).
-      --list-slides      Inspect ordered slide titles and local notes references.
-      --epub-chapters RANGES  Select EPUB spine entries, e.g. 1,3-5.
-      --list-chapters     Inspect EPUB reading order and navigation without conversion.
-      --docx-changes accept|reject|mark  Choose tracked DOCX text (default: accept); comments are retained.
-      --image-ocr on|off  Add local OCR text for images (default) or preserve only the image asset.
-      --preview-page N / --preview-frame N  Return one bounded passive source PNG as JSON (Linux only; requires --json).
-      --pdf-ocr auto|always|off  Choose local PDF OCR (default: auto).
-      --pdf-pages RANGES  Select source pages, e.g. 1,3-5 (PDF inputs only).
-      --ocr-method standard|structured  \(ocrMethodHelp)
-      --ocr-language CODES Comma-separated local OCR languages, e.g. de,en.
-      --pdf-layout auto|legacy  Reconstruct PDF structure or keep the previous extraction.
-      --pdf-remove-headers-footers  Remove repeated text at page margins.
-      --pdf-dehyphenate    Join conservative lowercase word breaks.
-      --frontmatter       Start the Markdown with a YAML header (title, author, dates) from the source.
-      --textbundle        Write INPUT.textbundle (text.md, assets/, info.json) instead of INPUT-markdown.
-      --source-map        Include verified source-to-Markdown byte ranges (requires --json or --report).
-      --report            Save conversion-report.json with source/output hashes, options and source mappings.
-      --stdout            Print the Markdown to standard output instead of writing a folder.
-      --progress          Report phases and page/sheet/slide/cell/message/note progress on stderr.
-      --jobs 1..4         Convert up to four batch documents concurrently (default: 1); OCR stays serial.
-      --timeout SECONDS   Limit each external tool process (positive seconds).
-      --json              Write a machine-readable result to stdout.
-  -h, --help              Show this help text.
-  -V, --version           Show the product version.
+    Options:
+      -o, --output DIRECTORY  Set the new output directory.
+          --profile NAME      Apply a saved profile; explicit options take precedence.
+          --save-profile NAME Save options without converting an input.
+          --list-profiles     List profile names and scopes.
+          --import-profile FILE  Import a versioned profile without overwriting names.
+          --export-profile FILE  Export --profile NAME to a new file.
+          --profiles-directory DIR  Use another local profile store.
+          --profile-source FILE  Bind saved content selections to this exact document.
+          --profile-local     Explicitly permit local targets in profile operations.
+          --clear-profile-selection  Discard a chosen profile's bound content selection.
+          --no-frontmatter, --markdown-folder, --no-source-map, --no-report
+                              Explicitly disable profile output preferences.
+          --no-pdf-remove-headers-footers, --no-pdf-dehyphenate
+                              Explicitly disable profile PDF cleanup preferences.
+          --pandoc PATH       Use a specific Pandoc executable.
+          --formats           List the supported input formats instead of converting.
+          --spreadsheet-format table|tsv
+                              Render spreadsheets as a GFM table (default) or escaped TSV.
+          --sheets all|visible|RANGES  Select source sheet indices, e.g. 1,3-5.
+          --sheet-name NAME   Select an exact sheet name (repeatable; excludes --sheets).
+          --cell-range A1:B8  Select a cell rectangle on each selected sheet (repeatable).
+          --list-sheets       Inspect sheet names, indices and visibility without output folders.
+          --slides RANGES    Select source slides, e.g. 1,3-5 (PPTX/PPTM/POTX/ODP).
+          --notes on|off     Include presentation notes (default: on).
+          --list-slides      Inspect ordered slide titles and local notes references.
+          --epub-chapters RANGES  Select EPUB spine entries, e.g. 1,3-5.
+          --list-chapters     Inspect EPUB reading order and navigation without conversion.
+          --docx-changes accept|reject|mark  Choose tracked DOCX text (default: accept); comments are retained.
+          --image-ocr on|off  Add local OCR text for images (default) or preserve only the image asset.
+          --preview-page N / --preview-frame N  Return one bounded passive source PNG as JSON (Linux only; requires --json).
+          --pdf-ocr auto|always|off  Choose local PDF OCR (default: auto).
+          --pdf-pages RANGES  Select source pages, e.g. 1,3-5 (PDF inputs only).
+          --ocr-method standard|structured  \(ocrMethodHelp)
+          --ocr-language CODES Comma-separated local OCR languages, e.g. de,en.
+          --pdf-layout auto|legacy  Reconstruct PDF structure or keep the previous extraction.
+          --pdf-remove-headers-footers  Remove repeated text at page margins.
+          --pdf-dehyphenate    Join conservative lowercase word breaks.
+          --frontmatter       Start the Markdown with a YAML header (title, author, dates) from the source.
+          --textbundle        Write INPUT.textbundle (text.md, assets/, info.json) instead of INPUT-markdown.
+          --source-map        Include verified source-to-Markdown byte ranges (requires --json or --report).
+          --report            Save conversion-report.json with source/output hashes, options and source mappings.
+          --stdout            Print the Markdown to standard output instead of writing a folder.
+          --progress          Report phases and page/sheet/slide/cell/message/note progress on stderr.
+          --jobs 1..4         Convert up to four batch documents concurrently (default: 1); OCR stays serial.
+          --timeout SECONDS   Limit each external tool process (positive seconds).
+          --json              Write a machine-readable result to stdout.
+      -h, --help              Show this help text.
+      -V, --version           Show the product version.
 
-The default output directory is INPUT-markdown next to the source. Existing
-output directories are never overwritten. Exit codes follow sysexits values:
-64 usage, 65 invalid data, 66 missing input, 69 missing dependency,
-70 conversion failure, 73 output collision, 74 file-system failure,
-124 tool timeout, and 130 cancelled (SIGINT/SIGTERM).
+    The default output directory is INPUT-markdown next to the source. Existing
+    output directories are never overwritten. Exit codes follow sysexits values:
+    64 usage, 65 invalid data, 66 missing input, 69 missing dependency,
+    70 conversion failure, 73 output collision, 74 file-system failure,
+    124 tool timeout, and 130 cancelled (SIGINT/SIGTERM).
 
-With several inputs, or with a folder as input, every document is converted in
-turn by default; --jobs 2 through 4 runs documents concurrently. Failures do not stop the others. A folder is searched recursively
-for supported file extensions; packages such as .rtfd count as one document,
-and hidden entries, symbolic links, and earlier *-markdown results are skipped.
---output then names a parent directory that receives one INPUT-markdown folder
-per document, mirroring the folder structure. Results retain input order, and
-the first input reserves a colliding target. OCR runs one image at a time.
---json reports a list under
-"results", and the exit code is that of the first failed input. Text mode prints
-one result path per line; a path that itself contains a line break spans two
-lines, so scripts that parse the output should use --json.
+    With several inputs, or with a folder as input, every document is converted in
+    turn by default; --jobs 2 through 4 runs documents concurrently. Failures do not stop the others. A folder is searched recursively
+    for supported file extensions; packages such as .rtfd count as one document,
+    and hidden entries, symbolic links, and earlier *-markdown results are skipped.
+    --output then names a parent directory that receives one INPUT-markdown folder
+    per document, mirroring the folder structure. Results retain input order, and
+    the first input reserves a colliding target. OCR runs one image at a time.
+    --json reports a list under
+    "results", and the exit code is that of the first failed input. Text mode prints
+    one result path per line; a path that itself contains a line break spans two
+    lines, so scripts that parse the output should use --json.
 
---frontmatter reads title, author, subject, keywords, and dates from OOXML
-core properties, OpenDocument meta.xml, the RTF info group, the PDF
-information dictionary, the OPF of an EPUB, the title-info of a FictionBook,
-mail headers, ENEX note fields, or the HTML head; a source without any of them gets a warning instead of
-an empty header. --stdout converts exactly one document into a temporary place,
-prints its Markdown, and removes that place again; image assets are not kept and
-are reported on standard error. It cannot be combined with --json, --output,
---textbundle, --jobs, several inputs, or a folder.
+    --frontmatter reads title, author, subject, keywords, and dates from OOXML
+    core properties, OpenDocument meta.xml, the RTF info group, the PDF
+    information dictionary, the OPF of an EPUB, the title-info of a FictionBook,
+    mail headers, ENEX note fields, or the HTML head; a source without any of them gets a warning instead of
+    an empty header. --stdout converts exactly one document into a temporary place,
+    prints its Markdown, and removes that place again; image assets are not kept and
+    are reported on standard error. It cannot be combined with --json, --output,
+    --textbundle, --jobs, several inputs, or a folder.
 
-MBOX and ENEX produce a complete collection folder: an overview, ordered documents,
-local assets and an optional report. --stdout cannot represent a collection.
-ENEX requires Pandoc, reads only local exports (up to 16 MiB), and never logs
-into Evernote or downloads resources. Internal note links need unique identities
-in the export; missing identities or resources produce diagnostics.
+    MBOX and ENEX produce a complete collection folder: an overview, ordered documents,
+    local assets and an optional report. --stdout cannot represent a collection.
+    ENEX requires Pandoc, reads only local exports (up to 16 MiB), and never logs
+    into Evernote or downloads resources. Internal note links need unique identities
+    in the export; missing identities or resources produce diagnostics.
 
---formats reports every format this build can read, its file extensions, whether
-it is a single file or a folder package, which external tools it needs, and
-whether those tools are installed right now. It never inspects a document, and
-a valid call always exits 0 — even when no format is currently available.
-Combining --formats with an input document, an output directory, or a
-conversion option such as --spreadsheet-format or --image-ocr is a usage error
-and exits 64.
-"""
+    --formats reports every format this build can read, its file extensions, whether
+    it is a single file or a folder package, which external tools it needs, and
+    whether those tools are installed right now. It never inspects a document, and
+    a valid call always exits 0 — even when no format is currently available.
+    Combining --formats with an input document, an output directory, or a
+    conversion option such as --spreadsheet-format or --image-ocr is a usage error
+    and exits 64.
+    """
 
 /// Optionen, die einen Wert erwarten — als nächstes Argument oder, bei langen
 /// Optionen, als `--name=Wert`. Die Liste ist die einzige Stelle, die das
 /// weiß: Parser und Vorabscan lesen sie beide, sonst könnten sie `--pandoc
 /// --json` verschieden deuten.
 let valueOptions: Set<String> = [
-    "--profile", "--save-profile", "--import-profile", "--export-profile", "--profiles-directory", "--profile-source",
+    "--profile", "--save-profile", "--import-profile", "--export-profile", "--profiles-directory",
+    "--profile-source",
     "-o", "--output", "--pandoc", "--timeout", "--jobs", "--spreadsheet-format",
-    "--preview-page", "--preview-frame", "--docx-changes", "--image-ocr", "--ocr-method", "--pdf-ocr", "--pdf-layout", "--ocr-language", "--pdf-pages", "--sheets", "--sheet-name", "--cell-range", "--slides", "--notes", "--epub-chapters",
+    "--preview-page", "--preview-frame", "--docx-changes", "--image-ocr", "--ocr-method", "--pdf-ocr",
+    "--pdf-layout", "--ocr-language", "--pdf-pages", "--sheets", "--sheet-name", "--cell-range", "--slides",
+    "--notes", "--epub-chapters",
 ]
 
 /// Sagt VOR dem Parsen, ob `--json` als Option vorkommt, damit auch ein
 /// Argumentfehler vor `--json` als JSON gemeldet wird. Vorher galt nur das
 /// bereits gelesene `--json`; ein Wrapper, der es anhängt, bekam bei einem
-/// Fehler Text (Roadmap-Punkt, 2026-09-10). Der Scan ist wertbewusst: Nach
+/// Fehler Text. Der Scan ist wertbewusst: Nach
 /// einer Option mit Wert wird das nächste Argument übersprungen, sodass
 /// `--pandoc --json` ein Werkzeugpfad bleibt; nach `--` sind alle Argumente
 /// Eingaben.
@@ -246,8 +250,12 @@ private func apply(flag: String, to parsed: inout ParsedArguments) throws {
     case "--markdown-folder": parsed.outputLayout = .markdownFolder
     case "--no-source-map": parsed.sourceMapping = false
     case "--no-report": parsed.conversionReport = false
-    case "--no-pdf-remove-headers-footers": parsed.setsPDFOptions = true; parsed.pdfOptions.pdfRemoveHeadersFooters = false
-    case "--no-pdf-dehyphenate": parsed.setsPDFOptions = true; parsed.pdfOptions.pdfDehyphenate = false
+    case "--no-pdf-remove-headers-footers":
+        parsed.setsPDFOptions = true
+        parsed.pdfOptions.pdfRemoveHeadersFooters = false
+    case "--no-pdf-dehyphenate":
+        parsed.setsPDFOptions = true
+        parsed.pdfOptions.pdfDehyphenate = false
     case "-h", "--help": parsed.showHelp = true
     case "-V", "--version": parsed.showVersion = true
     case "--progress": parsed.progress = true
@@ -288,67 +296,105 @@ private func apply(option: String, value: String, to parsed: inout ParsedArgumen
         }
         parsed.timeout = seconds
     case "--docx-changes":
-        guard let mode = DOCXChangeMode(rawValue: value) else { throw CLIArgumentError.invalidConversionOption("--docx-changes requires accept, reject, or mark") }
+        guard let mode = DOCXChangeMode(rawValue: value) else {
+            throw CLIArgumentError.invalidConversionOption("--docx-changes requires accept, reject, or mark")
+        }
         parsed.docxChangeMode = mode
         parsed.setsDOCXChangeMode = true
     case "--preview-page", "--preview-frame":
         guard parsed.sourcePreview == nil, let index = Int(value), (1...1000).contains(index) else {
-            throw CLIArgumentError.invalidConversionOption("a source preview requires exactly one page or frame index between 1 and 1000")
+            throw CLIArgumentError.invalidConversionOption(
+                "a source preview requires exactly one page or frame index between 1 and 1000")
         }
         parsed.sourcePreview = option == "--preview-page" ? .page(index) : .frame(index)
     case "--pdf-ocr":
         parsed.setsPDFOptions = true
-        guard let mode = PDFTextRecognition(rawValue: value) else { throw CLIArgumentError.invalidConversionOption("--pdf-ocr requires auto, always, or off") }
+        guard let mode = PDFTextRecognition(rawValue: value) else {
+            throw CLIArgumentError.invalidConversionOption("--pdf-ocr requires auto, always, or off")
+        }
         parsed.pdfOptions.pdfTextRecognition = mode
     case "--pdf-pages":
         parsed.setsPDFOptions = true
-        do { parsed.pdfOptions.pdfPages = try IndexSelection(value) }
-        catch { throw CLIArgumentError.invalidConversionOption("--pdf-pages: " + error.localizedDescription) }
+        do { parsed.pdfOptions.pdfPages = try IndexSelection(value) } catch {
+            throw CLIArgumentError.invalidConversionOption("--pdf-pages: " + error.localizedDescription)
+        }
     case "--pdf-layout":
         parsed.setsPDFOptions = true
-        guard let layout = PDFLayout(rawValue: value) else { throw CLIArgumentError.invalidConversionOption("--pdf-layout requires auto or legacy") }
+        guard let layout = PDFLayout(rawValue: value) else {
+            throw CLIArgumentError.invalidConversionOption("--pdf-layout requires auto or legacy")
+        }
         parsed.pdfOptions.pdfLayout = layout
     case "--ocr-method":
-        guard let method = OCRMethod(rawValue: value) else { throw CLIArgumentError.invalidConversionOption("--ocr-method requires standard or structured") }
+        guard let method = OCRMethod(rawValue: value) else {
+            throw CLIArgumentError.invalidConversionOption("--ocr-method requires standard or structured")
+        }
         parsed.pdfOptions.ocrMethod = method
         parsed.setsPDFOptions = true
     case "--ocr-language":
         parsed.setsPDFOptions = true
-        do { parsed.pdfOptions.ocrLanguages = try OCRLanguageSelection.resolve(value.components(separatedBy: ",")) }
-        catch { throw CLIArgumentError.invalidConversionOption(error.localizedDescription) }
+        do {
+            parsed.pdfOptions.ocrLanguages = try OCRLanguageSelection.resolve(
+                value.components(separatedBy: ","))
+        } catch { throw CLIArgumentError.invalidConversionOption(error.localizedDescription) }
     case "--jobs":
-        guard let jobs = Int(value), (1...4).contains(jobs) else { throw CLIArgumentError.invalidConversionOption("--jobs requires an integer from 1 through 4") }
+        guard let jobs = Int(value), (1...4).contains(jobs) else {
+            throw CLIArgumentError.invalidConversionOption("--jobs requires an integer from 1 through 4")
+        }
         parsed.jobs = jobs
         parsed.setsJobs = true
     case "--epub-chapters":
-        do { parsed.epubChapters = try IndexSelection(value) }
-        catch { throw CLIArgumentError.invalidConversionOption("--epub-chapters: " + error.localizedDescription) }
+        do { parsed.epubChapters = try IndexSelection(value) } catch {
+            throw CLIArgumentError.invalidConversionOption("--epub-chapters: " + error.localizedDescription)
+        }
     case "--slides":
-        do { parsed.presentationSelection = PresentationSelection(slides: try IndexSelection(value), includeNotes: parsed.presentationSelection?.includeNotes ?? true) }
-        catch { throw CLIArgumentError.invalidConversionOption("--slides: " + error.localizedDescription) }
-    case "--notes":
-        guard ["on", "off"].contains(value) else { throw CLIArgumentError.invalidConversionOption("--notes requires on or off") }
-        parsed.presentationIncludeNotes = value == "on"
-        parsed.presentationSelection = PresentationSelection(slides: parsed.presentationSelection?.slides, includeNotes: value == "on")
-    case "--sheets":
-        guard !parsed.setsSheetSelection else { throw CLIArgumentError.invalidConversionOption("--sheets cannot be repeated or combined with --sheet-name") }
         do {
-            parsed.sheetSelection = value == "all" ? .all : value == "visible" ? .visible : .indices(try IndexSelection(value))
+            parsed.presentationSelection = PresentationSelection(
+                slides: try IndexSelection(value),
+                includeNotes: parsed.presentationSelection?.includeNotes ?? true)
+        } catch { throw CLIArgumentError.invalidConversionOption("--slides: " + error.localizedDescription) }
+    case "--notes":
+        guard ["on", "off"].contains(value) else {
+            throw CLIArgumentError.invalidConversionOption("--notes requires on or off")
+        }
+        parsed.presentationIncludeNotes = value == "on"
+        parsed.presentationSelection = PresentationSelection(
+            slides: parsed.presentationSelection?.slides, includeNotes: value == "on")
+    case "--sheets":
+        guard !parsed.setsSheetSelection else {
+            throw CLIArgumentError.invalidConversionOption(
+                "--sheets cannot be repeated or combined with --sheet-name")
+        }
+        do {
+            parsed.sheetSelection =
+                value == "all" ? .all : value == "visible" ? .visible : .indices(try IndexSelection(value))
         } catch { throw CLIArgumentError.invalidConversionOption("--sheets: " + error.localizedDescription) }
         parsed.setsSheetSelection = true
     case "--sheet-name":
-        guard !value.isEmpty, value.utf8.count <= 1_024 else { throw CLIArgumentError.invalidConversionOption("--sheet-name requires 1 through 1024 UTF-8 bytes") }
+        guard !value.isEmpty, value.utf8.count <= 1_024 else {
+            throw CLIArgumentError.invalidConversionOption("--sheet-name requires 1 through 1024 UTF-8 bytes")
+        }
         if parsed.setsSheetSelection {
-            guard case .names(let names) = parsed.sheetSelection else { throw CLIArgumentError.invalidConversionOption("--sheet-name cannot be combined with --sheets") }
-            guard names.count < 256 else { throw CLIArgumentError.invalidConversionOption("at most 256 sheet names may be selected") }
+            guard case .names(let names) = parsed.sheetSelection else {
+                throw CLIArgumentError.invalidConversionOption(
+                    "--sheet-name cannot be combined with --sheets")
+            }
+            guard names.count < 256 else {
+                throw CLIArgumentError.invalidConversionOption("at most 256 sheet names may be selected")
+            }
             parsed.sheetSelection = .names(names + [value])
-        } else { parsed.sheetSelection = .names([value]) }
+        } else {
+            parsed.sheetSelection = .names([value])
+        }
         parsed.setsSheetSelection = true
     case "--cell-range":
         do {
-            guard parsed.cellRanges.count < 64 else { throw CLIArgumentError.invalidConversionOption("at most 64 cell ranges may be selected") }
+            guard parsed.cellRanges.count < 64 else {
+                throw CLIArgumentError.invalidConversionOption("at most 64 cell ranges may be selected")
+            }
             parsed.cellRanges.append(try SpreadsheetCellRange(value))
-        } catch { throw CLIArgumentError.invalidConversionOption("--cell-range: " + error.localizedDescription) }
+        } catch {
+            throw CLIArgumentError.invalidConversionOption("--cell-range: " + error.localizedDescription)
+        }
     case "--spreadsheet-format":
         parsed.spreadsheetRendering = try spreadsheetRendering(value)
         parsed.setsSpreadsheetRendering = true
@@ -371,7 +417,7 @@ private func apply(option: String, value: String, to parsed: inout ParsedArgumen
 /// `URL(fileURLWithPath: "")` ergibt das Arbeitsverzeichnis. Damit wandelte
 /// `poormans-text "$FILE"` mit leerer Variable den gesamten Arbeitsordner
 /// rekursiv um, und `--output ""` schrieb kommentarlos dorthin — beides ohne
-/// Rückfrage und ohne Fehler (Review-Fund 2026-09-10).
+/// Rückfrage und ohne Fehler.
 func fileURL(_ path: String, option: String) throws -> URL {
     guard !path.isEmpty else {
         throw CLIArgumentError.invalidConversionOption("\(option) needs a path, but the value is empty")

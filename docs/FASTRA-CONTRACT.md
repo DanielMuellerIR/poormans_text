@@ -1,96 +1,21 @@
 # CLI-Vertrag zwischen Poor Man's Text und Fastra
 
-Stand: 2026-11-05. Dokumentationsstand 6; **keine neue Protokollversion**.
-Bestandsbasis: Poor Man's Text `919c575` (0.41.7), Fastra `6f59816` (1.157.1).
-Diese Datei dokumentiert den vorhandenen Vertrag und trennt geplante
-Linux-Abnahmen davon. Sie implementiert keine neue Schnittstelle.
+Der Vertrag gilt für die lokale Swift-CLI unter macOS und Linux.
+Konvertierung, Inhaltsübersicht und passiver Quellenblick haben getrennte
+Einstiege. Der Konvertierungserfolg liefert Ergebnisordner, Markdown,
+Assets und bei Bedarf Diagnosen. Quellzuordnung und Quellidentität
+sind optionale Felder, die ein Consumer bei der Übernahme berücksichtigen kann.
 
-P00/P01 wurden gegen PMT `17328f17` und Fastra `55ca7057` untersucht.
-Die [historische Vertragsprüfung](linux-port/P01-CONTRACT.md) enthält reale
-Mac-Producer-Antworten und den damaligen falschen Sammlungs-Öffnungspfad.
-Fastra hat diesen Consumerfehler inzwischen korrigiert; die vorhandenen
-Mac-App-zu-App-Belege sind im [aktuellen P13-Bericht](linux-port/P13-FASTRA.md)
-zugeordnet. Der [Entscheidungsbericht](LINUX-DECISION.md) bleibt historische Basis.
+Die Linux-Operation `--json --preview-page N -- quelle.pdf` beziehungsweise
+`--json --preview-frame N -- bild` liefert PNG-Base64, Hash, Maße, Auswahl und
+Quellidentität. Diese Antwort beschreibt ausschließlich den Rasterausschnitt.
+Auf macOS verwendet die App ihren eigenen Viewer. Ein CLI-Aufruf der
+Linux-Previewfunktion ist dort nicht verfügbar und ergibt Exit 69.
 
-Der Linux-Producer ist integriert und der bestehende Vertrag ist benutzbar.
-Die [aktuelle echte Linux-Matrix](linux-port/P13-CURRENT-EVIDENCE/REPORT.md)
-bindet PMT 0.41.14 und Fastra 1.164.0/372: CSV, MBOX, DOCX/PNG/Tabelle,
-ENEX/PNG/Diagnosen, RTF-Codepages, Kollision und Abbruch mit tatsächlichen
-Werkzeugkindern bestehen. Ein frischer Fastra-Prozess rendert das adoptierte
-DOCX-Ergebnis mit Bild und Tabelle. Das vollständige Consumer-Manifest wurde
-vor und nach dem Lauf unabhängig geprüft; dessen vorhandene Buildnachweise
-binden Commit f8e2bdc4933327ce2334ccb5450cb431273ef5bd. Es gab keine
-Fastra-Quelländerung oder einen Ersatzconsumer.
-
-[0.41.15](linux-port/P16-04115/README.md) ergänzt isolierte Linux-PDF-
-Anhangvalidierung für ENEX und erhält MissingBackend als Exit 69. Der gezielte
-aktuelle Fastra-Dialoglauf besteht DOCX/PNG unverändert und sperrt die Adoption
-bei fehlendem PDF-Backend. Positive ENEX-PDF-Konvertierungen sind separat an der
-Produkt-CLI belegt; die entsprechende positive GUI-Umgebung fehlt noch.
-Die übrige echte .14-Matrix bleibt ihrem ursprünglichen Artefakt zugeordnet.
-Die spätere optionale strukturierte OCR ist
-keine Voraussetzung für Fastras bestehenden Importweg. Vollständige Desktop-
-und Prozessverlustabnahmen des Consumers bleiben getrennte Freigaben.
-
-[0.41.16 mit Fastra 1.165.1](linux-port/P16-04117/fastra-04116/REPORT.md)
-besteht den echten RTFD-Import samt optionaler Textidentität, unreferenzierter
-Anhangänderung und korrekter Adoption. Der Beleg bindet beide Produktcommits;
-er verlangt `--source-map` nur im privaten Prüflauf. Normale Consumeraufrufe
-bleiben unverändert und müssen fehlende `sourceIdentity` weiterhin erlauben.
-
-Ab [0.41.17](linux-port/P16-04117/README.md) ist strukturierte Linux-OCR mit
-separat geprüfter lokaler Modellruntime ausdrücklich optional integriert.
-Standard bleibt `standard`; fehlende oder veränderte Runtime ergibt 69 ohne
-Ausgabe. Es gibt keine neue Protokollversion, keinen automatischen Download
-und keine neue Voraussetzung für Fastras normalen Import. Die allgemeine
-Inhaltsqualitätsfreigabe bleibt wegen belegter Erkennungsfehler FAIL.
-
-[0.41.18](linux-port/P16-04118/README.md) verbessert ausschließlich die Linux-GUI-
-Diagnose bei fehlgeschlagenem Sandboxstart. Konvertierungsvertrag, Protokollversion
-und normale Fastra-Aufrufe bleiben unverändert.
-
-[0.41.19](linux-port/P16-04119/README.md) erhält RTF-Texthintergründe im gemeinsamen
-Importpfad als `==Text==`, bei wörtlichem `==` im Inhalt als konstantes
-`<mark>Text</mark>`. Die ursprünglichen Hintergrundfarben werden abgeflacht;
-`richText.highlightColorApproximation` benennt dies zusätzlich. Der echte
-Produktfall ergibt `Plain **Bold** ==Marked== Ä`. Das ist eine Verbesserung des
-Dokumentinhalts im bestehenden Vertrag; keine neue Protokollversion oder
-Consumer-Voraussetzung. Die separat gepinnte neue optionale Modellruntime wird
-weiterhin nicht für Fastras normalen Import benötigt.
-
-Die [tatsächliche .19-Consumer-Paarung](linux-port/P16-04119/fastra-consumer-pair.json)
-besteht mit Fastra **1.171.0/381 als ausdrücklich uncommittetem WIP-Debugsnapshot**,
-Binärhash `93f2e846e4044c4244affcb39b6b60e1a8b9efeaaaad7bfbcccc1f331e93f4b6`.
-Vier native GDK-RTF-Übernahmen prüfen Deutsch/Englisch bei angeforderten 700 bzw. 1180 Pixeln:
-sichtbare Verlustgrenze, vollständige Vorschau, ausdrückliche native Übernahme,
-Bold/Marked im Rich-DOM und exakt `Plain **Bold** ==Marked== Ä` als Zieltext.
-Originalpuffer, Originaldatei und Quell-RTF bleiben unverändert. Zwei native
-DE-/EN-MBOX-Flows bestehen ebenfalls. Die Producerbindungen einschließlich aller
-48 Runtimehashes wurden auf PMT-Seite unabhängig gegen den unveränderten
-Handoff geprüft. Dieser Debugbeleg bleibt unverändert erhalten.
-
-Die zusätzliche [Releasepaarung](linux-port/P16-04119/fastra-release-report.md)
-mit **Fastra 1.185.0/395**, Produktcommit
-`35176c467025a3807b73c20869721794088b7439`, besteht regulären RTF-Dateiimport,
-MBOX-Dateiimport und RTF-MIME-Paste in die Rich-Ansicht. Der optimierte Consumer
-ist durch seinen [Binärhash und Ergebnisbeleg](linux-port/P16-04119/fastra-release-pair.json)
-gebunden; Vorschauen, ausdrückliche Übernahme und tatsächliche Buffer-/Ausgabebytes
-stimmen überein. Originale sowie Paket und Producer bleiben unverändert.
-PMT hat das vollständige Beleginventar, alle 51 Producerdateien und sämtliche
-48 Runtimehashes unabhängig geprüft; die GUI-Aktionen wurden von Fastra ausgeführt.
-Damit ist die Releasepaarung für diese drei einfachen EN-Flüsse bestanden.
-Eine vollständige Format-/Attachment-/Mehrnachrichten-/DE-Matrix, allgemeine
-PDF-/OCR-Qualität und die gemeinsame native Mac-JavaScript-Abnahme sind damit
-nicht freigegeben.
-
-Die .12-Operation `--json --preview-page N -- quelle.pdf` beziehungsweise
-`--json --preview-frame N -- bild` ist eine getrennte passive Leseoperation.
-Sie liefert PNG-Base64, Hash, Maße, Auswahl und Quellidentität; weder
-`outputDirectory` noch ein künstlicher Markdown-Konvertierungserfolg werden
-erzeugt. Ein Consumer muss sie ausdrücklich aufrufen; der bestehende
-Konvertierungsvertrag und dessen Erfolgsauswertung bleiben unverändert. Mac
-meldet diese Linux-Previewfähigkeit kontrolliert mit69 als nicht verfügbar.
-[SourcePreview-Nachweis](linux-port/P16-04112/preview/README.md).
+Für strukturierte Linux-OCR ist eine lokal freigegebene Modellruntime
+erforderlich. Standard-OCR trägt keine Modellabhängigkeit. Unverfügbare
+obligatorische Werkzeuge und Backends meldet der Konverter ebenfalls mit
+Exit 69. [Linux-Build und lokale Backends](LINUX-BUILD.md)
 
 ## Zuständigkeit
 
@@ -222,7 +147,7 @@ Zeilenprotokoll nicht zuverlässig darstellen. Das ändert nicht die JSON-Ausgab
 Abbruch wird über SIGINT/SIGTERM angefordert. Der Prozessrunner beendet externe
 Werkzeuge einschließlich ihrer Nachkommen und räumt seine temporären Daten auf.
 Für PMT ist diese Zusage unter Linux mit Runner-/Wrapper-/Guardverlust und
-Namespace-pidfds [produktiv geprüft](linux-port/P06-INTEGRATION.md). Fastras eigener
+Namespace-pidfds im [Linux-Prozessmodell](ARCHITECTURE.md#hilfsprozesse-und-budgets). Fastras eigener
 Besitz-/Abbruchpfad benötigt seine gesonderte Abnahme. Fastra liest stdout/stderr begrenzt und ohne Deadlocks.
 
 ### Diagnosen und Quellzuordnung

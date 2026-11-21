@@ -5,7 +5,7 @@ import XCTest
 final class LinuxStructuredOCRTests: XCTestCase {
     private func fixture() throws -> Data {
         try Data(contentsOf: URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
-            .deletingLastPathComponent().appendingPathComponent("docs/linux-port/P11-DOCLING-EVIDENCE/documents/structured.json"))
+            .deletingLastPathComponent().appendingPathComponent("Tests/Fixtures/Docling/structured.json"))
     }
     func testApprovedRuntimeIsRequiredWithoutAnOverride() throws {
         XCTAssertThrowsError(try LinuxStructuredOCR.validateRuntime(URL(fileURLWithPath: "/tmp/missing-runtime"))) {

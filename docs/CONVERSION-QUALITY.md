@@ -10,15 +10,14 @@ Anwenders ersetzt die automatischen Inhaltsprüfungen nicht.
 Bei bewusst bereitgestellter lokaler Laufzeit, Werkzeugen und Sprachdaten:
 
 ```sh
-python3 scripts/linux-probes/quality/run_quality.py \
+python3 scripts/linux_checks/quality/run_quality.py \
   --repo "$PWD" --cli "$PWD/.build/linux-runtime/bin/poormans-text" \
   --expected-cli-sha256 "$REVIEWED_CLI_SHA256" --root /tmp/pmt-quality-new
 ```
 
 `REVIEWED_CLI_SHA256` aus dem zum Produkt gehörenden Artefaktbericht übernehmen.
 Der Ergebnisordner muss neu sein. Keine Modelle, Werkzeuge oder Dateien werden
-heruntergeladen. Für die vorhandene SDK-freie Testumgebung und konkrete
-Artefakthashes siehe [0.41.17](linux-port/P16-04117/README.md).
+heruntergeladen. Die Prüflinge werden gegen diese CLI und deren lokale Backends ausgewertet.
 
 Der Lauf verwendet temporär erzeugte DOCX-, ODT-, EPUB-, CSV-, XLSX-, RTF-,
 RTFD-, MBOX-, ENEX- und PPTX-Dokumente. Solltexte, Reihenfolgen und Tabellenzellen
@@ -26,7 +25,7 @@ entstehen unabhängig vom Konverter. Originalbilder, Quelldateien und sämtliche
 Ausgabemanifeste werden verglichen; eine Gegenprobe mit absichtlich entferntem
 Solltext muss scheitern. Dazu kommen die bestehenden Raster-/OCR- und PDF-Proben,
 einschließlich erwarteter Ablehnungen, sowie der fixierte lizenzierte natürliche
-[Referenzkorpus](linux-port/P11-NATURAL-EVIDENCE/CORPUS.md).
+[Referenzkorpus](../Tests/Fixtures/ConversionQuality/CORPUS.md).
 
 Die Swift-Tests ergänzen diese End-to-End-Proben um zahlreiche komplexere
 Formatvarianten, Unicode, Metadaten, Auswahl, Links, Mailanhänge und Sicherheits-
@@ -46,14 +45,14 @@ inhaltlich vollständig umgewertet.
 Der aktuelle natürliche Korpus ist **nicht vollständig grün**. Bildbeschriftungen
 und Diagrammwerte fehlen teilweise als durchsuchbarer Text; die Bildassets sind
 erhalten. Zelltexte der Referenztabelle sind vorhanden, ihre Tabellen-/Spanstruktur
-fehlt im Standard-PDF-Weg. Die [Analyse samt DPI-Gegenversuch](linux-port/QUALITY-EVIDENCE-04114/README.md)
-zeigt auch, weshalb pauschal höhere OCR-Auflösung keine belastbare Reparatur ist:
-Sie verbessert einen Fall und erzeugt in einem anderen zusätzliche Erkennungsfehler.
+fehlt im Standard-PDF-Weg. Höhere OCR-Auflösung kann einzelne Fälle verbessern und in anderen Fällen
+zusätzliche Erkennungsfehler erzeugen. Die [Referenzmessung zu 0.41.21](releases/0.41.21-quality-evidence.md)
+hält die beobachteten Unterschiede je Seite fest.
 Strukturierte OCR ist ab 0.41.17 ausdrücklich optional mit separat geprüfter
 lokaler Runtime integriert. Der automatische Lauf prüft das versionierte
-synthetische [Raster](../scripts/linux-probes/quality/fixtures/structured.png)
+synthetische [Raster](../scripts/linux_checks/quality/fixtures/structured.png)
 gegen seine unabhängig aus den Zeichenbefehlen gespeicherte
-[Referenz](../scripts/linux-probes/quality/fixtures/structured-reference.json).
+[Referenz](../scripts/linux_checks/quality/fixtures/structured-reference.json).
 Er vergleicht das tatsächliche finale Markdown: exakte Zelltexte, Reihenfolge,
 3×3-Raster, leeren abgedeckten Spanslot, Textkörper, Quellidentität und Originalasset.
 Er rekonstruiert keine Spangeometrie aus dem absichtlich abgeflachten Markdown.

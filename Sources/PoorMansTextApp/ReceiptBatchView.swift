@@ -25,10 +25,13 @@ struct ReceiptBatchView: View {
             GroupBox("Extraction Mask") {
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(verbatim: maskURL?.lastPathComponent ?? NSLocalizedString("No mask selected", comment: ""))
-                            .lineLimit(1)
-                            .truncationMode(.middle)
-                            .foregroundStyle(maskURL == nil ? .secondary : .primary)
+                        Text(
+                            verbatim: maskURL?.lastPathComponent
+                                ?? NSLocalizedString("No mask selected", comment: "")
+                        )
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .foregroundStyle(maskURL == nil ? .secondary : .primary)
                         if let loadedMask {
                             Text(verbatim: "\(loadedMask.partner) · \(loadedMask.documentType)")
                                 .foregroundStyle(.secondary).lineLimit(1)
@@ -45,9 +48,11 @@ struct ReceiptBatchView: View {
             HStack {
                 Text("PDF Documents").font(.headline)
                 Spacer()
-                Button("Choose Files…") { add(ReceiptFilePanels.open(.pdf, title: "Choose PDF Documents", multiple: true)) }
-                    .help("Adds PDF receipts that will use the same mask.")
-                    .disabled(isRunning)
+                Button("Choose Files…") {
+                    add(ReceiptFilePanels.open(.pdf, title: "Choose PDF Documents", multiple: true))
+                }
+                .help("Adds PDF receipts that will use the same mask.")
+                .disabled(isRunning)
             }
 
             VStack(spacing: 0) {
@@ -81,16 +86,28 @@ struct ReceiptBatchView: View {
             .background(Color(nsColor: .controlBackgroundColor))
             .overlay {
                 RoundedRectangle(cornerRadius: 6)
-                    .stroke(dropTargeted ? Color.accentColor : Color(nsColor: .separatorColor), lineWidth: dropTargeted ? 2 : 1)
+                    .stroke(
+                        dropTargeted ? Color.accentColor : Color(nsColor: .separatorColor),
+                        lineWidth: dropTargeted ? 2 : 1
+                    )
                     .allowsHitTesting(false)
             }
             .onDrop(of: [.fileURL], isTargeted: $dropTargeted, perform: acceptDrop)
 
             GroupBox("JSON Destination") {
-                Picker("JSON Destination", selection: Binding(get: { outputDirectory != nil }, set: { custom in
-                    if custom { chooseOutputDirectory() }
-                    else { outputDirectory = nil; resetResults() }
-                })) {
+                Picker(
+                    "JSON Destination",
+                    selection: Binding(
+                        get: { outputDirectory != nil },
+                        set: { custom in
+                            if custom {
+                                chooseOutputDirectory()
+                            } else {
+                                outputDirectory = nil
+                                resetResults()
+                            }
+                        })
+                ) {
                     Text("Beside Each PDF").tag(false)
                     Text("Chosen Folder").tag(true)
                 }
@@ -115,9 +132,13 @@ struct ReceiptBatchView: View {
                         if wasCancelled {
                             Text("Batch cancelled").foregroundStyle(.secondary)
                         } else {
-                            Text(String(format: NSLocalizedString("%lld of %lld documents processed", comment: ""),
-                                        Int64(completed), Int64(inputs.count)))
-                                .foregroundStyle(.secondary)
+                            Text(
+                                String(
+                                    format: NSLocalizedString(
+                                        "%lld of %lld documents processed", comment: ""),
+                                    Int64(completed), Int64(inputs.count))
+                            )
+                            .foregroundStyle(.secondary)
                         }
                     }
                     .font(.caption)
@@ -132,7 +153,9 @@ struct ReceiptBatchView: View {
                     .disabled(isCancelling)
                 } else {
                     Button("Apply Mask") { run() }
-                        .help("Applies the mask and writes one JSON file per receipt. Existing files are protected.")
+                        .help(
+                            "Applies the mask and writes one JSON file per receipt. Existing files are protected."
+                        )
                         .keyboardShortcut(.defaultAction)
                         .disabled(inputs.isEmpty || loadedMask == nil || pendingDrops > 0)
                 }
@@ -152,16 +175,22 @@ struct ReceiptBatchView: View {
         let item = items[input.path]
         return VStack(alignment: .leading, spacing: 5) {
             HStack {
-                Text(verbatim: input.lastPathComponent).fontWeight(.medium).lineLimit(1).truncationMode(.middle)
+                Text(verbatim: input.lastPathComponent).fontWeight(.medium).lineLimit(1).truncationMode(
+                    .middle)
                 Spacer()
                 if let item {
                     statusLabel(item)
                     if let output = item.output {
-                        Button("Reveal JSON") { NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: output)]) }
+                        Button("Reveal JSON") {
+                            NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: output)])
+                        }
                     }
                     if item.status == .reviewRequired {
-                        Button("Review…") { openWindow(value: ReceiptEditorInput(pdf: input, mask: maskURL, initialMask: loadedMask)) }
-                            .help("Opens the receipt with the same mask for review and correction.")
+                        Button("Review…") {
+                            openWindow(
+                                value: ReceiptEditorInput(pdf: input, mask: maskURL, initialMask: loadedMask))
+                        }
+                        .help("Opens the receipt with the same mask for review and correction.")
                     }
                 } else {
                     Text(isRunning ? "Waiting" : "Ready").foregroundStyle(.secondary)
@@ -189,7 +218,8 @@ struct ReceiptBatchView: View {
     private func statusLabel(_ item: ReceiptBatchItem) -> some View {
         switch item.status {
         case .success: Label("Exported", systemImage: "checkmark.circle").foregroundStyle(.green)
-        case .reviewRequired: Label("Review Required", systemImage: "exclamationmark.triangle").foregroundStyle(.orange)
+        case .reviewRequired:
+            Label("Review Required", systemImage: "exclamationmark.triangle").foregroundStyle(.orange)
         case .failed: Label("Failed", systemImage: "xmark.circle").foregroundStyle(.red)
         case .cancelled: Label("Cancelled", systemImage: "minus.circle").foregroundStyle(.secondary)
         }
@@ -253,8 +283,11 @@ struct ReceiptBatchView: View {
                     if let url { urls.append(url) }
                 }
             }
-            if urls.isEmpty { error = NSLocalizedString("Choose or drop PDF files.", comment: "") }
-            else { add(urls) }
+            if urls.isEmpty {
+                error = NSLocalizedString("Choose or drop PDF files.", comment: "")
+            } else {
+                add(urls)
+            }
         }
         return true
     }
@@ -279,7 +312,9 @@ struct ReceiptBatchView: View {
             }
             do {
                 let summary = try await Task.detached(priority: .userInitiated) {
-                    try ReceiptBatch.run(inputs: inputs, mask: mask, outputDirectory: directory, cancellation: token) { count, _, item in
+                    try ReceiptBatch.run(
+                        inputs: inputs, mask: mask, outputDirectory: directory, cancellation: token
+                    ) { count, _, item in
                         Task { @MainActor in
                             guard cancellation === token else { return }
                             items[item.source] = item
@@ -287,7 +322,8 @@ struct ReceiptBatchView: View {
                         }
                     }
                 }.value
-                items = Dictionary(summary.items.map { ($0.source, $0) }, uniquingKeysWith: { _, latest in latest })
+                items = Dictionary(
+                    summary.items.map { ($0.source, $0) }, uniquingKeysWith: { _, latest in latest })
                 wasCancelled = summary.cancelled
                 completed = summary.items.filter { $0.status != .cancelled }.count
             } catch {

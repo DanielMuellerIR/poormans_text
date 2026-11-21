@@ -65,8 +65,9 @@
 "Command-Line Installation Failed" = "Command-Line Installation Failed";
 "Choose Documents, Spreadsheets, PDFs, Images, or a Folder" = "Choose Documents, Spreadsheets, PDFs, Images, or a Folder";
 "Convert" = "Convert";
-"Pandoc is required for word-processing documents, HTML, e-books, text markups, and ODM master documents. Spreadsheets, CSV, PDF, and images work without it. Install Pandoc now with Homebrew? This can take a few minutes." = "Pandoc is required for word-processing documents, HTML, e-books, text markups, and ODM master documents. Spreadsheets, CSV, PDF, and images work without it. Install Pandoc now with Homebrew? This can take a few minutes.";
-"Pandoc is required for word-processing documents, HTML, e-books, text markups, and ODM master documents. Spreadsheets, CSV, PDF, and images work without it. The Pandoc website offers an official installer." = "Pandoc is required for word-processing documents, HTML, e-books, text markups, and ODM master documents. Spreadsheets, CSV, PDF, and images work without it. The Pandoc website offers an official installer.";
+"Pandoc is required for word-processing documents, HTML, e-books, text markups, ODM master documents, ENEX, and the HTML parts of email. Spreadsheets, CSV, PDF, and images work without it." = "Pandoc is required for word-processing documents, HTML, e-books, text markups, ODM master documents, ENEX, and the HTML parts of email. Spreadsheets, CSV, PDF, and images work without it.";
+"Installing with Homebrew can take a few minutes." = "Installing with Homebrew can take a few minutes.";
+"The Pandoc website offers an official installer." = "The Pandoc website offers an official installer.";
 "Converting %@…" = "Converting %@…";
 "Version %@" = "Version %@";
 "%d lines, ready to paste" = "%d lines, ready to paste";

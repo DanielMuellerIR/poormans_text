@@ -43,7 +43,7 @@ for version in ['before', 'after']:
         source_root = root / 'after-source'
         source_root.mkdir()
         sources = []
-        for source in sorted((repo / 'Sources/PoorMansTextCore').glob('*.swift')):
+        for source in sorted((repo / 'Sources/PoorMansTextCore').rglob('*.swift')):
             target = source_root / source.name
             target.write_bytes(source.read_bytes())
             sources.append(str(target))

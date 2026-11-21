@@ -21,8 +21,14 @@ struct MarkdownPreviewPane: View {
     @State private var selectedFile: LocalFileSelection?
     @FocusState private var searchFocused: Bool
 
-    init(preview: MarkdownPreview, result: ConversionResult, target: ConversionTextRange? = nil, targetRequest: Int = 0) {
-        self.preview = preview; self.result = result; self.target = target; self.targetRequest = targetRequest
+    init(
+        preview: MarkdownPreview, result: ConversionResult, target: ConversionTextRange? = nil,
+        targetRequest: Int = 0
+    ) {
+        self.preview = preview
+        self.result = result
+        self.target = target
+        self.targetRequest = targetRequest
     }
 
     var body: some View {
@@ -41,17 +47,24 @@ struct MarkdownPreviewPane: View {
                             }
                         }.frame(maxWidth: .infinity, alignment: .leading)
                     }.frame(maxHeight: 100)
-                    if assets.filesTruncated { Text("The file list is limited to 1,024 entries. All files remain in the output folder.").font(.caption) }
+                    if assets.filesTruncated {
+                        Text(
+                            "The file list is limited to 1,024 entries. All files remain in the output folder."
+                        ).font(.caption)
+                    }
                 }
             }
             ZStack {
                 if mode == 1 {
-                    PreviewSourceView(text: preview.text, query: query, request: searchRequest, backwards: backwards,
-                                      target: validTarget, targetRequest: targetRequest, missing: { matchMissing = $0 })
+                    PreviewSourceView(
+                        text: preview.text, query: query, request: searchRequest, backwards: backwards,
+                        target: validTarget, targetRequest: targetRequest, missing: { matchMissing = $0 })
                 } else if let rendered {
-                    PreviewWebView(rendered: rendered, assets: assets, query: query, request: searchRequest,
-                                   backwards: backwards, anchor: validTarget.flatMap { rendered.anchor(for: $0)?.id }, anchorRequest: targetRequest,
-                                   missing: { matchMissing = $0 }, imageFailed: { imageFailed = true })
+                    PreviewWebView(
+                        rendered: rendered, assets: assets, query: query, request: searchRequest,
+                        backwards: backwards, anchor: validTarget.flatMap { rendered.anchor(for: $0)?.id },
+                        anchorRequest: targetRequest,
+                        missing: { matchMissing = $0 }, imageFailed: { imageFailed = true })
                 }
                 if loading, mode == 0 { ProgressView("Loading preview…") }
             }
@@ -61,11 +74,21 @@ struct MarkdownPreviewPane: View {
             .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.secondary.opacity(0.2)))
             VStack(alignment: .leading, spacing: 3) {
                 if preview.truncated { Text("Preview limited to 256 KiB. Open the file to read all text.") }
-                if rendered?.limited == true { Text("Rendered preview limited. The Markdown file remains complete.") }
+                if rendered?.limited == true {
+                    Text("Rendered preview limited. The Markdown file remains complete.")
+                }
                 if rendered?.hasLiteralHTML == true { Text("HTML is shown as text in the preview.") }
-                if rendered?.hasUnsupportedMarkup == true { Text("Some Markdown extensions are shown as text.") }
-                if rendered?.unavailableImageCount ?? 0 > 0 || imageFailed { Text("Some images are unavailable in the preview.") }
-                if target != nil, validTarget == nil || (mode == 0 && rendered != nil && validTarget.flatMap { rendered?.anchor(for: $0) } == nil) {
+                if rendered?.hasUnsupportedMarkup == true {
+                    Text("Some Markdown extensions are shown as text.")
+                }
+                if rendered?.unavailableImageCount ?? 0 > 0 || imageFailed {
+                    Text("Some images are unavailable in the preview.")
+                }
+                if target != nil,
+                    validTarget == nil
+                        || (mode == 0 && rendered != nil
+                            && validTarget.flatMap { rendered?.anchor(for: $0) } == nil)
+                {
                     Text("The preview position cannot be verified or is outside this excerpt.")
                 }
                 if matchMissing, !query.isEmpty { Text("No match in this preview.") }
@@ -77,18 +100,27 @@ struct MarkdownPreviewPane: View {
             LocalFilePreviewPane(path: file.path, assets: assets)
         }
         .task(id: preview.id) {
-            loading = true; imageFailed = false; matchMissing = false
+            loading = true
+            imageFailed = false
+            matchMissing = false
             let result = result, text = preview.text
             let unavailable = NSLocalizedString("Image unavailable in preview", comment: "")
             let limit = NSLocalizedString("Rendered preview limited", comment: "")
             let metadata = NSLocalizedString("Document metadata", comment: "")
             let language = Bundle.main.preferredLocalizations.first?.hasPrefix("de") == true ? "de" : "en"
             let prepared = await Task.detached(priority: .userInitiated) {
-                let assets = try? PreviewAssets(outputDirectory: result.outputDirectory, assets: result.assets)
-                return (RenderedMarkdownPreview.render(text, assets: assets, imageUnavailable: unavailable, limitMessage: limit, metadataTitle: metadata, language: language), assets)
+                let assets = try? PreviewAssets(
+                    outputDirectory: result.outputDirectory, assets: result.assets)
+                return (
+                    RenderedMarkdownPreview.render(
+                        text, assets: assets, imageUnavailable: unavailable, limitMessage: limit,
+                        metadataTitle: metadata, language: language), assets
+                )
             }.value
             guard !Task.isCancelled else { return }
-            rendered = prepared.0; assets = prepared.1; loading = false
+            rendered = prepared.0
+            assets = prepared.1
+            loading = false
         }
     }
 
@@ -99,26 +131,42 @@ struct MarkdownPreviewPane: View {
         }.pickerStyle(.segmented).labelsHidden().frame(width: 210)
     }
     @ViewBuilder private var searchControls: some View {
-        Button { searchFocused = true } label: { Image(systemName: "magnifyingglass") }
-            .keyboardShortcut("f", modifiers: .command).help("Find in preview").accessibilityLabel(Text("Find in preview"))
+        Button {
+            searchFocused = true
+        } label: {
+            Image(systemName: "magnifyingglass")
+        }
+        .keyboardShortcut("f", modifiers: .command).help("Find in preview").accessibilityLabel(
+            Text("Find in preview"))
         TextField("Find in preview", text: $query)
             .textFieldStyle(.roundedBorder).frame(minWidth: 130, maxWidth: 220)
             .focused($searchFocused)
             .onSubmit { find(backwards: false) }
-        Button { find(backwards: true) } label: { Image(systemName: "chevron.up") }
-            .help("Previous match").accessibilityLabel(Text("Previous match")).disabled(query.isEmpty)
-        Button { find(backwards: false) } label: { Image(systemName: "chevron.down") }
-            .help("Next match").accessibilityLabel(Text("Next match")).disabled(query.isEmpty)
+        Button {
+            find(backwards: true)
+        } label: {
+            Image(systemName: "chevron.up")
+        }
+        .help("Previous match").accessibilityLabel(Text("Previous match")).disabled(query.isEmpty)
+        Button {
+            find(backwards: false)
+        } label: {
+            Image(systemName: "chevron.down")
+        }
+        .help("Next match").accessibilityLabel(Text("Next match")).disabled(query.isEmpty)
     }
 
     private var validTarget: ConversionTextRange? {
-        guard let target, target.file == result.markdownFile.lastPathComponent, preview.matchesExpectedOutput == true,
-              target.utf8Offset >= 0, target.utf8Length >= 0, target.utf8Offset <= preview.text.utf8.count,
-              target.utf8Length <= preview.text.utf8.count - target.utf8Offset else { return nil }
+        guard let target, target.file == result.markdownFile.lastPathComponent,
+            preview.matchesExpectedOutput == true,
+            target.utf8Offset >= 0, target.utf8Length >= 0, target.utf8Offset <= preview.text.utf8.count,
+            target.utf8Length <= preview.text.utf8.count - target.utf8Offset
+        else { return nil }
         return target
     }
     private func find(backwards: Bool) {
-        self.backwards = backwards; searchRequest += 1
+        self.backwards = backwards
+        searchRequest += 1
     }
 }
 
@@ -146,26 +194,44 @@ private struct LocalFilePreviewPane: View {
                 switch content {
                 case .image(let data), .pdf(let data, _):
                     if let image = NSImage(data: data) {
-                        Image(nsImage: image).resizable().scaledToFit().frame(maxWidth: .infinity, maxHeight: .infinity)
+                        Image(nsImage: image).resizable().scaledToFit().frame(
+                            maxWidth: .infinity, maxHeight: .infinity)
                     }
                     if case .pdf(_, let count) = content {
-                        Text(String(format: NSLocalizedString("PDF preview: page 1 of %d. Links and actions are inactive.", comment: ""), count))
-                            .font(.caption).foregroundStyle(.secondary)
+                        Text(
+                            String(
+                                format: NSLocalizedString(
+                                    "PDF preview: page 1 of %d. Links and actions are inactive.", comment: ""),
+                                count)
+                        )
+                        .font(.caption).foregroundStyle(.secondary)
                     }
                 case .text(let text, let truncated):
-                    ScrollView([.horizontal, .vertical]) { Text(verbatim: text).font(.system(.body, design: .monospaced)).textSelection(.enabled) }
-                    if truncated { Text("Preview limited to 256 KiB. Open the file to read all text.").font(.caption) }
+                    ScrollView([.horizontal, .vertical]) {
+                        Text(verbatim: text).font(.system(.body, design: .monospaced)).textSelection(.enabled)
+                    }
+                    if truncated {
+                        Text("Preview limited to 256 KiB. Open the file to read all text.").font(.caption)
+                    }
                 case .unsupported:
-                    Text("No safe preview is available for this file type. The original attachment remains in the output folder.")
+                    Text(
+                        "No safe preview is available for this file type. The original attachment remains in the output folder."
+                    )
                 }
-            } else { ProgressView("Loading preview…") }
+            } else {
+                ProgressView("Loading preview…")
+            }
         }
-        .padding(20).frame(minWidth: 440, idealWidth: 620, minHeight: 340, idealHeight: 500, alignment: .topLeading)
+        .padding(20).frame(
+            minWidth: 440, idealWidth: 620, minHeight: 340, idealHeight: 500, alignment: .topLeading
+        )
         .task(id: path) {
             let assets = assets, path = path
-            let result = await Task.detached(priority: .userInitiated) { try? assets?.previewFile(path) }.value
+            let result = await Task.detached(priority: .userInitiated) { try? assets?.previewFile(path) }
+                .value
             guard !Task.isCancelled else { return }
-            content = result; failed = result == nil
+            content = result
+            failed = result == nil
         }
     }
 }
@@ -175,7 +241,9 @@ private struct LocalFilePreviewPane: View {
 /// Bedienungshilfen in einen zyklischen Präferenzgraphen führen.
 private struct PreviewToolbarLayout: Layout {
     private let gap: CGFloat = 10
-    private func metrics(_ width: CGFloat?, _ subviews: Subviews) -> (width: CGFloat, mode: CGSize, search: CGSize, stacked: Bool) {
+    private func metrics(_ width: CGFloat?, _ subviews: Subviews) -> (
+        width: CGFloat, mode: CGSize, search: CGSize, stacked: Bool
+    ) {
         let mode = subviews[0].sizeThatFits(.unspecified)
         let minimum = subviews[1].sizeThatFits(.zero)
         let ideal = subviews[1].sizeThatFits(.unspecified)
@@ -188,13 +256,17 @@ private struct PreviewToolbarLayout: Layout {
     }
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         let value = metrics(proposal.width, subviews)
-        return CGSize(width: value.width, height: value.stacked ? value.mode.height + gap + value.search.height : max(value.mode.height, value.search.height))
+        return CGSize(
+            width: value.width,
+            height: value.stacked
+                ? value.mode.height + gap + value.search.height : max(value.mode.height, value.search.height))
     }
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
         let value = metrics(bounds.width, subviews)
         subviews[0].place(at: bounds.origin, anchor: .topLeading, proposal: ProposedViewSize(value.mode))
-        let point = CGPoint(x: value.stacked ? bounds.minX : bounds.maxX - value.search.width,
-                            y: value.stacked ? bounds.minY + value.mode.height + gap : bounds.minY)
+        let point = CGPoint(
+            x: value.stacked ? bounds.minX : bounds.maxX - value.search.width,
+            y: value.stacked ? bounds.minY + value.mode.height + gap : bounds.minY)
         subviews[1].place(at: point, anchor: .topLeading, proposal: ProposedViewSize(value.search))
     }
 }
@@ -210,26 +282,39 @@ private struct PreviewSourceView: NSViewRepresentable {
     func makeCoordinator() -> Coordinator { Coordinator() }
     func makeNSView(context: Context) -> NSScrollView {
         let view = NSTextView()
-        view.isEditable = false; view.isSelectable = true; view.isRichText = false
+        view.isEditable = false
+        view.isSelectable = true
+        view.isRichText = false
         view.font = .monospacedSystemFont(ofSize: 13, weight: .regular)
-        view.textColor = .textColor; view.backgroundColor = .textBackgroundColor
+        view.textColor = .textColor
+        view.backgroundColor = .textBackgroundColor
         view.textContainerInset = NSSize(width: 12, height: 12)
-        view.isHorizontallyResizable = true; view.isVerticallyResizable = true
+        view.isHorizontallyResizable = true
+        view.isVerticallyResizable = true
         view.autoresizingMask = [.width]
         view.textContainer?.widthTracksTextView = false
-        view.textContainer?.containerSize = NSSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)
-        let scroll = NSScrollView(); scroll.documentView = view
-        scroll.hasVerticalScroller = true; scroll.hasHorizontalScroller = true
+        view.textContainer?.containerSize = NSSize(
+            width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)
+        let scroll = NSScrollView()
+        scroll.documentView = view
+        scroll.hasVerticalScroller = true
+        scroll.hasHorizontalScroller = true
         scroll.autohidesScrollers = true
         return scroll
     }
     func updateNSView(_ scroll: NSScrollView, context: Context) {
         guard let view = scroll.documentView as? NSTextView else { return }
         let changed = view.string != text
-        if changed { view.string = text; context.coordinator.lastRequest = -1 }
-        if context.coordinator.target != target || context.coordinator.targetRequest != targetRequest, let target,
-           let selection = Self.selection(target, in: text) {
-            view.setSelectedRange(selection); view.scrollRangeToVisible(selection)
+        if changed {
+            view.string = text
+            context.coordinator.lastRequest = -1
+        }
+        if context.coordinator.target != target || context.coordinator.targetRequest != targetRequest,
+            let target,
+            let selection = Self.selection(target, in: text)
+        {
+            view.setSelectedRange(selection)
+            view.scrollRangeToVisible(selection)
         } else if target == nil, context.coordinator.target != nil {
             view.setSelectedRange(NSRange(location: view.selectedRange().location, length: 0))
         }
@@ -240,14 +325,20 @@ private struct PreviewSourceView: NSViewRepresentable {
         guard !query.isEmpty else { return }
         let source = text as NSString
         let actual = view.selectedRange()
-        let selection = actual.location != NSNotFound && actual.location <= source.length && actual.length <= source.length - actual.location ? actual : NSRange(location: 0, length: 0)
+        let selection =
+            actual.location != NSNotFound && actual.location <= source.length
+                && actual.length <= source.length - actual.location ? actual : NSRange(location: 0, length: 0)
         let start = backwards ? selection.location : min(source.length, NSMaxRange(selection))
-        let options: NSString.CompareOptions = backwards ? [.caseInsensitive, .backwards] : [.caseInsensitive]
-        let range = backwards ? NSRange(location: 0, length: start) : NSRange(location: start, length: source.length - start)
+        let options: NSString.CompareOptions =
+            backwards ? [.caseInsensitive, .backwards] : [.caseInsensitive]
+        let range =
+            backwards
+            ? NSRange(location: 0, length: start) : NSRange(location: start, length: source.length - start)
         var found = source.range(of: query, options: options, range: range)
         if found.location == NSNotFound { found = source.range(of: query, options: options) }
         if found.location != NSNotFound, NSMaxRange(found) <= source.length {
-            view.setSelectedRange(found); view.scrollRangeToVisible(found)
+            view.setSelectedRange(found)
+            view.scrollRangeToVisible(found)
         }
         let absent = found.location == NSNotFound
         DispatchQueue.main.async { missing(absent) }
@@ -257,7 +348,8 @@ private struct PreviewSourceView: NSViewRepresentable {
         guard target.text(in: data) != nil else { return nil }
         let start = text.utf8.index(text.utf8.startIndex, offsetBy: target.utf8Offset)
         let end = text.utf8.index(start, offsetBy: target.utf8Length)
-        guard let lower = String.Index(start, within: text), let upper = String.Index(end, within: text) else { return nil }
+        guard let lower = String.Index(start, within: text), let upper = String.Index(end, within: text)
+        else { return nil }
         return NSRange(lower..<upper, in: text)
     }
     final class Coordinator {
@@ -282,6 +374,8 @@ private struct PreviewWebView: NSViewRepresentable {
     func updateNSView(_ view: WKWebView, context: Context) {
         context.coordinator.onMissing = missing
         context.coordinator.onImageFailed = imageFailed
-        context.coordinator.update(view, rendered: rendered, assets: assets, query: query, request: request, backwards: backwards, anchor: anchor, anchorRequest: anchorRequest)
+        context.coordinator.update(
+            view, rendered: rendered, assets: assets, query: query, request: request, backwards: backwards,
+            anchor: anchor, anchorRequest: anchorRequest)
     }
 }

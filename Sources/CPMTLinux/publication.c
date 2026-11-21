@@ -3,6 +3,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <limits.h>
 #include <linux/fs.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -25,8 +26,9 @@ static int remove_tree_at(int parent, const char *name, int expected, unsigned i
     }
     if (!S_ISDIR(original.st_mode)) return unlinkat(parent, name, 0);
     // Jeder offene Vorfahr bindet den Namen an das gehaltene Verzeichnis.
-    // Die Grenze hält den Bedarf an Deskriptoren und Stack unabhängig vom Baum.
-    if (depth >= 256) {
+    // Staging schreibt über Pfade mit höchstens PATH_MAX Bytes. Jede weitere
+    // Verzeichnisebene braucht mindestens zwei Bytes einschließlich Trennzeichen.
+    if (depth >= PATH_MAX / 2) {
         errno = ELOOP;
         return -1;
     }

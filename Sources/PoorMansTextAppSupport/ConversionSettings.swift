@@ -27,7 +27,8 @@ public final class ConversionSettings: ObservableObject {
         }
 
         var conversionOptions: ConversionOptions {
-            let languages = ocrLanguageCodes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            let languages =
+                ocrLanguageCodes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                 ? [] : ocrLanguageCodes.components(separatedBy: ",")
             return ConversionOptions(
                 pandocExecutable: profilePandocExecutable,
@@ -57,21 +58,30 @@ public final class ConversionSettings: ObservableObject {
     init(defaults: UserDefaults) {
         self.defaults = defaults
         var values = Values()
-        values.imageTextRecognition = defaults.string(forKey: "imageTextRecognition")
+        values.imageTextRecognition =
+            defaults.string(forKey: "imageTextRecognition")
             .flatMap(ImageTextRecognition.init(rawValue:)) ?? values.imageTextRecognition
-        values.spreadsheetRendering = defaults.string(forKey: "spreadsheetRendering")
+        values.spreadsheetRendering =
+            defaults.string(forKey: "spreadsheetRendering")
             .flatMap(SpreadsheetRendering.init(rawValue:)) ?? values.spreadsheetRendering
         values.frontmatter = defaults.bool(forKey: "frontmatter")
-        values.outputLayout = defaults.string(forKey: "outputLayout")
+        values.outputLayout =
+            defaults.string(forKey: "outputLayout")
             .flatMap(OutputLayout.init(rawValue:)) ?? values.outputLayout
-        values.destinationFolder = defaults.string(forKey: "destinationFolder").map { URL(fileURLWithPath: $0) }
-        values.pdfTextRecognition = defaults.string(forKey: "pdfTextRecognition")
+        values.destinationFolder = defaults.string(forKey: "destinationFolder").map {
+            URL(fileURLWithPath: $0)
+        }
+        values.pdfTextRecognition =
+            defaults.string(forKey: "pdfTextRecognition")
             .flatMap(PDFTextRecognition.init(rawValue:)) ?? values.pdfTextRecognition
-        values.ocrMethod = defaults.string(forKey: "ocrMethod")
+        values.ocrMethod =
+            defaults.string(forKey: "ocrMethod")
             .flatMap(OCRMethod.init(rawValue:)) ?? values.ocrMethod
-        values.docxChangeMode = defaults.string(forKey: "docxChangeMode")
+        values.docxChangeMode =
+            defaults.string(forKey: "docxChangeMode")
             .flatMap(DOCXChangeMode.init(rawValue:)) ?? values.docxChangeMode
-        values.pdfLayout = defaults.string(forKey: "pdfLayout")
+        values.pdfLayout =
+            defaults.string(forKey: "pdfLayout")
             .flatMap(PDFLayout.init(rawValue:)) ?? values.pdfLayout
         values.ocrLanguageCodes = defaults.string(forKey: "ocrLanguageCodes") ?? ""
         values.pdfRemoveHeadersFooters = defaults.bool(forKey: "pdfRemoveHeadersFooters")
@@ -84,7 +94,9 @@ public final class ConversionSettings: ObservableObject {
             values.sourceMapping = defaults.bool(forKey: "sourceMapping")
         }
         values.conversionReport = defaults.bool(forKey: "conversionReport")
-        values.profilePandocExecutable = defaults.string(forKey: "profilePandocExecutable").map { URL(fileURLWithPath: $0) }
+        values.profilePandocExecutable = defaults.string(forKey: "profilePandocExecutable").map {
+            URL(fileURLWithPath: $0)
+        }
         self.values = values
     }
 

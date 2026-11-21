@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "lineLength": 110,
+  "indentation": { "spaces": 4 },
+  "indentConditionalCompilationBlocks": false,
+  "rules": {
+    "DoNotUseSemicolons": true,
+    "OnlyOneTrailingClosureArgument": false,
+    "UseSynthesizedInitializer": false
+  }
+}

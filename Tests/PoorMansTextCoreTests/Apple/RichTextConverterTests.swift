@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import XCTest
 @testable import PoorMansTextCore
@@ -80,6 +81,61 @@ final class RichTextConverterTests: XCTestCase {
         XCTAssertEqual(try result.assets.map { try Data(contentsOf: $0) }, [image])
         XCTAssertEqual(try Data(contentsOf: source), rtf)
         XCTAssertEqual(try Data(contentsOf: imageURL), image)
+    }
+
+    func testRTFDRejectsRemoteAndMissingAttachmentsBeforePublishing() throws {
+        try requirePandoc()
+        let fileManager = FileManager.default
+        for (reference, controls, reason) in [
+            ("https://example.invalid/image.png", #"\width16 \height12"#, "local package file"),
+            ("missing.png", #"\appleextra1 \width16 \height12"#, "attachment is missing"),
+        ] {
+            let package = temporaryDirectory.appendingPathComponent("Attachment.rtfd", isDirectory: true)
+            try fileManager.createDirectory(at: package, withIntermediateDirectories: false)
+            defer { try? fileManager.removeItem(at: package) }
+            let text = package.appendingPathComponent("TXT.rtf")
+            let source = Data(#"{\rtf1\ansi Before {\NeXTGraphic \#(reference) \#(controls)} After}"#.utf8)
+            try source.write(to: text)
+            let output = temporaryDirectory.appendingPathComponent("result")
+
+            XCTAssertThrowsError(try RichTextConverter().convert(inputURL: package, outputDirectory: output)) {
+                guard case ConversionError.invalidRichText(let original, let message) = $0 else {
+                    return XCTFail("Unexpected error: \($0)")
+                }
+                XCTAssertEqual(original, package)
+                XCTAssertTrue(message.contains(reason), message)
+            }
+            XCTAssertEqual(try Data(contentsOf: text), source)
+            XCTAssertEqual(try fileManager.contentsOfDirectory(atPath: temporaryDirectory.path), ["Attachment.rtfd"])
+        }
+    }
+
+    func testCocoaRTFDResolvesAnAccentedAttachmentDespiteTheDeclaredCodePage() throws {
+        try requirePandoc()
+        let fixture = try FixtureFactory.createRichRTFD(in: temporaryDirectory)
+        let image = try XCTUnwrap(fixture.imageData.first)
+        let attachment = FileWrapper(regularFileWithContents: image)
+        attachment.preferredFilename = "í.png"
+        let document = NSMutableAttributedString(string: "Before ")
+        document.append(NSAttributedString(attachment: NSTextAttachment(fileWrapper: attachment)))
+        document.append(NSAttributedString(string: " After"))
+        let wrapper = try document.fileWrapper(
+            from: NSRange(location: 0, length: document.length),
+            documentAttributes: [.documentType: NSAttributedString.DocumentType.rtfd]
+        )
+        let package = temporaryDirectory.appendingPathComponent("Accented.rtfd", isDirectory: true)
+        try wrapper.write(to: package, options: .atomic, originalContentsURL: nil)
+        let rtf = package.appendingPathComponent("TXT.rtf")
+        let original = try Data(contentsOf: rtf)
+        XCTAssertNotNil(original.range(of: Data("í.png".utf8)))
+
+        let result = try RichTextConverter().convert(inputURL: package)
+
+        let markdown = try String(contentsOf: result.markdownFile, encoding: .utf8)
+        XCTAssertEqual(markdown.components(separatedBy: "Before").count, 2)
+        XCTAssertEqual(markdown.components(separatedBy: "After").count, 2)
+        XCTAssertEqual(try result.assets.map { try Data(contentsOf: $0) }, [image])
+        XCTAssertEqual(try Data(contentsOf: rtf), original)
     }
 
     func testConvertsRealRTFWithoutChangingTextOrEmbeddedImage() throws {

@@ -51,8 +51,8 @@ Prozessguard nebeneinander. Swift-Laufzeitbibliotheken sowie benötigte XML-/ICU
 und Bildbibliotheken werden für den Start ohne Swift-SDK mitgeliefert.
 glibc und der ELF-Loader bleiben Systemabhängigkeiten.
 Vorhandene Lizenz-/Hinweisdateien der Systembibliotheken, Swift-Laufzeit und
-SwiftPM-Abhängigkeiten liegen unter `licenses`. Der aktuelle [Paket- und Installerprüfstand](linux-port/P16-04119/README.md)
-belegt isolierte apt-/pacman-Transaktionen und vier portable Paketformate. Die
+SwiftPM-Abhängigkeiten liegen unter `licenses`. Die [Paketprüfung zur Veröffentlichung](releases/0.41.24-verification.md)
+belegt isolierte Installations- und Paketläufe. Die
 öffentliche Modellverteilung benötigt weiterhin eine eigene Lizenzfreigabe.
 
 Linux verwendet `Package.linux.resolved` und eine temporäre Quellkopie außerhalb
@@ -67,7 +67,7 @@ Die gemeinsamen und Linux-spezifischen Unit-Tests lassen sich in einer isolierte
 Quellkopie mit `swift test --jobs 6` ausführen. Der echte Produktprüflauf lautet:
 
 ```sh
-python3 scripts/linux-probes/verify_product.py ./poormans-text --pandoc /pfad/zu/pandoc
+python3 scripts/linux_checks/verify_product.py ./poormans-text --pandoc /pfad/zu/pandoc
 ```
 
 Der Prüflauf erzeugt seine Dokumente temporär und räumt sie selbst auf.
@@ -194,11 +194,12 @@ Automatische Werkzeugtests: `python3 scripts/test_linux_release.py`.
 Der Paketprüflauf für alle vier Formate lautet:
 
 ```sh
-python3 scripts/linux-probes/p15/verify_packages.py --packages .build/meine-linux-pakete --packager scripts/package_linux.sh
+python3 scripts/linux_checks/verify_packages.py --packages .build/meine-linux-pakete --packager scripts/package_linux.sh
 ```
 
-Der konkrete Prüfstand und die verbleibende Installationsgrenze stehen in
-[LINUX-RELEASE-TOOLS.md](linux-port/LINUX-RELEASE-TOOLS.md).
+Die Paketprüfung entpackt die Archive und startet die enthaltene CLI. Die
+[Veröffentlichungsprüfung](releases/0.41.24-verification.md) umfasst zusätzlich
+native Paketmanager und die Desktop-App.
 
 ## Laufzeit und Grenzen
 
@@ -232,7 +233,7 @@ und APNG verwenden Pillow im begrenzten isolierten Hilfsprozess. Alle Frames
 werden validiert; Originalbildbytes bleiben erhalten. Für OCR werden EXIF-Lage,
 Alpha auf weißem Hintergrund und ein gemeinsames Pixelbudget berücksichtigt.
 Der Decoder begrenzt Quelldaten, Framezahl, Pixel, Speicher und Prozesslaufzeit.
-HEIC übernimmt die Originalbytes und erzeugt für jedes Top-Level-Bild zusätzlich eine 8-Bit-RGBA-PNG-Darstellung. HDR, Farbprofile, Hilfsbilder und Metadaten besitzen ausdrücklich benannte Grenzen; siehe [HEIC-Nachweis](linux-port/P09-HEIC.md). RTFD unterstützt geprüfte lokale statische PNG-, JPEG-, TIFF-, GIF-, BMP-, WebP-
+HEIC übernimmt die Originalbytes und erzeugt für jedes Top-Level-Bild zusätzlich eine 8-Bit-RGBA-PNG-Darstellung. HDR, Farbprofile, Hilfsbilder und Metadaten besitzen ausdrücklich benannte Grenzen; siehe [Bildimport](IMAGE-IMPORT.md). RTFD unterstützt geprüfte lokale statische PNG-, JPEG-, TIFF-, GIF-, BMP-, WebP-
 und optionale HEIC-Anhänge; mehrere Frames, Inline-Bild-/Objektziele und komplexe
 Attachmentnamen werden ausdrücklich abgewiesen. Originalbytes bleiben erhalten.
 
@@ -252,7 +253,7 @@ Bei einem ausgetauschten Elternpfad bleibt ein vollständiges Ergebnis zur
 Wiederherstellung erhalten; ein Erfolg für den inzwischen anderen Pfad wird
 nicht gemeldet.
 
-Die [Funktionsmatrix](releases/0.41.24-verification.md) dokumentiert die Desktop- und Paketprüfungen. Die älteren [Entscheidungsproben](linux-port/P03-FOLLOWUP.md) beschreiben den Entwicklungsstand vor der Integration.
+Die [Funktionsmatrix](releases/0.41.24-verification.md) dokumentiert die Desktop- und Paketprüfungen.
 
 ## Lokale Pakete bauen
 
@@ -311,9 +312,9 @@ Einsatz und nötigenfalls den Standard-OCR-Fallback. Ein positives technisches
 Ergebnis ist keine Inhaltsvollständigkeitsgarantie; die strenge automatische
 Qualitätsauswertung bleibt getrennt.
 
-Der [aktuelle Produktnachweis](linux-port/P16-04119/README.md) trennt bestandene
+Die [Qualitätsprüfung](CONVERSION-QUALITY.md) unterscheidet bestandene
 synthetische Qualitäts- und Sicherheitsproben von weiterhin fehlerhaften
 natürlichen Dokumenten. Der zusätzliche Leser verändert weder Satzzeichen noch
 Geometrie und garantiert keine vollständige Zeichenerkennung. Die bisherige
-PDF-Rasterauflösung bleibt erhalten; ein300-dpi-Versuch wurde wegen tatsächlicher
+PDF-Rasterauflösung bleibt erhalten; ein 300-dpi-Versuch wurde wegen tatsächlicher
 Integrationsregression verworfen.

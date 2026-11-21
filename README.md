@@ -2,723 +2,148 @@
   <img src="Assets/AppIcon.png" width="128" alt="Poor Man's Text app icon">
 </p>
 
-<h1 align="center">Poor Man's Text</h1>
+# Poor Man’s Text
 
-**🌐 Sprache / Language:** [English](README.md) · [Deutsch](README.de.md)
+[English](README.md) · [Deutsch](README.de.md)
 
-<p align="center">
-  <strong>Convert documents to Markdown and extract invoice and delivery note fields to JSON.</strong>
-</p>
+Convert documents to Markdown and extract fields from PDF invoices and delivery
+notes to JSON. Poor Man’s Text includes a desktop app and the `poormans-text`
+command-line tool on macOS and Linux.
 
-Poor Man's Text converts RTF, RTFD, DOCX (including DOCM and DOTX/DOTM), ODT,
-legacy Word (`.doc`), ODS, XLSX (including XLSM and XLTX/XLTM), XLS, CSV and
-TSV, PPTX/PPTM/POTX and ODP presentations, IPYNB notebooks, OpenDocument master (`.odm`), PDF, HTML and Safari web archives, EPUB,
-LaTeX, DocBook, Org, MediaWiki, Textile, reStructuredText, FictionBook, EML, Apple Mail (`.emlx`), Outlook (`.msg`), MBOX archives and Apple Mail export packages, bounded ENEX exports, and
-PNG, JPEG, HEIC, TIFF, GIF, BMP, or WebP images into folders containing
-Markdown and any separately stored image assets.
+## Download and install
 
-Both platforms include the `poormans-text` command-line tool and a desktop app. The macOS
-app integrates with Finder and Shortcuts. Linux uses GTK for its desktop app and Poppler
-for PDFs. See [Linux requirements and format limits](docs/LINUX-BUILD.md).
+The [latest release](../../releases/latest) provides a notarized Universal DMG
+for macOS 13 and later, plus x86-64 Linux packages and portable archives.
+Download the installer or archive and its matching `.sha256` file.
 
-Conversion is deliberately lossy. Markdown can preserve document structure,
-links, simple emphasis, lists, and images, but not every font, layout, or
-TextKit-specific attribute.
+**macOS.** Verify the download with
+`shasum -a 256 -c Poor-Mans-Text-0.41.25.dmg.sha256`. Open the DMG and drag the
+app to Applications. The app can link its bundled CLI into a directory on
+`PATH`. Pandoc is available from its [official installer](https://pandoc.org/installing.html)
+or through Homebrew. The app offers installation help on startup if Pandoc is
+missing.
 
-After conversion, choose **Open in Fastra** to open the Markdown directly in Fastra, or **Open Markdown** to use the default app. Fastra must be installed.
+**Linux.** Verify the download with `sha256sum -c`. Install the DEB with
+`sudo apt install ./poormans-text_0.41.25-1_amd64.deb`, or install the Arch
+package with `sudo pacman -U ./poormans-text-0.41.25-1-x86_64.pkg.tar.zst`.
+From a portable archive, run `usr/bin/poormans-text-app` for GTK or
+`usr/bin/poormans-text` for the CLI. [Linux dependencies and installation](docs/LINUX-BUILD.md)
 
-Named profiles can be managed in the app and selected in the **Convert Document with Profile** Shortcuts action. Its **Profile Value / On / Off** choices preserve saved settings or explicitly override them. See the [profile contract](docs/PROFILES.md).
+Run `poormans-text --formats` to see which imports are available on your system.
+Pandoc handles formats such as DOCX, ODT, RTF, HTML and EPUB. Spreadsheet and
+presentation imports use built-in readers. PDF, image and legacy Word imports
+use platform backends listed in the format catalog.
 
-## Extract receipt data
+The macOS app checks a signed update feed through Sparkle. You confirm any
+download or installation. See [privacy and update settings](PRIVACY.md).
 
-Create a JSON mask for a partner and document type, then reuse it across PDFs
-with the same layout. The mask specifies where to find fields such as the
-invoice number and date. The macOS and GTK apps show the extracted values next
-to the PDF. On Linux, this workflow requires Poppler and qpdf 11 or later.
-[Linux packages and dependencies](docs/LINUX-BUILD.md).
+## Convert a document
 
-1. Choose **Extract Receipt Data…** on macOS or **Edit receipt mask…** on Linux. Open an example invoice or delivery note with embedded PDF text.
-2. Enter the partner and document type. Accept suggested invoice or delivery-note fields or drag out a region and add a named field. Select a result to locate its source in the PDF.
-3. Use **Add Test PDFs…** on macOS or **Add PDFs…** on Linux. Use the arrows to check the current mask on each document and save the mask to a new JSON file. A manual value correction belongs to the current receipt. Export the corrected result to a new file.
-4. Open **Apply Mask…** on macOS or **Apply receipt mask…** on Linux. Choose the saved mask and add PDFs. Write the results beside each PDF or in a common output folder. Use **Review…** on a flagged PDF to inspect the matching fields.
+Drop a file or folder into the app, or use **Choose Document**. Pick an output
+folder and conversion options before starting. Open the result in the default
+Markdown editor or directly in Fastra if it is installed. On macOS you can
+also convert through the Finder service or the Shortcuts actions.
 
-![macOS receipt editor with an example invoice on the left and extracted fields on the right. The date is marked ambiguous.](docs/images/receipt-editor.png)
-
-Use the same mask and JSON output from a script:
+In a terminal:
 
 ```sh
-mkdir -p Results
+poormans-text Report.docx
+poormans-text --output ./Converted --jobs 2 ./SourceFiles
+poormans-text --textbundle Presentation.pptx
+poormans-text --stdout table.csv
+```
+
+A single input normally produces a sibling like `Report-markdown/Report.md`.
+Images and attachments are stored alongside the Markdown. A folder input
+searches for supported documents and mirrors its subfolders in the batch output.
+Each result is published only after conversion finishes. The source bytes and
+any existing result folders stay intact.
+
+Textbundle packages Markdown and assets together. Use `--frontmatter` to include
+available document metadata. `--stdout` emits the Markdown of one document.
+Select a folder or Textbundle when the output needs image or attachment files
+or contains multiple documents.
+
+## Supported inputs
+
+| Input | Formats |
+| --- | --- |
+| Word processing | RTF, RTFD, DOCX, DOCM, DOTX, DOTM, ODT, legacy DOC, ODM |
+| Spreadsheets and tables | ODS, XLSX, XLSM, XLTX, XLTM, XLS, CSV, TSV |
+| Slides and notebooks | PPTX, PPTM, POTX, ODP, IPYNB |
+| PDF and images | PDF, PNG, JPEG, HEIC, TIFF, GIF, BMP, WebP |
+| Web and text | HTML, Safari web archives, EPUB, LaTeX, DocBook, Org, MediaWiki, Textile, reStructuredText, FictionBook |
+| Mail and notes | EML, EMLX, Outlook MSG, MBOX and Apple Mail exports, Evernote ENEX |
+
+Markdown preserves text and structure such as headings, lists, simple emphasis,
+links and images. Page layout, fonts and some document features cannot be
+represented exactly. The result includes diagnostics for known losses, fallbacks
+and unsupported content. Notebook output is imported as data. Conversion uses
+local resources and keeps preview links inactive.
+
+- [DOCX comments and tracked changes](docs/DOCX-REVIEWS.md)
+- [PDF text, page selection and OCR](docs/PDF-IMPORT.md) · [Structured OCR](docs/STRUCTURED-OCR.md)
+- [Image import](docs/IMAGE-IMPORT.md) · [Clipboard import](docs/CLIPBOARD-IMPORT.md)
+- [Spreadsheets](docs/SPREADSHEET-IMPORT.md) · [Presentations](docs/PRESENTATION-IMPORT.md) · [Notebooks](docs/NOTEBOOK-IMPORT.md)
+- [Document collections](docs/COLLECTIONS.md) · [MBOX](docs/MBOX.md) · [ENEX](docs/ENEX.md)
+
+## Choose content and save settings
+
+Use **Select Content** to inspect PDF pages, spreadsheet sheets, presentation
+slides or EPUB chapters before conversion. The CLI accepts selections such as
+`--pdf-pages 2-4`, `--sheet-name Budget`, `--slides 1,3-5` and
+`--epub-chapters 2,4`. See the guides for
+[sheets and cell ranges](docs/SPREADSHEET-SELECTION.md),
+[slides](docs/PRESENTATION-SELECTION.md) and [EPUB chapters](docs/EPUB-SELECTION.md).
+
+Save recurring options as a named profile in the app or with
+`poormans-text --save-profile NAME`. Apply a profile with `--profile NAME` and
+override individual values on the command line. The **Convert Document with
+Profile** Shortcuts action supports **Profile Value**, **On** and **Off**.
+[Profiles, portable JSON and source-bound selections](docs/PROFILES.md)
+
+## Preview, compare and automate
+
+The app previews rendered Markdown, source Markdown and supported local assets.
+**Compare** verifies the source and result fingerprints before using recorded
+positions. PDF pages and image frames support a passive source preview.
+[Markdown preview](docs/MARKDOWN-PREVIEW.md) · [Source comparison](docs/SOURCE-COMPARISON.md)
+
+Use `--json` for a machine-readable result. `--source-map` records available
+source locations and `--report` writes the diagnostic report into the output
+folder. `--formats --json` returns the format catalog. `--help` lists the current
+CLI options. [Reports](docs/CONVERSION-REPORT.md) · [Diagnostics](docs/DIAGNOSTICS.md) · [CLI contract for Fastra and other callers](docs/FASTRA-CONTRACT.md)
+
+## Extract fields from receipts
+
+Use **Extract Receipt Data** to create a JSON mask for PDFs with the same
+layout. Select fields such as the invoice number or delivery date. Review the
+matched words against their positions on each page. **Apply Mask** uses an
+existing mask across multiple PDFs.
+
+```sh
 poormans-text extract --mask invoice-mask.json --output-dir Results Invoice-4711.pdf Invoice-4712.pdf
 ```
 
-Without `--output-dir`, the app and CLI write `Invoice-4711.pdf.json`
-beside the PDF. Existing files stay protected. Missing and ambiguous values
-appear as JSON `null` with a review status and any matching sources. This
-feature reads embedded PDF text and exports JSON. Scanned receipts need an
-embedded text layer for this workflow. The
-[receipt extraction contract](docs/RECEIPT-EXTRACTION.md) documents the JSON
-fields, machine-readable run summary and exit codes.
+The editor and CLI use the same masks on both platforms. Extraction reads
+embedded PDF text and reports missing or ambiguous fields for review.
+[Receipt masks, manual corrections and batch JSON](docs/RECEIPT-EXTRACTION.md)
 
-## Output
+## Build and test
 
-Regular MBOX files and exported Apple Mail `.mbox` packages become ordered message collections with headers, bodies and local assets. In the app, select the overview or a numbered message to open, copy or preview it; the optional report covers the complete collection. App, CLI, Finder service and Shortcuts use the same reader. See the [MBOX limits and variant contract](docs/MBOX.md).
-
-Bounded ENEX exports become ordered note collections with titles, tags, dates and static checkbox/task content. Choose a numbered note or the overview in the app, then open, copy or preview it. **Local files** in the preview shows that note’s images and attachments; PDFs show only their first page, text is limited to 256 KiB, and unsupported types remain saved with an explicit notice. App opening, Finder conversion and both Shortcuts actions return the complete collection, including profile settings, optional per-note frontmatter and report. ENEX needs Pandoc and a local export; no Evernote account or sync is used. [ENEX limits](docs/ENEX.md) describe XML safety, byte-preserving resources and the limits of internal link resolution.
-
-Collection adapters share a primary Markdown overview, ordered documents and isolated assets. The [collection contract](docs/COLLECTIONS.md) describes the library and JSON fields, Textbundle layout and stdout restriction. This provides the foundation for the MBOX and ENEX readers; the format catalog lists currently supported inputs.
-
-Converting a supported input creates a new sibling directory without changing
-the source. If the input contains extractable images, the result looks like this:
-
-```text
-Document-markdown/
-├── Document.md
-└── images/
-    ├── image01.png
-    └── image02.jpg
-```
-
-Image links in `Document.md` are relative and retain their position in the text.
-Extracted images receive stable sequential names instead of carrying technical
-attachment names from the source document.
-Existing output directories are never overwritten.
-
-Manual line breaks end with two spaces in the generated Markdown. Chromatic
-RTFD text is marked as `==text==`. Fastra supports this common Markdown
-extension, but it is not part of standard GFM and does not retain the exact
-color value. RTF color information cannot be retained by the image-safe import
-path; the converter keeps the text and returns a warning instead.
-
-## Email import
-
-EML and Apple Mail `.emlx` files use the same importer. All message headers
-appear in a Markdown table before the body. MIME alternatives produce one
-body, preferring the last supported representation. Plain-text bodies use fenced
-text blocks to preserve indentation, tabs, spacing and blank lines without
-interpreting their content as Markdown or HTML; related inline images are
-resolved from the mail itself. HTML tables become text blocks so that nested
-layout tables retain their text. Attachments retain their bytes under
-`attachments/`, with safe, unique file names and links in the Markdown.
-Embedded messages and attached MIME containers are retained as attachments.
-Remote images are kept as links and are never downloaded; references to local
-files outside the message are not loaded. Encrypted message bodies and malformed
-MIME are rejected with a diagnostic. The reader limits a source to 64 MiB,
-headers to 256 KiB, MIME parts to 1,024, nesting to 32 and cumulative parsed
-part bytes to 128 MiB. Apple Mail's trailing property list is not imported.
-
-Outlook `.msg` files use an independent OLE reader and the same mail engine;
-Office is not required. Unicode and legacy text, HTML, and compressed RTF bodies
-are supported, including HTML encapsulated in RTF. Inline images resolve from
-attachments. Embedded messages are exported as standalone `.msg` attachments,
-with their property streams retained. The source limit is 64 MiB; the reader
-also bounds OLE entries to 100,000, storage depth to 32, recipients to 2,048,
-attachments to 1,024, expanded RTF to 64 MiB and attachment bytes to 128 MiB.
-Broken containers, encrypted messages, non-mail Outlook items and unsupported
-attachment methods are rejected. External attachment references are never opened.
-
-The default is the visible header table. `--frontmatter` remains an explicit
-option for title, sender and date metadata; it does not replace the table.
-Email conversion requires Pandoc, and also supports temporary output and
-Textbundle, with attachments moved to `assets/` in a Textbundle.
-
-## Requirements
-
-- macOS 13 or newer
-- [Pandoc](https://pandoc.org/installing.html) for word-processing, mail, ENEX and ODM files
-- Swift 6.2 or newer when building from source
-
-ODS, XLSX, XLS, CSV, TSV, PPTX/PPTM/POTX, ODP, IPYNB, PDF, and images are
-read natively and need no external conversion tool.
-For the remaining formats, the converter searches for Pandoc in the common Homebrew
-locations and then on `PATH`. The CLI also accepts an explicit executable
-through `--pandoc PATH`.
-
-While Pandoc is missing, the app offers at every launch to install it through
-Homebrew, or points to the official installation help when Homebrew is absent.
-The offer stops once Pandoc exists or after choosing "Don't Ask Again". The
-installation can be cancelled from the window and ends on its own after 15
-minutes; Homebrew never waits for keyboard input.
-
-## Download
-
-The [latest GitHub release](../../releases/latest) provides a notarized
-Universal DMG for macOS 13 or newer and x86-64 Linux packages for Mint/Ubuntu
-and Arch-based systems. Portable Linux TAR and ZIP archives include both the
-GTK app and CLI. Download the archive or package and its matching `.sha256` file.
-
-**macOS.** Verify the file with `shasum -a 256 -c Poor-Mans-Text-0.41.25.dmg.sha256`,
-open the DMG, then drag the app to Applications. The app includes the CLI.
-Word-processing, mail, ENEX and ODM imports require Pandoc, available separately
-with `brew install pandoc`.
-
-**Linux.** Run `sha256sum -c` with the checksum file, then install the DEB with
-`sudo apt install ./poormans-text_0.41.25-1_amd64.deb` or the Arch package with
-`sudo pacman -U ./poormans-text-0.41.25-1-x86_64.pkg.tar.zst`. For the portable
-archive, extract it and run `usr/bin/poormans-text-app` or `usr/bin/poormans-text`
-from the extracted directory. Start with `poormans-text --formats` to see what
-is available on your system. [Linux dependency and installation details](docs/LINUX-BUILD.md).
-
-## Updates
-
-From 0.7.0 on, the app keeps itself up to date through Sparkle. It checks a
-signed update feed on its own and offers "Check for Updates …" in the
-application menu; nothing is downloaded or installed without consent. Feed and
-disk image must carry a valid Ed25519 signature, and the new version is verified
-before it is unpacked. Version 0.6.0 and older have no updater, so 0.7.0 has to
-be installed once by hand from the DMG.
-
-The app transmits no profile of the Mac while checking. What GitHub as the host
-of feed and download receives is described in [PRIVACY.md](PRIVACY.md), together
-with the Terminal command that switches automatic checks off.
-
-## Command line
+Build from source with Swift 6.2 or later. Linux GTK builds also require Rust
+and the GTK development packages.
 
 ```sh
-poormans-text Document.rtfd
-poormans-text Document.rtf
-poormans-text Document.docx
-poormans-text Document.odt
-poormans-text Document.doc
-poormans-text Workbook.ods
-poormans-text Workbook.xlsx
-poormans-text Workbook.xls
-poormans-text Book.odm
-poormans-text Document.pdf
-poormans-text Scan.heic
-poormans-text --image-ocr off Photo.jpg
-poormans-text --spreadsheet-format tsv Workbook.ods
-poormans-text --output Converted Document.rtfd
-poormans-text --json Document.rtfd
-poormans-text Report.docx Budget.xlsx Scan.pdf
-poormans-text --output Converted Documents/
-poormans-text --frontmatter Report.docx
-poormans-text --textbundle Report.docx
-poormans-text --stdout Report.docx | pbcopy
-```
-
-The default output directory is `Document-markdown` next to the source. Run
-`poormans-text --help` for all options. Without an installation, the same
-commands work in a source checkout as `swift run poormans-text …`.
-
-Several inputs, or a folder, are converted sequentially by default; `--jobs 2`
-to `--jobs 4` enables parallel conversion. A failure does not stop the remaining
-documents. A path that does not exist or a folder
-without supported documents is an argument error, though: the run stops
-before anything is converted. A folder is searched recursively for
-supported file extensions. Packages such as `.rtfd` count as one document,
-and hidden entries, symbolic links, and earlier `*-markdown` results are
-skipped. With `--output`, the directory becomes the parent that receives one
-`Name-markdown` folder per document, mirroring the folder structure. In this
-mode `--json` reports `{"ok", "version", "results": [...]}` with one entry per
-input, and the exit code is that of the first failed input. A single file keeps
-the previous single-document answer unchanged. Two documents that differ only
-in their extension, such as `Report.docx` and `Report.odt`, share the name
-`Report-markdown`; the second one is reported as an output collision and
-nothing is overwritten.
-
-### Frontmatter, Textbundle, and standard output
-
-Successful JSON responses retain text `warnings` and include structured
-`diagnostics` and `diagnosticGroups` when messages are present. Their `kind`
-distinguishes information, approximation and known content loss; available
-source positions and omitted counts are included. Diagnostics alone keep a
-successful exit code. See [the diagnostic contract](docs/DIAGNOSTICS.md).
-
-Choose **Preview** after conversion for rendered headings, lists, tables, code
-and local image thumbnails, or switch to selectable Markdown source. ⌘F searches
-the displayed excerpt. The preview shows limits explicitly, displays HTML as
-text and keeps links inactive. See [the preview behavior](docs/MARKDOWN-PREVIEW.md).
-
-**Compare** places a verified PDF page or image frame next to the result.
-Filter diagnostics by meaning and location, navigate recorded references and
-check sheet/cell or slide positions. Changed or missing sources are marked;
-unknown positions remain explicit. See [source comparison](docs/SOURCE-COMPARISON.md).
-
-`--report` saves a portable `conversion-report.json` with verified source/output
-hashes, effective options, diagnostics and known source-to-Markdown byte ranges.
-`--source-map --json` exposes the same mappings without writing a report.
-Frontmatter and Textbundle are supported; standard Markdown stays unchanged.
-See [reports and source mappings](docs/CONVERSION-REPORT.md).
-
-`--pdf-pages "1,3-5"` imports selected PDF pages in source order and retains
-their original page numbers. Duplicates merge; invalid or out-of-range values
-are errors. Without this option, all pages are imported. See
-[PDF import and page selection](docs/PDF-IMPORT.md).
-
-`--frontmatter` starts the Markdown with a YAML header built from the source:
-title, author, subject, description, keywords, and creation and modification
-dates, read from OOXML core properties (DOCX, XLSX), OpenDocument `meta.xml`
-(ODT, ODS, ODM), the RTF `\info` group (RTF, RTFD), the PDF information
-dictionary, the OPF metadata of an EPUB, the `title-info` of a FictionBook, or
-the `<title>` and `<meta>` tags of HTML and web archives. Every value is
-quoted, dates are ISO 8601 in UTC. A source without
-any of these gets a warning instead of an empty header. The same fields appear
-as `metadata` in every `--json` answer, whether or not the header was written.
-
-Hover over a control in the conversion options or receipt windows for a short explanation. The YAML frontmatter option adds source details such as title and author at the top of the Markdown file for other tools to read.
-
-`--textbundle` writes `Report.textbundle` instead of `Report-markdown`: the
-Markdown is `text.md`, images live in `assets/`, and `info.json` identifies the
-bundle, so Bear, iA Writer, and Ulysses open it directly. With `--output`, the
-name has to end in `.textbundle` — and a name ending in `.textbundle` is only
-accepted together with `--textbundle`, so no folder can claim the extension
-without carrying the bundle files. Folder searches skip existing bundles.
-
-`--stdout` converts exactly one document in a temporary place, prints the
-Markdown to standard output, and removes the temporary result. Diagnostics go
-to standard error. Image assets are not kept and are reported; their links stay
-in the text. It cannot be combined with `--json`, `--output`, `--textbundle`,
-`--jobs`, several inputs, or a folder. MBOX and ENEX collections require a
-saved output folder or Textbundle; `--stdout` rejects them before writing text.
-
-Text mode prints one result path per line. A path that itself contains a line
-break spans two lines, so scripts that parse the output should use `--json`.
-
-Exit codes follow conventional `sysexits` values: `64` for usage errors, `65`
-for invalid input data, `66` for a missing input, `69` when Pandoc is not
-available, `70` for a failed conversion process, `73` for an output collision,
-and `74` for a file-system error. With `--json`, successes and failures are
-reported as JSON on standard output; diagnostics otherwise go to standard
-error. Inputs are accepted as file-system paths, not through standard input.
-
-### Asking which formats are supported
-
-```sh
-poormans-text --formats
-poormans-text --formats --json
-```
-
-`--formats` never touches a document and always exits `0`. It reports every
-format this build can read, its file extensions, whether the source is a single
-file or a folder package such as `.rtfd`, the external tools it needs, and
-whether those tools are installed right now:
-
-```text
-rtf         .rtf                                              file          pandoc           available
-rtfd        .rtfd                                             package       pandoc+textutil  available
-docx        .docx .docm .dotx .dotm                           file          pandoc           available
-odt         .odt                                              file          pandoc           available
-doc         .doc                                              file          textutil+pandoc  available
-ods         .ods                                              file                           available
-xlsx        .xlsx .xlsm .xltx .xltm                           file                           available
-xls         .xls                                              file                           available
-odm         .odm                                              file          pandoc           available
-image       .png .jpg .jpeg .heic .tif .tiff .gif .bmp .webp  file                           available
-pdf         .pdf                                              file                           available
-pptx        .pptx .pptm .potx                                 file                           available
-odp         .odp                                              file                           available
-ipynb       .ipynb                                            file                           available
-csv         .csv .tsv                                         file                           available
-html        .html .htm .xhtml                                 file          pandoc           available
-webarchive  .webarchive                                       file          pandoc           available
-epub        .epub                                             file          pandoc           available
-latex       .tex .latex                                       file          pandoc           available
-docbook     .dbk .docbook                                     file          pandoc           available
-org         .org                                              file          pandoc           available
-mediawiki   .wiki .mediawiki                                  file          pandoc           available
-textile     .textile                                          file          pandoc           available
-rst         .rst                                              file          pandoc           available
-fb2         .fb2                                              file          pandoc           available
-eml         .eml .emlx                                        file          pandoc           available
-mbox        .mbox                                             file/package  pandoc           available
-enex        .enex                                             file          pandoc           available
-msg         .msg                                              file          pandoc           available
-```
-
-Without Pandoc, the word-processing, ODM, HTML, mail, ENEX, e-book, and text-markup lines
-read `unavailable (missing required tool: pandoc)`; ODS, XLSX, XLS, CSV, TSV,
-PPTX/PPTM/POTX, ODP, IPYNB, PDF, and images remain available. The `textutil` that DOC and RTFD additionally require is part of
-macOS.
-
-This is the intended way for another application to decide whether to offer a
-conversion. Because the list comes from the converter itself, a host picks up
-formats added in a later version without being changed. The extensions are a
-fast pre-filter only — the conversion always re-detects the format from the file
-contents and reports an honest error when they disagree.
-
-### EPUB selection
-
-`--list-chapters --json book.epub` shows spine order, titles, auxiliary entries and navigation fragments. `--epub-chapters 1,3-5` imports selected local XHTML documents in reading order, retaining original chapter indices, images and local fragment links. Links to excluded chapters keep their visible text with a diagnostic. Without selection, the existing EPUB import remains unchanged. See [EPUB selection](docs/EPUB-SELECTION.md) for supported documents and limits.
-
-### Presentation selection
-
-`--list-slides --json slides.pptx` lists ordered slide titles and local note references without importing images. `--slides 1,3-5` selects source slides in presentation order; `--notes off` excludes note text, tables and images before conversion. Notes remain included by default. PPTX, PPTM, POTX and ODP share these options. See [presentation selection](docs/PRESENTATION-SELECTION.md).
-
-### Spreadsheet selection
-
-Use `--list-sheets --json workbook.xlsx` to inspect source sheet indices, exact names and visibility. `--sheets visible` imports visible worksheets; `--sheets 1,3-5` or repeated `--sheet-name NAME` selects explicit sheets. Repeated `--cell-range B2:D8` selects rectangles on every selected sheet. Overlaps are deduplicated and distant rectangles stay separate, with original source coordinates in reports. Without these options, hidden sheets remain included as before. See [spreadsheet selection](docs/SPREADSHEET-SELECTION.md) for bounds, merges and formulas.
-
-### Named conversion profiles
-
-Save recurring options with `--save-profile NAME`, select them with `--profile NAME`, and manage portable JSON using `--list-profiles`, `--import-profile FILE` and `--export-profile FILE`. Explicit conversion options take precedence. Content selections require `--profile-source FILE` when saved and remain bound to those exact source bytes. Local output/tool paths require `--profile-local` for each profile operation. See [profiles and precedence](docs/PROFILES.md).
-
-### PDF text and OCR options
-
-`--pdf-ocr auto|always|off` selects local OCR; automatic mode also recognizes
-scan images below digital headers. `--ocr-language de,en` sets shared PDF/image
-languages supported by the local Vision installation. `--pdf-layout auto|legacy`
-selects font-based headings, simple ruled tables and two-column ordering,
-or the previous extraction for comparison. Ambiguous aligned text retains row
-order and gets a visible warning.
-`--pdf-remove-headers-footers` removes repeated text at page margins;
-`--pdf-dehyphenate` optionally joins conservative lowercase word breaks.
-The app remembers these settings. Original embedded text remains present when
-OCR adds text. Heuristics and limits: [PDF import](docs/PDF-IMPORT.md).
-
-### Presentations and notebooks
-
-PPTX/PPTM/POTX, ODP and IPYNB are native inputs and do not require Pandoc.
-Slides retain source order, text, nested lists, tables, notes and supported
-image assets. Text, table and note hyperlinks retain safe external targets and
-internal slide references; excluded or unavailable targets produce diagnostics.
-Notebook imports preserve Markdown, language-tagged code, text
-outputs and embedded images; notebook code is never executed.
-Unsupported objects or output representations and unavailable assets are
-reported. Details and budgets: [presentations](docs/PRESENTATION-IMPORT.md),
-[notebooks](docs/NOTEBOOK-IMPORT.md).
-
-### Batch parallelism and source protection
-
-`--jobs 1..4` controls the number of simultaneous batch documents; the default
-is 1. The app remembers the same setting. Local Vision OCR processes at most one
-image per process, while other documents can continue without OCR. A waiting
-OCR request checks cancellation every 50 ms. Four documents can still retain
-substantial parser, image and subprocess memory; this is a concurrency limit,
-not a fixed RAM limit. Measurements are recorded in [performance](docs/PERFORMANCE.md).
-
-All batch targets and output roots are planned and checked against every source
-before any directory or worker is created. This includes adjacent outputs for a
-file inside another source package. The first input position reserves a target;
-conflicting later inputs fail regardless of worker speed. Existing outputs are
-never overwritten. Results, JSON entries and the first ordinary error retain
-input order. SIGINT/SIGTERM returns 130, retains committed results, waits for
-running workers to clean up, and leaves remaining inputs available for retry.
-An individual tool timeout does not cancel the other documents. Empty output
-parent directories can remain after cancellation; unfinished document workspaces
-and partial results are removed.
-
-## macOS app
-
-Build the app and CLI from the repository root:
-
-```sh
-./build.sh
-open "Poor Man's Text.app"
-```
-
-`./build.sh` creates the bundle under `.build/app/` and copies it, together with
-the CLI, into the repository root. Both copies are ad-hoc signed for local
-testing only: they are not a notarized distribution build and must not be copied
-to `/Applications`.
-
-Drop any number of supported documents, spreadsheets, presentations, notebooks,
-PDFs, images, or folders
-into the window or onto the app, or choose them from the open panel. A folder is
-searched with the same rules as on the command line. Conversion Options remembers
-an output parent (by default next to each source), table format, image OCR,
-frontmatter, Textbundle, DOCX text changes, PDF OCR/layout, OCR method and
-languages, and batch parallelism. Subdirectories are preserved under a selected parent.
-Select a batch result to open its Markdown in the default app, copy it, show it
-in Finder, read a rendered/source preview limited to 256 KiB, or compare it
-with known source positions. Copying reports omitted
-asset files. Retry Failed Inputs retains successful outputs and result order;
-a failed input also offers another output name or destination. Existing output
-is never replaced. The interface follows the system's English or German language.
-
-Use **Paste Text or Image** in the window or Edit menu, or **⌘V** outside editable
-text fields, to import a copied selection. Clipboard contents are read only for
-that explicit command. The priority is RTFD, then RTF, then HTML; an unreadable
-preferred representation is reported rather than silently replaced. Plain text,
-multiple items and an empty clipboard receive an explanation. Image data is accepted
-as PNG, TIFF, JPEG, HEIC, GIF, BMP or WebP, with that priority after rich text.
-Only representations explicitly offered by the clipboard item are read; no
-automatically synthesized TIFF, file path, screen capture or clipboard polling is used.
-The selected encoded bytes, transparency, pixel dimensions and orientation remain
-unchanged. Local OCR, its method and languages follow the current settings/profile.
-
-The app first creates a temporary result for its local rendered/source preview.
-**Save Markdown and Assets…** chooses a new permanent output folder or Textbundle;
-existing output is never overwritten. **Copy Markdown Only** copies the text and
-reports assets it cannot carry; their relative links require a saved result.
-Discarding, replacing or copying a draft removes its temporary result. The
-source app and copied source remain unchanged. Inputs are limited to 64 MiB and
-need Pandoc for rich text; image import works without it. **Copy Recognized Text**
-copies only the OCR portion of an image result, omitting the image and its link.
-If OCR is disabled or no text is found, the draft and clipboard remain available.
-HTML supports text, lists, links and embedded raster data images.
-External images remain links, missing/local file references are diagnosed, and
-scripts, styles and layout are not retained. No external resources are loaded.
-See [clipboard import details](docs/CLIPBOARD-IMPORT.md).
-
-The app also registers two system services, available once it has been
-launched at least once (macOS lists them under System Settings › Keyboard ›
-Keyboard Shortcuts › Services):
-
-- **Convert to Markdown with Poor Man's Text** appears in the Finder context
-  menu for supported documents and folders. It hands the selection to the app,
-  which uses the current conversion settings, exactly like a drop.
-- **Convert Text to Markdown with Poor Man's Text** appears in the Services
-  submenu of any app that offers selected rich text, such as Mail, Pages,
-  TextEdit, or Safari. The Markdown is placed on the clipboard, ready to paste;
-  nothing in the source app is replaced. Images in the selection are left out
-  and reported, because the clipboard carries text only. Selections that only
-  offer RTF need Pandoc, like `.rtf` files.
-
-The native **Convert Document to Markdown** action is available in Shortcuts
-on macOS 13 or later. Supply one document and a destination folder (for example
-with the Folder action). Expand the action to choose Textbundle, metadata,
-spreadsheet format, DOCX text changes, OCR method and languages, PDF layout,
-and the external-tool timeout. The action
-returns a text list: the local file URL of the complete output folder first,
-followed by any conversion warnings. Use Get Item from List → First Item to
-pass the folder URL to another action. Images and other assets stay together.
-Existing outputs are never overwritten. Pandoc must be installed for formats
-that need it. The action runs without opening the app.
-
-Choose **Select Content…** in the app to inspect one PDF, XLSX/XLS/ODS workbook,
-PPTX/PPTM/POTX/ODP presentation, or EPUB. Enter original source numbers such as
-`1,3-5`, or select rows in the bounded overview. Workbook ranges such as
-`A1:C8,E2` apply to every selected sheet; an empty range selects whole sheets.
-EPUB selection covers whole spine files, while navigation fragments provide
-orientation. **Choose Document…**, drops, folders and services continue to import
-complete documents. A selection belongs only to the inspected source bytes;
-changed or unverifiable input requires reading the overview again. A retry after
-an output collision keeps that document's selection.
-
-In Shortcuts, expand the conversion action for PDF pages, sheet indices or an
-array of exact sheet names, visibility, cell ranges, slides, presentation notes,
-and EPUB chapters. Empty ranges leave the document complete. Use only one format
-family per invocation, and only one of sheet indices, exact names or visibility.
-Explicit selections for an incompatible input fail instead of being ignored.
-**Document Default** keeps existing sheet and note behavior; explicit note modes
-apply only to presentations. Sheet names are separate list items, so commas in a
-name remain literal.
-
-While conversion runs, the app shows active files and known page, sheet, slide,
-notebook-cell, or image-frame progress. Cancel Conversion retains completed batch results and
-removes the current document's workspace without publishing it. Unstarted inputs
-remain available for retry. Cancellation waits for an active PDFKit, ImageIO,
-or Vision call to return; external tool processes are terminated.
-
-The CLI accepts `--progress` for stderr progress and `--timeout SECONDS` for a
-positive time limit per external tool process. SIGINT and SIGTERM request cleanup
-and return exit 130; tool timeout returns 124. A timed-out document does not stop
-later batch inputs. Captured tool output is limited to 16 MiB per stream.
-
-## Signed installation
-
-The installer builds universal app and CLI binaries, signs both with Developer
-ID and the hardened runtime, notarizes and staples the app, and only then
-installs the verified bundle:
-
-```sh
-NOTARY_PROFILE=<profile> ./install.sh
-```
-
-The app is installed as `/Applications/Poor Man's Text.app`. The exact same CLI
-embedded in the bundle becomes available on the terminal path as
-`poormans-text`. The installer keeps an already installed copy's directory and
-otherwise uses the first Homebrew `bin` on your `PATH`; `CLI_INSTALL_DIR`
-overrides it. An unrelated existing target is never overwritten. The faster
-`./install.sh --no-notarize` path keeps the signed but unnotarized artifacts in
-the repository root.
-
-## Release disk image
-
-Building the distribution disk image is a separate entry point that installs
-nothing:
-
-```sh
-NOTARY_PROFILE=<profile> ./release.sh
-```
-
-It runs the same build, signing and notarization path, then creates the signed
-disk image, notarizes and staples that image as well, and finally writes
-`Poor-Mans-Text-<version>.dmg` and a matching `.sha256` file to the repository
-root. Existing artifacts are never overwritten: if the pair for that version is
-already there, the run stops.
-
-A full release — disk image, checksum, and the verified installation from the
-very same signed bundle — is a single run instead:
-
-```sh
-NOTARY_PROFILE=<profile> ./install.sh --with-dmg
-```
-
-Users who drag the app from that disk image into `/Applications` are offered an
-optional first-launch setup for the embedded CLI. It never replaces another
-command-line tool and always asks before requesting administrator privileges.
-
-## Conversion pipeline
-
-RTFD paragraphs starting with a literal `• ` are imported as compact Markdown
-lists. Existing lists, ordinary paragraphs and explicit empty paragraphs retain
-their structure; the source document is never changed.
-
-RTFD stores text in `TXT.rtf` and keeps attachments as separate files inside a
-macOS package. Poor Man's Text uses the macOS text system to create HTML and
-materialize those attachments. Standard RTF stores images inside the file;
-Pandoc reads that container and extracts its media without a Cocoa round trip.
-DOCX, DOCM, DOTX/DOTM, and ODT pass through a shared, sandboxed Pandoc container
-adapter that validates every ZIP entry and extracts media only inside the private
-work area. Macro-enabled packages and templates are accepted after their OOXML
-content type has been checked, with explicit warnings that macros and template
-behavior are not retained.
-
-DOC remains a separate legacy adapter: macOS `textutil` creates local HTML, and
-the converter warns that OLE objects, text boxes, macros, and some embedded
-content may be lost. DOCX text changes can be accepted (default), rejected, or
-marked visibly with `--docx-changes accept|reject|mark` and the matching app/Shortcuts
-option. Comments retain their text, available author/date and source reference.
-Removed anchors and unsupported revision history produce diagnostics. Details and
-limits are in [DOCX reviews](docs/DOCX-REVIEWS.md).
-
-ODS, XLSX, and binary XLS use native readers and a shared workbook model. Each
-sheet becomes a Markdown section, in source order, rendered either as a GFM
-table or as an escaped TSV code block. Formulas are not calculated; stored
-cell results are used. ODM master documents keep their own text and safely
-resolve only existing local ODT sections before flattening them in source order.
-
-PDF comments and text markings retain available author/date and page references. Safe hyperlinks use uniquely matched text or separate annotations; internal targets use selected source-page anchors. Unsupported actions are diagnosed and never executed. See [PDF annotations](docs/PDF-IMPORT.md#anmerkungen-und-hyperlinks).
-
-PDF uses PDFKit for embedded text. Automatic OCR renders pages with larger
-embedded images or fewer than 20 extracted characters and reads them locally
-with Vision. The Markdown keeps explicit page sections. Password-protected PDFs, more than 1,000 pages, and OCR work above the
-64-million-pixel budget are rejected before publication. Neither PDFKit nor Vision
-opens remote content.
-
-CSV and TSV become a one-sheet workbook rendered like ODS or XLSX. The
-extension selects the format, because plain text cannot be recognized as a
-table by content; `.tsv` splits on tabs and `.csv` picks the separator that is
-most consistent across the first lines. A byte-order mark selects UTF-8 or
-UTF-16, text that is not valid UTF-8 is read as Windows-1252 with a warning,
-and binary content is rejected. All table formats share a limit of
-1,000,000 rows per sheet, 16,384 columns and 10,000,000 rendered cells across
-all sheets. Empty cells added to make rows equally wide count too. The existing
-128 MiB output limit and parser-specific safety budgets remain in effect.
-
-HTML, Safari web archives, EPUB, LaTeX, DocBook, Org, MediaWiki, Textile,
-reStructuredText, and FictionBook go through Pandoc in sandbox mode, which
-also stops LaTeX `\input` from reading other files. HTML is recognized by
-content; the text markups need their extension, and a `.xml` file counts as
-DocBook only with the DocBook namespace. Images next to the source are copied
-when they live below the source's folder; embedded `data:` images are
-extracted; remote images are never fetched and become plain links; missing
-images are dropped and leave their alt text. Web archives use their own stored
-images. Scripts, styles, forms, and page layout are not represented, and an
-EPUB is flattened into one Markdown file.
-
-Image import stores PNG, JPEG, HEIC, TIFF, GIF, BMP, and WebP bytes unchanged as an `images/`
-asset and writes a relative Markdown image reference. By default Vision adds local
-OCR text below it. `--image-ocr off` retains only the image, which is useful when
-the source contains handwriting, a diagram, or text that should not become
-searchable Markdown. The macOS app exposes the same choice before conversion.
-TIFF uses one retained asset and a separate OCR section for
-each frame. Image dimensions and all frames share the same 16-million-per-frame
-and 64-million-pixel OCR budgets as PDF fallback. Larger image frames are
-downscaled only for recognition, with an `image.ocrDownscaled` diagnostic; the
-stored original remains unchanged. Low-confidence OCR is marked for review.
-
-Structured local OCR recognizes paragraphs, lists and table cells.
-Its comparison and limits are described in [Structured OCR](docs/STRUCTURED-OCR.md).
-Use `--ocr-method structured` (or OCR method in the app and Shortcuts) to opt in on macOS 26+. The default is `standard`; unavailable or unsafe structure falls back with a diagnostic.
-
-The format-neutral engine verifies source contents instead of trusting only the
-filename extension, then selects the matching path. Word-processing paths
-validate and rewrite image references before Pandoc creates GitHub-Flavored
-Markdown; native spreadsheet paths do not start Pandoc.
-
-The conversion runs in a private staging directory and moves the completed
-result into a persistent or caller-owned temporary destination only after all
-stages succeed. Remote resources are never loaded; unsafe or unavailable references produce
-format-specific warnings or errors.
-Attachments that cannot be represented in the generated Markdown produce warnings.
-
-## Format support and limitations
-
-Typically preserved:
-
-- paragraphs and manual line breaks using two trailing spaces
-- bold and italic text
-- chromatic RTFD text using `==text==` markers
-- hyperlinks in word-processing documents
-- simple ordered and unordered lists
-- semantic headings, footnotes, and simple tables in DOCX and ODT
-- image order and relative image references
-- stored spreadsheet values, sheet names, sheet order, empty cells, internal line breaks,
-  and one hyperlink target per cell
-- local ODM section order
-- embedded PDF text in page order, with page sections
-- byte-identical PNG, JPEG, HEIC, TIFF, GIF, BMP, and WebP assets, with optional local OCR text
-
-Expected losses or approximations:
-
-- font families, grayscale and exact color values, and exact font sizes
-- exact image dimensions
-- page geometry and paragraph alignment
-- complex tables, text boxes, and multi-column layouts
-- equations and application-specific rich-text attributes
-- semantic heading levels when the source only expresses larger font sizes
-- ODT comments, DOC change markup, and DOCX formatting/cell-property revision history
-- DOC OLE objects, text boxes, macros, and images unsupported by `textutil`
-- DOCM/DOTM macros and DOTX/DOTM template behavior
-- spreadsheet formulas without stored results, merged-cell structure, charts,
-  drawings, comments, macros, and exact formatting
-- multiple different hyperlink targets in one spreadsheet cell; the first target
-  and all visible text stay, while the additional target is reported as a warning
-- ODM section boundaries and master-document behavior after flattening
-- complex PDF page layout, tables without a recoverable grid, and exact text placement;
-  local OCR can contain recognition errors and needs review
-- image OCR reading order and exact layout; the retained original image remains
-  the authoritative source for review
-
-## Development
-
-```sh
-./build.sh
 swift test
-./install.sh --no-notarize
+./build.sh
 ```
 
-See [docs/BUILD-AND-TEST.md](docs/BUILD-AND-TEST.md) for build, signing, and
-installation details. Image import is described in
-[docs/IMAGE-IMPORT.md](docs/IMAGE-IMPORT.md); PDF import is described in
-[docs/PDF-IMPORT.md](docs/PDF-IMPORT.md). The implemented workbook model, two table representations,
-and multi-sheet behavior are described in
-[docs/SPREADSHEET-IMPORT.md](docs/SPREADSHEET-IMPORT.md).
+[macOS build and test guide](docs/BUILD-AND-TEST.md) · [Linux build and packaging](docs/LINUX-BUILD.md) · [Architecture](docs/ARCHITECTURE.md)
 
-The test suite creates real temporary Cocoa RTFD packages and monolithic RTF
-files with formatting, colors, empty lines, links, lists, Unicode filenames,
-and embedded images. Versioned DOCX, ODT, and binary DOC fixtures from independent
-producers cover headings, footnotes, tables, lists, links, comments, tracked
-changes, Unicode, and media hashes. Native spreadsheet tests cover real ODS and
-XLS files, generated XLSX packages, sheet order, cell budgets, hyperlink targets,
-warnings, and an independent Pandoc comparison. ODM tests use local linked ODT files. Tests also
-cover real temporary PDFs with embedded text, empty OCR pages, encryption, page
-and pixel budgets. Image tests generate PNG and multi-frame TIFF fixtures, compare
-their preserved asset bytes, and exercise both OCR modes. They also cover output collisions, malformed or unsafe packages, missing dependencies,
-the CLI-link guard, and the app's `NSItemProvider` drop path.
-
-The current source version is 0.41.25.
-The [release notes](docs/releases/0.41.25.md) describe the fixes in this update.
-The [0.41.24 test matrix](docs/releases/0.41.24-verification.md) records the desktop
-and package checks on macOS, Mint and CachyOS.
+Source version **0.41.25**. [Release notes](docs/releases/0.41.25.md) · [Changelog](CHANGELOG.md)
 
 ## License
 
-Poor Man's Text is released under the **WTFPL**, Version 2
-(Do What The Fuck You Want To Public License) — see [LICENSE](LICENSE).
-The app-icon provenance is documented in [ASSETS.md](ASSETS.md).
-
-Pandoc is an external runtime dependency and is not bundled with Poor Man's
-Text. Pandoc remains subject to its own license.
-
-The updater [Sparkle](https://sparkle-project.org) is bundled and remains
-subject to its own license, which ships with the app as
-`Contents/Resources/Sparkle-LICENSE.txt`. The rendered preview uses Swift Markdown
-and cmark-gfm; their license notices ship as
-`Contents/Resources/Markdown-LICENSES.txt`.
-
-Poor Man's Text processes documents locally and includes no telemetry. Network access covers update checks/downloads and an explicitly requested
-Pandoc installation through Homebrew. Details are in [PRIVACY.md](PRIVACY.md);
-support information is in [SUPPORT.md](SUPPORT.md).
+**WTFPL**, Version 2. See [LICENSE](LICENSE) for the project license and dependency
+notices.

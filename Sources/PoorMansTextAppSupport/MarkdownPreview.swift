@@ -13,7 +13,9 @@ public struct MarkdownPreview: Sendable {
     public let matchesExpectedOutput: Bool?
     public static let byteLimit = 256 * 1024
 
-    public static func read(_ url: URL, limit: Int = byteLimit, expected: ConversionOutputFile? = nil) throws -> Self {
+    public static func read(_ url: URL, limit: Int = byteLimit, expected: ConversionOutputFile? = nil) throws
+        -> Self
+    {
         precondition(limit >= 0 && limit < Int.max)
         let descriptor = open(url.path, O_RDONLY | O_NONBLOCK | O_CLOEXEC | O_NOFOLLOW)
         guard descriptor >= 0 else { throw CocoaError(.fileReadUnknown) }
@@ -27,10 +29,12 @@ public struct MarkdownPreview: Sendable {
         var data = Data()
         var hash = SHA256()
         var count = 0
-        let maximumRead = expected.map { max(limit + 1, min(1_073_741_824, max(0, $0.byteCount)) + 1) } ?? (limit + 1)
+        let maximumRead =
+            expected.map { max(limit + 1, min(1_073_741_824, max(0, $0.byteCount)) + 1) } ?? (limit + 1)
         while count < maximumRead {
             try Task.checkCancellation()
-            guard let chunk = try handle.read(upToCount: min(262_144, maximumRead - count)), !chunk.isEmpty else { break }
+            guard let chunk = try handle.read(upToCount: min(262_144, maximumRead - count)), !chunk.isEmpty
+            else { break }
             count += chunk.count
             if expected != nil { hash.update(data: chunk) }
             if data.count < limit + 1 { data.append(chunk.prefix(limit + 1 - data.count)) }
@@ -46,7 +50,9 @@ public struct MarkdownPreview: Sendable {
         guard let text = String(data: prefix, encoding: .utf8) else {
             throw CocoaError(.fileReadInapplicableStringEncoding)
         }
-        let matches = expected.map { $0.byteCount == count && $0.sha256 == hash.finalize().map { String(format: "%02x", $0) }.joined() }
+        let matches = expected.map {
+            $0.byteCount == count && $0.sha256 == hash.finalize().map { String(format: "%02x", $0) }.joined()
+        }
         return Self(text: text, truncated: data.count > limit, matchesExpectedOutput: matches)
     }
 }

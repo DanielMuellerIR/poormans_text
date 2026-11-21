@@ -25,14 +25,12 @@ func writeToStandardOutput(_ result: ConversionResult, cancellation: ConversionC
         throw ConversionError.fileSystemFailure(error.localizedDescription)
     }
     try cancellation.checkCancellation()
-    FileHandle.standardOutput.write(markdown)
+    try writeOutput(markdown)
     for warning in result.warnings {
-        FileHandle.standardError.write(Data("Warning: \(warning)\n".utf8))
+        writeDiagnostic("Warning: \(warning)\n")
     }
     if !result.assets.isEmpty {
-        FileHandle.standardError.write(
-            Data("Warning: \(result.assets.count) image asset(s) were not written; --stdout emits text only.\n".utf8)
-        )
+        writeDiagnostic("Warning: \(result.assets.count) image asset(s) were not written; --stdout emits text only.\n")
     }
 }
 
@@ -44,65 +42,60 @@ func batchDestination(for input: EnumeratedInput, outputRoot: URL?, options: Con
     return .directory(parent.appendingPathComponent(DocumentConverter.outputDirectoryName(for: input.url, layout: options.outputLayout)))
 }
 
-func convertBatch(_ inputs: [EnumeratedInput], arguments: ParsedArguments, options: ConversionOptions, cancellation: ConversionCancellationToken) -> CLIExitCode {
+func convertBatch(_ inputs: [EnumeratedInput], arguments: ParsedArguments, options: ConversionOptions, cancellation: ConversionCancellationToken) throws -> CLIExitCode {
     let requests = inputs.map { ConversionRequest(inputURL: $0.url, destination: batchDestination(for: $0, outputRoot: arguments.outputURL, options: options), options: options) }
-    do {
-        let handler: BatchConversionProgressHandler?
-        if arguments.progress {
-            handler = { event in
-            // Der Batch vergibt `sequence` unter seiner Sperre, ruft den
-            // Handler aber danach — zwei Worker können ihn also in falscher
-            // Reihenfolge erreichen. Ohne diesen Filter lief der Dateizähler
-            // gelegentlich rückwärts. Die App filtert längst so
-            // (AppModel.batchSequence), die CLI tat es nicht
-            // (Review-Fund 2026-09-10).
+    let handler: BatchConversionProgressHandler?
+    if arguments.progress {
+        let output = BatchProgressOutput()
+        handler = { event in
             let value = event.documentProgress
             let detail = conversionProgressDetail(value)
-            CLIProgressOutput.write("Progress: \(event.inputURL.lastPathComponent): \(value?.phase.rawValue ?? "batch")\(detail); files \(event.completed)/\(event.total), running \(event.running.count)\n", sequence: event.sequence)
-            }
-        } else { handler = nil }
-        let results = try BatchConverter().convert(requests, jobs: arguments.jobs,
-            outputRoots: arguments.outputURL.map { [$0] } ?? [], cancellation: cancellation,
-            processTimeout: arguments.timeout, progress: handler)
-        var entries: [JSONBatchEntry] = []
-        var firstFailure: CLIExitCode?
-        var failures = 0
-        for item in results {
-            switch item.outcome {
-            case .success(let result):
-                if arguments.json { entries.append(.success(result)) }
-                else {
-                    print(result.outputDirectory.path)
-                    for warning in result.warnings { CLIProgressOutput.write("Warning: \(item.inputURL.lastPathComponent): \(warning)\n") }
-                }
-            case .failure(let error):
-                failures += 1
-                if firstFailure == nil { firstFailure = exitCode(for: error) }
-                if arguments.json { entries.append(.failure(item.inputURL, error.localizedDescription)) }
-                else { writeError("\(item.inputURL.path): \(error.localizedDescription)") }
-            }
+            output.write(
+                "Progress: \(event.inputURL.lastPathComponent): \(value?.phase.rawValue ?? "batch")\(detail); "
+                    + "files \(event.completed)/\(event.total), running \(event.running.count)\n",
+                sequence: event.sequence
+            )
         }
-        if arguments.json { writeJSON(JSONBatchResponse(ok: failures == 0, version: ProductInfo.version, results: entries)) }
-        else if failures > 0 { writeError("\(failures) of \(inputs.count) inputs failed.") }
-        return cancellation.isCancelled ? .cancelled : firstFailure ?? .success
-    } catch {
-        if arguments.json { writeJSON(JSONResponse.failure(error.localizedDescription)) }
-        else { writeError(error.localizedDescription) }
-        return exitCode(for: error)
+    } else {
+        handler = nil
     }
+    let results = try BatchConverter().convert(requests, jobs: arguments.jobs,
+        outputRoots: arguments.outputURL.map { [$0] } ?? [], cancellation: cancellation,
+        processTimeout: arguments.timeout, progress: handler)
+    var entries: [JSONBatchEntry] = []
+    var firstFailure: CLIExitCode?
+    var failures = 0
+    for item in results {
+        switch item.outcome {
+        case .success(let result):
+            if arguments.json { entries.append(.success(result)) }
+            else {
+                try writeOutputLine(result.outputDirectory.path)
+                for warning in result.warnings { writeDiagnostic("Warning: \(item.inputURL.lastPathComponent): \(warning)\n") }
+            }
+        case .failure(let error):
+            failures += 1
+            if firstFailure == nil { firstFailure = exitCode(for: error) }
+            if arguments.json { entries.append(.failure(item.inputURL, error.localizedDescription)) }
+            else { writeError("\(item.inputURL.path): \(error.localizedDescription)") }
+        }
+    }
+    if arguments.json { try writeJSON(JSONBatchResponse(ok: failures == 0, version: ProductInfo.version, results: entries)) }
+    else if failures > 0 { writeError("\(failures) of \(inputs.count) inputs failed.") }
+    return cancellation.isCancelled ? .cancelled : firstFailure ?? .success
 }
 
-private enum CLIProgressOutput {
-    static let lock = NSLock()
-    nonisolated(unsafe) private static var lastSequence = 0
-    static func write(_ message: String) { lock.withLock { FileHandle.standardError.write(Data(message.utf8)) } }
-    /// Prüfung und Ausgabe müssen dieselbe Sperre halten. Sonst kann ein
-    /// bereits angenommenes älteres Ereignis erst nach dem neueren schreiben.
-    static func write(_ message: String, sequence: Int) {
+private final class BatchProgressOutput: @unchecked Sendable {
+    private let lock = NSLock()
+    private var lastSequence = 0
+
+    // Der Batch ruft Fortschrittshandler außerhalb seiner Sperre auf.
+    // Reihenfolgeprüfung und Ausgabe müssen daher hier zusammenbleiben.
+    func write(_ message: String, sequence: Int) {
         lock.withLock {
             guard sequence > lastSequence else { return }
             lastSequence = sequence
-            FileHandle.standardError.write(Data(message.utf8))
+            writeDiagnostic(message)
         }
     }
 }
@@ -116,6 +109,6 @@ func progressHandler(_ arguments: ParsedArguments, input: URL) -> ConversionProg
     guard arguments.progress else { return nil }
     return { value in
         let detail = conversionProgressDetail(value)
-        FileHandle.standardError.write(Data("Progress: \(input.lastPathComponent): \(value.phase.rawValue)\(detail)\n".utf8))
+        writeDiagnostic("Progress: \(input.lastPathComponent): \(value.phase.rawValue)\(detail)\n")
     }
 }

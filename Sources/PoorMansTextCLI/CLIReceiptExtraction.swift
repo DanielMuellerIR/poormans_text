@@ -74,59 +74,51 @@ private struct ReceiptCLIError: Encodable {
     let items: [ReceiptBatchItem] = []
 }
 
-func runReceiptExtraction(_ arguments: ArraySlice<String>, cancellation: ConversionCancellationToken) -> Int32 {
+func runReceiptExtraction(_ arguments: ArraySlice<String>, cancellation: ConversionCancellationToken) throws -> Int32 {
     if arguments.count == 1 && (arguments.first == "--help" || arguments.first == "-h") {
-        writeJSON(ReceiptCLIHelp(help: receiptUsage))
+        try writeJSON(ReceiptCLIHelp(help: receiptUsage))
         return 0
     }
-    do {
-        try cancellation.checkCancellation()
-        let options = try ReceiptCLIArguments(arguments)
-        let mask = try ReceiptMask.load(from: options.maskURL)
-        let summary = try ReceiptBatch.run(
-            inputs: options.inputs,
-            mask: mask,
-            outputDirectory: options.outputDirectory,
-            cancellation: cancellation
-        ) { completed, total, item in
-            let status: String
-            switch item.status {
-            case .success: status = "extracted"
-            case .reviewRequired: status = "review required"
-            case .failed: status = "failed"
-            case .cancelled: status = "cancelled"
-            }
-            let diagnostic = item.diagnostic.map { " — \($0)" } ?? ""
-            FileHandle.standardError.write(Data("[\(completed)/\(total)] \(item.source): \(status)\(diagnostic)\n".utf8))
+    try cancellation.checkCancellation()
+    let options = try ReceiptCLIArguments(arguments)
+    let mask = try ReceiptMask.load(from: options.maskURL)
+    let summary = try ReceiptBatch.run(
+        inputs: options.inputs,
+        mask: mask,
+        outputDirectory: options.outputDirectory,
+        cancellation: cancellation
+    ) { completed, total, item in
+        let status: String
+        switch item.status {
+        case .success: status = "extracted"
+        case .reviewRequired: status = "review required"
+        case .failed: status = "failed"
+        case .cancelled: status = "cancelled"
         }
-        writeJSON(summary)
-        if summary.cancelled { return CLIExitCode.cancelled.rawValue }
-        return summary.items.allSatisfy { $0.status == .success } ? 0 : 1
-    } catch {
-        return writeReceiptCLIError(error, cancellation: cancellation)
+        let diagnostic = item.diagnostic.map { " — \($0)" } ?? ""
+        writeDiagnostic("[\(completed)/\(total)] \(item.source): \(status)\(diagnostic)\n")
     }
+    try writeJSON(summary)
+    if summary.cancelled { return CLIExitCode.cancelled.rawValue }
+    return summary.items.allSatisfy { $0.status == .success } ? 0 : 1
 }
 
-func writeReceiptCLIError(_ error: Error, cancellation: ConversionCancellationToken) -> Int32 {
+func writeReceiptCLIError(_ error: Error, cancellation: ConversionCancellationToken) throws -> Int32 {
     let cancelled = cancellation.isCancelled || exitCode(for: error) == .cancelled
     let message = error.localizedDescription
     writeError(message)
-    writeJSON(ReceiptCLIError(error: message, cancelled: cancelled))
+    try writeJSON(ReceiptCLIError(error: message, cancelled: cancelled))
     return cancelled ? CLIExitCode.cancelled.rawValue : 2
 }
 
 #if os(Linux)
-func runReceiptEditor(_ arguments: ArraySlice<String>, cancellation: ConversionCancellationToken) -> Int32 {
-    do {
-        guard arguments.count == 2, arguments.first == "--request", let path = arguments.last else {
-            throw CLIArgumentError.invalidConversionOption("receipt-editor requires --request FILE")
-        }
-        let response = try ReceiptEditorProtocol.run(requestFile: fileURL(path, option: "--request"),
-                                                     cancellation: cancellation)
-        FileHandle.standardOutput.write(response)
-        return 0
-    } catch {
-        return writeReceiptCLIError(error, cancellation: cancellation)
+func runReceiptEditor(_ arguments: ArraySlice<String>, cancellation: ConversionCancellationToken) throws -> Int32 {
+    guard arguments.count == 2, arguments.first == "--request", let path = arguments.last else {
+        throw CLIArgumentError.invalidConversionOption("receipt-editor requires --request FILE")
     }
+    let response = try ReceiptEditorProtocol.run(requestFile: fileURL(path, option: "--request"),
+                                                 cancellation: cancellation)
+    try writeOutput(response)
+    return 0
 }
 #endif

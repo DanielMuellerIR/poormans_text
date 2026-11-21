@@ -20,7 +20,7 @@ Keine Behauptung über frische Paketinstallation, vollständige GUI-Abnahme, neu
 
 ## Kleine Reproduktion und Belege
 
-`cli_probe.py` ist die tatsächlich ausgeführte 20-Fall-Probe mit festem CLI-Hash. In einen neuen privaten eigenen `/tmp`-Ordner gehören `runtime/`, beide Manifestdateien, `fixtures/`, `cli` und die Probes. Alle bereitgestellten Dokumente sind synthetisch; keine Downloads, Modelle oder Installation.
+`cli_probe.py` enthält die 20-Fall-Probe mit festem CLI-Hash. In einen neuen privaten eigenen `/tmp`-Ordner gehören `runtime/`, beide Manifestdateien, `fixtures/`, `cli` und die Probes. Die Probe erzeugt die vier CSV-Namensvarianten dort aus `fixtures/csv-template.csv` und prüft ihre unveränderten Hashes gegen `fixture-manifest.json`. Das Linux-Dateisystem muss beide Unicode-Schreibweisen und beide Groß-/Kleinschreibungen als separate Dateien anlegen können. Alle bereitgestellten Dokumente sind synthetisch; keine Downloads, Modelle oder Installation.
 
 ```sh
 python3 cli_probe.py "$WORK"

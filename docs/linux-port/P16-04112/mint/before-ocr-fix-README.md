@@ -13,7 +13,7 @@ Offene Abweichungen, unverändert im JSON belassen:
 
 ## Wiederholung
 
-Die synthetischen Fixtures liegen in `fixtures/`; keine natürlichen oder privaten Dokumente. PNG/HEIC und das zweiseitige PDF stammen aus den vorhandenen synthetischen Projektproben, DOCX enthält ein synthetisches Bilddokument. CSV und das kleine, unabhängig erzeugte Store-ZIP-XLSX enthalten Name/Value/Grüße β/42. `fixture-manifest.json` bindet alle Eingaben.
+Die synthetischen Fixtures liegen in `fixtures/`; keine natürlichen oder privaten Dokumente. PNG/HEIC und das zweiseitige PDF stammen aus den vorhandenen synthetischen Projektproben, DOCX enthält ein synthetisches Bilddokument. CSV und das kleine, unabhängig erzeugte Store-ZIP-XLSX enthalten Name/Value/Grüße β/42. `fixture-manifest.json` bindet alle Eingaben. Für das historische `probe.py` im Linux-Arbeitsordner die vier CSV-Dateien unter den Namen aus dem Manifest aus `fixtures/csv-template.csv` kopieren. Die [spätere Mint-Probe](README.md) legt diese Kopien selbst an.
 
 Einen neuen privaten leeren Arbeitsordner anlegen. Dorthin `runtime/` aus dem zu prüfenden vollständigen Build, `fixtures/`, beide Manifestdateien, `cli` und `probe.py` kopieren. Der hier eingefrorene CLI-Hash ist in der Probe ausdrücklich gebunden; für andere Builds muss er vor dem Lauf bewusst geändert und neu dokumentiert werden. Kein Downloader, keine Installation. Die Probe erwartet Linux mit Python 3 und pidfd-Unterstützung. Aufruf:
 

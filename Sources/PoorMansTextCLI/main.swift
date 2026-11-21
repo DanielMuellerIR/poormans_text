@@ -27,6 +27,9 @@ private let isReceiptEditor = receiptEditorArguments.first == "receipt-editor"
 #endif
 
 do {
+    // Ein gefangenes SIGPIPE lässt write() mit EPIPE zurückkehren.
+    // Bei exec beginnt ein Kind wieder mit der Standardbehandlung.
+    signal(SIGPIPE) { _ in }
     _ = signalSources
     // Der wertbewusste Vorabscan legt den Ausgabemodus fest, bevor der Parser
     // an einem früheren Argument scheitern kann.
@@ -40,22 +43,22 @@ do {
     }
     #endif
     if isReceiptExtraction {
-        exit(runReceiptExtraction(rawArguments.dropFirst(), cancellation: cancellation))
+        exit(try runReceiptExtraction(rawArguments.dropFirst(), cancellation: cancellation))
     }
     #if os(Linux)
     if isReceiptEditor {
-        exit(runReceiptEditor(receiptEditorArguments.dropFirst(), cancellation: cancellation))
+        exit(try runReceiptEditor(receiptEditorArguments.dropFirst(), cancellation: cancellation))
     }
     #endif
     try parseArguments(rawArguments, into: &parsedArguments)
 
     if parsedArguments.showHelp {
-        print(usage)
+        try writeOutputLine(usage)
         exit(CLIExitCode.success.rawValue)
     }
 
     if parsedArguments.showVersion {
-        print("\(ProductInfo.name) \(ProductInfo.version)")
+        try writeOutputLine("\(ProductInfo.name) \(ProductInfo.version)")
         exit(CLIExitCode.success.rawValue)
     }
 
@@ -75,7 +78,7 @@ do {
         }
         let preview = try DocumentConverter().renderSourcePreview(arguments.inputURLs[0], selection: selection,
             cancellation: cancellation, processTimeout: arguments.timeout)
-        writeJSON(JSONSourcePreview(preview: preview))
+        try writeJSON(JSONSourcePreview(preview: preview))
         exit(CLIExitCode.success.rawValue)
     }
 
@@ -89,7 +92,7 @@ do {
               arguments.outputLayout == .markdownFolder, !arguments.progress, arguments.timeout == nil else {
             throw CLIArgumentError.formatsTakesNoInput
         }
-        writeFormats(formatCatalog(pandocURL: arguments.pandocURL), json: arguments.json)
+        try writeFormats(formatCatalog(pandocURL: arguments.pandocURL), json: arguments.json)
         exit(CLIExitCode.success.rawValue)
     }
 
@@ -109,23 +112,23 @@ do {
         }
         if arguments.listChapters {
             let summary = try DocumentConverter().inspectEPUBContents(arguments.inputURLs[0], cancellation: cancellation, processTimeout: arguments.timeout)
-            if arguments.json { writeJSON(summary) }
+            if arguments.json { try writeJSON(summary) }
             else {
-                for chapter in summary.chapters { print("\(chapter.number)\t\(chapter.isLinear ? "primary" : "auxiliary")\t\(chapter.isReadable ? "XHTML" : "unavailable")\t\(chapter.title ?? chapter.path)") }
-                if summary.chaptersTruncated { FileHandle.standardError.write(Data("Chapter overview limited to the first \(summary.chapters.count) of \(summary.chapterCount) chapters.\n".utf8)) }
-                for warning in summary.diagnostics { FileHandle.standardError.write(Data("Warning: \(warning.message)\n".utf8)) }
+                for chapter in summary.chapters { try writeOutputLine("\(chapter.number)\t\(chapter.isLinear ? "primary" : "auxiliary")\t\(chapter.isReadable ? "XHTML" : "unavailable")\t\(chapter.title ?? chapter.path)") }
+                if summary.chaptersTruncated { writeDiagnostic("Chapter overview limited to the first \(summary.chapters.count) of \(summary.chapterCount) chapters.\n") }
+                for warning in summary.diagnostics { writeDiagnostic("Warning: \(warning.message)\n") }
             }
         } else if arguments.listSlides {
             let summary = try DocumentConverter().inspectPresentationContents(arguments.inputURLs[0], cancellation: cancellation, processTimeout: arguments.timeout)
-            if arguments.json { writeJSON(summary) }
+            if arguments.json { try writeJSON(summary) }
             else {
-                for slide in summary.slides { print("\(slide.number)\t\(slide.hasNotes ? "notes" : "no notes")\t\(slide.title ?? "")") }
-                if summary.slidesTruncated { FileHandle.standardError.write(Data("Slide overview limited to the first \(summary.slides.count) of \(summary.slideCount) slides.\n".utf8)) }
+                for slide in summary.slides { try writeOutputLine("\(slide.number)\t\(slide.hasNotes ? "notes" : "no notes")\t\(slide.title ?? "")") }
+                if summary.slidesTruncated { writeDiagnostic("Slide overview limited to the first \(summary.slides.count) of \(summary.slideCount) slides.\n") }
             }
         } else {
             let summary = try DocumentConverter().inspectSpreadsheetContents(arguments.inputURLs[0], cancellation: cancellation, processTimeout: arguments.timeout)
-            if arguments.json { writeJSON(summary) }
-            else { for sheet in summary.sheets { print("\(sheet.index)\t\(sheet.visibility.rawValue)\t\(sheet.isReadable ? "worksheet" : "unsupported")\t\(sheet.name)") } }
+            if arguments.json { try writeJSON(summary) }
+            else { for sheet in summary.sheets { try writeOutputLine("\(sheet.index)\t\(sheet.visibility.rawValue)\t\(sheet.isReadable ? "worksheet" : "unsupported")\t\(sheet.name)") } }
         }
         exit(0)
     }
@@ -162,7 +165,7 @@ do {
     // Fastra. Alles andere ist ein Mehrfachlauf mit Listenantwort.
     if arguments.inputURLs.count > 1 || enumerator.isSearchableDirectory(firstInputURL) {
         let inputs = try enumerator.enumerate(arguments.inputURLs, cancellation: cancellation)
-        exit(convertBatch(inputs, arguments: arguments, options: options, cancellation: cancellation).rawValue)
+        exit(try convertBatch(inputs, arguments: arguments, options: options, cancellation: cancellation).rawValue)
     }
 
     let destination = arguments.outputURL.map(ConversionDestination.directory)
@@ -177,37 +180,42 @@ do {
     )
 
     if arguments.json {
-        writeJSON(JSONResponse.success(result))
+        try writeJSON(JSONResponse.success(result))
     } else {
-        print(result.outputDirectory.path)
+        try writeOutputLine(result.outputDirectory.path)
         for warning in result.warnings {
-            FileHandle.standardError.write(Data("Warning: \(warning)\n".utf8))
+            writeDiagnostic("Warning: \(warning)\n")
         }
     }
 
     exit(CLIExitCode.success.rawValue)
+} catch let error as CLIOutputError {
+    writeError(error.localizedDescription)
+    exit(CLIExitCode.inputOutput.rawValue)
 } catch {
-    #if os(Linux)
-    if isReceiptEditor {
-        exit(writeReceiptCLIError(error, cancellation: cancellation))
-    }
-    #endif
-    if isReceiptExtraction {
-        exit(writeReceiptCLIError(error, cancellation: cancellation))
-    }
-    let message = error.localizedDescription
-
-    // `json` stammt aus dem Vorabscan und gilt deshalb auch für einen Fehler
-    // VOR `--json`; `--pandoc --json` und `-- --json` bleiben Text, weil der
-    // Scan Werte und Eingaben genauso überspringt wie der Parser.
-    if parsedArguments.json {
-        writeJSON(JSONResponse.failure(message))
-    } else {
-        writeError(message)
-        if error is CLIArgumentError {
-            FileHandle.standardError.write(Data("\n\(usage)\n".utf8))
+    do {
+        #if os(Linux)
+        if isReceiptEditor {
+            exit(try writeReceiptCLIError(error, cancellation: cancellation))
         }
-    }
+        #endif
+        if isReceiptExtraction {
+            exit(try writeReceiptCLIError(error, cancellation: cancellation))
+        }
+        let message = error.localizedDescription
 
-    exit(exitCode(for: error).rawValue)
+        // Der Vorabscan kennt den Ausgabemodus auch bei einem Parserfehler.
+        if parsedArguments.json {
+            try writeJSON(JSONResponse.failure(message))
+        } else {
+            writeError(message)
+            if error is CLIArgumentError {
+                writeDiagnostic("\n\(usage)\n")
+            }
+        }
+        exit(exitCode(for: error).rawValue)
+    } catch {
+        writeError(error.localizedDescription)
+        exit(error is CLIOutputError ? CLIExitCode.inputOutput.rawValue : CLIExitCode.software.rawValue)
+    }
 }

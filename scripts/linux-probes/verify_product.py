@@ -37,7 +37,13 @@ with tempfile.TemporaryDirectory(prefix="pmt-linux-product-") as temporary:
     shutil.copy2(repo / "Tests/PoorMansTextCoreTests/Fixtures/WordProcessing/fixture.png",
                  fixtures / "fixture.png")
     subprocess.run([str(pandoc), "picture.md", "-o", "picture.docx"], cwd=fixtures, check=True)
-    sources = ["table.csv", "table.xlsx", "notebook.ipynb", "picture.docx", "encoding.rtf"]
+    csv_names = ("Café.csv", "Cafe\u0301.csv", "Case.csv", "case.csv")
+    csv_data = (fixtures / "table.csv").read_bytes()
+    csv_rows = ["| Name | Value |", "| --- | --- |", "| Größe | 42 |", "| quoted, field | 17 |"]
+    for name in csv_names:
+        with (fixtures / name).open("xb") as fixture:
+            fixture.write(csv_data)
+    sources = ["table.csv", "table.xlsx", "notebook.ipynb", "picture.docx", "encoding.rtf", *csv_names]
     hashes = {name: hashlib.sha256((fixtures / name).read_bytes()).hexdigest() for name in sources}
     (fixtures / "source-hashes.json").write_text(json.dumps(hashes), encoding="utf-8")
     output = root / "output"
@@ -49,6 +55,12 @@ with tempfile.TemporaryDirectory(prefix="pmt-linux-product-") as temporary:
         assert response["ok"]
         for entry in response["outputFiles"]:
             assert hashlib.sha256((output / name / entry["path"]).read_bytes()).hexdigest() == entry["sha256"]
+        if name in csv_names:
+            assert response["sourceIdentity"]["name"] == name, (name, response["sourceIdentity"])
+            markdown = Path(response["markdownFile"])
+            assert markdown.name == Path(name).with_suffix(".md").name, (name, markdown)
+            lines = markdown.read_text(encoding="utf-8").splitlines()
+            assert [line for line in lines if line.startswith("|")] == csv_rows, (name, lines)
     subprocess.run(["python3", str(scripts / "swift-core/verify.py"), str(root), str(output)], check=True)
 
     collision = convert(root, fixtures / "table.csv", output / "table.csv")
@@ -76,4 +88,5 @@ with tempfile.TemporaryDirectory(prefix="pmt-linux-product-") as temporary:
     invalid = subprocess.run([os.fsencode(cli), b"--json", b"--", b"/tmp/pmt-invalid-\xff.csv"],
                              capture_output=True, timeout=5)
     assert invalid.returncode == 64 and not json.loads(invalid.stdout)["ok"]
-    print("Product CLI: 5 conversions, output hashes, collision, timeout, SIGTERM, invalid UTF-8 PASS")
+    print(f"Product CLI: {len(sources)} conversions including four CSV filename variants, "
+          "output hashes, collision, timeout, SIGTERM, invalid UTF-8 PASS")

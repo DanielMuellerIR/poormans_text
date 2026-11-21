@@ -222,7 +222,7 @@ func formatCatalog(pandocURL: URL?) -> [FormatAvailability] {
     )
 }
 
-func writeFormats(_ catalog: [FormatAvailability], json: Bool) {
+func writeFormats(_ catalog: [FormatAvailability], json: Bool) throws {
     if json {
         let response = FormatsJSONResponse(
             ok: true,
@@ -239,12 +239,7 @@ func writeFormats(_ catalog: [FormatAvailability], json: Bool) {
                 )
             }
         )
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
-        if let data = try? encoder.encode(response) {
-            FileHandle.standardOutput.write(data)
-            FileHandle.standardOutput.write(Data("\n".utf8))
-        }
+        try writeJSON(response)
         return
     }
 
@@ -272,21 +267,20 @@ func writeFormats(_ catalog: [FormatAvailability], json: Bool) {
             + row.2.padding(toLength: max(containerWidth, row.2.count) + 2, withPad: " ", startingAt: 0)
             + row.3.padding(toLength: max(toolWidth, row.3.count) + 2, withPad: " ", startingAt: 0)
             + row.4
-        print(line)
+        try writeOutputLine(line)
     }
 }
 
-func writeJSON(_ response: some Encodable) {
+func writeJSON(_ response: some Encodable) throws {
     let encoder = JSONEncoder()
     encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
-    if let data = try? encoder.encode(response) {
-        FileHandle.standardOutput.write(data)
-        FileHandle.standardOutput.write(Data("\n".utf8))
-    }
+    var data = try encoder.encode(response)
+    data.append(0x0A)
+    try writeOutput(data)
 }
 
 func writeError(_ message: String) {
-    FileHandle.standardError.write(Data("Error: \(message)\n".utf8))
+    writeDiagnostic("Error: \(message)\n")
 }
 
 func canonicalPath(_ url: URL) -> String {

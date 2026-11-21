@@ -95,22 +95,22 @@ func prepareProfiles(_ arguments: inout ParsedArguments, cancellation: Conversio
         if arguments.listProfiles {
             guard arguments.profileName == nil, !arguments.allowLocalProfile else { throw CLIArgumentError.invalidConversionOption("Profile listing takes only --json and --profiles-directory.") }
             let profiles = try store.profiles().map(CLIProfileSummary.init)
-            if arguments.json { writeJSON(CLIProfileResponse(profiles: profiles, path: nil)) }
-            else { for profile in profiles { print("\(profile.name)\t\(profile.scope)") } }
+            if arguments.json { try writeJSON(CLIProfileResponse(profiles: profiles, path: nil)) }
+            else { for profile in profiles { try writeOutputLine("\(profile.name)\t\(profile.scope)") } }
             return true
         }
         if let url = arguments.importProfileURL {
             guard arguments.profileName == nil else { throw CLIArgumentError.invalidConversionOption("--import-profile cannot be combined with --profile.") }
             let profile = try ConversionProfileStore.readProfile(at: url)
             try store.save(profile, allowLocalTargets: arguments.allowLocalProfile)
-            if arguments.json { writeJSON(CLIProfileResponse(profiles: [.init(profile)], path: nil)) } else { print(profile.name) }
+            if arguments.json { try writeJSON(CLIProfileResponse(profiles: [.init(profile)], path: nil)) } else { try writeOutputLine(profile.name) }
             return true
         }
         if let url = arguments.exportProfileURL {
             guard let name = arguments.profileName else { throw CLIArgumentError.invalidConversionOption("--export-profile requires --profile NAME.") }
             let profile = try store.load(named: name)
             try ConversionProfileStore.export(profile, to: url, allowLocalTargets: arguments.allowLocalProfile)
-            if arguments.json { writeJSON(CLIProfileResponse(profiles: [.init(profile)], path: url.path)) } else { print(url.path) }
+            if arguments.json { try writeJSON(CLIProfileResponse(profiles: [.init(profile)], path: url.path)) } else { try writeOutputLine(url.path) }
             return true
         }
     }
@@ -133,7 +133,7 @@ func prepareProfiles(_ arguments: inout ParsedArguments, cancellation: Conversio
         let profile = try ConversionProfile(name: name, options: resolved, boundSource: arguments.profileSource,
                                             outputDirectory: output, allowLocalTargets: arguments.allowLocalProfile, cancellation: cancellation)
         try store.save(profile, allowLocalTargets: arguments.allowLocalProfile)
-        if arguments.json { writeJSON(CLIProfileResponse(profiles: [.init(profile)], path: nil)) } else { print(profile.name) }
+        if arguments.json { try writeJSON(CLIProfileResponse(profiles: [.init(profile)], path: nil)) } else { try writeOutputLine(profile.name) }
         return true
     }
     arguments.applyProfileOptions(resolved); arguments.outputURL = output

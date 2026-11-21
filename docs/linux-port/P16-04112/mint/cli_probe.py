@@ -1,4 +1,15 @@
 import os,sys,pathlib,json,subprocess,hashlib,time,signal,ctypes,base64,struct
+
+CSV_NAMES = ('Café.csv', 'Cafe\u0301.csv', 'Case.csv', 'case.csv')
+
+
+def create_csv_fixtures(directory):
+    data = (directory / 'csv-template.csv').read_bytes()
+    for name in CSV_NAMES:
+        with (directory / name).open('xb') as fixture:
+            fixture.write(data)
+
+
 P=pathlib.Path;root=P(sys.argv[1]).resolve();os.umask(0o077);ctypes.CDLL(None).prctl(36,1,0,0,0)
 sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest();cli=root/'cli';binary=root/'runtime/bin/poormans-text';wanted='2f49d54ecd6d9bae4962fcdb7f968ea4eef9c3844701d278a9a507e3e84db07c';assert sha(binary)==wanted
 fixtures=root/'fixtures';out=root/'outputs';out.mkdir();home=root/'home';home.mkdir();tmp=root/'tmp';tmp.mkdir();env=dict(os.environ,HOME=str(home),XDG_CONFIG_HOME=str(home/'config'),XDG_CACHE_HOME=str(home/'cache'),XDG_DATA_HOME=str(home/'data'),TMPDIR=str(tmp),PATH='/usr/bin:/bin')
@@ -51,10 +62,11 @@ def convert(name,source,args=None,expected=0):
 
 try:
  manifest=json.loads((root/'runtime-manifest.json').read_text());assert all(sha(root/'runtime'/p)==h for p,h in manifest['files'].items())
+ create_csv_fixtures(fixtures)
  fm=json.loads((root/'fixture-manifest.json').read_text());assert all(sha(fixtures/p)==h for p,h in fm.items())
  r,v=run('version',['--version']);r['version']=subprocess.check_output([str(cli),'--version'],env=env,text=True).strip()
  r,catalog=run('catalog',['--formats','--json']);rows=catalog['formats'];check(r,'all29Rows',len(rows)==29);byformat={i['format']:i for i in rows};result['catalog']=rows
- for index,name in enumerate(['Café.csv','Cafe\u0301.csv','Case.csv','case.csv']):
+ for index,name in enumerate(CSV_NAMES):
   r,v=convert('csv-'+str(index),fixtures/name);check(r,'independentCSVValues',all(s in r.get('markdown','') for s in ['Name','Value','Grüße β','42']))
  if byformat['xlsx']['available']:
   r,v=convert('xlsx',fixtures/'cells.xlsx');check(r,'independentXLSXValues',all(s in r.get('markdown','') for s in ['Name','Value','Grüße β','42']))

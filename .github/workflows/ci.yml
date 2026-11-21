@@ -58,7 +58,7 @@ jobs:
         run: scripts/verify_bundle.sh "Poor Man's Text.app"
 
   linux:
-    if: ${{ !inputs['source-ref'] }}
+    if: ${{ inputs.runner != 'macos-26-intel' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     defaults:
@@ -75,6 +75,19 @@ jobs:
         with:
           ref: ${{ inputs['source-ref'] || github.sha }}
           persist-credentials: false
+
+      # Swift 6.4's default Swift Build sends the guard's Swift linker option to Clang.
+      - name: Install the Linux release Swift toolchain
+        run: |
+          archive=swift-6.2.1-RELEASE-ubuntu24.04.tar.gz
+          toolchain="$RUNNER_TEMP/swift-6.2.1"
+          curl --fail --silent --show-error --location --retry 3 \
+            "https://download.swift.org/swift-6.2.1-release/ubuntu2404/swift-6.2.1-RELEASE/$archive" \
+            -o "$RUNNER_TEMP/$archive"
+          printf '%s  %s\n' 4022cb64faf7e2681c19f9b62a22fb7d9055db6194d9e4a4bef9107b6ce10946 "$RUNNER_TEMP/$archive" | sha256sum --check
+          mkdir "$toolchain"
+          tar -xzf "$RUNNER_TEMP/$archive" -C "$toolchain" --strip-components=1
+          printf '%s\n' "$toolchain/usr/bin" >> "$GITHUB_PATH"
 
       - name: Install build and test dependencies
         run: |

@@ -80,5 +80,7 @@ uploaded as the release application.
 
 If GitHub cannot assign an Arm64 runner, dispatch CI manually from `main`
 with the exact release tag as `source-ref` and `macos-26-intel` as `runner`.
+To recheck the exact tag with both jobs after a CI configuration fix,
+dispatch CI from `main` with the tag as `source-ref` and `macos-26` as the runner.
 For an appcast job blocked by runner availability, start a fresh manual
 appcast run from `main` with the published `tag` and the Intel runner.

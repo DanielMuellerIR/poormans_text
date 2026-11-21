@@ -52,8 +52,7 @@ final class DOCXReviewPreserver {
         try ["footnotes", "endnotes"].compactMap { try relatedPart(reader: reader, mainPart: mainPart, name: $0) }
     }
     private static func relatedPart(reader: any ZIPPackageReading, mainPart: String, name: String) throws -> String? {
-        let directory = (mainPart as NSString).deletingLastPathComponent
-        let relationships = (directory.isEmpty ? "" : directory + "/") + "_rels/" + (mainPart as NSString).lastPathComponent + ".rels"
+        let relationships = relationshipPart(for: mainPart)
         if let data = try reader.dataIfPresent(named: relationships) {
             let root = try ImportXML.parse(data)
             let types = ["http://schemas.openxmlformats.org/officeDocument/2006/relationships/", "http://purl.oclc.org/ooxml/officeDocument/relationships/"].map { $0 + name }
@@ -70,6 +69,7 @@ final class DOCXReviewPreserver {
                 return path
             }
         }
+        let directory = (mainPart as NSString).deletingLastPathComponent
         let fallback = (directory.isEmpty ? "" : directory + "/") + name + ".xml"
         return reader.entryNames.contains(fallback) ? fallback : nil
     }
@@ -78,22 +78,22 @@ final class DOCXReviewPreserver {
         try readComments(reader: reader, mainPart: mainPart)
         let noteNames = ["footnotes", "endnotes"]
         let notes = try noteNames.compactMap { name in try Self.relatedPart(reader: reader, mainPart: mainPart, name: name).map { (path: $0, type: name) } }
-        let parts = [mainPart] + notes.map(\.path)
-        guard Set(parts).count == parts.count else { throw ImportFailure("DOCX review relationships reuse the same part for incompatible roles") }
+        let parts = [(path: mainPart, type: "document")] + notes
+        guard Set(parts.map(\.path)).count == parts.count else { throw ImportFailure("DOCX review relationships reuse the same part for incompatible roles") }
         let patch = workDirectory.appendingPathComponent("docx-review-patch")
         try FileManager.default.createDirectory(at: patch, withIntermediateDirectories: false, attributes: [.posixPermissions: 0o700])
         var patched: [String] = []
         var added = Set<String>()
         var totalBytes = 0
         var contextComparisons = 0
-        for part in parts {
+        for (part, type) in parts {
             try ConversionExecution.check()
             let data = try reader.data(named: part)
             guard data.count <= 32 * 1_024 * 1_024 - totalBytes else { throw ImportFailure("DOCX review XML exceeds 32 MiB") }
             totalBytes += data.count
-            let document = try Self.xml(data)
-            guard let root = document.rootElement(), !document.xmlString.contains(token) else { throw ImportFailure("DOCX review XML has an invalid root or conflicting markers") }
-            guard Self.isWord(root, part == mainPart ? "document" : notes.first(where: { $0.path == part })!.type) else {
+            let (document, root) = try Self.xml(data)
+            guard !document.xmlString.contains(token) else { throw ImportFailure("DOCX review XML has conflicting markers") }
+            guard Self.isWord(root, type) else {
                 throw ImportFailure("a DOCX review part has an invalid WordprocessingML root")
             }
             try Self.separateNoteReferenceRuns(in: root)
@@ -109,7 +109,7 @@ final class DOCXReviewPreserver {
             if part != mainPart {
                 // Pandoc liest Noten unter festen word/...-Pfaden und ignoriert
                 // dafür abweichende Ziele aus den OPC-Beziehungen.
-                let canonical = "word/" + root.localName! + ".xml"
+                let canonical = "word/" + type + ".xml"
                 if canonical != part {
                     guard !reader.entryNames.contains(canonical) else { throw ImportFailure("a nonstandard DOCX note part conflicts with Pandoc's canonical note path") }
                     try writePatch(patchedData, path: canonical, directory: patch)
@@ -118,10 +118,12 @@ final class DOCXReviewPreserver {
                     let canonicalRelations = Self.relationshipPart(for: canonical)
                     if let data = try reader.dataIfPresent(named: originalRelations) {
                         guard !reader.entryNames.contains(canonicalRelations) else { throw ImportFailure("DOCX note relationships conflict with the canonical note path") }
-                        let relationships = try Self.xml(data)
-                        for element in try Self.elements(relationships.rootElement()!) where element.localName == "Relationship" {
-                            if element.attribute(forName: "TargetMode")?.stringValue?.lowercased() == "external" { continue }
-                            guard let attribute = element.attribute(forName: "Target"), let target = attribute.stringValue else { throw ImportFailure("a DOCX note relationship has no target") }
+                        let (relationships, root) = try Self.xml(data)
+                        for element in try Self.elements(root) where element.localName == "Relationship" {
+                            if Self.unqualifiedAttribute("TargetMode", in: element)?.stringValue?.lowercased() == "external" { continue }
+                            guard let attribute = Self.unqualifiedAttribute("Target", in: element), let target = attribute.stringValue else {
+                                throw ImportFailure("a DOCX note relationship has no target")
+                            }
                             let resolved = try ImportPackagePath.resolve(target.hasPrefix("/") ? String(target.dropFirst()) : target, relativeTo: target.hasPrefix("/") ? "package.xml" : part)
                             attribute.stringValue = "/" + resolved
                         }
@@ -133,18 +135,21 @@ final class DOCXReviewPreserver {
             }
         }
         if !added.isEmpty {
-            let types = try Self.xml(reader.data(named: "[Content_Types].xml"))
-            let root = types.rootElement()!
+            let (types, root) = try Self.xml(reader.data(named: "[Content_Types].xml"))
             for part in added where part.hasSuffix(".xml") {
                 let contentType = "application/vnd.openxmlformats-officedocument.wordprocessingml." + (part as NSString).lastPathComponent.replacingOccurrences(of: ".xml", with: "") + "+xml"
-                let existing = (root.children ?? []).compactMap { $0 as? XMLElement }.filter { $0.localName == "Override" && $0.attribute(forName: "PartName")?.stringValue == "/" + part }
+                let existing = (root.children ?? []).compactMap { $0 as? XMLElement }.filter {
+                    $0.localName == "Override" && Self.unqualifiedAttribute("PartName", in: $0)?.stringValue == "/" + part
+                }
                 if !existing.isEmpty {
-                    guard existing.count == 1, existing[0].attribute(forName: "ContentType")?.stringValue == contentType else { throw ImportFailure("a normalized DOCX note has conflicting content types") }
+                    guard existing.count == 1, Self.unqualifiedAttribute("ContentType", in: existing[0])?.stringValue == contentType else {
+                        throw ImportFailure("a normalized DOCX note has conflicting content types")
+                    }
                     continue
                 }
                 let element = XMLElement(name: Self.qualified("Override", near: root), uri: root.uri)
-                element.addAttribute(XMLNode.attribute(withName: "PartName", stringValue: "/" + part) as! XMLNode)
-                element.addAttribute(XMLNode.attribute(withName: "ContentType", stringValue: contentType) as! XMLNode)
+                element.addAttribute(Self.xmlAttribute("PartName", value: "/" + part))
+                element.addAttribute(Self.xmlAttribute("ContentType", value: contentType))
                 root.addChild(element)
             }
             try writePatch(types.xmlData(options: .nodeCompactEmptyElement), path: "[Content_Types].xml", directory: patch)
@@ -199,7 +204,7 @@ final class DOCXReviewPreserver {
         if !commentOrder.isEmpty { let heading = "\n\n## Document comments\n"; output += heading; outputBytes += heading.utf8.count }
         for id in commentOrder {
             try ConversionExecution.check()
-            let comment = comments[id]!
+            guard let comment = comments[id] else { throw ImportFailure("a DOCX comment could not be resolved") }
             let metadata = (["Source comment ID: " + id] + [comment.author.map { "Author: " + $0 }, comment.date.map { "Date: " + $0 }, comment.dateUTC.map { "UTC date: " + $0 }].compactMap { $0 }).joined(separator: "\n")
             let context = comment.context.isEmpty ? "Source reference: no textual range available." : "Source excerpt: " + comment.context
             let text = "\n### Comment \(comment.number)\n\n" + MarkdownEscaping.literalBlock(metadata) + "\n\n" +
@@ -227,7 +232,7 @@ final class DOCXReviewPreserver {
 
     private func readComments(reader: any ZIPPackageReading, mainPart: String) throws {
         if let part = try Self.commentPart(reader: reader, mainPart: mainPart) {
-            let root = try Self.xml(reader.data(named: part)).rootElement()!
+            let (_, root) = try Self.xml(reader.data(named: part))
             guard Self.isWord(root, "comments") else { throw ImportFailure("the DOCX comments part has an invalid root") }
             if reader.entryNames.contains(where: { $0.hasSuffix("/commentsExtended.xml") || $0.hasSuffix("/commentsExtensible.xml") }) {
                 diagnostics.append(.init(code: "docx.commentThreadFlattened", message: "Comment bodies were retained as separate annotations; reply relationships and resolved-thread state were not reconstructed."))
@@ -261,10 +266,17 @@ final class DOCXReviewPreserver {
             let properties = children.first { Self.isWord($0, "rPr") }
             let position = node.index
             for (index, child) in content.enumerated() {
-                let separate = node.copy() as! XMLElement
+                guard let separate = node.copy() as? XMLElement, let contentCopy = child.copy() as? XMLElement else {
+                    throw ImportFailure("a DOCX note reference run could not be copied")
+                }
                 separate.setChildren([])
-                if let properties { separate.addChild(properties.copy() as! XMLNode) }
-                separate.addChild(child.copy() as! XMLNode)
+                if let properties {
+                    guard let propertiesCopy = properties.copy() as? XMLElement else {
+                        throw ImportFailure("DOCX note reference run properties could not be copied")
+                    }
+                    separate.addChild(propertiesCopy)
+                }
+                separate.addChild(contentCopy)
                 parent.insertChild(separate, at: position + index)
             }
             node.detach()
@@ -283,13 +295,15 @@ final class DOCXReviewPreserver {
             let name = node.localName ?? ""
             if Self.isWord(node), ["commentRangeStart", "commentRangeEnd", "commentReference"].contains(name) {
                 guard let id = Self.attribute("id", node) else { throw ImportFailure("a DOCX comment anchor has no identifier") }
-                if comments[id] == nil {
+                var comment: Comment
+                if let existing = comments[id] {
+                    comment = existing
+                } else {
                     guard comments.count < 4_096 else { throw ImportFailure("DOCX exceeds 4096 comments") }
-                    comments[id] = Comment(number: comments.count + 1, text: "[Missing comment definition]", author: nil, date: nil, dateUTC: nil, location: location)
+                    comment = Comment(number: comments.count + 1, text: "[Missing comment definition]", author: nil, date: nil, dateUTC: nil, location: location)
                     commentOrder.append(id)
                     diagnostics.append(.init(code: "docx.commentDefinitionMissing", message: "A DOCX comment reference has no definition; its reference was retained.", location: location, kind: .contentLoss))
                 }
-                var comment = comments[id]!
                 if comment.starts + comment.ends + comment.references == 0 {
                     comment.location = .init(paragraph: location.paragraph, note: "Comment \(comment.number)" + (part == mainPart ? "" : " (\(part))"))
                 }
@@ -309,8 +323,9 @@ final class DOCXReviewPreserver {
         }
         var paragraphExcerpts: [ObjectIdentifier: String] = [:]
         for node in nodes where Self.isWord(node) && ["commentRangeStart", "commentRangeEnd", "commentReference"].contains(node.localName ?? "") {
-            let id = Self.attribute("id", node)!
-            let comment = comments[id]!
+            guard let id = Self.attribute("id", node), let comment = comments[id] else {
+                throw ImportFailure("a DOCX comment anchor could not be resolved")
+            }
             let label = node.localName == "commentRangeStart" ? "start" : node.localName == "commentRangeEnd" ? "end" : "reference"
             if label == "reference", comment.context.isEmpty, let p = Self.ancestor(node, named: "p") {
                 let key = ObjectIdentifier(p)
@@ -373,9 +388,9 @@ final class DOCXReviewPreserver {
                         try rememberChange(.init(title: title, text: text, location: location, tokens: [start, end]))
                     }
                     if name == "moveFrom" || name == "moveTo" {
-                        node.name = Self.qualified(deletion ? "del" : "ins", near: node)
+                        Self.rename(node, to: deletion ? "del" : "ins")
                         if deletion {
-                            for child in try Self.elements(node) where Self.isWord(child, "t") { child.name = Self.qualified("delText", near: child) }
+                            for child in try Self.elements(node) where Self.isWord(child, "t") { Self.rename(child, to: "delText") }
                         }
                     }
                 } else {
@@ -429,7 +444,7 @@ final class DOCXReviewPreserver {
         let ns = node.uri ?? Self.wordNamespaces[0]
         let run = XMLElement(name: Self.qualified("r", near: node), uri: ns)
         let text = XMLElement(name: Self.qualified(deleted ? "delText" : "t", near: node), uri: ns)
-        text.addAttribute(XMLNode.attribute(withName: "xml:space", stringValue: "preserve") as! XMLNode)
+        text.addAttribute(Self.xmlAttribute("xml:space", value: "preserve"))
         text.stringValue = " " + marker + " "
         run.addChild(text)
         return run
@@ -453,7 +468,7 @@ final class DOCXReviewPreserver {
         }
         return text.trimmingCharacters(in: .whitespacesAndNewlines)
     }
-    private static func xml(_ data: Data) throws -> XMLDocument {
+    private static func xml(_ data: Data) throws -> (XMLDocument, XMLElement) {
         _ = try ImportXML.parse(data)
         let document = try XMLDocument(data: data, options: [.nodeLoadExternalEntitiesNever, .nodePreserveAll])
         #if os(Linux)
@@ -466,8 +481,8 @@ final class DOCXReviewPreserver {
             throw ImportFailure("DOCX review XML entity declarations and external DTDs are not supported")
         }
         document.characterEncoding = "UTF-8"
-        guard document.rootElement() != nil else { throw ImportFailure("DOCX review XML has no root") }
-        return document
+        guard let root = document.rootElement() else { throw ImportFailure("DOCX review XML has no root") }
+        return (document, root)
     }
     private static func elements(_ root: XMLElement) throws -> [XMLElement] {
         var result: [XMLElement] = []
@@ -486,11 +501,31 @@ final class DOCXReviewPreserver {
     private static func attribute(_ name: String, _ node: XMLElement) -> String? {
         wordNamespaces.lazy.compactMap { node.attribute(forLocalName: name, uri: $0)?.stringValue }.first
     }
+    private static func unqualifiedAttribute(_ name: String, in element: XMLElement) -> XMLNode? {
+        // FoundationXML sucht unpräfigierte Attribute sonst im Standardnamensraum des Elements.
+        element.attributes?.first { $0.name == name }
+    }
+    private static func xmlAttribute(_ name: String, value: String) -> XMLNode {
+        let attribute = XMLNode(kind: .attribute)
+        attribute.name = name
+        attribute.stringValue = value
+        return attribute
+    }
     private static func utcDate(_ node: XMLElement) -> String? {
         node.attribute(forLocalName: "dateUtc", uri: dateUTCNamespace)?.stringValue
     }
     private static func qualified(_ name: String, near node: XMLElement) -> String {
-        node.prefix.map { $0.isEmpty ? name : $0 + ":" + name } ?? name
+        // FoundationXML kann bei .prefix im Standardnamensraum abstürzen.
+        guard let qualifiedName = node.name, let separator = qualifiedName.firstIndex(of: ":") else { return name }
+        return String(qualifiedName[...separator]) + name
+    }
+    private static func rename(_ node: XMLElement, to localName: String) {
+        #if os(Linux)
+        // FoundationXML ändert nur den lokalen Namen und behält den Präfix.
+        node.name = localName
+        #else
+        node.name = qualified(localName, near: node)
+        #endif
     }
     private static func ancestor(_ node: XMLNode, named name: String) -> XMLElement? {
         var parent = node.parent

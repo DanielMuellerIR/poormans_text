@@ -23,7 +23,13 @@ final class HTMLImageRewriterTests: XCTestCase {
     }
 
     func testRewritesAndCopiesRepeatedUnicodeImageOnce() throws {
+        #if os(Linux)
+        let sourceName = "an image a\u{0308}.png"
+        let expectedSourceKey = "an image a%CC%88.png"
+        #else
         let sourceName = "an image ä.png"
+        let expectedSourceKey = sourceName
+        #endif
         let sourceData = Data([0, 1, 2, 3])
         try sourceData.write(to: temporaryDirectory.appendingPathComponent(sourceName))
         let imagesURL = temporaryDirectory.appendingPathComponent("output/images")
@@ -37,7 +43,7 @@ final class HTMLImageRewriterTests: XCTestCase {
         )
 
         XCTAssertEqual(result.assetNames, ["image01.png"])
-        XCTAssertEqual(result.sourceNames, [sourceName])
+        XCTAssertEqual(result.sourceNames, [expectedSourceKey])
         XCTAssertEqual(
             result.html.components(separatedBy: "images/image01.png").count - 1,
             2

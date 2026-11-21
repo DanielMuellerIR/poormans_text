@@ -161,10 +161,7 @@ final class CLIBatchTests: XCTestCase {
             try Data("Name,Value\nAlpha,42\n".utf8).write(to: source)
             return source
         }
-        let executable = Bundle(for: Self.self).bundleURL.deletingLastPathComponent().appendingPathComponent("poormans-text")
-        let result = try ProcessRunner.run(executable: executable,
-            arguments: ["--jobs=4", "--progress", "--json"] + sources.map(\.path),
-            currentDirectory: root, captureStandardOutput: true, timeout: 15)
+        let result = try runCLI(["--jobs=4", "--progress", "--json"] + sources.map(\.path))
         XCTAssertEqual(result.status, 0, result.standardError)
         let pattern = try NSRegularExpression(pattern: #"; files (\d+)/16, running"#)
         let output = result.standardError as NSString
@@ -191,22 +188,24 @@ final class CLIBatchTests: XCTestCase {
     }
 
     private func runCLI(_ arguments: [String]) throws -> (status: Int32, standardOutput: String, standardError: String) {
-        let executable = Bundle(for: Self.self).bundleURL
-            .deletingLastPathComponent()
-            .appendingPathComponent("poormans-text")
+        let executable = try cliExecutable(for: Self.self)
         XCTAssertTrue(FileManager.default.isExecutableFile(atPath: executable.path))
 
         let process = Process()
         process.executableURL = executable
         process.arguments = arguments
         let standardOutput = Pipe()
-        let standardError = Pipe()
+        let diagnosticURL = root.appendingPathComponent(UUID().uuidString)
+        try Data().write(to: diagnosticURL)
+        let diagnostic = try FileHandle(forWritingTo: diagnosticURL)
+        defer { try? FileManager.default.removeItem(at: diagnosticURL) }
+        defer { try? diagnostic.close() }
         process.standardOutput = standardOutput
-        process.standardError = standardError
+        process.standardError = diagnostic
         try process.run()
         let outputData = standardOutput.fileHandleForReading.readDataToEndOfFile()
-        let errorData = standardError.fileHandleForReading.readDataToEndOfFile()
         process.waitUntilExit()
+        let errorData = try Data(contentsOf: diagnosticURL)
 
         return (
             process.terminationStatus,

@@ -14,7 +14,7 @@ files.update(str(f.relative_to(repo)) for f in (repo/'docs/linux-port/P11-DOCLIN
 original={name:hash_file(repo/name) for name in sorted(files)}
 replacements={}
 if args.candidate:
- for name in ['Sources/PoorMansTextCore/DocumentOCR.swift','Tests/PoorMansTextCoreTests/StructuredOCRTests.swift']:
+ for name in ['Sources/PoorMansTextCore/DocumentOCR.swift','Tests/PoorMansTextCoreTests/Apple/StructuredOCRTests.swift']:
   candidate=P(__file__).resolve().parent.parent/'candidate'/name
   replacements[name]=candidate
 with tarfile.open(out/'source.tgz','w:gz') as archive:

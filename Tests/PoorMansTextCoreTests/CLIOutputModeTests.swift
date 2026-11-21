@@ -176,9 +176,7 @@ final class CLIOutputModeTests: XCTestCase {
         _ arguments: [String],
         currentDirectory: URL? = nil
     ) throws -> (status: Int32, standardOutput: String, standardError: String) {
-        let executable = Bundle(for: Self.self).bundleURL
-            .deletingLastPathComponent()
-            .appendingPathComponent("poormans-text")
+        let executable = try cliExecutable(for: Self.self)
         XCTAssertTrue(FileManager.default.isExecutableFile(atPath: executable.path))
 
         let process = Process()

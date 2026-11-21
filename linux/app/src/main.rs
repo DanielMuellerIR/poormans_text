@@ -254,7 +254,14 @@ fn entry(
     c.values.push((flag.into(), w.clone()));
     w
 }
-fn choice(parent: &gtk::Box, title: &str, flag: &str, items: &[(&str, &str)], help: &str, c: &mut Controls) {
+fn choice(
+    parent: &gtk::Box,
+    title: &str,
+    flag: &str,
+    items: &[(&str, &str)],
+    help: &str,
+    c: &mut Controls,
+) {
     let labels = items.iter().map(|(_, text)| *text).collect::<Vec<_>>();
     let w = gtk::DropDown::from_strings(&labels);
     row(parent, title, help, &w);
@@ -406,7 +413,10 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
         tr("Tabellen", "Tables"),
         "--spreadsheet-format",
         &[("table", "Markdown"), ("tsv", "TSV")],
-        tr("Markdown erzeugt eine lesbare Tabelle. TSV trennt Zellen durch Tabulatoren und eignet sich zum Weiterverarbeiten in Tabellenprogrammen.", "Markdown creates a readable table. TSV separates cells with tabs for use in spreadsheet tools."),
+        tr(
+            "Markdown erzeugt eine lesbare Tabelle. TSV trennt Zellen durch Tabulatoren und eignet sich zum Weiterverarbeiten in Tabellenprogrammen.",
+            "Markdown creates a readable table. TSV separates cells with tabs for use in spreadsheet tools.",
+        ),
         &mut controls,
     );
     let output_flags = gtk::FlowBox::builder()
@@ -423,28 +433,37 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
             tr("YAML-Metadaten", "YAML frontmatter"),
             "--frontmatter",
             false,
-            tr("Schreibt Angaben aus der Quelle, etwa Titel, Autor oder Datum, in einen Block am Anfang der Markdown-Datei. Die Zeile --- öffnet und schließt den Block. Programme können diese Angaben getrennt vom Text lesen.", "Writes details such as the title, author or date in a block at the top of the Markdown file. A line of three dashes (---) opens and closes the block. Other tools can read these details separately from the text."),
+            tr(
+                "Schreibt Angaben aus der Quelle, etwa Titel, Autor oder Datum, in einen Block am Anfang der Markdown-Datei. Die Zeile --- öffnet und schließt den Block. Programme können diese Angaben getrennt vom Text lesen.",
+                "Writes details such as the title, author or date in a block at the top of the Markdown file. A line of three dashes (---) opens and closes the block. Other tools can read these details separately from the text.",
+            ),
         ),
         (
             "TextBundle",
             "--textbundle",
             false,
-            tr("Verpackt Markdown und Bilder gemeinsam in einem .textbundle-Ordner für Programme wie iA Writer.",
-               "Packages Markdown and images in one .textbundle folder for apps such as iA Writer."),
+            tr(
+                "Verpackt Markdown und Bilder gemeinsam in einem .textbundle-Ordner für Programme wie iA Writer.",
+                "Packages Markdown and images in one .textbundle folder for apps such as iA Writer.",
+            ),
         ),
         (
             tr("Konvertierungsbericht", "Conversion report"),
             "--report",
             false,
-            tr("Speichert neben dem Markdown eine JSON-Datei mit Informationen zur Konvertierung, verwendeten Werkzeugen und Warnungen.",
-               "Saves a JSON file alongside the Markdown with conversion details, tools used and warnings."),
+            tr(
+                "Speichert neben dem Markdown eine JSON-Datei mit Informationen zur Konvertierung, verwendeten Werkzeugen und Warnungen.",
+                "Saves a JSON file alongside the Markdown with conversion details, tools used and warnings.",
+            ),
         ),
         (
             tr("Quellzuordnung", "Source mapping"),
             "--source-map",
             true,
-            tr("Ordnet Markdown-Abschnitte nach Möglichkeit ihren Fundstellen in der Quelle zu, etwa PDF-Seiten. Das hilft beim Quellvergleich.",
-               "Links Markdown sections to their locations in the source, such as PDF pages, when possible. This helps when comparing the output with the source."),
+            tr(
+                "Ordnet Markdown-Abschnitte nach Möglichkeit ihren Fundstellen in der Quelle zu, etwa PDF-Seiten. Das hilft beim Quellvergleich.",
+                "Links Markdown sections to their locations in the source, such as PDF pages, when possible. This helps when comparing the output with the source.",
+            ),
         ),
     ] {
         let checkbox = gtk::CheckButton::with_label(name);
@@ -459,7 +478,10 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
         tr("Bild-OCR", "Image OCR"),
         "--image-ocr",
         &[("on", tr("Ein", "On")), ("off", tr("Aus", "Off"))],
-        tr("Erkennt Schrift in Bildern und fügt den erkannten Text zur Ausgabe hinzu.", "Recognizes writing in images and adds the recognized text to the output."),
+        tr(
+            "Erkennt Schrift in Bildern und fügt den erkannten Text zur Ausgabe hinzu.",
+            "Recognizes writing in images and adds the recognized text to the output.",
+        ),
         &mut controls,
     );
     choice(
@@ -471,7 +493,10 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
             ("off", tr("Aus", "Off")),
             ("always", tr("Immer", "Always")),
         ],
-        tr("Automatisch erkennt Text auf Seiten ohne brauchbare Textebene. Immer prüft auch Seiten mit eingebettetem Text. Aus verwendet die vorhandene Textebene.", "Automatic recognizes text on pages without usable embedded text. Always also checks pages with embedded text. Off uses the existing text layer."),
+        tr(
+            "Automatisch erkennt Text auf Seiten ohne brauchbare Textebene. Immer prüft auch Seiten mit eingebettetem Text. Aus verwendet die vorhandene Textebene.",
+            "Automatic recognizes text on pages without usable embedded text. Always also checks pages with embedded text. Off uses the existing text layer.",
+        ),
         &mut controls,
     );
     choice(
@@ -488,7 +513,10 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
                 ),
             ),
         ],
-        tr("Standard erkennt Text. Strukturiert versucht zusätzlich, Absätze, Listen und Tabellen zu erhalten, und benötigt ein optionales lokales Modell.", "Standard recognizes text. Structured also tries to preserve paragraphs, lists and tables, using an optional local model."),
+        tr(
+            "Standard erkennt Text. Strukturiert versucht zusätzlich, Absätze, Listen und Tabellen zu erhalten, und benötigt ein optionales lokales Modell.",
+            "Standard recognizes text. Structured also tries to preserve paragraphs, lists and tables, using an optional local model.",
+        ),
         &mut controls,
     );
     ocr.append(&label(tr("Strukturierte OCR benötigt eine separat geprüfte lokale Modellruntime. Text und Tabellen können Erkennungsfehler enthalten; Originale bleiben erhalten. Keine automatischen Downloads.","Structured OCR requires a separately verified local model runtime. Text and tables may contain recognition errors; originals are retained. No automatic downloads.")));
@@ -497,7 +525,10 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
         tr("OCR-Sprachen", "OCR languages"),
         "de,en",
         "--ocr-language",
-        tr("Sprachkürzel durch Kommas trennen, etwa de,en für Deutsch und Englisch. Leer lassen für die automatische Auswahl.", "Separate language codes with commas, such as de,en for German and English. Leave empty for automatic selection."),
+        tr(
+            "Sprachkürzel durch Kommas trennen, etwa de,en für Deutsch und Englisch. Leer lassen für die automatische Auswahl.",
+            "Separate language codes with commas, such as de,en for German and English. Leave empty for automatic selection.",
+        ),
         &mut controls,
     );
     entry(
@@ -505,7 +536,10 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
         tr("PDF-Seiten", "PDF pages"),
         "1,3-5",
         "--pdf-pages",
-        tr("Leer importiert alle Seiten. Mit 1,3-5 werden Seite 1 und die Seiten 3 bis 5 importiert.", "Leave empty to import all pages. Enter 1,3-5 to import page 1 and pages 3 through 5."),
+        tr(
+            "Leer importiert alle Seiten. Mit 1,3-5 werden Seite 1 und die Seiten 3 bis 5 importiert.",
+            "Leave empty to import all pages. Enter 1,3-5 to import page 1 and pages 3 through 5.",
+        ),
         &mut controls,
     );
     choice(
@@ -516,7 +550,10 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
             ("auto", tr("Automatisch", "Automatic")),
             ("legacy", tr("Vorheriges Verfahren", "Legacy extraction")),
         ],
-        tr("Automatisch versucht, Spalten und die Lesereihenfolge zu erkennen. Bei ungünstiger Reihenfolge lässt sich das frühere Verfahren ausprobieren.", "Automatic tries to identify columns and reading order. Try legacy extraction if the resulting order is hard to read."),
+        tr(
+            "Automatisch versucht, Spalten und die Lesereihenfolge zu erkennen. Bei ungünstiger Reihenfolge lässt sich das frühere Verfahren ausprobieren.",
+            "Automatic tries to identify columns and reading order. Try legacy extraction if the resulting order is hard to read.",
+        ),
         &mut controls,
     );
     check(
@@ -527,7 +564,10 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
         ),
         "--pdf-remove-headers-footers",
         false,
-        tr("Entfernt als Kopf- oder Fußzeile erkannte wiederkehrende Zeilen aus der PDF-Ausgabe.", "Omits repeated lines identified as headers or footers from the PDF output."),
+        tr(
+            "Entfernt als Kopf- oder Fußzeile erkannte wiederkehrende Zeilen aus der PDF-Ausgabe.",
+            "Omits repeated lines identified as headers or footers from the PDF output.",
+        ),
         &mut controls,
     );
     check(
@@ -538,7 +578,10 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
         ),
         "--pdf-dehyphenate",
         false,
-        tr("Fügt Wörter zusammen, wenn ein Zeilenumbruch im PDF wahrscheinlich eine Silbentrennung ist.", "Joins words when a PDF line break is likely to be a hyphenation break."),
+        tr(
+            "Fügt Wörter zusammen, wenn ein Zeilenumbruch im PDF wahrscheinlich eine Silbentrennung ist.",
+            "Joins words when a PDF line break is likely to be a hyphenation break.",
+        ),
         &mut controls,
     );
     let selection = page(&options, tr("Inhaltsauswahl", "Content selection"));
@@ -547,7 +590,10 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
         tr("EPUB-Kapitel", "EPUB chapters"),
         "1,3-5",
         "--epub-chapters",
-        tr("Leer importiert alle Kapitel. 1,3-5 wählt Kapitel 1 sowie 3 bis 5. Die Kapitelnummern zeigt die Untersuchung der Quelle.", "Leave empty to import all chapters. Enter 1,3-5 for chapters 1 and 3 through 5. Inspect the source to see chapter numbers."),
+        tr(
+            "Leer importiert alle Kapitel. 1,3-5 wählt Kapitel 1 sowie 3 bis 5. Die Kapitelnummern zeigt die Untersuchung der Quelle.",
+            "Leave empty to import all chapters. Enter 1,3-5 for chapters 1 and 3 through 5. Inspect the source to see chapter numbers.",
+        ),
         &mut controls,
     );
     entry(
@@ -555,7 +601,10 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
         tr("Tabellenblätter", "Sheets"),
         "all / visible / 1,3-5",
         "--sheets",
-        tr("Blattnummern angeben, etwa 1,3-5. visible wählt sichtbare Blätter, all alle Blätter. Leer verwendet die Standardeinstellung.", "Enter sheet numbers such as 1,3-5. Use visible for visible sheets or all for every sheet. Leave empty for the default."),
+        tr(
+            "Blattnummern angeben, etwa 1,3-5. visible wählt sichtbare Blätter, all alle Blätter. Leer verwendet die Standardeinstellung.",
+            "Enter sheet numbers such as 1,3-5. Use visible for visible sheets or all for every sheet. Leave empty for the default.",
+        ),
         &mut controls,
     );
     entry(
@@ -563,7 +612,10 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
         tr("Zellbereich", "Cell range"),
         "A1:D20",
         "--cell-range",
-        tr("Beschränkt den Import jedes gewählten Tabellenblatts auf diesen Zellbereich. A1:D20 umfasst Spalten A bis D und Zeilen 1 bis 20.", "Limits each selected sheet to the specified cells. A1:D20 covers columns A through D and rows 1 through 20."),
+        tr(
+            "Beschränkt den Import jedes gewählten Tabellenblatts auf diesen Zellbereich. A1:D20 umfasst Spalten A bis D und Zeilen 1 bis 20.",
+            "Limits each selected sheet to the specified cells. A1:D20 covers columns A through D and rows 1 through 20.",
+        ),
         &mut controls,
     );
     entry(
@@ -571,7 +623,10 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
         tr("Folien", "Slides"),
         "1,3-5",
         "--slides",
-        tr("Leer importiert alle Folien. 1,3-5 wählt Folie 1 sowie 3 bis 5.", "Leave empty to import all slides. Enter 1,3-5 for slide 1 and slides 3 through 5."),
+        tr(
+            "Leer importiert alle Folien. 1,3-5 wählt Folie 1 sowie 3 bis 5.",
+            "Leave empty to import all slides. Enter 1,3-5 for slide 1 and slides 3 through 5.",
+        ),
         &mut controls,
     );
     choice(
@@ -583,7 +638,10 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
             ("reject", tr("Ablehnen", "Reject")),
             ("mark", tr("Markieren", "Mark")),
         ],
-        tr("Bestimmt, wie nachverfolgte Textänderungen in DOCX im Markdown erscheinen. Kommentare behalten Autor, Datum und Fundstelle.", "Controls how tracked DOCX edits appear in Markdown. Comments retain author, date and source location."),
+        tr(
+            "Bestimmt, wie nachverfolgte Textänderungen in DOCX im Markdown erscheinen. Kommentare behalten Autor, Datum und Fundstelle.",
+            "Controls how tracked DOCX edits appear in Markdown. Comments retain author, date and source location.",
+        ),
         &mut controls,
     );
     choice(
@@ -591,7 +649,10 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
         tr("Sprechernotizen", "Speaker notes"),
         "--notes",
         &[("on", tr("Ein", "On")), ("off", tr("Aus", "Off"))],
-        tr("Übernimmt bei Präsentationen auch die Notizen für Vortragende.", "Includes presenter notes when converting presentations."),
+        tr(
+            "Übernimmt bei Präsentationen auch die Notizen für Vortragende.",
+            "Includes presenter notes when converting presentations.",
+        ),
         &mut controls,
     );
     let inspectrow = gtk::Box::new(gtk::Orientation::Horizontal, 8);
@@ -618,7 +679,10 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
         tr("Parallele Dokumente", "Parallel documents"),
         "1…4 (default 1)",
         "--jobs",
-        tr("Anzahl der gleichzeitig verarbeiteten Dokumente, von 1 bis 4. Ein höherer Wert kann mehr Arbeitsspeicher beanspruchen.", "Number of documents processed at once, from 1 to 4. A higher value may use more memory."),
+        tr(
+            "Anzahl der gleichzeitig verarbeiteten Dokumente, von 1 bis 4. Ein höherer Wert kann mehr Arbeitsspeicher beanspruchen.",
+            "Number of documents processed at once, from 1 to 4. A higher value may use more memory.",
+        ),
         &mut controls,
     );
     entry(
@@ -626,7 +690,10 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
         tr("Werkzeugzeitlimit (s)", "Tool timeout (s)"),
         "120",
         "--timeout",
-        tr("Maximale Laufzeit in Sekunden für einen Aufruf eines externen Werkzeugs, etwa Pandoc.", "Maximum time in seconds for one call to an external converter such as Pandoc."),
+        tr(
+            "Maximale Laufzeit in Sekunden für einen Aufruf eines externen Werkzeugs, etwa Pandoc.",
+            "Maximum time in seconds for one call to an external converter such as Pandoc.",
+        ),
         &mut controls,
     );
     let pandoc_entry = entry(
@@ -634,7 +701,10 @@ fn build(app: &gtk::Application, initial_sources: Vec<PathBuf>) -> (Shared, View
         tr("Pandoc-Pfad", "Pandoc path"),
         "/usr/bin/pandoc",
         "--pandoc",
-        tr("Optionaler Pfad zur ausführbaren Pandoc-Datei. Leer verwendet die automatische Suche.", "Optional path to the Pandoc executable. Leave empty to find it automatically."),
+        tr(
+            "Optionaler Pfad zur ausführbaren Pandoc-Datei. Leer verwendet die automatische Suche.",
+            "Optional path to the Pandoc executable. Leave empty to find it automatically.",
+        ),
         &mut controls,
     );
     advanced.append(&label(tr("Profile werden über die CLI im Profilmenü verwaltet. Allgemeine Optionen und Fensterzustand werden gespeichert; Quellauswahl, Pfade und Profilfreigaben bleiben sitzungsgebunden.","Profiles are managed through the CLI in the Profiles menu. General options and window state are saved; source selections, paths and profile permissions remain session-only.")));

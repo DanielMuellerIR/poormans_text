@@ -158,12 +158,7 @@ final class BatchConverterTests: XCTestCase {
         }
     }
 
-    /// Die Reservierung kannte bisher nur den Test mit ZWEIMAL demselben Ziel.
-    /// Damit blieben beide Präfixzweige und die Schreibweisen-Normalisierung
-    /// ungeprüft — ein verschachteltes Ziel oder eines, das sich nur in der
-    /// Groß-/Kleinschreibung unterscheidet, hätte still durchgehen können
-    /// (Review-Fund 2026-09-10).
-    func testNestedAndCaseOnlyDifferentOutputsAreReserved() throws {
+    func testNestedOutputsConflictAndCaseOnlyNamesFollowPlatformRules() throws {
         let first = try source("aussen"), second = try source("innen"), third = try source("gross")
         let state = Activity()
         let converter = BatchConverter(converter: DocumentConverter(adapters: [BatchTestAdapter { context in
@@ -178,12 +173,18 @@ final class BatchConverterTests: XCTestCase {
         ], jobs: 1)
 
         XCTAssertNoThrow(try results[0].outcome.get())
-        for index in [1, 2] {
-            XCTAssertThrowsError(try results[index].outcome.get()) { error in
-                guard case ConversionError.outputAlreadyExists = error else { return XCTFail("\(error)") }
-            }
+        XCTAssertThrowsError(try results[1].outcome.get()) { error in
+            guard case ConversionError.outputAlreadyExists = error else { return XCTFail("\(error)") }
+        }
+        #if os(Linux)
+        XCTAssertNoThrow(try results[2].outcome.get())
+        XCTAssertEqual(state.started, [first.lastPathComponent, third.lastPathComponent])
+        #else
+        XCTAssertThrowsError(try results[2].outcome.get()) { error in
+            guard case ConversionError.outputAlreadyExists = error else { return XCTFail("\(error)") }
         }
         XCTAssertEqual(state.started, [first.lastPathComponent])
+        #endif
     }
 
     /// `prepareParent` prüft vor jedem Dokument alle Quellschnappschüsse neu.

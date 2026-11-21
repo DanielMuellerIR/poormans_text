@@ -31,9 +31,10 @@ jobs:
 
     steps:
       - name: Check out source
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs['source-ref'] || github.sha }}
+          persist-credentials: false
 
       - name: Install Pandoc
         run: brew install pandoc
@@ -51,3 +52,100 @@ jobs:
 
       - name: Verify generated app bundle
         run: scripts/verify_bundle.sh "Poor Man's Text.app"
+
+  linux:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    defaults:
+      run:
+        shell: bash
+    env:
+      RUSTUP_TOOLCHAIN: 1.99.1
+      CARGO_BUILD_JOBS: 3
+      CARGO_TARGET_DIR: ${{ github.workspace }}/.build/linux-root-native
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs['source-ref'] || github.sha }}
+          persist-credentials: false
+
+      - name: Install build and test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y \
+            apparmor bubblewrap dbus-x11 fonts-dejavu-core gnupg libgtk-4-dev \
+            libpng-dev libreoffice-writer pandoc pkg-config python3-uno python3-venv python3-yaml qpdf shellcheck \
+            unzip xauth xvfb zip zlib1g-dev \
+            gir1.2-poppler-0.18 python3-gi python3-gi-cairo python3-pil \
+            tesseract-ocr tesseract-ocr-deu
+          rustup toolchain install "$RUSTUP_TOOLCHAIN" --profile minimal --component clippy --component rustfmt
+          swift --version
+          cargo --version
+          pkg-config --modversion gtk4
+          pandoc --version
+
+      - name: Check tracked paths and pinned actions
+        run: /usr/bin/python3 scripts/check_repository.py
+
+      - name: Check shell and Python
+        run: |
+          mapfile -d '' -t shell_scripts < <(git ls-files -z -- '*.sh' ':!docs/**' ':!scripts/linux-probes/**')
+          shellcheck --severity=error "${shell_scripts[@]}"
+          shellcheck --include=SC2046,SC2068,SC2086,SC2095,SC2115,SC2155,SC2181 "${shell_scripts[@]}"
+          python3 -m venv "$RUNNER_TEMP/pmt-lint"
+          "$RUNNER_TEMP/pmt-lint/bin/pip" install --disable-pip-version-check ruff==0.15.16
+          "$RUNNER_TEMP/pmt-lint/bin/ruff" check --select E9,F63,F7,F82 \
+            Sources/PoorMansTextCore/LinuxBackends linux/app scripts \
+            --exclude scripts/linux-probes
+          python3 -B -m unittest discover -s scripts -p 'test_*.py'
+
+      - name: Prepare and check isolated namespaces
+        run: |
+          namespace=(--unshare-pid --unshare-net --die-with-parent --as-pid-1
+            --new-session --bind / / --proc /proc --dev /dev --remount-ro /dev)
+          probe_namespaces() {
+            /usr/bin/bwrap "${namespace[@]}" -- /usr/bin/bwrap "${namespace[@]}" -- /usr/bin/true
+          }
+          if ! probe_namespaces; then
+            restriction=/proc/sys/kernel/apparmor_restrict_unprivileged_userns
+            if [[ ! -r "$restriction" || $(<"$restriction") != 1 ]]; then
+              exit 1
+            fi
+            # Bridge und Swift starten verschachtelte Namespaces. Der Runner
+            # erlaubt sie gezielt für Bubblewrap und behält die globale AppArmor-Regel.
+            sudo apparmor_parser --replace --skip-cache <<'PROFILE'
+          abi <abi/4.0>,
+          include <tunables/global>
+          profile bwrap /usr/bin/bwrap flags=(unconfined) {
+            userns,
+          }
+          PROFILE
+            probe_namespaces
+          fi
+
+      - name: Run Swift tests
+        run: |
+          cp Package.linux.resolved Package.resolved
+          swift test --force-resolved-versions --jobs 4
+
+      - name: Build and verify the Linux CLI
+        run: |
+          ./build.sh debug
+          python3 scripts/linux-probes/verify_product.py ./poormans-text --pandoc /usr/bin/pandoc
+
+      - name: Check Rust formatting and lints
+        run: |
+          cargo fmt --all -- --check
+          cargo fetch --locked
+          cargo clippy --locked --offline --workspace --all-targets --all-features -- -D warnings
+
+      - name: Run Rust, Bridge and GTK tests
+        env:
+          GSETTINGS_BACKEND: memory
+          PMT_ISOLATED_DISPLAY: '1'
+        run: |
+          export PMT_UI_TEST_ROOT
+          PMT_UI_TEST_ROOT=$(mktemp -d "$RUNNER_TEMP/pmt-gtk.XXXXXX")
+          xvfb-run -a ./linux/test.sh

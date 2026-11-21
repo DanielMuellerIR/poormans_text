@@ -207,7 +207,7 @@ final class AppOptionsTests: XCTestCase {
     }
 
     func testGermanCollisionMessagePreservesPath() throws {
-        let repo = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        let repo = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
         let bundle = try XCTUnwrap(Bundle(url: repo.appendingPathComponent("App/de.lproj")))
         let message = AppErrorMessage.describe(ConversionError.outputAlreadyExists(URL(fileURLWithPath: "/tmp/keep")), bundle: bundle)
         XCTAssertEqual(message, "Die Ausgabe existiert bereits und wird nicht überschrieben: /tmp/keep")
@@ -217,7 +217,7 @@ final class AppOptionsTests: XCTestCase {
     /// `localizedDescription` — also englisch — in die deutsche Oberfläche
     /// (Roadmap-Punkt, 2026-09-10). Jetzt laufen sie über dieselbe Abbildung.
     func testGermanMessagesCoverInstallationAndClipboardErrors() throws {
-        let repo = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        let repo = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
         let bundle = try XCTUnwrap(Bundle(url: repo.appendingPathComponent("App/de.lproj")))
         XCTAssertEqual(
             AppErrorMessage.describe(PandocInstaller.InstallError.timedOut, bundle: bundle),
@@ -240,7 +240,7 @@ final class AppOptionsTests: XCTestCase {
     /// Beide Sprachdateien müssen dieselben Schlüssel tragen; ein Schlüssel nur
     /// in einer Datei ist entweder verwaist oder unübersetzt.
     func testBothLocalizationsCarryTheSameKeys() throws {
-        let repo = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        let repo = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
         func keys(_ language: String) throws -> Set<String> {
             let url = repo.appendingPathComponent("App/\(language).lproj/Localizable.strings")
             let table = try XCTUnwrap(NSDictionary(contentsOf: url) as? [String: String], url.path)

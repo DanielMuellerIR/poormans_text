@@ -409,6 +409,7 @@ final class InstallScriptRollbackTests: XCTestCase {
             .deletingLastPathComponent()
             .deletingLastPathComponent()
             .deletingLastPathComponent()
+            .deletingLastPathComponent()
             .appendingPathComponent("scripts/install.sh")
         let installer = try String(contentsOf: installerURL, encoding: .utf8)
 
@@ -775,6 +776,7 @@ final class InstallScriptRollbackTests: XCTestCase {
         destinationApp: URL
     ) throws -> ProcessResult {
         let helperURL = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
             .deletingLastPathComponent()
             .deletingLastPathComponent()
             .deletingLastPathComponent()

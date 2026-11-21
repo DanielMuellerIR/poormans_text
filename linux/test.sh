@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd -P)
+root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd -P)
 cd "$root"
 export CARGO_TARGET_DIR=${CARGO_TARGET_DIR:-$root/.build/linux-root-native}
 cargo test --locked --offline --workspace

@@ -25,7 +25,7 @@
 "The Markdown could not be placed on the clipboard." = "Markdown konnte nicht in die Zwischenablage kopiert werden.";
 "Markdown copied to the clipboard" = "Markdown in die Zwischenablage kopiert";
 "Markdown copied. Image and attachment files were not copied; relative links require the output folder." = "Markdown kopiert. Bilder und Anhänge wurden nicht mitkopiert; relative Links benötigen den Ergebnisordner.";
-"Documents, spreadsheets, PDFs, and images to Markdown" = "Dokumente, Tabellen, PDFs und Bilder in Markdown umwandeln";
+"Convert files to Markdown" = "Dateien in Markdown umwandeln";
 "Installing Pandoc…" = "Pandoc wird installiert…";
 "Files are accepted again once the installation has finished." = "Nach der Installation können wieder Dateien geöffnet werden.";
 "Drop documents, spreadsheets, PDFs, images, or a folder here" = "Dokumente, Tabellen, PDFs, Bilder oder einen Ordner hier ablegen";
@@ -56,7 +56,7 @@
 "Don't Ask Again" = "Nicht mehr fragen";
 "Pandoc Installed" = "Pandoc installiert";
 "OK" = "OK";
-"Pandoc is now available for word-processing documents and ODM master documents." = "Pandoc ist jetzt für Textverarbeitungsdokumente und ODM-Globaldokumente verfügbar.";
+"Pandoc is ready to use." = "Pandoc ist einsatzbereit.";
 "Pandoc Installation Failed" = "Pandoc-Installation fehlgeschlagen";
 "Unknown error" = "Unbekannter Fehler";
 "Install Command-Line Tool?" = "Kommandozeilenwerkzeug installieren?";

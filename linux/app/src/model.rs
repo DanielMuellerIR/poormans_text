@@ -29,13 +29,84 @@ pub fn tr(de: &'static str, en: &'static str) -> &'static str {
     if german() { de } else { en }
 }
 
-#[derive(Default)]
-pub struct Options {
-    pub values: Vec<(String, String)>,
-    pub flags: Vec<String>,
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum ValueOption {
+    SpreadsheetFormat,
+    ImageOcr,
+    PdfOcr,
+    OcrMethod,
+    OcrLanguage,
+    PdfPages,
+    PdfLayout,
+    EpubChapters,
+    Sheets,
+    CellRange,
+    Slides,
+    DocxChanges,
+    Notes,
+    Jobs,
+    Timeout,
+    Pandoc,
 }
+
+impl ValueOption {
+    pub(crate) fn cli_flag(self) -> &'static str {
+        match self {
+            Self::SpreadsheetFormat => "--spreadsheet-format",
+            Self::ImageOcr => "--image-ocr",
+            Self::PdfOcr => "--pdf-ocr",
+            Self::OcrMethod => "--ocr-method",
+            Self::OcrLanguage => "--ocr-language",
+            Self::PdfPages => "--pdf-pages",
+            Self::PdfLayout => "--pdf-layout",
+            Self::EpubChapters => "--epub-chapters",
+            Self::Sheets => "--sheets",
+            Self::CellRange => "--cell-range",
+            Self::Slides => "--slides",
+            Self::DocxChanges => "--docx-changes",
+            Self::Notes => "--notes",
+            Self::Jobs => "--jobs",
+            Self::Timeout => "--timeout",
+            Self::Pandoc => "--pandoc",
+        }
+    }
+
+    pub(crate) fn is_execution_control(self) -> bool {
+        matches!(self, Self::Jobs | Self::Timeout)
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum FlagOption {
+    Frontmatter,
+    TextBundle,
+    Report,
+    SourceMap,
+    PdfRemoveHeadersFooters,
+    PdfDehyphenate,
+}
+
+impl FlagOption {
+    pub(crate) fn cli_flag(self) -> &'static str {
+        match self {
+            Self::Frontmatter => "--frontmatter",
+            Self::TextBundle => "--textbundle",
+            Self::Report => "--report",
+            Self::SourceMap => "--source-map",
+            Self::PdfRemoveHeadersFooters => "--pdf-remove-headers-footers",
+            Self::PdfDehyphenate => "--pdf-dehyphenate",
+        }
+    }
+}
+
+#[derive(Default)]
+pub(crate) struct Options {
+    pub(crate) values: Vec<(ValueOption, String)>,
+    pub(crate) flags: Vec<FlagOption>,
+}
+
 impl Options {
-    pub fn arguments(
+    pub(crate) fn arguments(
         &self,
         sources: &[PathBuf],
         destination: Option<&str>,
@@ -43,21 +114,7 @@ impl Options {
         if sources.is_empty() {
             return Err(tr("Bitte Quellen wählen.", "Choose source documents.").into());
         }
-        let mut result = Vec::new();
-        for (flag, value) in &self.values {
-            if !value.trim().is_empty() {
-                result.push(flag.into());
-                result.push(
-                    if flag == "--pandoc" {
-                        value.as_str()
-                    } else {
-                        value.trim()
-                    }
-                    .into(),
-                );
-            }
-        }
-        result.extend(self.flags.iter().map(OsString::from));
+        let mut result = self.option_arguments(OptionUse::Conversion);
         if let Some(path) = destination.filter(|s| !s.trim().is_empty()) {
             result.push("--output".into());
             result.push(path.into());
@@ -66,7 +123,35 @@ impl Options {
         result.extend(sources.iter().map(|p| p.as_os_str().to_owned()));
         Ok(result)
     }
+
+    pub(crate) fn profile_arguments(&self) -> Vec<OsString> {
+        self.option_arguments(OptionUse::Profile)
+    }
+
+    fn option_arguments(&self, mode: OptionUse) -> Vec<OsString> {
+        let mut result = Vec::new();
+        for (key, value) in &self.values {
+            if value.trim().is_empty()
+                || (matches!(mode, OptionUse::Profile) && key.is_execution_control())
+            {
+                continue;
+            }
+            let argument = match mode {
+                OptionUse::Conversion if *key != ValueOption::Pandoc => value.trim(),
+                _ => value.as_str(),
+            };
+            result.extend([key.cli_flag().into(), argument.into()]);
+        }
+        result.extend(self.flags.iter().map(|key| OsString::from(key.cli_flag())));
+        result
+    }
 }
+
+enum OptionUse {
+    Conversion,
+    Profile,
+}
+
 pub type SignalHandlers =
     std::rc::Rc<std::cell::RefCell<Vec<(gtk::glib::Object, gtk::glib::SignalHandlerId)>>>;
 pub fn disconnect_handlers(handlers: &SignalHandlers) {
@@ -404,8 +489,8 @@ mod tests {
     #[test]
     fn arguments_preserve_paths_and_separator() {
         let options = Options {
-            values: vec![("--sheets".into(), "1,3".into())],
-            flags: vec!["--report".into()],
+            values: vec![(ValueOption::Sheets, "1,3".into())],
+            flags: vec![FlagOption::Report],
         };
         let args = options
             .arguments(&[PathBuf::from("/tmp/-é\n.csv")], Some("/tmp/new output "))
@@ -424,6 +509,45 @@ mod tests {
             .into_iter()
             .map(OsString::from)
             .collect::<Vec<_>>()
+        );
+    }
+    #[test]
+    fn option_arguments_preserve_raw_paths_and_profile_values() {
+        use std::os::unix::ffi::OsStringExt;
+
+        let source = OsString::from_vec(b"-raw-\xff.csv".to_vec());
+        let options = Options {
+            values: vec![
+                (ValueOption::OcrLanguage, " de , EN-us ".into()),
+                (ValueOption::Pandoc, " /tmp/my pandoc ".into()),
+                (ValueOption::Jobs, " 2 ".into()),
+                (ValueOption::Timeout, " ".into()),
+            ],
+            flags: vec![],
+        };
+        assert_eq!(
+            options
+                .arguments(&[PathBuf::from(&source)], Some(" "))
+                .unwrap(),
+            [
+                OsString::from("--ocr-language"),
+                "de , EN-us".into(),
+                "--pandoc".into(),
+                " /tmp/my pandoc ".into(),
+                "--jobs".into(),
+                "2".into(),
+                "--".into(),
+                source,
+            ],
+        );
+        assert_eq!(
+            options.profile_arguments(),
+            [
+                "--ocr-language",
+                " de , EN-us ",
+                "--pandoc",
+                " /tmp/my pandoc "
+            ],
         );
     }
     #[test]

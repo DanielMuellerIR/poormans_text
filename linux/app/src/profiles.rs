@@ -1,6 +1,7 @@
+#[cfg(any(test, feature = "ui-self-test"))]
+use crate::model::{FlagOption, ValueOption};
 use crate::{
-    Shared, View, bounded_dropdown, dialog_error, label, launch_completed,
-    model::{Options, tr},
+    Shared, View, bounded_dropdown, dialog_error, label, launch_completed, model::tr,
     reject_remote, row, ticket_current,
 };
 use gtk::{gio, glib, prelude::*};
@@ -330,8 +331,7 @@ pub(crate) fn attach(state: &Shared, view: &View, bridge: Rc<Bridge>) {
             let mut args = if selection.name.is_some() {
                 selection.conversion_arguments()
             } else {
-                let options = view.controls.snapshot();
-                option_arguments_without_execution(options)
+                view.controls.snapshot().profile_arguments()
             };
             args.extend([
                 OsString::from("--save-profile"),
@@ -469,17 +469,6 @@ pub(crate) fn attach(state: &Shared, view: &View, bridge: Rc<Bridge>) {
         });
     }
 }
-fn option_arguments_without_execution(options: Options) -> Vec<OsString> {
-    let mut args = Vec::new();
-    for (flag, value) in options.values {
-        if !value.trim().is_empty() && !matches!(flag.as_str(), "--jobs" | "--timeout") {
-            args.extend([flag.into(), value.into()]);
-        }
-    }
-    args.extend(options.flags.into_iter().map(OsString::from));
-    args
-}
-
 #[cfg(feature = "ui-self-test")]
 struct TestControls {
     directory: gtk::Entry,
@@ -514,24 +503,16 @@ fn self_test(
     let store = root.join("store");
     test.directory.set_text(store.to_str().unwrap());
     crate::set_sources(state, view, vec![source.clone()]);
-    for (flag, choice, _) in &view.controls.choices {
-        if flag == "--spreadsheet-format" {
-            choice.set_selected(1);
-        }
-    }
-    for (flag, check) in &view.controls.flags {
-        if flag == "--source-map" {
-            check.set_active(false);
-        }
-    }
-    for (flag, entry) in &view.controls.values {
-        if flag == "--sheets" {
-            entry.set_text("1");
-        }
-        if flag == "--cell-range" {
-            entry.set_text("A1:B2");
-        }
-    }
+    assert!(
+        view.controls
+            .choice(ValueOption::SpreadsheetFormat)
+            .select("tsv")
+    );
+    view.controls.flag(FlagOption::SourceMap).set_active(false);
+    view.controls.value(ValueOption::Sheets).set_text("1");
+    view.controls
+        .value(ValueOption::CellRange)
+        .set_text("A1:B2");
     test.name.set_text("GUI TSV Bound");
     test.bind.set_active(true);
     test.save.emit_clicked();
@@ -555,21 +536,15 @@ fn self_test(
                     return fail("save-bound-profile");
                 }
                 eprintln!("PMT_UI_TEST_PROFILE_SAVED bound-tsv-no-source-map");
-                for (flag, choice, _) in &view.controls.choices {
-                    if flag == "--spreadsheet-format" {
-                        choice.set_selected(0);
-                    }
-                }
-                for (flag, check) in &view.controls.flags {
-                    if flag == "--source-map" {
-                        check.set_active(true);
-                    }
-                }
-                for (flag, entry) in &view.controls.values {
-                    if flag == "--cell-range" {
-                        entry.set_text("A1:A1");
-                    }
-                }
+                assert!(
+                    view.controls
+                        .choice(ValueOption::SpreadsheetFormat)
+                        .select("table")
+                );
+                view.controls.flag(FlagOption::SourceMap).set_active(true);
+                view.controls
+                    .value(ValueOption::CellRange)
+                    .set_text("A1:A1");
                 test.bind.set_active(false);
                 test.refresh.emit_clicked();
                 step = 2;
@@ -627,11 +602,8 @@ fn self_test(
                 eprintln!("PMT_UI_TEST_PROFILE_BINDING changed-source-rejected");
                 std::fs::write(&source, &original).unwrap();
                 test.selector.set_selected(0);
-                for (flag, entry) in &view.controls.values {
-                    if matches!(flag.as_str(), "--sheets" | "--cell-range") {
-                        entry.set_text("");
-                    }
-                }
+                view.controls.value(ValueOption::Sheets).set_text("");
+                view.controls.value(ValueOption::CellRange).set_text("");
                 view.destination
                     .set_text(root.join("local-future").to_str().unwrap());
                 test.name.set_text("GUI Local");
@@ -755,14 +727,15 @@ mod tests {
     }
     #[test]
     fn saved_options_exclude_process_controls() {
-        let args = option_arguments_without_execution(Options {
+        let args = crate::model::Options {
             values: vec![
-                ("--jobs".into(), "4".into()),
-                ("--timeout".into(), "120".into()),
-                ("--spreadsheet-format".into(), "tsv".into()),
+                (ValueOption::Jobs, "4".into()),
+                (ValueOption::Timeout, "120".into()),
+                (ValueOption::SpreadsheetFormat, "tsv".into()),
             ],
-            flags: vec!["--report".into()],
-        });
+            flags: vec![FlagOption::Report],
+        }
+        .profile_arguments();
         assert_eq!(
             args,
             vec!["--spreadsheet-format", "tsv", "--report"]

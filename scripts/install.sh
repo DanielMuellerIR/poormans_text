@@ -52,12 +52,7 @@ echo "Signiere App und CLI mit Developer ID und Hardened Runtime …"
 "$script_directory/sign_bundle.sh" "$app" "$sign_identity" --strip-debug-symbols
 
 remove_exact_path() {
-    local path="$1"
-    if [ -e "$path" ] || [ -L "$path" ]; then
-        /usr/bin/swift -e \
-            'import Foundation; try FileManager.default.removeItem(atPath: CommandLine.arguments[1])' \
-            "$path"
-    fi
+    /bin/rm -rf -- "$1"
 }
 
 refresh_root_artifacts() {
@@ -97,11 +92,7 @@ cleanup() {
             poormans_text_discard_tracked_release_artifacts || artifact_cleanup_status=$?
         fi
     fi
-    if [ -d "$temporary_directory" ]; then
-        /usr/bin/swift -e \
-            'import Foundation; try FileManager.default.removeItem(atPath: CommandLine.arguments[1])' \
-            "$temporary_directory"
-    fi
+    /bin/rm -rf -- "$temporary_directory"
     if [ "$installation_cleanup_status" -ne 0 ] || [ "$artifact_cleanup_status" -ne 0 ]; then
         trap - EXIT
         if [ "$installation_cleanup_status" -ne 0 ]; then
@@ -114,6 +105,9 @@ cleanup() {
 trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
+
+rename_path="$temporary_directory/rename-path"
+/usr/bin/cc -std=c11 -Wall -Wextra -o "$rename_path" "$script_directory/rename_path.c"
 
 version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$app/Contents/Info.plist")"
 dmg="$project_root/Poor-Mans-Text-$version.dmg"
@@ -171,16 +165,14 @@ refresh_root_artifacts
 
 # Veröffentlicht das fertige Paar aus DMG und Prüfsumme im Repo-Root.
 #
-# Die finale DMG-Datei erscheint zuletzt und kennzeichnet damit ein vollständiges
-# Release-Paar. FileManager verweigert dabei weiterhin vorhandene Ziele.
+# Die finale DMG-Datei erscheint zuletzt und kennzeichnet ein vollständiges Paar.
+# Nach einem Signal zählt die sichtbare Identität, weil der atomare Move bereits
+# vollzogen sein kann, obwohl der Prozess einen Fehlerstatus zurückliefert.
 publish_release_artifacts() {
     checksum_identity="$(/usr/bin/stat -f '%d:%i' "$staged_checksum")"
     dmg_identity="$(/usr/bin/stat -f '%d:%i' "$staged_dmg")"
     published_checksum=1
-    local checksum_move_status=0
-    /usr/bin/swift -e \
-        'import Foundation; try FileManager.default.moveItem(atPath: CommandLine.arguments[1], toPath: CommandLine.arguments[2])' \
-        "$staged_checksum" "$checksum" || checksum_move_status=$?
+    "$rename_path" move "$staged_checksum" "$checksum" || true
     if ! poormans_text_path_matches_identity "$checksum" "$checksum_identity"; then
         local checksum_cleanup_status=0
         poormans_text_discard_published_checksum || checksum_cleanup_status=$?
@@ -191,21 +183,13 @@ publish_release_artifacts() {
         return 74
     fi
     published_dmg=1
-    local dmg_move_status=0
-    /usr/bin/swift -e \
-        'import Foundation; try FileManager.default.moveItem(atPath: CommandLine.arguments[1], toPath: CommandLine.arguments[2])' \
-        "$staged_dmg" "$dmg" || dmg_move_status=$?
+    "$rename_path" move "$staged_dmg" "$dmg" || true
     local verification_status=0
     poormans_text_verify_or_discard_release_artifacts || verification_status=$?
     if [ "$verification_status" -ne 0 ]; then
         echo "Das veröffentlichte DMG-/Prüfsummenpaar hat die Identitätsprüfung nicht bestanden." >&2
         return "$verification_status"
     fi
-    # Ein atomarer Move kann bei einem spät eintreffenden Signal einen von der
-    # Shell abweichenden Rückgabestatus liefern. Die oben geprüften Identitäten
-    # sind für die Transaktion maßgeblich; die Statusvariablen dienen nur dazu,
-    # dieses bewusst behandelte Fenster sichtbar zu halten.
-    : "$checksum_move_status" "$dmg_move_status"
     if [ "${do_install:-0}" -eq 1 ]; then
         installation_state="published"
         created_cli=0
@@ -339,42 +323,22 @@ new_cli_identity=""
 cli_state="untouched"
 
 move_install_path() {
-    local source="$1"
-    local destination="$2"
-    local swift_code='import Foundation; try FileManager.default.moveItem(atPath: CommandLine.arguments[1], toPath: CommandLine.arguments[2])'
-    if [ "$needs_admin" -eq 1 ]; then
-        sudo /usr/bin/swift -e "$swift_code" "$source" "$destination"
-    else
-        /usr/bin/swift -e "$swift_code" "$source" "$destination"
-    fi
+    run_install_command "$rename_path" move "$1" "$2"
 }
 
 swap_install_paths() {
-    local first="$1"
-    local second="$2"
-    local swift_code='import Darwin; if renameatx_np(AT_FDCWD, CommandLine.arguments[1], AT_FDCWD, CommandLine.arguments[2], UInt32(RENAME_SWAP)) != 0 { perror("renameatx_np"); exit(1) }'
-    if [ "$needs_admin" -eq 1 ]; then
-        sudo /usr/bin/swift -e "$swift_code" "$first" "$second"
-    else
-        /usr/bin/swift -e "$swift_code" "$first" "$second"
-    fi
+    run_install_command "$rename_path" swap "$1" "$2"
 }
 
 remove_install_path() {
-    local path="$1"
-    local swift_code='import Foundation; let manager = FileManager.default; let path = CommandLine.arguments[1]; let isLink = (try? manager.destinationOfSymbolicLink(atPath: path)) != nil; if manager.fileExists(atPath: path) || isLink { try manager.removeItem(atPath: path) }'
-    if [ "$needs_admin" -eq 1 ]; then
-        sudo /usr/bin/swift -e "$swift_code" "$path"
-    else
-        /usr/bin/swift -e "$swift_code" "$path"
-    fi
+    run_install_command /bin/rm -rf -- "$1"
 }
 
-copy_staged_app() {
+run_install_command() {
     if [ "$needs_admin" -eq 1 ]; then
-        sudo ditto "$app" "$staged_app"
+        sudo "$@"
     else
-        ditto "$app" "$staged_app"
+        "$@"
     fi
 }
 
@@ -394,7 +358,7 @@ if [ ! -d "$cli_directory" ]; then
     fi
 fi
 
-if ! copy_staged_app; then
+if ! run_install_command /usr/bin/ditto "$app" "$staged_app"; then
     remove_install_path "$staged_app" || true
     echo "Die neue App konnte nicht in /Applications gestagt werden." >&2
     exit 74
@@ -406,16 +370,12 @@ if [ -z "$new_app_identity" ]; then
 fi
 installation_state="staged"
 if ! "$script_directory/verify_bundle.sh" "$staged_app" --notarized; then
-    remove_install_path "$staged_app" || true
     echo "Die gestagte App hat die Distributionsprüfung nicht bestanden." >&2
     exit 65
 fi
 
 if [ -e "$destination_app" ] || [ -L "$destination_app" ]; then
-    validate_existing_app "$destination_app" || {
-        remove_install_path "$staged_app" || true
-        exit 73
-    }
+    validate_existing_app "$destination_app" || exit 73
     old_app_identity="$(poormans_text_path_identity "$destination_app")"
     if [ -z "$old_app_identity" ]; then
         echo "Die Identität der vorhandenen App konnte nicht bestimmt werden." >&2

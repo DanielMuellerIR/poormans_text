@@ -306,7 +306,12 @@ final class EPUBSelectionPackage {
     }
 
     func finishMarkdown(_ markdown: String) throws -> String {
-        let targets = try MarkdownLinkTargetRewriter.resourceCandidates(in: markdown, maximum: 100_000, checking: ConversionExecution.check)
+        let targets = try MarkdownLinkTargetRewriter.resourceCandidates(
+            in: markdown,
+            maximum: 100_000,
+            sourceDescription: "selected EPUB",
+            checking: ConversionExecution.check
+        )
         var replacements = [String: String]()
         for target in targets {
             guard let range = target.range(of: token + "LINK"), let anchor = linkTokens[String(target[range.lowerBound...])] else { continue }

@@ -18,7 +18,7 @@ extension AppModel {
     }
     public var usesExactProfileDestination: Bool {
         guard let destination = selectedProfile?.localTargets?.outputDirectory else { return false }
-        return destinationFolder?.standardizedFileURL == destination.standardizedFileURL
+        return settings.values.destinationFolder?.standardizedFileURL == destination.standardizedFileURL
     }
     public func refreshProfiles() {
         do {
@@ -39,23 +39,17 @@ extension AppModel {
         guard let name else {
             selectedProfile = nil; selectedProfileName = nil; profileAllowsLocalTargets = false
             selectedProfileRevision = nil; profileNeedsReload = false
-            profileMessage = nil; savePreferences(); return
+            profileMessage = nil
+            saveProfileSelection()
+            return
         }
         let profile = try profileStore.load(named: name)
         try profile.requireLocalPermission(allowLocalTargets)
-        let values = profile.options
-        imageTextRecognition = values.imageTextRecognition; spreadsheetRendering = values.spreadsheetRendering
-        frontmatter = values.frontmatter; outputLayout = values.outputLayout
-        pdfTextRecognition = values.pdfTextRecognition; ocrMethod = values.ocrMethod; docxChangeMode = values.docxChangeMode
-        pdfLayout = values.pdfLayout; ocrLanguageCodes = values.ocrLanguages.joined(separator: ",")
-        pdfRemoveHeadersFooters = values.pdfRemoveHeadersFooters; pdfDehyphenate = values.pdfDehyphenate
-        presentationIncludeNotes = values.presentationIncludeNotes; sourceMapping = values.sourceMapping
-        conversionReport = values.conversionReport
-        profilePandocExecutable = profile.localTargets?.pandocExecutable
-        if let destination = profile.localTargets?.outputDirectory { destinationFolder = destination }
+        settings.apply(profile)
         selectedProfile = profile; selectedProfileName = profile.name; profileAllowsLocalTargets = allowLocalTargets
         selectedProfileRevision = try profileRevision(profile); profileNeedsReload = false
-        profileMessage = nil; savePreferences()
+        profileMessage = nil
+        saveProfileSelection()
     }
     public func saveProfile(named name: String, duplicateSelected: Bool = false) throws {
         guard acceptsNewDocuments else { throw AppProfileFailure(key: "Wait for the current conversion before changing profiles.") }
@@ -68,7 +62,8 @@ extension AppModel {
         try profileStore.save(profile, allowLocalTargets: profileAllowsLocalTargets)
         profiles = try profileStore.profiles(); selectedProfile = profile; selectedProfileName = profile.name
         selectedProfileRevision = try profileRevision(profile); profileNeedsReload = false
-        profileMessage = nil; savePreferences()
+        profileMessage = nil
+        saveProfileSelection()
     }
     public func updateSelectedProfile() throws {
         guard acceptsNewDocuments, let expected = selectedProfile else { throw AppProfileFailure(key: "Choose a saved profile first.") }
@@ -76,7 +71,8 @@ extension AppModel {
         var profile = expected; profile.options = ConversionProfileOptions(conversionOptions)
         try profileStore.update(profile, replacing: expected, allowLocalTargets: profileAllowsLocalTargets)
         selectedProfile = profile; profiles = try profileStore.profiles(); profileMessage = nil
-        selectedProfileRevision = try profileRevision(profile); savePreferences()
+        selectedProfileRevision = try profileRevision(profile)
+        saveProfileSelection()
     }
     public func deleteSelectedProfile() throws {
         guard acceptsNewDocuments, let expected = selectedProfile else { throw AppProfileFailure(key: "Choose a saved profile first.") }
@@ -84,7 +80,9 @@ extension AppModel {
         try profileStore.delete(expected)
         selectedProfile = nil; selectedProfileName = nil; profileAllowsLocalTargets = false
         selectedProfileRevision = nil; profileNeedsReload = false
-        profiles = try profileStore.profiles(); profileMessage = nil; savePreferences()
+        profiles = try profileStore.profiles()
+        profileMessage = nil
+        saveProfileSelection()
     }
     public func clearProfileDocumentBinding() throws {
         guard acceptsNewDocuments else { throw AppProfileFailure(key: "Wait for the current conversion before changing profiles.") }
@@ -101,6 +99,14 @@ extension AppModel {
         refreshProfiles()
         profileMessage = NSLocalizedString("Example profile added. Choose it in the profile menu.", comment: "")
     }
+    private func saveProfileSelection() {
+        settings.saveProfileSelection(
+            name: selectedProfileName,
+            revision: selectedProfileRevision,
+            allowsLocalTargets: profileAllowsLocalTargets
+        )
+    }
+
     func profileInvocation() -> AppProfileInvocation {
         .init(profile: selectedProfile, requestedName: selectedProfileName, store: profileStore, allowLocalTargets: profileAllowsLocalTargets, exactDestination: usesExactProfileDestination, requiresReload: profileNeedsReload)
     }

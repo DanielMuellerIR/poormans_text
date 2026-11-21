@@ -30,7 +30,7 @@ enum MarkdownNormalizer {
     }
 
     private static func markCodeLines(_ lines: [String]) -> [Bool] {
-        var isCode = MarkdownLinkTargetRewriter.codeLines(in: lines)
+        var isCode = MarkdownBlockScanner.codeLines(in: lines)
 
         // Eine Leerzeile mitten in einem eingerückten Code-Block ist selbst noch
         // Code. Sie wird ja nicht eingerückt geschrieben und ist oben deshalb als

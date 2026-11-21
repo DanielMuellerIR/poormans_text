@@ -68,7 +68,7 @@ final class AppModelDropTests: XCTestCase {
                 to: inputURL
             )
             let model = AppModel(defaults: .isolatedForAppTest())
-            model.imageTextRecognition = .disabled
+            model.settings.values.imageTextRecognition = .disabled
 
             model.convert(inputURL)
 

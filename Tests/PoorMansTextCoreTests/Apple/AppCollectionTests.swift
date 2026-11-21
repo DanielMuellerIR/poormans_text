@@ -38,7 +38,7 @@ final class AppCollectionTests: XCTestCase {
         for package in [false, true] {
             let input = try source(package: package)
             let model = AppModel(defaults: .isolatedForAppTest())
-            model.conversionReport = true
+            model.settings.values.conversionReport = true
             model.convert(input)
             let result = try await finished(model)
             XCTAssertTrue(result.isCollection)
@@ -79,7 +79,7 @@ final class AppCollectionTests: XCTestCase {
             let destination = root.appendingPathComponent(layout.rawValue)
             try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: false)
             let model = AppModel(defaults: .isolatedForAppTest())
-            model.outputLayout = layout; model.destinationFolder = destination
+            model.settings.values.outputLayout = layout; model.settings.values.destinationFolder = destination
             model.convert(input)
             _ = try await finished(model)
             model.selectCollectionDocument(1)

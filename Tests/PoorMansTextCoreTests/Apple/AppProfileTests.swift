@@ -39,17 +39,17 @@ final class AppProfileTests: XCTestCase {
         XCTAssertFalse(before.conversionReport); XCTAssertTrue(try store.profiles().isEmpty)
         try app.saveProfile(named: "Review")
         XCTAssertFalse(app.hasUnsavedProfileChanges); XCTAssertEqual(app.conversionOptions, before)
-        app.docxChangeMode = .reject
+        app.settings.values.docxChangeMode = .reject
         XCTAssertTrue(app.hasUnsavedProfileChanges)
         let restored = model()
         XCTAssertEqual(restored.selectedProfileName, "Review"); XCTAssertTrue(restored.hasUnsavedProfileChanges)
-        XCTAssertEqual(restored.docxChangeMode, .reject); XCTAssertEqual(restored.batchParallelism, 3)
-        XCTAssertEqual(restored.destinationFolder?.path, root.path)
+        XCTAssertEqual(restored.settings.values.docxChangeMode, .reject); XCTAssertEqual(restored.settings.values.batchParallelism, 3)
+        XCTAssertEqual(restored.settings.values.destinationFolder?.path, root.path)
         try restored.updateSelectedProfile(); XCTAssertFalse(restored.hasUnsavedProfileChanges)
         try restored.saveProfile(named: "Copy", duplicateSelected: true)
         XCTAssertEqual(try store.load(named: "Copy").options.docxChangeMode, .reject)
         try restored.deleteSelectedProfile()
-        XCTAssertNil(restored.selectedProfileName); XCTAssertEqual(restored.docxChangeMode, .reject)
+        XCTAssertNil(restored.selectedProfileName); XCTAssertEqual(restored.settings.values.docxChangeMode, .reject)
         XCTAssertEqual(try store.profiles().map(\.name), ["Review"])
     }
     func testStaleUpdateDeleteAndMissingProfilesPreserveCurrentValues() throws {
@@ -57,7 +57,7 @@ final class AppProfileTests: XCTestCase {
         let original = try XCTUnwrap(app.selectedProfile)
         var changed = original; changed.options.frontmatter = true
         try store.update(changed, replacing: original)
-        app.docxChangeMode = .mark
+        app.settings.values.docxChangeMode = .mark
         XCTAssertThrowsError(try app.updateSelectedProfile()); XCTAssertThrowsError(try app.deleteSelectedProfile())
         XCTAssertEqual(try store.load(named: "Original"), changed)
         XCTAssertThrowsError(try app.profileInvocation().verify())
@@ -67,11 +67,11 @@ final class AppProfileTests: XCTestCase {
         XCTAssertThrowsError(try changedAfterRestart.deleteSelectedProfile())
         XCTAssertEqual(try store.load(named: "Original"), changed)
         app.refreshProfiles(); XCTAssertNotNil(app.profileMessage)
-        try app.selectProfile(named: "Original"); XCTAssertTrue(app.frontmatter)
+        try app.selectProfile(named: "Original"); XCTAssertTrue(app.settings.values.frontmatter)
         try store.delete(changed)
-        let restored = model(); XCTAssertEqual(restored.selectedProfileName, "Original"); XCTAssertTrue(restored.frontmatter)
+        let restored = model(); XCTAssertEqual(restored.selectedProfileName, "Original"); XCTAssertTrue(restored.settings.values.frontmatter)
         XCTAssertThrowsError(try restored.profileInvocation().verify())
-        try restored.selectProfile(named: nil); XCTAssertTrue(restored.frontmatter)
+        try restored.selectProfile(named: nil); XCTAssertTrue(restored.settings.values.frontmatter)
         XCTAssertNoThrow(try restored.profileInvocation().verify())
     }
     func testLocalProfilesRequirePermissionAndRetainExactDestinationWhenDuplicated() throws {
@@ -112,10 +112,10 @@ final class AppProfileTests: XCTestCase {
     }
     func testRunningConversionKeepsItsInitialProfileOptions() async throws {
         let source = try csv(), app = model()
-        app.spreadsheetRendering = .tabSeparated; app.conversionReport = true
+        app.settings.values.spreadsheetRendering = .tabSeparated; app.settings.values.conversionReport = true
         try app.saveProfile(named: "Frozen")
         app.convert(source)
-        app.spreadsheetRendering = .markdownTable; app.frontmatter = true
+        app.settings.values.spreadsheetRendering = .markdownTable; app.settings.values.frontmatter = true
         XCTAssertThrowsError(try app.updateSelectedProfile())
         try await wait(app)
         guard case .succeeded(let result) = app.state else { return XCTFail("No result") }
@@ -239,7 +239,7 @@ final class AppProfileTests: XCTestCase {
                 try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: false)
                 let output: URL
                 if entry == "app" {
-                    let app = model(); try app.selectProfile(named: profile.name); app.destinationFolder = parent
+                    let app = model(); try app.selectProfile(named: profile.name); app.settings.values.destinationFolder = parent
                     app.convert(source); try await wait(app)
                     guard case .succeeded(let result) = app.state else { return XCTFail("App profile conversion failed") }
                     output = result.outputDirectory

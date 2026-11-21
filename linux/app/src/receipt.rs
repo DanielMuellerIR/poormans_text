@@ -147,11 +147,15 @@ struct Identity {
 }
 
 fn decode<T: DeserializeOwned>(value: &Value, key: &str) -> Result<T, String> {
-    T::deserialize(
-        value
-            .get(key)
-            .ok_or_else(|| format!("Receipt response is missing {key}"))?,
-    )
+    T::deserialize(value.get(key).ok_or_else(|| {
+        format!(
+            "{} {key}",
+            tr(
+                "In der Belegantwort fehlt das Feld",
+                "Receipt response is missing the field"
+            )
+        )
+    })?)
     .map_err(|error| error.to_string())
 }
 
@@ -207,7 +211,11 @@ fn watch(
                 Err(TryRecvError::Empty) => return glib::ControlFlow::Continue,
                 Err(TryRecvError::Disconnected) => Err(BridgeError {
                     kind: ErrorKind::Capture,
-                    message: "The receipt worker ended without a result.".into(),
+                    message: tr(
+                        "Die Belegverarbeitung endete ohne Ergebnis.",
+                        "The receipt worker ended without a result.",
+                    )
+                    .into(),
                     exit_code: None,
                     signal: None,
                     stderr: String::new(),
@@ -223,7 +231,11 @@ fn watch(
 fn response(result: Result<Value, BridgeError>) -> Result<Value, String> {
     let value = result.map_err(|error| error.to_string())?;
     if value.get("operation").and_then(Value::as_str) != Some("receipt-editor") {
-        return Err("Unexpected receipt editor response".into());
+        return Err(tr(
+            "Der Belegeditor hat eine unerwartete Antwort erhalten.",
+            "The receipt editor received an unexpected response.",
+        )
+        .into());
     }
     Ok(value)
 }

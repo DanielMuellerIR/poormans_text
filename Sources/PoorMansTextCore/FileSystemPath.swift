@@ -2,6 +2,12 @@ import Foundation
 
 /// Swift-Strings vergleichen Unicode-kanonisch; Linux-Dateinamen dagegen als Bytes.
 enum FileSystemPath {
+    static func validate(_ url: URL) throws {
+        #if os(Linux)
+        try LinuxPathValidation.validate(url)
+        #endif
+    }
+
     static func key(_ path: String) -> String {
         #if os(Linux)
         let hex = Array("0123456789ABCDEF".utf8)

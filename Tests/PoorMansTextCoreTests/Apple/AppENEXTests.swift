@@ -37,12 +37,12 @@ final class AppENEXTests: XCTestCase {
         for layout in [OutputLayout.markdownFolder, .textbundle] {
             let store = ConversionProfileStore(directory: root.appendingPathComponent("profiles-" + layout.rawValue))
             let model = AppModel(defaults: .isolatedForAppTest(), profileStore: store)
-            model.outputLayout = layout; model.frontmatter = true; model.conversionReport = true
+            model.settings.values.outputLayout = layout; model.settings.values.frontmatter = true; model.settings.values.conversionReport = true
             try model.saveProfile(named: "Notes")
-            model.frontmatter = false
+            model.settings.values.frontmatter = false
             try model.selectProfile(named: "Notes")
-            model.destinationFolder = root.appendingPathComponent(layout.rawValue)
-            try FileManager.default.createDirectory(at: model.destinationFolder!, withIntermediateDirectories: false)
+            model.settings.values.destinationFolder = root.appendingPathComponent(layout.rawValue)
+            try FileManager.default.createDirectory(at: model.settings.values.destinationFolder!, withIntermediateDirectories: false)
             model.convert(input)
             let result = try await finished(model)
             XCTAssertEqual(result.format, .enex); XCTAssertEqual(result.documents.count, 3)

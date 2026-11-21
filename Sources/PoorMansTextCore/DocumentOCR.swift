@@ -111,7 +111,14 @@ enum OCRAsyncBridge {
             lock.withLock { result = value }
             semaphore.signal()
         }
-        func get() throws -> Value { try lock.withLock { try result!.get() } }
+        func get() throws -> Value {
+            try lock.withLock {
+                guard let result else {
+                    throw VisionDocumentRecognizer.RecognitionError.recognitionFailed("The OCR task returned no result.")
+                }
+                return try result.get()
+            }
+        }
     }
 
     static func run<Value: Sendable>(_ operation: @escaping @Sendable () async throws -> Value) throws -> Value {

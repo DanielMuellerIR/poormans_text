@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import Darwin
 import XCTest
 import PoorMansTextCore
@@ -11,22 +12,22 @@ final class AppOptionsTests: XCTestCase {
         let defaults = try XCTUnwrap(UserDefaults(suiteName: name))
         defer { defaults.removePersistentDomain(forName: name) }
         let model = AppModel(defaults: defaults)
-        model.destinationFolder = URL(fileURLWithPath: "/tmp/output")
-        model.frontmatter = true
-        model.imageTextRecognition = .disabled
-        model.spreadsheetRendering = .tabSeparated
-        model.outputLayout = .textbundle
-        model.batchParallelism = 3
-        model.pdfTextRecognition = .always
-        model.pdfLayout = .legacy
-        model.ocrMethod = .structured
-        model.docxChangeMode = .mark
-        model.ocrLanguageCodes = "de,en"
-        model.pdfRemoveHeadersFooters = true
-        model.pdfDehyphenate = true
+        model.settings.values.destinationFolder = URL(fileURLWithPath: "/tmp/output")
+        model.settings.values.frontmatter = true
+        model.settings.values.imageTextRecognition = .disabled
+        model.settings.values.spreadsheetRendering = .tabSeparated
+        model.settings.values.outputLayout = .textbundle
+        model.settings.values.batchParallelism = 3
+        model.settings.values.pdfTextRecognition = .always
+        model.settings.values.pdfLayout = .legacy
+        model.settings.values.ocrMethod = .structured
+        model.settings.values.docxChangeMode = .mark
+        model.settings.values.ocrLanguageCodes = "de,en"
+        model.settings.values.pdfRemoveHeadersFooters = true
+        model.settings.values.pdfDehyphenate = true
         let restored = AppModel(defaults: defaults)
         XCTAssertEqual(restored.conversionOptions, model.conversionOptions)
-        XCTAssertEqual(restored.batchParallelism, 3)
+        XCTAssertEqual(restored.settings.values.batchParallelism, 3)
         let request = restored.request(for: URL(fileURLWithPath: "/tmp/input.csv"), options: restored.conversionOptions)
         XCTAssertEqual(request.destination, .directory(URL(fileURLWithPath: "/tmp/output/input.textbundle")))
         XCTAssertTrue(request.options.frontmatter)
@@ -38,6 +39,28 @@ final class AppOptionsTests: XCTestCase {
         XCTAssertTrue(request.options.pdfDehyphenate)
         XCTAssertTrue(request.options.sourceMapping)
         XCTAssertFalse(request.options.conversionReport)
+    }
+
+    @MainActor
+    func testSettingsPublishClampedParallelismWithoutInvalidatingConversionSession() throws {
+        let suite = "AppOptionsTests-\(UUID())"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        defaults.set(12, forKey: "batchParallelism")
+        let model = AppModel(defaults: defaults)
+        let settings = model.settings
+        XCTAssertEqual(settings.values.batchParallelism, 4)
+
+        var changes: [Int] = []
+        let settingChanges = settings.$values.dropFirst().sink { changes.append($0.batchParallelism) }
+        var sessionChanges = 0
+        let conversionChanges = model.objectWillChange.sink { sessionChanges += 1 }
+
+        settings.values.batchParallelism = 0
+        XCTAssertEqual(changes, [1])
+        XCTAssertEqual(sessionChanges, 0)
+        XCTAssertEqual(defaults.integer(forKey: "batchParallelism"), 1)
+        withExtendedLifetime((settingChanges, conversionChanges)) {}
     }
 
     @MainActor
@@ -55,9 +78,9 @@ final class AppOptionsTests: XCTestCase {
         let sentinel = collision.appendingPathComponent("keep.txt")
         try Data("old output".utf8).write(to: sentinel)
         let model = AppModel(defaults: .isolatedForAppTest())
-        model.frontmatter = true
-        model.outputLayout = .textbundle
-        model.spreadsheetRendering = .tabSeparated
+        model.settings.values.frontmatter = true
+        model.settings.values.outputLayout = .textbundle
+        model.settings.values.spreadsheetRendering = .tabSeparated
         model.convert([first, second])
         try await wait(model)
         guard case .batchFinished(let items) = model.state else { return XCTFail("No batch") }
@@ -71,7 +94,7 @@ final class AppOptionsTests: XCTestCase {
         // Das zweite Ziel wechselt ausdrücklich; die alte Ausgabe bleibt stehen.
         let newRoot = root.appendingPathComponent("new")
         try FileManager.default.createDirectory(at: newRoot, withIntermediateDirectories: true)
-        model.destinationFolder = newRoot
+        model.settings.values.destinationFolder = newRoot
         model.retryFailed()
         try await wait(model)
         guard case .batchFinished(let retried) = model.state else { return XCTFail("No retried batch") }
@@ -101,7 +124,7 @@ final class AppOptionsTests: XCTestCase {
             try Data("Name,Value\n\(directory),123\n".utf8).write(to: folder.appendingPathComponent("same.csv"))
         }
         let model = AppModel(defaults: .isolatedForAppTest())
-        model.destinationFolder = root.appendingPathComponent("output")
+        model.settings.values.destinationFolder = root.appendingPathComponent("output")
         model.convert(input)
         try await wait(model)
         guard case .batchFinished(let items) = model.state else { return XCTFail("No batch") }
@@ -127,7 +150,7 @@ final class AppOptionsTests: XCTestCase {
         let bytes = Data(#"{\rtf1\ansi Unchanged}"#.utf8)
         try bytes.write(to: file)
         let model = AppModel(defaults: .isolatedForAppTest())
-        model.batchParallelism = 2
+        model.settings.values.batchParallelism = 2
         model.convert([file, package])
         try await wait(model)
         guard case .batchFinished(let items) = model.state else { return XCTFail("No batch result") }
@@ -150,8 +173,8 @@ final class AppOptionsTests: XCTestCase {
         let csv = root.appendingPathComponent("table.csv")
         try Data("Name,Value\nAlpha,42\n".utf8).write(to: csv)
         let model = AppModel(defaults: .isolatedForAppTest())
-        model.batchParallelism = 2
-        model.destinationFolder = package.appendingPathComponent("new/nested")
+        model.settings.values.batchParallelism = 2
+        model.settings.values.destinationFolder = package.appendingPathComponent("new/nested")
         model.convert([csv, package])
         try await wait(model)
         guard case .batchFinished(let items) = model.state else { return XCTFail("No batch") }
@@ -197,8 +220,7 @@ final class AppOptionsTests: XCTestCase {
         try await wait(model)
         guard case .failed = model.state else { return XCTFail("Expected enumeration failure") }
         let alternative = root.appendingPathComponent("chosen-result")
-        model.destinationOverrides[source.path] = alternative
-        model.retryFailed(only: source)
+        model.chooseAlternativeDestination(for: source) { alternative }
         try await wait(model)
         guard case .succeeded(let result) = model.state else { return XCTFail("Expected single result") }
         XCTAssertEqual(result.outputDirectory.standardizedFileURL, alternative.standardizedFileURL)
@@ -288,38 +310,35 @@ final class AppOptionsTests: XCTestCase {
         XCTAssertFalse(model.isConverting)
     }
 
-    // MARK: - Review-Funde 2026-09-10
-
-    /// `convert(_:)` löschte die Zielvorgaben, bevor es sie las. Damit blieb
-    /// „Anderen Namen oder Zielordner wählen…" nach einem Aufzählungsfehler
-    /// ohne Wirkung, und `retryFailed(only:)` versuchte trotz Filter alles.
     @MainActor
-    func testRetryingASingleEnumerationFailureKeepsItsChosenDestination() async throws {
+    func testRetryingOneDirectoryAfterEnumerationFailureSkipsTheOther() async throws {
         let root = FileManager.default.temporaryDirectory
-            .appendingPathComponent("PMTRetry-\(UUID().uuidString)", isDirectory: true)
+            .appendingPathComponent("PMTRetry-\(UUID())", isDirectory: true)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: root) }
-        // Zwei leere Ordner: beide scheitern an der Aufzählung.
         let first = root.appendingPathComponent("eins", isDirectory: true)
         let second = root.appendingPathComponent("zwei", isDirectory: true)
         for url in [first, second] {
             try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         }
 
-        let model = AppModel()
+        let model = AppModel(defaults: .isolatedForAppTest())
         model.convert([first, second])
-        try await Task.sleep(nanoseconds: 300_000_000)
-        XCTAssertEqual(Set(model.failedEnumerationInputs), [first, second])
+        try await wait(model)
+        guard case .failed = model.state else { return XCTFail("Expected enumeration failure") }
 
-        // Genau eine Eingabe erneut versuchen, mit einer gesetzten Zielvorgabe.
-        model.destinationOverrides[first.path] = root.appendingPathComponent("ziel", isDirectory: true)
+        let firstCSV = first.appendingPathComponent("first.csv")
+        let secondCSV = second.appendingPathComponent("second.csv")
+        for url in [firstCSV, secondCSV] {
+            try Data("name\nRetryMarker\n".utf8).write(to: url)
+        }
+
         model.retryFailed(only: first)
-        try await Task.sleep(nanoseconds: 300_000_000)
-
-        XCTAssertEqual(model.destinationOverrides[first.path]?.lastPathComponent, "ziel",
-                       "die Vorgabe darf nicht gelöscht werden")
-        XCTAssertEqual(model.failedEnumerationInputs, [first],
-                       "nur die gefilterte Eingabe wurde erneut versucht")
+        try await wait(model)
+        guard case .batchFinished(let items) = model.state else { return XCTFail("Expected a retried batch") }
+        XCTAssertEqual(items.map(\.input), [firstCSV])
+        XCTAssertNotNil(items.first?.result)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: DocumentConverter.defaultOutputDirectory(for: secondCSV).path))
     }
 }
 

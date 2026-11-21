@@ -2,12 +2,13 @@ import AppKit
 import SwiftUI
 import WebKit
 import PoorMansTextCore
+import PoorMansTextAppSupport
 
-public struct MarkdownPreviewPane: View {
-    public let preview: MarkdownPreview
-    public let result: ConversionResult
-    public let target: ConversionTextRange?
-    public let targetRequest: Int
+struct MarkdownPreviewPane: View {
+    let preview: MarkdownPreview
+    let result: ConversionResult
+    let target: ConversionTextRange?
+    let targetRequest: Int
     @State private var rendered: RenderedMarkdownPreview?
     @State private var assets: PreviewAssets?
     @State private var mode = 0
@@ -20,11 +21,11 @@ public struct MarkdownPreviewPane: View {
     @State private var selectedFile: LocalFileSelection?
     @FocusState private var searchFocused: Bool
 
-    public init(preview: MarkdownPreview, result: ConversionResult, target: ConversionTextRange? = nil, targetRequest: Int = 0) {
+    init(preview: MarkdownPreview, result: ConversionResult, target: ConversionTextRange? = nil, targetRequest: Int = 0) {
         self.preview = preview; self.result = result; self.target = target; self.targetRequest = targetRequest
     }
 
-    public var body: some View {
+    var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             PreviewToolbarLayout {
                 modePicker
@@ -282,117 +283,5 @@ private struct PreviewWebView: NSViewRepresentable {
         context.coordinator.onMissing = missing
         context.coordinator.onImageFailed = imageFailed
         context.coordinator.update(view, rendered: rendered, assets: assets, query: query, request: request, backwards: backwards, anchor: anchor, anchorRequest: anchorRequest)
-    }
-}
-
-@MainActor final class PreviewWebCoordinator: NSObject, WKNavigationDelegate, WKURLSchemeHandler {
-    var onMissing: (Bool) -> Void = { _ in }
-    var onImageFailed: () -> Void = {}
-    private var assets: PreviewAssets?
-    private var html: String?
-    private var loaded = false
-    private var query = ""
-    private var request = -1
-    private var backwards = false
-    private var anchor: String?
-    private var anchorRequest = -1
-    private var active = Set<ObjectIdentifier>()
-    private var failedImages = Set<URL>()
-    private var generation = 0
-    private let queue = DispatchQueue(label: "org.poormanstext.preview-images", qos: .userInitiated)
-
-    func makeWebView() -> WKWebView {
-        let configuration = WKWebViewConfiguration()
-        configuration.websiteDataStore = .nonPersistent()
-        configuration.defaultWebpagePreferences.allowsContentJavaScript = false
-        configuration.preferences.isFraudulentWebsiteWarningEnabled = false
-        configuration.setURLSchemeHandler(self, forURLScheme: "pmt-preview")
-        let view = PreviewWebContentView(frame: .zero, configuration: configuration)
-        view.navigationDelegate = self
-        view.underPageBackgroundColor = .textBackgroundColor
-        view.viewportChanged = { [weak self, weak view] in
-            guard let self, self.loaded, let view else { return }
-            self.scroll(in: view)
-        }
-        return view
-    }
-    func update(_ view: WKWebView, rendered: RenderedMarkdownPreview, assets: PreviewAssets?, query: String, request: Int, backwards: Bool, anchor: String?, anchorRequest: Int = 0) {
-        let newDocument = html != rendered.html || self.assets?.token != assets?.token
-        let newSearch = self.request != request || self.query != query
-        let newAnchor = self.anchor != anchor || self.anchorRequest != anchorRequest
-        self.assets = assets; self.query = query; self.request = request; self.backwards = backwards; self.anchor = anchor
-        self.anchorRequest = anchorRequest
-        if newDocument {
-            generation += 1
-            html = rendered.html; loaded = false; failedImages = []
-            view.loadHTMLString(rendered.html, baseURL: nil)
-        } else if loaded {
-            if newSearch { find(in: view) }
-            if newAnchor { scroll(in: view) }
-        }
-    }
-    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        loaded = true; find(in: webView); scroll(in: webView)
-    }
-    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping @MainActor @Sendable (WKNavigationActionPolicy) -> Void) {
-        let url = navigationAction.request.url
-        decisionHandler(url?.absoluteString == "about:blank" ? .allow : .cancel)
-    }
-    private func find(in view: WKWebView) {
-        let configuration = WKFindConfiguration(); configuration.backwards = backwards; configuration.wraps = true
-        let expected = query
-        let generation = generation, request = request
-        view.find(query, configuration: configuration) { [weak self] result in
-            guard let self, self.query == expected, self.generation == generation, self.request == request else { return }
-            self.onMissing(!expected.isEmpty && !result.matchFound)
-        }
-    }
-    private func scroll(in view: WKWebView) {
-        guard let anchor, anchor.hasPrefix("pmt-"), Int(anchor.dropFirst(4)) != nil,
-              let encoded = try? JSONEncoder().encode(anchor), let literal = String(data: encoded, encoding: .utf8) else { return }
-        // Ausschließlich eigener Code mit einer erzeugten, als JSON kodierten ID.
-        view.evaluateJavaScript("document.getElementById(\(literal))?.scrollIntoView({block:'center',inline:'nearest'})", completionHandler: nil)
-    }
-    func webView(_ webView: WKWebView, start urlSchemeTask: any WKURLSchemeTask) {
-        let id = ObjectIdentifier(urlSchemeTask)
-        active.insert(id)
-        let request = SchemeRequest(task: urlSchemeTask)
-        let url = urlSchemeTask.request.url
-        let assets = assets
-        queue.async { [weak self] in
-            let result: Result<Data, Error> = Result {
-                guard let url, let assets else { throw PreviewAssetError.unavailable }
-                return try assets.thumbnail(for: url)
-            }
-            Task { @MainActor [weak self] in
-                guard let self, self.active.remove(id) != nil else { return }
-                guard self.assets?.token == url?.host else { request.task.didFailWithError(PreviewAssetError.unavailable); return }
-                switch result {
-                case .success(let data):
-                    guard let url else { return }
-                    request.task.didReceive(URLResponse(url: url, mimeType: "image/png", expectedContentLength: data.count, textEncodingName: nil))
-                    request.task.didReceive(data); request.task.didFinish()
-                case .failure(let error):
-                    request.task.didFailWithError(error)
-                    if let url, self.failedImages.insert(url).inserted { self.onImageFailed() }
-                }
-            }
-        }
-    }
-    func webView(_ webView: WKWebView, stop urlSchemeTask: any WKURLSchemeTask) { active.remove(ObjectIdentifier(urlSchemeTask)) }
-    private final class SchemeRequest: @unchecked Sendable {
-        let task: any WKURLSchemeTask
-        init(task: any WKURLSchemeTask) { self.task = task }
-    }
-}
-
-private final class PreviewWebContentView: WKWebView {
-    var viewportChanged: (() -> Void)?
-    override func setFrameSize(_ newSize: NSSize) {
-        let changed = frame.size != newSize
-        super.setFrameSize(newSize)
-        if changed {
-            Task { @MainActor [weak self] in self?.viewportChanged?() }
-        }
     }
 }

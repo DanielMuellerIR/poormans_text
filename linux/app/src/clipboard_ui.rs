@@ -269,11 +269,11 @@ pub(crate) fn self_test(state: &Shared, view: &View, fixtures: PathBuf) {
                 view.window.close();
                 return glib::ControlFlow::Break;
             };
-            for (flag, choice, _) in &view.controls.choices {
-                if flag == "--image-ocr" {
-                    choice.set_selected(1);
-                }
-            }
+            assert!(
+                view.controls
+                    .choice(crate::model::ValueOption::ImageOcr)
+                    .select("off")
+            );
             let output = fixtures.join(format!(
                 "converted-{}",
                 std::time::SystemTime::now()

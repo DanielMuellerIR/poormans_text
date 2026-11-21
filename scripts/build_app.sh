@@ -25,15 +25,6 @@ sparkle_framework="$contents_path/Frameworks/Sparkle.framework"
 root_app="$project_root/Poor Man's Text.app"
 root_cli="$project_root/poormans-text"
 
-remove_exact_path() {
-    local path="$1"
-    if [ -e "$path" ] || [ -L "$path" ]; then
-        /usr/bin/swift -e \
-            'import Foundation; try FileManager.default.removeItem(atPath: CommandLine.arguments[1])' \
-            "$path"
-    fi
-}
-
 cd "$project_root"
 build_arguments=(--build-system swiftbuild --configuration "$build_configuration")
 if [ "$build_configuration" = "release" ]; then
@@ -54,7 +45,7 @@ fi
 
 # Das Bundle ist ein vollständig generiertes Artefakt unter .build. Ein alter
 # lokaler Test-Build wird nur innerhalb dieses eindeutig begrenzten Pfads ersetzt.
-remove_exact_path "$bundle_path"
+/bin/rm -rf -- "$bundle_path"
 
 mkdir -p "$contents_path/MacOS" "$contents_path/Resources" "$contents_path/Frameworks"
 cp "$binary_directory/PoorMansTextApp" "$contents_path/MacOS/PoorMansTextApp"
@@ -84,8 +75,7 @@ fi
 ditto "$sparkle_source" "$sparkle_framework"
 # Die App ist nicht sandboxed. Sparkles XPC-Dienste sind damit weder aktiviert
 # noch nötig und werden bewusst nicht ausgeliefert.
-remove_exact_path "$sparkle_framework/Versions/B/XPCServices"
-remove_exact_path "$sparkle_framework/XPCServices"
+/bin/rm -rf -- "$sparkle_framework/Versions/B/XPCServices" "$sparkle_framework/XPCServices"
 
 # Die Lizenz der Fremdkomponente gehört in die verteilte App, nicht nur ins
 # Quellverzeichnis.
@@ -122,8 +112,7 @@ fi
 "$script_directory/sign_bundle.sh" "${sign_arguments[@]}"
 
 # Sichtbare, gitignorierte Artefakte im Repo-Root erleichtern lokale Prüfungen.
-remove_exact_path "$root_app"
-remove_exact_path "$root_cli"
+/bin/rm -rf -- "$root_app" "$root_cli"
 ditto "$bundle_path" "$root_app"
 ditto "$binary_directory/poormans-text" "$root_cli"
 chmod 755 "$root_cli"

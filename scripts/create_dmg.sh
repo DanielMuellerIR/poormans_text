@@ -7,6 +7,7 @@ if [ "$#" -ne 2 ]; then
     exit 64
 fi
 
+script_directory="$(cd "$(dirname "$0")" && pwd)"
 app="$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
 output_directory="$(cd "$(dirname "$2")" && pwd)"
 output="$output_directory/$(basename "$2")"
@@ -23,13 +24,12 @@ esac
 
 temporary_directory="$(mktemp -d "$output_directory/.poormans-dmg.XXXXXX")"
 cleanup() {
-    if [ -d "$temporary_directory" ]; then
-        /usr/bin/swift -e \
-            'import Foundation; try FileManager.default.removeItem(atPath: CommandLine.arguments[1])' \
-            "$temporary_directory"
-    fi
+    /bin/rm -rf -- "$temporary_directory"
 }
 trap cleanup EXIT
+
+rename_path="$temporary_directory/rename-path"
+/usr/bin/cc -std=c11 -Wall -Wextra -o "$rename_path" "$script_directory/rename_path.c"
 
 staging_directory="$temporary_directory/staging"
 temporary_dmg="$temporary_directory/Poor-Mans-Text.dmg"
@@ -44,8 +44,6 @@ hdiutil create \
     -imagekey zlib-level=9 \
     "$temporary_dmg" >/dev/null
 hdiutil verify "$temporary_dmg" >/dev/null
-/usr/bin/swift -e \
-    'import Foundation; try FileManager.default.moveItem(atPath: CommandLine.arguments[1], toPath: CommandLine.arguments[2])' \
-    "$temporary_dmg" "$output"
+"$rename_path" move "$temporary_dmg" "$output"
 
 echo "DMG OK: $output"

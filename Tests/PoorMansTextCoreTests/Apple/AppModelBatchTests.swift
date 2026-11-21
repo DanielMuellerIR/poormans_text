@@ -12,7 +12,7 @@ final class AppModelBatchTests: XCTestCase {
         let first = try copyImage(to: "First.png")
         let second = try copyImage(to: "Second.png")
         let model = AppModel(defaults: .isolatedForAppTest())
-        model.imageTextRecognition = .disabled
+        model.settings.values.imageTextRecognition = .disabled
         model.convert([first, second])
         let items = try await awaitBatch(model)
         model.selectResult(items[0])
@@ -54,7 +54,7 @@ final class AppModelBatchTests: XCTestCase {
         try Data("not a png".utf8).write(to: broken)
         let second = try copyImage(to: "Zwei.png")
         let model = AppModel(defaults: .isolatedForAppTest())
-        model.imageTextRecognition = .disabled
+        model.settings.values.imageTextRecognition = .disabled
 
         model.convert([first, broken, second])
         XCTAssertTrue(model.isConverting)
@@ -90,7 +90,7 @@ final class AppModelBatchTests: XCTestCase {
         try Data("plain".utf8).write(to: root.appendingPathComponent("Ordner/Notiz.txt"))
         let folder = root.appendingPathComponent("Ordner")
         let model = AppModel(defaults: .isolatedForAppTest())
-        model.imageTextRecognition = .disabled
+        model.settings.values.imageTextRecognition = .disabled
 
         // Ein einzelner Ordner nimmt ebenfalls den Mehrfachweg.
         model.convert(folder)
@@ -133,7 +133,7 @@ final class AppModelBatchTests: XCTestCase {
         let first = try copyImage(to: "A.png")
         let second = try copyImage(to: "B.png")
         let model = AppModel(defaults: .isolatedForAppTest())
-        model.imageTextRecognition = .disabled
+        model.settings.values.imageTextRecognition = .disabled
 
         XCTAssertTrue(model.openDocuments([first, second]))
         XCTAssertTrue(model.isConverting)
@@ -154,7 +154,7 @@ final class AppModelBatchTests: XCTestCase {
         let first = try copyImage(to: "A.png")
         let second = try copyImage(to: "B.png")
         let model = AppModel(defaults: .isolatedForAppTest())
-        model.imageTextRecognition = .disabled
+        model.settings.values.imageTextRecognition = .disabled
 
         XCTAssertTrue(
             model.acceptDrop([
@@ -172,7 +172,7 @@ final class AppModelBatchTests: XCTestCase {
     func testOneChosenFileStillUsesTheSingleResultView() async throws {
         let image = try copyImage(to: "Solo.png")
         let model = AppModel(defaults: .isolatedForAppTest())
-        model.imageTextRecognition = .disabled
+        model.settings.values.imageTextRecognition = .disabled
 
         model.chooseDocument(selectDocuments: { [image] })
 
@@ -204,8 +204,8 @@ final class AppModelBatchTests: XCTestCase {
         let fileAsDestination = root.appendingPathComponent("Ziel")
         try Data("not a folder".utf8).write(to: fileAsDestination)
         let model = AppModel(defaults: .isolatedForAppTest())
-        model.imageTextRecognition = .disabled
-        model.destinationFolder = fileAsDestination
+        model.settings.values.imageTextRecognition = .disabled
+        model.settings.values.destinationFolder = fileAsDestination
 
         model.convert([first, second])
 
@@ -227,9 +227,9 @@ final class AppModelBatchTests: XCTestCase {
         let first = try copyImage(to: "Bild.png")
         let second = try copyImage(to: "Foto.png")
         let model = AppModel(defaults: .isolatedForAppTest())
-        model.imageTextRecognition = .disabled
+        model.settings.values.imageTextRecognition = .disabled
 
-        model.destinationFolder = root.appendingPathComponent("fehlt/Ergebnis")
+        model.settings.values.destinationFolder = root.appendingPathComponent("fehlt/Ergebnis")
         model.convert([first, second])
         let failed = try await awaitBatch(model)
         XCTAssertEqual(failed.count, 2)
@@ -240,7 +240,7 @@ final class AppModelBatchTests: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("fehlt").path))
 
         model.reset()
-        model.destinationFolder = root.appendingPathComponent("Ergebnis")
+        model.settings.values.destinationFolder = root.appendingPathComponent("Ergebnis")
         model.convert([first, second])
         let items = try await awaitBatch(model)
         XCTAssertEqual(items.map { $0.result != nil }, [true, true])

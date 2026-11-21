@@ -26,10 +26,10 @@ final class MarkdownInlineLinksRegressionTests: XCTestCase {
         )
     }
 
-    func testMalformedNestedLinkDestinationsAreLinearAndCancellable() throws {
+    func testMalformedNestedLinkDestinationsAreLinearAndCancellable() {
         let input = String(repeating: "[x](", count: 40_000) + "\n\n[real](old.png)"
         var checks = 0
-        let output = try MarkdownLinkTargetRewriter.replacing(in: input, mapping: ["old.png": "new.png"], checking: { checks += 1 })
+        let output = MarkdownLinkTargetRewriter.replacing(in: input, mapping: ["old.png": "new.png"], checking: { checks += 1 })
         XCTAssertEqual(output, String(repeating: "[x](", count: 40_000) + "\n\n[real](new.png)")
         XCTAssertGreaterThan(checks, 100)
         enum Stopped: Error { case cancelled }

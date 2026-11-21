@@ -4,12 +4,19 @@ import SwiftUI
 
 struct ProfileControls: View {
     @ObservedObject var model: AppModel
+    // Auch manuelle Änderungen an den Konvertierungsoptionen aktualisieren die Profilwarnung.
+    @ObservedObject private var settings: ConversionSettings
     @State private var showsManager = false
     @State private var name = ""
     @State private var error: String?
     @State private var pendingChoice: String?
     @State private var localChoice: String?
     @State private var confirmsDelete = false
+
+    init(model: AppModel) {
+        self.model = model
+        settings = model.settings
+    }
 
     var body: some View {
         dialogs(controls, active: !showsManager)

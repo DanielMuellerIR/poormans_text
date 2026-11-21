@@ -781,7 +781,11 @@ impl NamespaceOwner {
         stderr: &mut Capture,
         sender: &SyncSender<Event>,
     ) -> Result<(), BridgeError> {
-        if unsafe { libc::fcntl(self.info.as_raw_fd(), libc::F_SETFL, libc::O_NONBLOCK) } < 0 {
+        let descriptor = self.info.as_raw_fd();
+        let flags = unsafe { libc::fcntl(descriptor, libc::F_GETFL) };
+        if flags < 0
+            || unsafe { libc::fcntl(descriptor, libc::F_SETFL, flags | libc::O_NONBLOCK) } < 0
+        {
             return Err(BridgeError::new(
                 ErrorKind::Spawn,
                 "The namespace handshake pipe could not be configured.",

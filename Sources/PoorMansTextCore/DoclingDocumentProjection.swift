@@ -218,11 +218,9 @@ enum DoclingDocumentProjection {
         try require(
             root.keyValueItems.isEmpty && root.formItems.isEmpty,
             "unsupported form or key-value nodes")
-        try require(
-            root.pages.count == 1 && root.pages["1"]?.pageNo == 1,
-            "projection requires exactly page 1"
-        )
-        let page = root.pages["1"]!
+        guard root.pages.count == 1, let page = root.pages["1"], page.pageNo == 1 else {
+            throw Failure(reason: "projection requires exactly page 1")
+        }
         let w = page.size.width
         let h = page.size.height
         try require(
@@ -247,7 +245,7 @@ enum DoclingDocumentProjection {
         ] {
             for (i, node) in values.enumerated() { try add(node, "#/\(prefix)/\(i)") }
         }
-        var order = [String]()
+        var order: [(String, Node)] = []
         var active = Set<String>()
         var seen = Set<String>()
         func walk(_ ref: String, parent: String?, depth: Int) throws {
@@ -258,7 +256,7 @@ enum DoclingDocumentProjection {
                 "cyclic or duplicate structural reference")
             try require(node.parent?.value == parent, "parent reference mismatch")
             active.insert(ref)
-            order.append(ref)
+            order.append((ref, node))
             for child in node.children { try walk(child.value, parent: ref, depth: depth + 1) }
             active.remove(ref)
             for alias in (node.captions ?? []) + (node.references ?? []) + (node.footnotes ?? []) {
@@ -302,9 +300,8 @@ enum DoclingDocumentProjection {
             try require(p[0].charspan[1] <= textLength, "provenance character span")
             return try p[0].bbox.normalized(width: w, height: h)
         }
-        for ref in order {
+        for (ref, node) in order {
             try ConversionExecution.check()
-            let node = nodes[ref]!
             if ref.hasPrefix("#/texts/") {
                 try require(node.data == nil, "unsupported table data on text node")
                 guard let original = node.orig, let alternate = node.text else {

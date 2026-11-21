@@ -167,6 +167,7 @@ final class NotebookImport {
         let targets = try MarkdownLinkTargetRewriter.resourceCandidates(
             in: text,
             maximum: 4_096,
+            sourceDescription: "notebook cell",
             checking: ConversionExecution.check
         )
         var replacements = attachments

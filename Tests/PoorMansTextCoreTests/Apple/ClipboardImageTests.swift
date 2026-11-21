@@ -175,12 +175,12 @@ final class ClipboardImageTests: XCTestCase {
     func testImageTextCopyInTextbundleOmitsAssetAndNoOCRKeepsDraftAndClipboard() async throws {
         let pasteboard = board(), model = AppModel(defaults: .isolatedForAppTest())
         let data = try image()
-        model.outputLayout = .textbundle
+        model.settings.values.outputLayout = .textbundle
         pasteboard.setData(data, forType: .png)
         model.pasteRichText(from: pasteboard); try await finish(model)
         model.copyMarkdown(to: pasteboard)
         XCTAssertEqual(pasteboard.string(forType: .string)?.trimmingCharacters(in: .whitespacesAndNewlines), "ALPHA 7129")
-        model.reset(); model.imageTextRecognition = .disabled
+        model.reset(); model.settings.values.imageTextRecognition = .disabled
         pasteboard.clearContents(); pasteboard.setData(data, forType: .png)
         model.pasteRichText(from: pasteboard); try await finish(model)
         let draft = try XCTUnwrap(model.clipboardDraft), change = pasteboard.changeCount
@@ -227,7 +227,7 @@ final class ClipboardImageTests: XCTestCase {
         while model.isLoadingPreview && Date() < deadline { try await Task.sleep(for: .milliseconds(20)) }
         XCTAssertTrue(model.preview?.text.contains("assets/image01.png") == true)
         pasteboard.clearContents(); pasteboard.setString("new clipboard", forType: .string)
-        model.imageTextRecognition = .enabled; model.outputLayout = .markdownFolder; model.frontmatter = false
+        model.settings.values.imageTextRecognition = .enabled; model.settings.values.outputLayout = .markdownFolder; model.settings.values.frontmatter = false
         let destination = root.appendingPathComponent("archive.textbundle")
         model.saveClipboardResult(to: destination); try await finish(model)
         let saved = try XCTUnwrap(model.selectedResult)

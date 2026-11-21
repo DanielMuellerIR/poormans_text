@@ -11,7 +11,7 @@ final class ApplicationInputRegressionTests: XCTestCase {
         let inputURL = root.appendingPathComponent("Eins.csv")
         try Data("a,b\n1,2\n".utf8).write(to: inputURL)
         let model = AppModel(defaults: .isolatedForAppTest())
-        model.imageTextRecognition = .disabled
+        model.settings.values.imageTextRecognition = .disabled
 
         XCTAssertTrue(model.acceptDrop([NSItemProvider(object: inputURL as NSURL)]))
         // Noch vor dem ersten `await` ist die App belegt: Ein zweiter Drop
@@ -45,7 +45,8 @@ final class ApplicationInputRegressionTests: XCTestCase {
             let output = directory.appendingPathComponent("output")
             try FileManager.default.createDirectory(at: output, withIntermediateDirectories: false)
             let app = AppModel(defaults: UserDefaults(suiteName: UUID().uuidString)!)
-            app.destinationFolder = output; app.pdfTextRecognition = .disabled
+            app.settings.values.destinationFolder = output
+            app.settings.values.pdfTextRecognition = .disabled
             if retry {
                 let occupied = output.appendingPathComponent(input.deletingPathExtension().lastPathComponent + "-markdown")
                 try FileManager.default.createDirectory(at: occupied, withIntermediateDirectories: false)
@@ -53,14 +54,13 @@ final class ApplicationInputRegressionTests: XCTestCase {
                 app.convertSelection(input, selection: .pdf(try IndexSelection("2")), identity: identity)
                 try await wait(app)
                 guard case .failed = app.state else { return XCTFail("Expected occupied output") }
-                app.destinationOverrides[input.path] = output.appendingPathComponent("retry-result")
             }
             let archived = directory.appendingPathComponent("original.pdf")
             try FileManager.default.moveItem(at: input, to: archived)
             try FileManager.default.createDirectory(at: input, withIntermediateDirectories: false)
             let child = input.appendingPathComponent("child.csv"), childBytes = Data("name\nUnexpectedChildMarker\n".utf8)
             try childBytes.write(to: child)
-            if retry { app.retryFailed() }
+            if retry { app.chooseAlternativeDestination(for: input) { output.appendingPathComponent("retry-result") } }
             else { app.convertSelection(input, selection: .pdf(try IndexSelection("2")), identity: identity) }
             try await wait(app)
             guard case .failed = app.state else { XCTFail("Changed selection became a folder import; retry=\(retry)"); continue }

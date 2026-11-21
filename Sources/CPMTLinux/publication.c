@@ -15,7 +15,7 @@ int pmt_renameat2_noreplace(int source_directory, const char *source, int target
 
 /* Ausschließlich relativ zum gehaltenen Eltern-FD; Symlinks werden entfernt,
    niemals verfolgt. Ein ausgetauschter Verzeichnisname verhindert das rmdir. */
-static int remove_tree_at(int parent, const char *name, int expected) {
+static int remove_tree_at(int parent, const char *name, int expected, unsigned int depth) {
     struct stat original;
     if (fstatat(parent, name, &original, AT_SYMLINK_NOFOLLOW)) return errno == ENOENT ? 0 : -1;
     if (expected >= 0) {
@@ -24,6 +24,12 @@ static int remove_tree_at(int parent, const char *name, int expected) {
         if (bound.st_dev != original.st_dev || bound.st_ino != original.st_ino) { errno = ESTALE; return -1; }
     }
     if (!S_ISDIR(original.st_mode)) return unlinkat(parent, name, 0);
+    // Jeder offene Vorfahr bindet den Namen an das gehaltene Verzeichnis.
+    // Die Grenze hält den Bedarf an Deskriptoren und Stack unabhängig vom Baum.
+    if (depth >= 256) {
+        errno = ELOOP;
+        return -1;
+    }
     int fd = openat(parent, name, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
     if (fd < 0) return -1;
     struct stat held;
@@ -39,7 +45,7 @@ static int remove_tree_at(int parent, const char *name, int expected) {
         entry = readdir(directory);
         if (!entry) { if (errno) result = -1; break; }
         if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")) continue;
-        if (remove_tree_at(fd, entry->d_name, -1)) { result = -1; break; }
+        if (remove_tree_at(fd, entry->d_name, -1, depth + 1)) { result = -1; break; }
     }
     int saved = errno;
     if (!result) {
@@ -54,5 +60,5 @@ static int remove_tree_at(int parent, const char *name, int expected) {
 }
 
 int pmt_remove_staging_at(int parent, const char *name, int expected) {
-    return remove_tree_at(parent, name, expected);
+    return remove_tree_at(parent, name, expected, 0);
 }

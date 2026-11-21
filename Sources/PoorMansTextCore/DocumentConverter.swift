@@ -5,28 +5,12 @@ public struct DocumentConverter: Sendable {
     private let adapters: [any DocumentConversionAdapter]
 
     public init() {
-        var registered: [any DocumentConversionAdapter] = [
-            RichTextAdapter(), WordProcessingPackageAdapter(),
-        ]
-        #if os(macOS)
-        registered.append(LegacyWordAdapter())
-        #else
-        registered.append(LinuxLegacyWordAdapter())
-        #endif
-        registered += [SpreadsheetAdapter(), OpenDocumentMasterAdapter()]
-        #if os(macOS)
-        registered += [ImageAdapter(), PDFAdapter()]
-        #else
-        registered += [
-            LinuxImageAdapter(),
-            LinuxPDFAdapter(),
-        ]
-        #endif
-        registered += [
+        self.init(adapters: [
+            RichTextAdapter(), WordProcessingPackageAdapter(), PlatformLegacyWordAdapter(),
+            SpreadsheetAdapter(), OpenDocumentMasterAdapter(), PlatformImageAdapter(), PlatformPDFAdapter(),
             PresentationAdapter(), NotebookAdapter(), DelimitedTextAdapter(), PandocTextAdapter(),
             MailAdapter(), MBOXAdapter(), ENEXAdapter(), MSGAdapter(),
-        ]
-        self.init(adapters: registered)
+        ])
     }
 
     init(adapters: [any DocumentConversionAdapter]) {
@@ -109,9 +93,7 @@ public struct DocumentConverter: Sendable {
         cancellation: ConversionCancellationToken? = nil,
         processTimeout: TimeInterval? = nil
     ) throws -> InputInspection {
-        #if os(Linux)
-        try LinuxPathValidation.validate(requestedInputURL)
-        #endif
+        try FileSystemPath.validate(requestedInputURL)
         let inputURL = requestedInputURL.standardizedFileURL
         let detected = try withDetectionContext(cancellation, processTimeout) {
             try detectInput(at: inputURL)
@@ -128,9 +110,7 @@ public struct DocumentConverter: Sendable {
         cancellation: ConversionCancellationToken? = nil,
         processTimeout: TimeInterval? = nil
     ) throws -> InputFormat {
-        #if os(Linux)
-        try LinuxPathValidation.validate(requestedInputURL)
-        #endif
+        try FileSystemPath.validate(requestedInputURL)
         return try withDetectionContext(cancellation, processTimeout) {
             try detectInput(at: requestedInputURL.standardizedFileURL).inspection.format
         }
@@ -158,12 +138,10 @@ public struct DocumentConverter: Sendable {
         cancellation: ConversionCancellationToken? = nil,
         processTimeout: TimeInterval? = nil
     ) throws -> PDFContentSummary {
-        #if os(Linux)
-        try LinuxPathValidation.validate(inputURL)
-        #endif
+        try FileSystemPath.validate(inputURL)
         #if os(macOS)
         return try withDetectionContext(cancellation, processTimeout) {
-            do { return try PDFAdapter().inspectContents(at: inputURL.standardizedFileURL, maximumPages: maximumPages) }
+            do { return try PlatformPDFAdapter().inspectContents(at: inputURL.standardizedFileURL, maximumPages: maximumPages) }
             catch {
                 try ConversionExecution.check()
                 throw ConversionError.invalidInput(inputURL, format: .pdf, reason: error.localizedDescription)
@@ -171,7 +149,7 @@ public struct DocumentConverter: Sendable {
         }
         #else
         return try withDetectionContext(cancellation, processTimeout) {
-            try LinuxPDFAdapter().inspectContents(at: inputURL.standardizedFileURL, maximumPages: maximumPages)
+            try PlatformPDFAdapter().inspectContents(at: inputURL.standardizedFileURL, maximumPages: maximumPages)
         }
         #endif
     }
@@ -183,9 +161,7 @@ public struct DocumentConverter: Sendable {
         cancellation: ConversionCancellationToken? = nil,
         processTimeout: TimeInterval? = nil
     ) throws -> SpreadsheetContentSummary {
-        #if os(Linux)
-        try LinuxPathValidation.validate(inputURL)
-        #endif
+        try FileSystemPath.validate(inputURL)
         return try withDetectionContext(cancellation, processTimeout) {
             let detected = try detectInput(at: inputURL.standardizedFileURL)
             let format = detected.inspection.format
@@ -204,9 +180,7 @@ public struct DocumentConverter: Sendable {
         cancellation: ConversionCancellationToken? = nil,
         processTimeout: TimeInterval? = nil
     ) throws -> PresentationContentSummary {
-        #if os(Linux)
-        try LinuxPathValidation.validate(inputURL)
-        #endif
+        try FileSystemPath.validate(inputURL)
         return try withDetectionContext(cancellation, processTimeout) {
             let detected = try detectInput(at: inputURL.standardizedFileURL)
             let format = detected.inspection.format
@@ -225,9 +199,7 @@ public struct DocumentConverter: Sendable {
         cancellation: ConversionCancellationToken? = nil,
         processTimeout: TimeInterval? = nil
     ) throws -> EPUBContentSummary {
-        #if os(Linux)
-        try LinuxPathValidation.validate(inputURL)
-        #endif
+        try FileSystemPath.validate(inputURL)
         return try withDetectionContext(cancellation, processTimeout) {
             guard (1...EPUBContentSummary.maximumSummaryChapters).contains(maximumChapters) else { throw ConversionError.invalidInput(inputURL, format: .epub, reason: "the EPUB overview limit must be between 1 and 500") }
             let detected = try detectInput(at: inputURL.standardizedFileURL)
@@ -291,10 +263,10 @@ public struct DocumentConverter: Sendable {
         cancellation: ConversionCancellationToken? = nil,
         processTimeout: TimeInterval? = nil
     ) throws -> ConversionResult {
-        #if os(Linux)
-        try LinuxPathValidation.validate(request.inputURL)
-        if case .directory(let output) = request.destination { try LinuxPathValidation.validate(output) }
-        #endif
+        try FileSystemPath.validate(request.inputURL)
+        if case .directory(let output) = request.destination {
+            try FileSystemPath.validate(output)
+        }
         var options = request.options
         options.ocrLanguages = try OCRLanguageSelection.resolve(options.ocrLanguages)
         let request = ConversionRequest(inputURL: request.inputURL, destination: request.destination, options: options, expectedSourceIdentity: request.expectedSourceIdentity)
@@ -320,61 +292,8 @@ public struct DocumentConverter: Sendable {
     private func convertInContext(_ request: ConversionRequest) throws -> ConversionResult {
         try ConversionExecution.report(ConversionProgress(phase: .detectingInput))
         let inputURL = request.inputURL.standardizedFileURL
-        // Die echte Quelle wird GENAU EINMAL aufgelöst. Vorher löste jede Stufe
-        // für sich auf: die Ausgabeprüfung vor dem Umwandeln, der Adapter beim
-        // Lesen und die Ausgabeprüfung vor dem Veröffentlichen. Zeigte ein
-        // Eingabe-Symlink bei beiden Prüfungen auf Paket A, während der Adapter
-        // dazwischen Paket B erfasste, kam ein Ziel INNERHALB von B durch beide
-        // Prüfungen — und die Umwandlung schrieb in das Quelldokument, das sie
-        // gerade las (Review-Fund 2026-08-20).
-        //
-        // Die Erkennung läuft bewusst auf `inputURL`, weil Endungs-Adapter
-        // (CSV, Pandoc-Textformate) den Namen des Links brauchen. Damit
-        // Formatentscheidung und konvertierte Quelle dasselbe Objekt sind, wird
-        // vor und nach der Erkennung aufgelöst; weichen beide Ergebnisse ab,
-        // wurde der Link währenddessen umgehängt (Review-Fund 2026-09-03).
-        #if os(Linux)
-        try LinuxPathValidation.validate(inputURL)
-        #endif
-        let resolvedBeforeDetection = inputURL.resolvingSymlinksInPath()
-        if let planned = ConversionExecution.current?.plannedSources[FileSystemPath.key(inputURL.path)], !FileSystemPath.equal(planned, resolvedBeforeDetection) {
-            throw ConversionError.fileSystemFailure("the batch source changed after output planning")
-        }
-        let detected = try detectInput(at: inputURL)
+        let (resolvedInputURL, detected) = try resolveInput(for: request, inputURL: inputURL)
         let format = detected.inspection.format
-        if request.options.pdfPages != nil, format != .pdf {
-            throw ConversionError.invalidInput(inputURL, format: format, reason: "PDF page selection can only be used with a PDF input")
-        }
-        if request.options.spreadsheetSelection != nil, ![InputFormat.xlsx, .xls, .ods].contains(format) {
-            throw ConversionError.invalidInput(inputURL, format: format, reason: "spreadsheet selection can only be used with XLSX, XLS or ODS input")
-        }
-        if request.options.presentationSelection != nil, ![InputFormat.pptx, .odp].contains(format) {
-            throw ConversionError.invalidInput(inputURL, format: format, reason: "presentation selection can only be used with PPTX, PPTM, POTX or ODP input")
-        }
-        if request.options.epubChapters != nil, format != .epub {
-            throw ConversionError.invalidInput(inputURL, format: format, reason: "EPUB chapter selection can only be used with EPUB input")
-        }
-        if detected.adapter.unavailableReason(for: format) != nil {
-            throw PlatformBackendUnavailable(format.rawValue.uppercased())
-        }
-        #if os(Linux)
-        let required = detected.adapter.supportedFormatDescriptors.first { $0.format == format }?.requiredTools ?? []
-        let resolver = ExternalToolResolver(pandocExecutable: request.options.pandocExecutable)
-        for tool in required where tool == .bubblewrap || tool == .processGuard {
-            guard resolver.isAvailable(tool) else { throw PlatformBackendUnavailable(tool.rawValue) }
-        }
-        #endif
-        #if os(Linux)
-        try LinuxPathValidation.validate(inputURL)
-        #endif
-        let resolvedInputURL = inputURL.resolvingSymlinksInPath()
-        guard FileSystemPath.equal(resolvedInputURL, resolvedBeforeDetection) else {
-            throw ConversionError.invalidInput(
-                inputURL,
-                format: format,
-                reason: "the input changed while it was being inspected"
-            )
-        }
         let recording = ConversionExecution.current?.recording
         recording?.activate(at: resolvedInputURL)
 
@@ -387,32 +306,10 @@ public struct DocumentConverter: Sendable {
             fileManager: fileManager
         )
 
-        #if os(Linux)
-        let publication = try LinuxOutputPublication(outputURL: destination.url)
-        let temporaryRoot = publication.temporaryRoot
-        defer { publication.cleanup() }
-        #else
-        let outputParent = destination.url.deletingLastPathComponent()
-        let temporaryRoot = outputParent.appendingPathComponent(
-            ".poormans-text-\(UUID().uuidString).tmp",
-            isDirectory: true
-        )
-
-        // Der Arbeitsbereich liegt neben dem Ziel, möglicherweise in einem
-        // gemeinsam lesbaren Ordner. Bis zur Veröffentlichung bleibt er privat.
-        guard mkdir(temporaryRoot.path, 0o700) == 0 else {
-            throw ConversionError.fileSystemFailure(String(cString: strerror(errno)))
-        }
-        defer { try? fileManager.removeItem(at: temporaryRoot) }
-        #endif
-        let workDirectory = temporaryRoot.appendingPathComponent("work", isDirectory: true)
-        let stagedOutput = temporaryRoot.appendingPathComponent("result", isDirectory: true)
-        do {
-            try fileManager.createDirectory(at: workDirectory, withIntermediateDirectories: false)
-            try fileManager.createDirectory(at: stagedOutput, withIntermediateDirectories: false)
-        } catch {
-            throw ConversionError.fileSystemFailure(error.localizedDescription)
-        }
+        let workspace = try ConversionWorkspace(outputURL: destination.url)
+        let temporaryRoot = workspace.temporaryRoot
+        let stagedOutput = workspace.stagedOutput
+        try workspace.prepareDirectories()
 
         try ConversionExecution.report(ConversionProgress(phase: .converting, format: format))
         var execution = ConversionExecution.current ?? ConversionExecution.Context(
@@ -424,63 +321,22 @@ public struct DocumentConverter: Sendable {
                     inputURL: inputURL,
                     resolvedInputURL: resolvedInputURL,
                     format: format,
-                    workDirectory: workDirectory,
+                    workDirectory: workspace.workDirectory,
                     stagedOutputDirectory: stagedOutput,
                     options: request.options
                 )
             )
         }
 
-        try ConversionExecution.check()
-        var markdownRelativePath = try validateRelativePath(stagedResult.markdownRelativePath)
-        var assetRelativePaths = try stagedResult.assetRelativePaths.map(validateRelativePath)
-        var warnings = stagedResult.warnings
-        let stagedMarkdown = stagedOutput.appendingPathComponent(markdownRelativePath)
-        guard isRegularFile(stagedMarkdown, fileManager: fileManager) else {
-            throw ConversionError.fileSystemFailure("adapter produced no Markdown file")
-        }
-        for assetRelativePath in assetRelativePaths {
-            let stagedAsset = stagedOutput.appendingPathComponent(assetRelativePath)
-            guard isRegularFile(stagedAsset, fileManager: fileManager) else {
-                throw ConversionError.fileSystemFailure("adapter reported a missing asset")
-            }
-        }
-
-        // Nachbearbeitung noch im Staging-Bereich: Erst wenn Frontmatter und
-        // Ablageform fertig sind, wird veröffentlicht — halbfertige Ergebnisse
-        // erreichen das Ziel nie.
-        if request.options.frontmatter {
-            if let frontmatter = stagedResult.metadata.frontmatter {
-                try ConversionPostprocessor.prepend(frontmatter, to: stagedMarkdown)
-                recording?.shift(by: frontmatter.utf8.count)
-            } else {
-                warnings.append(.metadataUnavailable)
-            }
-        }
-        if let documents = stagedResult.documents {
-            do {
-                warnings += try CollectionPostprocessor.prepare(documents, in: stagedOutput, primary: markdownRelativePath,
-                    assets: assetRelativePaths, frontmatter: request.options.frontmatter)
-                if request.options.outputLayout == .textbundle {
-                    markdownRelativePath = try CollectionPostprocessor.applyTextbundle(in: stagedOutput, primary: markdownRelativePath, documents: documents)
-                }
-            } catch let error as ConversionError { throw error }
-            catch let error as ImportFailure {
-                try ConversionExecution.check()
-                throw ConversionError.invalidInput(inputURL, format: format, reason: error.reason)
-            } catch {
-                try ConversionExecution.check()
-                throw ConversionError.fileSystemFailure(error.localizedDescription)
-            }
-        } else if request.options.outputLayout == .textbundle {
-            (markdownRelativePath, assetRelativePaths) = try ConversionPostprocessor.applyTextbundleLayout(
-                in: stagedOutput,
-                markdownRelativePath: markdownRelativePath,
-                assetRelativePaths: assetRelativePaths,
-                fileManager: fileManager,
-                recording: recording
-            )
-        }
+        let (markdownRelativePath, assetRelativePaths, preparedWarnings) = try prepareOutput(
+            stagedResult,
+            in: stagedOutput,
+            inputURL: inputURL,
+            format: format,
+            options: request.options,
+            recording: recording
+        )
+        var warnings = preparedWarnings
 
         var sourceIdentity: ConversionSourceIdentity?
         var sourceMappings: [ConversionSourceMapping] = []
@@ -488,7 +344,8 @@ public struct DocumentConverter: Sendable {
         var reportRelativePath: String?
         if let recording, request.options.includesSourceMappings {
             do {
-                sourceIdentity = try recording.identity(named: inputURL.lastPathComponent)
+                let identity = try recording.identity(named: inputURL.lastPathComponent)
+                sourceIdentity = identity
                 let markdownData = try Data(contentsOf: stagedOutput.appendingPathComponent(markdownRelativePath))
                 sourceMappings = try recording.mappings(file: markdownRelativePath, markdown: markdownData)
                 if let documents = stagedResult.documents {
@@ -513,7 +370,7 @@ public struct DocumentConverter: Sendable {
                         (temporaryRoot.path, "[staging]"), (destination.url.path, "[output]"),
                         (NSHomeDirectory(), "[home]")])
                     let report = ConversionReport(schemaVersion: 1, converterVersion: ProductInfo.version, format: format,
-                        source: sourceIdentity!, options: ConversionReport.Options(request.options), diagnostics: portableWarnings,
+                        source: identity, options: ConversionReport.Options(request.options), diagnostics: portableWarnings,
                         diagnosticGroups: ConversionDiagnosticGroup.grouped(portableWarnings), outputs: outputFiles,
                         sourceMappings: sourceMappings, omittedMappingCount: recording.omittedMappingCount,
                         documents: stagedResult.documents?.map { .init(sourceIndex: $0.sourceIndex, title: $0.title,
@@ -545,16 +402,9 @@ public struct DocumentConverter: Sendable {
             }
             sourceIdentity = actual
         }
-        #if os(Linux)
-        try publication.publish()
-        #else
-        try publish(
-            stagedOutput,
-            to: destination.url,
-            resolvedInputURL: resolvedInputURL,
-            fileManager: fileManager
-        )
-        #endif
+        try workspace.publish {
+            try validateOutput(destination.url, resolvedInputURL: resolvedInputURL, fileManager: fileManager)
+        }
 
         let result = ConversionResult(
             inputURL: inputURL,
@@ -576,6 +426,116 @@ public struct DocumentConverter: Sendable {
         )
         ConversionExecution.current?.progress?(ConversionProgress(phase: .finished, format: format))
         return result
+    }
+
+    private func resolveInput(
+        for request: ConversionRequest,
+        inputURL: URL
+    ) throws -> (URL, DetectedInput) {
+        // Bei der Erkennung bestimmt der sichtbare Dateiname mögliche Adapter.
+        // Der aufgelöste Pfad bleibt anschließend für Adapter und Zielschutz gebunden.
+        try FileSystemPath.validate(inputURL)
+        let resolvedBeforeDetection = inputURL.resolvingSymlinksInPath()
+        if let planned = ConversionExecution.current?.plannedSources[FileSystemPath.key(inputURL.path)], !FileSystemPath.equal(planned, resolvedBeforeDetection) {
+            throw ConversionError.fileSystemFailure("the batch source changed after output planning")
+        }
+        let detected = try detectInput(at: inputURL)
+        let format = detected.inspection.format
+        if request.options.pdfPages != nil, format != .pdf {
+            throw ConversionError.invalidInput(inputURL, format: format, reason: "PDF page selection can only be used with a PDF input")
+        }
+        if request.options.spreadsheetSelection != nil, ![InputFormat.xlsx, .xls, .ods].contains(format) {
+            throw ConversionError.invalidInput(inputURL, format: format, reason: "spreadsheet selection can only be used with XLSX, XLS or ODS input")
+        }
+        if request.options.presentationSelection != nil, ![InputFormat.pptx, .odp].contains(format) {
+            throw ConversionError.invalidInput(inputURL, format: format, reason: "presentation selection can only be used with PPTX, PPTM, POTX or ODP input")
+        }
+        if request.options.epubChapters != nil, format != .epub {
+            throw ConversionError.invalidInput(inputURL, format: format, reason: "EPUB chapter selection can only be used with EPUB input")
+        }
+        if detected.adapter.unavailableReason(for: format) != nil {
+            throw PlatformBackendUnavailable(format.rawValue.uppercased())
+        }
+        #if os(Linux)
+        let required = detected.adapter.supportedFormatDescriptors.first { $0.format == format }?.requiredTools ?? []
+        let resolver = ExternalToolResolver(pandocExecutable: request.options.pandocExecutable)
+        for tool in required where tool == .bubblewrap || tool == .processGuard {
+            guard resolver.isAvailable(tool) else { throw PlatformBackendUnavailable(tool.rawValue) }
+        }
+        #endif
+        try FileSystemPath.validate(inputURL)
+        let resolvedInputURL = inputURL.resolvingSymlinksInPath()
+        guard FileSystemPath.equal(resolvedInputURL, resolvedBeforeDetection) else {
+            throw ConversionError.invalidInput(
+                inputURL,
+                format: format,
+                reason: "the input changed while it was being inspected"
+            )
+        }
+        return (resolvedInputURL, detected)
+    }
+
+    private func prepareOutput(
+        _ stagedResult: StagedConversionResult,
+        in stagedOutput: URL,
+        inputURL: URL,
+        format: InputFormat,
+        options: ConversionOptions,
+        recording: ConversionRecording?
+    ) throws -> (markdown: String, assets: [String], warnings: [ConversionWarning]) {
+        try ConversionExecution.check()
+        let fileManager = FileManager.default
+        var markdownRelativePath = try validateRelativePath(stagedResult.markdownRelativePath)
+        var assetRelativePaths = try stagedResult.assetRelativePaths.map(validateRelativePath)
+        var warnings = stagedResult.warnings
+        let stagedMarkdown = stagedOutput.appendingPathComponent(markdownRelativePath)
+        guard isRegularFile(stagedMarkdown, fileManager: fileManager) else {
+            throw ConversionError.fileSystemFailure("adapter produced no Markdown file")
+        }
+        for assetRelativePath in assetRelativePaths {
+            let stagedAsset = stagedOutput.appendingPathComponent(assetRelativePath)
+            guard isRegularFile(stagedAsset, fileManager: fileManager) else {
+                throw ConversionError.fileSystemFailure("adapter reported a missing asset")
+            }
+        }
+
+        // Nachbearbeitung noch im Staging-Bereich: Erst wenn Frontmatter und
+        // Ablageform fertig sind, wird veröffentlicht — halbfertige Ergebnisse
+        // erreichen das Ziel nie.
+        if options.frontmatter {
+            if let frontmatter = stagedResult.metadata.frontmatter {
+                try ConversionPostprocessor.prepend(frontmatter, to: stagedMarkdown)
+                recording?.shift(by: frontmatter.utf8.count)
+            } else {
+                warnings.append(.metadataUnavailable)
+            }
+        }
+        if let documents = stagedResult.documents {
+            do {
+                warnings += try CollectionPostprocessor.prepare(documents, in: stagedOutput, primary: markdownRelativePath,
+                    assets: assetRelativePaths, frontmatter: options.frontmatter)
+                if options.outputLayout == .textbundle {
+                    markdownRelativePath = try CollectionPostprocessor.applyTextbundle(in: stagedOutput, primary: markdownRelativePath, documents: documents)
+                }
+            } catch let error as ConversionError { throw error }
+            catch let error as ImportFailure {
+                try ConversionExecution.check()
+                throw ConversionError.invalidInput(inputURL, format: format, reason: error.reason)
+            } catch {
+                try ConversionExecution.check()
+                throw ConversionError.fileSystemFailure(error.localizedDescription)
+            }
+        } else if options.outputLayout == .textbundle {
+            (markdownRelativePath, assetRelativePaths) = try ConversionPostprocessor.applyTextbundleLayout(
+                in: stagedOutput,
+                markdownRelativePath: markdownRelativePath,
+                assetRelativePaths: assetRelativePaths,
+                fileManager: fileManager,
+                recording: recording
+            )
+        }
+
+        return (markdownRelativePath, assetRelativePaths, warnings)
     }
 
     public static func defaultOutputDirectory(
@@ -762,30 +722,6 @@ public struct DocumentConverter: Sendable {
         }
     }
 
-    private func publish(
-        _ stagedOutput: URL,
-        to outputURL: URL,
-        resolvedInputURL: URL,
-        fileManager: FileManager
-    ) throws {
-        // Die zweite Prüfung schließt das Zeitfenster zwischen Vorbereitung und
-        // Veröffentlichung, ohne ein inzwischen angelegtes Ziel zu überschreiben.
-        // Sie bekommt dieselbe aufgelöste Quelle wie die erste Prüfung.
-        try validateOutput(
-            outputURL,
-            resolvedInputURL: resolvedInputURL,
-            fileManager: fileManager
-        )
-        do {
-            try fileManager.moveItem(at: stagedOutput, to: outputURL)
-        } catch {
-            if fileManager.fileExists(atPath: outputURL.path) {
-                throw ConversionError.outputAlreadyExists(outputURL)
-            }
-            throw ConversionError.fileSystemFailure(error.localizedDescription)
-        }
-    }
-
     private func validateRelativePath(_ path: String) throws -> String {
         let components = NSString(string: path).pathComponents
         guard !path.isEmpty,
@@ -924,3 +860,13 @@ struct StagedConversionResult: Sendable {
         self.documents = documents
     }
 }
+
+#if os(macOS)
+private typealias PlatformLegacyWordAdapter = LegacyWordAdapter
+private typealias PlatformImageAdapter = ImageAdapter
+private typealias PlatformPDFAdapter = PDFAdapter
+#else
+private typealias PlatformLegacyWordAdapter = LinuxLegacyWordAdapter
+private typealias PlatformImageAdapter = LinuxImageAdapter
+private typealias PlatformPDFAdapter = LinuxPDFAdapter
+#endif

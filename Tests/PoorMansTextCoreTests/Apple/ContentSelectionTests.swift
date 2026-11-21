@@ -24,13 +24,13 @@ final class ContentSelectionTests: XCTestCase {
         let app = model(), selected = root.appendingPathComponent("selected"), complete = root.appendingPathComponent("complete")
         try FileManager.default.createDirectory(at: selected, withIntermediateDirectories: false)
         try FileManager.default.createDirectory(at: complete, withIntermediateDirectories: false)
-        app.destinationFolder = selected; app.pdfTextRecognition = .disabled
+        app.settings.values.destinationFolder = selected; app.settings.values.pdfTextRecognition = .disabled
         app.convertSelection(input, selection: .pdf(try IndexSelection("2")), identity: identity)
         try await wait(app)
         let text = try String(contentsOf: XCTUnwrap(app.selectedResult).markdownFile, encoding: .utf8)
         XCTAssertTrue(text.contains("SecondMarker")); XCTAssertFalse(text.contains("FirstMarker"))
         XCTAssertNil(app.conversionOptions.pdfPages)
-        app.destinationFolder = complete
+        app.settings.values.destinationFolder = complete
         let csv = root.appendingPathComponent("batch.csv")
         try Data("name\nBatchMarker\n".utf8).write(to: csv)
         app.convert([input, csv]); try await wait(app)
@@ -46,19 +46,18 @@ final class ContentSelectionTests: XCTestCase {
     @MainActor func testCollisionRetryRetainsBindingButNewImportDoesNot() async throws {
         let input = try PDFSelectionFixture.create(in: root, texts: ["FirstMarker", "SecondMarker"])
         let identity = try DocumentConverter().inspectPDFContents(input).sourceIdentity
-        let app = model(); app.pdfTextRecognition = .disabled
+        let app = model(); app.settings.values.pdfTextRecognition = .disabled
         let occupied = DocumentConverter.defaultOutputDirectory(for: input)
         try FileManager.default.createDirectory(at: occupied, withIntermediateDirectories: false)
         let sentinel = occupied.appendingPathComponent("keep.txt"); try Data("keep".utf8).write(to: sentinel)
         app.convertSelection(input, selection: .pdf(try IndexSelection("2")), identity: identity); try await wait(app)
         guard case .failed = app.state else { return XCTFail("Expected collision") }
-        app.destinationOverrides[input.path] = root.appendingPathComponent("retry")
-        app.retryFailed(); try await wait(app)
+        app.chooseAlternativeDestination(for: input) { root.appendingPathComponent("retry") }
+        try await wait(app)
         let text = try String(contentsOf: XCTUnwrap(app.selectedResult).markdownFile, encoding: .utf8)
         XCTAssertTrue(text.contains("SecondMarker")); XCTAssertFalse(text.contains("FirstMarker"))
         XCTAssertEqual(try String(contentsOf: sentinel, encoding: .utf8), "keep")
-        app.destinationFolder = root
-        app.destinationOverrides[input.path] = root.appendingPathComponent("ignored")
+        app.settings.values.destinationFolder = root
         app.convert(input); try await wait(app)
         guard case .failed = app.state else { return XCTFail("Expected unchanged occupied destination") }
     }
@@ -103,7 +102,7 @@ final class ContentSelectionTests: XCTestCase {
             XCTAssertEqual(overview.sheets.map(\.index), [1, 2, 3])
             let app = model(), destination = root.appendingPathComponent(input.pathExtension + "-app")
             try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: false)
-            app.destinationFolder = destination
+            app.settings.values.destinationFolder = destination
             app.convertSelection(input, selection: .spreadsheet(try SpreadsheetSelection(sheets: .indices(IndexSelection("2")), ranges: [SpreadsheetCellRange("C2:D2")])), identity: overview.sourceIdentity)
             try await wait(app)
             let result = try XCTUnwrap(app.selectedResult), text = try String(contentsOf: result.markdownFile, encoding: .utf8)
@@ -153,7 +152,7 @@ final class ContentSelectionTests: XCTestCase {
             for include in [true, false] {
                 let app = model(), destination = root.appendingPathComponent(format + String(include))
                 try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: false)
-                app.destinationFolder = destination
+                app.settings.values.destinationFolder = destination
                 app.convertSelection(input, selection: .presentation(.init(slides: try IndexSelection("2"), includeNotes: include)), identity: overview.sourceIdentity)
                 try await wait(app)
                 let result = try XCTUnwrap(app.selectedResult), text = try String(contentsOf: result.markdownFile, encoding: .utf8)

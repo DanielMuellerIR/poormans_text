@@ -1,10 +1,11 @@
 import AppKit
 import SwiftUI
 import PoorMansTextCore
+import PoorMansTextAppSupport
 
-public struct ConversionComparisonPane: View {
-    public let preview: MarkdownPreview
-    public let result: ConversionResult
+struct ConversionComparisonPane: View {
+    let preview: MarkdownPreview
+    let result: ConversionResult
     @StateObject private var source = ComparisonSourceModel()
     @State private var selectedDiagnostic: Int?
     @State private var location: ConversionLocation?
@@ -15,7 +16,7 @@ public struct ConversionComparisonPane: View {
     @State private var zoom: CGFloat = 1
     @State private var navigationRequest = 0
 
-    public init(preview: MarkdownPreview, result: ConversionResult) { self.preview = preview; self.result = result }
+    init(preview: MarkdownPreview, result: ConversionResult) { self.preview = preview; self.result = result }
     private var visualSource: Bool { result.format == .pdf || result.format == .image }
     private var target: ComparisonTarget? {
         guard source.isVerified, preview.matchesExpectedOutput == true else { return nil }
@@ -26,7 +27,7 @@ public struct ConversionComparisonPane: View {
         result.diagnostics.indices.filter { ComparisonNavigation.matches(result.diagnostics[$0], kind: kind, locationQuery: locationQuery) }
     }
 
-    public var body: some View {
+    var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top) {
                 Label(source.state.message, systemImage: source.isVerified ? "checkmark.shield" : "exclamationmark.triangle")

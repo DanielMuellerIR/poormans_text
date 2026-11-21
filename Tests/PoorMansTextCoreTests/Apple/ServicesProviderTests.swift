@@ -33,7 +33,7 @@ final class ServicesProviderTests: XCTestCase {
         let first = try copyImage(to: "A.png")
         let second = try copyImage(to: "B.png")
         let model = AppModel(defaults: .isolatedForAppTest())
-        model.imageTextRecognition = .disabled
+        model.settings.values.imageTextRecognition = .disabled
         let provider = ServicesProvider(model: model, outputPasteboard: output)
         input.clearContents()
         XCTAssertTrue(input.writeObjects([first as NSURL, second as NSURL]))

@@ -1,48 +1,55 @@
-use crate::{View, model::tr};
+use crate::{
+    View,
+    model::{FlagOption, ValueOption, tr},
+};
 use gtk::{gio, glib, prelude::*};
 use std::{collections::BTreeMap, path::Path};
 
 const ID: &str = "org.poormanstext.Linux";
 // Nur allgemeine Optionen: Quellauswahl, Pfade und Profilfreigaben bleiben sitzungsgebunden.
-const VALUES: &[(&str, &str)] = &[
-    ("--ocr-language", "ocr-language"),
-    ("--jobs", "jobs"),
-    ("--timeout", "timeout"),
+const VALUES: &[(ValueOption, &str)] = &[
+    (ValueOption::OcrLanguage, "ocr-language"),
+    (ValueOption::Jobs, "jobs"),
+    (ValueOption::Timeout, "timeout"),
 ];
-const CHOICES: &[(&str, &str)] = &[
-    ("--ocr-method", "ocr-method"),
-    ("--spreadsheet-format", "spreadsheet-format"),
-    ("--image-ocr", "image-ocr"),
-    ("--pdf-ocr", "pdf-ocr"),
-    ("--pdf-layout", "pdf-layout"),
-    ("--docx-changes", "docx-changes"),
-    ("--notes", "notes"),
+const CHOICES: &[(ValueOption, &str)] = &[
+    (ValueOption::OcrMethod, "ocr-method"),
+    (ValueOption::SpreadsheetFormat, "spreadsheet-format"),
+    (ValueOption::ImageOcr, "image-ocr"),
+    (ValueOption::PdfOcr, "pdf-ocr"),
+    (ValueOption::PdfLayout, "pdf-layout"),
+    (ValueOption::DocxChanges, "docx-changes"),
+    (ValueOption::Notes, "notes"),
 ];
-const FLAGS: &[(&str, &str)] = &[
-    ("--frontmatter", "frontmatter"),
-    ("--textbundle", "textbundle"),
-    ("--report", "report"),
-    ("--source-map", "source-map"),
-    ("--pdf-remove-headers-footers", "pdf-remove-headers-footers"),
-    ("--pdf-dehyphenate", "pdf-dehyphenate"),
+const FLAGS: &[(FlagOption, &str)] = &[
+    (FlagOption::Frontmatter, "frontmatter"),
+    (FlagOption::TextBundle, "textbundle"),
+    (FlagOption::Report, "report"),
+    (FlagOption::SourceMap, "source-map"),
+    (
+        FlagOption::PdfRemoveHeadersFooters,
+        "pdf-remove-headers-footers",
+    ),
+    (FlagOption::PdfDehyphenate, "pdf-dehyphenate"),
 ];
 
-fn valid_text(key: &str, text: &str) -> bool {
+fn valid_text(key: ValueOption, text: &str) -> bool {
     if text.len() > 256 {
         return false;
     }
     text.bytes().all(|b| match key {
-        "ocr-language" => b.is_ascii_alphanumeric() || b",-_ ".contains(&b),
-        "jobs" | "timeout" => b.is_ascii_digit() || b == b'.',
+        ValueOption::OcrLanguage => b.is_ascii_alphanumeric() || b",-_ ".contains(&b),
+        ValueOption::Jobs | ValueOption::Timeout => b.is_ascii_digit() || b == b'.',
         _ => false,
     })
 }
 fn load_schema(directory: &Path) -> Result<gio::SettingsSchema, String> {
     let source = gio::SettingsSchemaSource::from_directory(directory, None, false)
         .map_err(|e| e.to_string())?;
-    let schema = source
-        .lookup(ID, false)
-        .ok_or("The bundled preferences schema is missing")?;
+    let schema = source.lookup(ID, false).ok_or(tr(
+        "Das mitgelieferte Einstellungsschema fehlt.",
+        "The bundled preferences schema is missing.",
+    ))?;
     let mut expected = vec![
         ("window-width", "i"),
         ("window-height", "i"),
@@ -57,7 +64,11 @@ fn load_schema(directory: &Path) -> Result<gio::SettingsSchema, String> {
             .iter()
             .any(|(key, ty)| !schema.has_key(key) || schema.key(key).value_type().as_str() != *ty)
     {
-        return Err("The bundled preferences schema is incompatible".into());
+        return Err(tr(
+            "Das mitgelieferte Einstellungsschema ist inkompatibel.",
+            "The bundled preferences schema is incompatible.",
+        )
+        .into());
     }
     Ok(schema)
 }
@@ -84,7 +95,10 @@ impl Session {
             .and_then(|exe| {
                 load_schema(
                     &exe.parent()
-                        .ok_or("Missing executable directory")?
+                        .ok_or(tr(
+                            "Das Verzeichnis der Programmdatei fehlt.",
+                            "The executable directory is missing.",
+                        ))?
                         .join("schemas"),
                 )
             });
@@ -119,12 +133,10 @@ impl Session {
             }
             view.options
                 .set_current_page(Some(settings.int("options-tab").clamp(0, 3) as u32));
-            for (flag, key) in VALUES {
+            for &(option, key) in VALUES {
                 let value = settings.string(key);
-                if valid_text(key, &value) {
-                    if let Some((_, entry)) = view.controls.values.iter().find(|(f, _)| f == flag) {
-                        entry.set_text(&value);
-                    }
+                if valid_text(option, &value) {
+                    view.controls.value(option).set_text(&value);
                 } else {
                     warning(
                         notice,
@@ -135,28 +147,19 @@ impl Session {
                     );
                 }
             }
-            for (flag, key) in CHOICES {
-                if let Some((_, widget, ids)) =
-                    view.controls.choices.iter().find(|(f, _, _)| f == flag)
-                {
-                    let value = settings.string(key);
-                    if let Some(index) = ids.iter().position(|id| id == value.as_str()) {
-                        widget.set_selected(index as u32);
-                    } else {
-                        warning(
-                            notice,
-                            tr(
-                                "Eine nicht unterstützte Auswahl wurde ignoriert.",
-                                "An unsupported choice was ignored.",
-                            ),
-                        );
-                    }
+            for &(option, key) in CHOICES {
+                if !view.controls.choice(option).select(&settings.string(key)) {
+                    warning(
+                        notice,
+                        tr(
+                            "Eine nicht unterstützte Auswahl wurde ignoriert.",
+                            "An unsupported choice was ignored.",
+                        ),
+                    );
                 }
             }
-            for (flag, key) in FLAGS {
-                if let Some((_, widget)) = view.controls.flags.iter().find(|(f, _)| f == flag) {
-                    widget.set_active(settings.boolean(key));
-                }
+            for &(option, key) in FLAGS {
+                view.controls.flag(option).set_active(settings.boolean(key));
             }
         }
         let initial = snapshot(view);
@@ -232,25 +235,22 @@ fn snapshot(view: &View) -> BTreeMap<String, glib::Variant> {
         "options-tab".into(),
         (view.options.current_page().unwrap_or(0).min(3) as i32).to_variant(),
     );
-    for (flag, key) in VALUES {
-        if let Some((_, widget)) = view.controls.values.iter().find(|(f, _)| f == flag) {
-            let value = widget.text();
-            if valid_text(key, &value) {
-                result.insert((*key).into(), value.to_variant());
-            }
+    for &(option, key) in VALUES {
+        let value = view.controls.value(option).text();
+        if valid_text(option, &value) {
+            result.insert(key.into(), value.to_variant());
         }
     }
-    for (flag, key) in CHOICES {
-        if let Some((_, widget, ids)) = view.controls.choices.iter().find(|(f, _, _)| f == flag)
-            && let Some(value) = ids.get(widget.selected() as usize)
-        {
-            result.insert((*key).into(), value.to_variant());
+    for &(option, key) in CHOICES {
+        if let Some(value) = view.controls.choice(option).selected() {
+            result.insert(key.into(), value.to_variant());
         }
     }
-    for (flag, key) in FLAGS {
-        if let Some((_, widget)) = view.controls.flags.iter().find(|(f, _)| f == flag) {
-            result.insert((*key).into(), widget.is_active().to_variant());
-        }
+    for &(option, key) in FLAGS {
+        result.insert(
+            key.into(),
+            view.controls.flag(option).is_active().to_variant(),
+        );
     }
     result
 }
@@ -272,33 +272,13 @@ pub fn probe(state: &crate::Shared, view: &View) {
                 view.window.set_default_size(1180, 920);
                 view.options.set_current_page(Some(2));
                 view.controls
-                    .values
-                    .iter()
-                    .find(|(f, _)| f == "--ocr-language")
-                    .unwrap()
-                    .1
+                    .value(ValueOption::OcrLanguage)
                     .set_text("de,en");
-                view.controls
-                    .flags
-                    .iter()
-                    .find(|(f, _)| f == "--report")
-                    .unwrap()
-                    .1
-                    .set_active(true);
-                view.controls
-                    .choices
-                    .iter()
-                    .find(|(f, _, _)| f == "--pdf-ocr")
-                    .unwrap()
-                    .1
-                    .set_selected(1);
+                view.controls.flag(FlagOption::Report).set_active(true);
+                assert!(view.controls.choice(ValueOption::PdfOcr).select("off"));
                 view.destination.set_text("/private/never-persist-target");
                 view.controls
-                    .values
-                    .iter()
-                    .find(|(f, _)| f == "--pandoc")
-                    .unwrap()
-                    .1
+                    .value(ValueOption::Pandoc)
                     .set_text("/private/never-persist-tool");
                 state.borrow_mut().profile.allow_local = true;
             }
@@ -309,46 +289,17 @@ pub fn probe(state: &crate::Shared, view: &View) {
                 );
                 assert_eq!(view.options.current_page(), Some(2));
                 assert_eq!(
-                    view.controls
-                        .values
-                        .iter()
-                        .find(|(f, _)| f == "--ocr-language")
-                        .unwrap()
-                        .1
-                        .text(),
+                    view.controls.value(ValueOption::OcrLanguage).text(),
                     "de,en"
                 );
-                assert!(
-                    view.controls
-                        .flags
-                        .iter()
-                        .find(|(f, _)| f == "--report")
-                        .unwrap()
-                        .1
-                        .is_active()
-                );
+                assert!(view.controls.flag(FlagOption::Report).is_active());
                 assert_eq!(
-                    view.controls
-                        .choices
-                        .iter()
-                        .find(|(f, _, _)| f == "--pdf-ocr")
-                        .unwrap()
-                        .1
-                        .selected(),
-                    1
+                    view.controls.choice(ValueOption::PdfOcr).selected(),
+                    Some("off")
                 );
                 assert!(state.borrow().sources.is_empty());
                 assert!(view.destination.text().is_empty());
-                assert!(
-                    view.controls
-                        .values
-                        .iter()
-                        .find(|(f, _)| f == "--pandoc")
-                        .unwrap()
-                        .1
-                        .text()
-                        .is_empty()
-                );
+                assert!(view.controls.value(ValueOption::Pandoc).text().is_empty());
                 assert!(!state.borrow().profile.allow_local);
                 assert!(state.borrow().profile.name.is_none());
             }
@@ -356,7 +307,10 @@ pub fn probe(state: &crate::Shared, view: &View) {
                 fn warned(widget: &gtk::Widget) -> bool {
                     if let Some(label) = widget.downcast_ref::<gtk::Label>()
                         && label.is_visible()
-                        && label.label().contains("Preferences could not")
+                        && label.label().starts_with(tr(
+                            "Einstellungen können nicht vollständig",
+                            "Preferences could not be fully",
+                        ))
                     {
                         return true;
                     }
@@ -405,16 +359,17 @@ mod tests {
                 !VALUES
                     .iter()
                     .chain(CHOICES)
-                    .chain(FLAGS)
-                    .any(|(flag, _)| *flag == prohibited)
+                    .map(|(option, _)| option.cli_flag())
+                    .chain(FLAGS.iter().map(|(option, _)| option.cli_flag()))
+                    .any(|flag| flag == prohibited)
             );
         }
-        assert!(!valid_text("ocr-language", "/home/private"));
-        assert!(!valid_text("pdf-pages", "1\n--output"));
-        assert!(!valid_text("cell-range", &"A".repeat(257)));
-        assert!(valid_text("ocr-language", "de,en-US"));
-        assert!(!valid_text("pdf-pages", "1,3-5"));
-        assert!(!valid_text("sheets", "visible"));
+        assert!(!valid_text(ValueOption::OcrLanguage, "/home/private"));
+        assert!(!valid_text(ValueOption::PdfPages, "1\n--output"));
+        assert!(!valid_text(ValueOption::CellRange, &"A".repeat(257)));
+        assert!(valid_text(ValueOption::OcrLanguage, "de,en-US"));
+        assert!(!valid_text(ValueOption::PdfPages, "1,3-5"));
+        assert!(!valid_text(ValueOption::Sheets, "visible"));
     }
     #[test]
     fn missing_schema_is_a_recoverable_error() {
@@ -451,8 +406,8 @@ mod tests {
             VALUES
                 .iter()
                 .chain(CHOICES)
-                .chain(FLAGS)
-                .map(|(_, key)| *key),
+                .map(|(_, key)| *key)
+                .chain(FLAGS.iter().map(|(_, key)| *key)),
         );
         expected.sort();
         let mut actual: Vec<_> = schema.list_keys().iter().map(|v| v.to_string()).collect();

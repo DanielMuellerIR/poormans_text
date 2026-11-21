@@ -35,20 +35,18 @@ final class InstallScriptRollbackTests: XCTestCase {
         try withTransactionDirectories { stagedApp, destinationApp in
             let script = #"""
             source "$1"
-            set -u
+            set -eu
             staged_app="$2"
             destination_app="$3"
+            rename_path="${staged_app%/*}/rename-path"
+            /usr/bin/cc -std=c11 -Wall -Wextra -Werror -o "$rename_path" "$4"
             installation_state=swap-pending
             had_existing_app=1
             created_cli=0
-            old_app_identity="$(/usr/bin/stat -f '%d:%i' "$staged_app")"
-            new_app_identity="$(/usr/bin/stat -f '%d:%i' "$destination_app")"
-            swap_install_paths() {
-                temporary="$1.swap"
-                /bin/mv "$1" "$temporary"
-                /bin/mv "$2" "$1"
-                /bin/mv "$temporary" "$2"
-            }
+            old_app_identity="$(/usr/bin/stat -f '%d:%i' "$destination_app")"
+            new_app_identity="$(/usr/bin/stat -f '%d:%i' "$staged_app")"
+            swap_install_paths() { "$rename_path" swap "$1" "$2"; }
+            swap_install_paths "$staged_app" "$destination_app"
             remove_install_path() { /bin/rm -rf "$1"; }
             app_matches_release_identity() { return 0; }
             poormans_text_cleanup_installation
@@ -58,9 +56,56 @@ final class InstallScriptRollbackTests: XCTestCase {
 
             XCTAssertEqual(result.status, 0, result.standardError)
             XCTAssertTrue(FileManager.default.fileExists(
-                atPath: destinationApp.appendingPathComponent("old-marker").path
+                atPath: destinationApp.appendingPathComponent("new-marker").path
             ))
             XCTAssertFalse(FileManager.default.fileExists(atPath: stagedApp.path))
+        }
+    }
+
+    func testExclusiveRenamePublishesAtExactUnoccupiedPathAndPreservesCollisions() throws {
+        try withTransactionDirectories { stagedApp, destinationApp in
+            let script = #"""
+            set -euo pipefail
+            root="${2%/*}"
+            rename_path="$root/rename-path"
+            /usr/bin/cc -std=c11 -Wall -Wextra -Werror -o "$rename_path" "$4"
+
+            printf 'source' > "$root/staged file"
+            printf 'original' > "$root/occupied file"
+            printf 'marker' > "$3/marker"
+            /bin/ln -s "$root/nonexistent" "$root/occupied link"
+            source_identity="$(/usr/bin/stat -f '%d:%i' "$root/staged file")"
+            for destination in "$root/occupied file" "$3" "$root/occupied link"; do
+                destination_identity="$(/usr/bin/stat -f '%d:%i' "$destination")"
+                if "$rename_path" move "$root/staged file" "$destination"; then
+                    echo "Belegtes Ziel wurde akzeptiert: $destination" >&2
+                    exit 1
+                fi
+                [ "$(/usr/bin/stat -f '%d:%i' "$destination")" = "$destination_identity" ]
+                [ "$(/usr/bin/stat -f '%d:%i' "$root/staged file")" = "$source_identity" ]
+                [ "$(/bin/cat "$root/staged file")" = source ]
+            done
+            [ "$(/bin/cat "$root/occupied file")" = original ]
+            [ "$(/bin/cat "$3/marker")" = marker ]
+            [ ! -e "$3/staged file" ]
+            [ "$(/usr/bin/readlink "$root/occupied link")" = "$root/nonexistent" ]
+
+            "$rename_path" move "$root/staged file" "$root/published file"
+            [ ! -e "$root/staged file" ]
+            [ "$(/usr/bin/stat -f '%d:%i' "$root/published file")" = "$source_identity" ]
+            [ "$(/bin/cat "$root/published file")" = source ]
+            "$rename_path" move "$2" "$root/published app"
+            [ ! -e "$2" ]
+            [ -f "$root/published app/old-marker" ]
+            /bin/ln -s "$root/nonexistent" "$root/staged link"
+            "$rename_path" move "$root/staged link" "$root/published link"
+            [ ! -L "$root/staged link" ]
+            [ "$(/usr/bin/readlink "$root/published link")" = "$root/nonexistent" ]
+            """#
+
+            let result = try runBash(script, stagedApp: stagedApp, destinationApp: destinationApp)
+
+            XCTAssertEqual(result.status, 0, result.standardError)
         }
     }
 
@@ -69,15 +114,17 @@ final class InstallScriptRollbackTests: XCTestCase {
             try FileManager.default.removeItem(at: destinationApp)
             let script = #"""
             source "$1"
-            set -u
+            set -eu
             staged_app="$2"
             destination_app="$3"
+            rename_path="${staged_app%/*}/rename-path"
+            /usr/bin/cc -std=c11 -Wall -Wextra -Werror -o "$rename_path" "$4"
             installation_state=install-pending
             had_existing_app=0
             created_cli=0
             new_app_identity="$(/usr/bin/stat -f '%d:%i' "$staged_app")"
             old_app_identity=""
-            /bin/mv "$staged_app" "$destination_app"
+            "$rename_path" move "$staged_app" "$destination_app"
             swap_install_paths() { echo "unexpected swap" >&2; return 99; }
             remove_install_path() { /bin/rm -rf "$1"; }
             app_matches_release_identity() { return 0; }
@@ -89,6 +136,40 @@ final class InstallScriptRollbackTests: XCTestCase {
             XCTAssertEqual(result.status, 0, result.standardError)
             XCTAssertFalse(FileManager.default.fileExists(atPath: destinationApp.path))
             XCTAssertFalse(result.standardError.contains("unexpected"))
+        }
+    }
+
+    func testFirstInstallCollisionPreservesStagedAppAndForeignDestination() throws {
+        try withTransactionDirectories { stagedApp, destinationApp in
+            let script = #"""
+            source "$1"
+            set -eu
+            staged_app="$2"
+            destination_app="$3"
+            rename_path="${staged_app%/*}/rename-path"
+            /usr/bin/cc -std=c11 -Wall -Wextra -Werror -o "$rename_path" "$4"
+            new_app_identity="$(poormans_text_path_identity "$staged_app")"
+            destination_identity="$(poormans_text_path_identity "$destination_app")"
+            installation_state=install-pending
+            if "$rename_path" move "$staged_app" "$destination_app"; then
+                exit 1
+            fi
+            remove_install_path() { echo "unexpected remove" >&2; return 99; }
+            cleanup_status=0
+            poormans_text_cleanup_installation || cleanup_status=$?
+            [ "$cleanup_status" -eq 74 ]
+            [ "$installation_state" = rollback-failed ]
+            poormans_text_path_matches_identity "$staged_app" "$new_app_identity"
+            poormans_text_path_matches_identity "$destination_app" "$destination_identity"
+            [ -f "$staged_app/old-marker" ]
+            [ -f "$destination_app/new-marker" ]
+            [ ! -e "$destination_app/staged.app" ]
+            """#
+
+            let result = try runBash(script, stagedApp: stagedApp, destinationApp: destinationApp)
+
+            XCTAssertEqual(result.status, 0, result.standardError)
+            XCTAssertFalse(result.standardError.contains("unexpected remove"))
         }
     }
 
@@ -439,7 +520,7 @@ final class InstallScriptRollbackTests: XCTestCase {
             in: installer
         )
         XCTAssertSourceOrder(
-            "\"$staged_dmg\" \"$dmg\" || dmg_move_status=$?",
+            "\"$rename_path\" move \"$staged_dmg\" \"$dmg\"",
             before: "poormans_text_verify_or_discard_release_artifacts",
             in: installer
         )
@@ -785,6 +866,7 @@ final class InstallScriptRollbackTests: XCTestCase {
         process.executableURL = URL(fileURLWithPath: "/bin/bash")
         process.arguments = [
             "-c", script, "rollback-test", helperURL.path, stagedApp.path, destinationApp.path,
+            helperURL.deletingLastPathComponent().appendingPathComponent("rename_path.c").path,
         ]
         let standardOutput = Pipe()
         let standardError = Pipe()

@@ -152,7 +152,7 @@ final class ConversionReportTests: XCTestCase {
         let target = try XCTUnwrap(original.range(of: "images/a.png"))
         recording.record(ConversionLocation(cell: "Inside"), offset: original.utf8.distance(from: original.startIndex, to: target.lowerBound) + 2, length: 0)
         var edits: [ConversionTextEdit] = []
-        let rewritten = try MarkdownLinkTargetRewriter.replacing(in: original, mapping: ["images/a.png": "assets/picture.png"], checking: {}, observing: { edits.append($0) })
+        let rewritten = MarkdownLinkTargetRewriter.replacing(in: original, mapping: ["images/a.png": "assets/picture.png"], checking: {}, observing: { edits.append($0) })
         XCTAssertEqual(edits.count, 3)
         recording.apply(edits)
         let data = Data(rewritten.utf8)

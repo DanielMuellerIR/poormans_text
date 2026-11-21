@@ -114,23 +114,7 @@ public final class AppModel: ObservableObject {
         }
     }
 
-    @Published public var isDropTargeted = false
-    /// Gilt nur für Bildimporte; andere Formate ignorieren diese Option.
-    @Published public var imageTextRecognition: ImageTextRecognition = .enabled { didSet { savePreferences() } }
-    @Published public var pdfTextRecognition: PDFTextRecognition = .automatic { didSet { savePreferences() } }
-    @Published public var ocrMethod: OCRMethod = .standard { didSet { savePreferences() } }
-    @Published public var docxChangeMode: DOCXChangeMode = .accept { didSet { savePreferences() } }
-    @Published public var pdfLayout: PDFLayout = .automatic { didSet { savePreferences() } }
-    @Published public var ocrLanguageCodes: String = "" { didSet { savePreferences() } }
-    @Published public var pdfRemoveHeadersFooters: Bool = false { didSet { savePreferences() } }
-    @Published public var pdfDehyphenate: Bool = false { didSet { savePreferences() } }
-    @Published public var spreadsheetRendering: SpreadsheetRendering = .markdownTable { didSet { savePreferences() } }
-    @Published public var frontmatter = false { didSet { savePreferences() } }
-    @Published public var outputLayout: OutputLayout = .markdownFolder { didSet { savePreferences() } }
-    @Published public var presentationIncludeNotes = true { didSet { savePreferences() } }
-    @Published public var sourceMapping = true { didSet { savePreferences() } }
-    @Published public var conversionReport = false { didSet { savePreferences() } }
-    @Published public var profilePandocExecutable: URL? { didSet { savePreferences() } }
+    public let settings: ConversionSettings
     @Published public internal(set) var profiles: [ConversionProfile] = []
     @Published public internal(set) var selectedProfile: ConversionProfile?
     @Published public internal(set) var selectedProfileName: String?
@@ -139,14 +123,6 @@ public final class AppModel: ObservableObject {
     @Published public internal(set) var profileNeedsReload = false
     var selectedProfileRevision: String?
     let profileStore: ConversionProfileStore
-    @Published public var batchParallelism = 1 {
-        didSet {
-            let bounded = min(max(batchParallelism, 1), 4)
-            if batchParallelism != bounded { batchParallelism = bounded; return }
-            savePreferences()
-        }
-    }
-    @Published public var destinationFolder: URL? { didSet { savePreferences() } }
     @Published public var selectedInput: String? {
         didSet { if selectedInput != oldValue { selectCollectionDocument(nil) } }
     }
@@ -165,13 +141,8 @@ public final class AppModel: ObservableObject {
     @Published public private(set) var isLoadingPreview = false
     private var previewTask: Task<Void, Never>?
     private var previewGeneration = UUID()
-    private let defaults: UserDefaults
-    private var loadingPreferences = true
-    /// Nicht `private`: Der Test belegt damit, dass ein Wiederholen die gewählte
-    /// Zielvorgabe behält und den `only:`-Filter achtet — beides ging vorher
-    /// verloren (Review-Fund 2026-09-10).
-    var destinationOverrides: [String: URL] = [:]
-    var failedEnumerationInputs: [URL] = []
+    private var destinationOverrides: [String: URL] = [:]
+    private var failedEnumerationInputs: [URL] = []
     private struct BoundSelection {
         let input: URL
         let selection: DocumentContentSelection
@@ -180,18 +151,7 @@ public final class AppModel: ObservableObject {
     private var retrySelection: BoundSelection?
     private var relativeDirectories: [String: [String]] = [:]
 
-    public var conversionOptions: ConversionOptions {
-        ConversionOptions(pandocExecutable: profilePandocExecutable, spreadsheetRendering: spreadsheetRendering,
-            imageTextRecognition: imageTextRecognition,
-            frontmatter: frontmatter, outputLayout: outputLayout,
-            pdfTextRecognition: pdfTextRecognition,
-            ocrLanguages: ocrLanguageCodes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? [] : ocrLanguageCodes.components(separatedBy: ","),
-            ocrMethod: ocrMethod,
-            docxChangeMode: docxChangeMode,
-            pdfLayout: pdfLayout, pdfRemoveHeadersFooters: pdfRemoveHeadersFooters, pdfDehyphenate: pdfDehyphenate,
-            presentationIncludeNotes: presentationIncludeNotes,
-            sourceMapping: sourceMapping, conversionReport: conversionReport)
-    }
+    public var conversionOptions: ConversionOptions { settings.values.conversionOptions }
 
     public var selectedResult: ConversionResult? {
         switch state {
@@ -269,58 +229,18 @@ public final class AppModel: ObservableObject {
     private var pendingDrops = 0
 
     public init(defaults: UserDefaults = .standard, profileStore: ConversionProfileStore = .init()) {
-        self.defaults = defaults
+        settings = ConversionSettings(defaults: defaults)
         self.profileStore = profileStore
-        imageTextRecognition = defaults.string(forKey: "imageTextRecognition").flatMap(ImageTextRecognition.init(rawValue:)) ?? .enabled
-        spreadsheetRendering = defaults.string(forKey: "spreadsheetRendering").flatMap(SpreadsheetRendering.init(rawValue:)) ?? .markdownTable
-        frontmatter = defaults.bool(forKey: "frontmatter")
-        outputLayout = defaults.string(forKey: "outputLayout").flatMap(OutputLayout.init(rawValue:)) ?? .markdownFolder
-        destinationFolder = defaults.string(forKey: "destinationFolder").map { URL(fileURLWithPath: $0) }
-        pdfTextRecognition = defaults.string(forKey: "pdfTextRecognition").flatMap(PDFTextRecognition.init(rawValue:)) ?? .automatic
-        ocrMethod = defaults.string(forKey: "ocrMethod").flatMap(OCRMethod.init(rawValue:)) ?? .standard
-        docxChangeMode = defaults.string(forKey: "docxChangeMode").flatMap(DOCXChangeMode.init(rawValue:)) ?? .accept
-        pdfLayout = defaults.string(forKey: "pdfLayout").flatMap(PDFLayout.init(rawValue:)) ?? .automatic
-        ocrLanguageCodes = defaults.string(forKey: "ocrLanguageCodes") ?? ""
-        pdfRemoveHeadersFooters = defaults.bool(forKey: "pdfRemoveHeadersFooters")
-        pdfDehyphenate = defaults.bool(forKey: "pdfDehyphenate")
-        batchParallelism = min(max(defaults.integer(forKey: "batchParallelism"), 1), 4)
-        presentationIncludeNotes = defaults.object(forKey: "presentationIncludeNotes") == nil ? true : defaults.bool(forKey: "presentationIncludeNotes")
-        sourceMapping = defaults.object(forKey: "sourceMapping") == nil ? true : defaults.bool(forKey: "sourceMapping")
-        conversionReport = defaults.bool(forKey: "conversionReport")
-        profilePandocExecutable = defaults.string(forKey: "profilePandocExecutable").map { URL(fileURLWithPath: $0) }
-        selectedProfileName = defaults.string(forKey: "selectedProfileName")
-        selectedProfileRevision = defaults.string(forKey: "selectedProfileRevision")
-        profileAllowsLocalTargets = defaults.bool(forKey: "profileAllowsLocalTargets")
-        loadingPreferences = false
+        let selection = settings.loadProfileSelection()
+        selectedProfileName = selection.name
+        selectedProfileRevision = selection.revision
+        profileAllowsLocalTargets = selection.allowsLocalTargets
         refreshProfiles()
     }
 
-    func savePreferences() {
-        guard !loadingPreferences else { return }
-        defaults.set(imageTextRecognition.rawValue, forKey: "imageTextRecognition")
-        defaults.set(spreadsheetRendering.rawValue, forKey: "spreadsheetRendering")
-        defaults.set(pdfTextRecognition.rawValue, forKey: "pdfTextRecognition")
-        defaults.set(ocrMethod.rawValue, forKey: "ocrMethod")
-        defaults.set(docxChangeMode.rawValue, forKey: "docxChangeMode")
-        defaults.set(pdfLayout.rawValue, forKey: "pdfLayout")
-        defaults.set(ocrLanguageCodes, forKey: "ocrLanguageCodes")
-        defaults.set(pdfRemoveHeadersFooters, forKey: "pdfRemoveHeadersFooters")
-        defaults.set(pdfDehyphenate, forKey: "pdfDehyphenate")
-        defaults.set(batchParallelism, forKey: "batchParallelism")
-        defaults.set(frontmatter, forKey: "frontmatter")
-        defaults.set(outputLayout.rawValue, forKey: "outputLayout")
-        defaults.set(destinationFolder?.path, forKey: "destinationFolder")
-        defaults.set(presentationIncludeNotes, forKey: "presentationIncludeNotes")
-        defaults.set(sourceMapping, forKey: "sourceMapping")
-        defaults.set(conversionReport, forKey: "conversionReport")
-        defaults.set(profilePandocExecutable?.path, forKey: "profilePandocExecutable")
-        defaults.set(selectedProfileName, forKey: "selectedProfileName")
-        defaults.set(profileAllowsLocalTargets, forKey: "profileAllowsLocalTargets")
-        defaults.set(selectedProfileRevision, forKey: "selectedProfileRevision")
-    }
-
     public func request(for input: URL, options: ConversionOptions) -> ConversionRequest {
-        let destination = destinationOverrides[input.path] ?? (usesExactProfileDestination ? destinationFolder : destinationFolder.map {
+        let outputRoot = settings.values.destinationFolder
+        let destination = destinationOverrides[input.path] ?? (usesExactProfileDestination ? outputRoot : outputRoot.map {
             let parent = (relativeDirectories[input.path] ?? []).reduce($0) { $0.appendingPathComponent($1, isDirectory: true) }
             return parent.appendingPathComponent(DocumentConverter.outputDirectoryName(for: input, layout: options.outputLayout))
         })
@@ -393,23 +313,27 @@ public final class AppModel: ObservableObject {
         panel.canChooseFiles = false
         panel.canChooseDirectories = true
         panel.allowsMultipleSelection = false
-        if panel.runModal() == .OK { destinationFolder = panel.url }
+        if panel.runModal() == .OK { settings.values.destinationFolder = panel.url }
     }
 
     /// Der Dialog wählt einen neuen Ergebnisordner; die Engine prüft weiterhin
     /// atomar auf Kollisionen, auch wenn nach dem Dialog jemand das Ziel anlegt.
     public func chooseAlternativeDestination(for input: URL) {
-        guard acceptsNewDocuments else { return }
-        let panel = NSSavePanel()
-        panel.title = NSLocalizedString("Choose a new output folder name", comment: "")
-        panel.nameFieldStringValue = DocumentConverter.outputDirectoryName(for: input, layout: outputLayout)
-        panel.directoryURL = destinationFolder ?? input.deletingLastPathComponent()
-        panel.canCreateDirectories = true
-        if panel.runModal() == .OK, let url = panel.url {
-            destinationOverrides[input.path] = outputLayout == .textbundle && url.pathExtension.lowercased() != "textbundle"
-                ? url.appendingPathExtension("textbundle") : url
-            retryFailed(only: input)
+        chooseAlternativeDestination(for: input) {
+            let panel = NSSavePanel()
+            panel.title = NSLocalizedString("Choose a new output folder name", comment: "")
+            panel.nameFieldStringValue = DocumentConverter.outputDirectoryName(for: input, layout: settings.values.outputLayout)
+            panel.directoryURL = settings.values.destinationFolder ?? input.deletingLastPathComponent()
+            panel.canCreateDirectories = true
+            return panel.runModal() == .OK ? panel.url : nil
         }
+    }
+
+    func chooseAlternativeDestination(for input: URL, selectDestination: () -> URL?) {
+        guard acceptsNewDocuments, let url = selectDestination() else { return }
+        let needsBundleExtension = settings.values.outputLayout == .textbundle && url.pathExtension.lowercased() != "textbundle"
+        destinationOverrides[input.path] = needsBundleExtension ? url.appendingPathExtension("textbundle") : url
+        retryFailed(only: input)
     }
 
     public func selectResult(_ item: BatchItem) {
@@ -513,8 +437,8 @@ public final class AppModel: ObservableObject {
             let requests = retry.map { request(for: $0.input, options: options) }
             state = .convertingBatch(BatchProgress(finished: items.filter { $0.result != nil }, current: first.input, total: items.count))
             let cancellation = beginConversion()
-            let jobs = batchParallelism
-            let outputRoot = destinationFolder
+            let jobs = settings.values.batchParallelism
+            let outputRoot = settings.values.destinationFolder
             let profile = profileInvocation()
             let slots = retry.compactMap { item in items.firstIndex { $0.id == item.id } }
             conversionTask = Task {
@@ -607,14 +531,14 @@ public final class AppModel: ObservableObject {
         failedEnumerationInputs = []
         state = .convertingBatch(BatchProgress(finished: [], current: first, total: inputURLs.count))
         let options = conversionOptions
-        let outputRoot = destinationFolder
+        let outputRoot = settings.values.destinationFolder
         let overrides = destinationOverrides
         let profile = profileInvocation()
         closePreview()
         actionMessage = nil
 
         let cancellation = beginConversion()
-        let jobs = batchParallelism
+        let jobs = settings.values.batchParallelism
         conversionTask = Task {
             defer { finishConversion(cancellation) }
             let inputs: [EnumeratedInput]
@@ -908,7 +832,7 @@ public final class AppModel: ObservableObject {
         panel.title = NSLocalizedString("Save Markdown and Assets", comment: "")
         panel.prompt = NSLocalizedString("Save Result", comment: "")
         panel.nameFieldStringValue = DocumentConverter.outputDirectoryName(for: URL(fileURLWithPath: draft.source.fileName), layout: draft.options.outputLayout)
-        panel.directoryURL = destinationFolder
+        panel.directoryURL = settings.values.destinationFolder
         panel.canCreateDirectories = true
         if panel.runModal() == .OK, let url = panel.url {
             saveClipboardResult(to: draft.options.outputLayout == .textbundle && url.pathExtension.lowercased() != "textbundle" ? url.appendingPathExtension("textbundle") : url)

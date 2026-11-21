@@ -23,11 +23,7 @@ if [ "$width" != "1024" ] || [ "$height" != "1024" ] || [ "$has_alpha" != "yes" 
 fi
 
 mkdir -p "$build_directory"
-if [ -e "$iconset" ]; then
-    /usr/bin/swift -e \
-        'import Foundation; try FileManager.default.removeItem(atPath: CommandLine.arguments[1])' \
-        "$iconset"
-fi
+/bin/rm -rf -- "$iconset"
 mkdir "$iconset"
 
 create_icon() {

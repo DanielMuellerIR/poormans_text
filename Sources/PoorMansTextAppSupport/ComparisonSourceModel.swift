@@ -2,10 +2,11 @@ import AppKit
 import Foundation
 import PoorMansTextCore
 
-@MainActor final class ComparisonSourceModel: ObservableObject {
-    enum State: Equatable {
+@MainActor
+package final class ComparisonSourceModel: ObservableObject {
+    package enum State: Equatable {
         case loading, verified, changed, missing, unverified, limit, unreadable
-        var message: String {
+        package var message: String {
             switch self {
             case .loading: NSLocalizedString("Verifying source…", comment: "")
             case .verified: NSLocalizedString("Source bytes match the conversion.", comment: "")
@@ -17,13 +18,13 @@ import PoorMansTextCore
             }
         }
     }
-    @Published private(set) var state = State.loading
-    @Published private(set) var count = 0
-    @Published private(set) var number = 1
-    @Published private(set) var image: NSImage?
-    @Published private(set) var imageBusy = false
+    @Published package private(set) var state = State.loading
+    @Published package private(set) var count = 0
+    @Published package private(set) var number = 1
+    @Published package private(set) var image: NSImage?
+    @Published package private(set) var imageBusy = false
     @Published private(set) var imageUnavailable = false
-    var isVerified: Bool { state == .verified }
+    package var isVerified: Bool { state == .verified }
     private var generation = UUID()
     private var renderGeneration = UUID()
     private var watcher: ComparisonSourceWatcher?
@@ -31,7 +32,9 @@ import PoorMansTextCore
     private var operation: Task<Void, Never>?
     private var rendering: Task<Void, Never>?
 
-    func load(_ result: ConversionResult) {
+    package init() {}
+
+    package func load(_ result: ConversionResult) {
         stop()
         state = .loading; count = 0; number = 1; image = nil; imageUnavailable = false
         let token = generation
@@ -65,7 +68,7 @@ import PoorMansTextCore
         }
     }
 
-    func select(_ number: Int) {
+    package func select(_ number: Int) {
         guard isVerified, (1...max(1, count)).contains(number), let renderer else { return }
         self.number = number; image = nil; imageBusy = true; imageUnavailable = false
         rendering?.cancel()
@@ -82,7 +85,7 @@ import PoorMansTextCore
         }
     }
 
-    func stop() {
+    package func stop() {
         operation?.cancel(); operation = nil; rendering?.cancel(); rendering = nil
         watcher = nil; renderer = nil; generation = UUID(); renderGeneration = UUID()
     }

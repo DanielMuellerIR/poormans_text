@@ -140,7 +140,7 @@ final class ClipboardImportTests: XCTestCase {
         pasteboard.setData(flat, forType: .rtfd)
         let change = pasteboard.changeCount
         let model = AppModel(defaults: .isolatedForAppTest())
-        model.frontmatter = true
+        model.settings.values.frontmatter = true
         model.pasteRichText(from: pasteboard)
         try await finish(model)
         let temporary = try XCTUnwrap(model.selectedResult)
@@ -154,7 +154,7 @@ final class ClipboardImportTests: XCTestCase {
         XCTAssertTrue(model.preview?.text.contains("Second item") == true)
         let expected = try String(contentsOf: temporary.markdownFile, encoding: .utf8)
         pasteboard.clearContents(); pasteboard.setString("replacement must not be read", forType: .string)
-        model.frontmatter = false
+        model.settings.values.frontmatter = false
         let target = root.appendingPathComponent("Permanent")
         model.saveClipboardResult(to: target)
         try await finish(model)
@@ -244,12 +244,12 @@ final class ClipboardImportTests: XCTestCase {
         pasteboard.setData(bytes, forType: .rtf)
         let change = pasteboard.changeCount
         let model = AppModel(defaults: .isolatedForAppTest())
-        model.profilePandocExecutable = URL(fileURLWithPath: "/nonexistent-pmt-clipboard/pandoc")
+        model.settings.values.profilePandocExecutable = URL(fileURLWithPath: "/nonexistent-pmt-clipboard/pandoc")
         model.pasteRichText(from: pasteboard)
         try await finish(model)
         guard case .failed(_, let message) = model.state else { return XCTFail("Missing Pandoc accepted") }
         XCTAssertTrue(message.contains("Pandoc was not found"), message)
-        model.profilePandocExecutable = nil
+        model.settings.values.profilePandocExecutable = nil
         model.pasteRichText(from: pasteboard)
         model.cancelConversion()
         try await finish(model)

@@ -71,6 +71,10 @@ int pmt_process_write_control(int fd, unsigned char value) {
 
 
 int pmt_process_open_relative_directory(int root_fd, const char *relative) {
+    if (!relative) {
+        errno = EINVAL;
+        return -1;
+    }
     int current = fcntl(root_fd, F_DUPFD_CLOEXEC, 3);
     if (current < 0) return -1;
     if (!*relative) return current;
@@ -85,7 +89,10 @@ int pmt_process_open_relative_directory(int root_fd, const char *relative) {
         if (child < 0) break;
         close(current);
         current = child;
-        if (!next) { free(copy); return current; }
+        if (!next || !next[1]) {
+            free(copy);
+            return current;
+        }
         part = next + 1;
     }
     int saved = errno;
@@ -96,14 +103,20 @@ int pmt_process_open_relative_directory(int root_fd, const char *relative) {
 }
 
 int pmt_process_open_directory(const char *path) {
-    if (path[0] != '/') { errno = EINVAL; return -1; }
+    if (!path || path[0] != '/') {
+        errno = EINVAL;
+        return -1;
+    }
     int root = -1;
     const char *relative = path + 1;
     if (!strncmp(path, "/proc/", 6)) {
         char *end;
         errno = 0;
         long owner = strtol(path + 6, &end, 10);
-        if (errno || owner != getpid() || strncmp(end, "/fd/", 4)) { errno = EINVAL; return -1; }
+        if (errno || end == path + 6 || owner != getpid() || strncmp(end, "/fd/", 4)) {
+            errno = EINVAL;
+            return -1;
+        }
         const char *number = end + 4;
         long descriptor = strtol(number, &end, 10);
         if (errno || end == number || descriptor < 0 || descriptor > INT_MAX || (*end && *end != '/')) { errno = EINVAL; return -1; }
@@ -124,7 +137,10 @@ int pmt_process_open_directory(const char *path) {
 
 int pmt_process_unlink_owned_capture(int directory, const char *name, int descriptor) {
     struct stat held, named;
-    if (strchr(name, '/') || !*name) { errno = EINVAL; return -1; }
+    if (!name || !*name || strchr(name, '/')) {
+        errno = EINVAL;
+        return -1;
+    }
     if (fstat(descriptor, &held) != 0 || fstatat(directory, name, &named, AT_SYMLINK_NOFOLLOW) != 0) return -1;
     if (!S_ISREG(named.st_mode) || named.st_dev != held.st_dev || named.st_ino != held.st_ino) { errno = ESTALE; return -1; }
     return unlinkat(directory, name, 0);

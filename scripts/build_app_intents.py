@@ -51,8 +51,8 @@ def main():
         protocols = root / "protocols.json"
         protocols.write_text(json.dumps(["AppIntent", "AppEnum", "AppShortcutsProvider", "AppEntity", "EntityQuery", "EntityStringQuery"]))
         identity = json.loads(output("swift", "package", "show-dependencies", "--format", "json"))["identity"]
-        # SwiftPM ersetzt Bindestriche im Compiler-Paketnamen durch Unterstriche.
-        identity = identity.replace("-", "_")
+        # SwiftPM ersetzt Bindestriche und Punkte im Compiler-Paketnamen.
+        identity = identity.replace("-", "_").replace(".", "_")
         # Der separate Metadaten-Compile braucht auch die öffentlichen C-Module
         # des Markdown-Parsers; SwiftBuild übergibt sie sonst nur seinen Targets.
         parser_headers = [

@@ -63,9 +63,9 @@ package enum LinuxProcessRunner {
         let infoName = ".process-\(identifier).namespace"
         let errorHandle = try capture(in: directoryFD, name: errorName)
         var outputHandle: FileHandle?
-        var infoHandle: FileHandle?
+        var pendingInfoHandle: FileHandle?
         defer {
-            for (name, handle) in [(errorName, Optional(errorHandle)), (outputName, outputHandle), (infoName, infoHandle)] {
+            for (name, handle) in [(errorName, Optional(errorHandle)), (outputName, outputHandle), (infoName, pendingInfoHandle)] {
                 if let handle {
                     _ = pmt_process_unlink_owned_capture(directoryFD, name, handle.fileDescriptor)
                     try? handle.close()
@@ -73,7 +73,8 @@ package enum LinuxProcessRunner {
             }
         }
         if captureStandardOutput { outputHandle = try capture(in: directoryFD, name: outputName) }
-        infoHandle = try capture(in: directoryFD, name: infoName)
+        let infoHandle = try capture(in: directoryFD, name: infoName)
+        pendingInfoHandle = infoHandle
 
         var mappings = [(source: scope.path, destination: "/pmt/work-scope")]
         if !FileSystemPath.equal(currentDirectory.path, scope.path) { mappings.append((currentDirectory.path, "/pmt/work-dir")) }
@@ -167,7 +168,7 @@ package enum LinuxProcessRunner {
         let setupDeadline = ProcessInfo.processInfo.systemUptime + 5
         while namespaceFD < 0 {
             try token.checkCancellation()
-            let info = try read(infoHandle!, maximumBytes: 4096)
+            let info = try read(infoHandle, maximumBytes: 4096)
             if let object = try? JSONSerialization.jsonObject(with: info) as? [String: Any],
                let child = object["child-pid"] as? NSNumber, child.int32Value > 1 {
                 namespaceFD = pmt_process_pidfd_open_owned(child.int32Value, getpid())
@@ -213,7 +214,7 @@ package enum LinuxProcessRunner {
         finish()
         try token.checkCancellation()
         let errorData = try read(errorHandle, maximumBytes: maximumCapturedBytes)
-        let outputData = captureStandardOutput ? try read(outputHandle!, maximumBytes: maximumCapturedBytes) : Data()
+        let outputData = try outputHandle.map { try read($0, maximumBytes: maximumCapturedBytes) } ?? Data()
         return ProcessResult(status: process.terminationReason == .uncaughtSignal ? 128 + process.terminationStatus : process.terminationStatus,
                              standardOutput: String(decoding: outputData, as: UTF8.self),
                              standardError: String(decoding: errorData, as: UTF8.self))

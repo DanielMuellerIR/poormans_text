@@ -79,10 +79,8 @@ detach_dmg() {
 
 cleanup() {
     detach_dmg || true
-    if [ "$mounted" -eq 0 ] && [ -d "$temporary_directory" ]; then
-        /usr/bin/swift -e \
-            'import Foundation; try FileManager.default.removeItem(atPath: CommandLine.arguments[1])' \
-            "$temporary_directory"
+    if [ "$mounted" -eq 0 ]; then
+        /bin/rm -rf -- "$temporary_directory"
     fi
 }
 trap cleanup EXIT

@@ -8,22 +8,76 @@ struct ContentView: View {
     @Environment(\.openWindow) private var openWindow
     @AppStorage("CLIInstallDeclined") private var cliInstallDeclined = false
     @AppStorage("PandocInstallDeclined") private var pandocInstallDeclined = false
-    @State private var showsCLIInstallOffer = false
-    @State private var cliInstallError: String?
-    @State private var pandocOffer: PandocInstaller.Offer?
-    @State private var showsPandocInstallSuccess = false
-    @State private var pandocInstallError: String?
-    @State private var showsPreview = false
-    @State private var showsComparison = false
+    @State private var activeSheet: Sheet?
+    @State private var activeOffer: InstallOffer?
+    @State private var activeAlert: InstallAlert?
+    @State private var isDropTargeted = false
     @State private var collectionQuery = ""
-    @State private var contentSelection: ContentSelectionTicket?
+
+    private enum PreviewMode: String {
+        case preview
+        case comparison
+    }
+
+    private enum Sheet: Identifiable {
+        case preview(PreviewMode)
+        case contentSelection(ContentSelectionTicket)
+
+        var id: String {
+            switch self {
+            case .preview(let mode): mode.rawValue
+            case .contentSelection(let ticket): ticket.id.uuidString
+            }
+        }
+    }
+
+    private enum InstallOffer {
+        case pandoc(PandocInstaller.Offer)
+        case commandLine
+
+        var title: LocalizedStringKey {
+            switch self {
+            case .pandoc(.manualGuidance): "Pandoc Required"
+            case .pandoc(.homebrewInstall): "Install Pandoc?"
+            case .commandLine: "Install Command-Line Tool?"
+            }
+        }
+    }
+
+    private enum InstallAlert {
+        case pandocInstalled
+        case pandocFailed(String)
+        case commandLineFailed(String)
+
+        var title: LocalizedStringKey {
+            switch self {
+            case .pandocInstalled: "Pandoc Installed"
+            case .pandocFailed: "Pandoc Installation Failed"
+            case .commandLineFailed: "Command-Line Installation Failed"
+            }
+        }
+    }
+
+    private var previewAvailable: Bool { model.preview != nil || model.isLoadingPreview }
+
+    private var isShowingInstallOffer: Binding<Bool> {
+        Binding(get: { activeOffer != nil }, set: { if !$0 { activeOffer = nil } })
+    }
+
+    private var isShowingInstallAlert: Binding<Bool> {
+        Binding(get: { activeAlert != nil }, set: { if !$0 { activeAlert = nil } })
+    }
 
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
                 header
                 ProfileControls(model: model)
-                options
+                ConversionOptionsView(
+                    settings: model.settings,
+                    acceptsNewDocuments: model.acceptsNewDocuments,
+                    chooseDestinationFolder: model.chooseDestinationFolder
+                )
                 dropArea
                 footer
             }
@@ -41,122 +95,110 @@ struct ContentView: View {
                 endPoint: .bottomTrailing
             )
         )
-        .sheet(isPresented: Binding(
-            get: { showsPreview && (model.preview != nil || model.isLoadingPreview) },
-            set: { showsPreview = $0; if !$0 { model.closePreview() } }
-        ), onDismiss: { showsPreview = false }) {
-            VStack(alignment: .leading, spacing: 16) {
-                HStack {
-                    Text(showsComparison ? "Compare source and result" : "Preview").font(.headline)
-                    if let result = model.selectedResult {
-                        Text(verbatim: result.inputURL.lastPathComponent).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
-                    }
-                }
-                if let preview = model.preview, let result = model.selectedOutput {
-                    if showsComparison { ConversionComparisonPane(preview: preview, result: result) }
-                    else { MarkdownPreviewPane(preview: preview, result: result) }
-                } else {
-                    ProgressView("Loading preview…").frame(maxWidth: .infinity, maxHeight: .infinity)
-                }
-                HStack { Spacer(); Button("Done") { model.closePreview() }.keyboardShortcut(.cancelAction) }
+        .sheet(item: $activeSheet) { sheet in
+            switch sheet {
+            case .preview(let mode):
+                previewSheet(mode)
+                    .onDisappear { model.closePreview() }
+            case .contentSelection(let ticket):
+                ContentSelectionView(input: ticket.input).environmentObject(model).id(ticket.id)
             }
-            .padding(20)
-            .frame(minWidth: 760, idealWidth: showsComparison ? 1080 : 800,
-                   minHeight: 560, idealHeight: showsComparison ? 760 : 560)
         }
-        .sheet(item: $contentSelection) { ticket in
-            ContentSelectionView(input: ticket.input).environmentObject(model).id(ticket.id)
+        .onChange(of: previewAvailable) { available in
+            if !available, case .preview = activeSheet { activeSheet = nil }
         }
         .task {
             preparePandocOffer()
-            // Höchstens ein Start-Dialog pro Start: Solange Pandoc fehlt, hat
-            // dessen Angebot Vorrang; das CLI-Angebot kommt beim nächsten Start.
-            if pandocOffer == nil {
-                prepareCLIInstallationOffer()
-            }
+            // Pro Start erscheint nur ein Angebot. Wenn Pandoc fehlt, hat es Vorrang.
+            if activeOffer == nil { prepareCLIInstallationOffer() }
         }
         .confirmationDialog(
-            pandocOffer == .manualGuidance ? "Pandoc Required" : "Install Pandoc?",
-            isPresented: Binding(
-                get: { pandocOffer != nil },
-                set: { if !$0 { pandocOffer = nil } }
-            ),
-            titleVisibility: .visible
-        ) {
-            if case .homebrewInstall(let brewExecutable) = pandocOffer {
-                Button("Install with Homebrew") {
-                    installPandoc(brewExecutable: brewExecutable)
-                }
-            } else {
+            activeOffer?.title ?? "",
+            isPresented: isShowingInstallOffer,
+            titleVisibility: .visible,
+            presenting: activeOffer
+        ) { offer in
+            switch offer {
+            case .pandoc(.homebrewInstall(let brewExecutable)):
+                Button("Install with Homebrew") { installPandoc(brewExecutable: brewExecutable) }
+            case .pandoc(.manualGuidance):
                 Button("Show Install Help") {
                     NSWorkspace.shared.open(PandocInstaller.installationHelpURL)
                 }
+            case .commandLine:
+                Button("Install") { installCLI() }
             }
-            Button("Later", role: .cancel) {
-                pandocOffer = nil
-            }
+            Button("Later", role: .cancel) { activeOffer = nil }
             Button("Don't Ask Again") {
-                pandocInstallDeclined = true
-                pandocOffer = nil
+                switch offer {
+                case .pandoc: pandocInstallDeclined = true
+                case .commandLine: cliInstallDeclined = true
+                }
+                activeOffer = nil
             }
-        } message: {
-            if case .homebrewInstall = pandocOffer {
+        } message: { offer in
+            switch offer {
+            case .pandoc(.homebrewInstall):
                 Text("Pandoc is required for word-processing documents, HTML, e-books, text markups, and ODM master documents. Spreadsheets, CSV, PDF, and images work without it. Install Pandoc now with Homebrew? This can take a few minutes.")
-            } else {
+            case .pandoc(.manualGuidance):
                 Text("Pandoc is required for word-processing documents, HTML, e-books, text markups, and ODM master documents. Spreadsheets, CSV, PDF, and images work without it. The Pandoc website offers an official installer.")
+            case .commandLine:
+                Text("Make poormans-text available in Terminal by linking it to the copy embedded in this app.")
             }
         }
-        .alert("Pandoc Installed", isPresented: $showsPandocInstallSuccess) {
-            Button("OK") {
-                showsPandocInstallSuccess = false
+        .alert(activeAlert?.title ?? "", isPresented: isShowingInstallAlert, presenting: activeAlert) { alert in
+            switch alert {
+            case .pandocInstalled: Button("OK") { activeAlert = nil }
+            case .pandocFailed, .commandLineFailed: Button("OK", role: .cancel) { activeAlert = nil }
             }
-        } message: {
-            Text("Pandoc is now available for word-processing documents and ODM master documents.")
+        } message: { alert in
+            switch alert {
+            case .pandocInstalled:
+                Text("Pandoc is ready to use.")
+            case .pandocFailed(let message), .commandLineFailed(let message):
+                Text(message)
+            }
         }
-        .alert(
-            "Pandoc Installation Failed",
-            isPresented: Binding(
-                get: { pandocInstallError != nil },
-                set: { if !$0 { pandocInstallError = nil } }
-            )
-        ) {
-            Button("OK", role: .cancel) {
-                pandocInstallError = nil
+    }
+
+    private func previewSheet(_ mode: PreviewMode) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Text(mode == .comparison ? "Compare source and result" : "Preview").font(.headline)
+                if let result = model.selectedResult {
+                    Text(verbatim: result.inputURL.lastPathComponent)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
             }
-        } message: {
-            Text(pandocInstallError ?? "Unknown error")
+            if let preview = model.preview, let result = model.selectedOutput {
+                switch mode {
+                case .preview: MarkdownPreviewPane(preview: preview, result: result)
+                case .comparison: ConversionComparisonPane(preview: preview, result: result)
+                }
+            } else {
+                ProgressView("Loading preview…").frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+            HStack {
+                Spacer()
+                Button("Done") {
+                    activeSheet = nil
+                    model.closePreview()
+                }
+                .keyboardShortcut(.cancelAction)
+            }
         }
-        .confirmationDialog(
-            "Install Command-Line Tool?",
-            isPresented: $showsCLIInstallOffer,
-            titleVisibility: .visible
-        ) {
-            Button("Install") {
-                installCLI()
-            }
-            Button("Later", role: .cancel) {
-                showsCLIInstallOffer = false
-            }
-            Button("Don't Ask Again") {
-                cliInstallDeclined = true
-                showsCLIInstallOffer = false
-            }
-        } message: {
-            Text("Make poormans-text available in Terminal by linking it to the copy embedded in this app.")
-        }
-        .alert(
-            "Command-Line Installation Failed",
-            isPresented: Binding(
-                get: { cliInstallError != nil },
-                set: { if !$0 { cliInstallError = nil } }
-            )
-        ) {
-            Button("OK", role: .cancel) {
-                cliInstallError = nil
-            }
-        } message: {
-            Text(cliInstallError ?? "Unknown error")
-        }
+        .padding(20)
+        .frame(
+            minWidth: 760, idealWidth: mode == .comparison ? 1080 : 800,
+            minHeight: 560, idealHeight: mode == .comparison ? 760 : 560
+        )
+    }
+
+    private func presentPreview(_ mode: PreviewMode) {
+        model.loadPreview()
+        if previewAvailable { activeSheet = .preview(mode) }
     }
 
     private var header: some View {
@@ -169,7 +211,7 @@ struct ContentView: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text(ProductInfo.name)
                     .font(.title.bold())
-                Text("Documents, spreadsheets, PDFs, and images to Markdown")
+                Text("Convert files to Markdown")
                     .foregroundStyle(.secondary)
             }
 
@@ -207,19 +249,19 @@ struct ContentView: View {
         .padding(28)
         .background(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(model.isDropTargeted ? Color.accentColor.opacity(0.13) : Color.primary.opacity(0.035))
+                .fill(isDropTargeted ? Color.accentColor.opacity(0.13) : Color.primary.opacity(0.035))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .strokeBorder(
-                    model.isDropTargeted ? Color.accentColor : Color.secondary.opacity(0.45),
+                    isDropTargeted ? Color.accentColor : Color.secondary.opacity(0.45),
                     style: StrokeStyle(lineWidth: 2, dash: [8, 7])
                 )
         )
-        .animation(.easeInOut(duration: 0.16), value: model.isDropTargeted)
+        .animation(.easeInOut(duration: 0.16), value: isDropTargeted)
         .onDrop(
             of: [UTType.fileURL.identifier],
-            isTargeted: $model.isDropTargeted
+            isTargeted: $isDropTargeted
         ) { providers in
             model.acceptDrop(providers)
         }
@@ -262,7 +304,7 @@ struct ContentView: View {
                         .keyboardShortcut(.defaultAction)
                     Button("Select Content…") {
                         guard model.acceptsNewDocuments, let input = AppModel.chooseSelectionDocument() else { return }
-                        contentSelection = ContentSelectionTicket(input: input)
+                        activeSheet = .contentSelection(ContentSelectionTicket(input: input))
                     }
                     .accessibilityLabel("Select Content…").accessibilityIdentifier("selectionChoose")
                 }.controlSize(.large)
@@ -312,7 +354,7 @@ struct ContentView: View {
                 .frame(maxHeight: 110)
             }
             if model.clipboardDraft != nil {
-                Button("Preview") { showsComparison = false; showsPreview = true; model.loadPreview() }
+                Button("Preview") { presentPreview(.preview) }
                     .accessibilityIdentifier("clipboardPreview")
                 HStack(spacing: 12) {
                     Button("Save Markdown and Assets…") { model.chooseClipboardDestination() }
@@ -464,84 +506,6 @@ struct ContentView: View {
         }
     }
 
-    private var options: some View {
-        DisclosureGroup("Conversion Options") {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Text("Destination")
-                    Text(model.destinationFolder?.path ?? NSLocalizedString("Next to each source", comment: ""))
-                        .lineLimit(1).truncationMode(.middle)
-                    Button("Choose…") { model.chooseDestinationFolder() }
-                        .help("Selects the folder where the app will create new conversion results.")
-                    if model.destinationFolder != nil {
-                        Button("Reset") { model.destinationFolder = nil }
-                            .help("Saves new results next to their source documents again.")
-                    }
-                }
-                Picker("Tables", selection: $model.spreadsheetRendering) {
-                    Text("Markdown tables").tag(SpreadsheetRendering.markdownTable)
-                    Text("Tab-separated text").tag(SpreadsheetRendering.tabSeparated)
-                }
-                .help("Markdown creates a readable table. Tab-separated text separates cells with tabs for use in spreadsheet tools.")
-                Picker("DOCX text changes", selection: $model.docxChangeMode) {
-                    Text("Accept changes").tag(DOCXChangeMode.accept)
-                    Text("Reject changes").tag(DOCXChangeMode.reject)
-                    Text("Mark changes visibly").tag(DOCXChangeMode.mark)
-                }
-                .accessibilityIdentifier("docxChangeMode")
-                .help("Applies to DOCX text changes. Comments retain their author, date and source reference. Other document formats keep their existing behavior.")
-                Picker("Images", selection: $model.imageTextRecognition) {
-                    Text("Add local OCR text").tag(ImageTextRecognition.enabled)
-                    Text("Keep only the image").tag(ImageTextRecognition.disabled)
-                }
-                .help("Run local text recognition to include text found in images, or keep just the image.")
-                Picker("PDF OCR", selection: $model.pdfTextRecognition) {
-                    Text("Automatic").tag(PDFTextRecognition.automatic)
-                    Text("Always").tag(PDFTextRecognition.always)
-                    Text("Off").tag(PDFTextRecognition.disabled)
-                }
-                .help("Automatic recognizes text on pages without usable embedded text. Always also checks pages with embedded text. Off uses the existing text layer.")
-                Picker("OCR method", selection: $model.ocrMethod) {
-                    Text("Standard OCR").tag(OCRMethod.standard)
-                    Text("Structured OCR (macOS 26+)").tag(OCRMethod.structured)
-                }
-                .accessibilityIdentifier("ocrMethod")
-                .help("Structured OCR preserves paragraphs, lists and tables. If unavailable or uncertain, standard OCR is used with a diagnostic.")
-                TextField("OCR languages (empty: automatic; e.g. de,en)", text: $model.ocrLanguageCodes)
-                    .help("Separate language codes with commas, such as de,en for German and English. Leave empty for automatic selection.")
-                Picker("PDF text order", selection: $model.pdfLayout) {
-                    Text("Automatic layout").tag(PDFLayout.automatic)
-                    Text("Legacy extraction").tag(PDFLayout.legacy)
-                }
-                .help("Automatic tries to identify columns and reading order. Try legacy extraction if the resulting order is hard to read.")
-                Toggle("Remove repeated PDF headers and footers", isOn: $model.pdfRemoveHeadersFooters)
-                    .help("Omits repeated lines identified as headers or footers from the PDF output.")
-                Toggle("Join conservative PDF word breaks", isOn: $model.pdfDehyphenate)
-                    .help("Joins words when a PDF line break is likely to be a hyphenation break.")
-                Toggle("Include presentation notes", isOn: $model.presentationIncludeNotes)
-                    .help("Includes presenter notes when converting presentations.")
-                Toggle("Record source locations", isOn: $model.sourceMapping)
-                    .help("Links Markdown sections to their locations in the source, such as PDF pages, when possible. This helps when comparing the output with the source.")
-                Toggle("Write conversion report", isOn: $model.conversionReport)
-                    .help("Saves a JSON file alongside the Markdown with conversion details, tools used and warnings.")
-                Picker("Batch documents at once", selection: $model.batchParallelism) {
-                    ForEach(1...4, id: \.self) { Text(String($0)).tag($0) }
-                }
-                .help("Number of documents processed at once. A higher value may use more memory.")
-                Text("Local OCR processes one image at a time.").font(.caption)
-                Toggle("Add YAML frontmatter", isOn: $model.frontmatter)
-                    .help("Writes details such as the title, author or date in a block at the top of the Markdown file. A line of three dashes (---) opens and closes the block. Other tools can read these details separately from the text.")
-                Picker("Output", selection: $model.outputLayout) {
-                    Text("Markdown folder").tag(OutputLayout.markdownFolder)
-                    Text("Textbundle").tag(OutputLayout.textbundle)
-                }
-                .help("Choose a plain output folder or package Markdown and images in a .textbundle folder for apps such as iA Writer.")
-            }
-            .padding(.top, 8)
-            .disabled(!model.acceptsNewDocuments)
-        }
-    }
-
     @ViewBuilder private var resultActions: some View {
         if let result = model.selectedResult {
             if result.isCollection { collectionSelection(result).id(result.outputDirectory) }
@@ -611,9 +575,9 @@ struct ContentView: View {
     @ViewBuilder private var inspectResultButtons: some View {
         Button("Copy Markdown") { model.copyMarkdown() }
             .help("Copies the entire selected Markdown file to the clipboard.")
-        Button("Preview") { showsComparison = false; showsPreview = true; model.loadPreview() }
+        Button("Preview") { presentPreview(.preview) }
         if !model.isClipboardResult, model.selectedResult?.isCollection != true {
-            Button("Compare") { showsComparison = true; showsPreview = true; model.loadPreview() }
+            Button("Compare") { presentPreview(.comparison) }
                 .help("Opens the selected Markdown output beside its source.")
         }
         if model.selectedResult?.reportFile != nil { Button("Open Report") { model.openReport() } }
@@ -715,15 +679,16 @@ struct ContentView: View {
     }
 
     private func preparePandocOffer() {
-        pandocOffer = PandocInstaller.offer(
+        let offer = PandocInstaller.offer(
             pandocIsAvailable: ExternalToolResolver().isAvailable(.pandoc),
             installDeclined: pandocInstallDeclined,
             brewExecutable: PandocInstaller.resolveHomebrew()
         )
+        activeOffer = offer.map(InstallOffer.pandoc)
     }
 
     private func installPandoc(brewExecutable: URL) {
-        pandocOffer = nil
+        activeOffer = nil
 
         // Der Installationszustand gehört ins Modell: nur dort können Drop-Zone,
         // Dateiauswahl und `onOpenURL` gemeinsam gesperrt werden.
@@ -733,10 +698,10 @@ struct ContentView: View {
                 // darf Erfolg melden. Ein paralleler zweiter Aufruf läuft in die
                 // Sperre des Modells und kehrt ohne Ergebnis zurück.
                 if try await model.installPandoc(brewExecutable: brewExecutable) {
-                    showsPandocInstallSuccess = true
+                    activeAlert = .pandocInstalled
                 }
             } catch {
-                pandocInstallError = AppErrorMessage.describe(error)
+                activeAlert = .pandocFailed(AppErrorMessage.describe(error))
             }
         }
     }
@@ -763,11 +728,11 @@ struct ContentView: View {
         ) == .available else {
             return
         }
-        showsCLIInstallOffer = true
+        activeOffer = .commandLine
     }
 
     private func installCLI() {
-        showsCLIInstallOffer = false
+        activeOffer = nil
         let sourceURL = Bundle.main.bundleURL
             .appendingPathComponent("Contents/Resources/poormans-text")
         let targetURL = CLIInstaller.defaultTargetURL
@@ -778,7 +743,7 @@ struct ContentView: View {
                     try CLIInstaller.install(sourceURL: sourceURL, targetURL: targetURL)
                 }.value
             } catch {
-                cliInstallError = AppErrorMessage.describe(error)
+                activeAlert = .commandLineFailed(AppErrorMessage.describe(error))
             }
         }
     }
